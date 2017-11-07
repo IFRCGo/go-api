@@ -12,3 +12,6 @@ pip-log.txt
 # django stuff
 *.log
 *.pot
+
+# local test db
+db.sqlite3
