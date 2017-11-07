@@ -4,4 +4,11 @@ env
 # secret settings file
 main/secret_settings.py
 
+# python stuff
 *.pyc
+__pycache__/
+pip-log.txt
+
+# django stuff
+*.log
+*.pot
