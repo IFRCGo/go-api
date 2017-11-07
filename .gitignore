@@ -2,6 +2,6 @@
 env
 
 # secret settings file
-main/main/secret_settings.py
+main/secret_settings.py
 
 *.pyc
