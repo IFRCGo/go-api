@@ -12,6 +12,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'api'
 ]
 
 MIDDLEWARE = [
@@ -73,4 +74,5 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 
-from .secret_settings import *
+if os.path.exists(os.path.join(os.path.dirname(__file__), 'secret_settings.py')):
+    from .secret_settings import *
