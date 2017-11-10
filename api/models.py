@@ -1,12 +1,22 @@
 from django.db import models
 
 
+class DisasterType(models.Model):
+    """ Type of disaster """
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+
 class Disaster(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # type = models.ForeignKey(DisasterType)
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """

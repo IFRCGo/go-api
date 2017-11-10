@@ -3,6 +3,11 @@ from django.test import TestCase
 import api.models as models
 
 
+class DisasterTypeTest(TestCase):
+    def test_disaster_types(self):
+        pass
+
+
 class DiasterTest(TestCase):
     def setUp(self):
         models.Disaster.objects.create(name='disaster1', description='test disaster')
