@@ -8,6 +8,12 @@ class Disaster(models.Model):
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def countries(self):
+        """ Get countries from all appeals and field reports in this disaster """
+        countries1 = [appeal.country for appeal in self.appeal_set.all()]
+        countries2 = [fr.country for fr in self.fieldreport_set.all()]
+        return list(set([c.name for c in countries1 + countries2]))
+
     def __str__(self):
         return self.name
 

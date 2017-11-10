@@ -41,6 +41,7 @@ class AppealTest(TestCase):
 
     def test_appeal_create(self):
         disaster = models.Disaster.objects.get(name='disaster1')
+        self.assertEqual(disaster.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.Appeal.objects.get(aid='test1')
         self.assertEqual(obj.aid, 'test1')
@@ -56,6 +57,7 @@ class FieldReportTest(TestCase):
 
     def test_field_report_create(self):
         disaster = models.Disaster.objects.get(name='disaster1')
+        self.assertEqual(disaster.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.FieldReport.objects.get(fid='test1')
         self.assertEqual(obj.fid, 'test1')
