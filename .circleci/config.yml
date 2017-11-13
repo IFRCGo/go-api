@@ -17,6 +17,20 @@ references:
         - v0-repo-{{ .Branch }}
         - v0-repo
 
+  restore_cache: &restore_cache
+    restore_cache:
+      keys: 
+        - v0-dependencies-{{ checksum "requirements.txt"}}
+        - v0-dependencies
+      paths:
+        - /caches/project.tar
+
+  create_env: &create_env
+    run:
+      name: Creating .env
+      command: |
+        touch .env
+
 jobs:
 
   checkout_code:
@@ -33,28 +47,53 @@ jobs:
     <<: *container_python36
     steps:  
       - *restore_repo
-      - restore_cache:
-          keys: 
-            - v0-dependencies36-{{ checksum "requirements.txt"}}
-            - v0-dependencies36
+      - *restore_cache
       - run: |
             python3 -m venv ~/venv
             . ~/venv/bin/activate
             pip install -r requirements.txt
-            nosetests -v --with-coverage --cover-package api
+            ./manage.py test
       - save_cache:
-          key: v0-dependencies36-{{ checksum "requirements.txt"}}
+          key: v0-dependencies-{{ checksum "requirements.txt"}}
           paths:
             - ~/venv
+
+  build_docker:
+    docker:
+      - image: docker:17.05.0-ce-git
+    working_dir: ~/project
+    steps:
+      - *restore_repo
+      - setup_remote_docker
+      - run:
+          name: Load Docker image layer caches
+          command: |
+            set +o pipefail
+            docker load -i /caches/docker.tar | true
+      - run: 
+          name: Build docker image
+          command: |
+            docker build --cache-from=developmentseed/ifrc-go-api:latest -t developmentseed/ifrc-go-api:latest .
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/docker.tar developmentseed/ifrc-go-api:latest
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /caches/docker.tar
+      - *create_env
+      - run:
+          name: Run tests
+          command: |
+            docker run --env-file .env -t developmentseed/ifrc-go-api:latest manage.py test
 
   deploy:
     <<: *container_python36
     steps:
       - *restore_repo
-      - restore_cache:
-          keys: 
-            - v0-dependencies36-{{ checksum "requirements.txt"}}
-            - v0-dependencies36
+      - *restore_cache
       - run:
           name: Deploy
           command: |
