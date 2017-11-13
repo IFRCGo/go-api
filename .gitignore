@@ -1,0 +1,17 @@
+# python virtual environment folder
+env
+
+# secret settings file
+main/secret_settings.py
+
+# python stuff
+*.pyc
+__pycache__/
+pip-log.txt
+
+# django stuff
+*.log
+*.pot
+
+# local test db
+db.sqlite3
