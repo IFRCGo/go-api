@@ -113,6 +113,7 @@ jobs:
       - run:
           name: Push image to Docker Hub
           command: |
+            VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker tag docker-image:latest developmentseed/ifrc-go-api:$VERSION
             docker push developmentseed/ifrc-go-api:$VERSION
