@@ -1,186 +1,186 @@
 [
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Epidemic"
+   "name": "Epidemic"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Earthquake"
+   "name": "Earthquake"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Tropical cyclone"
+   "name": "Tropical cyclone"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Population movements"
+   "name": "Population movements"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Complex emergency"
+   "name": "Complex emergency"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Civil unrest"
+   "name": "Civil unrest"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Volcano"
+   "name": "Volcano"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Tsunami"
+   "name": "Tsunami"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Floods"
+   "name": "Floods"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Explosion"
+   "name": "Explosion"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Cold wave"
+   "name": "Cold wave"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Urban fire"
+   "name": "Urban fire"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Heat wave"
+   "name": "Heat wave"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Drought"
+   "name": "Drought"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Storm surge"
+   "name": "Storm surge"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Landslide (Dry)"
+   "name": "Landslide (Dry)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Extra tropical cyclone"
+   "name": "Extra tropical cyclone"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Flash floods"
+   "name": "Flash floods"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Local storm"
+   "name": "Local storm"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Avalanche (Dry)"
+   "name": "Avalanche (Dry)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Other"
+   "name": "Other"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Air accident"
+   "name": "Air accident"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Animal attack"
+   "name": "Animal attack"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Bush fire"
+   "name": "Bush fire"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Chemical spill"
+   "name": "Chemical spill"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Collapse"
+   "name": "Collapse"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Extreme winter condition"
+   "name": "Extreme winter condition"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Forest fire"
+   "name": "Forest fire"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Gas leak"
+   "name": "Gas leak"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Grasshoppers"
+   "name": "Grasshoppers"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Grassland fire"
+   "name": "Grassland fire"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Locust"
+   "name": "Locust"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Meteorite"
+   "name": "Meteorite"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Poisoning"
+   "name": "Poisoning"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Radiation"
+   "name": "Radiation"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Rail accident"
+   "name": "Rail accident"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Road accident"
+   "name": "Road accident"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Rockfall (Dry)"
+   "name": "Rockfall (Dry)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Water accident"
+   "name": "Water accident"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Fire"
+   "name": "Fire"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Landslide (Wet)"
+   "name": "Landslide (Wet)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Rockfall (Wet)"
+   "name": "Rockfall (Wet)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Avalanche (Wet)"
+   "name": "Avalanche (Wet)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Subsidence (Dry)"
+   "name": "Subsidence (Dry)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Subsidence (Wet)"
+   "name": "Subsidence (Wet)"
  },
  {
    "model": "api.DisasterType",
-   "DisasterTypeName": "Food insecurity"
+   "name": "Food insecurity"
  }
 ]

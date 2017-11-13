@@ -1,0 +1,1562 @@
+[
+ {
+   "model": "api.Country",
+   "name": "Ukraine",
+   "iso": "ua",
+   "society_name": "Ukrainian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "United Arab Emirates",
+   "iso": "ae",
+   "society_name": "Red Crescent Society of the United Arab Emirates"
+ },
+ {
+   "model": "api.Country",
+   "name": "United Kingdom",
+   "iso": "gb",
+   "society_name": "British Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "United States",
+   "iso": "us",
+   "society_name": "American Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Uruguay",
+   "iso": "uy",
+   "society_name": "Uruguayan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Uzbekistan",
+   "iso": "uz",
+   "society_name": "Red Crescent Society of Uzbekistan"
+ },
+ {
+   "model": "api.Country",
+   "name": "Vanuatu",
+   "iso": "vu",
+   "society_name": "Vanuatu Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Venezuela",
+   "iso": "ve",
+   "society_name": "Venezuelan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Yemen",
+   "iso": "ye",
+   "society_name": "Yemen Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Serbia and Montenegro",
+   "iso": "cs",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zambia",
+   "iso": "zm",
+   "society_name": "Zambia Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Zimbabwe",
+   "iso": "zw",
+   "society_name": "Zimbabwe Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Afghanistan",
+   "iso": "af",
+   "society_name": "Afghan Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Albania",
+   "iso": "al",
+   "society_name": "Albanian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Algeria",
+   "iso": "dz",
+   "society_name": "Algerian Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Andorra",
+   "iso": "ad",
+   "society_name": "Andorra Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Angola",
+   "iso": "ao",
+   "society_name": "Angola Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Antigua and Barbuda",
+   "iso": "ag",
+   "society_name": "Antigua and Barbuda Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Argentina",
+   "iso": "ar",
+   "society_name": "Argentine Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Armenia",
+   "iso": "am",
+   "society_name": "Armenian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Australia",
+   "iso": "au",
+   "society_name": "Australian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Austria",
+   "iso": "at",
+   "society_name": "Austrian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bahamas",
+   "iso": "bs",
+   "society_name": "The Bahamas Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bahrain",
+   "iso": "bh",
+   "society_name": "Bahrain Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bangladesh",
+   "iso": "bd",
+   "society_name": "Bangladesh Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Barbados",
+   "iso": "bb",
+   "society_name": "The Barbados Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Belarus",
+   "iso": "by",
+   "society_name": "Belarusian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Belgium",
+   "iso": "be",
+   "society_name": "Belgian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Belize",
+   "iso": "bz",
+   "society_name": "Belize Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bolivia",
+   "iso": "bo",
+   "society_name": "Bolivian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Botswana",
+   "iso": "bw",
+   "society_name": "Botswana Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Brazil",
+   "iso": "br",
+   "society_name": "Brazilian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Brunei Darussalam",
+   "iso": "bn",
+   "society_name": "Brunei Darussalam Red Crescent Societey"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bulgaria",
+   "iso": "bg",
+   "society_name": "Bulgarian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Burundi",
+   "iso": "bi",
+   "society_name": "Burundi Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Cambodia",
+   "iso": "kh",
+   "society_name": "Cambodian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Cameroon",
+   "iso": "cm",
+   "society_name": "Cameroon Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Canada",
+   "iso": "ca",
+   "society_name": "The Canadian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Cape Verde",
+   "iso": "cv",
+   "society_name": "Red Cross of Cape Verde"
+ },
+ {
+   "model": "api.Country",
+   "name": "Central African Republic",
+   "iso": "cf",
+   "society_name": "Central African Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Chad",
+   "iso": "td",
+   "society_name": "Red Cross of Chad"
+ },
+ {
+   "model": "api.Country",
+   "name": "Chile",
+   "iso": "cl",
+   "society_name": "Chilean Red Cros"
+ },
+ {
+   "model": "api.Country",
+   "name": "China",
+   "iso": "cn",
+   "society_name": "Red Cross Society of China"
+ },
+ {
+   "model": "api.Country",
+   "name": "Colombia",
+   "iso": "co",
+   "society_name": "Colombian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Costa Rica",
+   "iso": "cr",
+   "society_name": "Costa Rica Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Croatia",
+   "iso": "hr",
+   "society_name": "Croatian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Cuba",
+   "iso": "cu",
+   "society_name": "Cuban Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Czech Republic",
+   "iso": "cz",
+   "society_name": "Czech Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Denmark",
+   "iso": "dk",
+   "society_name": "Danish Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Djibouti",
+   "iso": "dj",
+   "society_name": "Red Crescent Society of Djibouti"
+ },
+ {
+   "model": "api.Country",
+   "name": "Dominica",
+   "iso": "dm",
+   "society_name": "Dominica Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Dominican Republic",
+   "iso": "do",
+   "society_name": "Dominican Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Ecuador",
+   "iso": "ec",
+   "society_name": "Ecuadorian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Egypt",
+   "iso": "eg",
+   "society_name": "Egyptian Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "El Salvador",
+   "iso": "sv",
+   "society_name": "Salvadorean Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Equatorial Guinea",
+   "iso": "gq",
+   "society_name": "Red Cross of Equatorial Guinea"
+ },
+ {
+   "model": "api.Country",
+   "name": "Estonia",
+   "iso": "ee",
+   "society_name": "Estonia Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Ethiopia",
+   "iso": "et",
+   "society_name": "Ethiopian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Fiji",
+   "iso": "fj",
+   "society_name": "Fiji Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Finland",
+   "iso": "fi",
+   "society_name": "Finnish Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "France",
+   "iso": "fr",
+   "society_name": "French Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Gabon",
+   "iso": "ga",
+   "society_name": "Gabonese Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Gambia",
+   "iso": "gm",
+   "society_name": "The Gambia Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Georgia",
+   "iso": "ge",
+   "society_name": "Red Cross Society of Georgia"
+ },
+ {
+   "model": "api.Country",
+   "name": "Germany",
+   "iso": "de",
+   "society_name": "German Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Ghana",
+   "iso": "gh",
+   "society_name": "Ghana Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Greece",
+   "iso": "gr",
+   "society_name": "Hellenic Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Grenada",
+   "iso": "gd",
+   "society_name": "Grenada Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Guatemala",
+   "iso": "gt",
+   "society_name": "Guatemalan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Guinea",
+   "iso": "gn",
+   "society_name": "Red Cross Society of Guinea"
+ },
+ {
+   "model": "api.Country",
+   "name": "Guyana",
+   "iso": "gy",
+   "society_name": "The Guyana Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Haiti",
+   "iso": "ht",
+   "society_name": "Haitian National Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Honduras",
+   "iso": "hn",
+   "society_name": "Honduran Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Hungary",
+   "iso": "hu",
+   "society_name": "Hungarian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Iceland",
+   "iso": "is",
+   "society_name": "Icelandic Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "India",
+   "iso": "in",
+   "society_name": "Indian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Indonesia",
+   "iso": "id",
+   "society_name": "Indonesian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Iraq",
+   "iso": "iq",
+   "society_name": "Iraqi Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Ireland",
+   "iso": "ie",
+   "society_name": "Irish Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Italy",
+   "iso": "it",
+   "society_name": "Italian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Jamaica",
+   "iso": "jm",
+   "society_name": "Jamaica Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Japan",
+   "iso": "jp",
+   "society_name": "Japanese Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Jordan",
+   "iso": "jo",
+   "society_name": "Jordan National Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Kenya",
+   "iso": "ke",
+   "society_name": "Kenya Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Kiribati",
+   "iso": "ki",
+   "society_name": "Kiribati Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Kuwait",
+   "iso": "kw",
+   "society_name": "Kuwait Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Kyrgyzstan",
+   "iso": "kg",
+   "society_name": "Red Crescent Society of Kyrgyzstan"
+ },
+ {
+   "model": "api.Country",
+   "name": "Lao People's Democratic Republic",
+   "iso": "la",
+   "society_name": "Lao Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Latvia",
+   "iso": "lv",
+   "society_name": "Latvian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Lebanon",
+   "iso": "lb",
+   "society_name": "Lebanese Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Lesotho",
+   "iso": "ls",
+   "society_name": "Lesotho Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Liberia",
+   "iso": "lr",
+   "society_name": "Liberian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Liechtenstein",
+   "iso": "li",
+   "society_name": "Liechtenstein Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Lithuania",
+   "iso": "lt",
+   "society_name": "Lithuanian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Luxembourg",
+   "iso": "lu",
+   "society_name": "Luxembourg Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Macedonia, The former Yugoslav Republic of",
+   "iso": "mk",
+   "society_name": "The Red Cross of The Former Yugoslav Republic of Macedonia"
+ },
+ {
+   "model": "api.Country",
+   "name": "Madagascar",
+   "iso": "mg",
+   "society_name": "Malagasy Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Malawi",
+   "iso": "mw",
+   "society_name": "Malawi Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Malaysia",
+   "iso": "my",
+   "society_name": "Malaysian Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mali",
+   "iso": "ml",
+   "society_name": "Mali Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Malta",
+   "iso": "mt",
+   "society_name": "Malta Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mauritania",
+   "iso": "mr",
+   "society_name": "Mauritanian Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mauritius",
+   "iso": "mu",
+   "society_name": "Mauritius Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mexico",
+   "iso": "mx",
+   "society_name": "Mexican Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Monaco",
+   "iso": "mc",
+   "society_name": "Red Cross of Monaco"
+ },
+ {
+   "model": "api.Country",
+   "name": "Morocco",
+   "iso": "ma",
+   "society_name": "Morrocan Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mozambique",
+   "iso": "mz",
+   "society_name": "Mozambique Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Myanmar",
+   "iso": "mm",
+   "society_name": "Myanmar Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Namibia",
+   "iso": "na",
+   "society_name": "Namibia Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Nepal",
+   "iso": "np",
+   "society_name": "Nepal Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Netherlands",
+   "iso": "nl",
+   "society_name": "The Netherlands Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "New Zealand",
+   "iso": "nz",
+   "society_name": "New Zealand Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Nicaragua",
+   "iso": "ni",
+   "society_name": "Nicaraguan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Niger",
+   "iso": "ne",
+   "society_name": "Red Cross Society of Niger"
+ },
+ {
+   "model": "api.Country",
+   "name": "Nigeria",
+   "iso": "ng",
+   "society_name": "Nigerian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Norway",
+   "iso": "no",
+   "society_name": "Norwegian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Palau",
+   "iso": "pw",
+   "society_name": "Palau Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Pakistan",
+   "iso": "pk",
+   "society_name": "Pakistan Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Panama",
+   "iso": "pa",
+   "society_name": "Red Cross Society of Panama"
+ },
+ {
+   "model": "api.Country",
+   "name": "Papua New Guinea",
+   "iso": "pg",
+   "society_name": "Papua New Guinea Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Paraguay",
+   "iso": "py",
+   "society_name": "Paraguayan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Peru",
+   "iso": "pe",
+   "society_name": "Peruvian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Philippines",
+   "iso": "ph",
+   "society_name": "The Philippine National Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Portugal",
+   "iso": "pt",
+   "society_name": "Portuguese Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Qatar",
+   "iso": "qa",
+   "society_name": "Qatar Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Romania",
+   "iso": "ro",
+   "society_name": "Romanian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Russian Federation",
+   "iso": "ru",
+   "society_name": "The Russian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Rwanda",
+   "iso": "rw",
+   "society_name": "Rwandan Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Samoa",
+   "iso": "ws",
+   "society_name": "Samoa Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Saudi Arabia",
+   "iso": "sa",
+   "society_name": "Saudi Arabian Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Senegal",
+   "iso": "sn",
+   "society_name": "Senegalese Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Seychelles",
+   "iso": "sc",
+   "society_name": "Seychelles Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Sierra Leone",
+   "iso": "sl",
+   "society_name": "Sierra Leone Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Singapore",
+   "iso": "sg",
+   "society_name": "Singapore Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Slovakia",
+   "iso": "sk",
+   "society_name": "Slovak Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Slovenia",
+   "iso": "si",
+   "society_name": "Slovenian Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Solomon Islands",
+   "iso": "sb",
+   "society_name": "The Solomon Islands Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Somalia",
+   "iso": "so",
+   "society_name": "Somali Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "South Africa",
+   "iso": "za",
+   "society_name": "The South African Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Spain",
+   "iso": "es",
+   "society_name": "Spanish Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Sri Lanka",
+   "iso": "lk",
+   "society_name": "The Sri Lanka Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Sudan",
+   "iso": "sd",
+   "society_name": "The Sudanese Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Swaziland",
+   "iso": "sz",
+   "society_name": "Baphalali Swaziland Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Sweden",
+   "iso": "se",
+   "society_name": "Swedish Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Switzerland",
+   "iso": "ch",
+   "society_name": "Swiss Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Tajikistan",
+   "iso": "tj",
+   "society_name": "Red Crescent Society of Tajikistan"
+ },
+ {
+   "model": "api.Country",
+   "name": "Thailand",
+   "iso": "th",
+   "society_name": "The Thai Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Togo",
+   "iso": "tg",
+   "society_name": "Togolese Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Tonga",
+   "iso": "to",
+   "society_name": "Tonga Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Trinidad and Tobago",
+   "iso": "tt",
+   "society_name": "The Trinidad and Tobago Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Tunisia",
+   "iso": "tn",
+   "society_name": "Tunisian Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Turkey",
+   "iso": "tr",
+   "society_name": "Turkish Red Crescent Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Turkmenistan",
+   "iso": "tm",
+   "society_name": "Red Crescent Society of Turkmenistan"
+ },
+ {
+   "model": "api.Country",
+   "name": "Uganda",
+   "iso": "ug",
+   "society_name": "The Uganda Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Kitts and Nevis",
+   "iso": "kn",
+   "society_name": "Saint Kitts and Nevis Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Lucia",
+   "iso": "lc",
+   "society_name": "Saint Lucia Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Vincent and the Grenadines",
+   "iso": "vc",
+   "society_name": "Saint Vincent and the Grenadines Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Suriname",
+   "iso": "sr",
+   "society_name": "Suriname Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Burkina Faso",
+   "iso": "bf",
+   "society_name": "Burkinabe Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Côte d'Ivoire",
+   "iso": "ci",
+   "society_name": "Red Cross Society of Côte d'Ivoire"
+ },
+ {
+   "model": "api.Country",
+   "name": "Guinea-Bissau",
+   "iso": "gw",
+   "society_name": "Red Cross Society of Guinea-Bissau"
+ },
+ {
+   "model": "api.Country",
+   "name": "Congo, Republic of",
+   "iso": "cg",
+   "society_name": "Congolese Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Sao Tomé and Principe",
+   "iso": "st",
+   "society_name": "Sao Tome and Principe Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Comoros",
+   "iso": "km",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Congo, Democratic Republic of",
+   "iso": "cd",
+   "society_name": "Red Cross of the Democratic Republic of the Congo"
+ },
+ {
+   "model": "api.Country",
+   "name": "Eritrea",
+   "iso": "er",
+   "society_name": "Red Cross Society of Eritrea"
+ },
+ {
+   "model": "api.Country",
+   "name": "Tanzania, United Republic of",
+   "iso": "tz",
+   "society_name": "Tanzania Red Cross National Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Viet Nam",
+   "iso": "vn",
+   "society_name": "Red Cross of Viet Nam"
+ },
+ {
+   "model": "api.Country",
+   "name": "Korea, Republic of",
+   "iso": "kr",
+   "society_name": "Republic of Korea National Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Korea, Democratic People's Republic of",
+   "iso": "KP",
+   "society_name": "Red Cross Society of the Democratic People's Republic of Korea"
+ },
+ {
+   "model": "api.Country",
+   "name": "Mongolia",
+   "iso": "mn",
+   "society_name": "Mongolian Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Micronesia, Federated States of",
+   "iso": "fm",
+   "society_name": "Micronesia Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Bosnia and Herzegovina",
+   "iso": "ba",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Poland",
+   "iso": "pl",
+   "society_name": "Polish Red Cross"
+ },
+ {
+   "model": "api.Country",
+   "name": "Azerbaijan",
+   "iso": "az",
+   "society_name": "Red Crescent Society of Azerbaijan"
+ },
+ {
+   "model": "api.Country",
+   "name": "Kazakhstan",
+   "iso": "kz",
+   "society_name": "Kazakh Red Crescent and Red Cross Society"
+ },
+ {
+   "model": "api.Country",
+   "name": "Moldova",
+   "iso": "md",
+   "society_name": "Red Cross Society of the Republic of Moldova"
+ },
+ {
+   "model": "api.Country",
+   "name": "Iran, Islamic Republic of",
+   "iso": "ir",
+   "society_name": "Red Crescent Society of the Islamic Republic of Iran"
+ },
+ {
+   "model": "api.Country",
+   "name": "Libyan Arab Jamahiriya",
+   "iso": "ly",
+   "society_name": "Libyan Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Palestine",
+   "iso": "ps",
+   "society_name": "Palestine Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Syria",
+   "iso": "sy",
+   "society_name": "Syrian Arab Red Crescent"
+ },
+ {
+   "model": "api.Country",
+   "name": "Benin",
+   "iso": "bj",
+   "society_name": "Red Crescent Society of Benin"
+ },
+ {
+   "model": "api.Country",
+   "name": "Timor-Leste",
+   "iso": "tl",
+   "society_name": "CVTL"
+ },
+ {
+   "model": "api.Country",
+   "name": "Cook Islands",
+   "iso": "ck",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Marshall Islands",
+   "iso": "mh",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Tuvalu",
+   "iso": "tv",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "British Indian Overseas Territories",
+   "iso": "io",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Montserrat",
+   "iso": "ms",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Anguilla",
+   "iso": "ai",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Virgin Islands, British",
+   "iso": "vg",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Turks and Caicos Islands",
+   "iso": "tc",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Cayman Islands",
+   "iso": "ky",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Israel",
+   "iso": "il",
+   "society_name": "Magen David Adom in Israel"
+ },
+ {
+   "model": "api.Country",
+   "name": "Netherlands Antilles",
+   "iso": "an",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "French Guiana",
+   "iso": "gf",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Guadeloupe",
+   "iso": "gp",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Martinique",
+   "iso": "mq",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Maldives",
+   "iso": "mv",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Cyprus",
+   "iso": "CY",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "American Samoa",
+   "iso": "as",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Antarctica",
+   "iso": "aq",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Aruba",
+   "iso": "aw",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Baker Island",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Bermuda",
+   "iso": "bm",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Bhutan",
+   "iso": "bt",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Christmas Island, Territory of",
+   "iso": "cx",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Cocos Islands, Territory of",
+   "iso": "cc",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Falkland Islands (Malvinas)",
+   "iso": "fk",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Faroe Islands",
+   "iso": "fo",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "French Polynesia",
+   "iso": "pf",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "French Southern and Antarctic Lands",
+   "iso": "tf",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Gibraltar",
+   "iso": "gi",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Greenland",
+   "iso": "gl",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Guam",
+   "iso": "gu",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Heard I. & McDonald Is.",
+   "iso": "HM",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Howland Island",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Jarvis Island",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Johnston Atoll",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Mayotte",
+   "iso": "yt",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Midway Island",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Nauru",
+   "iso": "nr",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "New Caledonia",
+   "iso": "nc",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Niue",
+   "iso": "nu",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Norkolk Island",
+   "iso": "nf",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Northern Mariana Island",
+   "iso": "mp",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Pitcairn",
+   "iso": "pn",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Puerto Rico",
+   "iso": "pr",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Oman",
+   "iso": "om",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Reunion",
+   "iso": "re",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "San Marino, Republic of",
+   "iso": "sm",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "South Georgia and the South Sandwich Is.",
+   "iso": "gs",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Helena",
+   "iso": "sh",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Pierre et Miquelon",
+   "iso": "pm",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Svalbard and Jan Mayen",
+   "iso": "sj",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Tokelau",
+   "iso": "tk",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Virgin Islands, US",
+   "iso": "vi",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Wake Island",
+   "iso": "um",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Wallis and Futuna",
+   "iso": "wf",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Western Sahara",
+   "iso": "eh",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Montenegro",
+   "iso": "me",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Serbia",
+   "iso": "rs",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Guernesey",
+   "iso": "gg",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Jersey",
+   "iso": "je",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Holy See (Vatican City State)",
+   "iso": "va",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Hong Kong (China)",
+   "iso": "hk",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Isle of Man",
+   "iso": "im",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Aland Island",
+   "iso": "AX",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Bouvet Island",
+   "iso": "BV",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Macao",
+   "iso": "MO",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Saint Martin (French part)",
+   "iso": "MF",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Taiwan Red Cross Organization (TRCO) ",
+   "iso": "TW",
+   "society_name": "Taiwan Red Cross Organization (TRCO) "
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Americas",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Asia-Pacific",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Central and West Africa",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Eastern Africa",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Europe",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone MENA",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone Southern Africa",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "Zone GLOBAL",
+   "iso": "",
+   "society_name": ""
+ },
+ {
+   "model": "api.Country",
+   "name": "South Sudan, Rep. Of",
+   "iso": "ss",
+   "society_name": "The South Sudanese Red Cross"
+ }
+]
