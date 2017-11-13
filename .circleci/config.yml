@@ -114,7 +114,7 @@ jobs:
       - run:
           name: Push image to Docker Hub
           command: |
-            docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker tag docker-image:latest developmentseed/ifrc-go-api:$VERSION
             docker push developmentseed/ifrc-go-api:$VERSION
 
