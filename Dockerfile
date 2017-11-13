@@ -12,3 +12,5 @@ RUN \
 
 COPY \
 	./ $HOME/go-api/
+
+WORKDIR $HOME/go-api/
