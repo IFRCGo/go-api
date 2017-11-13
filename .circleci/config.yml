@@ -58,7 +58,7 @@ jobs:
           paths:
             - ~/venv
 
-  build_docker:
+  build_and_test_docker:
     docker:
       - image: docker:17.05.0-ce-git
     working_dir: ~/project
@@ -103,6 +103,8 @@ jobs:
             VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
             git tag $VERSION
             git push origin $VERSION
+            docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag developmentseed/ifrc-go-api:latest developmentseed/ifrc-go-api:$VERSION
 
 
 workflows:
@@ -113,9 +115,16 @@ workflows:
       - install_and_test:
           requires:
             - checkout_code
+      - build_and_test_docker:
+          requires:
+            - checkout_code
+          filters:
+            branches:
+              only: master
       - deploy:
           requires:
             - install_and_test
+            - build_and_test_docker
           filters:
             branches:
               only: master
