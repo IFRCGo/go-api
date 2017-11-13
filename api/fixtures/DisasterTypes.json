@@ -1,186 +1,324 @@
 [
- {
-   "model": "api.DisasterType",
-   "name": "Epidemic"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Earthquake"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Tropical cyclone"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Population movements"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Complex emergency"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Civil unrest"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Volcano"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Tsunami"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Floods"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Explosion"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Cold wave"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Urban fire"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Heat wave"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Drought"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Storm surge"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Landslide (Dry)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Extra tropical cyclone"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Flash floods"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Local storm"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Avalanche (Dry)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Other"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Air accident"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Animal attack"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Bush fire"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Chemical spill"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Collapse"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Extreme winter condition"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Forest fire"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Gas leak"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Grasshoppers"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Grassland fire"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Locust"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Meteorite"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Poisoning"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Radiation"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Rail accident"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Road accident"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Rockfall (Dry)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Water accident"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Fire"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Landslide (Wet)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Rockfall (Wet)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Avalanche (Wet)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Subsidence (Dry)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Subsidence (Wet)"
- },
- {
-   "model": "api.DisasterType",
-   "name": "Food insecurity"
- }
+  {
+    "model": "api.DisasterType",
+    "pk": 0,
+    "fields": {
+      "name": "Epidemic"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 1,
+    "fields": {
+      "name": "Earthquake"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 2,
+    "fields": {
+      "name": "Tropical cyclone"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 3,
+    "fields": {
+      "name": "Population movements"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 4,
+    "fields": {
+      "name": "Complex emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 5,
+    "fields": {
+      "name": "Civil unrest"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 6,
+    "fields": {
+      "name": "Volcano"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 7,
+    "fields": {
+      "name": "Tsunami"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 8,
+    "fields": {
+      "name": "Floods"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 9,
+    "fields": {
+      "name": "Explosion"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 10,
+    "fields": {
+      "name": "Cold wave"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 11,
+    "fields": {
+      "name": "Urban fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 12,
+    "fields": {
+      "name": "Heat wave"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 13,
+    "fields": {
+      "name": "Drought"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 14,
+    "fields": {
+      "name": "Storm surge"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 15,
+    "fields": {
+      "name": "Landslide (Dry)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 16,
+    "fields": {
+      "name": "Extra tropical cyclone"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 17,
+    "fields": {
+      "name": "Flash floods"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 18,
+    "fields": {
+      "name": "Local storm"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 19,
+    "fields": {
+      "name": "Avalanche (Dry)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 20,
+    "fields": {
+      "name": "Other"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 21,
+    "fields": {
+      "name": "Air accident"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 22,
+    "fields": {
+      "name": "Animal attack"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 23,
+    "fields": {
+      "name": "Bush fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 24,
+    "fields": {
+      "name": "Chemical spill"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 25,
+    "fields": {
+      "name": "Collapse"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 26,
+    "fields": {
+      "name": "Extreme winter condition"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 27,
+    "fields": {
+      "name": "Forest fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 28,
+    "fields": {
+      "name": "Gas leak"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 29,
+    "fields": {
+      "name": "Grasshoppers"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 30,
+    "fields": {
+      "name": "Grassland fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 31,
+    "fields": {
+      "name": "Locust"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 32,
+    "fields": {
+      "name": "Meteorite"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 33,
+    "fields": {
+      "name": "Poisoning"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 34,
+    "fields": {
+      "name": "Radiation"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 35,
+    "fields": {
+      "name": "Rail accident"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 36,
+    "fields": {
+      "name": "Road accident"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 37,
+    "fields": {
+      "name": "Rockfall (Dry)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 38,
+    "fields": {
+      "name": "Water accident"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 39,
+    "fields": {
+      "name": "Fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 40,
+    "fields": {
+      "name": "Landslide (Wet)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 41,
+    "fields": {
+      "name": "Rockfall (Wet)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 42,
+    "fields": {
+      "name": "Avalanche (Wet)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 43,
+    "fields": {
+      "name": "Subsidence (Dry)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 44,
+    "fields": {
+      "name": "Subsidence (Wet)"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": 45,
+    "fields": {
+      "name": "Food insecurity"
+    }
+  }
 ]
