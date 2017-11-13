@@ -31,16 +31,20 @@ references:
       command: |
         touch .env
 
-  build_docker: &build_docker
+  restore_docker: &restore_docker
     run:
       name: Load Docker image layer caches
       command: |
         set +o pipefail
         docker load -i /caches/docker.tar | true
+
+  build_docker: &build_docker
     run: 
       name: Build docker image
       command: |
         docker build --cache-from=docker-image:latest -t docker-image:latest .
+
+  save_docker: &save_docker
     run:
       name: Save Docker image layer cache
       command: |
@@ -81,7 +85,9 @@ jobs:
     steps:
       - *restore_repo
       - setup_remote_docker
+      - *restore_docker
       - *build_docker
+      - *save_docker
       - *create_env
       - run:
           name: Run tests
@@ -104,7 +110,9 @@ jobs:
             VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
             git tag $VERSION
             git push origin $VERSION
-      - *build_docker  
+      - *restore_docker
+      - *build_docker
+      - *save_docker
       - run:
           name: Push image to Docker Hub
           command: |
