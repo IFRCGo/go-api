@@ -4,8 +4,12 @@ import api.models as models
 
 
 class DisasterTypeTest(TestCase):
-    def test_disaster_types(self):
-        pass
+
+    fixtures = ['DisasterTypes']
+
+    def test_disaster_type_data(self):
+        objs = models.DisasterType.objects.all()
+        self.assertEqual(len(objs), 46)
 
 
 class DiasterTest(TestCase):
@@ -21,12 +25,12 @@ class DiasterTest(TestCase):
 
 
 class CountryTest(TestCase):
-    def setUp(self):
-        models.Country.objects.create(name='country1')
 
-    def test_country_create(self):
-        obj = models.Country.objects.get(name='country1')
-        self.assertEqual(obj.name, 'country1')
+    fixtures = ['Countries']
+
+    def test_country_data(self):
+        objs = models.Country.objects.all()
+        self.assertEqual(objs.count(), 260)
 
 
 class DocumentTest(TestCase):
