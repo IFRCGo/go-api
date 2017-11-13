@@ -61,7 +61,7 @@ jobs:
   build_and_test_docker:
     docker:
       - image: docker:17.05.0-ce-git
-    working_dir: ~/project
+    working_dir: /home/circleci/project
     steps:
       - *restore_repo
       - setup_remote_docker
