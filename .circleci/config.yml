@@ -90,7 +90,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            docker run --env-file .env -t docker-image:latest manage.py test
+            docker run --env-file .env -t docker-image:latest ./manage.py test
 
   deploy:
     <<: *container_python36
