@@ -41,7 +41,7 @@ class DocumentTest(TestCase):
         obj = models.Document.objects.get(name='document1')
         self.assertEqual(obj.uri, '/path/to/file')
 
-
+"""
 class AppealTest(TestCase):
     def setUp(self):
         event = models.Event.objects.create(name='disaster1', summary='test disaster')
@@ -56,21 +56,26 @@ class AppealTest(TestCase):
         self.assertEqual(obj.aid, 'test1')
         self.assertEqual(obj.country, country)
         self.assertEqual(obj.event, event)
-
+"""
 
 class FieldReportTest(TestCase):
+
+    fixtures = ['DisasterTypes']
+
     def setUp(self):
         event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
-        models.FieldReport.objects.create(rid='test1', disaster=event, country=country)
+        dtype = models.DisasterType.objects.get(pk=1)
+        report = models.FieldReport.objects.create(rid='test1', event=event, dtype=dtype)
+        report.countries.add(country)
 
     def test_field_report_create(self):
         event = models.Event.objects.get(name='disaster1')
         self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.FieldReport.objects.get(rid='test1')
-        self.assertEqual(obj.fid, 'test1')
-        self.assertEqual(obj.country, country)
+        self.assertEqual(obj.rid, 'test1')
+        self.assertEqual(obj.countries.all()[0], country)
         self.assertEqual(obj.event, event)
 
 

@@ -20,9 +20,12 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries1 = [appeal.country for appeal in self.appeal_set.all()]
-        countries2 = [fr.country for fr in self.fieldreport_set.all()]
-        return list(set([c.name for c in countries1 + countries2]))
+        #countries1 = [appeal.country for appeal in self.appeal_set.all()]
+        countries = [country for fr in self.fieldreport_set.all() for country in fr.countries.all()]
+        #flat_list = [item for sublist in l for item in sublist]
+
+        #countries2 = [fr.country for fr in self.fieldreport_set.all()]
+        return list(set([c.name for c in countries]))
 
     def __str__(self):
         return self.name
@@ -57,9 +60,9 @@ class Appeal(models.Model):
     summary = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    disaster = models.ForeignKey(Event, null=True)
-    country = models.ForeignKey(Country)
-    documents = models.ManyToManyField(Document)
+    #disaster = models.ForeignKey(Event, null=True)
+    #country = models.ForeignKey(Country)
+    #documents = models.ManyToManyField(Document)
 
     def __str__(self):
         return self.aid
@@ -69,13 +72,31 @@ class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
     rid = models.CharField(max_length=100)
-    address = models.TextField()
     summary = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, default='')
+    dtype = models.ForeignKey(DisasterType)
+    event = models.ForeignKey(Event, null=True)
+    countries = models.ManyToManyField(Country)
+    status = models.IntegerField(default=0)
+    request_assistance = models.BooleanField(default=False)
 
-    disaster = models.ForeignKey(Event, null=True)
-    country = models.ForeignKey(Country)
-    documents = models.ManyToManyField(Document)
+    num_injured = models.IntegerField(null=True)
+    num_dead = models.IntegerField(null=True)
+    num_missing = models.IntegerField(null=True)
+    num_affected = models.IntegerField(null=True)
+    num_displaced = models.IntegerField(null=True)
+    num_assisted_gov = models.IntegerField(null=True)
+    num_assisted_rc = models.IntegerField(null=True)
+    num_localstaff = models.IntegerField(null=True)
+    num_volunteers = models.IntegerField(null=True)
+    num_expats_delegates = models.IntegerField(null=True)
+
+    # action IDs - other tables?
+    action = models.TextField(blank=True, default='')
+
+    # contacts
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.aid
