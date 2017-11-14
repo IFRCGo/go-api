@@ -68,7 +68,7 @@ class Appeal(models.Model):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
-    fid = models.CharField(max_length=100)
+    rid = models.CharField(max_length=100)
     address = models.TextField()
     summary = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

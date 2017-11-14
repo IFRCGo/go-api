@@ -62,13 +62,13 @@ class FieldReportTest(TestCase):
     def setUp(self):
         event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
-        models.FieldReport.objects.create(fid='test1', disaster=event, country=country)
+        models.FieldReport.objects.create(rid='test1', disaster=event, country=country)
 
     def test_field_report_create(self):
         event = models.Event.objects.get(name='disaster1')
         self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
-        obj = models.FieldReport.objects.get(fid='test1')
+        obj = models.FieldReport.objects.get(rid='test1')
         self.assertEqual(obj.fid, 'test1')
         self.assertEqual(obj.country, country)
         self.assertEqual(obj.event, event)
