@@ -4,7 +4,7 @@ from django.db import models
 class DisasterType(models.Model):
     """ Type of disaster """
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    summary = models.TextField()
 
     def __str__(self):
         return self.name
@@ -14,7 +14,7 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     # type = models.ForeignKey(DisasterType)
 
@@ -54,7 +54,7 @@ class Appeal(models.Model):
 
     # appeal ID, assinged by creator
     aid = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     disaster = models.ForeignKey(Event, null=True)
@@ -70,7 +70,7 @@ class FieldReport(models.Model):
 
     fid = models.CharField(max_length=100)
     address = models.TextField()
-    description = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     disaster = models.ForeignKey(Event, null=True)
@@ -85,7 +85,7 @@ class Service(models.Model):
     """ A resource that may or may not be deployed """
 
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    summary = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     deployed = models.BooleanField(default=False)

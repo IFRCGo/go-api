@@ -14,14 +14,14 @@ class DisasterTypeTest(TestCase):
 
 class EventTest(TestCase):
     def setUp(self):
-        models.Event.objects.create(name='disaster1', description='test disaster')
-        models.Event.objects.create(name='disaster2', description='another test disaster')
+        models.Event.objects.create(name='disaster1', summary='test disaster')
+        models.Event.objects.create(name='disaster2', summary='another test disaster')
 
     def test_disaster_create(self):
         obj1 = models.Event.objects.get(name='disaster1')
         obj2 = models.Event.objects.get(name='disaster2')
-        self.assertEqual(obj1.description, 'test disaster')
-        self.assertEqual(obj2.description, 'another test disaster')
+        self.assertEqual(obj1.summary, 'test disaster')
+        self.assertEqual(obj2.summary, 'another test disaster')
 
 
 class CountryTest(TestCase):
@@ -44,7 +44,7 @@ class DocumentTest(TestCase):
 
 class AppealTest(TestCase):
     def setUp(self):
-        event = models.Event.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
         models.Appeal.objects.create(aid='test1', disaster=event, country=country)
 
@@ -60,7 +60,7 @@ class AppealTest(TestCase):
 
 class FieldReportTest(TestCase):
     def setUp(self):
-        event = models.Event.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
         models.FieldReport.objects.create(fid='test1', disaster=event, country=country)
 
