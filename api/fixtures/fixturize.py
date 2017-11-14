@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 
 """
-Script to read in a CSV file and create a Django fixture file from it
+Script to read in a CSV file and create a Django fixture file from it.
+This script was used to create the Countries.json and DisasterTypes.json
+files from CSV input files.
+Arguments:
+    - filename is the name of the input CSV file
+    - model is the Django model name (e.g., api.Country)
+    - pk is the name of the column containing the primary key
+    - fields is a list of arguments with the form key=value.
+        key is the column name in the CSV file
+        value is the field name in the Django model
 """
 import os
 import sys
 import csv
 import json
 import argparse
-
-
-class KeyValuePair(argparse.Action):
-    """ Custom action for getting key=value pairs from argparse """
-    def __call__(self, parser, namespace, values, option_string=None):
-        for val in values:
-            n, v = val.split('=')
-            setattr(namespace, n, v)
 
 
 def csv_to_json(input):
