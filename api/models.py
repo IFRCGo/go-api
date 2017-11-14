@@ -99,7 +99,7 @@ class FieldReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.aid
+        return self.rid
 
 
 class Service(models.Model):
