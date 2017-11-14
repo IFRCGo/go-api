@@ -24,3 +24,9 @@ services:
     entrypoint: ./manage.py
     volumes:
       - '.:/home/ifrc/work'
+
+  server:
+    image: developmentseed/ifrc-go-api:latest
+    entrypoint: runserver.sh
+    ports:
+      - "8000:80"
