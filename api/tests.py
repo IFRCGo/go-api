@@ -12,14 +12,14 @@ class DisasterTypeTest(TestCase):
         self.assertEqual(len(objs), 46)
 
 
-class DiasterTest(TestCase):
+class EventTest(TestCase):
     def setUp(self):
-        models.Disaster.objects.create(name='disaster1', description='test disaster')
-        models.Disaster.objects.create(name='disaster2', description='another test disaster')
+        models.Event.objects.create(name='disaster1', description='test disaster')
+        models.Event.objects.create(name='disaster2', description='another test disaster')
 
     def test_disaster_create(self):
-        obj1 = models.Disaster.objects.get(name='disaster1')
-        obj2 = models.Disaster.objects.get(name='disaster2')
+        obj1 = models.Event.objects.get(name='disaster1')
+        obj2 = models.Event.objects.get(name='disaster2')
         self.assertEqual(obj1.description, 'test disaster')
         self.assertEqual(obj2.description, 'another test disaster')
 
@@ -44,34 +44,34 @@ class DocumentTest(TestCase):
 
 class AppealTest(TestCase):
     def setUp(self):
-        disaster = models.Disaster.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', description='test disaster')
         country = models.Country.objects.create(name='country')
-        models.Appeal.objects.create(aid='test1', disaster=disaster, country=country)
+        models.Appeal.objects.create(aid='test1', disaster=event, country=country)
 
     def test_appeal_create(self):
-        disaster = models.Disaster.objects.get(name='disaster1')
-        self.assertEqual(disaster.countries(), ['country'])
+        event = models.Event.objects.get(name='disaster1')
+        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.Appeal.objects.get(aid='test1')
         self.assertEqual(obj.aid, 'test1')
         self.assertEqual(obj.country, country)
-        self.assertEqual(obj.disaster, disaster)
+        self.assertEqual(obj.event, event)
 
 
 class FieldReportTest(TestCase):
     def setUp(self):
-        disaster = models.Disaster.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', description='test disaster')
         country = models.Country.objects.create(name='country')
-        models.FieldReport.objects.create(fid='test1', disaster=disaster, country=country)
+        models.FieldReport.objects.create(fid='test1', disaster=event, country=country)
 
     def test_field_report_create(self):
-        disaster = models.Disaster.objects.get(name='disaster1')
-        self.assertEqual(disaster.countries(), ['country'])
+        event = models.Event.objects.get(name='disaster1')
+        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.FieldReport.objects.get(fid='test1')
         self.assertEqual(obj.fid, 'test1')
         self.assertEqual(obj.country, country)
-        self.assertEqual(obj.disaster, disaster)
+        self.assertEqual(obj.event, event)
 
 
 class ServiceTest(TestCase):

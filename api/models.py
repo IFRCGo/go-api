@@ -10,7 +10,7 @@ class DisasterType(models.Model):
         return self.name
 
 
-class Disaster(models.Model):
+class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
@@ -57,7 +57,7 @@ class Appeal(models.Model):
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    disaster = models.ForeignKey(Disaster)
+    disaster = models.ForeignKey(Event, null=True)
     country = models.ForeignKey(Country)
     documents = models.ManyToManyField(Document)
 
@@ -73,7 +73,7 @@ class FieldReport(models.Model):
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    disaster = models.ForeignKey(Disaster)
+    disaster = models.ForeignKey(Event, null=True)
     country = models.ForeignKey(Country)
     documents = models.ManyToManyField(Document)
 
