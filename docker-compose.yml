@@ -6,7 +6,7 @@ services:
     build: .
     image: developmentseed/ifrc-go-api:latest
     entrypoint: /bin/bash
-    #env_file: .env
+    env_file: .env
     volumes:
       - '.:/home/ifrc/work'
 
@@ -14,7 +14,7 @@ services:
     image: developmentseed/ifrc-go-api:latest
     working_dir: /home/ifrc/work
     entrypoint: bash -c './manage.py migrate; ./manage.py test'
-    #env_file: .env
+    env_file: .env
     volumes:
       - '.:/home/ifrc/work'
 
@@ -22,11 +22,13 @@ services:
     image: developmentseed/ifrc-go-api:latest
     working_dir: /home/ifrc/work
     entrypoint: ./manage.py
+    env_file: .env
     volumes:
       - '.:/home/ifrc/work'
 
   server:
     image: developmentseed/ifrc-go-api:latest
     entrypoint: runserver.sh
+    env_file: .env
     ports:
       - "8000:80"
