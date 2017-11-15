@@ -7,7 +7,6 @@ from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from api.models import DisasterType, Country, FieldReport
-from pdb import set_trace
 
 
 def extract_table(dbfile, table):
