@@ -30,7 +30,6 @@ def extract_table(dbfile, table):
 
 
 def get_dbfile():
-    return 'URLs.mdb'
     ftphost = os.environ.get('IFRC_FTPHOST', None)
     ftpuser = os.environ.get('IFRC_FTPUSER', None)
     ftppass = os.environ.get('IFRC_FTPPASS', None)
