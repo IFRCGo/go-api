@@ -27,7 +27,7 @@ echo export IFRC_FTPHOST=$IFRC_FTPHOST >> $HOME/.env
 echo export IFRC_FTPUSER=$IFRC_FTPUSER >> $HOME/.env
 echo export IFRC_FTPPASS=$IFRC_FTPPASS >> $HOME/.env
 echo export PATH=$PATH:/usr/local/bin >> $HOME/.env
-(echo '*/30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
+(echo '0 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
 service cron start
 
 tail -n 0 -f $HOME/logs/*.log &
