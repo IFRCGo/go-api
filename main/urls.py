@@ -13,9 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
+from api.resources import DisasterTypeResource, EventResource, CountryResource, FieldReportResource
+
+disastertype_resource = DisasterTypeResource()
+event_resource = EventResource()
+country_resource = CountryResource()
+fieldreport_resource = FieldReportResource()
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^api/', include(disastertype_resource.urls)),
+    url(r'^api/', include(event_resource.urls)),
+    url(r'^api/', include(country_resource.urls)),
+    url(r'^api/', include(fieldreport_resource.urls)),
 ]

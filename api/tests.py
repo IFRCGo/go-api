@@ -4,29 +4,33 @@ import api.models as models
 
 
 class DisasterTypeTest(TestCase):
-    def test_disaster_types(self):
-        pass
+
+    fixtures = ['DisasterTypes']
+
+    def test_disaster_type_data(self):
+        objs = models.DisasterType.objects.all()
+        self.assertEqual(len(objs), 46)
 
 
-class DiasterTest(TestCase):
+class EventTest(TestCase):
     def setUp(self):
-        models.Disaster.objects.create(name='disaster1', description='test disaster')
-        models.Disaster.objects.create(name='disaster2', description='another test disaster')
+        models.Event.objects.create(name='disaster1', summary='test disaster')
+        models.Event.objects.create(name='disaster2', summary='another test disaster')
 
     def test_disaster_create(self):
-        obj1 = models.Disaster.objects.get(name='disaster1')
-        obj2 = models.Disaster.objects.get(name='disaster2')
-        self.assertEqual(obj1.description, 'test disaster')
-        self.assertEqual(obj2.description, 'another test disaster')
+        obj1 = models.Event.objects.get(name='disaster1')
+        obj2 = models.Event.objects.get(name='disaster2')
+        self.assertEqual(obj1.summary, 'test disaster')
+        self.assertEqual(obj2.summary, 'another test disaster')
 
 
 class CountryTest(TestCase):
-    def setUp(self):
-        models.Country.objects.create(name='country1')
 
-    def test_country_create(self):
-        obj = models.Country.objects.get(name='country1')
-        self.assertEqual(obj.name, 'country1')
+    fixtures = ['Countries']
+
+    def test_country_data(self):
+        objs = models.Country.objects.all()
+        self.assertEqual(objs.count(), 260)
 
 
 class DocumentTest(TestCase):
@@ -37,37 +41,42 @@ class DocumentTest(TestCase):
         obj = models.Document.objects.get(name='document1')
         self.assertEqual(obj.uri, '/path/to/file')
 
-
+"""
 class AppealTest(TestCase):
     def setUp(self):
-        disaster = models.Disaster.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
-        models.Appeal.objects.create(aid='test1', disaster=disaster, country=country)
+        models.Appeal.objects.create(aid='test1', disaster=event, country=country)
 
     def test_appeal_create(self):
-        disaster = models.Disaster.objects.get(name='disaster1')
-        self.assertEqual(disaster.countries(), ['country'])
+        event = models.Event.objects.get(name='disaster1')
+        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
         obj = models.Appeal.objects.get(aid='test1')
         self.assertEqual(obj.aid, 'test1')
         self.assertEqual(obj.country, country)
-        self.assertEqual(obj.disaster, disaster)
-
+        self.assertEqual(obj.event, event)
+"""
 
 class FieldReportTest(TestCase):
+
+    fixtures = ['DisasterTypes']
+
     def setUp(self):
-        disaster = models.Disaster.objects.create(name='disaster1', description='test disaster')
+        event = models.Event.objects.create(name='disaster1', summary='test disaster')
         country = models.Country.objects.create(name='country')
-        models.FieldReport.objects.create(fid='test1', disaster=disaster, country=country)
+        dtype = models.DisasterType.objects.get(pk=1)
+        report = models.FieldReport.objects.create(rid='test1', event=event, dtype=dtype)
+        report.countries.add(country)
 
     def test_field_report_create(self):
-        disaster = models.Disaster.objects.get(name='disaster1')
-        self.assertEqual(disaster.countries(), ['country'])
+        event = models.Event.objects.get(name='disaster1')
+        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
-        obj = models.FieldReport.objects.get(fid='test1')
-        self.assertEqual(obj.fid, 'test1')
-        self.assertEqual(obj.country, country)
-        self.assertEqual(obj.disaster, disaster)
+        obj = models.FieldReport.objects.get(rid='test1')
+        self.assertEqual(obj.rid, 'test1')
+        self.assertEqual(obj.countries.all()[0], country)
+        self.assertEqual(obj.event, event)
 
 
 class ServiceTest(TestCase):

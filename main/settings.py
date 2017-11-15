@@ -73,6 +73,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 if os.path.exists(os.path.join(os.path.dirname(__file__), 'secret_settings.py')):
     from .secret_settings import *
