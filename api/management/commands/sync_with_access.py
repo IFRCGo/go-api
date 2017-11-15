@@ -1,6 +1,9 @@
+import os
 import csv
 import logging
 import subprocess
+from ftplib import FTP
+from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from api.models import DisasterType, Country, FieldReport
 from pdb import set_trace
@@ -24,30 +27,53 @@ def extract_table(dbfile, table):
             records.append(d)
     return records
 
+def get_dbfile():
+    ftphost = os.environ.get('IFRC_FTPHOST', None)
+    ftpuser = os.environ.get('IFRC_FTPUSER', None)
+    ftppass = os.environ.get('IFRC_FTPPASS', None)
+    print(ftphost, ftpuser, ftppass)
+    if ftphost is None or ftpuser is None or ftppass is None:
+        raise Exception('No FTP credentials provided (IFRC_FTPHOST, IFRC_FTPUSER, IFRC_FTPPASS)')
+    print('Connecting to FTP')
+    ftp = FTP(ftphost)
+    ftp.login(user=ftpuser, passwd=ftppass)
+    ftp.cwd('/dmis/')
+    data = []
+    ftp.dir('-t', data.append)
+    filename = data[-1].split()[3]
+    print('Fetching %s' % filename)
+    with open(filename, 'wb') as f:
+        ftp.retrbinary('RETR ' + filename, f.write, 2014)
+    ftp.quit()
+    print('Unzipping databae file')
+    zp = ZipFile(filename)
+    set_trace()
+    zp.extractall('./', pwd=ftppass)
+    os.remove(filename)
+    return 'URLs.mdb'
 
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
-    def add_arguments(self, parser):
-        parser.add_argument('filename', help='Filename of Access database')
-
     def handle(self, *args, **options):
+        # get latest
+        filename = get_dbfile()
 
         # disaster response records
-        dr_records = extract_table(options['filename'], 'EW_DisasterResponseTools')
+        dr_records = extract_table(filename, 'EW_DisasterResponseTools')
         # check for 1 record for each field report
         fids = [r['ReportID'] for r in dr_records]
         if len(set(fids)) != len(fids):
             raise Exception('More than one DisasterResponseTools record for a field report')
 
         # numeric details records
-        nd_records = extract_table(options['filename'], 'EW_Report_NumericDetails')
+        nd_records = extract_table(filename, 'EW_Report_NumericDetails')
         # check for 1 record for each field report
         fids = [r['ReportID'] for r in nd_records]
         if len(set(fids)) != len(fids):
             raise Exception('More than one NumericDetails record for a field report')
 
-        reports = extract_table(options['filename'], 'EW_Reports')
+        reports = extract_table(filename, 'EW_Reports')
         rids = [r.rid for r in FieldReport.objects.all()]
         print('%s reports in database' % len(reports))
         for i, report in enumerate(reports):
