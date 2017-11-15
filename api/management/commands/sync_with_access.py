@@ -33,9 +33,11 @@ def get_dbfile():
     ftphost = os.environ.get('IFRC_FTPHOST', None)
     ftpuser = os.environ.get('IFRC_FTPUSER', None)
     ftppass = os.environ.get('IFRC_FTPPASS', None)
-    print(ftphost, ftpuser, ftppass)
+    dbpass = os.environ.get('IFRC_DBPASS', None)
     if ftphost is None or ftpuser is None or ftppass is None:
-        raise Exception('No FTP credentials provided (IFRC_FTPHOST, IFRC_FTPUSER, IFRC_FTPPASS)')
+        raise Exception('FTP credentials not provided (IFRC_FTPHOST, IFRC_FTPUSER, IFRC_FTPPASS)')
+    if dbpass is None:
+        raise Exception('Database encryption password not provided (IFRC_DBPASS)')
     print('Connecting to FTP')
     ftp = FTP(ftphost)
     ftp.login(user=ftpuser, passwd=ftppass)
@@ -49,8 +51,7 @@ def get_dbfile():
     ftp.quit()
     print('Unzipping databae file')
     zp = ZipFile(filename)
-    set_trace()
-    zp.extractall('./', pwd=ftppass)
+    zp.extractall('./', pwd=dbpass)
     os.remove(filename)
     return 'URLs.mdb'
 
