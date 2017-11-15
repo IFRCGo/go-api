@@ -5,6 +5,7 @@ import subprocess
 from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import User
 from api.models import DisasterType, Country, FieldReport
 from pdb import set_trace
 
@@ -27,7 +28,9 @@ def extract_table(dbfile, table):
             records.append(d)
     return records
 
+
 def get_dbfile():
+    return 'URLs.mdb'
     ftphost = os.environ.get('IFRC_FTPHOST', None)
     ftpuser = os.environ.get('IFRC_FTPUSER', None)
     ftppass = os.environ.get('IFRC_FTPPASS', None)
@@ -51,6 +54,7 @@ def get_dbfile():
     zp.extractall('./', pwd=ftppass)
     os.remove(filename)
     return 'URLs.mdb'
+
 
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
@@ -107,6 +111,24 @@ class Command(BaseCommand):
             item = FieldReport(**record)
             item.save()
             item.countries.add(*Country.objects.filter(pk=report['CountryID']))
+
+        # add users
+        user_records = extract_table(filename, 'DMISUsers')
+        print('%s users in database' % len(user_records))
+        for i, user in enumerate(user_records):
+            name = user['RealName'].split()
+            first_name = name[0]
+            last_name = ' '.join(name[1:]) if len(name) > 1 else ''
+            fields = {
+                'username': user['UserName'],
+                'password': user['Password'],
+                'email': user['EmailAddress'],
+                'first_name': first_name,
+                'last_name': last_name
+            }
+            user, created = User.objects.get_or_create(username=user['UserName'], defaults=fields)
+            if created:
+                print(i) if (i % 100) == 0 else None
 
         items = FieldReport.objects.all()
         print('%s items' % items.count())
