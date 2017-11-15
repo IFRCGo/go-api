@@ -46,22 +46,24 @@ def get_dbfile():
     ftp.dir('-t', data.append)
     filename = data[-1].split()[3]
 
+    # check if we already have this file
+    files = glob('URLs*zip')
+    if filename in files and os.path.exists('URLs.mdb'):
+        ftp.quit()
+        return 'URLs.mdb'
+
     # clean up old files
-    files = glob('URLs*')
-    if filename in files:
-        return filename
-    else:
-        for f in files:
-            os.remove(f)
+    for f in files:
+        os.remove(f)
 
     print('Fetching %s' % filename)
     with open(filename, 'wb') as f:
         ftp.retrbinary('RETR ' + filename, f.write, 2014)
     ftp.quit()
-    print('Unzipping databae file')
+
+    print('Unzipping database file')
     zp = ZipFile(filename)
-    zp.extractall('./', pwd=dbpass)
-    os.remove(filename)
+    zp.extractall('./', pwd=dbpass.encode('cp850', 'replace'))
     return 'URLs.mdb'
 
 
