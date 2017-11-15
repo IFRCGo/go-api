@@ -2,8 +2,8 @@ FROM python:3.6.3-jessie
 
 RUN \
 	apt-get update; \
-	apt-get install -y nginx postgresql-client mdbtools
-
+	apt-get install -y nginx postgresql-client mdbtools vim; \
+	apt-get install -y cron --no-install-recommends
 
 ENV HOME=/home/ifrc
 
