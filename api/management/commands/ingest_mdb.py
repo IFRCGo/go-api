@@ -2,6 +2,7 @@ import os
 import csv
 import logging
 import subprocess
+from glob import glob
 from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
@@ -29,14 +30,14 @@ def extract_table(dbfile, table):
 
 
 def get_dbfile():
-    ftphost = os.environ.get('IFRC_FTPHOST', None)
-    ftpuser = os.environ.get('IFRC_FTPUSER', None)
-    ftppass = os.environ.get('IFRC_FTPPASS', None)
-    dbpass = os.environ.get('IFRC_DBPASS', None)
+    ftphost = os.environ.get('GO_FTPHOST', None)
+    ftpuser = os.environ.get('GO_FTPUSER', None)
+    ftppass = os.environ.get('GO_FTPPASS', None)
+    dbpass = os.environ.get('GO_DBPASS', None)
     if ftphost is None or ftpuser is None or ftppass is None:
-        raise Exception('FTP credentials not provided (IFRC_FTPHOST, IFRC_FTPUSER, IFRC_FTPPASS)')
+        raise Exception('FTP credentials not provided (GO_FTPHOST, GO_FTPUSER, GO_FTPPASS)')
     if dbpass is None:
-        raise Exception('Database encryption password not provided (IFRC_DBPASS)')
+        raise Exception('Database encryption password not provided (GO_DBPASS)')
     print('Connecting to FTP')
     ftp = FTP(ftphost)
     ftp.login(user=ftpuser, passwd=ftppass)
@@ -44,6 +45,15 @@ def get_dbfile():
     data = []
     ftp.dir('-t', data.append)
     filename = data[-1].split()[3]
+
+    # clean up old files
+    files = glob('URLs*')
+    if filename in files:
+        return filename
+    else:
+        for f in files:
+            os.remove(f)
+
     print('Fetching %s' % filename)
     with open(filename, 'wb') as f:
         ftp.retrbinary('RETR ' + filename, f.write, 2014)
