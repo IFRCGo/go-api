@@ -1,9 +1,9 @@
 #!/bin/bash
 mkdir -p $HOME/logs $HOME/static
 
-# load fixture data, apply migrations, collect static files
-python manage.py loaddata Countries DisasterTypes
+# apply migrations, load fixture data, collect static files
 python manage.py migrate
+python manage.py loaddata Countries DisasterTypes
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
 
@@ -20,7 +20,7 @@ exec gunicorn main.wsgi:application \
     --workers 3 \
     --log-level=info \
     --log-file=$HOME/logs/gunicorn.log \
-    --access-logfile=$HOME/logs/access.log & 
+    --access-logfile=$HOME/logs/access.log &
 
 # set up cron
 echo export IFRC_FTPHOST=$IFRC_FTPHOST >> $HOME/.env
@@ -32,5 +32,5 @@ service cron start
 
 tail -n 0 -f $HOME/logs/*.log &
 
-echo Starting nginx 
+echo Starting nginx
 exec service nginx start
