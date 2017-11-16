@@ -27,6 +27,8 @@ echo export IFRC_FTPHOST=$IFRC_FTPHOST >> $HOME/.env
 echo export IFRC_FTPUSER=$IFRC_FTPUSER >> $HOME/.env
 echo export IFRC_FTPPASS=$IFRC_FTPPASS >> $HOME/.env
 echo export PATH=$PATH:/usr/local/bin >> $HOME/.env
+echo export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY >> $HOME/.env
+echo export LOCAL_TEST=true >> $HOME/.env
 (echo '0 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
 service cron start
 
