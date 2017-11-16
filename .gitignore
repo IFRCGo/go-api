@@ -1,8 +1,8 @@
 # python virtual environment folder
 env
 
-# secret settings file
-main/secret_settings.py
+# secret settings env variables
+.env
 
 # python stuff
 *.pyc
