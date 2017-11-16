@@ -23,9 +23,10 @@ exec gunicorn main.wsgi:application \
     --access-logfile=$HOME/logs/access.log &
 
 # set up cron
-echo export IFRC_FTPHOST=$IFRC_FTPHOST >> $HOME/.env
-echo export IFRC_FTPUSER=$IFRC_FTPUSER >> $HOME/.env
-echo export IFRC_FTPPASS=$IFRC_FTPPASS >> $HOME/.env
+echo export GO_FTPHOST=$GO_FTPHOST >> $HOME/.env
+echo export GO_FTPUSER=$GO_FTPUSER >> $HOME/.env
+echo export GO_FTPPASS=$GO_FTPPASS >> $HOME/.env
+echo export GO_DBPASS=$GO_DBPASS >> $HOME/.env
 echo export PATH=$PATH:/usr/local/bin >> $HOME/.env
 echo export DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY >> $HOME/.env
 echo export DJANGO_DB_NAME=$DJANGO_DB_NAME >> $HOME/.env
