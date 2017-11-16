@@ -1,7 +1,7 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = 'secret'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -45,12 +45,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
+# Use sqlite for local tests, postgresql for everything else
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+if not os.environ.get('LOCAL_TEST'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ.get('DJANGO_DB_NAME'),
+            'USER': os.environ.get('DJANGO_DB_USER'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
+            'HOST': os.environ.get('DJANGO_DB_HOST'),
+            'PORT': os.environ.get('DJANGO_DB_PORT'),
+        }
+    }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -74,6 +88,3 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-if os.path.exists(os.path.join(os.path.dirname(__file__), 'secret_settings.py')):
-    from .secret_settings import *
