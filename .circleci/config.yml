@@ -31,11 +31,6 @@ references:
       command: |
         touch .env
         echo "DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY" >> .env
-        echo "DJANGO_DB_NAME=$DJANGO_DB_NAME" >> .env
-        echo "DJANGO_DB_USER=$DJANGO_DB_USER" >> .env
-        echo "DJANGO_DB_PASS=$DJANGO_DB_PASS" >> .env
-        echo "DJANGO_DB_HOST=$DJANGO_DB_HOST" >> .env
-        echo "DJANGO_DB_PORT=$DJANGO_DB_PORT" >> .env
         echo "LOCAL_TEST=true" >> .env
 
   restore_docker_cache: &restore_docker_cache
