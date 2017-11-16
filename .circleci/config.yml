@@ -19,7 +19,7 @@ references:
 
   restore_cache: &restore_cache
     restore_cache:
-      keys: 
+      keys:
         - v0-dependencies-{{ checksum "requirements.txt"}}
         - v0-dependencies
       paths:
@@ -30,16 +30,18 @@ references:
       name: Creating .env
       command: |
         touch .env
+        echo "DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY" >> .env
+        echo "LOCAL_TEST=true" >> .env
 
   restore_docker_cache: &restore_docker_cache
     restore_cache:
-      keys: 
+      keys:
         - v0-docker-{{ .Branch }}
       paths:
         - ~/caches/docker.tar
 
   build_docker: &build_docker
-    run: 
+    run:
       name: Build docker image
       command: |
         set +o pipefail
@@ -62,7 +64,7 @@ jobs:
 
   install_and_test:
     <<: *container_python36
-    steps:  
+    steps:
       - *restore_repo
       - *restore_cache
       - run: |
