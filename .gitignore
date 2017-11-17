@@ -15,3 +15,6 @@ pip-log.txt
 
 # local test db
 db.sqlite3
+
+# vim files
+*.swp
