@@ -130,14 +130,16 @@ class Command(BaseCommand):
             name = user['RealName'].split()
             first_name = name[0]
             last_name = ' '.join(name[1:]) if len(name) > 1 else ''
+            password = user['Password']
             fields = {
                 'username': user['UserName'],
-                'password': user['Password'],
                 'email': user['EmailAddress'],
                 'first_name': first_name,
                 'last_name': last_name
             }
             user, created = User.objects.get_or_create(username=user['UserName'], defaults=fields)
+            user.set_password(password)
+            user.save()
             if created:
                 print(i) if (i % 100) == 0 else None
 
