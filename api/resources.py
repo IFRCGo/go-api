@@ -1,4 +1,4 @@
-
+from .authentication import ExpiringApiKeyAuthentication
 from tastypie.resources import ModelResource
 from .models import DisasterType, Event, Country, FieldReport
 
@@ -25,3 +25,4 @@ class FieldReportResource(ModelResource):
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
+        authentication = ExpiringApiKeyAuthentication()
