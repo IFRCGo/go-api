@@ -1,9 +1,13 @@
 import os
 
+local_test = True if os.environ.get('LOCAL_TEST') else False
+frontend_url = 'dsgoapicontainer.westeurope.cloudapp.azure.com'
+localhost = 'localhost'
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
-ALLOWED_HOSTS = ['dsgoapicontainer.westeurope.cloudapp.azure.com']
+ALLOWED_HOSTS = [localhost, frontend_url,]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -12,18 +16,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'tastypie',
     'api'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'main.urls'
 
@@ -48,23 +57,22 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Use sqlite for local tests, postgresql for everything else
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('DJANGO_DB_NAME'),
+        'USER': os.environ.get('DJANGO_DB_USER'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
+        'HOST': os.environ.get('DJANGO_DB_HOST'),
+        'PORT': os.environ.get('DJANGO_DB_PORT'),
     }
 }
 
-if not os.environ.get('LOCAL_TEST'):
+if local_test:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get('DJANGO_DB_NAME'),
-            'USER': os.environ.get('DJANGO_DB_USER'),
-            'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
-            'HOST': os.environ.get('DJANGO_DB_HOST'),
-            'PORT': os.environ.get('DJANGO_DB_PORT'),
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
