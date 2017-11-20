@@ -13,8 +13,26 @@
 
 Start the environment and install the dependencies
 
-```(python)
+```(bash)
 python -m venv env
 source env/bin/activate
 pip install -r requirements.txt
+```
+
+## Developing against a local sqlite db
+
+```(bash)
+# Add FTP credentials to environment
+source .env
+# echo $GO_FTPPASS
+
+# Tells django to use a local sqlite db
+export LOCAL_TEST=true
+
+python manage.py makemigrations
+python manage.py migrate
+python manage.py loaddata Countries DisasterTypes
+python manage.py collectstatic
+python manage.py ingest_mdb
+python manage.py runserver
 ```
