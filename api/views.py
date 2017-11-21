@@ -37,6 +37,8 @@ def get_auth_token(request):
             return JsonResponse({
                 'token': api_key.key,
                 'username': username,
+                'first': user.first_name,
+                'last': user.last_name,
                 'expires': api_key.created + token_duration,
             })
         else:
