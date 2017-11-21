@@ -16,7 +16,14 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from tastypie.api import Api
-from api.resources import DisasterTypeResource, EventResource, CountryResource, FieldReportResource
+from api.resources import (
+    DisasterTypeResource,
+    EventResource,
+    CountryResource,
+    FieldReportResource,
+    UserResource,
+    ProfileResource,
+)
 from api.views import get_auth_token
 
 v1_api = Api(api_name='v1')
@@ -24,6 +31,8 @@ v1_api.register(DisasterTypeResource())
 v1_api.register(EventResource())
 v1_api.register(CountryResource())
 v1_api.register(FieldReportResource())
+v1_api.register(UserResource())
+v1_api.register(ProfileResource())
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
