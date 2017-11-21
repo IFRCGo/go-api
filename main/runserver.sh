@@ -23,6 +23,7 @@ exec gunicorn main.wsgi:application \
     --access-logfile=$HOME/logs/access.log &
 
 # set up cron
+rm $HOME/.env
 echo export GO_FTPHOST=$GO_FTPHOST >> $HOME/.env
 echo export GO_FTPUSER=$GO_FTPUSER >> $HOME/.env
 echo export GO_FTPPASS="$GO_FTPPASS" >> $HOME/.env
