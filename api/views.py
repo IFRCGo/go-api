@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from tastypie.models import ApiKey
@@ -10,15 +10,26 @@ from .authentication import token_duration
 def get_auth_token(request):
     print(pretty_request(request))
     if request.META.get('CONTENT_TYPE') != 'application/json':
-        return HttpResponseBadRequest('Content-type must be `application/json`')
+        return JsonResponse({
+            'statusCode': 400,
+            'message': 'Content-type must be `application/json`'
+        }, status=400)
+
     elif request.method != 'POST':
-        return HttpResponseBadRequest('HTTP method must be `POST`')
+        return JsonResponse({
+            'statusCode': 400,
+            'message': 'HTTP method must be `POST`'
+        }, status=400)
+
     else:
         body = json.loads(request.body.decode('utf-8'))
         username = body['username']
         password = body['password']
         if not username or not password:
-            return HttpResponseBadRequest('Body must contain `username` and `password`')
+            return JsonResponse({
+                'statusCode': 400,
+                'message': 'Body must contain `username` and `password`'
+            }, status=400)
 
         user = authenticate(username=username, password=password)
         if user is not None:
@@ -29,4 +40,7 @@ def get_auth_token(request):
                 'expires': api_key.created + token_duration,
             })
         else:
-            return HttpResponseBadRequest('Could not authenticate')
+            return JsonResponse({
+                'statusCode': 400,
+                'message': 'Could not authenticate'
+            }, status=400)
