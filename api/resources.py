@@ -35,19 +35,20 @@ class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        fields = ['username', 'first_name', 'last_name']
+        fields = ['username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
+        authentication = ExpiringApiKeyAuthentication()
 
 
 class ProfileResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
+    user = fields.ForeignKey(UserResource, 'user', full=True)
     class Meta:
         queryset = Profile.objects.all()
         list_allowed_methods = ['get']
-        detail_allowed_methods = ['get', 'put', 'patch']
+        detail_allowed_methods = ['get', 'post', 'put', 'patch']
         resource_name = 'profile'
-        authorization = DjangoAuthorization()
         filtering = {
             'user': ALL_WITH_RELATIONS
         }
+        authentication = ExpiringApiKeyAuthentication()
