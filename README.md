@@ -8,6 +8,7 @@
 
 - [Pyenv](https://github.com/pyenv/pyenv)
 - Python 3.6.3 `pyenv install 3.6.3`
+- [mdb tools](https://github.com/brianb/mdbtools) `brew install mdbtools`
 
 ## Setup
 
