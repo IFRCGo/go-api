@@ -1,7 +1,7 @@
 import os
 
 local_test = True if os.environ.get('LOCAL_TEST') else False
-frontend_url = 'dsgoapicontainer.westeurope.cloudapp.azure.com'
+frontend_url = 'dsgoapi.northeurope.cloudapp.azure.com'
 localhost = 'localhost'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
