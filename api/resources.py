@@ -38,6 +38,9 @@ class UserResource(ModelResource):
         fields = ['username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
+        filtering = {
+            'username': ('exact'),
+        }
         authentication = ExpiringApiKeyAuthentication()
 
 
@@ -49,6 +52,6 @@ class ProfileResource(ModelResource):
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
         resource_name = 'profile'
         filtering = {
-            'user': ALL_WITH_RELATIONS
+            'user': ALL_WITH_RELATIONS,
         }
         authentication = ExpiringApiKeyAuthentication()
