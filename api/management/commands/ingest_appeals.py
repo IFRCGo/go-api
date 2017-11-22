@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
         print('%s events' % Event.objects.all().count())
         print('%s appeals' % Appeal.objects.all().count())
-        print('%s appeals in Appeals API database' % len(results))
+        print('%s events in Appeals API database' % len(results))
         for i, r in enumerate(results):
             if r['APP_Id'] in ids:
                 continue
