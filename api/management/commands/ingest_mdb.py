@@ -161,20 +161,20 @@ class Command(BaseCommand):
                 first_name = name[0]
                 last_name = ' '.join(name[1:]) if len(name) > 1 else ''
                 user = User.objects.create(username=user_data['UserName'],
-                                           first_name=first_name,
-                                           last_name=last_name,
+                                           first_name=first_name if len(first_name) <= 30 else '',
+                                           last_name=last_name if len(last_name) <= 30 else '',
                                            email=user_data['EmailAddress'],
                                            last_login=last_login,
                                            )
                 print(i) if (i % 100) == 0 else None
 
             # set user profile info
-            user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) < 100 else ''
+            user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) <= 100 else ''
             user.profile.org_type = org_types.get(user_data['OrgTypeID'])
             user.profile.country = Country.objects.get(pk=user_data['CountryID'])
             user.profile.city = user_data['City']
             user.profile.department = user_data['Department']
-            user.profile.position = user_data['Position'] if len(user_data['Position']) < 100 else ''
+            user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
             user.profile.phone_number = user_data['PhoneNumberProf']
 
             user.set_password(user_data['Password'])
