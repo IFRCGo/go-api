@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 import api.models as models
 
@@ -40,6 +41,18 @@ class DocumentTest(TestCase):
     def test_document_create(self):
         obj = models.Document.objects.get(name='document1')
         self.assertEqual(obj.uri, '/path/to/file')
+
+
+class ProfileTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(username='username', first_name='pat', last_name='smith', password='password')
+        user.profile.org = 'org'
+        user.profile.save()
+
+    def test_profile_create(self):
+        profile = models.Profile.objects.get(user__username='username')
+        self.assertEqual(profile.org, 'org')
+
 
 """
 class AppealTest(TestCase):
