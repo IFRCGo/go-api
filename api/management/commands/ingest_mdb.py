@@ -172,10 +172,10 @@ class Command(BaseCommand):
             user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) <= 100 else ''
             user.profile.org_type = org_types.get(user_data['OrgTypeID'])
             user.profile.country = Country.objects.get(pk=user_data['CountryID'])
-            user.profile.city = user_data['City']
-            user.profile.department = user_data['Department']
+            user.profile.city = user_data['City'] if len(user_data['City']) <= 100 else ''
+            user.profile.department = user_data['Department'] if len(user_data['Department']) <= 100 else ''
             user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
-            user.profile.phone_number = user_data['PhoneNumberProf']
+            user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
 
             user.set_password(user_data['Password'])
             user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
