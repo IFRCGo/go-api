@@ -23,11 +23,13 @@ class Command(BaseCommand):
 
         ids = [r.aid for r in Appeal.objects.all()]
 
-        print('%s appeals in database' % len(results))
+        print('%s events' % Event.objects.all().count())
+        print('%s appeals' % Appeal.objects.all().count())
+        print('%s appeals in Appeals API database' % len(results))
         for i, r in enumerate(results):
             if r['APP_Id'] in ids:
                 continue
-
+            print(i) if (i % 100) == 0 else None
             # create an Event for this
             dtype = DisasterType.objects.filter(name=r['ADT_name']).first()
             if dtype is None:
@@ -46,7 +48,10 @@ class Command(BaseCommand):
             if country.count() == 0:
                 country = None
 
+            aids = [a.aid for a in Appeal.objects.all()]
             for appeal in r['Details']:
+                if appeal['APD_code'] in aids:
+                    continue
                 amount_funded = 0 if appeal['ContributionAmount'] is None else appeal['ContributionAmount']
                 fields = {
                     'event': event,
@@ -58,7 +63,9 @@ class Command(BaseCommand):
                     'amount_requested': appeal['APD_amountCHF'],
                     'amount_funded': amount_funded
                 }
+                # this will always create since we check ids above, but aids are not unique so get
+                # would return more than one item if we didn't bail at the top of this loop
                 item, created = Appeal.objects.get_or_create(aid=appeal['APD_code'], defaults=fields)
 
-        items = Appeal.objects.all()
-        print('%s items' % items.count())
+        print('%s events' % Event.objects.all().count())
+        print('%s appeals' % Appeal.objects.all().count())
