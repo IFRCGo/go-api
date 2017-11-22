@@ -169,12 +169,12 @@ class Command(BaseCommand):
                 print(i) if (i % 100) == 0 else None
 
             # set user profile info
-            user.profile.org = user_data['OrgTypeSpec']
+            user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) < 100 else ''
             user.profile.org_type = org_types.get(user_data['OrgTypeID'])
             user.profile.country = Country.objects.get(pk=user_data['CountryID'])
             user.profile.city = user_data['City']
             user.profile.department = user_data['Department']
-            user.profile.position = user_data['Position']
+            user.profile.position = user_data['Position'] if len(user_data['Position']) < 100 else ''
             user.profile.phone_number = user_data['PhoneNumberProf']
 
             user.set_password(user_data['Password'])
