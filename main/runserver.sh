@@ -35,6 +35,8 @@ echo "export DJANGO_DB_USER=\"$DJANGO_DB_USER\"" >> $HOME/.env
 echo "export DJANGO_DB_PASS=\"$DJANGO_DB_PASS\"" >> $HOME/.env
 echo "export DJANGO_DB_HOST=\"$DJANGO_DB_HOST\"" >> $HOME/.env
 echo "export DJANGO_DB_PORT=\"$DJANGO_DB_PORT\"" >> $HOME/.env
+echo "export APPEAL_USER=\"$APPEAL_USER\"" >> $HOME/.env
+echo "export APPEAL_PASS=\"$APPEAL_PASS\"" >> $HOME/.env
 (echo '0 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
 service cron start
 
