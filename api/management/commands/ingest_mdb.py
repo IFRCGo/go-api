@@ -2,6 +2,9 @@ import os
 import csv
 import logging
 import subprocess
+import pytz
+from django.utils import timezone
+from datetime import datetime, timedelta
 from glob import glob
 from ftplib import FTP
 from zipfile import ZipFile
@@ -123,25 +126,60 @@ class Command(BaseCommand):
             item.save()
             item.countries.add(*Country.objects.filter(pk=report['CountryID']))
 
+        # org type mapping
+        org_types = {
+            '1': 'NTLS',
+            '2': 'DLGN',
+            '3': 'SCRT',
+            '4': 'ICRC',
+        }
+        last_login_threshold = timezone.now() - timedelta(days=365)
+
         # add users
         user_records = extract_table(filename, 'DMISUsers')
         print('%s users in database' % len(user_records))
-        for i, user in enumerate(user_records):
-            name = user['RealName'].split()
-            first_name = name[0]
-            last_name = ' '.join(name[1:]) if len(name) > 1 else ''
-            password = user['Password']
-            fields = {
-                'username': user['UserName'],
-                'email': user['EmailAddress'],
-                'first_name': first_name,
-                'last_name': last_name
-            }
-            user, created = User.objects.get_or_create(username=user['UserName'], defaults=fields)
-            user.set_password(password)
-            user.save()
-            if created:
+        for i, user_data in enumerate(user_records):
+            if user_data['LoginLastSuccess'] == '':
+                continue
+
+            last_login = datetime.strptime(user_data['LoginLastSuccess'],
+                                           '%m/%d/%y %H:%M:%S',
+                                           )
+            last_login = pytz.UTC.localize(last_login)
+
+            # skip users who haven't logged in for a year
+            if last_login < last_login_threshold:
+                continue
+
+            try:
+                user = User.objects.get(username=user_data['UserName'])
+            except User.DoesNotExist:
+                user = None
+
+            if user is None:
+                name = user_data['RealName'].split()
+                first_name = name[0]
+                last_name = ' '.join(name[1:]) if len(name) > 1 else ''
+                user = User.objects.create(username=user_data['UserName'],
+                                           first_name=first_name if len(first_name) <= 30 else '',
+                                           last_name=last_name if len(last_name) <= 30 else '',
+                                           email=user_data['EmailAddress'],
+                                           last_login=last_login,
+                                           )
                 print(i) if (i % 100) == 0 else None
+
+            # set user profile info
+            user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) <= 100 else ''
+            user.profile.org_type = org_types.get(user_data['OrgTypeID'])
+            user.profile.country = Country.objects.get(pk=user_data['CountryID'])
+            user.profile.city = user_data['City'] if len(user_data['City']) <= 100 else ''
+            user.profile.department = user_data['Department'] if len(user_data['Department']) <= 100 else ''
+            user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
+            user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
+
+            user.set_password(user_data['Password'])
+            user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
+            user.save()
 
         items = FieldReport.objects.all()
         print('%s items' % items.count())

@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
 
 
 class DisasterType(models.Model):
@@ -114,3 +116,45 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Profile(models.Model):
+    """ Holds location and identifying information about users """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile',
+        primary_key=True,
+    )
+
+    country = models.ForeignKey(Country, null=True)
+
+    # TODO org should also be discreet choices from this list
+    # https://drive.google.com/drive/u/1/folders/1auXpAPhOh4YROnKxOfFy5-T7Ki96aIb6k
+    org = models.CharField(blank=True, max_length=100)
+    org_type = models.CharField(
+        choices = (
+            ('NTLS', 'National Society'),
+            ('DLGN', 'Delegation'),
+            ('SCRT', 'Secretariat'),
+            ('ICRC', 'ICRC'),
+        ),
+        max_length=4,
+        blank=True,
+    )
+    city = models.CharField(blank=True, max_length=100)
+    department = models.CharField(blank=True, max_length=100)
+    position = models.CharField(blank=True, max_length=100)
+    phone_number = models.CharField(blank=True, max_length=100)
+
+    def __str__(self):
+        return self.user.username
+
+
+# Save a user profile whenever we create a user
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+    instance.profile.save()
+post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
