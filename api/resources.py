@@ -4,6 +4,7 @@ from tastypie.authorization import DjangoAuthorization
 from django.contrib.auth.models import User
 from .models import DisasterType, Event, Country, FieldReport, Profile
 from .authentication import ExpiringApiKeyAuthentication
+from .authorization import FieldReportAuthorization
 
 
 class DisasterTypeResource(ModelResource):
@@ -29,6 +30,7 @@ class FieldReportResource(ModelResource):
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
         authentication = ExpiringApiKeyAuthentication()
+        authorization = FieldReportAuthorization()
 
 
 class UserResource(ModelResource):
@@ -42,6 +44,7 @@ class UserResource(ModelResource):
             'username': ('exact'),
         }
         authentication = ExpiringApiKeyAuthentication()
+        authorization = DjangoAuthorization()
 
 
 class ProfileResource(ModelResource):
@@ -55,3 +58,4 @@ class ProfileResource(ModelResource):
             'user': ALL_WITH_RELATIONS,
         }
         authentication = ExpiringApiKeyAuthentication()
+        authorization = DjangoAuthorization()
