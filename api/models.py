@@ -77,8 +77,8 @@ class Appeal(models.Model):
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
-    amount_requested = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    amount_requested = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
