@@ -1,7 +1,8 @@
 import os
+import sys
 import logging
 import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
 from api.models import Appeal, Country, DisasterType, Event
 
@@ -37,7 +38,7 @@ class Command(BaseCommand):
         timeformat = '%Y-%m-%dT%H:%M:%S'
 
         for i, r in enumerate(results):
-            print(i) if (i % 100) == 0 else None
+            sys.stdout.write('.') if (i % 100) == 0 else None
             # create an Event for this
             dtype = DisasterType.objects.filter(name=r['ADT_name']).first()
             if dtype is None:
