@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import requests
+import json
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
 from api.models import Appeal, Country, DisasterType, Event
@@ -58,6 +59,8 @@ class Command(BaseCommand):
             country = Country.objects.filter(name=r['OSC_name'])
             if country.count() == 0:
                 country = None
+            else:
+                country = country.first()
 
             appeals = [a for a in r['Details'] if a['APD_code'] not in aids]
             for appeal in appeals:
