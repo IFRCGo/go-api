@@ -1,6 +1,7 @@
 Django==1.11.7
 django-cors-headers==2.1.0
 django-tastypie==0.14.0
+elasticsearch==6.0.0
 graphene==2.0
 graphene-django==2.0.0
 graphql-core==2.0
@@ -12,8 +13,9 @@ psycopg2==2.7.3.2
 python-dateutil==2.6.1
 python-mimeparse==1.6.0
 pytz==2017.3
+requests==2.18.4
 Rx==1.6.0
 singledispatch==3.4.0.3
 six==1.11.0
 typing==3.6.2
-requests~=2.18.4
+urllib3==1.22
