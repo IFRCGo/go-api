@@ -33,11 +33,13 @@ class Event(models.Model):
 
     def start_date(self):
         """ Get start date of first appeal """
-        return min([a['start_date'] for a in self.appeal_set.all()])
+        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
+        return min(start_dates) if len(start_dates) else None
 
     def end_date(self):
         """ Get latest end date of all appeals """
-        return max([a['end_date'] for a in self.appeal_set.all()])
+        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
+        return max(end_dates) if len(end_dates) else None
 
     def __str__(self):
         return self.name
