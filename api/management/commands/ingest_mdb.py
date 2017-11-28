@@ -70,6 +70,16 @@ def get_dbfile():
     return 'URLs.mdb'
 
 
+def fetch_relation(records, rid):
+    """ Find record with matching ReportID to rid """
+    result = [r for r in records if r['ReportID'] == rid]
+    assert(len(result) <= 1)
+    if len(result) == 1:
+        return {key: (value if value != '' else None) for key, value in result[0].items()}
+    else:
+        return {}
+
+
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
@@ -85,11 +95,25 @@ class Command(BaseCommand):
             raise Exception('More than one DisasterResponseTools record for a field report')
 
         # numeric details records
-        nd_records = extract_table(filename, 'EW_Report_NumericDetails')
+        details_rc = extract_table(filename, 'EW_Report_NumericDetails')
         # check for 1 record for each field report
-        fids = [r['ReportID'] for r in nd_records]
+        fids = [r['ReportID'] for r in details_rc]
         if len(set(fids)) != len(fids):
             raise Exception('More than one NumericDetails record for a field report')
+        # numeric details records
+        details_gov = extract_table(filename, 'EW_Report_NumericDetails_GOV')
+        # check for 1 record for each field report
+        fids = [r['ReportID'] for r in details_gov]
+        if len(set(fids)) != len(fids):
+            raise Exception('More than one NumericDetails record for a field report')
+
+        # actions taken
+        actions_national = extract_table(filename, 'EW_Report_ActionTakenByRedCross')
+        actions_foreign = extract_table(filename, 'EW_Report_ActionTakenByPnsRC')
+        actions_federation = extract_table(filename, 'EW_Report_ActionTakenByFederationRC')
+
+        # contacts
+        contacts = extract_table(filename, 'EW_Report_Contacts')
 
         reports = extract_table(filename, 'EW_Reports')
         rids = [r.rid for r in FieldReport.objects.all()]
@@ -98,8 +122,6 @@ class Command(BaseCommand):
             if report['ReportID'] in rids:
                 continue
             print(i) if (i % 100) == 0 else None
-            nd = [r for r in nd_records if r['ReportID'] == report['ReportID']]
-            assert(len(nd) <= 1)
             record = {
                 'rid': report['ReportID'],
                 'summary': report['Summary'],
@@ -109,19 +131,50 @@ class Command(BaseCommand):
                 'request_assistance': report['GovRequestsInternAssistance'],
                 'action': report['ActionTaken']
             }
-            if len(nd) == 1:
-                nd = {key: (value if value != '' else None) for key, value in nd[0].items()}
+            details = fetch_relation(details_rc, report['ReportID'])
+            if len(details) > 1:
                 record.update({
-                    'num_injured': nd['NumberOfInjured'],
-                    'num_dead': nd['NumberOfCasualties'],
-                    'num_missing': nd['NumberOfMissing'],
-                    'num_affected': nd['NumberOfAffected'],
-                    'num_displaced': nd['NumberOfDisplaced'],
-                    'num_assisted_rc': nd['NumberOfAssistedByRC'],
-                    'num_localstaff': nd['NumberOfLocalStaffInvolved'],
-                    'num_volunteers': nd['NumberOfVolunteersInvolved'],
-                    'num_expats_delegates': nd['NumberOfExpatsDelegates']
+                    'num_injured': details['NumberOfInjured'],
+                    'num_dead': details['NumberOfCasualties'],
+                    'num_missing': details['NumberOfMissing'],
+                    'num_affected': details['NumberOfAffected'],
+                    'num_displaced': details['NumberOfDisplaced'],
+                    'num_assisted': details['NumberOfAssistedByRC'],
+                    'num_localstaff': details['NumberOfLocalStaffInvolved'],
+                    'num_volunteers': details['NumberOfVolunteersInvolved'],
+                    'num_expats_delegates': details['NumberOfExpatsDelegates']
                 })
+            details = fetch_relation(details_gov, report['ReportID'])
+            if len(details) > 1:
+                record.update({
+                    'gov_num_injured': details['NumberOfInjured_GOV'],
+                    'gov_num_dead': details['NumberOfDead_GOV'],
+                    'gov_num_missing': details['NumberOfMissing_GOV'],
+                    'gov_num_affected': details['NumberOfAffected_GOV'],
+                    'gov_num_displaced': details['NumberOfDisplaced_GOV'],
+                    'gov_num_assisted': details['NumberOfAssistedByGov_GOV']
+                })
+
+            # actions taken
+            actions = fetch_relation(actions_national, report['ReportID'])
+            if len(actions) > 1:
+                record.update({
+                    'actions_national': actions['Value']
+                })
+            actions = fetch_relation(actions_foreign, report['ReportID'])
+            if len(actions) > 1:
+                record.update({
+                    'actions_foreign': actions['Value']
+                })
+            actions = fetch_relation(actions_federation, report['ReportID'])
+            if len(actions) > 1:
+                record.update({
+                    'actions_federation': actions['Value']
+                })
+
+            contact = fetch_relation(contacts, report['ReportID'])
+            # add contacts here
+
             item = FieldReport(**record)
             item.save()
             item.countries.add(*Country.objects.filter(pk=report['CountryID']))
