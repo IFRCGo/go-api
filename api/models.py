@@ -49,7 +49,7 @@ class Event(models.Model):
             'name': self.name,
             'type': 'event',
             'countries': ','.join(map(str, self.countries())),
-            'dtype': self.dtype.name,
+            'dtype': getattr(self.dtype, 'name', None),
             'summary': self.summary,
             'status': self.status,
             'created_at': self.created_at,
@@ -159,7 +159,7 @@ class FieldReport(models.Model):
             'id': self.rid,
             'type': 'fieldreport',
             'countries': ','.join(map(str, countries)) if len(countries) else None,
-            'dtype': self.dtype.name,
+            'dtype': getattr(self.dtype, 'name', None),
             'summary': self.summary,
             'status': self.status,
             'created_at': self.created_at,
@@ -229,8 +229,6 @@ def create_profile(sender, instance, created, **kwargs):
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
 
 def index_es(sender, instance, created, **kwargs):
-    print('Updating es')
-    print(instance.es_id())
     ES_CLIENT.index(
         index='pages',
         doc_type='page',
