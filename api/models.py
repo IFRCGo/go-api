@@ -229,15 +229,16 @@ def create_profile(sender, instance, created, **kwargs):
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
 
 def index_es(sender, instance, created, **kwargs):
-    ES_CLIENT.index(
-        index='pages',
-        doc_type='page',
-        id=instance.es_id(),
-        body=instance.indexing(),
-    )
+    if ES_CLIENT is not None:
+        ES_CLIENT.index(
+            index='pages',
+            doc_type='page',
+            id=instance.es_id(),
+            body=instance.indexing(),
+        )
 
 # Avoid automatic indexing during bulk imports
-if os.environ.get('BULK_IMPORT') != '1':
+if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
     post_save.connect(index_es, sender=Event)
     post_save.connect(index_es, sender=Appeal)
     post_save.connect(index_es, sender=FieldReport)
