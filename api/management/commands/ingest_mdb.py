@@ -11,6 +11,7 @@ from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from api.models import DisasterType, Country, FieldReport
+from api.fixtures.dtype_map import PK_MAP
 
 
 def extract_table(dbfile, table):
@@ -104,7 +105,7 @@ class Command(BaseCommand):
                 'rid': report['ReportID'],
                 'summary': report['Summary'],
                 'description': report['BriefSummary'],
-                'dtype': DisasterType.objects.get(pk=report['DisasterTypeID']),
+                'dtype': DisasterType.objects.get(pk=PK_MAP[report['DisasterTypeID']]),
                 'status': report['StatusID'],
                 'request_assistance': report['GovRequestsInternAssistance'],
                 'action': report['ActionTaken']
