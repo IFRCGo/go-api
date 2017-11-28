@@ -27,9 +27,9 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries = [country for fr in self.fieldreport_set.all() for country in fr.countries.all()] + \
-                    [appeal.country for appeal in self.appeal_set.all()]
-        return list(set([c.name for c in countries]))
+        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
+                    [getattr(a, 'country') for a in self.appeal_set.all()]
+        return list(set(countries))
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -40,6 +40,21 @@ class Event(models.Model):
         """ Get latest end date of all appeals """
         end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
         return max(end_dates) if len(end_dates) else None
+
+    def indexing(self):
+        obj = {
+            'id': self.eid,
+            'name': self.name,
+            'type': 'event',
+            'countries': ','.join(map(str, self.countries())),
+            'dtype': self.dtype.name,
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+            'start_date': self.start_date(),
+            'end_date': self.end_date(),
+        }
+        return obj
 
     def __str__(self):
         return self.name
@@ -86,6 +101,17 @@ class Appeal(models.Model):
 
     # documents = models.ManyToManyField(Document)
 
+    def indexing(self):
+        obj = {
+            'id': self.aid,
+            'type': 'appeal',
+            'countries': getattr(self.country, 'name', None),
+            'created_at': self.created_at,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        return obj
+
     def __str__(self):
         return self.aid
 
@@ -118,6 +144,19 @@ class FieldReport(models.Model):
 
     # contacts
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
+        obj = {
+            'id': self.rid,
+            'type': 'fieldreport',
+            'countries': ','.join(map(str, countries)) if len(countries) else None,
+            'dtype': self.dtype.name,
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+        }
+        return obj
 
     def __str__(self):
         return self.rid
