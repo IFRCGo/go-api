@@ -14,6 +14,9 @@ class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
     def handle(self, *args, **options):
+        # set an env variable so we don't bog down elasticsearch with indexing
+        os.environ['BULK_IMPORT'] = '1'
+
         # get latest
         url = 'http://go-api.ifrc.org/api/appeals'
 
@@ -81,3 +84,6 @@ class Command(BaseCommand):
 
         print('%s events' % Event.objects.all().count())
         print('%s appeals' % Appeal.objects.all().count())
+
+        # Reset bulk upload var
+        os.environ['BULK_IMPORT'] = '0'
