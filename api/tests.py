@@ -104,3 +104,14 @@ class ServiceTest(TestCase):
         obj1 = models.Service.objects.get(name='test2')
         self.assertTrue(obj1.deployed)
         self.assertEqual(obj1.location, 'iceland')
+
+
+class ProfileTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(username='test1', password='12345678!')
+        user.profile.department = 'testdepartment'
+        user.save()
+
+    def test_profile_create(self):
+        obj = models.Profile.objects.get(user__username='test1')
+        self.assertEqual(obj.department, 'testdepartment')
