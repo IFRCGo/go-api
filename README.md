@@ -49,6 +49,6 @@ python manage.py test
 ## Generate coverage report
 
 ```(bash)
-coverage run --source='.' manage.py test myapp
+coverage run --source='.' manage.py test
 coverage report
 ```
