@@ -12,9 +12,16 @@ class Command(BaseCommand):
     help = 'Create a new elasticsearch index and bulk-index existing objects'
 
     def handle(self, *args, **options):
+        print('Recreating pages index')
         self.recreate_index()
+
+        print('Indexing events')
         self.push_table_to_index(model=Event)
+
+        print('Indexing appeals')
         self.push_table_to_index(model=Appeal)
+
+        print('Indexing field reports')
         self.push_table_to_index(model=FieldReport)
 
     def recreate_index(self):
@@ -41,9 +48,10 @@ class Command(BaseCommand):
     def convert_for_bulk(self, model_object):
         data = model_object.indexing()
         metadata = {
-            '_op_type': 'index',
+            '_op_type': 'create',
             '_index': 'pages',
             '_type': 'page',
+            '_id': model_object.es_id(),
         }
         data.update(**metadata)
         return data

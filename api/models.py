@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
+from .esconnection import ES_CLIENT
 
 
 class DisasterType(models.Model):
@@ -55,6 +56,9 @@ class Event(models.Model):
             'end_date': self.end_date(),
         }
         return obj
+
+    def es_id(self):
+        return 'event-%s' % self.eid
 
     def __str__(self):
         return self.name
@@ -112,6 +116,9 @@ class Appeal(models.Model):
         }
         return obj
 
+    def es_id(self):
+        return 'appeal-%s' % self.aid
+
     def __str__(self):
         return self.aid
 
@@ -157,6 +164,9 @@ class FieldReport(models.Model):
             'created_at': self.created_at,
         }
         return obj
+
+    def es_id(self):
+        return 'fieldreport-%s' % self.rid
 
     def __str__(self):
         return self.rid
@@ -216,3 +226,4 @@ def create_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     instance.profile.save()
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
+
