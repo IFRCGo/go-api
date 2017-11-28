@@ -1,8 +1,9 @@
 import os
 from elasticsearch import Elasticsearch
 
-hosts = ['http://dsgoes.northeurope.cloudapp.azure.com:9200/']
-if os.environ.get('LOCAL_ES'):
-    hosts = ['http://localhost:9200/']
+host = ['http://localhost:9200/']
+remote_host = os.environ.get('ES_HOST')
+if remote_host is not None:
+    host = [remote_host]
 
-ES_CLIENT = Elasticsearch(hosts)
+ES_CLIENT = Elasticsearch(host)
