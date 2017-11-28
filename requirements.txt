@@ -17,3 +17,4 @@ singledispatch==3.4.0.3
 six==1.11.0
 typing==3.6.2
 requests~=2.18.4
+django-enumfields~=0.9.0
