@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
@@ -58,7 +59,7 @@ class Event(models.Model):
         return obj
 
     def es_id(self):
-        return 'event-%s' % self.eid
+        return 'event-%s' % self.id
 
     def __str__(self):
         return self.name
@@ -117,7 +118,7 @@ class Appeal(models.Model):
         return obj
 
     def es_id(self):
-        return 'appeal-%s' % self.aid
+        return 'appeal-%s' % self.id
 
     def __str__(self):
         return self.aid
@@ -166,7 +167,7 @@ class FieldReport(models.Model):
         return obj
 
     def es_id(self):
-        return 'fieldreport-%s' % self.rid
+        return 'fieldreport-%s' % self.id
 
     def __str__(self):
         return self.rid
@@ -227,3 +228,18 @@ def create_profile(sender, instance, created, **kwargs):
     instance.profile.save()
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
 
+def index_es(sender, instance, created, **kwargs):
+    print('Updating es')
+    print(instance.es_id())
+    ES_CLIENT.index(
+        index='pages',
+        doc_type='page',
+        id=instance.es_id(),
+        body=instance.indexing(),
+    )
+
+# Avoid automatic indexing during bulk imports
+if os.environ.get('BULK_IMPORT') != '1':
+    post_save.connect(index_es, sender=Event)
+    post_save.connect(index_es, sender=Appeal)
+    post_save.connect(index_es, sender=FieldReport)
