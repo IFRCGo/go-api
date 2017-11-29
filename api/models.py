@@ -2,11 +2,13 @@ import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
+from enumfields import EnumIntegerField
+from enumfields import Enum
 from .esconnection import ES_CLIENT
 
 
 class DisasterType(models.Model):
-    """ Type of disaster """
+    """ summary of disaster """
     name = models.CharField(max_length=100)
     summary = models.TextField()
 
@@ -76,6 +78,25 @@ class Country(models.Model):
         return self.name
 
 
+class Action(models.Model):
+    """ Action taken """
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class ActionsTaken(models.Model):
+    """ All the actions taken by an organization """
+
+    organization = models.CharField(max_length=100)
+    actions = models.ManyToManyField(Action)
+    summary = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.organization
+
+
 class Document(models.Model):
     """ A document, located somwehere """
 
@@ -86,6 +107,12 @@ class Document(models.Model):
         return self.name
 
 
+class AppealType(Enum):
+    """ summarys of appeals """
+    DREF = 0
+    APPEAL = 1
+
+
 class Appeal(models.Model):
     """ An appeal for a disaster and country, containing documents """
 
@@ -93,6 +120,7 @@ class Appeal(models.Model):
     aid = models.CharField(max_length=20)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    atype = EnumIntegerField(AppealType, default=0)
 
     event = models.ForeignKey(Event, null=True)
     country = models.ForeignKey(Country, null=True)
@@ -124,6 +152,18 @@ class Appeal(models.Model):
         return self.aid
 
 
+class Contact(models.Model):
+    """ Contact """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+    def __str__(self):
+        return self.name
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -141,16 +181,23 @@ class FieldReport(models.Model):
     num_missing = models.IntegerField(null=True)
     num_affected = models.IntegerField(null=True)
     num_displaced = models.IntegerField(null=True)
-    num_assisted_gov = models.IntegerField(null=True)
-    num_assisted_rc = models.IntegerField(null=True)
+    num_assisted = models.IntegerField(null=True)
     num_localstaff = models.IntegerField(null=True)
     num_volunteers = models.IntegerField(null=True)
     num_expats_delegates = models.IntegerField(null=True)
 
+    gov_num_injured = models.IntegerField(null=True)
+    gov_num_dead = models.IntegerField(null=True)
+    gov_num_missing = models.IntegerField(null=True)
+    gov_num_affected = models.IntegerField(null=True)
+    gov_num_displaced = models.IntegerField(null=True)
+    gov_num_assisted = models.IntegerField(null=True)
+
     # action IDs - other tables?
-    action = models.TextField(blank=True, default='')
+    actions_taken = models.ManyToManyField(ActionsTaken)
 
     # contacts
+    contacts = models.ManyToManyField(Contact)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def indexing(self):
@@ -203,7 +250,7 @@ class Profile(models.Model):
     # https://drive.google.com/drive/u/1/folders/1auXpAPhOh4YROnKxOfFy5-T7Ki96aIb6k
     org = models.CharField(blank=True, max_length=100)
     org_type = models.CharField(
-        choices = (
+        choices=(
             ('NTLS', 'National Society'),
             ('DLGN', 'Delegation'),
             ('SCRT', 'Secretariat'),
