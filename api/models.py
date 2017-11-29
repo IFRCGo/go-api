@@ -1,8 +1,10 @@
+import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from enumfields import EnumIntegerField
 from enumfields import Enum
+from .esconnection import ES_CLIENT
 
 
 class DisasterType(models.Model):
@@ -29,17 +31,37 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries = [country for fr in self.fieldreport_set.all() for country in fr.countries.all()] + \
-                    [appeal.country for appeal in self.appeal_set.all()]
-        return list(set([c.name for c in countries]))
+        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
+                    [getattr(a, 'country') for a in self.appeal_set.all()]
+        return list(set(countries))
 
     def start_date(self):
         """ Get start date of first appeal """
-        return min([a['start_date'] for a in self.appeal_set.all()])
+        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
+        return min(start_dates) if len(start_dates) else None
 
     def end_date(self):
         """ Get latest end date of all appeals """
-        return max([a['end_date'] for a in self.appeal_set.all()])
+        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
+        return max(end_dates) if len(end_dates) else None
+
+    def indexing(self):
+        obj = {
+            'id': self.eid,
+            'name': self.name,
+            'type': 'event',
+            'countries': ','.join(map(str, self.countries())),
+            'dtype': getattr(self.dtype, 'name', None),
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+            'start_date': self.start_date(),
+            'end_date': self.end_date(),
+        }
+        return obj
+
+    def es_id(self):
+        return 'event-%s' % self.id
 
     def __str__(self):
         return self.name
@@ -112,6 +134,20 @@ class Appeal(models.Model):
 
     # documents = models.ManyToManyField(Document)
 
+    def indexing(self):
+        obj = {
+            'id': self.aid,
+            'type': 'appeal',
+            'countries': getattr(self.country, 'name', None),
+            'created_at': self.created_at,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        return obj
+
+    def es_id(self):
+        return 'appeal-%s' % self.id
+
     def __str__(self):
         return self.aid
 
@@ -163,6 +199,22 @@ class FieldReport(models.Model):
     # contacts
     contacts = models.ManyToManyField(Contact)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
+        obj = {
+            'id': self.rid,
+            'type': 'fieldreport',
+            'countries': ','.join(map(str, countries)) if len(countries) else None,
+            'dtype': getattr(self.dtype, 'name', None),
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+        }
+        return obj
+
+    def es_id(self):
+        return 'fieldreport-%s' % self.id
 
     def __str__(self):
         return self.rid
@@ -222,3 +274,18 @@ def create_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     instance.profile.save()
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
+
+def index_es(sender, instance, created, **kwargs):
+    if ES_CLIENT is not None:
+        ES_CLIENT.index(
+            index='pages',
+            doc_type='page',
+            id=instance.es_id(),
+            body=instance.indexing(),
+        )
+
+# Avoid automatic indexing during bulk imports
+if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
+    post_save.connect(index_es, sender=Event)
+    post_save.connect(index_es, sender=Appeal)
+    post_save.connect(index_es, sender=FieldReport)

@@ -91,6 +91,9 @@ class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
     def handle(self, *args, **options):
+        # set an env variable so we don't bog down elasticsearch with indexing
+        os.environ['BULK_IMPORT'] = '1'
+
         # get latest
         filename = get_dbfile()
 
@@ -272,3 +275,6 @@ class Command(BaseCommand):
 
         items = FieldReport.objects.all()
         print('%s items' % items.count())
+
+        # Reset bulk upload var
+        os.environ['BULK_IMPORT'] = '0'
