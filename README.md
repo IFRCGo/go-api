@@ -32,8 +32,23 @@ export LOCAL_TEST=true
 
 python manage.py makemigrations
 python manage.py migrate
-python manage.py loaddata Countries DisasterTypes
+python manage.py loaddata Actions Countries DisasterTypes
 python manage.py collectstatic
 python manage.py ingest_mdb
 python manage.py runserver
+```
+
+# Testing
+
+## Run tests
+
+```(bash)
+python manage.py test
+```
+
+## Generate coverage report
+
+```(bash)
+coverage run --source='.' manage.py test
+coverage report
 ```

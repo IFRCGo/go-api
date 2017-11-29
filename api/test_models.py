@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 import api.models as models
 
@@ -9,7 +10,7 @@ class DisasterTypeTest(TestCase):
 
     def test_disaster_type_data(self):
         objs = models.DisasterType.objects.all()
-        self.assertEqual(len(objs), 46)
+        self.assertEqual(len(objs), 25)
 
 
 class EventTest(TestCase):
@@ -40,6 +41,18 @@ class DocumentTest(TestCase):
     def test_document_create(self):
         obj = models.Document.objects.get(name='document1')
         self.assertEqual(obj.uri, '/path/to/file')
+
+
+class ProfileTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(username='username', first_name='pat', last_name='smith', password='password')
+        user.profile.org = 'org'
+        user.profile.save()
+
+    def test_profile_create(self):
+        profile = models.Profile.objects.get(user__username='username')
+        self.assertEqual(profile.org, 'org')
+
 
 """
 class AppealTest(TestCase):
@@ -91,3 +104,14 @@ class ServiceTest(TestCase):
         obj1 = models.Service.objects.get(name='test2')
         self.assertTrue(obj1.deployed)
         self.assertEqual(obj1.location, 'iceland')
+
+
+class ProfileTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(username='test1', password='12345678!')
+        user.profile.department = 'testdepartment'
+        user.save()
+
+    def test_profile_create(self):
+        obj = models.Profile.objects.get(user__username='test1')
+        self.assertEqual(obj.department, 'testdepartment')
