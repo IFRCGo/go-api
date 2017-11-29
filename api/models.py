@@ -119,7 +119,7 @@ class Appeal(models.Model):
 class Contact(models.Model):
     """ Contact """
 
-    organization = models.CharField(max_length=100, blank=True)
+    ctype = models.CharField(max_length=100, blank=True)
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
