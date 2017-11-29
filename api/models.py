@@ -6,7 +6,7 @@ from enumfields import Enum
 
 
 class DisasterType(models.Model):
-    """ Type of disaster """
+    """ summary of disaster """
     name = models.CharField(max_length=100)
     summary = models.TextField()
 
@@ -56,6 +56,22 @@ class Country(models.Model):
         return self.name
 
 
+class Action(models.Model):
+    """ Action taken """
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class ActionsTaken(models.Model):
+    """ All the actions taken by an organization """
+
+    organization = models.CharField(max_length=100)
+    actions = models.ManyToManyField(Action)
+    summary = models.TextField(blank=True)
+
+
 class Document(models.Model):
     """ A document, located somwehere """
 
@@ -67,7 +83,7 @@ class Document(models.Model):
 
 
 class AppealType(Enum):
-    """ Types of appeals """
+    """ summarys of appeals """
     DREF = 0
     APPEAL = 1
 
@@ -138,9 +154,7 @@ class FieldReport(models.Model):
     gov_num_assisted = models.IntegerField(null=True)
 
     # action IDs - other tables?
-    action_national = models.TextField(blank=True, default='')
-    action_foreign = models.TextField(blank=True, default='')
-    action_federation = models.TextField(blank=True, default='')
+    actions = models.ManyToManyField(ActionsTaken)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
