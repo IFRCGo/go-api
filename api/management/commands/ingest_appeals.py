@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
 from api.models import AppealType, Appeal, Country, DisasterType, Event
+from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 
 logger = logging.getLogger(__name__)
 
@@ -44,13 +45,14 @@ class Command(BaseCommand):
         for i, r in enumerate(results):
             sys.stdout.write('.') if (i % 100) == 0 else None
             # create an Event for this
-            dtype = DisasterType.objects.filter(name=r['ADT_name']).first()
-            if dtype is None:
-                dtype = DisasterType.objects.filter(name='Other').first()
+            if r['ADT_name'] in DISASTER_TYPE_MAPPING:
+                disaster_name = DISASTER_TYPE_MAPPING[r['ADT_name']]
+            else:
+                disaster_name = 'Other'
 
             fields = {
                 'name': r['APP_name'],
-                'dtype': dtype,
+                'dtype': DisasterType.objects.get(name=disaster_name),
                 'status': r['APP_status'],
                 'region': r['OSR_name'],
                 'code': r['APP_code'],
