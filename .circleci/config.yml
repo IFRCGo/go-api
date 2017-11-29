@@ -117,8 +117,8 @@ jobs:
           command: |
             VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag docker-image:latest developmentseed/ifrc-go-api:$VERSION
-            docker push developmentseed/ifrc-go-api:$VERSION
+            docker tag docker-image:latest ifrcgo/go-api:$VERSION
+            docker push ifrcgo/go-api:$VERSION
 
 workflows:
   version: 2
