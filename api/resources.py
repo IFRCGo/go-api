@@ -19,6 +19,8 @@ class EventResource(ModelResource):
     class Meta:
         queryset = Event.objects.all()
         resource_name = 'event'
+        alowed_methods = ['get']
+        authorization = Authorization()
 
 
 class CountryResource(ModelResource):
