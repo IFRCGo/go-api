@@ -177,7 +177,7 @@ class Command(BaseCommand):
             actions = fetch_relation(actions_national, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='National Society Red Cross', summary=txt)
+                act = ActionsTaken(organization='NATL', summary=txt)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
@@ -187,7 +187,7 @@ class Command(BaseCommand):
             actions = fetch_relation(actions_foreign, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='Foreign Society Red Cross', summary=txt)
+                act = ActionsTaken(organization='PNS', summary=txt)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
@@ -197,7 +197,7 @@ class Command(BaseCommand):
             actions = fetch_relation(actions_federation, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='Federation Society Red Cross', summary=txt)
+                act = ActionsTaken(organization='FDRN', summary=txt)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))

@@ -89,7 +89,14 @@ class Action(models.Model):
 class ActionsTaken(models.Model):
     """ All the actions taken by an organization """
 
-    organization = models.CharField(max_length=100)
+    organization = models.CharField(
+        choices=(
+            ('NTLS', 'National Society'),
+            ('PNS', 'Foreign Society'),
+            ('FDRN', 'Federation'),
+        ),
+        max_length=4,
+    )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
 
