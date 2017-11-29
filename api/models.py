@@ -89,7 +89,14 @@ class Action(models.Model):
 class ActionsTaken(models.Model):
     """ All the actions taken by an organization """
 
-    organization = models.CharField(max_length=100)
+    organization = models.CharField(
+        choices=(
+            ('NTLS', 'National Society'),
+            ('PNS', 'Foreign Society'),
+            ('FDRN', 'Federation'),
+        ),
+        max_length=4,
+    )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
 
@@ -276,6 +283,7 @@ def create_profile(sender, instance, created, **kwargs):
     instance.profile.save()
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
 
+
 def index_es(sender, instance, created, **kwargs):
     if ES_CLIENT is not None:
         ES_CLIENT.index(
@@ -284,6 +292,7 @@ def index_es(sender, instance, created, **kwargs):
             id=instance.es_id(),
             body=instance.indexing(),
         )
+
 
 # Avoid automatic indexing during bulk imports
 if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
