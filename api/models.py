@@ -111,6 +111,7 @@ class AppealType(Enum):
     """ summarys of appeals """
     DREF = 0
     APPEAL = 1
+    INTL = 2
 
 
 class Appeal(models.Model):
