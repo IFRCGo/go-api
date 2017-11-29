@@ -5,7 +5,7 @@ import requests
 import json
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
-from api.models import Appeal, Country, DisasterType, Event
+from api.models import AppealType, Appeal, Country, DisasterType, Event
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +63,12 @@ class Command(BaseCommand):
                 country = country.first()
 
             appeals = [a for a in r['Details'] if a['APD_code'] not in aids]
+            atypes = {66: AppealType.DREF, 64: AppealType.APPEAL}
             for appeal in appeals:
                 amount_funded = 0 if appeal['ContributionAmount'] is None else appeal['ContributionAmount']
                 fields = {
                     'event': event,
+                    'atype': atypes[appeal['APD_TYP_Id']],
                     'country': country,
                     'sector': r['OSS_name'],
                     'start_date': datetime.strptime(appeal['APD_startDate'], timeformat).replace(tzinfo=timezone.utc),
