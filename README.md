@@ -37,3 +37,18 @@ python manage.py collectstatic
 python manage.py ingest_mdb
 python manage.py runserver
 ```
+
+# Testing
+
+## Run tests
+
+```(bash)
+python manage.py test
+```
+
+## Generate coverage report
+
+```(bash)
+coverage run --source='.' manage.py test
+coverage report
+```
