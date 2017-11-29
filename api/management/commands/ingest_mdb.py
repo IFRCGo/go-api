@@ -33,6 +33,13 @@ def extract_table(dbfile, table):
     return records
 
 
+def contact_is_valid(contact, field):
+    for suffix in ['Name', 'Function', 'Contact']:
+        if contact['%s%s' % (field, suffix)] is None:
+            return False
+    return True
+
+
 def get_dbfile():
     ftphost = os.environ.get('GO_FTPHOST', None)
     ftpuser = os.environ.get('GO_FTPUSER', None)
@@ -199,7 +206,7 @@ class Command(BaseCommand):
                 contact = contact[0]
                 fields = ['Originator', 'Primary', 'Federation', 'NationalSociety', 'MediaNationalSociety', 'Media']
                 for f in fields:
-                    if contact.get('%sName' % f, '') != '':
+                    if contact_is_valid(contact, f):
                         ct = Contact.objects.create(
                             ctype=f,
                             name=contact['%sName' % f],
