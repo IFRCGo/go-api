@@ -68,7 +68,7 @@ class Command(BaseCommand):
                 country = country.first()
 
             appeals = [a for a in r['Details'] if a['APD_code'] not in aids]
-            atypes = {66: AppealType.DREF, 64: AppealType.APPEAL}
+            atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
             for appeal in appeals:
                 amount_funded = 0 if appeal['ContributionAmount'] is None else appeal['ContributionAmount']
                 fields = {
