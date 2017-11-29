@@ -10,7 +10,8 @@ from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from api.models import DisasterType, Country, FieldReport
+from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact
+from pdb import set_trace
 
 
 def extract_table(dbfile, table):
@@ -72,12 +73,11 @@ def get_dbfile():
 
 def fetch_relation(records, rid):
     """ Find record with matching ReportID to rid """
-    result = [r for r in records if r['ReportID'] == rid]
-    assert(len(result) <= 1)
-    if len(result) == 1:
-        return {key: (value if value != '' else None) for key, value in result[0].items()}
-    else:
-        return {}
+    matches = [r for r in records if r['ReportID'] == rid]
+    results = []
+    for match in matches:
+        results.append({key: (value if value != '' else None) for key, value in match.items()})
+    return results
 
 
 class Command(BaseCommand):
@@ -129,10 +129,11 @@ class Command(BaseCommand):
                 'dtype': DisasterType.objects.get(pk=report['DisasterTypeID']),
                 'status': report['StatusID'],
                 'request_assistance': report['GovRequestsInternAssistance'],
-                'action': report['ActionTaken']
             }
             details = fetch_relation(details_rc, report['ReportID'])
+            assert(len(details) <= 1)
             if len(details) > 1:
+                details = details[0]
                 record.update({
                     'num_injured': details['NumberOfInjured'],
                     'num_dead': details['NumberOfCasualties'],
@@ -145,7 +146,9 @@ class Command(BaseCommand):
                     'num_expats_delegates': details['NumberOfExpatsDelegates']
                 })
             details = fetch_relation(details_gov, report['ReportID'])
+            assert(len(details) <= 1)
             if len(details) > 1:
+                details = details[0]
                 record.update({
                     'gov_num_injured': details['NumberOfInjured_GOV'],
                     'gov_num_dead': details['NumberOfDead_GOV'],
@@ -155,29 +158,55 @@ class Command(BaseCommand):
                     'gov_num_assisted': details['NumberOfAssistedByGov_GOV']
                 })
 
-            # actions taken
-            actions = fetch_relation(actions_national, report['ReportID'])
-            if len(actions) > 1:
-                record.update({
-                    'actions_national': actions['Value']
-                })
-            actions = fetch_relation(actions_foreign, report['ReportID'])
-            if len(actions) > 1:
-                record.update({
-                    'actions_foreign': actions['Value']
-                })
-            actions = fetch_relation(actions_federation, report['ReportID'])
-            if len(actions) > 1:
-                record.update({
-                    'actions_federation': actions['Value']
-                })
-
-            contact = fetch_relation(contacts, report['ReportID'])
-            # add contacts here
-
             item = FieldReport(**record)
             item.save()
             item.countries.add(*Country.objects.filter(pk=report['CountryID']))
+
+            # national red cross actions
+            actions = fetch_relation(actions_national, report['ReportID'])
+            if len(actions) > 0:
+                txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
+                act = ActionsTaken(organization='National Society Red Cross', summary=txt)
+                act.save()
+                for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
+                    act.actions.add(*Action.objects.filter(pk=pk))
+                item.actions_taken.add(act)
+
+            # foreign red cross actions
+            actions = fetch_relation(actions_foreign, report['ReportID'])
+            if len(actions) > 0:
+                txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
+                act = ActionsTaken(organization='Foreign Society Red Cross', summary=txt)
+                act.save()
+                for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
+                    act.actions.add(*Action.objects.filter(pk=pk))
+                item.actions_taken.add(act)
+
+            # federation red cross actions
+            actions = fetch_relation(actions_federation, report['ReportID'])
+            if len(actions) > 0:
+                txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
+                act = ActionsTaken(organization='Federation Society Red Cross', summary=txt)
+                act.save()
+                for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
+                    act.actions.add(*Action.objects.filter(pk=pk))
+                item.actions_taken.add(act)
+
+            contact = fetch_relation(contacts, report['ReportID'])
+            if len(contact) > 0:
+                # make sure just one contacts record
+                assert(len(contact) == 1)
+                contact = contact[0]
+                fields = ['Originator', 'Primary', 'Federation', 'NationalSociety', 'MediaNationalSociety', 'Media']
+                for f in fields:
+                    if contact.get('%sName' % f, '') != '':
+                        ct = Contact.create(
+                            ctype=f,
+                            name=contact['%sName' % f],
+                            title=contact['%sFunction' % f],
+                            email=contact['%sContact' % f]
+                        )
+                        item.contacts.add(ct)
 
         # org type mapping
         org_types = {
