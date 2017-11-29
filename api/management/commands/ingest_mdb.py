@@ -200,7 +200,7 @@ class Command(BaseCommand):
                 fields = ['Originator', 'Primary', 'Federation', 'NationalSociety', 'MediaNationalSociety', 'Media']
                 for f in fields:
                     if contact.get('%sName' % f, '') != '':
-                        ct = Contact.create(
+                        ct = Contact.objects.create(
                             ctype=f,
                             name=contact['%sName' % f],
                             title=contact['%sFunction' % f],
