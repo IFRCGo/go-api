@@ -71,6 +71,9 @@ class ActionsTaken(models.Model):
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
 
+    def __str__(self):
+        return self.organization
+
 
 class Document(models.Model):
     """ A document, located somwehere """
@@ -116,6 +119,7 @@ class Appeal(models.Model):
 class Contact(models.Model):
     """ Contact """
 
+    organization = models.CharField(max_length=100, blank=True)
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
@@ -154,7 +158,7 @@ class FieldReport(models.Model):
     gov_num_assisted = models.IntegerField(null=True)
 
     # action IDs - other tables?
-    actions = models.ManyToManyField(ActionsTaken)
+    actions_taken = models.ManyToManyField(ActionsTaken)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
