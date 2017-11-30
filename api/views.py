@@ -16,7 +16,6 @@ class PublicJsonRequestView(View):
 
     @csrf_exempt
     def get(self, request, *args, **kwargs):
-        print(pretty_request(request))
         return self.handle_get(request, *args, **kwargs)
 
 
