@@ -2,7 +2,7 @@ from tastypie import fields
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
 from tastypie.authorization import Authorization, DjangoAuthorization
 from django.contrib.auth.models import User
-from .models import DisasterType, Event, Country, FieldReport, Profile
+from .models import DisasterType, Event, Country, FieldReport, Profile, Contact
 from .authentication import ExpiringApiKeyAuthentication
 from .authorization import FieldReportAuthorization
 
@@ -23,6 +23,14 @@ class EventResource(ModelResource):
         authorization = Authorization()
 
 
+class ContactResource(ModelResource):
+    class Meta:
+        queryset = Contact.objects.all()
+        resource_name = 'contact'
+        allowed_methods = ['get']
+        authorization = Authorization()
+
+
 class CountryResource(ModelResource):
     class Meta:
         queryset = Country.objects.all()
@@ -34,6 +42,8 @@ class CountryResource(ModelResource):
 class FieldReportResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    event = fields.ForeignKey(EventResource, 'event', full=True, null=True)
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
