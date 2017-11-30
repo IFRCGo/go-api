@@ -24,17 +24,19 @@ class es_keyword_search(PublicJsonRequestView):
         object_type = request.GET.get('type', None)
         keyword = request.GET.get('keyword', None)
 
-        if object_type is None and keyword is None:
+        if keyword is None:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Must include either `keyword` or `object_type`'
+                'message': 'Must include a `keyword`'
             }, status=400)
 
-        query = {'bool': {}}
+        query = {
+            'bool': {
+                'must': {'prefix': {'name': keyword }}
+            }
+        }
         if object_type is not None:
             query['bool']['filter'] = {'term': {'type' : object_type}}
-        if keyword is not None:
-            query['bool']['must'] = {'match': {'name': keyword}}
 
         results = ES_CLIENT.search(
             index='pages',
