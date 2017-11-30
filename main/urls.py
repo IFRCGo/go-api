@@ -24,7 +24,7 @@ from api.resources import (
     UserResource,
     ProfileResource,
 )
-from api.views import get_auth_token
+from api.views import get_auth_token, es_keyword_search
 
 v1_api = Api(api_name='v1')
 v1_api.register(DisasterTypeResource())
@@ -37,5 +37,6 @@ v1_api.register(ProfileResource())
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(v1_api.urls)),
+    url(r'^api/v1/es_search/', es_keyword_search.as_view()),
     url(r'^get_auth_token', get_auth_token),
 ]
