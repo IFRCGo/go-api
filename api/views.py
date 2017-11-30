@@ -27,7 +27,7 @@ class es_keyword_search(PublicJsonRequestView):
         if keyword is None:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Must include a `keyword`'
+                'error_message': 'Must include a `keyword`'
             }, status=400)
 
         query = {
@@ -53,13 +53,13 @@ def get_auth_token(request):
     if request.META.get('CONTENT_TYPE') != 'application/json':
         return JsonResponse({
             'statusCode': 400,
-            'message': 'Content-type must be `application/json`'
+            'error_message': 'Content-type must be `application/json`'
         }, status=400)
 
     elif request.method != 'POST':
         return JsonResponse({
             'statusCode': 400,
-            'message': 'HTTP method must be `POST`'
+            'error_message': 'HTTP method must be `POST`'
         }, status=400)
 
     else:
@@ -69,7 +69,7 @@ def get_auth_token(request):
         if not username or not password:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Body must contain `username` and `password`'
+                'error_message': 'Body must contain `username` and `password`'
             }, status=400)
 
         user = authenticate(username=username, password=password)
@@ -85,5 +85,5 @@ def get_auth_token(request):
         else:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Could not authenticate'
+                'error_message': 'Could not authenticate'
             }, status=400)
