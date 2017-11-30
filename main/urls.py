@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from graphene_django.views import GraphQLView
 from tastypie.api import Api
 from api.resources import (
     DisasterTypeResource,
@@ -44,5 +45,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(v1_api.urls)),
     url(r'^api/v1/es_search/', es_keyword_search.as_view()),
+    url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^get_auth_token', get_auth_token),
 ]

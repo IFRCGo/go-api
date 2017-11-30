@@ -21,7 +21,7 @@ class Event(models.Model):
 
     eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    dtype = models.ForeignKey(DisasterType, related_name='event', null=True)
     summary = models.TextField(blank=True)
     status = models.CharField(max_length=30, blank=True)
     region = models.CharField(max_length=100, blank=True)
