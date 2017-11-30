@@ -2,9 +2,50 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
+from django.views import View
 from tastypie.models import ApiKey
 from .utils import pretty_request
 from .authentication import token_duration
+from .esconnection import ES_CLIENT
+
+
+class PublicJsonRequestView(View):
+    http_method_names = ['get', 'head', 'options']
+    def handle_get(self, request, *args, **kwargs):
+        print(pretty_request(request))
+
+    @csrf_exempt
+    def get(self, request, *args, **kwargs):
+        return self.handle_get(request, *args, **kwargs)
+
+
+class es_keyword_search(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        object_type = request.GET.get('type', None)
+        keyword = request.GET.get('keyword', None)
+
+        if keyword is None:
+            return JsonResponse({
+                'statusCode': 400,
+                'message': 'Must include a `keyword`'
+            }, status=400)
+
+        query = {
+            'bool': {
+                'must': {'prefix': {'name': keyword }}
+            }
+        }
+        if object_type is not None:
+            query['bool']['filter'] = {'term': {'type' : object_type}}
+
+        results = ES_CLIENT.search(
+            index='pages',
+            doc_type='page',
+            body=json.dumps({'query': query}),
+        )
+
+        return JsonResponse(results['hits'])
+
 
 @csrf_exempt
 def get_auth_token(request):

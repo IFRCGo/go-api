@@ -2,7 +2,16 @@ from tastypie import fields
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
 from tastypie.authorization import Authorization, DjangoAuthorization
 from django.contrib.auth.models import User
-from .models import DisasterType, Event, Country, FieldReport, Profile
+from .models import (
+    DisasterType,
+    Event,
+    Country,
+    FieldReport,
+    Profile,
+    Contact,
+    ActionsTaken,
+    Action
+)
 from .authentication import ExpiringApiKeyAuthentication
 from .authorization import FieldReportAuthorization
 
@@ -18,13 +27,37 @@ class DisasterTypeResource(ModelResource):
 class EventResource(ModelResource):
     class Meta:
         queryset = Event.objects.all()
-        resource_name = 'event'
+        alowed_methods = ['get']
+        authorization = Authorization()
+
+
+class ContactResource(ModelResource):
+    class Meta:
+        queryset = Contact.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
+        authentication = ExpiringApiKeyAuthentication()
 
 
 class CountryResource(ModelResource):
     class Meta:
         queryset = Country.objects.all()
-        resource_name = 'country'
+        allowed_methods = ['get']
+        authorization = Authorization()
+
+
+class ActionResource(ModelResource):
+    class Meta:
+        queryset = Action.objects.all()
+        authorization = Authorization()
+        allowed_methods = ['get']
+
+
+class ActionsTakenResource(ModelResource):
+    actions = fields.ToManyField(ActionResource, 'actions', full=True, null=True)
+    class Meta:
+        queryset = ActionsTaken.objects.all()
+        resource_name = 'actions_taken'
         allowed_methods = ['get']
         authorization = Authorization()
 
@@ -32,6 +65,9 @@ class CountryResource(ModelResource):
 class FieldReportResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    event = fields.ForeignKey(EventResource, 'event', full=True, null=True)
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
+    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
@@ -43,7 +79,6 @@ class FieldReportResource(ModelResource):
 class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
-        resource_name = 'user'
         fields = ['username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
@@ -60,7 +95,6 @@ class ProfileResource(ModelResource):
         queryset = Profile.objects.all()
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        resource_name = 'profile'
         filtering = {
             'user': ALL_WITH_RELATIONS,
         }
