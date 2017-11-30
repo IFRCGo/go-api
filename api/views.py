@@ -39,7 +39,7 @@ class es_keyword_search(PublicJsonRequestView):
         results = ES_CLIENT.search(
             index='pages',
             doc_type='page',
-            body=json.dumps(query),
+            body=json.dumps({'query': query}),
         )
 
         return JsonResponse(results['hits'])
