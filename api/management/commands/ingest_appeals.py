@@ -2,7 +2,6 @@ import os
 import sys
 import logging
 import requests
-import json
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
 from api.models import AppealType, Appeal, Country, DisasterType, Event
