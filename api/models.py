@@ -177,6 +177,13 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
+class InfoChoices(Enum):
+    NO = 0
+    REQUESTED = 1
+    PLANNED = 2
+    COMPLETE = 3
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -206,9 +213,17 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True)
     gov_num_assisted = models.IntegerField(null=True)
 
+    # actions taken
     actions_taken = models.ManyToManyField(ActionsTaken)
+    actions_others = models.TextField(blank=True)
 
+    # information
     sources = models.ManyToManyField(Source)
+    bulletin = EnumIntegerField(InfoChoices, default=0)
+    dref = EnumIntegerField(InfoChoices, default=0)
+    dref_amount = models.IntegerField(null=True)
+    appeal = EnumIntegerField(InfoChoices, default=0)
+    appeal_amount = models.IntegerField(null=True)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
