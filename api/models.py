@@ -160,6 +160,23 @@ class Contact(models.Model):
         return self.name
 
 
+class SourceType(models.Model):
+    """ Types of sources """
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
+class Source(models.Model):
+    """ Source of information """
+    stype = models.ForeignKey(SourceType)
+    spec = models.TextField(blank=True)
+
+    def __str__(self):
+        return '%s: %s' % (self.stype.name, self.spec)
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -189,8 +206,9 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True)
     gov_num_assisted = models.IntegerField(null=True)
 
-    # action IDs - other tables?
     actions_taken = models.ManyToManyField(ActionsTaken)
+
+    sources = models.ManyToManyField(Source)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
