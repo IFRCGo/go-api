@@ -34,15 +34,6 @@ class CountryTest(TestCase):
         self.assertEqual(objs.count(), 260)
 
 
-class DocumentTest(TestCase):
-    def setUp(self):
-        models.Document.objects.create(name='document1', uri='/path/to/file')
-
-    def test_document_create(self):
-        obj = models.Document.objects.get(name='document1')
-        self.assertEqual(obj.uri, '/path/to/file')
-
-
 class ProfileTest(TestCase):
     def setUp(self):
         user = User.objects.create(username='username', first_name='pat', last_name='smith', password='password')
