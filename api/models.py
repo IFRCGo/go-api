@@ -232,7 +232,7 @@ class FieldReport(models.Model):
     num_fact = models.IntegerField(null=True)
     ifrc_staff = EnumIntegerField(RequestChoices, default=0)
     num_ifrc_staff = models.IntegerField(null=True)
-    eru = EnumIntegerField(RequestChoices, default=0)
+    #eru = EnumIntegerField(RequestChoices, default=0)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
