@@ -18,8 +18,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'tastypie',
+    'graphene_django',
     'api'
 ]
+
+GRAPHENE = {
+    'SCHEMA': 'api.schema.schema'
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
