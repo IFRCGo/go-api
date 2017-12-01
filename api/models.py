@@ -104,16 +104,6 @@ class ActionsTaken(models.Model):
         return self.organization
 
 
-class Document(models.Model):
-    """ A document, located somwehere """
-
-    name = models.CharField(max_length=100)
-    uri = models.TextField()
-
-    def __str__(self):
-        return self.name
-
-
 class AppealType(Enum):
     """ summarys of appeals """
     DREF = 0
@@ -139,8 +129,6 @@ class Appeal(models.Model):
     amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # documents = models.ManyToManyField(Document)
 
     def indexing(self):
         obj = {
