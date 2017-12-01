@@ -177,7 +177,7 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-class InfoChoices(Enum):
+class RequestChoices(Enum):
     NO = 0
     REQUESTED = 1
     PLANNED = 2
@@ -219,11 +219,20 @@ class FieldReport(models.Model):
 
     # information
     sources = models.ManyToManyField(Source)
-    bulletin = EnumIntegerField(InfoChoices, default=0)
-    dref = EnumIntegerField(InfoChoices, default=0)
+    bulletin = EnumIntegerField(RequestChoices, default=0)
+    dref = EnumIntegerField(RequestChoices, default=0)
     dref_amount = models.IntegerField(null=True)
-    appeal = EnumIntegerField(InfoChoices, default=0)
+    appeal = EnumIntegerField(RequestChoices, default=0)
     appeal_amount = models.IntegerField(null=True)
+
+    # disaster response
+    rdrt = EnumIntegerField(RequestChoices, default=0)
+    num_rdrt = models.IntegerField(null=True)
+    fact = EnumIntegerField(RequestChoices, default=0)
+    num_fact = models.IntegerField(null=True)
+    ifrc_staff = EnumIntegerField(RequestChoices, default=0)
+    num_ifrc_staff = models.IntegerField(null=True)
+    eru = EnumIntegerField(RequestChoices, default=0)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
