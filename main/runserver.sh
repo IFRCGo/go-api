@@ -3,7 +3,7 @@ mkdir -p $HOME/logs $HOME/static
 
 # apply migrations, load fixture data, collect static files
 python manage.py migrate
-python manage.py loaddata Countries DisasterTypes
+python manage.py loaddata Countries DisasterTypes Actions
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
 
@@ -35,8 +35,8 @@ echo "export DJANGO_DB_USER=\"$DJANGO_DB_USER\"" >> $HOME/.env
 echo "export DJANGO_DB_PASS=\"$DJANGO_DB_PASS\"" >> $HOME/.env
 echo "export DJANGO_DB_HOST=\"$DJANGO_DB_HOST\"" >> $HOME/.env
 echo "export DJANGO_DB_PORT=\"$DJANGO_DB_PORT\"" >> $HOME/.env
-echo "export APPEAL_USER=\"$APPEAL_USER\"" >> $HOME/.env
-echo "export APPEAL_PASS=\"$APPEAL_PASS\"" >> $HOME/.env
+echo "export APPEALS_USER=\"$APPEALS_USER\"" >> $HOME/.env
+echo "export APPEALS_PASS=\"$APPEALS_PASS\"" >> $HOME/.env
 (echo '0 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
 (echo '0 1 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
 service cron start

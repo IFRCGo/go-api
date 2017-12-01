@@ -1,0 +1,107 @@
+[
+  {
+    "model": "api.Action",
+    "pk": "27",
+    "fields": {
+      "name": "Damage/Needs assessment"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "28",
+    "fields": {
+      "name": "Search & Rescue"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "29",
+    "fields": {
+      "name": "Water & Sanitation"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "30",
+    "fields": {
+      "name": "Food aid"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "31",
+    "fields": {
+      "name": "Health"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "32",
+    "fields": {
+      "name": "Shelter"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "33",
+    "fields": {
+      "name": "Camp management"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "34",
+    "fields": {
+      "name": "Psychosocial support services"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "35",
+    "fields": {
+      "name": "RFL"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "36",
+    "fields": {
+      "name": "Evacuation"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "37",
+    "fields": {
+      "name": "First Aid"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "38",
+    "fields": {
+      "name": "Relief/Supply distribution"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "39",
+    "fields": {
+      "name": "Other"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "40",
+    "fields": {
+      "name": "Human remains management and identification"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "41",
+    "fields": {
+      "name": "CTP/Basic needs"
+    }
+  }
+]

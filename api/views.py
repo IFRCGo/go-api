@@ -2,9 +2,50 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
+from django.views import View
 from tastypie.models import ApiKey
 from .utils import pretty_request
 from .authentication import token_duration
+from .esconnection import ES_CLIENT
+
+
+class PublicJsonRequestView(View):
+    http_method_names = ['get', 'head', 'options']
+    def handle_get(self, request, *args, **kwargs):
+        print(pretty_request(request))
+
+    @csrf_exempt
+    def get(self, request, *args, **kwargs):
+        return self.handle_get(request, *args, **kwargs)
+
+
+class es_keyword_search(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        object_type = request.GET.get('type', None)
+        keyword = request.GET.get('keyword', None)
+
+        if keyword is None:
+            return JsonResponse({
+                'statusCode': 400,
+                'error_message': 'Must include a `keyword`'
+            }, status=400)
+
+        query = {
+            'bool': {
+                'must': {'prefix': {'name': keyword }}
+            }
+        }
+        if object_type is not None:
+            query['bool']['filter'] = {'term': {'type' : object_type}}
+
+        results = ES_CLIENT.search(
+            index='pages',
+            doc_type='page',
+            body=json.dumps({'query': query}),
+        )
+
+        return JsonResponse(results['hits'])
+
 
 @csrf_exempt
 def get_auth_token(request):
@@ -12,13 +53,13 @@ def get_auth_token(request):
     if request.META.get('CONTENT_TYPE') != 'application/json':
         return JsonResponse({
             'statusCode': 400,
-            'message': 'Content-type must be `application/json`'
+            'error_message': 'Content-type must be `application/json`'
         }, status=400)
 
     elif request.method != 'POST':
         return JsonResponse({
             'statusCode': 400,
-            'message': 'HTTP method must be `POST`'
+            'error_message': 'HTTP method must be `POST`'
         }, status=400)
 
     else:
@@ -28,7 +69,7 @@ def get_auth_token(request):
         if not username or not password:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Body must contain `username` and `password`'
+                'error_message': 'Body must contain `username` and `password`'
             }, status=400)
 
         user = authenticate(username=username, password=password)
@@ -44,5 +85,5 @@ def get_auth_token(request):
         else:
             return JsonResponse({
                 'statusCode': 400,
-                'message': 'Could not authenticate'
+                'error_message': 'Could not authenticate'
             }, status=400)

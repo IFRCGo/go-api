@@ -1,10 +1,14 @@
+import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
+from enumfields import EnumIntegerField
+from enumfields import Enum
+from .esconnection import ES_CLIENT
 
 
 class DisasterType(models.Model):
-    """ Type of disaster """
+    """ summary of disaster """
     name = models.CharField(max_length=100)
     summary = models.TextField()
 
@@ -17,7 +21,7 @@ class Event(models.Model):
 
     eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    dtype = models.ForeignKey(DisasterType, related_name='event', null=True)
     summary = models.TextField(blank=True)
     status = models.CharField(max_length=30, blank=True)
     region = models.CharField(max_length=100, blank=True)
@@ -27,17 +31,37 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries = [country for fr in self.fieldreport_set.all() for country in fr.countries.all()] + \
-                    [appeal.country for appeal in self.appeal_set.all()]
-        return list(set([c.name for c in countries]))
+        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
+                    [getattr(a, 'country') for a in self.appeal_set.all()]
+        return list(set(countries))
 
     def start_date(self):
         """ Get start date of first appeal """
-        return min([a['start_date'] for a in self.appeal_set.all()])
+        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
+        return min(start_dates) if len(start_dates) else None
 
     def end_date(self):
         """ Get latest end date of all appeals """
-        return max([a['end_date'] for a in self.appeal_set.all()])
+        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
+        return max(end_dates) if len(end_dates) else None
+
+    def indexing(self):
+        obj = {
+            'id': self.eid,
+            'name': self.name,
+            'type': 'event',
+            'countries': ','.join(map(str, self.countries())),
+            'dtype': getattr(self.dtype, 'name', None),
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+            'start_date': self.start_date(),
+            'end_date': self.end_date(),
+        }
+        return obj
+
+    def es_id(self):
+        return 'event-%s' % self.id
 
     def __str__(self):
         return self.name
@@ -54,14 +78,37 @@ class Country(models.Model):
         return self.name
 
 
-class Document(models.Model):
-    """ A document, located somwehere """
-
+class Action(models.Model):
+    """ Action taken """
     name = models.CharField(max_length=100)
-    uri = models.TextField()
 
     def __str__(self):
         return self.name
+
+
+class ActionsTaken(models.Model):
+    """ All the actions taken by an organization """
+
+    organization = models.CharField(
+        choices=(
+            ('NTLS', 'National Society'),
+            ('PNS', 'Foreign Society'),
+            ('FDRN', 'Federation'),
+        ),
+        max_length=4,
+    )
+    actions = models.ManyToManyField(Action)
+    summary = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.organization
+
+
+class AppealType(Enum):
+    """ summarys of appeals """
+    DREF = 0
+    APPEAL = 1
+    INTL = 2
 
 
 class Appeal(models.Model):
@@ -71,6 +118,7 @@ class Appeal(models.Model):
     aid = models.CharField(max_length=20)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    atype = EnumIntegerField(AppealType, default=0)
 
     event = models.ForeignKey(Event, null=True)
     country = models.ForeignKey(Country, null=True)
@@ -82,10 +130,51 @@ class Appeal(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # documents = models.ManyToManyField(Document)
+    def indexing(self):
+        obj = {
+            'id': self.aid,
+            'type': 'appeal',
+            'countries': getattr(self.country, 'name', None),
+            'created_at': self.created_at,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+        }
+        return obj
+
+    def es_id(self):
+        return 'appeal-%s' % self.id
 
     def __str__(self):
         return self.aid
+
+
+class Contact(models.Model):
+    """ Contact """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+    def __str__(self):
+        return self.name
+
+
+class SourceType(models.Model):
+    """ Types of sources """
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
+class Source(models.Model):
+    """ Source of information """
+    stype = models.ForeignKey(SourceType)
+    spec = models.TextField(blank=True)
+
+    def __str__(self):
+        return '%s: %s' % (self.stype.name, self.spec)
 
 
 class FieldReport(models.Model):
@@ -105,17 +194,41 @@ class FieldReport(models.Model):
     num_missing = models.IntegerField(null=True)
     num_affected = models.IntegerField(null=True)
     num_displaced = models.IntegerField(null=True)
-    num_assisted_gov = models.IntegerField(null=True)
-    num_assisted_rc = models.IntegerField(null=True)
+    num_assisted = models.IntegerField(null=True)
     num_localstaff = models.IntegerField(null=True)
     num_volunteers = models.IntegerField(null=True)
     num_expats_delegates = models.IntegerField(null=True)
 
-    # action IDs - other tables?
-    action = models.TextField(blank=True, default='')
+    gov_num_injured = models.IntegerField(null=True)
+    gov_num_dead = models.IntegerField(null=True)
+    gov_num_missing = models.IntegerField(null=True)
+    gov_num_affected = models.IntegerField(null=True)
+    gov_num_displaced = models.IntegerField(null=True)
+    gov_num_assisted = models.IntegerField(null=True)
+
+    actions_taken = models.ManyToManyField(ActionsTaken)
+
+    sources = models.ManyToManyField(Source)
 
     # contacts
+    contacts = models.ManyToManyField(Contact)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
+        obj = {
+            'id': self.rid,
+            'type': 'fieldreport',
+            'countries': ','.join(map(str, countries)) if len(countries) else None,
+            'dtype': getattr(self.dtype, 'name', None),
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+        }
+        return obj
+
+    def es_id(self):
+        return 'fieldreport-%s' % self.id
 
     def __str__(self):
         return self.rid
@@ -151,7 +264,7 @@ class Profile(models.Model):
     # https://drive.google.com/drive/u/1/folders/1auXpAPhOh4YROnKxOfFy5-T7Ki96aIb6k
     org = models.CharField(blank=True, max_length=100)
     org_type = models.CharField(
-        choices = (
+        choices=(
             ('NTLS', 'National Society'),
             ('DLGN', 'Delegation'),
             ('SCRT', 'Secretariat'),
@@ -175,3 +288,20 @@ def create_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
     instance.profile.save()
 post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
+
+
+def index_es(sender, instance, created, **kwargs):
+    if ES_CLIENT is not None:
+        ES_CLIENT.index(
+            index='pages',
+            doc_type='page',
+            id=instance.es_id(),
+            body=instance.indexing(),
+        )
+
+
+# Avoid automatic indexing during bulk imports
+if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
+    post_save.connect(index_es, sender=Event)
+    post_save.connect(index_es, sender=Appeal)
+    post_save.connect(index_es, sender=FieldReport)

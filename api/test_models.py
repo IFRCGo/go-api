@@ -10,7 +10,7 @@ class DisasterTypeTest(TestCase):
 
     def test_disaster_type_data(self):
         objs = models.DisasterType.objects.all()
-        self.assertEqual(len(objs), 46)
+        self.assertEqual(len(objs), 25)
 
 
 class EventTest(TestCase):
@@ -32,15 +32,6 @@ class CountryTest(TestCase):
     def test_country_data(self):
         objs = models.Country.objects.all()
         self.assertEqual(objs.count(), 260)
-
-
-class DocumentTest(TestCase):
-    def setUp(self):
-        models.Document.objects.create(name='document1', uri='/path/to/file')
-
-    def test_document_create(self):
-        obj = models.Document.objects.get(name='document1')
-        self.assertEqual(obj.uri, '/path/to/file')
 
 
 class ProfileTest(TestCase):
@@ -104,3 +95,14 @@ class ServiceTest(TestCase):
         obj1 = models.Service.objects.get(name='test2')
         self.assertTrue(obj1.deployed)
         self.assertEqual(obj1.location, 'iceland')
+
+
+class ProfileTest(TestCase):
+    def setUp(self):
+        user = User.objects.create(username='test1', password='12345678!')
+        user.profile.department = 'testdepartment'
+        user.save()
+
+    def test_profile_create(self):
+        obj = models.Profile.objects.get(user__username='test1')
+        self.assertEqual(obj.department, 'testdepartment')
