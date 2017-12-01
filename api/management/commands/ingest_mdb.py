@@ -11,7 +11,7 @@ from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from pdb import set_trace
-from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact
+from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
 
@@ -123,6 +123,15 @@ class Command(BaseCommand):
         actions_foreign = extract_table(filename, 'EW_Report_ActionTakenByPnsRC')
         actions_federation = extract_table(filename, 'EW_Report_ActionTakenByFederationRC')
 
+        # ingest source types
+        source_types = extract_table(filename, 'EW_lofSources')
+        for s in source_types:
+            SourceType.objects.get_or_create(pk=s['SourceID'], defaults={'name': s['SourceName']})
+
+        source_table = extract_table(filename, 'EW_Reports_Sources')
+
+        #info = extract_table(filename, 'EW_Report_InformationManagement')
+
         # contacts
         contacts = extract_table(filename, 'EW_Report_Contacts')
 
@@ -218,6 +227,13 @@ class Command(BaseCommand):
                             email=contact['%sContact' % f]
                         )
                         item.contacts.add(ct)
+
+            # sources
+            sources = fetch_relation(source_table, report['ReportID'])
+            for s in sources:
+                spec = '' if s['Specification'] is None else s['Specification']
+                src = Source.objects.create(stype=SourceType.objects.get(pk=s['SourceID']), spec=spec)
+                item.sources.add(src)
 
         # org type mapping
         org_types = {
