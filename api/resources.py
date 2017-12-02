@@ -6,6 +6,7 @@ from .models import (
     DisasterType,
     Event,
     Country,
+    Appeal,
     FieldReport,
     Profile,
     Contact,
@@ -42,6 +43,15 @@ class ContactResource(ModelResource):
 class CountryResource(ModelResource):
     class Meta:
         queryset = Country.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
+
+
+class AppealResource(ModelResource):
+    event = fields.ForeignKey(EventResource, 'event', full=True, null=True)
+    country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
+    class Meta:
+        queryset = Appeal.objects.all()
         allowed_methods = ['get']
         authorization = Authorization()
 
