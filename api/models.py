@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from enumfields import EnumIntegerField
-from enumfields import Enum
+from enumfields import IntEnum
 from .esconnection import ES_CLIENT
 
 
@@ -104,7 +104,7 @@ class ActionsTaken(models.Model):
         return self.organization
 
 
-class AppealType(Enum):
+class AppealType(IntEnum):
     """ summarys of appeals """
     DREF = 0
     APPEAL = 1
