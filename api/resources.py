@@ -81,9 +81,17 @@ class EventResource(ModelResource):
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
         if self.is_authenticated(bundle.request):
-            return bundle['field_reports']
+            return bundle.data['field_reports']
         else:
             return None
+
+
+    # Attach data from model instance methods
+    def dehydrate(self, bundle):
+        bundle.data['countries'] = bundle.obj.countries()
+        bundle.data['start_date'] = bundle.obj.start_date()
+        bundle.data['end_date'] = bundle.obj.end_date()
+        return bundle
 
     class Meta:
         queryset = Event.objects.select_related().all()
