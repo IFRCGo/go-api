@@ -120,8 +120,8 @@ class Appeal(models.Model):
     end_date = models.DateTimeField(null=True)
     atype = EnumIntegerField(AppealType, default=0)
 
-    event = models.ForeignKey(Event, null=True)
-    country = models.ForeignKey(Country, null=True)
+    event = models.ForeignKey(Event, related_name='appeals', null=True)
+    country = models.ForeignKey(Country, related_name='country', null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
@@ -184,7 +184,7 @@ class FieldReport(models.Model):
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType)
-    event = models.ForeignKey(Event, null=True)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True)
     countries = models.ManyToManyField(Country)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
