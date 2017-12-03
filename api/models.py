@@ -31,18 +31,18 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
-                    [getattr(a, 'country') for a in self.appeal_set.all()]
+        countries = [getattr(c, 'name') for fr in self.field_reports.all() for c in fr.countries.all()] + \
+                    [getattr(a, 'country') for a in self.appeals.all()]
         return list(set(countries))
 
     def start_date(self):
         """ Get start date of first appeal """
-        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
+        start_dates = [getattr(a, 'start_date') for a in self.appeals.all()]
         return min(start_dates) if len(start_dates) else None
 
     def end_date(self):
         """ Get latest end date of all appeals """
-        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
+        end_dates = [getattr(a, 'end_date') for a in self.appeals.all()]
         return max(end_dates) if len(end_dates) else None
 
     def indexing(self):
