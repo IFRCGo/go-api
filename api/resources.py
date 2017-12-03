@@ -97,6 +97,11 @@ class EventResource(ModelResource):
         queryset = Event.objects.select_related().all()
         allowed_methods = ['get']
         authorization = Authorization()
+        filtering = {
+            'code': ('exact', 'in'),
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'status': ('iexact'),
+        }
 
 
 class AppealResource(ModelResource):
@@ -106,6 +111,17 @@ class AppealResource(ModelResource):
         queryset = Appeal.objects.all()
         allowed_methods = ['get']
         authorization = Authorization()
+        filtering = {
+            'aid': ('exact', 'in'),
+            'amount_requested': ('gt', 'gte', 'lt', 'lte', 'range'),
+            'amount_funded': ('gt', 'gte', 'lt', 'lte', 'range'),
+            'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
+            'atype': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+        }
 
 
 class FieldReportResource(ModelResource):
@@ -120,6 +136,13 @@ class FieldReportResource(ModelResource):
         always_return_data = True
         authentication = ExpiringApiKeyAuthentication()
         authorization = FieldReportAuthorization()
+        filtering = {
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'id': ('exact', 'in'),
+            'rid': ('exact', 'in'),
+            'status': ('exact', 'in'),
+            'request_assistance': ('exact')
+        }
 
 
 class UserResource(ModelResource):
