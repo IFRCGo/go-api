@@ -146,26 +146,27 @@ class FieldReportResource(ModelResource):
 
 
 class UserResource(ModelResource):
+    profile = fields.ToOneField('api.resources.ProfileResource', 'profile', full=True)
+    subscription = fields.ToManyField('notifications.resources.SubscriptionResource', 'subscription', full=True)
+
+
+
     class Meta:
         queryset = User.objects.all()
         fields = ['username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
         filtering = {
-            'username': ('exact'),
+            'username': ('exact', 'startswith'),
         }
         authentication = ExpiringApiKeyAuthentication()
         authorization = DjangoAuthorization()
 
 
 class ProfileResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user', full=True)
     class Meta:
         queryset = Profile.objects.all()
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        filtering = {
-            'user': ALL_WITH_RELATIONS,
-        }
         authentication = ExpiringApiKeyAuthentication()
         authorization = DjangoAuthorization()

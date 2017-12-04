@@ -27,7 +27,6 @@ from api.resources import (
     ActionsTakenResource,
     FieldReportResource,
     UserResource,
-    ProfileResource,
 )
 from notifications.resources import SurgeAlertResource
 from api.views import get_auth_token, es_keyword_search, aggregate_by_time
@@ -43,7 +42,6 @@ v1_api.register(ActionResource())
 v1_api.register(ActionsTakenResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
-v1_api.register(ProfileResource())
 
 # Notification resources
 v1_api.register(SurgeAlertResource())
