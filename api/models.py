@@ -21,7 +21,7 @@ class Event(models.Model):
 
     eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, related_name='event', null=True)
+    dtype = models.ForeignKey(DisasterType, null=True)
     summary = models.TextField(blank=True)
     status = models.CharField(max_length=30, blank=True)
     region = models.CharField(max_length=100, blank=True)
@@ -121,7 +121,7 @@ class Appeal(models.Model):
     atype = EnumIntegerField(AppealType, default=0)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True)
-    country = models.ForeignKey(Country, related_name='country', null=True)
+    country = models.ForeignKey(Country, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)

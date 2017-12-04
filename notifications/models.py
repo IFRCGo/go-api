@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+from api.models import Country
 
 
 class SurgeAlertType(IntEnum):
@@ -59,6 +60,8 @@ class RecordType(IntEnum):
     APPEAL = 1
     FIELD_REPORT = 2
     SURGE_ALERT = 3
+    COUNTRY = 4
+    REGION = 5
 
 
 class Subscription(models.Model):
@@ -70,6 +73,7 @@ class Subscription(models.Model):
         related_name='subscription',
     )
 
+    country = models.ForeignKey(Country, null=True)
     stype = EnumIntegerField(SubscriptionType, default=0)
     rtype = EnumIntegerField(RecordType, default=0)
 
