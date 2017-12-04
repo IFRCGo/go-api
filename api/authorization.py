@@ -9,5 +9,8 @@ class FieldReportAuthorization(DjangoAuthorization):
     def read_detail(self, object_list, bundle):
         return True
 
+    def create_list(self, object_list, bundle):
+        return False
+
     def create_detail(self, object_list, bundle):
         return True
