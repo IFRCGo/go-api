@@ -30,7 +30,6 @@ from api.resources import (
     ProfileResource,
 )
 from api.views import get_auth_token, es_keyword_search, aggregate_by_time
-from notifications.views import send_notification
 
 v1_api = Api(api_name='v1')
 v1_api.register(DisasterTypeResource())
@@ -51,5 +50,4 @@ urlpatterns = [
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', aggregate_by_time.as_view()),
     url(r'^get_auth_token', get_auth_token),
-    url(r'^test_email', send_notification),
 ]
