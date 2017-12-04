@@ -29,8 +29,10 @@ from api.resources import (
     UserResource,
     ProfileResource,
 )
+from notifications.resources import SurgeAlertResource
 from api.views import get_auth_token, es_keyword_search, aggregate_by_time
 
+# Api resources
 v1_api = Api(api_name='v1')
 v1_api.register(DisasterTypeResource())
 v1_api.register(ContactResource())
@@ -42,6 +44,9 @@ v1_api.register(ActionsTakenResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
 v1_api.register(ProfileResource())
+
+# Notification resources
+v1_api.register(SurgeAlertResource())
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
