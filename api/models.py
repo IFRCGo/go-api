@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from enumfields import EnumIntegerField
-from enumfields import Enum
+from enumfields import IntEnum
 from .esconnection import ES_CLIENT
 
 
@@ -31,18 +31,18 @@ class Event(models.Model):
 
     def countries(self):
         """ Get countries from all appeals and field reports in this disaster """
-        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
-                    [getattr(a, 'country') for a in self.appeal_set.all()]
+        countries = [getattr(c, 'name') for fr in self.field_reports.all() for c in fr.countries.all()] + \
+                    [getattr(a, 'country') for a in self.appeals.all()]
         return list(set(countries))
 
     def start_date(self):
         """ Get start date of first appeal """
-        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
+        start_dates = [getattr(a, 'start_date') for a in self.appeals.all()]
         return min(start_dates) if len(start_dates) else None
 
     def end_date(self):
         """ Get latest end date of all appeals """
-        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
+        end_dates = [getattr(a, 'end_date') for a in self.appeals.all()]
         return max(end_dates) if len(end_dates) else None
 
     def indexing(self):
@@ -104,7 +104,7 @@ class ActionsTaken(models.Model):
         return self.organization
 
 
-class AppealType(Enum):
+class AppealType(IntEnum):
     """ summarys of appeals """
     DREF = 0
     APPEAL = 1
@@ -120,8 +120,8 @@ class Appeal(models.Model):
     end_date = models.DateTimeField(null=True)
     atype = EnumIntegerField(AppealType, default=0)
 
-    event = models.ForeignKey(Event, null=True)
-    country = models.ForeignKey(Country, null=True)
+    event = models.ForeignKey(Event, related_name='appeals', null=True)
+    country = models.ForeignKey(Country, related_name='country', null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
@@ -184,7 +184,7 @@ class FieldReport(models.Model):
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType)
-    event = models.ForeignKey(Event, null=True)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True)
     countries = models.ManyToManyField(Country)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)

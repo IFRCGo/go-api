@@ -51,7 +51,14 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py loaddata Actions Countries DisasterTypes
 python manage.py collectstatic
+
+# Disables automated elasticsearch indexing
+export BULK_IMPORT = 1
 python manage.py ingest_mdb
+python manage.py ingest_appeals
+
+# Re-enable indexing to elasticsearch
+export BULK_IMPORT = 0
 python manage.py runserver
 ```
 
