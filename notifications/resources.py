@@ -1,6 +1,7 @@
 from tastypie.resources import ModelResource
-from tastypie.authorization import Authorization
-from .models import SurgeAlert
+from tastypie.authorization import Authorization, DjangoAuthorization
+from .models import SurgeAlert, Subscription
+from api.authentication import ExpiringApiKeyAuthentication
 
 class SurgeAlertResource(ModelResource):
     def dehydrate_message(self, bundle):
@@ -14,3 +15,10 @@ class SurgeAlertResource(ModelResource):
         resource_name = 'surge_alert'
         allowed_methods = ['get']
         authorization = Authorization()
+
+
+class SubscriptionResource(ModelResource):
+    class Meta:
+        queryset = Subscription.objects.all()
+        authorization = DjangoAuthorization()
+        authentication = ExpiringApiKeyAuthentication()
