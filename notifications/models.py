@@ -34,6 +34,9 @@ class SurgeAlert(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField()
 
+    class Meta:
+        ordering = ['-created_at']
+
     def save(self, *args, **kwargs):
         # On save, if `created` is not set, make it the current time
         if not self.id and not self.created_at:
