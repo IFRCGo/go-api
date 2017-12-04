@@ -1,6 +1,6 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
-from tastypie.authorization import Authorization, DjangoAuthorization
+from tastypie.authorization import Authorization
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
@@ -14,7 +14,7 @@ from .models import (
     Action
 )
 from .authentication import ExpiringApiKeyAuthentication
-from .authorization import FieldReportAuthorization
+from .authorization import FieldReportAuthorization, UserProfileAuthorization
 
 
 # Duplicate resources that do not query 's related objects.
@@ -148,19 +148,16 @@ class FieldReportResource(ModelResource):
 class UserResource(ModelResource):
     profile = fields.ToOneField('api.resources.ProfileResource', 'profile', full=True)
     subscription = fields.ToManyField('notifications.resources.SubscriptionResource', 'subscription', full=True)
-
-
-
     class Meta:
         queryset = User.objects.all()
-        fields = ['username', 'first_name', 'last_name', 'email']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
         filtering = {
             'username': ('exact', 'startswith'),
         }
         authentication = ExpiringApiKeyAuthentication()
-        authorization = DjangoAuthorization()
+        authorization = UserProfileAuthorization()
 
 
 class ProfileResource(ModelResource):
@@ -169,4 +166,4 @@ class ProfileResource(ModelResource):
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
-        authorization = DjangoAuthorization()
+        authorization = UserProfileAuthorization()
