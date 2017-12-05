@@ -101,7 +101,7 @@ class ActionsTaken(models.Model):
     summary = models.TextField(blank=True)
 
     def __str__(self):
-        return self.organization
+        return '%s: %s' % (self.organization, self.summary)
 
 
 class AppealType(Enum):
