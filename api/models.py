@@ -85,7 +85,7 @@ class Country(models.Model):
 
     name = models.CharField(max_length=100)
     iso = models.CharField(max_length=2, null=True)
-    society_name = models.TextField(default="")
+    society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region)
 
