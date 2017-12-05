@@ -2,6 +2,7 @@ import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
+from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from .esconnection import ES_CLIENT
@@ -27,6 +28,7 @@ class Event(models.Model):
     region = models.CharField(max_length=100, blank=True)
     code = models.CharField(max_length=20, null=True)
 
+    disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def countries(self):
@@ -62,6 +64,12 @@ class Event(models.Model):
 
     def es_id(self):
         return 'event-%s' % self.id
+
+    def save(self, *args, **kwargs):
+        # On save, if `disaster_start_date` is not set, make it the current time
+        if not self.id and not self.disaster_start_date:
+            self.disaster_start_date = timezone.now()
+        return super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
