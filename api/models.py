@@ -95,7 +95,7 @@ class Country(models.Model):
     iso = models.CharField(max_length=2, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
-    region = models.ForeignKey(Region)
+    region = models.ForeignKey(Region, null=True)
 
     def __str__(self):
         return self.name
