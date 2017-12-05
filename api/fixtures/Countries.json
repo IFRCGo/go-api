@@ -2018,7 +2018,6 @@
         "fields": {
             "name": "Marshall Islands",
             "iso": "mh",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2040,7 +2039,6 @@
         "fields": {
             "name": "British Indian Overseas Territories",
             "iso": "io",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2051,7 +2049,6 @@
         "fields": {
             "name": "Montserrat",
             "iso": "ms",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2062,7 +2059,6 @@
         "fields": {
             "name": "Anguilla",
             "iso": "ai",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2073,7 +2069,6 @@
         "fields": {
             "name": "Virgin Islands, British",
             "iso": "vg",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2084,7 +2079,6 @@
         "fields": {
             "name": "Turks and Caicos Islands",
             "iso": "tc",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2095,7 +2089,6 @@
         "fields": {
             "name": "Cayman Islands",
             "iso": "ky",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2117,7 +2110,6 @@
         "fields": {
             "name": "Netherlands Antilles",
             "iso": "an",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2128,7 +2120,6 @@
         "fields": {
             "name": "French Guiana",
             "iso": "gf",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2139,7 +2130,6 @@
         "fields": {
             "name": "Guadeloupe",
             "iso": "gp",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2150,7 +2140,6 @@
         "fields": {
             "name": "Martinique",
             "iso": "mq",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2183,7 +2172,6 @@
         "fields": {
             "name": "American Samoa",
             "iso": "as",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2194,7 +2182,6 @@
         "fields": {
             "name": "Antarctica",
             "iso": "aq",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2205,7 +2192,6 @@
         "fields": {
             "name": "Aruba",
             "iso": "aw",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2216,7 +2202,6 @@
         "fields": {
             "name": "Baker Island",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2227,7 +2212,6 @@
         "fields": {
             "name": "Bermuda",
             "iso": "bm",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2238,7 +2222,6 @@
         "fields": {
             "name": "Bhutan",
             "iso": "bt",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2249,7 +2232,6 @@
         "fields": {
             "name": "Christmas Island, Territory of",
             "iso": "cx",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2260,7 +2242,6 @@
         "fields": {
             "name": "Cocos Islands, Territory of",
             "iso": "cc",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2271,7 +2252,6 @@
         "fields": {
             "name": "Falkland Islands (Malvinas)",
             "iso": "fk",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2282,7 +2262,6 @@
         "fields": {
             "name": "Faroe Islands",
             "iso": "fo",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2293,7 +2272,6 @@
         "fields": {
             "name": "French Polynesia",
             "iso": "pf",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2304,7 +2282,6 @@
         "fields": {
             "name": "French Southern and Antarctic Lands",
             "iso": "tf",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2315,7 +2292,6 @@
         "fields": {
             "name": "Gibraltar",
             "iso": "gi",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2326,7 +2302,6 @@
         "fields": {
             "name": "Greenland",
             "iso": "gl",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2337,7 +2312,6 @@
         "fields": {
             "name": "Guam",
             "iso": "gu",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2348,7 +2322,6 @@
         "fields": {
             "name": "Heard I. & McDonald Is.",
             "iso": "HM",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2359,7 +2332,6 @@
         "fields": {
             "name": "Howland Island",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2370,7 +2342,6 @@
         "fields": {
             "name": "Jarvis Island",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2381,7 +2352,6 @@
         "fields": {
             "name": "Johnston Atoll",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2392,7 +2362,6 @@
         "fields": {
             "name": "Mayotte",
             "iso": "yt",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2403,7 +2372,6 @@
         "fields": {
             "name": "Midway Island",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2414,7 +2382,6 @@
         "fields": {
             "name": "Nauru",
             "iso": "nr",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2425,7 +2392,6 @@
         "fields": {
             "name": "New Caledonia",
             "iso": "nc",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2436,7 +2402,6 @@
         "fields": {
             "name": "Niue",
             "iso": "nu",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2447,7 +2412,6 @@
         "fields": {
             "name": "Norkolk Island",
             "iso": "nf",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2458,7 +2422,6 @@
         "fields": {
             "name": "Northern Mariana Island",
             "iso": "mp",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2469,7 +2432,6 @@
         "fields": {
             "name": "Pitcairn",
             "iso": "pn",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2480,7 +2442,6 @@
         "fields": {
             "name": "Puerto Rico",
             "iso": "pr",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2491,7 +2452,6 @@
         "fields": {
             "name": "Oman",
             "iso": "om",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2502,7 +2462,6 @@
         "fields": {
             "name": "Reunion",
             "iso": "re",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2513,7 +2472,6 @@
         "fields": {
             "name": "San Marino, Republic of",
             "iso": "sm",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2524,7 +2482,6 @@
         "fields": {
             "name": "South Georgia and the South Sandwich Is.",
             "iso": "gs",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2535,7 +2492,6 @@
         "fields": {
             "name": "Saint Helena",
             "iso": "sh",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2546,7 +2502,6 @@
         "fields": {
             "name": "St. Pierre et Miquelon",
             "iso": "pm",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2557,7 +2512,6 @@
         "fields": {
             "name": "Svalbard and Jan Mayen",
             "iso": "sj",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2568,7 +2522,6 @@
         "fields": {
             "name": "Tokelau",
             "iso": "tk",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2579,7 +2532,6 @@
         "fields": {
             "name": "Virgin Islands, US",
             "iso": "vi",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2590,7 +2542,6 @@
         "fields": {
             "name": "Wake Island",
             "iso": "um",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2601,7 +2552,6 @@
         "fields": {
             "name": "Wallis and Futuna",
             "iso": "wf",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2612,7 +2562,6 @@
         "fields": {
             "name": "Western Sahara",
             "iso": "eh",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2645,7 +2594,6 @@
         "fields": {
             "name": "Guernesey",
             "iso": "gg",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2656,7 +2604,6 @@
         "fields": {
             "name": "Jersey",
             "iso": "je",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2667,7 +2614,6 @@
         "fields": {
             "name": "Holy See (Vatican City State)",
             "iso": "va",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2689,7 +2635,6 @@
         "fields": {
             "name": "Isle of Man",
             "iso": "im",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2700,7 +2645,6 @@
         "fields": {
             "name": "Aland Island",
             "iso": "AX",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2711,7 +2655,6 @@
         "fields": {
             "name": "Bouvet Island",
             "iso": "BV",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2733,7 +2676,6 @@
         "fields": {
             "name": "St. Martin (French part)",
             "iso": "MF",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2755,7 +2697,6 @@
         "fields": {
             "name": "Zone Americas",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2766,7 +2707,6 @@
         "fields": {
             "name": "Zone Asia-Pacific",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2777,7 +2717,6 @@
         "fields": {
             "name": "Zone Central and West Africa",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2788,7 +2727,6 @@
         "fields": {
             "name": "Zone Eastern Africa",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2799,7 +2737,6 @@
         "fields": {
             "name": "Zone Europe",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2810,7 +2747,6 @@
         "fields": {
             "name": "Zone MENA",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2821,7 +2757,6 @@
         "fields": {
             "name": "Zone Southern Africa",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
@@ -2832,7 +2767,6 @@
         "fields": {
             "name": "Zone GLOBAL",
             "iso": "",
-            "region": "",
             "society_name": "",
             "society_url": ""
         }
