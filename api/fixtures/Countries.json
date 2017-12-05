@@ -100,6 +100,17 @@
     },
     {
         "model": "api.Country",
+        "pk": "11",
+        "fields": {
+            "name": "Serbia and Montenegro",
+            "iso": "cs",
+            "region": "3",
+            "society_name": "",
+            "society_url": ""
+        }
+    },
+    {
+        "model": "api.Country",
         "pk": "12",
         "fields": {
             "name": "Zambia",
