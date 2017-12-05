@@ -116,7 +116,7 @@ class ActionsTaken(models.Model):
     summary = models.TextField(blank=True)
 
     def __str__(self):
-        return self.organization
+        return '%s: %s' % (self.organization, self.summary)
 
 
 class AppealType(IntEnum):
@@ -192,6 +192,13 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
+class RequestChoices(Enum):
+    NO = 0
+    REQUESTED = 1
+    PLANNED = 2
+    COMPLETE = 3
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -221,9 +228,26 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True)
     gov_num_assisted = models.IntegerField(null=True)
 
+    # actions taken
     actions_taken = models.ManyToManyField(ActionsTaken)
+    actions_others = models.TextField(blank=True)
 
+    # information
     sources = models.ManyToManyField(Source)
+    bulletin = EnumIntegerField(RequestChoices, default=0)
+    dref = EnumIntegerField(RequestChoices, default=0)
+    dref_amount = models.IntegerField(null=True)
+    appeal = EnumIntegerField(RequestChoices, default=0)
+    appeal_amount = models.IntegerField(null=True)
+
+    # disaster response
+    rdrt = EnumIntegerField(RequestChoices, default=0)
+    num_rdrt = models.IntegerField(null=True)
+    fact = EnumIntegerField(RequestChoices, default=0)
+    num_fact = models.IntegerField(null=True)
+    ifrc_staff = EnumIntegerField(RequestChoices, default=0)
+    num_ifrc_staff = models.IntegerField(null=True)
+    #eru = EnumIntegerField(RequestChoices, default=0)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
