@@ -192,7 +192,7 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-class RequestChoices(Enum):
+class RequestChoices(IntEnum):
     NO = 0
     REQUESTED = 1
     PLANNED = 2
