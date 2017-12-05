@@ -161,7 +161,6 @@ class Command(BaseCommand):
             details = fetch_relation(details_rc, report['ReportID'])
             assert(len(details) <= 1)
             if len(details) > 0:
-                print('details_rc', report['ReportID'])
                 details = details[0]
                 record.update({
                     'num_injured': details['NumberOfInjured'],
@@ -177,7 +176,6 @@ class Command(BaseCommand):
             details = fetch_relation(details_gov, report['ReportID'])
             assert(len(details) <= 1)
             if len(details) > 0:
-                print('details_gov', report['ReportID'])
                 details = details[0]
                 record.update({
                     'gov_num_injured': details['NumberOfInjured_GOV'],
@@ -189,24 +187,23 @@ class Command(BaseCommand):
                 })
             info = fetch_relation(info_table, report['ReportID'])
             if len(info) > 0:
-                print('info', report['ReportID'])
-                info = info[0]
+                info = {k: '' if v is None else v for k, v in info[0].items()}
                 record.update({
                     'bulletin': {'': 0, 'None': 0, 'Planned': 2, 'Published': 3}[info['InformationBulletin']],
                     'dref': {'': 0, 'No': 0, 'Planned': 2, 'Yes': 3}[info['DREFRequested']],
-                    'dref_amount': info['DREFRequestedAmount'],
+                    'dref_amount': 0 if info['DREFRequestedAmount'] == '' else info['DREFRequestedAmount'],
                     'appeal': {'': 0, 'Planned': 2, 'Yes': 3, 'NB': 0, 'No': 0, 'YES': 3}[info['EmergencyAppeal']],
-                    'appeal_amount': info['EmergencyAppealAmount']
+                    'appeal_amount': 0 if info['EmergencyAppealAmount'] == '' else info['EmergencyAppealAmount'],
                 })
             # disaster response
             response = fetch_relation(dr_table, report['ReportID'])
+
             if len(response) > 0:
-                print('response', report['ReportID'])
-                info = info[0]
+                response = {k: '' if v is None else v for k, v in response[0].items()}
                 record.update({
                     'rdrt': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['RDRT']],
                     'fact': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['FACT']],
-                    'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
+                    #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
                 })
 
             item = FieldReport(**record)
