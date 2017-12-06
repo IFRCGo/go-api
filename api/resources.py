@@ -6,6 +6,7 @@ from .models import (
     DisasterType,
     Event,
     Country,
+    Region,
     Appeal,
     FieldReport,
     Profile,
@@ -48,6 +49,13 @@ class ContactResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         authentication = ExpiringApiKeyAuthentication()
+
+
+class RegionResource(ModelResource):
+    class Meta:
+        queryset = Region.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
 
 
 class CountryResource(ModelResource):
