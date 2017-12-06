@@ -16,6 +16,7 @@ from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
+from notifications.models import Subscription
 
 
 def bad_request(message):
@@ -113,31 +114,29 @@ class PublicJsonPostView(View):
         parts = auth_header[7:].split(':')
         return parts[0], parts[1]
 
-    def is_authenticated(self, request):
+    def get_authenticated_user(self, request):
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         if not auth_header:
-            return False
+            return None
 
         # Parse the authorization header
         username, key = self.decode_auth_header(auth_header)
         if not username or not key:
-            return False
+            return None
 
-        print('querying user', username, key)
         # Query the user
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            return False
+            return None
 
-        print('querying key')
         # Query the key
         try:
             ApiKey.objects.get(user=user, key=key)
         except ApiKey.DoesNotExist:
-            return False
+            return None
 
-        return True
+        return user
 
 
     def handle_post(self, request, *args, **kwargs):
@@ -174,9 +173,17 @@ class get_auth_token(PublicJsonPostView):
 
 class update_subscription_preferences(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-        if not self.is_authenticated(request):
+        user = self.get_authenticated_user(request)
+        if not user:
             return unauthorized()
 
-        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
-        return JsonResponse({'ok': 'ok'})
+        errors, created = Subscription.sync_user_subscriptions(user, body)
+        if len(errors):
+            return JsonResponse({
+                'statusCode': 400,
+                'error_message': 'Could not create one or more subscription(s), aborting',
+                'errors': errors
+            }, status=400)
+        else:
+            return JsonResponse({'statusCode': 204}, status=204)
