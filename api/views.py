@@ -186,4 +186,4 @@ class update_subscription_preferences(PublicJsonPostView):
                 'errors': errors
             }, status=400)
         else:
-            return JsonResponse({'statusCode': 204}, status=204)
+            return JsonResponse({'statusCode': 200, 'created': len(created)})
