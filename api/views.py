@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count
@@ -22,6 +23,13 @@ def bad_request(message):
         'statusCode': 400,
         'error_message': message
     }, status=400)
+
+
+def unauthorized(message='You must be logged in'):
+    return JsonResponse({
+        'statusCode': 401,
+        'error_message': message
+    }, status=401)
 
 
 class PublicJsonRequestView(View):
@@ -101,6 +109,37 @@ class aggregate_by_time(PublicJsonRequestView):
 @method_decorator(csrf_exempt, name='dispatch')
 class PublicJsonPostView(View):
     http_method_names = ['post']
+    def decode_auth_header(self, auth_header):
+        parts = auth_header[7:].split(':')
+        return parts[0], parts[1]
+
+    def is_authenticated(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if not auth_header:
+            return False
+
+        # Parse the authorization header
+        username, key = self.decode_auth_header(auth_header)
+        if not username or not key:
+            return False
+
+        print('querying user', username, key)
+        # Query the user
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return False
+
+        print('querying key')
+        # Query the key
+        try:
+            ApiKey.objects.get(user=user, key=key)
+        except ApiKey.DoesNotExist:
+            return False
+
+        return True
+
+
     def handle_post(self, request, *args, **kwargs):
         print(pretty_request(request))
 
@@ -112,6 +151,7 @@ class PublicJsonPostView(View):
 
 class get_auth_token(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
+        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
         username = body['username']
         password = body['password']
@@ -130,3 +170,13 @@ class get_auth_token(PublicJsonPostView):
             })
         else:
             return bad_request('Could not authenticate')
+
+
+class update_subscription_preferences(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        if not self.is_authenticated(request):
+            return unauthorized()
+
+        print(pretty_request(request))
+        body = json.loads(request.body.decode('utf-8'))
+        return JsonResponse({'ok': 'ok'})
