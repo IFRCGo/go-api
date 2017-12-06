@@ -1,7 +1,9 @@
+from tastypie import fields
 from tastypie.resources import ModelResource
 from tastypie.authorization import Authorization, DjangoAuthorization
 from .models import SurgeAlert, Subscription
 from api.authentication import ExpiringApiKeyAuthentication
+from api.resources import CountryResource, RegionResource, DisasterTypeResource
 
 class SurgeAlertResource(ModelResource):
     def dehydrate_message(self, bundle):
@@ -18,6 +20,9 @@ class SurgeAlertResource(ModelResource):
 
 
 class SubscriptionResource(ModelResource):
+    country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True, null=True)
     class Meta:
         queryset = Subscription.objects.all()
         authorization = DjangoAuthorization()

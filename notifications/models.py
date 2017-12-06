@@ -152,4 +152,4 @@ class Subscription(models.Model):
         return errors, new
 
     def __str__(self):
-        return '%s %s' % (self.user.username, self.event_type)
+        return '%s %s' % (self.user.username, self.rtype)
