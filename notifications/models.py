@@ -83,5 +83,73 @@ class Subscription(models.Model):
     region = models.ForeignKey(Region, null=True)
     dtype = models.ForeignKey(DisasterType, null=True)
 
+    # Given a request containing new subscriptions, validate and
+    # sync the subscriptions.
+    def sync_user_subscriptions(user, body):
+        rtype_map = {
+            'event': RecordType.EVENT,
+            'appeal': RecordType.APPEAL,
+            'fieldReport': RecordType.FIELD_REPORT,
+            'surge': RecordType.SURGE_ALERT,
+            'regions': RecordType.REGION,
+            'countries': RecordType.COUNTRY,
+            'disasterTypes': RecordType.DTYPE,
+        }
+
+        stype_map = {
+            'new': SubscriptionType.NEW,
+            'modified': SubscriptionType.EDIT,
+        }
+
+        new = []
+        errors = []
+        for req in body:
+            rtype = rtype_map.get(req['type'], None)
+            fields = { 'rtype': rtype, 'user': user }
+            error = None
+
+            if rtype in [RecordType.EVENT, RecordType.APPEAL, RecordType.FIELD_REPORT]:
+                fields['stype'] = stype_map.get(req['value'], 0)
+
+            elif rtype == RecordType.COUNTRY:
+                try:
+                    fields['country'] = Country.objects.get(pk=req['value'])
+                except Country.DoesNotExist:
+                    error = 'Could not find country with primary key %s' % req['value']
+
+            elif rtype == RecordType.REGION:
+                try:
+                    fields['region'] = Region.objects.get(pk=req['value'])
+                except Region.DoesNotExist:
+                    error = 'Could not find region with primary key %s' % req['value']
+
+            elif rtype == RecordType.DTYPE:
+                try:
+                    fields['dtype'] = DisasterType.objects.get(pk=req['value'])
+                except DisasterType.DoesNotExist:
+                    error = 'Could not find disaster type with primary key %s' % req['value']
+
+            elif rtype == RecordType.SURGE_ALERT:
+                fields['stype'] = SubscriptionType.NEW
+
+            else:
+                error = 'Record type is not valid, must be one of %s' % ', '.join(list(rtype_map.keys())),
+
+            if error is not None:
+                errors.append({
+                    'error': error,
+                    'record': req,
+                })
+            else:
+                new.append(Subscription(**fields))
+
+        # Only sync subscriptions if the entire request is valid
+        # We do this by just throwing out the old and creating the new
+        if len(new) and not len(errors):
+            Subscription.objects.filter(user=user).delete()
+            Subscription.objects.bulk_create(new)
+
+        return errors, new
+
     def __str__(self):
         return '%s %s' % (self.user.username, self.event_type)
