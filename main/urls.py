@@ -52,5 +52,5 @@ urlpatterns = [
     url(r'^api/v1/es_search/', es_keyword_search.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', aggregate_by_time.as_view()),
-    url(r'^get_auth_token', get_auth_token),
+    url(r'^get_auth_token', get_auth_token.as_view()),
 ]

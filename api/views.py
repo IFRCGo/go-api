@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
@@ -28,7 +29,6 @@ class PublicJsonRequestView(View):
     def handle_get(self, request, *args, **kwargs):
         print(pretty_request(request))
 
-    @csrf_exempt
     def get(self, request, *args, **kwargs):
         return self.handle_get(request, *args, **kwargs)
 
@@ -98,16 +98,20 @@ class aggregate_by_time(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-@csrf_exempt
-def get_auth_token(request):
-    print(pretty_request(request))
-    if request.META.get('CONTENT_TYPE') != 'application/json':
-        return bad_request('Content-type must be `application/json`')
+@method_decorator(csrf_exempt, name='dispatch')
+class PublicJsonPostView(View):
+    http_method_names = ['post']
+    def handle_post(self, request, *args, **kwargs):
+        print(pretty_request(request))
 
-    elif request.method != 'POST':
-        return bad_request('HTTP method must be `POST`')
+    def post(self, request, *args, **kwargs):
+        if request.META.get('CONTENT_TYPE') != 'application/json':
+            return bad_request('Content-type must be `application/json`')
+        return self.handle_post(request, *args, **kwargs)
 
-    else:
+
+class get_auth_token(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
         username = body['username']
         password = body['password']
