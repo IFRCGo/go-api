@@ -113,7 +113,6 @@ class EventResource(ModelResource):
         filtering = {
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
-            'code': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
@@ -131,6 +130,7 @@ class AppealResource(ModelResource):
             'event': ALL_WITH_RELATIONS,
             'aid': ('exact', 'in'),
             'status': ('exact', 'iexact', 'in'),
+            'code': ('exact', 'in'),
             'amount_requested': ('gt', 'gte', 'lt', 'lte', 'range'),
             'amount_funded': ('gt', 'gte', 'lt', 'lte', 'range'),
             'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
