@@ -51,7 +51,6 @@ class Event(models.Model):
     dtype = models.ForeignKey(DisasterType, null=True)
     countries = models.ManyToManyField(Country)
     summary = models.TextField(blank=True)
-    status = models.CharField(max_length=30, blank=True)
     region = models.CharField(max_length=100, blank=True)
     code = models.CharField(max_length=20, null=True)
 
@@ -77,7 +76,6 @@ class Event(models.Model):
             'countries': ','.join(map(str, countries)) if len(countries) else None,
             'dtype': getattr(self.dtype, 'name', None),
             'summary': self.summary,
-            'status': self.status,
             'created_at': self.created_at,
             'start_date': self.start_date(),
             'end_date': self.end_date(),
@@ -137,6 +135,7 @@ class Appeal(models.Model):
     aid = models.CharField(max_length=20)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    status = models.CharField(max_length=30, blank=True)
     atype = EnumIntegerField(AppealType, default=0)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True)
@@ -156,6 +155,7 @@ class Appeal(models.Model):
             'countries': getattr(self.country, 'name', None),
             'created_at': self.created_at,
             'start_date': self.start_date,
+            'status': self.status,
             'end_date': self.end_date,
         }
         return obj
