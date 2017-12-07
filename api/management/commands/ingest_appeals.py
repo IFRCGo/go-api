@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import requests
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
 from api.models import AppealType, Appeal, Country, DisasterType, Event
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
@@ -21,11 +21,11 @@ class Command(BaseCommand):
         response = requests.get(url, auth=auth)
         if response.status_code != 200:
             raise Exception('Error querying Appeals API')
-        results = response.json()
+        records = response.json()
 
         # read from static file for development
         # with open('appeals.json') as f:
-        #     results = json.loads(f.read())
+        #     records = json.loads(f.read())
 
         eids = [e.eid for e in Event.objects.all()]
         aids = [a.aid for a in Appeal.objects.all()]
@@ -33,10 +33,16 @@ class Command(BaseCommand):
         print('%s current events' % Event.objects.all().count())
         print('%s current appeals' % Appeal.objects.all().count())
 
-        results = [r for r in results if r['APP_Id'] not in eids]
-        print('Ingesting %s events' % len(results))
-
         timeformat = '%Y-%m-%dT%H:%M:%S'
+        results = []
+        since_last_checked = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=60):
+        for r in records:
+            if r['APP_Id'] not in eids:
+                results.append(r)
+            last_modified = datetime.strptime(r['APP_modifyTime'][:18], timeformat).replace(tzinfo=timezone.utc)
+            if last_modified > since_last_checked:
+                results.append(r)
+        print('Ingesting %s events' % len(results))
 
         for i, r in enumerate(results):
             sys.stdout.write('.') if (i % 100) == 0 else None
