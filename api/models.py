@@ -50,8 +50,8 @@ class Event(models.Model):
     name = models.CharField(max_length=100)
     dtype = models.ForeignKey(DisasterType, null=True)
     countries = models.ManyToManyField(Country)
+    region = models.ForeignKey(Region, null=True)
     summary = models.TextField(blank=True)
-    region = models.CharField(max_length=100, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)

@@ -4,7 +4,7 @@ import logging
 import requests
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
-from api.models import AppealType, Appeal, Country, DisasterType, Event
+from api.models import AppealType, Appeal, Region, Country, DisasterType, Event
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
         timeformat = '%Y-%m-%dT%H:%M:%S'
         results = []
-        since_last_checked = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=60):
+        since_last_checked = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(minutes=60)
         for r in records:
             if r['APP_Id'] not in eids:
                 results.append(r)
@@ -47,20 +47,27 @@ class Command(BaseCommand):
         for i, r in enumerate(results):
             sys.stdout.write('.') if (i % 100) == 0 else None
             # create an Event for this
+            fields = { 'name': r['APP_name'] }
+
+            # get the disaster type mapping
             if r['ADT_name'] in DISASTER_TYPE_MAPPING:
                 disaster_name = DISASTER_TYPE_MAPPING[r['ADT_name']]
             else:
                 disaster_name = 'Other'
+            fields['dtype'] = DisasterType.objects.get(name=disaster_name)
 
-            fields = {
-                'name': r['APP_name'],
-                'dtype': DisasterType.objects.get(name=disaster_name),
-                'region': r['OSR_name'],
-            }
+            # get the region mapping
+            regions = {'africa': 0, 'americas': 1, 'asia pacific': 2, 'europe': 3, 'middle east and north africa': 4}
+            region_name = r['OSR_name'].lower().strip()
+            if region_name in regions:
+                region = Region.objects.filter(name=regions[region_name])
+                fields['region'] = region.first()
+            else:
+                print('Couldn\'t find a matching region for %s' % r['OSR_name'])
+
             event, created = Event.objects.get_or_create(eid=r['APP_Id'], defaults=fields)
-            if created:
-                eids.append(r['APP_Id'])
 
+            # add the country, which can be multiple
             country = Country.objects.filter(name=r['OSC_name'])
             if country.count() == 0:
                 country = None
