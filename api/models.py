@@ -17,64 +17,6 @@ class DisasterType(models.Model):
         return self.name
 
 
-class Event(models.Model):
-    """ A disaster, which could cover multiple countries """
-
-    eid = models.IntegerField(null=True)
-    name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
-    summary = models.TextField(blank=True)
-    status = models.CharField(max_length=30, blank=True)
-    region = models.CharField(max_length=100, blank=True)
-    code = models.CharField(max_length=20, null=True)
-
-    disaster_start_date = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def countries(self):
-        """ Get countries from all appeals and field reports in this disaster """
-        countries = [getattr(c, 'name') for fr in self.field_reports.all() for c in fr.countries.all()] + \
-                    [getattr(a, 'country') for a in self.appeals.all()]
-        return list(set(countries))
-
-    def start_date(self):
-        """ Get start date of first appeal """
-        start_dates = [getattr(a, 'start_date') for a in self.appeals.all()]
-        return min(start_dates) if len(start_dates) else None
-
-    def end_date(self):
-        """ Get latest end date of all appeals """
-        end_dates = [getattr(a, 'end_date') for a in self.appeals.all()]
-        return max(end_dates) if len(end_dates) else None
-
-    def indexing(self):
-        obj = {
-            'id': self.eid,
-            'name': self.name,
-            'type': 'event',
-            'countries': ','.join(map(str, self.countries())),
-            'dtype': getattr(self.dtype, 'name', None),
-            'summary': self.summary,
-            'status': self.status,
-            'created_at': self.created_at,
-            'start_date': self.start_date(),
-            'end_date': self.end_date(),
-        }
-        return obj
-
-    def es_id(self):
-        return 'event-%s' % self.id
-
-    def save(self, *args, **kwargs):
-        # On save, if `disaster_start_date` is not set, make it the current time
-        if not self.id and not self.disaster_start_date:
-            self.disaster_start_date = timezone.now()
-        return super(Event, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-
 class RegionName(IntEnum):
     AFRICA = 0
     AMERICAS = 1
@@ -96,6 +38,60 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Event(models.Model):
+    """ A disaster, which could cover multiple countries """
+
+    eid = models.IntegerField(null=True)
+    name = models.CharField(max_length=100)
+    dtype = models.ForeignKey(DisasterType, null=True)
+    countries = models.ManyToManyField(Country)
+    summary = models.TextField(blank=True)
+    status = models.CharField(max_length=30, blank=True)
+    region = models.CharField(max_length=100, blank=True)
+    code = models.CharField(max_length=20, null=True)
+
+    disaster_start_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def start_date(self):
+        """ Get start date of first appeal """
+        start_dates = [getattr(a, 'start_date') for a in self.appeals.all()]
+        return min(start_dates) if len(start_dates) else None
+
+    def end_date(self):
+        """ Get latest end date of all appeals """
+        end_dates = [getattr(a, 'end_date') for a in self.appeals.all()]
+        return max(end_dates) if len(end_dates) else None
+
+    def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
+        obj = {
+            'id': self.eid,
+            'name': self.name,
+            'type': 'event',
+            'countries': ','.join(map(str, countries)) if len(countries) else None,
+            'dtype': getattr(self.dtype, 'name', None),
+            'summary': self.summary,
+            'status': self.status,
+            'created_at': self.created_at,
+            'start_date': self.start_date(),
+            'end_date': self.end_date(),
+        }
+        return obj
+
+    def es_id(self):
+        return 'event-%s' % self.id
+
+    def save(self, *args, **kwargs):
+        # On save, if `disaster_start_date` is not set, make it the current time
+        if not self.id and not self.disaster_start_date:
+            self.disaster_start_date = timezone.now()
+        return super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name

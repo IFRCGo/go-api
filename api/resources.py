@@ -85,6 +85,7 @@ class EventResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
+    countries = fields.ToManyField(CountryResource, 'countries', full=True)
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
@@ -93,10 +94,8 @@ class EventResource(ModelResource):
         else:
             return None
 
-
     # Attach data from model instance methods
     def dehydrate(self, bundle):
-        bundle.data['countries'] = bundle.obj.countries()
         bundle.data['start_date'] = bundle.obj.start_date()
         bundle.data['end_date'] = bundle.obj.end_date()
         return bundle
