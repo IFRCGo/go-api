@@ -49,7 +49,6 @@ class Command(BaseCommand):
             fields = {
                 'name': r['APP_name'],
                 'dtype': DisasterType.objects.get(name=disaster_name),
-                'status': r['APP_status'],
                 'region': r['OSR_name'],
                 'code': r['APP_code'],
             }
@@ -75,6 +74,7 @@ class Command(BaseCommand):
                     'sector': r['OSS_name'],
                     'start_date': datetime.strptime(appeal['APD_startDate'], timeformat).replace(tzinfo=timezone.utc),
                     'end_date': datetime.strptime(appeal['APD_endDate'], timeformat).replace(tzinfo=timezone.utc),
+                    'status': r['APP_status'],
                     'num_beneficiaries': appeal['APD_noBeneficiaries'],
                     'amount_requested': appeal['APD_amountCHF'],
                     'amount_funded': amount_funded
