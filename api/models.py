@@ -46,15 +46,16 @@ class Country(models.Model):
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
-    eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    dtype = models.ForeignKey(DisasterType)
     countries = models.ManyToManyField(Country)
-    region = models.ForeignKey(Region, null=True)
+    regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    auto_generated = models.BooleanField(default=False)
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -69,7 +70,7 @@ class Event(models.Model):
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         obj = {
-            'id': self.eid,
+            'id': self.id,
             'name': self.name,
             'type': 'event',
             'countries': ','.join(map(str, countries)) if len(countries) else None,
@@ -132,21 +133,25 @@ class Appeal(models.Model):
 
     # appeal ID, assinged by creator
     aid = models.CharField(max_length=20)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-    status = models.CharField(max_length=30, blank=True)
+    name = models.CharField(max_length=100)
+    dtype = models.ForeignKey(DisasterType)
     atype = EnumIntegerField(AppealType, default=0)
-    code = models.CharField(max_length=20, null=True)
 
-    event = models.ForeignKey(Event, related_name='appeals', null=True)
-    country = models.ForeignKey(Country, null=True)
+    status = models.CharField(max_length=30, blank=True)
+    code = models.CharField(max_length=20, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
     amount_requested = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    event = models.ForeignKey(Event, related_name='appeals', null=True)
+    country = models.ForeignKey(Country, null=True)
+    region = models.ForeignKey(Region, null=True)
 
     def indexing(self):
         obj = {
