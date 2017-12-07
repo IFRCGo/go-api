@@ -23,12 +23,18 @@ from .authorization import FieldReportAuthorization, UserProfileAuthorization
 class RelatedAppealResource(ModelResource):
     class Meta:
         queryset = Appeal.objects.all()
-
+        filtering = {
+            'status': ('exact', 'iexact', 'in'),
+            'atype': ('exact', 'in'),
+            'country': ('exact', 'in'),
+        }
 
 class RelatedEventResource(ModelResource):
     class Meta:
         queryset = Event.objects.all()
-
+        filtering = {
+            'eid': ('exact', 'in'),
+        }
 
 class RelatedFieldReportResource(ModelResource):
     class Meta:
@@ -105,11 +111,13 @@ class EventResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
+            'appeals': ALL_WITH_RELATIONS,
+            'eid': ('exact', 'in'),
             'code': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'status': ('iexact'),
         }
+        ordering = ['disaster_start_date']
 
 
 class AppealResource(ModelResource):
@@ -120,7 +128,9 @@ class AppealResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
+            'event': ALL_WITH_RELATIONS,
             'aid': ('exact', 'in'),
+            'status': ('exact', 'iexact', 'in'),
             'amount_requested': ('gt', 'gte', 'lt', 'lte', 'range'),
             'amount_funded': ('gt', 'gte', 'lt', 'lte', 'range'),
             'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
@@ -130,6 +140,7 @@ class AppealResource(ModelResource):
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
+        ordering = ['start_date', 'end_date']
 
 
 class UserResource(ModelResource):
