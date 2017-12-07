@@ -108,6 +108,7 @@ class EventResource(ModelResource):
         filtering = {
             'code': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'status': ('iexact'),
         }
 
