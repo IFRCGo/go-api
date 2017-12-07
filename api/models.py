@@ -210,6 +210,8 @@ class RequestChoices(IntEnum):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
+    originator = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+
     rid = models.CharField(max_length=100)
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
@@ -259,7 +261,10 @@ class FieldReport(models.Model):
 
     # contacts
     contacts = models.ManyToManyField(Contact)
+
+    # meta
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
