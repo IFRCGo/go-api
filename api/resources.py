@@ -132,27 +132,6 @@ class AppealResource(ModelResource):
         }
 
 
-class FieldReportResource(ModelResource):
-    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
-    countries = fields.ToManyField(CountryResource, 'countries', full=True)
-    event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
-    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
-    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
-    class Meta:
-        queryset = FieldReport.objects.all()
-        resource_name = 'field_report'
-        always_return_data = True
-        authentication = ExpiringApiKeyAuthentication()
-        authorization = FieldReportAuthorization()
-        filtering = {
-            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'id': ('exact', 'in'),
-            'rid': ('exact', 'in'),
-            'status': ('exact', 'in'),
-            'request_assistance': ('exact')
-        }
-
-
 class UserResource(ModelResource):
     profile = fields.ToOneField('api.resources.ProfileResource', 'profile', full=True)
     subscription = fields.ToManyField('notifications.resources.SubscriptionResource', 'subscription', full=True)
@@ -175,3 +154,26 @@ class ProfileResource(ModelResource):
         detail_allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         authorization = UserProfileAuthorization()
+
+
+class FieldReportResource(ModelResource):
+    user = fields.ForeignKey(UserResource, 'user', full=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
+    countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
+    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
+    class Meta:
+        queryset = FieldReport.objects.all()
+        resource_name = 'field_report'
+        always_return_data = True
+        #authentication = ExpiringApiKeyAuthentication()
+        #authorization = FieldReportAuthorization()
+        filtering = {
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'id': ('exact', 'in'),
+            'rid': ('exact', 'in'),
+            'status': ('exact', 'in'),
+            'request_assistance': ('exact')
+        }
+
