@@ -1,11 +1,12 @@
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL_WITH_RELATIONS
-from tastypie.authorization import Authorization, DjangoAuthorization
+from tastypie.authorization import Authorization
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
     Event,
     Country,
+    Region,
     Appeal,
     FieldReport,
     Profile,
@@ -14,7 +15,7 @@ from .models import (
     Action
 )
 from .authentication import ExpiringApiKeyAuthentication
-from .authorization import FieldReportAuthorization
+from .authorization import FieldReportAuthorization, UserProfileAuthorization
 
 
 # Duplicate resources that do not query 's related objects.
@@ -48,6 +49,13 @@ class ContactResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         authentication = ExpiringApiKeyAuthentication()
+
+
+class RegionResource(ModelResource):
+    class Meta:
+        queryset = Region.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
 
 
 class CountryResource(ModelResource):
@@ -146,26 +154,24 @@ class FieldReportResource(ModelResource):
 
 
 class UserResource(ModelResource):
+    profile = fields.ToOneField('api.resources.ProfileResource', 'profile', full=True)
+    subscription = fields.ToManyField('notifications.resources.SubscriptionResource', 'subscription', full=True)
     class Meta:
         queryset = User.objects.all()
-        fields = ['username', 'first_name', 'last_name', 'email']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get', 'post', 'put', 'patch']
         filtering = {
-            'username': ('exact'),
+            'username': ('exact', 'startswith'),
         }
         authentication = ExpiringApiKeyAuthentication()
-        authorization = DjangoAuthorization()
+        authorization = UserProfileAuthorization()
 
 
 class ProfileResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user', full=True)
     class Meta:
         queryset = Profile.objects.all()
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        filtering = {
-            'user': ALL_WITH_RELATIONS,
-        }
         authentication = ExpiringApiKeyAuthentication()
-        authorization = DjangoAuthorization()
+        authorization = UserProfileAuthorization()

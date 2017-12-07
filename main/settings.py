@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'tastypie',
     'graphene_django',
-    'api'
+    'api',
+    'notifications',
 ]
 
 GRAPHENE = {
@@ -101,3 +102,9 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Email config
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')

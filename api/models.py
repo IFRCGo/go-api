@@ -2,6 +2,7 @@ import os
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
+from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from .esconnection import ES_CLIENT
@@ -21,12 +22,13 @@ class Event(models.Model):
 
     eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, related_name='event', null=True)
+    dtype = models.ForeignKey(DisasterType, null=True)
     summary = models.TextField(blank=True)
     status = models.CharField(max_length=30, blank=True)
     region = models.CharField(max_length=100, blank=True)
     code = models.CharField(max_length=20, null=True)
 
+    disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def countries(self):
@@ -63,8 +65,27 @@ class Event(models.Model):
     def es_id(self):
         return 'event-%s' % self.id
 
+    def save(self, *args, **kwargs):
+        # On save, if `disaster_start_date` is not set, make it the current time
+        if not self.id and not self.disaster_start_date:
+            self.disaster_start_date = timezone.now()
+        return super(Event, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.name
+
+
+class RegionName(IntEnum):
+    AFRICA = 0
+    AMERICAS = 1
+    ASIA_PACIFIC = 2
+    EUROPE = 3
+    MENA = 4
+
+
+class Region(models.Model):
+    """ A region """
+    name = EnumIntegerField(RegionName)
 
 
 class Country(models.Model):
@@ -72,7 +93,9 @@ class Country(models.Model):
 
     name = models.CharField(max_length=100)
     iso = models.CharField(max_length=2, null=True)
-    society_name = models.TextField(default="")
+    society_name = models.TextField(blank=True)
+    society_url = models.URLField(blank=True)
+    region = models.ForeignKey(Region, null=True)
 
     def __str__(self):
         return self.name
@@ -121,7 +144,7 @@ class Appeal(models.Model):
     atype = EnumIntegerField(AppealType, default=0)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True)
-    country = models.ForeignKey(Country, related_name='country', null=True)
+    country = models.ForeignKey(Country, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
@@ -177,7 +200,7 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-class RequestChoices(Enum):
+class RequestChoices(IntEnum):
     NO = 0
     REQUESTED = 1
     PLANNED = 2
