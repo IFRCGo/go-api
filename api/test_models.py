@@ -27,11 +27,13 @@ class EventTest(TestCase):
 
 class CountryTest(TestCase):
 
-    fixtures = ['Countries']
+    fixtures = ['Regions', 'Countries']
 
     def test_country_data(self):
-        objs = models.Country.objects.all()
-        self.assertEqual(objs.count(), 260)
+        regions = models.Region.objects.all()
+        self.assertEqual(regions.count(), 5)
+        countries = models.Country.objects.all()
+        self.assertEqual(countries.count(), 260)
 
 
 class ProfileTest(TestCase):
