@@ -148,6 +148,7 @@ class Appeal(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True)
     country = models.ForeignKey(Country, null=True)
