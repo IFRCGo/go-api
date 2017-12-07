@@ -158,7 +158,7 @@ class ProfileResource(ModelResource):
 
 
 class FieldReportResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user', full=True)
+    originator = fields.ForeignKey(UserResource, 'originator', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
@@ -168,8 +168,8 @@ class FieldReportResource(ModelResource):
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
         always_return_data = True
-        #authentication = ExpiringApiKeyAuthentication()
-        #authorization = FieldReportAuthorization()
+        authentication = ExpiringApiKeyAuthentication()
+        authorization = FieldReportAuthorization()
         filtering = {
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'id': ('exact', 'in'),
