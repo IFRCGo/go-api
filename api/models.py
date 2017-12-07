@@ -52,7 +52,6 @@ class Event(models.Model):
     countries = models.ManyToManyField(Country)
     summary = models.TextField(blank=True)
     region = models.CharField(max_length=100, blank=True)
-    code = models.CharField(max_length=20, null=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -137,6 +136,7 @@ class Appeal(models.Model):
     end_date = models.DateTimeField(null=True)
     status = models.CharField(max_length=30, blank=True)
     atype = EnumIntegerField(AppealType, default=0)
+    code = models.CharField(max_length=20, null=True)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True)
     country = models.ForeignKey(Country, null=True)

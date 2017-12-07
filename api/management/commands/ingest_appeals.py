@@ -56,7 +56,6 @@ class Command(BaseCommand):
                 'name': r['APP_name'],
                 'dtype': DisasterType.objects.get(name=disaster_name),
                 'region': r['OSR_name'],
-                'code': r['APP_code'],
             }
             event, created = Event.objects.get_or_create(eid=r['APP_Id'], defaults=fields)
             if created:
@@ -78,6 +77,7 @@ class Command(BaseCommand):
                     'atype': atypes[appeal['APD_TYP_Id']],
                     'country': country,
                     'sector': r['OSS_name'],
+                    'code': r['APP_code'],
                     'start_date': datetime.strptime(appeal['APD_startDate'], timeformat).replace(tzinfo=timezone.utc),
                     'end_date': datetime.strptime(appeal['APD_endDate'], timeformat).replace(tzinfo=timezone.utc),
                     'status': r['APP_status'],
