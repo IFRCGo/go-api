@@ -62,6 +62,7 @@ class Command(BaseCommand):
                 country = None
             else:
                 country = country.first()
+                event.countries.add(country)
 
             appeals = [a for a in r['Details'] if a['APD_code'] not in aids]
             atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
