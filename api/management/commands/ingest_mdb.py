@@ -188,9 +188,9 @@ class Command(BaseCommand):
                 record.update({
                     'bulletin': {'': 0, 'None': 0, 'Planned': 2, 'Published': 3}[info['InformationBulletin']],
                     'dref': {'': 0, 'No': 0, 'Planned': 2, 'Yes': 3}[info['DREFRequested']],
-                    'dref_amount': 0 if info['DREFRequestedAmount'] == '' else info['DREFRequestedAmount'],
+                    'dref_amount': 0 if info['DREFRequestedAmount'] == '' else float(info['DREFRequestedAmount']),
                     'appeal': {'': 0, 'Planned': 2, 'Yes': 3, 'NB': 0, 'No': 0, 'YES': 3}[info['EmergencyAppeal']],
-                    'appeal_amount': 0 if info['EmergencyAppealAmount'] == '' else info['EmergencyAppealAmount'],
+                    'appeal_amount': 0 if info['EmergencyAppealAmount'] == '' else float(info['EmergencyAppealAmount']),
                 })
             # disaster response
             response = fetch_relation(dr_table, report['ReportID'])

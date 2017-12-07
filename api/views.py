@@ -3,7 +3,9 @@ import json
 from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count
@@ -14,6 +16,7 @@ from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
+from notifications.models import Subscription
 
 
 def bad_request(message):
@@ -23,12 +26,18 @@ def bad_request(message):
     }, status=400)
 
 
+def unauthorized(message='You must be logged in'):
+    return JsonResponse({
+        'statusCode': 401,
+        'error_message': message
+    }, status=401)
+
+
 class PublicJsonRequestView(View):
     http_method_names = ['get', 'head', 'options']
     def handle_get(self, request, *args, **kwargs):
         print(pretty_request(request))
 
-    @csrf_exempt
     def get(self, request, *args, **kwargs):
         return self.handle_get(request, *args, **kwargs)
 
@@ -98,16 +107,50 @@ class aggregate_by_time(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-@csrf_exempt
-def get_auth_token(request):
-    print(pretty_request(request))
-    if request.META.get('CONTENT_TYPE') != 'application/json':
-        return bad_request('Content-type must be `application/json`')
+@method_decorator(csrf_exempt, name='dispatch')
+class PublicJsonPostView(View):
+    http_method_names = ['post']
+    def decode_auth_header(self, auth_header):
+        parts = auth_header[7:].split(':')
+        return parts[0], parts[1]
 
-    elif request.method != 'POST':
-        return bad_request('HTTP method must be `POST`')
+    def get_authenticated_user(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if not auth_header:
+            return None
 
-    else:
+        # Parse the authorization header
+        username, key = self.decode_auth_header(auth_header)
+        if not username or not key:
+            return None
+
+        # Query the user
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
+
+        # Query the key
+        try:
+            ApiKey.objects.get(user=user, key=key)
+        except ApiKey.DoesNotExist:
+            return None
+
+        return user
+
+
+    def handle_post(self, request, *args, **kwargs):
+        print(pretty_request(request))
+
+    def post(self, request, *args, **kwargs):
+        if request.META.get('CONTENT_TYPE') != 'application/json':
+            return bad_request('Content-type must be `application/json`')
+        return self.handle_post(request, *args, **kwargs)
+
+
+class get_auth_token(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
         username = body['username']
         password = body['password']
@@ -126,3 +169,21 @@ def get_auth_token(request):
             })
         else:
             return bad_request('Could not authenticate')
+
+
+class update_subscription_preferences(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        user = self.get_authenticated_user(request)
+        if not user:
+            return unauthorized()
+
+        body = json.loads(request.body.decode('utf-8'))
+        errors, created = Subscription.sync_user_subscriptions(user, body)
+        if len(errors):
+            return JsonResponse({
+                'statusCode': 400,
+                'error_message': 'Could not create one or more subscription(s), aborting',
+                'errors': errors
+            }, status=400)
+        else:
+            return JsonResponse({'statusCode': 200, 'created': len(created)})
