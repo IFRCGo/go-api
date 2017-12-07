@@ -108,6 +108,7 @@ class EventResource(ModelResource):
         filtering = {
             'code': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'status': ('iexact'),
         }
 
@@ -129,27 +130,6 @@ class AppealResource(ModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-        }
-
-
-class FieldReportResource(ModelResource):
-    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
-    countries = fields.ToManyField(CountryResource, 'countries', full=True)
-    event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
-    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
-    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
-    class Meta:
-        queryset = FieldReport.objects.all()
-        resource_name = 'field_report'
-        always_return_data = True
-        authentication = ExpiringApiKeyAuthentication()
-        authorization = FieldReportAuthorization()
-        filtering = {
-            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'id': ('exact', 'in'),
-            'rid': ('exact', 'in'),
-            'status': ('exact', 'in'),
-            'request_assistance': ('exact')
         }
 
 
@@ -175,3 +155,26 @@ class ProfileResource(ModelResource):
         detail_allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         authorization = UserProfileAuthorization()
+
+
+class FieldReportResource(ModelResource):
+    originator = fields.ForeignKey(UserResource, 'originator', full=True, null=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
+    countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
+    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
+    class Meta:
+        queryset = FieldReport.objects.all()
+        resource_name = 'field_report'
+        always_return_data = True
+        authentication = ExpiringApiKeyAuthentication()
+        authorization = FieldReportAuthorization()
+        filtering = {
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'id': ('exact', 'in'),
+            'rid': ('exact', 'in'),
+            'status': ('exact', 'in'),
+            'request_assistance': ('exact')
+        }
+
