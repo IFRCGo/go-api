@@ -83,6 +83,9 @@ class Event(models.Model):
     def es_index(self):
         return 'page_event'
 
+    def record_type(self):
+        return 'EVENT'
+
     def save(self, *args, **kwargs):
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
@@ -356,3 +359,6 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+from .triggers import *
