@@ -119,32 +119,6 @@ class GDACSEvent(models.Model):
     country = models.TextField()
 
 
-class RegionName(IntEnum):
-    AFRICA = 0
-    AMERICAS = 1
-    ASIA_PACIFIC = 2
-    EUROPE = 3
-    MENA = 4
-
-
-class Region(models.Model):
-    """ A region """
-    name = EnumIntegerField(RegionName)
-
-
-class Country(models.Model):
-    """ A country """
-
-    name = models.CharField(max_length=100)
-    iso = models.CharField(max_length=2, null=True)
-    society_name = models.TextField(blank=True)
-    society_url = models.URLField(blank=True)
-    region = models.ForeignKey(Region, null=True)
-
-    def __str__(self):
-        return self.name
-
-
 class Action(models.Model):
     """ Action taken """
     name = models.CharField(max_length=100)
