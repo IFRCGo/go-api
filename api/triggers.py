@@ -39,8 +39,8 @@ template_paths = {
     '%s%s' % (RecordType.EVENT, SubscriptionType.EDIT) : 'email/new_event.html',
     '%s%s' % (RecordType.APPEAL, SubscriptionType.NEW) : 'email/new_appeal.html',
     '%s%s' % (RecordType.APPEAL, SubscriptionType.EDIT) : 'email/new_appeal.html',
-    '%s%s' % (RecordType.REPORT, SubscriptionType.NEW) : 'email/new_report.html',
-    '%s%s' % (RecordType.REPORT, SubscriptionType.EDIT) : 'email/new_report.html',
+    '%s%s' % (RecordType.FIELD_REPORT, SubscriptionType.NEW) : 'email/new_report.html',
+    '%s%s' % (RecordType.FIELD_REPORT, SubscriptionType.EDIT) : 'email/new_report.html',
 }
 
 
