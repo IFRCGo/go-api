@@ -10,6 +10,9 @@ class DisasterType(models.Model):
     name = models.CharField(max_length=100)
     summary = models.TextField()
 
+    class Meta:
+        ordering = ('name',)
+
     def __str__(self):
         return self.name
 
@@ -26,8 +29,11 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    class Meta:
+        ordering = ('name',)
+
     def __str__(self):
-        return ['AFRICA', 'AMERICAS', 'ASIA_PACIFIC', 'EUROPE', 'MENA'][self.name]
+        return ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][self.name]
 
 
 class Country(models.Model):
@@ -38,6 +44,9 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
