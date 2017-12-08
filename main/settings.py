@@ -6,7 +6,7 @@ localhost = 'localhost'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = [localhost, frontend_url,]
 
 INSTALLED_APPS = [
@@ -45,7 +45,9 @@ ROOT_URLCONF = 'main.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'notifications/templates/'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
