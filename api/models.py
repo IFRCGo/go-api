@@ -69,21 +69,19 @@ class Event(models.Model):
 
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
-        obj = {
+        return {
             'id': self.id,
             'name': self.name,
-            'type': 'event',
-            'countries': ','.join(map(str, countries)) if len(countries) else None,
             'dtype': getattr(self.dtype, 'name', None),
+            'location': ', '.join(map(str, countries)) if len(countries) else None,
             'summary': self.summary,
-            'created_at': self.created_at,
-            'start_date': self.start_date(),
-            'end_date': self.end_date(),
         }
-        return obj
 
     def es_id(self):
         return 'event-%s' % self.id
+
+    def es_index(self):
+        return 'page_event'
 
     def save(self, *args, **kwargs):
         # On save, if `disaster_start_date` is not set, make it the current time
@@ -155,19 +153,18 @@ class Appeal(models.Model):
     region = models.ForeignKey(Region, null=True)
 
     def indexing(self):
-        obj = {
+        return {
             'id': self.aid,
-            'type': 'appeal',
-            'countries': getattr(self.country, 'name', None),
-            'created_at': self.created_at,
-            'start_date': self.start_date,
-            'status': self.status,
-            'end_date': self.end_date,
+            'name': self.name,
+            'dtype': getattr(self.dtype, 'name', None),
+            'location': getattr(self.country, 'name', None),
         }
-        return obj
 
     def es_id(self):
         return 'appeal-%s' % self.id
+
+    def es_index(self):
+        return 'page_appeal'
 
     def __str__(self):
         return self.aid
@@ -270,19 +267,19 @@ class FieldReport(models.Model):
 
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
-        obj = {
+        return {
             'id': self.rid,
-            'type': 'fieldreport',
-            'countries': ','.join(map(str, countries)) if len(countries) else None,
+            'name': self.summary,
             'dtype': getattr(self.dtype, 'name', None),
-            'summary': self.summary,
-            'status': self.status,
-            'created_at': self.created_at,
+            'location': ','.join(map(str, countries)) if len(countries) else None,
+            'summary': self.description,
         }
-        return obj
 
     def es_id(self):
         return 'fieldreport-%s' % self.id
+
+    def es_index(self):
+        return 'page_report'
 
     def __str__(self):
         return self.rid
@@ -347,7 +344,7 @@ post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
 def index_es(sender, instance, created, **kwargs):
     if ES_CLIENT is not None:
         ES_CLIENT.index(
-            index='pages',
+            index=instance.es_index(),
             doc_type='page',
             id=instance.es_id(),
             body=instance.indexing(),
