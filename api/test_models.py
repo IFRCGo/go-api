@@ -14,9 +14,13 @@ class DisasterTypeTest(TestCase):
 
 
 class EventTest(TestCase):
+
+    fixtures = ['DisasterTypes']
+
     def setUp(self):
-        models.Event.objects.create(name='disaster1', summary='test disaster')
-        models.Event.objects.create(name='disaster2', summary='another test disaster')
+        dtype = models.DisasterType.objects.get(pk=1)
+        models.Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
+        models.Event.objects.create(name='disaster2', summary='another test disaster', dtype=dtype)
 
     def test_disaster_create(self):
         obj1 = models.Event.objects.get(name='disaster1')
@@ -69,16 +73,16 @@ class FieldReportTest(TestCase):
     fixtures = ['DisasterTypes']
 
     def setUp(self):
-        event = models.Event.objects.create(name='disaster1', summary='test disaster')
-        country = models.Country.objects.create(name='country')
         dtype = models.DisasterType.objects.get(pk=1)
+        event = models.Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
+        country = models.Country.objects.create(name='country')
         report = models.FieldReport.objects.create(rid='test1', event=event, dtype=dtype)
         report.countries.add(country)
 
     def test_field_report_create(self):
         event = models.Event.objects.get(name='disaster1')
-        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
+        self.assertEqual(event.field_reports.all()[0].countries.all()[0], country)
         obj = models.FieldReport.objects.get(rid='test1')
         self.assertEqual(obj.rid, 'test1')
         self.assertEqual(obj.countries.all()[0], country)
