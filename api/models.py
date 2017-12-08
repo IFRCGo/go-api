@@ -75,6 +75,30 @@ class Event(models.Model):
         return self.name
 
 
+class GDACSEvent(models.Model):
+    """ A GDACS type event, from alerts """
+
+    eventid = models.CharField(max_length=12)
+    title = models.TextField()
+    description = models.TextField()
+    image = models.URLField(null=True)
+    report = models.URLField(null=True)
+    publication_date = models.DateTimeField()
+    year = models.IntegerField()
+    lat = models.FloatField()
+    lon = models.FloatField()
+    event_type = models.CharField(max_length=12)
+    alert_level = models.CharField(max_length=12)
+
+    severity = models.TextField()
+    severity_unit = models.CharField(max_length=12)
+    severity_value = models.CharField(max_length=12)
+    population_unit = models.CharField(max_length=12)
+    population_value = models.CharField(max_length=12)
+    vulnerability = models.IntegerField()
+    country = models.TextField()
+
+
 class RegionName(IntEnum):
     AFRICA = 0
     AMERICAS = 1
