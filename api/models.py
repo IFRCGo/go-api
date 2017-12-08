@@ -29,6 +29,9 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    def __str__(self):
+        return ['AFRICA', 'AMERICAS', 'ASIA_PACIFIC', 'EUROPE', 'MENA'][self.name]
+
 
 class Country(models.Model):
     """ A country """
@@ -47,7 +50,7 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType)
+    dtype = models.ForeignKey(DisasterType, null=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
@@ -107,16 +110,17 @@ class GDACSEvent(models.Model):
     year = models.IntegerField()
     lat = models.FloatField()
     lon = models.FloatField()
-    event_type = models.CharField(max_length=12)
-    alert_level = models.CharField(max_length=12)
-
+    event_type = models.CharField(max_length=16)
+    alert_level = models.CharField(max_length=16)
+    alert_score = models.CharField(max_length=16, null=True)
     severity = models.TextField()
-    severity_unit = models.CharField(max_length=12)
-    severity_value = models.CharField(max_length=12)
-    population_unit = models.CharField(max_length=12)
-    population_value = models.CharField(max_length=12)
+    severity_unit = models.CharField(max_length=16)
+    severity_value = models.CharField(max_length=16)
+    population_unit = models.CharField(max_length=16)
+    population_value = models.CharField(max_length=16)
     vulnerability = models.IntegerField()
-    country = models.TextField()
+    countries = models.ManyToManyField(Country)
+    country_text = models.TextField()
 
 
 class Action(models.Model):
