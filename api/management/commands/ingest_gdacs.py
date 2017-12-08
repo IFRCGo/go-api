@@ -1,14 +1,10 @@
-import os
 import logging
 import requests
 import datetime as dt
-from xml.etree import ElementTree
 from encoder import XML2Dict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import AppealType, Appeal, Country, DisasterType, Event, GDACSEvent
-from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
-from pdb import set_trace
+from api.models import Country, Event, GDACSEvent
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # get latest
         now = dt.datetime.now()
-        start_date = (now - dt.timedelta(days=3)).date()
+        start_date = (now - dt.timedelta(hours=12)).date()
         end_date = now.date()
         nspace = '{http://www.gdacs.org}'
         url = 'http://gdacs.org/rss.aspx'
@@ -42,9 +38,11 @@ class Command(BaseCommand):
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
+            print(alert_level)
             if alert_level in levels:
                 latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
-
+                eid = alert.pop(nspace + 'eventid')
+                alert_score = alert[nspace + 'alertscore'] if (nspace + 'alertscore') in alert else None
                 data = {
                     'title': alert.pop('title'),
                     'description': alert.pop('description'),
@@ -56,18 +54,31 @@ class Command(BaseCommand):
                     'lon': latlon[1],
                     'event_type': alert.pop(nspace + 'eventtype'),
                     'alert_level': alert.pop(nspace + 'alertlevel'),
-                    #'alertscore': alert[nspace + 'alertscore'],
+                    'alert_score': alert_score,
                     'severity': alert.pop(nspace + 'severity'),
                     'severity_unit': alert['@' + nspace + 'severity']['unit'],
                     'severity_value': alert['@' + nspace + 'severity']['value'],
                     'population_unit': alert['@' + nspace + 'population']['unit'],
                     'population_value': alert['@' + nspace + 'population']['value'],
                     'vulnerability': alert['@' + nspace + 'vulnerability']['value'],
-                    'country': alert.pop(nspace + 'country'),
+                    'country_text': alert.pop(nspace + 'country'),
                 }
                 data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
-                event, created = GDACSEvent.objects.get_or_create(eventid=alert.pop(nspace + 'eventid'), defaults=data)
+                gdacsevent, created = GDACSEvent.objects.get_or_create(eventid=eid, defaults=data)
                 if created:
                     added += 1
+                    for c in data['country_text'].split(','):
+                        country = Country.objects.filter(name=c.strip())
+                        if country.count() == 1:
+                            gdacsevent.countries.add(country[0])
+                    fields = {
+                        'name': data['title'],
+                        'summary': data['description'],
+                        'disaster_start_date': data['publication_date'],
+                        'auto_generated': True
+                    }
+                    event = Event.objects.create(**fields)
+                    # add countries
+                    [event.countries.add(c) for c in gdacsevent.countries.all()]
 
         print('%s events added' % added)
