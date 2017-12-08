@@ -194,6 +194,9 @@ class Appeal(models.Model):
     def es_index(self):
         return 'page_appeal'
 
+    def record_type(self):
+        return 'APPEAL'
+
     def __str__(self):
         return self.aid
 
@@ -308,6 +311,9 @@ class FieldReport(models.Model):
 
     def es_index(self):
         return 'page_report'
+
+    def record_type(self):
+        return 'FIELD_REPORT'
 
     def __str__(self):
         return self.rid
