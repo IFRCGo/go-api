@@ -23,12 +23,18 @@ from .authorization import FieldReportAuthorization, UserProfileAuthorization
 class RelatedAppealResource(ModelResource):
     class Meta:
         queryset = Appeal.objects.all()
-
+        filtering = {
+            'status': ('exact', 'iexact', 'in'),
+            'atype': ('exact', 'in'),
+            'country': ('exact', 'in'),
+        }
 
 class RelatedEventResource(ModelResource):
     class Meta:
         queryset = Event.objects.all()
-
+        filtering = {
+            'eid': ('exact', 'in'),
+        }
 
 class RelatedFieldReportResource(ModelResource):
     class Meta:
@@ -85,6 +91,8 @@ class EventResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
+    countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    regions = fields.ToManyField(RegionResource, 'regions', full=True)
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
@@ -93,10 +101,8 @@ class EventResource(ModelResource):
         else:
             return None
 
-
     # Attach data from model instance methods
     def dehydrate(self, bundle):
-        bundle.data['countries'] = bundle.obj.countries()
         bundle.data['start_date'] = bundle.obj.start_date()
         bundle.data['end_date'] = bundle.obj.end_date()
         return bundle
@@ -106,22 +112,27 @@ class EventResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
-            'code': ('exact', 'in'),
+            'appeals': ALL_WITH_RELATIONS,
+            'eid': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'status': ('iexact'),
         }
+        ordering = ['disaster_start_date']
 
 
 class AppealResource(ModelResource):
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
     class Meta:
         queryset = Appeal.objects.all()
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
+            'event': ALL_WITH_RELATIONS,
             'aid': ('exact', 'in'),
+            'status': ('exact', 'iexact', 'in'),
+            'code': ('exact', 'in'),
             'amount_requested': ('gt', 'gte', 'lt', 'lte', 'range'),
             'amount_funded': ('gt', 'gte', 'lt', 'lte', 'range'),
             'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
@@ -131,6 +142,7 @@ class AppealResource(ModelResource):
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
+        ordering = ['start_date', 'end_date']
 
 
 class UserResource(ModelResource):
