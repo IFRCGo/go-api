@@ -92,6 +92,7 @@ class EventResource(ModelResource):
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    regions = fields.ToManyField(RegionResource, 'regions', full=True)
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
@@ -122,6 +123,7 @@ class EventResource(ModelResource):
 class AppealResource(ModelResource):
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
     class Meta:
         queryset = Appeal.objects.all()
         allowed_methods = ['get']
