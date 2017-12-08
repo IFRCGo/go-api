@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.template import loader
 from django.contrib.auth.models import User
+from django.forms.models import model_to_dict
 
 from .esconnection import ES_CLIENT
 from .models import Profile, Event, Appeal, FieldReport
@@ -74,7 +75,7 @@ def send_notification(sender, instance, created, **kwargs):
 
         print(subscribers)
         if len(subscribers):
-            context = instance.email_context()
+            context = model_to_dict(instance)
             print(context)
 
             template_path = template_paths['%s%s' % (rtype, stype)]
