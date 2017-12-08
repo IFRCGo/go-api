@@ -17,25 +17,45 @@ class DisasterType(models.Model):
         return self.name
 
 
+class RegionName(IntEnum):
+    AFRICA = 0
+    AMERICAS = 1
+    ASIA_PACIFIC = 2
+    EUROPE = 3
+    MENA = 4
+
+
+class Region(models.Model):
+    """ A region """
+    name = EnumIntegerField(RegionName)
+
+
+class Country(models.Model):
+    """ A country """
+
+    name = models.CharField(max_length=100)
+    iso = models.CharField(max_length=2, null=True)
+    society_name = models.TextField(blank=True)
+    society_url = models.URLField(blank=True)
+    region = models.ForeignKey(Region, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
-    eid = models.IntegerField(null=True)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    dtype = models.ForeignKey(DisasterType)
+    countries = models.ManyToManyField(Country)
+    regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
-    status = models.CharField(max_length=30, blank=True)
-    region = models.CharField(max_length=100, blank=True)
-    code = models.CharField(max_length=20, null=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def countries(self):
-        """ Get countries from all appeals and field reports in this disaster """
-        countries = [getattr(c, 'name') for fr in self.field_reports.all() for c in fr.countries.all()] + \
-                    [getattr(a, 'country') for a in self.appeals.all()]
-        return list(set(countries))
+    auto_generated = models.BooleanField(default=False)
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -48,14 +68,14 @@ class Event(models.Model):
         return max(end_dates) if len(end_dates) else None
 
     def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
         obj = {
-            'id': self.eid,
+            'id': self.id,
             'name': self.name,
             'type': 'event',
-            'countries': ','.join(map(str, self.countries())),
+            'countries': ','.join(map(str, countries)) if len(countries) else None,
             'dtype': getattr(self.dtype, 'name', None),
             'summary': self.summary,
-            'status': self.status,
             'created_at': self.created_at,
             'start_date': self.start_date(),
             'end_date': self.end_date(),
@@ -163,19 +183,26 @@ class Appeal(models.Model):
 
     # appeal ID, assinged by creator
     aid = models.CharField(max_length=20)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
+    name = models.CharField(max_length=100)
+    dtype = models.ForeignKey(DisasterType)
     atype = EnumIntegerField(AppealType, default=0)
 
-    event = models.ForeignKey(Event, related_name='appeals', null=True)
-    country = models.ForeignKey(Country, null=True)
+    status = models.CharField(max_length=30, blank=True)
+    code = models.CharField(max_length=20, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
     amount_requested = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    event = models.ForeignKey(Event, related_name='appeals', null=True)
+    country = models.ForeignKey(Country, null=True)
+    region = models.ForeignKey(Region, null=True)
 
     def indexing(self):
         obj = {
@@ -184,6 +211,7 @@ class Appeal(models.Model):
             'countries': getattr(self.country, 'name', None),
             'created_at': self.created_at,
             'start_date': self.start_date,
+            'status': self.status,
             'end_date': self.end_date,
         }
         return obj

@@ -56,6 +56,7 @@ python manage.py collectstatic
 export BULK_IMPORT = 1
 python manage.py ingest_mdb
 python manage.py ingest_appeals
+python manage.py create_events
 
 # Re-enable indexing to elasticsearch
 export BULK_IMPORT = 0
