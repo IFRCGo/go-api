@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 
 import api.models as models
+import api.triggers
 
 
 class DisasterTypeTest(TestCase):
