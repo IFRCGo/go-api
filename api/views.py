@@ -42,28 +42,25 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
-class es_keyword_search(PublicJsonRequestView):
+class es_page_search(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
-        object_type = request.GET.get('type', None)
-        keyword = request.GET.get('keyword', None)
-
-        if keyword is None:
+        page_type = request.GET.get('type', None)
+        phrase = request.GET.get('keyword', None)
+        if phrase is None:
             return bad_request('Must include a `keyword`')
-
+        if page_type is None:
+            page_type = '*'
+        index = 'page_%s' % page_type
         query = {
             'bool': {
-                'must': {'prefix': {'name': keyword }}
+                'must': {'prefix': {'name': phrase }}
             }
         }
-        if object_type is not None:
-            query['bool']['filter'] = {'term': {'type' : object_type}}
-
         results = ES_CLIENT.search(
-            index='pages',
+            index=index,
             doc_type='page',
             body=json.dumps({'query': query}),
         )
-
         return JsonResponse(results['hits'])
 
 
