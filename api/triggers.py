@@ -3,7 +3,6 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
-from django.forms.models import model_to_dict
 from django.db.models.fields.related import ManyToManyField
 from django.conf import settings
 
@@ -38,20 +37,6 @@ if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
     post_save.connect(index_es, sender=Event)
     post_save.connect(index_es, sender=Appeal)
     post_save.connect(index_es, sender=FieldReport)
-
-
-def to_dict(instance):
-    opts = instance._meta
-    data = {}
-    for f in opts.concrete_fields + opts.many_to_many:
-        if isinstance(f, ManyToManyField):
-            if instance.pk is None:
-                data[f.name] = []
-            else:
-                data[f.name] = list(f.value_from_object(instance).values_list('name', flat=True))
-        else:
-            data[f.name] = f.value_from_object(instance)
-    return data
 
 
 template_paths = {
@@ -92,12 +77,12 @@ def notify(sender, instance, created, **kwargs):
             subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
 
         if len(subscribers):
-            context = to_dict(instance)
+            context = instance.to_dict()
             context['resource_uri'] = '%s/%s/%s/' % (settings.BASE_URL, record_type.lower(), instance.id)
             context['admin_uri'] = '%s/%s/' % (settings.BASE_URL, 'admin')
             if instance.dtype is not None:
                 context['dtype'] = instance.dtype.name
-            print(context)
+
             template_path = template_paths['%s%s' % (rtype, stype)]
             html = render_to_string(template_path, context)
             recipients = [s['email'] for s in subscribers]
@@ -105,10 +90,11 @@ def notify(sender, instance, created, **kwargs):
             adj = 'New' if created else 'Modified'
             subject = '%s %s in IFRC GO' % (adj, record_type.lower())
 
-            print(html)
             send_notification(subject, recipients, html)
 
     transaction.on_commit(on_commit)
 
 if os.environ.get('BULK_IMPORT') != '1':
     post_save.connect(notify, sender=Event)
+    post_save.connect(notify, sender=Appeal)
+    post_save.connect(notify, sender=FieldReport)
