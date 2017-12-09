@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
+from django.db.models.fields.related import ManyToManyField
+from django.conf import settings
 
 from .esconnection import ES_CLIENT
 from .models import Profile, Event, Appeal, FieldReport
@@ -38,6 +40,20 @@ if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
     post_save.connect(index_es, sender=FieldReport)
 
 
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in opts.concrete_fields + opts.many_to_many:
+        if isinstance(f, ManyToManyField):
+            if instance.pk is None:
+                data[f.name] = []
+            else:
+                data[f.name] = list(f.value_from_object(instance).values_list('name', flat=True))
+        else:
+            data[f.name] = f.value_from_object(instance)
+    return data
+
+
 template_paths = {
     '%s%s' % (RecordType.EVENT, SubscriptionType.NEW) : 'email/new_event.html',
     '%s%s' % (RecordType.EVENT, SubscriptionType.EDIT) : 'email/new_event.html',
@@ -50,7 +66,8 @@ template_paths = {
 
 def notify(sender, instance, created, **kwargs):
     def on_commit():
-        rtype = getattr(RecordType, instance.record_type())
+        record_type = instance.record_type()
+        rtype = getattr(RecordType, record_type)
         stype = SubscriptionType.NEW if created else SubscriptionType.EDIT
 
         subscribers = User.objects.filter(subscription__rtype=rtype, subscription__stype=stype).values('email')
@@ -62,7 +79,7 @@ def notify(sender, instance, created, **kwargs):
 
         # appeals have one country, events and reports have multiple
         # also include attached regions
-        if instance.record_type() == 'APPEAL' and instance.country is not None:
+        if record_type == 'APPEAL' and instance.country is not None:
             lookups.append('c%s' % instance.country.id)
             if instance.country.region is not None:
                 lookups.append('%rs' % instance.country.region.id)
@@ -75,14 +92,21 @@ def notify(sender, instance, created, **kwargs):
             subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
 
         if len(subscribers):
-            context = model_to_dict(instance)
+            context = to_dict(instance)
+            context['resource_uri'] = '%s/%s/%s/' % (settings.BASE_URL, record_type.lower(), instance.id)
+            context['admin_uri'] = '%s/%s/' % (settings.BASE_URL, 'admin')
+            if instance.dtype is not None:
+                context['dtype'] = instance.dtype.name
+            print(context)
             template_path = template_paths['%s%s' % (rtype, stype)]
             html = render_to_string(template_path, context)
             recipients = [s['email'] for s in subscribers]
 
-            print(recipients)
+            adj = 'New' if created else 'Modified'
+            subject = '%s %s in IFRC GO' % (adj, record_type.lower())
+
             print(html)
-            send_notification(recipients, html)
+            send_notification(subject, recipients, html)
 
     transaction.on_commit(on_commit)
 

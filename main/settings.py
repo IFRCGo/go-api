@@ -3,6 +3,7 @@ import os
 local_test = True if os.environ.get('LOCAL_TEST') else False
 frontend_url = 'dsgoapi.northeurope.cloudapp.azure.com'
 localhost = 'localhost'
+BASE_URL = localhost if local_test else frontend_url
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')

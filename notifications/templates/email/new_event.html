@@ -1,14 +1,25 @@
 {% if originator %}
-  <h4>{{ originator }} just added a new <a href="{{ resource_uri }}">{{ dtype }} event</a>.</h4>
+  <h4>{{ originator }} just added a new <a href="{{ resource_uri }}">{{ dtype }} disaster event</a>.</h4>
 {% else %}
-  <h4>GO just added a new <a href="{{ resource_uri }}">{{ dtype }} event</a>.</h4>
+  <h4>GO just added a new <a href="{{ resource_uri }}">{{ dtype }} disaster event</a>.</h4>
 {% endif %}
 
-<h5>{{ name }} | {{ dtype }}</h5>
-<p>{{ summary }}</p>
-<dl>
-  <dt>Country or countries affected</dt>
-  <dd>{{ countries|join:", " }}</dd>
-</dl>
+<h2>{{ name }} | {{ dtype }}</h2>
+{% if summary %}
+  <p>{{ summary }}</p>
+{% else %}
+<p>No summary is currently available. If you're an admin, you can <a href="{{ admin_uri }}">log in and add a summary</a>.</p>
+{% endif %}
+
+{% if countries %}
+  <h3>Country or countries affected</h3>
+  <p>{{ countries|join:", " }}</p>
+{% endif %}
+
+{% if auto_generated %}
+  <p>This record was automatically generated at {{ created_at }}
+{% else %}
+  <p>{{ originator }} created this record at {{ created_at }}
+{% endif %}
 
 {% include "includes/notification-source.html" %}
