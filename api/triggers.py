@@ -1,13 +1,14 @@
 import os
 from django.db import transaction
 from django.db.models.signals import post_save
-from django.template import loader
+from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from django.forms.models import model_to_dict
 
 from .esconnection import ES_CLIENT
 from .models import Profile, Event, Appeal, FieldReport
 from notifications.models import Subscription, SubscriptionType, RecordType
+from notifications.notification import send_notification
 
 
 # Save a user profile whenever we create a user
@@ -47,7 +48,7 @@ template_paths = {
 }
 
 
-def send_notification(sender, instance, created, **kwargs):
+def notify(sender, instance, created, **kwargs):
     def on_commit():
         rtype = getattr(RecordType, instance.record_type())
         stype = SubscriptionType.NEW if created else SubscriptionType.EDIT
@@ -73,17 +74,17 @@ def send_notification(sender, instance, created, **kwargs):
         if len(lookups):
             subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
 
-        print(subscribers)
         if len(subscribers):
             context = model_to_dict(instance)
-            print(context)
-
             template_path = template_paths['%s%s' % (rtype, stype)]
-            template = loader.get_template(template_path)
-            content = template.render(context=context)
-            print(content)
+            html = render_to_string(template_path, context)
+            recipients = [s['email'] for s in subscribers]
+
+            print(recipients)
+            print(html)
+            send_notification(recipients, html)
 
     transaction.on_commit(on_commit)
 
 if os.environ.get('BULK_IMPORT') != '1':
-    post_save.connect(send_notification, sender=Event)
+    post_save.connect(notify, sender=Event)
