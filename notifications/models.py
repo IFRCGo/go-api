@@ -83,6 +83,8 @@ class Subscription(models.Model):
     region = models.ForeignKey(Region, null=True)
     dtype = models.ForeignKey(DisasterType, null=True)
 
+    lookup_id = models.CharField(max_length=20, null=True)
+
     # Given a request containing new subscriptions, validate and
     # sync the subscriptions.
     def sync_user_subscriptions(user, body):
@@ -116,18 +118,21 @@ class Subscription(models.Model):
                     fields['country'] = Country.objects.get(pk=req['value'])
                 except Country.DoesNotExist:
                     error = 'Could not find country with primary key %s' % req['value']
+                fields['lookup_id'] = 'c%s' % req['value']
 
             elif rtype == RecordType.REGION:
                 try:
                     fields['region'] = Region.objects.get(pk=req['value'])
                 except Region.DoesNotExist:
                     error = 'Could not find region with primary key %s' % req['value']
+                fields['lookup_id'] = 'r%s' % req['value']
 
             elif rtype == RecordType.DTYPE:
                 try:
                     fields['dtype'] = DisasterType.objects.get(pk=req['value'])
                 except DisasterType.DoesNotExist:
                     error = 'Could not find disaster type with primary key %s' % req['value']
+                fields['lookup_id'] = 'd%s' % req['value']
 
             elif rtype == RecordType.SURGE_ALERT:
                 fields['stype'] = SubscriptionType.NEW

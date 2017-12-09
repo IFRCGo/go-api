@@ -1,0 +1,19 @@
+<p><i><a href="{{ resource_uri }}">View this data on IFRC GO.</a></i></p>
+
+<h3>{{ dtype }}</h3>
+<h2>{{ name }}</h2>
+
+{% if summary %}
+  <p>{{ summary }}</p>
+{% else %}
+<p>No summary is currently available. If you're an admin, you can <a href="{{ admin_uri }}">log in and add a summary</a>.</p>
+{% endif %}
+
+{% if countries|length %}
+  <h3>Country or countries affected:</h3>
+  {% for country in countries %}
+    <p>{{ country.name }}</p>
+  {% endfor %}
+{% endif %}
+
+{% include "includes/notification-source.html" %}
