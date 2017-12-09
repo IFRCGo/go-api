@@ -1,16 +1,41 @@
-<h4>GO just added a new {{ atype }}.</h4>
+<p><i><a href="{{ resource_uri }}">View this data on IFRC GO.</a></i></p>
+
+<h3>{{ dtype }} | {{ atype}}</h3>
+<h2>{{ name }}</h2>
+
+{% if status %}
+  <h3>Status:</h3>
+  <p>{{ status }}</p>
+{% endif %}
+
+{% if country %}
+  <h3>Country:</h3>
+  <p>{{ country }}</p>
+{% endif %}
+
+{% if num_beneficiaries %}
+  <h3>Number of people targeted:</h3>
+  <p>{{ num_beneficiaries }}</p>
+{% endif %}
+
+{% if amount_requested %}
+  <h3>Amount requested (CHF):</h3>
+  <p>{{ amount_requested }}</p>
+{% endif %}
+
+{% if amount_funded %}
+  <h3>Amount funded (CHF):</h3>
+  <p>{{ amount_funded }}</p>
+{% endif %}
+
+{% if start_date %}
+  <h3>Start date:</h3>
+  <p>{{ start_date }}</p>
+{% endif %}
+
+{% if end_date %}
+  <h3>End date:</h3>
+  <p>{{ end_date }}</p>
+{% endif %}
 
 {% include "includes/notification-source.html" %}
-
-<h5>{{ name }} | {{ dtype }}</h5>
-
-<dl>
-  <dt>Status</dt>
-  <dd>{{ status }}</dd>
-
-  <dt>Code</dt>
-  <dd>{{ code }}</dd>
-
-  <dt>Sector</dt>
-  <dd>{{ sector }}</dd>
-</dl>
