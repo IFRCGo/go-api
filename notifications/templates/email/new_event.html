@@ -1,10 +1,14 @@
-<h4>GO just added a new <a href="{{ resource_uri }}">{{ dtype }} event</a>.</h4>
-
-{% include "includes/notification-source.html" %}
+{% if originator %}
+  <h4>{{ originator }} just added a new <a href="{{ resource_uri }}">{{ dtype }} event</a>.</h4>
+{% else %}
+  <h4>GO just added a new <a href="{{ resource_uri }}">{{ dtype }} event</a>.</h4>
+{% endif %}
 
 <h5>{{ name }} | {{ dtype }}</h5>
 <p>{{ summary }}</p>
 <dl>
   <dt>Country or countries affected</dt>
-  <dd>{{ countries }}</dd>
+  <dd>{{ countries|join:", " }}</dd>
 </dl>
+
+{% include "includes/notification-source.html" %}
