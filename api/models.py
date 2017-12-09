@@ -210,6 +210,42 @@ class Appeal(models.Model):
     country = models.ForeignKey(Country, null=True)
     region = models.ForeignKey(Region, null=True)
 
+    # Supplementary fields
+    # These aren't included in the ingest, and are
+    # entered manually by IFRC staff
+    shelter_num_people_targeted: models.IntegerField(null=True, blank=True)
+    shelter_num_people_reached: models.IntegerField(null=True, blank=True)
+    shelter_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    basic_needs_num_people_targeted: models.IntegerField(null=True, blank=True)
+    basic_needs_num_people_reached: models.IntegerField(null=True, blank=True)
+    basic_needs_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    health_num_people_targeted: models.IntegerField(null=True, blank=True)
+    health_num_people_reached: models.IntegerField(null=True, blank=True)
+    health_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    water_sanitation_num_people_targeted: models.IntegerField(null=True, blank=True)
+    water_sanitation_num_people_reached: models.IntegerField(null=True, blank=True)
+    water_sanitation_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    gender_inclusion_num_people_targeted: models.IntegerField(null=True, blank=True)
+    gender_inclusion_num_people_reached: models.IntegerField(null=True, blank=True)
+    gender_inclusion_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    migration_num_people_targeted: models.IntegerField(null=True, blank=True)
+    migration_num_people_reached: models.IntegerField(null=True, blank=True)
+    migration_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    risk_reduction_num_people_targeted: models.IntegerField(null=True, blank=True)
+    risk_reduction_num_people_reached: models.IntegerField(null=True, blank=True)
+    risk_reduction_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    strenghtening_national_society_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    international_disaster_response_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    influence_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
     class Meta:
         ordering = ('-end_date', '-start_date',)
 
