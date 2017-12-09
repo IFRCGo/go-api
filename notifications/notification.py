@@ -32,7 +32,7 @@ class SendMail(threading.Thread):
             print('Cannot send notification')
 
 
-def send_notification (recipients, html):
+def send_notification (subject, recipients, html):
     if not username or not password:
         print('No EMAIL_USER and/or EMAIL_PASS set as environment variables')
         print('Cannot send notification')
@@ -40,7 +40,7 @@ def send_notification (recipients, html):
 
     msg = MIMEMultipart('alternative')
 
-    msg['Subject'] = 'IFRC GO Notification'
+    msg['Subject'] = '[IFRCGO] %s' % subject
     msg['From'] = username
     msg['To'] = ', '.join(recipients)
 
