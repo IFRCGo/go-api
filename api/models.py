@@ -5,6 +5,22 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 
 
+# Write model properties to dictionary
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in opts.concrete_fields + opts.many_to_many:
+        if isinstance(f, ManyToManyField):
+            if instance.pk is None:
+                data[f.name] = []
+            else:
+                data[f.name] = list(f.value_from_object(instance).values_list('name', flat=True))
+        else:
+            data[f.name] = f.value_from_object(instance)
+    return data
+
+
+
 class DisasterType(models.Model):
     """ summary of disaster """
     name = models.CharField(max_length=100)
@@ -65,6 +81,8 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     auto_generated = models.BooleanField(default=False)
+    class Meta:
+        ordering = ('-disaster_start_date',)
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -94,6 +112,9 @@ class Event(models.Model):
 
     def record_type(self):
         return 'EVENT'
+
+    def to_dict(self):
+        return to_dict(self)
 
     def save(self, *args, **kwargs):
         # On save, if `disaster_start_date` is not set, make it the current time
@@ -189,6 +210,9 @@ class Appeal(models.Model):
     country = models.ForeignKey(Country, null=True)
     region = models.ForeignKey(Region, null=True)
 
+    class Meta:
+        ordering = ('-end_date', '-start_date',)
+
     def indexing(self):
         return {
             'id': self.aid,
@@ -205,6 +229,11 @@ class Appeal(models.Model):
 
     def record_type(self):
         return 'APPEAL'
+
+    def to_dict(self):
+        data = to_dict(self)
+        data['atype'] = ['DREF', 'Emergency Appeal', 'International Appeal'][self.atype]
+        return data
 
     def __str__(self):
         return self.aid
@@ -305,6 +334,9 @@ class FieldReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ('-created_at', '-updated_at',)
+
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         return {
@@ -323,6 +355,9 @@ class FieldReport(models.Model):
 
     def record_type(self):
         return 'FIELD_REPORT'
+
+    def to_dict(self):
+        return to_dict(self)
 
     def __str__(self):
         return self.rid
