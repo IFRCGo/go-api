@@ -1,4 +1,5 @@
 import os
+import threading
 import smtplib
 from django.http import JsonResponse
 from django.utils.html import strip_tags
@@ -10,14 +11,25 @@ username = os.environ.get('EMAIL_USER').upper()
 password = os.environ.get('EMAIL_PASS')
 
 
-def send_mail(recipients, msg):
-    server = smtplib.SMTP('smtp.office365.com', '587')
-    server.ehlo()
-    server.starttls()
-    server.ehlo()
-    server.login(username, password)
-    server.sendmail(username, recipients, msg.as_string())
-    server.quit()
+class SendMail(threading.Thread):
+    def __init__(self, recipients, msg, **kwargs):
+        self.recipients = recipients
+        self.msg = msg
+        super(SendMail, self).__init__(**kwargs)
+
+    def run(self):
+        try:
+            server = smtplib.SMTP('smtp.office365.com', '587')
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(username, password)
+            server.sendmail(username, self.recipients, self.msg.as_string())
+            server.quit()
+            print('Notifications sent!')
+        except SMTPAuthenticationError:
+            print('SMTPAuthenticationError')
+            print('Cannot send notification')
 
 
 def send_notification (recipients, html):
@@ -38,9 +50,4 @@ def send_notification (recipients, html):
     msg.attach(text_body)
     msg.attach(html_body)
 
-    try:
-        send_mail(recipients, msg)
-        print('Notifications sent!')
-    except SMTPAuthenticationError:
-        print('SMTPAuthenticationError')
-        print('Cannot send notification')
+    SendMail(recipients, msg).start()
