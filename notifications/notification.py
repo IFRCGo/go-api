@@ -7,8 +7,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-username = os.environ.get('EMAIL_USER').upper()
+username = os.environ.get('EMAIL_USER')
 password = os.environ.get('EMAIL_PASS')
+
 
 
 class SendMail(threading.Thread):
@@ -41,7 +42,7 @@ def send_notification (subject, recipients, html):
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = '[IFRCGO] %s' % subject
-    msg['From'] = username
+    msg['From'] = username.upper()
     msg['To'] = ', '.join(recipients)
 
     text_body = MIMEText(strip_tags(html), 'plain')
