@@ -1,17 +1,33 @@
-import os
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from .esconnection import ES_CLIENT
+
+
+# Write model properties to dictionary
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in opts.concrete_fields + opts.many_to_many:
+        if isinstance(f, ManyToManyField):
+            if instance.pk is None:
+                data[f.name] = []
+            else:
+                data[f.name] = list(f.value_from_object(instance).values())
+        else:
+            data[f.name] = f.value_from_object(instance)
+    return data
+
 
 
 class DisasterType(models.Model):
     """ summary of disaster """
     name = models.CharField(max_length=100)
     summary = models.TextField()
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -29,8 +45,11 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    class Meta:
+        ordering = ('name',)
+
     def __str__(self):
-        return ['AFRICA', 'AMERICAS', 'ASIA_PACIFIC', 'EUROPE', 'MENA'][self.name]
+        return ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][self.name]
 
 
 class Country(models.Model):
@@ -41,6 +60,9 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -59,6 +81,8 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     auto_generated = models.BooleanField(default=False)
+    class Meta:
+        ordering = ('-disaster_start_date',)
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -85,6 +109,12 @@ class Event(models.Model):
 
     def es_index(self):
         return 'page_event'
+
+    def record_type(self):
+        return 'EVENT'
+
+    def to_dict(self):
+        return to_dict(self)
 
     def save(self, *args, **kwargs):
         # On save, if `disaster_start_date` is not set, make it the current time
@@ -180,6 +210,9 @@ class Appeal(models.Model):
     country = models.ForeignKey(Country, null=True)
     region = models.ForeignKey(Region, null=True)
 
+    class Meta:
+        ordering = ('-end_date', '-start_date',)
+
     def indexing(self):
         return {
             'id': self.aid,
@@ -193,6 +226,15 @@ class Appeal(models.Model):
 
     def es_index(self):
         return 'page_appeal'
+
+    def record_type(self):
+        return 'APPEAL'
+
+    def to_dict(self):
+        data = to_dict(self)
+        data['atype'] = ['DREF', 'Emergency Appeal', 'International Appeal'][self.atype]
+        data['country'] = self.country.name
+        return data
 
     def __str__(self):
         return self.aid
@@ -248,42 +290,42 @@ class FieldReport(models.Model):
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
 
-    num_injured = models.IntegerField(null=True)
-    num_dead = models.IntegerField(null=True)
-    num_missing = models.IntegerField(null=True)
-    num_affected = models.IntegerField(null=True)
-    num_displaced = models.IntegerField(null=True)
-    num_assisted = models.IntegerField(null=True)
-    num_localstaff = models.IntegerField(null=True)
-    num_volunteers = models.IntegerField(null=True)
-    num_expats_delegates = models.IntegerField(null=True)
+    num_injured = models.IntegerField(null=True, blank=True)
+    num_dead = models.IntegerField(null=True, blank=True)
+    num_missing = models.IntegerField(null=True, blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
+    num_displaced = models.IntegerField(null=True, blank=True)
+    num_assisted = models.IntegerField(null=True, blank=True)
+    num_localstaff = models.IntegerField(null=True, blank=True)
+    num_volunteers = models.IntegerField(null=True, blank=True)
+    num_expats_delegates = models.IntegerField(null=True, blank=True)
 
-    gov_num_injured = models.IntegerField(null=True)
-    gov_num_dead = models.IntegerField(null=True)
-    gov_num_missing = models.IntegerField(null=True)
-    gov_num_affected = models.IntegerField(null=True)
-    gov_num_displaced = models.IntegerField(null=True)
-    gov_num_assisted = models.IntegerField(null=True)
+    gov_num_injured = models.IntegerField(null=True, blank=True)
+    gov_num_dead = models.IntegerField(null=True, blank=True)
+    gov_num_missing = models.IntegerField(null=True, blank=True)
+    gov_num_affected = models.IntegerField(null=True, blank=True)
+    gov_num_displaced = models.IntegerField(null=True, blank=True)
+    gov_num_assisted = models.IntegerField(null=True, blank=True)
 
     # actions taken
     actions_taken = models.ManyToManyField(ActionsTaken)
-    actions_others = models.TextField(blank=True)
+    actions_others = models.TextField(null=True, blank=True)
 
     # information
     sources = models.ManyToManyField(Source)
     bulletin = EnumIntegerField(RequestChoices, default=0)
     dref = EnumIntegerField(RequestChoices, default=0)
-    dref_amount = models.IntegerField(null=True)
+    dref_amount = models.IntegerField(null=True, blank=True)
     appeal = EnumIntegerField(RequestChoices, default=0)
-    appeal_amount = models.IntegerField(null=True)
+    appeal_amount = models.IntegerField(null=True, blank=True)
 
     # disaster response
     rdrt = EnumIntegerField(RequestChoices, default=0)
-    num_rdrt = models.IntegerField(null=True)
+    num_rdrt = models.IntegerField(null=True, blank=True)
     fact = EnumIntegerField(RequestChoices, default=0)
-    num_fact = models.IntegerField(null=True)
+    num_fact = models.IntegerField(null=True, blank=True)
     ifrc_staff = EnumIntegerField(RequestChoices, default=0)
-    num_ifrc_staff = models.IntegerField(null=True)
+    num_ifrc_staff = models.IntegerField(null=True, blank=True)
     #eru = EnumIntegerField(RequestChoices, default=0)
 
     # contacts
@@ -292,6 +334,9 @@ class FieldReport(models.Model):
     # meta
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created_at', '-updated_at',)
 
     def indexing(self):
         countries = [getattr(c, 'name') for c in self.countries.all()]
@@ -309,8 +354,15 @@ class FieldReport(models.Model):
     def es_index(self):
         return 'page_report'
 
+    def record_type(self):
+        return 'FIELD_REPORT'
+
+    def to_dict(self):
+        return to_dict(self)
+
     def __str__(self):
-        return self.rid
+        summary = self.summary if self.summary is not None else 'Summary not available'
+        return '%s - %s' % (self.rid, summary)
 
 
 class Service(models.Model):
@@ -361,26 +413,4 @@ class Profile(models.Model):
         return self.user.username
 
 
-# Save a user profile whenever we create a user
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-    instance.profile.save()
-post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
-
-
-def index_es(sender, instance, created, **kwargs):
-    if ES_CLIENT is not None:
-        ES_CLIENT.index(
-            index=instance.es_index(),
-            doc_type='page',
-            id=instance.es_id(),
-            body=instance.indexing(),
-        )
-
-
-# Avoid automatic indexing during bulk imports
-if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
-    post_save.connect(index_es, sender=Event)
-    post_save.connect(index_es, sender=Appeal)
-    post_save.connect(index_es, sender=FieldReport)
+from .triggers import *
