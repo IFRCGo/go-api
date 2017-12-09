@@ -14,7 +14,7 @@ def to_dict(instance):
             if instance.pk is None:
                 data[f.name] = []
             else:
-                data[f.name] = list(f.value_from_object(instance).values_list('name', flat=True))
+                data[f.name] = list(f.value_from_object(instance).values())
         else:
             data[f.name] = f.value_from_object(instance)
     return data
@@ -233,6 +233,7 @@ class Appeal(models.Model):
     def to_dict(self):
         data = to_dict(self)
         data['atype'] = ['DREF', 'Emergency Appeal', 'International Appeal'][self.atype]
+        data['country'] = self.country.name
         return data
 
     def __str__(self):
@@ -289,42 +290,42 @@ class FieldReport(models.Model):
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
 
-    num_injured = models.IntegerField(null=True)
-    num_dead = models.IntegerField(null=True)
-    num_missing = models.IntegerField(null=True)
-    num_affected = models.IntegerField(null=True)
-    num_displaced = models.IntegerField(null=True)
-    num_assisted = models.IntegerField(null=True)
-    num_localstaff = models.IntegerField(null=True)
-    num_volunteers = models.IntegerField(null=True)
-    num_expats_delegates = models.IntegerField(null=True)
+    num_injured = models.IntegerField(null=True, blank=True)
+    num_dead = models.IntegerField(null=True, blank=True)
+    num_missing = models.IntegerField(null=True, blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
+    num_displaced = models.IntegerField(null=True, blank=True)
+    num_assisted = models.IntegerField(null=True, blank=True)
+    num_localstaff = models.IntegerField(null=True, blank=True)
+    num_volunteers = models.IntegerField(null=True, blank=True)
+    num_expats_delegates = models.IntegerField(null=True, blank=True)
 
-    gov_num_injured = models.IntegerField(null=True)
-    gov_num_dead = models.IntegerField(null=True)
-    gov_num_missing = models.IntegerField(null=True)
-    gov_num_affected = models.IntegerField(null=True)
-    gov_num_displaced = models.IntegerField(null=True)
-    gov_num_assisted = models.IntegerField(null=True)
+    gov_num_injured = models.IntegerField(null=True, blank=True)
+    gov_num_dead = models.IntegerField(null=True, blank=True)
+    gov_num_missing = models.IntegerField(null=True, blank=True)
+    gov_num_affected = models.IntegerField(null=True, blank=True)
+    gov_num_displaced = models.IntegerField(null=True, blank=True)
+    gov_num_assisted = models.IntegerField(null=True, blank=True)
 
     # actions taken
     actions_taken = models.ManyToManyField(ActionsTaken)
-    actions_others = models.TextField(blank=True)
+    actions_others = models.TextField(null=True, blank=True)
 
     # information
     sources = models.ManyToManyField(Source)
     bulletin = EnumIntegerField(RequestChoices, default=0)
     dref = EnumIntegerField(RequestChoices, default=0)
-    dref_amount = models.IntegerField(null=True)
+    dref_amount = models.IntegerField(null=True, blank=True)
     appeal = EnumIntegerField(RequestChoices, default=0)
-    appeal_amount = models.IntegerField(null=True)
+    appeal_amount = models.IntegerField(null=True, blank=True)
 
     # disaster response
     rdrt = EnumIntegerField(RequestChoices, default=0)
-    num_rdrt = models.IntegerField(null=True)
+    num_rdrt = models.IntegerField(null=True, blank=True)
     fact = EnumIntegerField(RequestChoices, default=0)
-    num_fact = models.IntegerField(null=True)
+    num_fact = models.IntegerField(null=True, blank=True)
     ifrc_staff = EnumIntegerField(RequestChoices, default=0)
-    num_ifrc_staff = models.IntegerField(null=True)
+    num_ifrc_staff = models.IntegerField(null=True, blank=True)
     #eru = EnumIntegerField(RequestChoices, default=0)
 
     # contacts
@@ -360,7 +361,8 @@ class FieldReport(models.Model):
         return to_dict(self)
 
     def __str__(self):
-        return self.rid
+        summary = self.summary if self.summary is not None else 'Summary not available'
+        return '%s - %s' % (self.rid, summary)
 
 
 class Service(models.Model):
