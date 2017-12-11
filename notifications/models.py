@@ -79,9 +79,9 @@ class Subscription(models.Model):
     stype = EnumIntegerField(SubscriptionType, default=0)
     rtype = EnumIntegerField(RecordType, default=0)
 
-    country = models.ForeignKey(Country, null=True)
-    region = models.ForeignKey(Region, null=True)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
 
     lookup_id = models.CharField(max_length=20, null=True)
 
