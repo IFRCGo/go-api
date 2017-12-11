@@ -112,6 +112,7 @@ class EventResource(ModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
+            'name': ('exact', 'iexact'),
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
