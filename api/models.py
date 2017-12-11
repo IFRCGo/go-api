@@ -59,7 +59,7 @@ class Country(models.Model):
     iso = models.CharField(max_length=2, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
-    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, on_delete=models.PROTECT)
 
     class Meta:
         ordering = ('name',)
@@ -86,10 +86,11 @@ class Event(models.Model):
     name = models.CharField(max_length=100)
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
-    regions = models.ManyToManyField(Region)
+    regions = models.ManyToManyField(Region, editable=False)
     summary = models.TextField(blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
     contacts = models.ManyToManyField(Contact)
-    embed_snippet = models.CharField(max_length=300)
+    embed_snippet = models.CharField(max_length=300, null=True, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -223,7 +224,7 @@ class Appeal(models.Model):
 
     event = models.ForeignKey(Event, related_name='appeals', null=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
-    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL, editable=False)
 
     # Supplementary fields
     # These aren't included in the ingest, and are
