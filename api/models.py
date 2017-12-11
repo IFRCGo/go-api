@@ -68,19 +68,33 @@ class Country(models.Model):
         return self.name
 
 
+class Contact(models.Model):
+    """ Contact """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
+
+
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
+    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
+    contacts = models.ManyToManyField(Contact)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     auto_generated = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('-disaster_start_date',)
 
@@ -274,18 +288,6 @@ class Appeal(models.Model):
 
     def __str__(self):
         return self.aid
-
-
-class Contact(models.Model):
-    """ Contact """
-
-    ctype = models.CharField(max_length=100, blank=True)
-    name = models.CharField(max_length=100)
-    title = models.CharField(max_length=300)
-    email = models.CharField(max_length=300)
-
-    def __str__(self):
-        return self.name
 
 
 class SourceType(models.Model):
