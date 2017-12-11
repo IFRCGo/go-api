@@ -59,7 +59,7 @@ class Country(models.Model):
     iso = models.CharField(max_length=2, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
-    region = models.ForeignKey(Region, null=True)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ('name',)
@@ -72,7 +72,7 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
+    dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
@@ -190,7 +190,7 @@ class Appeal(models.Model):
     # appeal ID, assinged by creator
     aid = models.CharField(max_length=20)
     name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType)
+    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     atype = EnumIntegerField(AppealType, default=0)
 
     status = models.CharField(max_length=30, blank=True)
@@ -206,9 +206,9 @@ class Appeal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
-    event = models.ForeignKey(Event, related_name='appeals', null=True)
-    country = models.ForeignKey(Country, null=True)
-    region = models.ForeignKey(Region, null=True)
+    event = models.ForeignKey(Event, related_name='appeals', null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
     # Supplementary fields
     # These aren't included in the ingest, and are
@@ -298,7 +298,7 @@ class SourceType(models.Model):
 
 class Source(models.Model):
     """ Source of information """
-    stype = models.ForeignKey(SourceType)
+    stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
     spec = models.TextField(blank=True)
 
     def __str__(self):
@@ -315,13 +315,13 @@ class RequestChoices(IntEnum):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
-    originator = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+    originator = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
 
     rid = models.CharField(max_length=100)
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
-    dtype = models.ForeignKey(DisasterType)
-    event = models.ForeignKey(Event, related_name='field_reports', null=True)
+    dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
@@ -425,7 +425,7 @@ class Profile(models.Model):
         primary_key=True,
     )
 
-    country = models.ForeignKey(Country, null=True)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
     # TODO org should also be discreet choices from this list
     # https://drive.google.com/drive/u/1/folders/1auXpAPhOh4YROnKxOfFy5-T7Ki96aIb6k
