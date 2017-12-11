@@ -11,7 +11,7 @@ from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from pdb import set_trace
-from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
+from api.models import DisasterType, Region, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
 
@@ -205,7 +205,17 @@ class Command(BaseCommand):
 
             item = FieldReport(**record)
             item.save()
-            item.countries.add(*Country.objects.filter(pk=report['CountryID']))
+
+            try:
+                country = Country.objects.select_related().get(pk=report['CountryID'])
+            except Country.DoesNotExist():
+                print('Could not find a matching country for %s' % report['CountryID'])
+                country = None
+
+            if country is not None:
+                item.countries.add(country)
+                if country.region is not None:
+                    item.regions.add(country.region)
 
             ### add many-to-many relationships
             # national red cross actions
