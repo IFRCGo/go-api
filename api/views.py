@@ -83,22 +83,28 @@ class aggregate_by_time(PublicJsonRequestView):
             start_date = datetime(1980, 1, 1, tzinfo=timezone.utc)
         else:
             try:
-                start_date = datetime.strptime(start_date, '%d-%m-%Y')
+                start_date = datetime.strptime(start_date, '%Y-%m-%d')
             except ValueError:
-                return bad_request('`start_date` must be DD-MM-YYYY format')
+                return bad_request('`start_date` must be YYYY-MM-DD format')
 
             start_date = start_date.replace(tzinfo=timezone.utc)
 
         model = models[model_type]
-        filter_property = 'start_date' if model_type == 'appeal' else 'created_at'
+        filter_property = 'created_at'
+        if model_type == 'appeal':
+            filter_property = 'start_date'
+        elif model_type == 'event':
+            filter_property = 'disaster_start_date'
+
         filter_exp = filter_property + '__gte'
         trunc_method = TruncMonth if unit == 'month' else TruncYear
 
         aggregate = model.objects \
                          .filter(**{filter_exp: start_date}) \
-                         .annotate(timespan=trunc_method(filter_property)) \
+                         .annotate(timespan=trunc_method(filter_property, tzinfo=timezone.utc)) \
                          .values('timespan') \
-                         .annotate(count=Count(filter_property)) \
+                         .annotate(count=Count('id')) \
+                         .order_by('-timespan') \
                          .values('timespan', 'count')
 
         return JsonResponse(dict(aggregate=list(aggregate)))
