@@ -121,6 +121,7 @@ class EventResource(ModelResource):
 
 
 class AppealResource(ModelResource):
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
