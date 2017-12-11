@@ -92,7 +92,7 @@ class EventResource(ModelResource):
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
-    regions = fields.ToManyField(RegionResource, 'regions', full=True)
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
