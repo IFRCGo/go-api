@@ -90,6 +90,7 @@ class Event(models.Model):
     summary = models.TextField(blank=True)
     contacts = models.ManyToManyField(Contact)
     embed_snippet = models.CharField(max_length=300, null=True, blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
