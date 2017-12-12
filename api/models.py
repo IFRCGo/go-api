@@ -366,7 +366,37 @@ class FieldReport(models.Model):
     num_fact = models.IntegerField(null=True, blank=True)
     ifrc_staff = EnumIntegerField(RequestChoices, default=0)
     num_ifrc_staff = models.IntegerField(null=True, blank=True)
-    #eru = EnumIntegerField(RequestChoices, default=0)
+
+    # ERU units
+    eru_base_camp = EnumIntegerField(RequestChoices, default=0)
+    eru_base_camp_units = models.IntegerField(null=True, blank=True)
+
+    eru_basic_health_care = EnumIntegerField(RequestChoices, default=0)
+    eru_basic_health_care_units = models.IntegerField(null=True, blank=True)
+
+    eru_it_telecom = EnumIntegerField(RequestChoices, default=0)
+    eru_it_telecom_units = models.IntegerField(null=True, blank=True)
+
+    eru_logistics = EnumIntegerField(RequestChoices, default=0)
+    eru_logistics_units = models.IntegerField(null=True, blank=True)
+
+    eru_deployment_hospital = EnumIntegerField(RequestChoices, default=0)
+    eru_deployment_hospital_units = models.IntegerField(null=True, blank=True)
+
+    eru_referral_hospital = EnumIntegerField(RequestChoices, default=0)
+    eru_referral_hospital_units = models.IntegerField(null=True, blank=True)
+
+    eru_relief = EnumIntegerField(RequestChoices, default=0)
+    eru_relief_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_15 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_15_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_40 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_40_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
     # contacts
     contacts = models.ManyToManyField(Contact)
