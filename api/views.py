@@ -169,6 +169,7 @@ class get_auth_token(PublicJsonPostView):
                 'first': user.first_name,
                 'last': user.last_name,
                 'expires': api_key.created + token_duration,
+                'id': user.id,
             })
         else:
             return bad_request('Could not authenticate')
