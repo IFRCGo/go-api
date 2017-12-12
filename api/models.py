@@ -318,7 +318,10 @@ class RequestChoices(IntEnum):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
-    originator = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             related_name='user',
+                             null=True,
+                             on_delete=models.SET_NULL)
 
     rid = models.CharField(max_length=100)
     summary = models.TextField(blank=True)

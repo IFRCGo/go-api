@@ -35,10 +35,19 @@ class RelatedEventResource(ModelResource):
         filtering = {
             'eid': ('exact', 'in'),
         }
+        authorization = Authorization()
 
 class RelatedFieldReportResource(ModelResource):
     class Meta:
         queryset = FieldReport.objects.all()
+
+
+class RelatedUserResource(ModelResource):
+    class Meta:
+        queryset = User.objects.all()
+        allowed_methods = ['get']
+        authentication = ExpiringApiKeyAuthentication()
+        authorization = Authorization()
 
 
 class DisasterTypeResource(ModelResource):
@@ -171,7 +180,7 @@ class ProfileResource(ModelResource):
 
 
 class FieldReportResource(ModelResource):
-    originator = fields.ForeignKey(UserResource, 'originator', full=True, null=True)
+    user = fields.ForeignKey(RelatedUserResource, 'user', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
