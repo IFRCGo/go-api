@@ -18,6 +18,7 @@ exec gunicorn main.wsgi:application \
     --name main \
     --bind unix:/home/ifrc/django_app.sock \
     --workers 3 \
+    --timeout 120 \
     --log-level=info \
     --log-file=$HOME/logs/gunicorn.log \
     --access-logfile=$HOME/logs/access.log &
