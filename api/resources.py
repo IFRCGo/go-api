@@ -191,7 +191,7 @@ class FieldReportResource(ModelResource):
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
         always_return_data = True
-        #authentication = ExpiringApiKeyAuthentication()
+        authentication = ExpiringApiKeyAuthentication()
         authorization = FieldReportAuthorization()
         filtering = {
             'event': ALL_WITH_RELATIONS,
