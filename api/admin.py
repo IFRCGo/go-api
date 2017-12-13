@@ -2,7 +2,7 @@ from django.contrib import admin
 import api.models as models
 
 
-class ERUInline(admin.TabuleInline):
+class ERUInline(admin.TabularInline):
     model = models.ERU
 
 
