@@ -5,13 +5,13 @@ from tastypie.exceptions import Unauthorized
 # anyone to read or create a field report
 class FieldReportAuthorization(DjangoAuthorization):
     def read_list(self, object_list, bundle):
-        return True
+        return object_list
 
     def read_detail(self, object_list, bundle):
         return True
 
     def create_list(self, object_list, bundle):
-        return False
+        return []
 
     def create_detail(self, object_list, bundle):
         return True
