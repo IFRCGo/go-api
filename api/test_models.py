@@ -89,18 +89,21 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.event, event)
 
 
-class ServiceTest(TestCase):
-    def setUp(self):
-        models.Service.objects.create(name='test1', location='earth')
-        models.Service.objects.create(name='test2', deployed=True, location='iceland')
+class DeploymentTest(TestCase):
 
-    def test_service_create(self):
-        obj1 = models.Service.objects.get(name='test1')
-        self.assertFalse(obj1.deployed)
-        self.assertEqual(obj1.location, 'earth')
-        obj1 = models.Service.objects.get(name='test2')
-        self.assertTrue(obj1.deployed)
-        self.assertEqual(obj1.location, 'iceland')
+    def setUp(self):
+        country = models.Country.objects.create(name='country')
+        deployment = models.Deployment.objects.create(pk=1, country=country)
+        eru = models.ERU.objects.create(type=2, units=6, deployment=deployment)
+
+    def test_deployment_create(self):
+        deployment = models.Deployment.objects.get(pk=1)
+        country = models.Country.objects.get(name='country')
+        self.assertEqual(deployment.country, country)
+        erus = deployment.eru_set.all()
+        self.assertEqual(erus.count(), 1)
+        self.assertEqual(erus[0].type, 2)
+        self.assertEqual(erus[0].units, 6)
 
 
 class ProfileTest(TestCase):
