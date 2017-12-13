@@ -4,7 +4,10 @@ from tastypie.resources import ModelResource
 from tastypie.models import ApiKey
 
 
-# overwrite is_authenticated to check api key
+# Subclass the ModelResource with a method to check
+# whether a valid API key and username exists on the request.
+# Allows an unauthenticated resource that can dehydrate some portions
+# of the response based on whether the request is authenticated.
 class PublicModelResource(ModelResource):
 
     def get_authorization_data(self, request):
