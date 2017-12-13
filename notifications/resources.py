@@ -4,10 +4,11 @@ from tastypie.authorization import Authorization, DjangoAuthorization
 from .models import SurgeAlert, Subscription
 from api.authentication import ExpiringApiKeyAuthentication
 from api.resources import CountryResource, RegionResource, DisasterTypeResource
+from api.public_resource import PublicModelResource
 
-class SurgeAlertResource(ModelResource):
+class SurgeAlertResource(PublicModelResource):
     def dehydrate_message(self, bundle):
-        if self.is_authenticated(bundle.request):
+        if self.has_valid_api_key(bundle.request):
             return bundle.data['summary']
         else:
             return 'You must be logged in to read private notifications'
