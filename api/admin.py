@@ -1,14 +1,24 @@
 from django.contrib import admin
-from .models import Contact, DisasterType, Event, GDACSEvent, Country, FieldReport, Appeal, ActionsTaken, SourceType, Source
+import api.models as models
+
+
+class ERUInline(admin.TabuleInline):
+    model = models.ERU
+
+
+class DeploymentAdmin(admin.ModelAdmin):
+    inlines = [ERUInline]
+
 
 # Register your models here.
-admin.site.register(DisasterType)
-admin.site.register(Event)
-admin.site.register(GDACSEvent)
-admin.site.register(Country)
-admin.site.register(Appeal)
-admin.site.register(FieldReport)
-admin.site.register(ActionsTaken)
-admin.site.register(SourceType)
-admin.site.register(Source)
-admin.site.register(Contact)
+admin.site.register(models.DisasterType)
+admin.site.register(models.Event)
+admin.site.register(models.GDACSEvent)
+admin.site.register(models.Country)
+admin.site.register(models.Appeal)
+admin.site.register(models.FieldReport)
+admin.site.register(models.ActionsTaken)
+admin.site.register(models.SourceType)
+admin.site.register(models.Source)
+admin.site.register(models.Contact)
+admin.site.register(models.Deployment, DeploymentAdmin)
