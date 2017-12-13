@@ -16,6 +16,7 @@ from .models import (
 )
 from .authentication import ExpiringApiKeyAuthentication
 from .authorization import FieldReportAuthorization, UserProfileAuthorization
+from .public_resource import PublicModelResource
 
 
 # Duplicate resources that do not query 's related objects.
@@ -96,7 +97,7 @@ class ActionsTakenResource(ModelResource):
         authorization = Authorization()
 
 
-class EventResource(ModelResource):
+class EventResource(PublicModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
@@ -105,7 +106,7 @@ class EventResource(ModelResource):
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
-        if self.is_authenticated(bundle.request):
+        if self.has_valid_api_key(bundle.request):
             return bundle.data['field_reports']
         else:
             return None
