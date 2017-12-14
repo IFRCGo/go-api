@@ -316,6 +316,12 @@ class RequestChoices(IntEnum):
     COMPLETE = 3
 
 
+class VisibilityChoices(IntEnum):
+    MEMBERSHIP = 1
+    IFRC = 2
+    PUBLIC = 3
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -354,6 +360,9 @@ class FieldReport(models.Model):
     # actions taken
     actions_taken = models.ManyToManyField(ActionsTaken)
     actions_others = models.TextField(null=True, blank=True)
+
+    # visibility
+    visibility = EnumIntegerField(VisibilityChoices, default=1)
 
     # information
     sources = models.ManyToManyField(Source)
