@@ -16,6 +16,9 @@ class FieldReportAuthorization(DjangoAuthorization):
     def create_detail(self, object_list, bundle):
         return True
 
+    def update_detail(self, object_list, bundle):
+        return True
+
 
 class UserProfileAuthorization(Authorization):
     def authorize_superuser(self, bundle):
