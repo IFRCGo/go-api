@@ -10,7 +10,6 @@ class DeploymentAdmin(admin.ModelAdmin):
     inlines = [ERUInline]
 
 
-# Register your models here.
 admin.site.register(models.DisasterType)
 admin.site.register(models.Event)
 admin.site.register(models.GDACSEvent)
