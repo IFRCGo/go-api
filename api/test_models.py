@@ -89,18 +89,18 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.event, event)
 
 
-class DeploymentTest(TestCase):
+class ERUOwnerTest(TestCase):
 
     def setUp(self):
         country = models.Country.objects.create(name='country')
-        deployment = models.Deployment.objects.create(pk=1, country=country)
-        eru = models.ERU.objects.create(type=2, units=6, deployment=deployment)
+        eru_owner = models.ERUOwner.objects.create(pk=1, country=country)
+        eru = models.ERU.objects.create(type=2, units=6, eru_owner=eru_owner)
 
-    def test_deployment_create(self):
-        deployment = models.Deployment.objects.get(pk=1)
+    def test_eru_owner_create(self):
+        eru_owner = models.ERUOwner.objects.get(pk=1)
         country = models.Country.objects.get(name='country')
-        self.assertEqual(deployment.country, country)
-        erus = deployment.eru_set.all()
+        self.assertEqual(eru_owner.country, country)
+        erus = eru_owner.eru_set.all()
         self.assertEqual(erus.count(), 1)
         self.assertEqual(erus[0].type, 2)
         self.assertEqual(erus[0].units, 6)

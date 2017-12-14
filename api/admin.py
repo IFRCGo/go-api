@@ -6,7 +6,7 @@ class ERUInline(admin.TabularInline):
     model = models.ERU
 
 
-class DeploymentAdmin(admin.ModelAdmin):
+class ERUOwnerAdmin(admin.ModelAdmin):
     inlines = [ERUInline]
 
 
@@ -20,4 +20,4 @@ admin.site.register(models.ActionsTaken)
 admin.site.register(models.SourceType)
 admin.site.register(models.Source)
 admin.site.register(models.Contact)
-admin.site.register(models.Deployment, DeploymentAdmin)
+admin.site.register(models.ERUOwner, ERUOwnerAdmin)
