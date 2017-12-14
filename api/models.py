@@ -461,7 +461,7 @@ class ERUType(IntEnum):
     SANITATION_40 = 9
 
 
-class Deployment(models.Model):
+class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
@@ -478,9 +478,12 @@ class ERU(models.Model):
     type = EnumIntegerField(ERUType, default=0)
     units = models.IntegerField(default=0)
     # where deployed (none if available)
-    countries = models.ManyToManyField(Country)
+    countries = models.ManyToManyField(Country, blank=True)
     # links to services
-    deployment = models.ForeignKey(Deployment)
+    eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
 
 
 class Profile(models.Model):
