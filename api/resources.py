@@ -12,7 +12,9 @@ from .models import (
     Profile,
     Contact,
     ActionsTaken,
-    Action
+    Action,
+    ERUOwner,
+    ERU
 )
 from .authentication import ExpiringApiKeyAuthentication
 from .authorization import FieldReportAuthorization, UserProfileAuthorization
@@ -205,3 +207,25 @@ class FieldReportResource(ModelResource):
             'request_assistance': ('exact')
         }
 
+
+
+class ERUOwnerResource(ModelResource):
+    eru_set = fields.ToManyField('api.resources.ERUResource', 'eru_set', null=True, full=True)
+    class Meta:
+        queryset = ERUOwner.objects.all()
+        authentication = ExpiringApiKeyAuthentication()
+        resource_name = 'eru_owner'
+        allowed_methods = ['get']
+
+
+class ERUResource(ModelResource):
+    countries = fields.ToManyField(CountryResource, 'countries', full=True, null=True)
+    eru_owner = fields.ForeignKey(ERUOwnerResource, 'eru_owner')
+    class Meta:
+        queryset = ERU.objects.all()
+        authentication = ExpiringApiKeyAuthentication()
+        filtering = {
+            'eru_owner': ALL_WITH_RELATIONS,
+            'type': ('exact', 'in'),
+        }
+        allowed_methods = ['get']
