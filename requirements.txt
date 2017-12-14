@@ -33,3 +33,4 @@ singledispatch==3.4.0.3
 six==1.11.0
 typing==3.6.2
 urllib3==1.22
+XML2Dict==0.2.2
