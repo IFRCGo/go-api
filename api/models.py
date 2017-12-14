@@ -20,7 +20,6 @@ def to_dict(instance):
     return data
 
 
-
 class DisasterType(models.Model):
     """ summary of disaster """
     name = models.CharField(max_length=100)
@@ -167,32 +166,6 @@ class GDACSEvent(models.Model):
     country_text = models.TextField()
 
 
-class Action(models.Model):
-    """ Action taken """
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-
-class ActionsTaken(models.Model):
-    """ All the actions taken by an organization """
-
-    organization = models.CharField(
-        choices=(
-            ('NTLS', 'National Society'),
-            ('PNS', 'Foreign Society'),
-            ('FDRN', 'Federation'),
-        ),
-        max_length=4,
-    )
-    actions = models.ManyToManyField(Action)
-    summary = models.TextField(blank=True)
-
-    def __str__(self):
-        return '%s: %s' % (self.organization, self.summary)
-
-
 class AppealType(IntEnum):
     """ summarys of appeals """
     DREF = 0
@@ -292,23 +265,6 @@ class Appeal(models.Model):
         return self.aid
 
 
-class SourceType(models.Model):
-    """ Types of sources """
-    name = models.CharField(max_length=40)
-
-    def __str__(self):
-        return self.name
-
-
-class Source(models.Model):
-    """ Source of information """
-    stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
-    spec = models.TextField(blank=True)
-
-    def __str__(self):
-        return '%s: %s' % (self.stype.name, self.spec)
-
-
 class RequestChoices(IntEnum):
     NO = 0
     REQUESTED = 1
@@ -352,11 +308,9 @@ class FieldReport(models.Model):
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
     # actions taken
-    actions_taken = models.ManyToManyField(ActionsTaken)
     actions_others = models.TextField(null=True, blank=True)
 
     # information
-    sources = models.ManyToManyField(Source)
     bulletin = EnumIntegerField(RequestChoices, default=0)
     dref = EnumIntegerField(RequestChoices, default=0)
     dref_amount = models.IntegerField(null=True, blank=True)
@@ -437,6 +391,51 @@ class FieldReport(models.Model):
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
         return '%s - %s' % (self.rid, summary)
+
+
+class Action(models.Model):
+    """ Action taken """
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+class ActionsTaken(models.Model):
+    """ All the actions taken by an organization """
+
+    organization = models.CharField(
+        choices=(
+            ('NTLS', 'National Society'),
+            ('PNS', 'Foreign Society'),
+            ('FDRN', 'Federation'),
+        ),
+        max_length=4,
+    )
+    actions = models.ManyToManyField(Action)
+    summary = models.TextField(blank=True)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.organization, self.summary)
+
+
+class SourceType(models.Model):
+    """ Types of sources """
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
+class Source(models.Model):
+    """ Source of information """
+    stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
+    spec = models.TextField(blank=True)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.stype.name, self.spec)
 
 
 class ERUType(IntEnum):
