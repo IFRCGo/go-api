@@ -79,11 +79,11 @@ class Subscription(models.Model):
     stype = EnumIntegerField(SubscriptionType, default=0)
     rtype = EnumIntegerField(RecordType, default=0)
 
-    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
-    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
-    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
 
-    lookup_id = models.CharField(max_length=20, null=True)
+    lookup_id = models.CharField(max_length=20, null=True, blank=True, editable=False)
 
     # Given a request containing new subscriptions, validate and
     # sync the subscriptions.
