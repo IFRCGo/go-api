@@ -10,8 +10,7 @@ from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from pdb import set_trace
-from api.models import DisasterType, Region, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
+from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
 
@@ -203,8 +202,8 @@ class Command(BaseCommand):
                     #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
                 })
 
-            item = FieldReport(**record)
-            item.save()
+            field_report = FieldReport(**record)
+            field_report.save()
 
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
@@ -213,47 +212,44 @@ class Command(BaseCommand):
                 country = None
 
             if country is not None:
-                item.countries.add(country)
+                field_report.countries.add(country)
                 if country.region is not None:
-                    item.regions.add(country.region)
+                    field_report.regions.add(country.region)
 
-            ### add many-to-many relationships
+            ### add items with foreignkeys to report
             # national red cross actions
             actions = fetch_relation(actions_national, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='NATL', summary=txt)
+                act = ActionsTaken(organization='NATL', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
             # foreign red cross actions
             actions = fetch_relation(actions_foreign, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='PNS', summary=txt)
+                act = ActionsTaken(organization='PNS', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
             # federation red cross actions
             actions = fetch_relation(actions_federation, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='FDRN', summary=txt)
+                act = ActionsTaken(organization='FDRN', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
             # sources
             sources = fetch_relation(source_table, report['ReportID'])
             for s in sources:
                 spec = '' if s['Specification'] is None else s['Specification']
-                src = Source.objects.create(stype=SourceType.objects.get(pk=s['SourceID']), spec=spec)
-                item.sources.add(src)
+                src = Source.objects.create(stype=SourceType.objects.get(pk=s['SourceID']),
+                                            spec=spec, field_report=field_report)
 
             # disaster response
             response = fetch_relation(dr_table, report['ReportID'])
@@ -273,7 +269,7 @@ class Command(BaseCommand):
                             title=contact['%sFunction' % f],
                             email=contact['%sContact' % f]
                         )
-                        item.contacts.add(ct)
+                        field_report.contacts.add(ct)
 
         # org type mapping
         org_types = {
@@ -330,5 +326,5 @@ class Command(BaseCommand):
             user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
             user.save()
 
-        items = FieldReport.objects.all()
-        print('%s items' % items.count())
+        reports = FieldReport.objects.all()
+        print('%s reports' % reports.count())
