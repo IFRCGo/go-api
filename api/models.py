@@ -439,18 +439,39 @@ class FieldReport(models.Model):
         return '%s - %s' % (self.rid, summary)
 
 
-class Service(models.Model):
+class ERUType(IntEnum):
+    BASECAMP = 0
+    HEALTHCARE = 1
+    TELECOM = 2
+    LOGISTICS = 3
+    DEPLOY_HOSPITAL = 4
+    REFER_HOSPITAL = 5
+    RELIEF = 6
+    SANITATION_10 = 7
+    SANITATION_20 = 8
+    SANITATION_40 = 9
+
+
+class Deployment(models.Model):
     """ A resource that may or may not be deployed """
 
-    name = models.CharField(max_length=100)
-    summary = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
-    deployed = models.BooleanField(default=False)
-    location = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.country.name
+
+
+class ERU(models.Model):
+    """ A resource that can be deployed """
+    type = EnumIntegerField(ERUType, default=0)
+    units = models.IntegerField(default=0)
+    # where deployed (none if available)
+    countries = models.ManyToManyField(Country)
+    # links to services
+    deployment = models.ForeignKey(Deployment)
 
 
 class Profile(models.Model):
