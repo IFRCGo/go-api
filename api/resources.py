@@ -30,6 +30,7 @@ class RelatedAppealResource(ModelResource):
             'country': ('exact', 'in'),
         }
 
+
 class RelatedEventResource(ModelResource):
     class Meta:
         queryset = Event.objects.all()
@@ -37,6 +38,7 @@ class RelatedEventResource(ModelResource):
             'eid': ('exact', 'in'),
         }
         authorization = Authorization()
+
 
 class RelatedFieldReportResource(ModelResource):
     class Meta:
@@ -47,6 +49,7 @@ class RelatedUserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         allowed_methods = ['get']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
         authentication = ExpiringApiKeyAuthentication()
         authorization = Authorization()
 
