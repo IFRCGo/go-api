@@ -27,6 +27,8 @@ from api.resources import (
     ActionsTakenResource,
     FieldReportResource,
     UserResource,
+    ERUResource,
+    ERUOwnerResource,
 )
 from notifications.resources import SurgeAlertResource
 from api.views import (
@@ -47,6 +49,8 @@ v1_api.register(ActionResource())
 v1_api.register(ActionsTakenResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
+v1_api.register(ERUResource())
+v1_api.register(ERUOwnerResource())
 
 # Notification resources
 v1_api.register(SurgeAlertResource())
