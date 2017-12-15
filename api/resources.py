@@ -224,16 +224,27 @@ class ERUOwnerResource(ModelResource):
         authentication = ExpiringApiKeyAuthentication()
         resource_name = 'eru_owner'
         allowed_methods = ['get']
+        filtering = {
+            'country': ('exact', 'in'),
+        }
+
+
+class RelatedERUOwnerResource(ModelResource):
+    country = fields.ForeignKey(CountryResource, 'country', full=True)
+    class Meta:
+        queryset = ERUOwner.objects.all()
+        allowed_methods = ['get']
 
 
 class ERUResource(ModelResource):
     countries = fields.ToManyField(CountryResource, 'countries', full=True, null=True)
-    eru_owner = fields.ForeignKey(ERUOwnerResource, 'eru_owner')
+    eru_owner = fields.ForeignKey(RelatedERUOwnerResource, 'eru_owner', full=True)
     class Meta:
         queryset = ERU.objects.all()
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
             'eru_owner': ALL_WITH_RELATIONS,
             'type': ('exact', 'in'),
+            'countries': ('in'),
         }
         allowed_methods = ['get']
