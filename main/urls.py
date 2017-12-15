@@ -36,6 +36,7 @@ from api.views import (
     EsPageSearch,
     AggregateByTime,
     UpdateSubscriptionPreferences,
+    AreaAggregate,
 )
 
 # Api resources
@@ -61,6 +62,7 @@ urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
+    url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
 
