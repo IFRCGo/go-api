@@ -107,6 +107,7 @@ class EventResource(PublicModelResource):
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
     contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
 
     # Don't return field reports if the user isn't authenticated
@@ -130,6 +131,8 @@ class EventResource(PublicModelResource):
             'name': ('exact', 'iexact'),
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
+            'countries': ('in'),
+            'regions': ('in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
@@ -140,6 +143,7 @@ class AppealResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
     class Meta:
         queryset = Appeal.objects.all()
         allowed_methods = ['get']
@@ -154,6 +158,7 @@ class AppealResource(ModelResource):
             'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
             'atype': ('exact', 'in'),
             'country': ('exact', 'in'),
+            'region': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
@@ -189,6 +194,7 @@ class FieldReportResource(ModelResource):
     user = fields.ForeignKey(RelatedUserResource, 'user', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
+    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
     actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
@@ -203,6 +209,8 @@ class FieldReportResource(ModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'id': ('exact', 'in'),
             'rid': ('exact', 'in'),
+            'countries': ('in'),
+            'regions': ('in'),
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
         }
