@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.utils import timezone
 
 from tastypie.models import ApiKey
@@ -62,6 +62,23 @@ class EsPageSearch(PublicJsonRequestView):
             body=json.dumps({'query': query}),
         )
         return JsonResponse(results['hits'])
+
+
+class AreaAggregate(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        region_type = request.GET.get('type', None)
+        region_id = request.GET.get('id', None)
+
+        if region_type not in ['country', 'region']:
+            return bad_request('`type` must be `country` or `region`')
+        elif not region_id:
+            return bad_request('`id` must be a region id')
+
+        aggregate = Appeal.objects.filter(**{region_type:region_id}) \
+                                  .annotate(count=Count('id')) \
+                                  .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
+
+        return JsonResponse(dict(aggregate))
 
 
 class AggregateByTime(PublicJsonRequestView):
