@@ -118,6 +118,7 @@ class Event(models.Model):
             'dtype': getattr(self.dtype, 'name', None),
             'location': ', '.join(map(str, countries)) if len(countries) else None,
             'summary': self.summary,
+            'date': self.disaster_start_date,
         }
 
     def es_id(self):
@@ -267,10 +268,11 @@ class Appeal(models.Model):
 
     def indexing(self):
         return {
-            'id': self.aid,
+            'id': self.id,
             'name': self.name,
             'dtype': getattr(self.dtype, 'name', None),
             'location': getattr(self.country, 'name', None),
+            'date': self.start_date,
         }
 
     def es_id(self):
@@ -422,13 +424,14 @@ class FieldReport(models.Model):
         ordering = ('-created_at', '-updated_at',)
 
     def indexing(self):
-        countries = [getattr(c, 'name') for c in self.countries.all()]
+        countries = [c.name for c in self.countries.all()]
         return {
-            'id': self.rid,
+            'id': self.id,
             'name': self.summary,
             'dtype': getattr(self.dtype, 'name', None),
-            'location': ','.join(map(str, countries)) if len(countries) else None,
+            'location': ', '.join(map(str, countries)) if len(countries) else None,
             'summary': self.description,
+            'date': self.created_at,
         }
 
     def es_id(self):
