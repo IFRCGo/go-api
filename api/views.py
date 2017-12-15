@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.utils import timezone
 
 from tastypie.models import ApiKey
@@ -42,7 +42,7 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
-class es_page_search(PublicJsonRequestView):
+class EsPageSearch(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
@@ -64,7 +64,24 @@ class es_page_search(PublicJsonRequestView):
         return JsonResponse(results['hits'])
 
 
-class aggregate_by_time(PublicJsonRequestView):
+class AreaAggregate(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        region_type = request.GET.get('type', None)
+        region_id = request.GET.get('id', None)
+
+        if region_type not in ['country', 'region']:
+            return bad_request('`type` must be `country` or `region`')
+        elif not region_id:
+            return bad_request('`id` must be a region id')
+
+        aggregate = Appeal.objects.filter(**{region_type:region_id}) \
+                                  .annotate(count=Count('id')) \
+                                  .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
+
+        return JsonResponse(dict(aggregate))
+
+
+class AggregateByTime(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         models = {
             'appeal': Appeal,
@@ -151,7 +168,7 @@ class PublicJsonPostView(View):
         return self.handle_post(request, *args, **kwargs)
 
 
-class get_auth_token(PublicJsonPostView):
+class GetAuthToken(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
@@ -175,7 +192,7 @@ class get_auth_token(PublicJsonPostView):
             return bad_request('Could not authenticate')
 
 
-class update_subscription_preferences(PublicJsonPostView):
+class UpdateSubscriptionPreferences(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         user = self.get_authenticated_user(request)
         if not user:
