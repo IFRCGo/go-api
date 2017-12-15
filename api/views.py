@@ -42,7 +42,7 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
-class es_page_search(PublicJsonRequestView):
+class EsPageSearch(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
@@ -64,7 +64,7 @@ class es_page_search(PublicJsonRequestView):
         return JsonResponse(results['hits'])
 
 
-class aggregate_by_time(PublicJsonRequestView):
+class AggregateByTime(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         models = {
             'appeal': Appeal,
@@ -151,7 +151,7 @@ class PublicJsonPostView(View):
         return self.handle_post(request, *args, **kwargs)
 
 
-class get_auth_token(PublicJsonPostView):
+class GetAuthToken(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
@@ -175,7 +175,7 @@ class get_auth_token(PublicJsonPostView):
             return bad_request('Could not authenticate')
 
 
-class update_subscription_preferences(PublicJsonPostView):
+class UpdateSubscriptionPreferences(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         user = self.get_authenticated_user(request)
         if not user:
