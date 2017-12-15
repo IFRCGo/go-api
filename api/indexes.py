@@ -5,6 +5,7 @@ EventPageMapping = {
         'dtype': {'type': 'text'},
         'location': {'type': 'text'},
         'summary': {'type': 'text'},
+        'date': {'type': 'date'},
     }
 }
 
@@ -14,6 +15,7 @@ AppealPageMapping = {
         'name': {'type': 'text'},
         'dtype': {'type': 'text'},
         'location': {'type': 'text'},
+        'date': {'type': 'date'},
     }
 }
 
@@ -24,5 +26,6 @@ ReportPageMapping = {
         'dtype': {'type': 'text'},
         'location': {'type': 'text'},
         'summary': {'type': 'text'},
+        'date': {'type': 'date'},
     }
 }
