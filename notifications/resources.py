@@ -9,7 +9,7 @@ from api.public_resource import PublicModelResource
 class SurgeAlertResource(PublicModelResource):
     def dehydrate_message(self, bundle):
         if self.has_valid_api_key(bundle.request):
-            return bundle.data['summary']
+            return bundle.data['message']
         else:
             return 'You must be logged in to read private notifications'
 
