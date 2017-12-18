@@ -26,3 +26,6 @@ db.sqlite3-journal
 
 # test and coverage artifacts
 .coverage
+
+# Generated json file
+appeals.json

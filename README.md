@@ -10,6 +10,23 @@
 - Python 3.6.3 `pyenv install 3.6.3`
 - [mdb tools](https://github.com/brianb/mdbtools) `brew install mdbtools`
 
+## Running the Docker image locally
+
+Check [Docker Hub](https://hub.docker.com/r/ifrcgo/go-api/tags/) for the latest tag.
+
+```(bash)
+docker run -p 80:80 --env-file .env -d -t ifrc/go-api:{TAG_NUMBER}
+```
+
+To specify a command on a running image:
+
+```(bash)
+docker ps
+# CONTAINER ID        IMAGE               COMMAND                   CREATED             STATUS              PORTS                NAMES
+# d0e64afa84b5        ifrc/go-api:16      "/bin/sh -c \"/usr/lo…"   22 minutes ago      Up 22 minutes       0.0.0.0:80->80/tcp   focused_allen
+docker exec -it d0e64afa84b5 python manage.py ingest_appeals
+```
+
 ## Setup
 
 Start the environment and install the dependencies
@@ -34,7 +51,15 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py loaddata Actions Countries DisasterTypes
 python manage.py collectstatic
+
+# Disables automated elasticsearch indexing
+export BULK_IMPORT = 1
 python manage.py ingest_mdb
+python manage.py ingest_appeals
+python manage.py create_events
+
+# Re-enable indexing to elasticsearch
+export BULK_IMPORT = 0
 python manage.py runserver
 ```
 
@@ -51,4 +76,22 @@ python manage.py test
 ```(bash)
 coverage run --source='.' manage.py test
 coverage report
+```
+
+# Continuous Integration
+
+[Circle-ci handles continuous integration](https://circleci.com/gh/IFRCGo/go-api).
+
+Pushes to `develop` will run the test suite against a test db.
+
+Pushes to `master` will create a new git tag, using the `version` value in `main/__init__.py`, and build and deploy a new Docker image to the IFRC Docker Hub account. The build will fail if the version already has a tag, so you must increment the version number in `main/__init__.py` before merging to `master`.
+
+# Deployment
+
+`main/runserver.sh` is the entrypoint for deploying this API to a new environment. It is also the default command specified in `Dockerfile`. `main/runserver.sh` requires that environment variables corresponding to database connection strings, FTP settings, and email settings, among others, be set. Check the script for the specific variables in your environment.
+
+## Deployment command
+
+```(bash)
+docker run -p 80:80 --env-file .env -d -t ifrc/go-api:{TAG_NUMBER}
 ```
