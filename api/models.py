@@ -1,10 +1,23 @@
-import os
 from django.db import models
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.utils import timezone
 from enumfields import EnumIntegerField
-from enumfields import Enum
-from .esconnection import ES_CLIENT
+from enumfields import IntEnum
+
+
+# Write model properties to dictionary
+def to_dict(instance):
+    opts = instance._meta
+    data = {}
+    for f in opts.concrete_fields + opts.many_to_many:
+        if isinstance(f, ManyToManyField):
+            if instance.pk is None:
+                data[f.name] = []
+            else:
+                data[f.name] = list(f.value_from_object(instance).values())
+        else:
+            data[f.name] = f.value_from_object(instance)
+    return data
 
 
 class DisasterType(models.Model):
@@ -12,59 +25,30 @@ class DisasterType(models.Model):
     name = models.CharField(max_length=100)
     summary = models.TextField()
 
-    def __str__(self):
-        return self.name
-
-
-class Event(models.Model):
-    """ A disaster, which could cover multiple countries """
-
-    eid = models.IntegerField(null=True)
-    name = models.CharField(max_length=100)
-    dtype = models.ForeignKey(DisasterType, null=True)
-    summary = models.TextField(blank=True)
-    status = models.CharField(max_length=30, blank=True)
-    region = models.CharField(max_length=100, blank=True)
-    code = models.CharField(max_length=20, null=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def countries(self):
-        """ Get countries from all appeals and field reports in this disaster """
-        countries = [getattr(c, 'name') for fr in self.fieldreport_set.all() for c in fr.countries.all()] + \
-                    [getattr(a, 'country') for a in self.appeal_set.all()]
-        return list(set(countries))
-
-    def start_date(self):
-        """ Get start date of first appeal """
-        start_dates = [getattr(a, 'start_date') for a in self.appeal_set.all()]
-        return min(start_dates) if len(start_dates) else None
-
-    def end_date(self):
-        """ Get latest end date of all appeals """
-        end_dates = [getattr(a, 'end_date') for a in self.appeal_set.all()]
-        return max(end_dates) if len(end_dates) else None
-
-    def indexing(self):
-        obj = {
-            'id': self.eid,
-            'name': self.name,
-            'type': 'event',
-            'countries': ','.join(map(str, self.countries())),
-            'dtype': getattr(self.dtype, 'name', None),
-            'summary': self.summary,
-            'status': self.status,
-            'created_at': self.created_at,
-            'start_date': self.start_date(),
-            'end_date': self.end_date(),
-        }
-        return obj
-
-    def es_id(self):
-        return 'event-%s' % self.id
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
+
+
+class RegionName(IntEnum):
+    AFRICA = 0
+    AMERICAS = 1
+    ASIA_PACIFIC = 2
+    EUROPE = 3
+    MENA = 4
+
+
+class Region(models.Model):
+    """ A region """
+    name = EnumIntegerField(RegionName)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __str__(self):
+        return ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][self.name]
 
 
 class Country(models.Model):
@@ -72,10 +56,353 @@ class Country(models.Model):
 
     name = models.CharField(max_length=100)
     iso = models.CharField(max_length=2, null=True)
-    society_name = models.TextField(default="")
+    society_name = models.TextField(blank=True)
+    society_url = models.URLField(blank=True)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
+
+
+class Contact(models.Model):
+    """ Contact """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
+
+
+class Event(models.Model):
+    """ A disaster, which could cover multiple countries """
+
+    name = models.CharField(max_length=100)
+    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
+    countries = models.ManyToManyField(Country)
+    regions = models.ManyToManyField(Region)
+    summary = models.TextField(blank=True)
+    contacts = models.ManyToManyField(Contact)
+    embed_snippet = models.CharField(max_length=300, null=True, blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
+
+    disaster_start_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    auto_generated = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('-disaster_start_date',)
+
+    def start_date(self):
+        """ Get start date of first appeal """
+        start_dates = [getattr(a, 'start_date') for a in self.appeals.all()]
+        return min(start_dates) if len(start_dates) else None
+
+    def end_date(self):
+        """ Get latest end date of all appeals """
+        end_dates = [getattr(a, 'end_date') for a in self.appeals.all()]
+        return max(end_dates) if len(end_dates) else None
+
+    def indexing(self):
+        countries = [getattr(c, 'name') for c in self.countries.all()]
+        return {
+            'id': self.id,
+            'name': self.name,
+            'dtype': getattr(self.dtype, 'name', None),
+            'location': ', '.join(map(str, countries)) if len(countries) else None,
+            'summary': self.summary,
+            'date': self.disaster_start_date,
+        }
+
+    def es_id(self):
+        return 'event-%s' % self.id
+
+    def es_index(self):
+        return 'page_event'
+
+    def record_type(self):
+        return 'EVENT'
+
+    def to_dict(self):
+        return to_dict(self)
+
+    def save(self, *args, **kwargs):
+        # On save, if `disaster_start_date` is not set, make it the current time
+        if not self.id and not self.disaster_start_date:
+            self.disaster_start_date = timezone.now()
+        return super(Event, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class GDACSEvent(models.Model):
+    """ A GDACS type event, from alerts """
+
+    eventid = models.CharField(max_length=12)
+    title = models.TextField()
+    description = models.TextField()
+    image = models.URLField(null=True)
+    report = models.URLField(null=True)
+    publication_date = models.DateTimeField()
+    year = models.IntegerField()
+    lat = models.FloatField()
+    lon = models.FloatField()
+    event_type = models.CharField(max_length=16)
+    alert_level = models.CharField(max_length=16)
+    alert_score = models.CharField(max_length=16, null=True)
+    severity = models.TextField()
+    severity_unit = models.CharField(max_length=16)
+    severity_value = models.CharField(max_length=16)
+    population_unit = models.CharField(max_length=16)
+    population_value = models.CharField(max_length=16)
+    vulnerability = models.IntegerField()
+    countries = models.ManyToManyField(Country)
+    country_text = models.TextField()
+
+
+class AppealType(IntEnum):
+    """ summarys of appeals """
+    DREF = 0
+    APPEAL = 1
+    INTL = 2
+
+
+class Appeal(models.Model):
+    """ An appeal for a disaster and country, containing documents """
+
+    # appeal ID, assinged by creator
+    aid = models.CharField(max_length=20)
+    name = models.CharField(max_length=100)
+    dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
+    atype = EnumIntegerField(AppealType, default=0)
+
+    status = models.CharField(max_length=30, blank=True)
+    code = models.CharField(max_length=20, null=True)
+    sector = models.CharField(max_length=100, blank=True)
+
+    num_beneficiaries = models.IntegerField(default=0)
+    amount_requested = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    event = models.ForeignKey(Event, related_name='appeals', null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+
+    # Supplementary fields
+    # These aren't included in the ingest, and are
+    # entered manually by IFRC staff
+    shelter_num_people_targeted: models.IntegerField(null=True, blank=True)
+    shelter_num_people_reached: models.IntegerField(null=True, blank=True)
+    shelter_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    basic_needs_num_people_targeted: models.IntegerField(null=True, blank=True)
+    basic_needs_num_people_reached: models.IntegerField(null=True, blank=True)
+    basic_needs_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    health_num_people_targeted: models.IntegerField(null=True, blank=True)
+    health_num_people_reached: models.IntegerField(null=True, blank=True)
+    health_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    water_sanitation_num_people_targeted: models.IntegerField(null=True, blank=True)
+    water_sanitation_num_people_reached: models.IntegerField(null=True, blank=True)
+    water_sanitation_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    gender_inclusion_num_people_targeted: models.IntegerField(null=True, blank=True)
+    gender_inclusion_num_people_reached: models.IntegerField(null=True, blank=True)
+    gender_inclusion_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    migration_num_people_targeted: models.IntegerField(null=True, blank=True)
+    migration_num_people_reached: models.IntegerField(null=True, blank=True)
+    migration_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    risk_reduction_num_people_targeted: models.IntegerField(null=True, blank=True)
+    risk_reduction_num_people_reached: models.IntegerField(null=True, blank=True)
+    risk_reduction_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    strenghtening_national_society_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    international_disaster_response_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    influence_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    class Meta:
+        ordering = ('-end_date', '-start_date',)
+
+    def indexing(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'dtype': getattr(self.dtype, 'name', None),
+            'location': getattr(self.country, 'name', None),
+            'date': self.start_date,
+        }
+
+    def es_id(self):
+        return 'appeal-%s' % self.id
+
+    def es_index(self):
+        return 'page_appeal'
+
+    def record_type(self):
+        return 'APPEAL'
+
+    def to_dict(self):
+        data = to_dict(self)
+        data['atype'] = ['DREF', 'Emergency Appeal', 'International Appeal'][self.atype]
+        data['country'] = self.country.name
+        return data
+
+    def __str__(self):
+        return self.aid
+
+
+class RequestChoices(IntEnum):
+    NO = 0
+    REQUESTED = 1
+    PLANNED = 2
+    COMPLETE = 3
+
+
+class VisibilityChoices(IntEnum):
+    MEMBERSHIP = 1
+    IFRC = 2
+    PUBLIC = 3
+
+
+class FieldReport(models.Model):
+    """ A field report for a disaster and country, containing documents """
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             related_name='user',
+                             null=True,
+                             on_delete=models.SET_NULL)
+
+    rid = models.CharField(max_length=100)
+    summary = models.TextField(blank=True)
+    description = models.TextField(blank=True, default='')
+    dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True, on_delete=models.SET_NULL)
+    countries = models.ManyToManyField(Country)
+    regions = models.ManyToManyField(Region)
+    status = models.IntegerField(default=0)
+    request_assistance = models.BooleanField(default=False)
+
+    num_injured = models.IntegerField(null=True, blank=True)
+    num_dead = models.IntegerField(null=True, blank=True)
+    num_missing = models.IntegerField(null=True, blank=True)
+    num_affected = models.IntegerField(null=True, blank=True)
+    num_displaced = models.IntegerField(null=True, blank=True)
+    num_assisted = models.IntegerField(null=True, blank=True)
+    num_localstaff = models.IntegerField(null=True, blank=True)
+    num_volunteers = models.IntegerField(null=True, blank=True)
+    num_expats_delegates = models.IntegerField(null=True, blank=True)
+
+    gov_num_injured = models.IntegerField(null=True, blank=True)
+    gov_num_dead = models.IntegerField(null=True, blank=True)
+    gov_num_missing = models.IntegerField(null=True, blank=True)
+    gov_num_affected = models.IntegerField(null=True, blank=True)
+    gov_num_displaced = models.IntegerField(null=True, blank=True)
+    gov_num_assisted = models.IntegerField(null=True, blank=True)
+
+    # actions taken
+    actions_others = models.TextField(null=True, blank=True)
+
+    # visibility
+    visibility = EnumIntegerField(VisibilityChoices, default=1)
+
+    # information
+    bulletin = EnumIntegerField(RequestChoices, default=0)
+    dref = EnumIntegerField(RequestChoices, default=0)
+    dref_amount = models.IntegerField(null=True, blank=True)
+    appeal = EnumIntegerField(RequestChoices, default=0)
+    appeal_amount = models.IntegerField(null=True, blank=True)
+
+    # disaster response
+    rdrt = EnumIntegerField(RequestChoices, default=0)
+    num_rdrt = models.IntegerField(null=True, blank=True)
+    fact = EnumIntegerField(RequestChoices, default=0)
+    num_fact = models.IntegerField(null=True, blank=True)
+    ifrc_staff = EnumIntegerField(RequestChoices, default=0)
+    num_ifrc_staff = models.IntegerField(null=True, blank=True)
+
+    # ERU units
+    eru_base_camp = EnumIntegerField(RequestChoices, default=0)
+    eru_base_camp_units = models.IntegerField(null=True, blank=True)
+
+    eru_basic_health_care = EnumIntegerField(RequestChoices, default=0)
+    eru_basic_health_care_units = models.IntegerField(null=True, blank=True)
+
+    eru_it_telecom = EnumIntegerField(RequestChoices, default=0)
+    eru_it_telecom_units = models.IntegerField(null=True, blank=True)
+
+    eru_logistics = EnumIntegerField(RequestChoices, default=0)
+    eru_logistics_units = models.IntegerField(null=True, blank=True)
+
+    eru_deployment_hospital = EnumIntegerField(RequestChoices, default=0)
+    eru_deployment_hospital_units = models.IntegerField(null=True, blank=True)
+
+    eru_referral_hospital = EnumIntegerField(RequestChoices, default=0)
+    eru_referral_hospital_units = models.IntegerField(null=True, blank=True)
+
+    eru_relief = EnumIntegerField(RequestChoices, default=0)
+    eru_relief_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_15 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_15_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_40 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_40_units = models.IntegerField(null=True, blank=True)
+
+    eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
+    eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
+
+    # contacts
+    contacts = models.ManyToManyField(Contact)
+
+    # meta
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created_at', '-updated_at',)
+
+    def indexing(self):
+        countries = [c.name for c in self.countries.all()]
+        return {
+            'id': self.id,
+            'name': self.summary,
+            'dtype': getattr(self.dtype, 'name', None),
+            'location': ', '.join(map(str, countries)) if len(countries) else None,
+            'summary': self.description,
+            'date': self.created_at,
+        }
+
+    def es_id(self):
+        return 'fieldreport-%s' % self.id
+
+    def es_index(self):
+        return 'page_report'
+
+    def record_type(self):
+        return 'FIELD_REPORT'
+
+    def to_dict(self):
+        return to_dict(self)
+
+    def __str__(self):
+        summary = self.summary if self.summary is not None else 'Summary not available'
+        return '%s - %s' % (self.rid, summary)
 
 
 class Action(models.Model):
@@ -99,147 +426,66 @@ class ActionsTaken(models.Model):
     )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.organization
+        return '%s: %s' % (self.organization, self.summary)
 
 
-class Document(models.Model):
-    """ A document, located somwehere """
-
-    name = models.CharField(max_length=100)
-    uri = models.TextField()
-
-    def __str__(self):
-        return self.name
-
-
-class AppealType(Enum):
-    """ summarys of appeals """
-    DREF = 0
-    APPEAL = 1
-    INTL = 2
-
-
-class Appeal(models.Model):
-    """ An appeal for a disaster and country, containing documents """
-
-    # appeal ID, assinged by creator
-    aid = models.CharField(max_length=20)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-    atype = EnumIntegerField(AppealType, default=0)
-
-    event = models.ForeignKey(Event, null=True)
-    country = models.ForeignKey(Country, null=True)
-    sector = models.CharField(max_length=100, blank=True)
-
-    num_beneficiaries = models.IntegerField(default=0)
-    amount_requested = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    # documents = models.ManyToManyField(Document)
-
-    def indexing(self):
-        obj = {
-            'id': self.aid,
-            'type': 'appeal',
-            'countries': getattr(self.country, 'name', None),
-            'created_at': self.created_at,
-            'start_date': self.start_date,
-            'end_date': self.end_date,
-        }
-        return obj
-
-    def es_id(self):
-        return 'appeal-%s' % self.id
-
-    def __str__(self):
-        return self.aid
-
-
-class Contact(models.Model):
-    """ Contact """
-
-    ctype = models.CharField(max_length=100, blank=True)
-    name = models.CharField(max_length=100)
-    title = models.CharField(max_length=300)
-    email = models.CharField(max_length=300)
+class SourceType(models.Model):
+    """ Types of sources """
+    name = models.CharField(max_length=40)
 
     def __str__(self):
         return self.name
 
 
-class FieldReport(models.Model):
-    """ A field report for a disaster and country, containing documents """
-
-    rid = models.CharField(max_length=100)
-    summary = models.TextField(blank=True)
-    description = models.TextField(blank=True, default='')
-    dtype = models.ForeignKey(DisasterType)
-    event = models.ForeignKey(Event, null=True)
-    countries = models.ManyToManyField(Country)
-    status = models.IntegerField(default=0)
-    request_assistance = models.BooleanField(default=False)
-
-    num_injured = models.IntegerField(null=True)
-    num_dead = models.IntegerField(null=True)
-    num_missing = models.IntegerField(null=True)
-    num_affected = models.IntegerField(null=True)
-    num_displaced = models.IntegerField(null=True)
-    num_assisted = models.IntegerField(null=True)
-    num_localstaff = models.IntegerField(null=True)
-    num_volunteers = models.IntegerField(null=True)
-    num_expats_delegates = models.IntegerField(null=True)
-
-    gov_num_injured = models.IntegerField(null=True)
-    gov_num_dead = models.IntegerField(null=True)
-    gov_num_missing = models.IntegerField(null=True)
-    gov_num_affected = models.IntegerField(null=True)
-    gov_num_displaced = models.IntegerField(null=True)
-    gov_num_assisted = models.IntegerField(null=True)
-
-    # action IDs - other tables?
-    actions_taken = models.ManyToManyField(ActionsTaken)
-
-    # contacts
-    contacts = models.ManyToManyField(Contact)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def indexing(self):
-        countries = [getattr(c, 'name') for c in self.countries.all()]
-        obj = {
-            'id': self.rid,
-            'type': 'fieldreport',
-            'countries': ','.join(map(str, countries)) if len(countries) else None,
-            'dtype': getattr(self.dtype, 'name', None),
-            'summary': self.summary,
-            'status': self.status,
-            'created_at': self.created_at,
-        }
-        return obj
-
-    def es_id(self):
-        return 'fieldreport-%s' % self.id
+class Source(models.Model):
+    """ Source of information """
+    stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
+    spec = models.TextField(blank=True)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.rid
+        return '%s: %s' % (self.stype.name, self.spec)
 
 
-class Service(models.Model):
+class ERUType(IntEnum):
+    BASECAMP = 0
+    HEALTHCARE = 1
+    TELECOM = 2
+    LOGISTICS = 3
+    DEPLOY_HOSPITAL = 4
+    REFER_HOSPITAL = 5
+    RELIEF = 6
+    SANITATION_10 = 7
+    SANITATION_20 = 8
+    SANITATION_40 = 9
+
+
+class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
-    name = models.CharField(max_length=100)
-    summary = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
-    deployed = models.BooleanField(default=False)
-    location = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.country.name
+
+
+class ERU(models.Model):
+    """ A resource that can be deployed """
+    type = EnumIntegerField(ERUType, default=0)
+    units = models.IntegerField(default=0)
+    # where deployed (none if available)
+    countries = models.ManyToManyField(Country, blank=True)
+    # links to services
+    eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
 
 
 class Profile(models.Model):
@@ -252,7 +498,7 @@ class Profile(models.Model):
         primary_key=True,
     )
 
-    country = models.ForeignKey(Country, null=True)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
     # TODO org should also be discreet choices from this list
     # https://drive.google.com/drive/u/1/folders/1auXpAPhOh4YROnKxOfFy5-T7Ki96aIb6k
@@ -276,26 +522,4 @@ class Profile(models.Model):
         return self.user.username
 
 
-# Save a user profile whenever we create a user
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
-    instance.profile.save()
-post_save.connect(create_profile, sender=settings.AUTH_USER_MODEL)
-
-
-def index_es(sender, instance, created, **kwargs):
-    if ES_CLIENT is not None:
-        ES_CLIENT.index(
-            index='pages',
-            doc_type='page',
-            id=instance.es_id(),
-            body=instance.indexing(),
-        )
-
-
-# Avoid automatic indexing during bulk imports
-if os.environ.get('BULK_IMPORT') != '1' and ES_CLIENT is not None:
-    post_save.connect(index_es, sender=Event)
-    post_save.connect(index_es, sender=Appeal)
-    post_save.connect(index_es, sender=FieldReport)
+from .triggers import *

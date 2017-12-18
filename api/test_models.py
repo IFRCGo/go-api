@@ -14,9 +14,13 @@ class DisasterTypeTest(TestCase):
 
 
 class EventTest(TestCase):
+
+    fixtures = ['DisasterTypes']
+
     def setUp(self):
-        models.Event.objects.create(name='disaster1', summary='test disaster')
-        models.Event.objects.create(name='disaster2', summary='another test disaster')
+        dtype = models.DisasterType.objects.get(pk=1)
+        models.Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
+        models.Event.objects.create(name='disaster2', summary='another test disaster', dtype=dtype)
 
     def test_disaster_create(self):
         obj1 = models.Event.objects.get(name='disaster1')
@@ -27,20 +31,13 @@ class EventTest(TestCase):
 
 class CountryTest(TestCase):
 
-    fixtures = ['Countries']
+    fixtures = ['Regions', 'Countries']
 
     def test_country_data(self):
-        objs = models.Country.objects.all()
-        self.assertEqual(objs.count(), 260)
-
-
-class DocumentTest(TestCase):
-    def setUp(self):
-        models.Document.objects.create(name='document1', uri='/path/to/file')
-
-    def test_document_create(self):
-        obj = models.Document.objects.get(name='document1')
-        self.assertEqual(obj.uri, '/path/to/file')
+        regions = models.Region.objects.all()
+        self.assertEqual(regions.count(), 5)
+        countries = models.Country.objects.all()
+        self.assertEqual(countries.count(), 260)
 
 
 class ProfileTest(TestCase):
@@ -76,34 +73,37 @@ class FieldReportTest(TestCase):
     fixtures = ['DisasterTypes']
 
     def setUp(self):
-        event = models.Event.objects.create(name='disaster1', summary='test disaster')
-        country = models.Country.objects.create(name='country')
         dtype = models.DisasterType.objects.get(pk=1)
+        event = models.Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
+        country = models.Country.objects.create(name='country')
         report = models.FieldReport.objects.create(rid='test1', event=event, dtype=dtype)
         report.countries.add(country)
 
     def test_field_report_create(self):
         event = models.Event.objects.get(name='disaster1')
-        self.assertEqual(event.countries(), ['country'])
         country = models.Country.objects.get(name='country')
+        self.assertEqual(event.field_reports.all()[0].countries.all()[0], country)
         obj = models.FieldReport.objects.get(rid='test1')
         self.assertEqual(obj.rid, 'test1')
         self.assertEqual(obj.countries.all()[0], country)
         self.assertEqual(obj.event, event)
 
 
-class ServiceTest(TestCase):
-    def setUp(self):
-        models.Service.objects.create(name='test1', location='earth')
-        models.Service.objects.create(name='test2', deployed=True, location='iceland')
+class ERUOwnerTest(TestCase):
 
-    def test_service_create(self):
-        obj1 = models.Service.objects.get(name='test1')
-        self.assertFalse(obj1.deployed)
-        self.assertEqual(obj1.location, 'earth')
-        obj1 = models.Service.objects.get(name='test2')
-        self.assertTrue(obj1.deployed)
-        self.assertEqual(obj1.location, 'iceland')
+    def setUp(self):
+        country = models.Country.objects.create(name='country')
+        eru_owner = models.ERUOwner.objects.create(pk=1, country=country)
+        eru = models.ERU.objects.create(type=2, units=6, eru_owner=eru_owner)
+
+    def test_eru_owner_create(self):
+        eru_owner = models.ERUOwner.objects.get(pk=1)
+        country = models.Country.objects.get(name='country')
+        self.assertEqual(eru_owner.country, country)
+        erus = eru_owner.eru_set.all()
+        self.assertEqual(erus.count(), 1)
+        self.assertEqual(erus[0].type, 2)
+        self.assertEqual(erus[0].units, 6)
 
 
 class ProfileTest(TestCase):

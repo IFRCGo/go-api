@@ -10,8 +10,7 @@ from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from pdb import set_trace
-from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact
+from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
 
@@ -92,18 +91,8 @@ class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
     def handle(self, *args, **options):
-        # set an env variable so we don't bog down elasticsearch with indexing
-        os.environ['BULK_IMPORT'] = '1'
-
         # get latest
         filename = get_dbfile()
-
-        # disaster response records
-        dr_records = extract_table(filename, 'EW_DisasterResponseTools')
-        # check for 1 record for each field report
-        fids = [r['ReportID'] for r in dr_records]
-        if len(set(fids)) != len(fids):
-            raise Exception('More than one DisasterResponseTools record for a field report')
 
         # numeric details records
         details_rc = extract_table(filename, 'EW_Report_NumericDetails')
@@ -118,14 +107,37 @@ class Command(BaseCommand):
         if len(set(fids)) != len(fids):
             raise Exception('More than one NumericDetails record for a field report')
 
+        # information
+        info_table = extract_table(filename, 'EW_Report_InformationManagement')
+        fids = [r['ReportID'] for r in info_table]
+        if len(set(fids)) != len(fids):
+            raise Exception('More than one InformationManagement record for a field report')
+
+        ### many-to-many
+
         # actions taken
         actions_national = extract_table(filename, 'EW_Report_ActionTakenByRedCross')
         actions_foreign = extract_table(filename, 'EW_Report_ActionTakenByPnsRC')
         actions_federation = extract_table(filename, 'EW_Report_ActionTakenByFederationRC')
 
+        # source types
+        source_types = extract_table(filename, 'EW_lofSources')
+        for s in source_types:
+            SourceType.objects.get_or_create(pk=s['SourceID'], defaults={'name': s['SourceName']})
+
+        source_table = extract_table(filename, 'EW_Reports_Sources')
+
+        # disaster response
+        dr_table = extract_table(filename, 'EW_DisasterResponseTools')
+        # check for 1 record for each field report
+        fids = [r['ReportID'] for r in dr_table]
+        if len(set(fids)) != len(fids):
+            raise Exception('More than one DisasterResponseTools record for a field report')
+
         # contacts
         contacts = extract_table(filename, 'EW_Report_Contacts')
 
+        # field report
         reports = extract_table(filename, 'EW_Reports')
         rids = [r.rid for r in FieldReport.objects.all()]
         print('%s reports in database' % len(reports))
@@ -140,10 +152,11 @@ class Command(BaseCommand):
                 'dtype': DisasterType.objects.get(pk=PK_MAP[report['DisasterTypeID']]),
                 'status': report['StatusID'],
                 'request_assistance': report['GovRequestsInternAssistance'],
+                'actions_others': report['ActionTakenByOthers']
             }
             details = fetch_relation(details_rc, report['ReportID'])
             assert(len(details) <= 1)
-            if len(details) > 1:
+            if len(details) > 0:
                 details = details[0]
                 record.update({
                     'num_injured': details['NumberOfInjured'],
@@ -158,7 +171,7 @@ class Command(BaseCommand):
                 })
             details = fetch_relation(details_gov, report['ReportID'])
             assert(len(details) <= 1)
-            if len(details) > 1:
+            if len(details) > 0:
                 details = details[0]
                 record.update({
                     'gov_num_injured': details['NumberOfInjured_GOV'],
@@ -168,41 +181,80 @@ class Command(BaseCommand):
                     'gov_num_displaced': details['NumberOfDisplaced_GOV'],
                     'gov_num_assisted': details['NumberOfAssistedByGov_GOV']
                 })
+            info = fetch_relation(info_table, report['ReportID'])
+            if len(info) > 0:
+                info = {k: '' if v is None else v for k, v in info[0].items()}
+                record.update({
+                    'bulletin': {'': 0, 'None': 0, 'Planned': 2, 'Published': 3}[info['InformationBulletin']],
+                    'dref': {'': 0, 'No': 0, 'Planned': 2, 'Yes': 3}[info['DREFRequested']],
+                    'dref_amount': 0 if info['DREFRequestedAmount'] == '' else float(info['DREFRequestedAmount']),
+                    'appeal': {'': 0, 'Planned': 2, 'Yes': 3, 'NB': 0, 'No': 0, 'YES': 3}[info['EmergencyAppeal']],
+                    'appeal_amount': 0 if info['EmergencyAppealAmount'] == '' else float(info['EmergencyAppealAmount']),
+                })
+            # disaster response
+            response = fetch_relation(dr_table, report['ReportID'])
 
-            item = FieldReport(**record)
-            item.save()
-            item.countries.add(*Country.objects.filter(pk=report['CountryID']))
+            if len(response) > 0:
+                response = {k: '' if v is None else v for k, v in response[0].items()}
+                record.update({
+                    'rdrt': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['RDRT']],
+                    'fact': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['FACT']],
+                    #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
+                })
 
+            field_report = FieldReport(**record)
+            field_report.save()
+
+            try:
+                country = Country.objects.select_related().get(pk=report['CountryID'])
+            except Country.DoesNotExist():
+                print('Could not find a matching country for %s' % report['CountryID'])
+                country = None
+
+            if country is not None:
+                field_report.countries.add(country)
+                if country.region is not None:
+                    field_report.regions.add(country.region)
+
+            ### add items with foreignkeys to report
             # national red cross actions
             actions = fetch_relation(actions_national, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='NATL', summary=txt)
+                act = ActionsTaken(organization='NATL', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
             # foreign red cross actions
             actions = fetch_relation(actions_foreign, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='PNS', summary=txt)
+                act = ActionsTaken(organization='PNS', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
             # federation red cross actions
             actions = fetch_relation(actions_federation, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='FDRN', summary=txt)
+                act = ActionsTaken(organization='FDRN', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
-                item.actions_taken.add(act)
 
+            # sources
+            sources = fetch_relation(source_table, report['ReportID'])
+            for s in sources:
+                spec = '' if s['Specification'] is None else s['Specification']
+                src = Source.objects.create(stype=SourceType.objects.get(pk=s['SourceID']),
+                                            spec=spec, field_report=field_report)
+
+            # disaster response
+            response = fetch_relation(dr_table, report['ReportID'])
+
+            # contacts
             contact = fetch_relation(contacts, report['ReportID'])
             if len(contact) > 0:
                 # make sure just one contacts record
@@ -217,7 +269,7 @@ class Command(BaseCommand):
                             title=contact['%sFunction' % f],
                             email=contact['%sContact' % f]
                         )
-                        item.contacts.add(ct)
+                        field_report.contacts.add(ct)
 
         # org type mapping
         org_types = {
@@ -274,8 +326,5 @@ class Command(BaseCommand):
             user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
             user.save()
 
-        items = FieldReport.objects.all()
-        print('%s items' % items.count())
-
-        # Reset bulk upload var
-        os.environ['BULK_IMPORT'] = '0'
+        reports = FieldReport.objects.all()
+        print('%s reports' % reports.count())

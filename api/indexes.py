@@ -1,14 +1,31 @@
-PageIndexMapping = {
+EventPageMapping = {
+    'properties': {
+        'id': {'type': 'keyword'},
+        'name': {'type': 'text'},
+        'dtype': {'type': 'text'},
+        'location': {'type': 'text'},
+        'summary': {'type': 'text'},
+        'date': {'type': 'date'},
+    }
+}
+
+AppealPageMapping = {
+    'properties': {
+        'id': {'type': 'keyword'},
+        'name': {'type': 'text'},
+        'dtype': {'type': 'text'},
+        'location': {'type': 'text'},
+        'date': {'type': 'date'},
+    }
+}
+
+ReportPageMapping = {
     'properties': {
         'id': {'type': 'text'},
         'name': {'type': 'text'},
-        'type': {'type': 'keyword'},
-        'countries': {'type': 'keyword'},
-        'dtype': {'type': 'keyword'},
+        'dtype': {'type': 'text'},
+        'location': {'type': 'text'},
         'summary': {'type': 'text'},
-        'status': {'type': 'keyword'},
-        'created_at': {'type': 'date'},
-        'start_date': {'type': 'date'},
-        'end_date': {'type': 'date'},
+        'date': {'type': 'date'},
     }
 }
