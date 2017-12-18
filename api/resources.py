@@ -197,7 +197,7 @@ class FieldReportResource(ModelResource):
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
-    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
+    actions_taken = fields.ToManyField(ActionsTakenResource, 'actionstaken_set', full=True, null=True)
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
