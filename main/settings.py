@@ -2,7 +2,7 @@ import os
 
 local_test = True if os.environ.get('LOCAL_TEST') else False
 development_url = 'dsgoapi.northeurope.cloudapp.azure.com'
-production_url = 'proddsgoapi.northeurope.cloudapp.azure.com/'
+production_url = 'proddsgoapi.northeurope.cloudapp.azure.com'
 localhost = 'localhost'
 BASE_URL = localhost if local_test else production_url
 
