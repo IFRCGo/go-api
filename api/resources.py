@@ -136,7 +136,7 @@ class EventResource(PublicModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['disaster_start_date']
+        ordering = ['-disaster_start_date']
 
 
 class AppealResource(ModelResource):
@@ -163,7 +163,7 @@ class AppealResource(ModelResource):
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['start_date', 'end_date']
+        ordering = ['-start_date', '-end_date']
 
 
 class UserResource(ModelResource):
@@ -197,7 +197,7 @@ class FieldReportResource(ModelResource):
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
-    actions_taken = fields.ToManyField(ActionsTakenResource, 'actions_taken', full=True, null=True)
+    actions_taken = fields.ToManyField(ActionsTakenResource, 'actionstaken_set', full=True, null=True)
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
@@ -214,6 +214,7 @@ class FieldReportResource(ModelResource):
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
         }
+        ordering = ['-created_at']
 
 
 
