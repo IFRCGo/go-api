@@ -142,6 +142,16 @@ class Event(models.Model):
         return self.name
 
 
+class KeyFigure(models.Model):
+    event = models.ForeignKey(Event)
+    # key figure metric
+    number = models.IntegerField()
+    # key figure units
+    deck = models.CharField(max_length=50)
+    # key figure website link, publication
+    source = models.CharField(max_length=256)
+
+
 class GDACSEvent(models.Model):
     """ A GDACS type event, from alerts """
 

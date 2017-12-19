@@ -20,13 +20,17 @@ class EventTest(TestCase):
     def setUp(self):
         dtype = models.DisasterType.objects.get(pk=1)
         models.Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
-        models.Event.objects.create(name='disaster2', summary='another test disaster', dtype=dtype)
+        event = models.Event.objects.create(name='disaster2', summary='another test disaster', dtype=dtype)
+        models.KeyFigure.objects.create(event=event, number=7, deck='things', source='website')
 
     def test_disaster_create(self):
         obj1 = models.Event.objects.get(name='disaster1')
         obj2 = models.Event.objects.get(name='disaster2')
         self.assertEqual(obj1.summary, 'test disaster')
         self.assertEqual(obj2.summary, 'another test disaster')
+        keyfig = obj2.keyfigure_set.all()
+        self.assertEqual(keyfig[0].deck, 'things')
+        self.assertEqual(keyfig[0].number, 7)
 
 
 class CountryTest(TestCase):
