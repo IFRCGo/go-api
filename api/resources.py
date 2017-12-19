@@ -4,6 +4,8 @@ from tastypie.authorization import Authorization
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
+    KeyFigure,
+    Snippet,
     Event,
     Country,
     Region,
@@ -102,13 +104,26 @@ class ActionsTakenResource(ModelResource):
         authorization = Authorization()
 
 
+class KeyFigureResource(ModelResource):
+    class Meta:
+        queryset = KeyFigure.objects.all()
+        resource_name = 'key_figure'
+
+
+class SnippetResource(ModelResource):
+    class Meta:
+        queryset = Snippet.objects.all()
+
+
 class EventResource(PublicModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
-    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
-    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
+    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
+    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True, use_in='detail')
+    key_figures = fields.ToManyField(KeyFigureResource, 'keyfigure_set', full=True, null=True, use_in='detail')
+    snippets = fields.ToManyField(SnippetResource, 'snippet_set', full=True, null=True, use_in='detail')
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
@@ -143,7 +158,7 @@ class AppealResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     country = fields.ForeignKey(CountryResource, 'country', full=True, null=True)
-    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True, null=True, use_in='detail')
     class Meta:
         queryset = Appeal.objects.all()
         allowed_methods = ['get']
@@ -194,7 +209,7 @@ class FieldReportResource(ModelResource):
     user = fields.ForeignKey(RelatedUserResource, 'user', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
-    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True)
+    regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
     contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
     actions_taken = fields.ToManyField(ActionsTakenResource, 'actionstaken_set', full=True, null=True)
