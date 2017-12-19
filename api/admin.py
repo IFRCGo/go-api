@@ -2,6 +2,18 @@ from django.contrib import admin
 import api.models as models
 
 
+class KeyFigureInline(admin.TabularInline):
+    model = models.KeyFigure
+
+
+class SnippetInline(admin.TabularInline):
+    model = models.Snippet
+
+
+class EventAdmin(admin.ModelAdmin):
+    inlines = [KeyFigureInline, SnippetInline]
+
+
 class ActionsTakenInline(admin.TabularInline):
     model = models.ActionsTaken
 
@@ -23,7 +35,7 @@ class ERUOwnerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.DisasterType)
-admin.site.register(models.Event)
+admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
 admin.site.register(models.Country)
 admin.site.register(models.Appeal)
