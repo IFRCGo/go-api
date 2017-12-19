@@ -6,8 +6,12 @@ class KeyFigureInline(admin.TabularInline):
     model = models.KeyFigure
 
 
+class SnippetInline(admin.TabularInline):
+    model = models.Snippet
+
+
 class EventAdmin(admin.ModelAdmin):
-    inlines = [KeyFigureInline]
+    inlines = [KeyFigureInline, SnippetInline]
 
 
 class ActionsTakenInline(admin.TabularInline):
