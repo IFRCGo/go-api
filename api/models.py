@@ -88,7 +88,6 @@ class Event(models.Model):
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
     contacts = models.ManyToManyField(Contact)
-    embed_snippet = models.CharField(max_length=300, null=True, blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
 
     disaster_start_date = models.DateTimeField()
@@ -140,6 +139,22 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class KeyFigure(models.Model):
+    event = models.ForeignKey(Event)
+    # key figure metric
+    number = models.IntegerField()
+    # key figure units
+    deck = models.CharField(max_length=50)
+    # key figure website link, publication
+    source = models.CharField(max_length=256)
+
+
+class Snippet(models.Model):
+    """ Snippet of text """
+    snippet = models.CharField(max_length=300)
+    event = models.ForeignKey(Event)
 
 
 class GDACSEvent(models.Model):
