@@ -10,6 +10,7 @@ from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
@@ -199,7 +200,7 @@ class Command(BaseCommand):
                 record.update({
                     'rdrt': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['RDRT']],
                     'fact': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['FACT']],
-                    #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
+                    'eru_relief': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
                 })
 
             field_report = FieldReport(**record)
@@ -207,7 +208,7 @@ class Command(BaseCommand):
 
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
-            except Country.DoesNotExist():
+            except ObjectDoesNotExist:
                 print('Could not find a matching country for %s' % report['CountryID'])
                 country = None
 
@@ -298,7 +299,7 @@ class Command(BaseCommand):
 
             try:
                 user = User.objects.get(username=user_data['UserName'])
-            except User.DoesNotExist:
+            except ObjectDoesNotExist:
                 user = None
 
             if user is None:
