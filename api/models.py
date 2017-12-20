@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+from .storage import AzureStorage
 
 
 # Write model properties to dictionary
@@ -211,7 +212,7 @@ class Appeal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
-    event = models.ForeignKey(Event, related_name='appeals', null=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
@@ -279,7 +280,23 @@ class Appeal(models.Model):
         return data
 
     def __str__(self):
-        return self.aid
+        return self.code
+
+
+def appeal_document_path(instance, filename):
+    return 'appeals/%s/%s' % (instance.appeal, filename)
+
+
+class AppealDocument(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    document = models.FileField(null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage())
+    document_url = models.URLField(blank=True)
+
+    appeal = models.ForeignKey(Appeal, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s - %s' % (self.appeal, self.name)
 
 
 class RequestChoices(IntEnum):
