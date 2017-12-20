@@ -34,13 +34,19 @@ class ERUOwnerAdmin(admin.ModelAdmin):
     inlines = [ERUInline]
 
 
+class AppealDocumentInline(admin.TabularInline):
+    model = models.AppealDocument
+
+
+class AppealAdmin(admin.ModelAdmin):
+    inlines = [AppealDocumentInline]
+
+
 admin.site.register(models.DisasterType)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
 admin.site.register(models.Country)
-admin.site.register(models.Appeal)
+admin.site.register(models.Appeal, AppealAdmin)
+admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
-admin.site.register(models.SourceType)
-admin.site.register(models.Source)
-admin.site.register(models.Contact)
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
