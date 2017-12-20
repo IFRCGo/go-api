@@ -321,7 +321,8 @@ class FieldReport(models.Model):
                              blank=True,
                              on_delete=models.SET_NULL)
 
-    rid = models.CharField(max_length=100)
+    # Used to differentiate reports that have and have not been synced from DMIS
+    rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
@@ -432,7 +433,7 @@ class FieldReport(models.Model):
 
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
-        return '%s - %s' % (self.rid, summary)
+        return '%s - %s' % (self.id, summary)
 
 
 class FieldReportContact(models.Model):
