@@ -68,18 +68,6 @@ class Country(models.Model):
         return self.name
 
 
-class Contact(models.Model):
-    """ Contact """
-
-    ctype = models.CharField(max_length=100, blank=True)
-    name = models.CharField(max_length=100)
-    title = models.CharField(max_length=300)
-    email = models.CharField(max_length=300)
-
-    def __str__(self):
-        return '%s: %s' % (self.name, self.title)
-
-
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
@@ -88,7 +76,6 @@ class Event(models.Model):
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
-    contacts = models.ManyToManyField(Contact)
     num_affected = models.IntegerField(null=True, blank=True)
 
     disaster_start_date = models.DateTimeField()
@@ -140,6 +127,19 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EventContact(models.Model):
+    """ Contact for event """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
 
 
 class KeyFigure(models.Model):
@@ -318,13 +318,14 @@ class FieldReport(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              related_name='user',
                              null=True,
+                             blank=True,
                              on_delete=models.SET_NULL)
 
     rid = models.CharField(max_length=100)
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
-    event = models.ForeignKey(Event, related_name='field_reports', null=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     status = models.IntegerField(default=0)
@@ -399,9 +400,6 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
     eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
-    # contacts
-    contacts = models.ManyToManyField(Contact)
-
     # meta
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -435,6 +433,19 @@ class FieldReport(models.Model):
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
         return '%s - %s' % (self.rid, summary)
+
+
+class FieldReportContact(models.Model):
+    """ Contact for field report """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
 
 
 class Action(models.Model):
