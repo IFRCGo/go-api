@@ -75,13 +75,20 @@ class Command(BaseCommand):
             else:
                 detail = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))[0]
 
-            amount_funded = 0 if detail['ContributionAmount'] is None else detail['ContributionAmount']
             atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
+            atype = atypes[detail['APD_TYP_Id']]
+
+            if atype == AppealType.DREF:
+                # appeals are always fully-funded
+                amount_funded = detail['APD_amountCHF']
+            else:
+                amount_funded = 0 if detail['ContributionAmount'] is None else detail['ContributionAmount']
+
             fields = {
                 'aid': r['APP_Id'],
                 'name': r['APP_name'],
                 'dtype': dtype,
-                'atype': atypes[detail['APD_TYP_Id']],
+                'atype': atype,
 
                 'country': country,
                 'region': region,
