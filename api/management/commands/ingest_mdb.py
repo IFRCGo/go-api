@@ -200,7 +200,7 @@ class Command(BaseCommand):
                 record.update({
                     'rdrt': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['RDRT']],
                     'fact': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['FACT']],
-                    #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
+                    'eru_relief': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
                 })
 
             field_report = FieldReport(**record)
