@@ -233,7 +233,7 @@ class FieldReportResource(ModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'id': ('exact', 'in'),
             'rid': ('exact', 'in'),
-            'countries': ('in'),
+            'countries': ('exact', 'in'),
             'regions': ('in'),
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
