@@ -15,7 +15,7 @@ from tastypie.models import ApiKey
 from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
-from .models import Appeal, Event, FieldReport
+from .models import Appeal, Event, FieldReport, Heop
 from notifications.models import Subscription
 
 
@@ -81,12 +81,35 @@ class AreaAggregate(PublicJsonRequestView):
         return JsonResponse(dict(aggregate))
 
 
+class AggregateByDtype(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        models = {
+            'appeal': Appeal,
+            'event': Event,
+            'fieldreport': FieldReport,
+            'heop': Heop,
+        }
+        mtype = request.GET.get('model_type', None)
+        if mtype is None or not mtype in models:
+            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
+
+        model = models[mtype]
+        aggregate = model.objects \
+                         .values('dtype') \
+                         .annotate(count=Count('id')) \
+                         .order_by('count') \
+                         .values('dtype', 'count')
+
+        return JsonResponse(dict(aggregate=list(aggregate)))
+
+
 class AggregateByTime(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         models = {
             'appeal': Appeal,
             'event': Event,
             'fieldreport': FieldReport,
+            'heop': Heop,
         }
 
         unit = request.GET.get('unit', None)
@@ -97,7 +120,7 @@ class AggregateByTime(PublicJsonRequestView):
         region = request.GET.get('region', None)
 
         if mtype is None or not mtype in models:
-            return bad_request('Must specify an `model_type` that is `appeal`, `event`, or `fieldreport`')
+            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         if start_date is None:
             start_date = datetime(1980, 1, 1, tzinfo=timezone.utc)
@@ -113,7 +136,7 @@ class AggregateByTime(PublicJsonRequestView):
 
         # set date filter property
         date_filter = 'created_at'
-        if mtype == 'appeal':
+        if mtype == 'appeal' or mtype == 'heop':
             date_filter = 'start_date'
         elif mtype == 'event':
             date_filter = 'disaster_start_date'
