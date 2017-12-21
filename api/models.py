@@ -540,8 +540,8 @@ class Heop(models.Model):
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
 
-    event = models.CharField(null=True, blank=True, max_length=100)
-    linked_event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
 
     person = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
