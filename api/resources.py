@@ -279,11 +279,12 @@ class ERUResource(ModelResource):
 class HeopResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
-    linked_event = fields.ForeignKey(EventResource, 'linked_event', null=True)
+    event = fields.ForeignKey(EventResource, 'event', null=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     class Meta:
         queryset = Heop.objects.all()
         allowed_methods = ['get']
-        #authentication = ExpiringApiKeyAuthentication()
+        authentication = ExpiringApiKeyAuthentication()
         filtering = {
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
