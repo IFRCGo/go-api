@@ -147,8 +147,8 @@ class EventResource(PublicModelResource):
             'name': ('exact', 'iexact'),
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
-            'countries': ('in'),
-            'regions': ('in'),
+            'countries': ('exact', 'in'),
+            'regions': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
@@ -234,7 +234,7 @@ class FieldReportResource(ModelResource):
             'id': ('exact', 'in'),
             'rid': ('exact', 'in'),
             'countries': ('exact', 'in'),
-            'regions': ('in'),
+            'regions': ('exact', 'in'),
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
         }
