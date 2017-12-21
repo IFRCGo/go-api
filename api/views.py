@@ -91,9 +91,12 @@ class AggregateByTime(PublicJsonRequestView):
 
         unit = request.GET.get('unit', None)
         start_date = request.GET.get('start_date', None)
-        model_type = request.GET.get('model_type', None)
+        mtype = request.GET.get('model_type', None)
 
-        if model_type is None or not model_type in models:
+        country = request.GET.get('country', None)
+        region = request.GET.get('region', None)
+
+        if mtype is None or not mtype in models:
             return bad_request('Must specify an `model_type` that is `appeal`, `event`, or `fieldreport`')
 
         if start_date is None:
@@ -106,19 +109,35 @@ class AggregateByTime(PublicJsonRequestView):
 
             start_date = start_date.replace(tzinfo=timezone.utc)
 
-        model = models[model_type]
-        filter_property = 'created_at'
-        if model_type == 'appeal':
-            filter_property = 'start_date'
-        elif model_type == 'event':
-            filter_property = 'disaster_start_date'
+        model = models[mtype]
 
-        filter_exp = filter_property + '__gte'
+        # set date filter property
+        date_filter = 'created_at'
+        if mtype == 'appeal':
+            date_filter = 'start_date'
+        elif mtype == 'event':
+            date_filter = 'disaster_start_date'
+
+        filter_obj = { date_filter + '__gte': start_date }
+
+        # useful shortcut for singular/plural location filters
+        is_appeal = True if mtype == 'appeal' else False
+
+        # set country and region filter properties
+        if country is not None:
+            country_filter = 'country' if is_appeal else 'countries__in'
+            countries = country if is_appeal else [country]
+            filter_obj[country_filter] = countries
+        elif region is not None:
+            region_filter = 'region' if is_appeal else 'regions__in'
+            regions = region if is_appeal else [region]
+            filter_obj[region_filter] = regions
+
         trunc_method = TruncMonth if unit == 'month' else TruncYear
 
         aggregate = model.objects \
-                         .filter(**{filter_exp: start_date}) \
-                         .annotate(timespan=trunc_method(filter_property, tzinfo=timezone.utc)) \
+                         .filter(**filter_obj) \
+                         .annotate(timespan=trunc_method(date_filter, tzinfo=timezone.utc)) \
                          .values('timespan') \
                          .annotate(count=Count('id')) \
                          .order_by('-timespan') \
