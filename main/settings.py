@@ -29,6 +29,13 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
+AZURE_STORAGE = {
+    'CONTAINER': 'api',
+    'ACCOUNT_NAME': os.environ.get('AZURE_STORAGE_ACCOUNT'),
+    'ACCOUNT_KEY': os.environ.get('AZURE_STORAGE_KEY'),
+    'USE_SSL': False,
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
