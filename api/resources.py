@@ -17,7 +17,8 @@ from .models import (
     ActionsTaken,
     Action,
     ERUOwner,
-    ERU
+    ERU,
+    Heop,
 )
 from .authentication import ExpiringApiKeyAuthentication
 from .authorization import FieldReportAuthorization, UserProfileAuthorization
@@ -273,3 +274,19 @@ class ERUResource(ModelResource):
             'countries': ('in'),
         }
         allowed_methods = ['get']
+
+
+class HeopResource(ModelResource):
+    country = fields.ForeignKey(CountryResource, 'country', full=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True)
+    linked_event = fields.ForeignKey(EventResource, 'linked_event', null=True)
+    class Meta:
+        queryset = Heop.objects.all()
+        allowed_methods = ['get']
+        #authentication = ExpiringApiKeyAuthentication()
+        filtering = {
+            'country': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'linked_event': ('exact', 'in'),
+            'person': ('exact', 'in'),
+        }
