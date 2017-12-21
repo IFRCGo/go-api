@@ -532,6 +532,25 @@ class ERU(models.Model):
         return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
 
 
+class Heop(models.Model):
+    """ A deployment of a head officer"""
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+    event = models.CharField(null=True, blank=True, max_length=100)
+    linked_event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+
+    person = models.CharField(null=True, blank=True, max_length=100)
+    role = models.CharField(null=True, blank=True, max_length=32)
+    comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s - %s' % (self.person, self.country)
+
+
 class Profile(models.Model):
     """ Holds location and identifying information about users """
 
