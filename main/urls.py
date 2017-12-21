@@ -25,6 +25,7 @@ from api.resources import (
     UserResource,
     ERUResource,
     ERUOwnerResource,
+    HeopResource
 )
 from notifications.resources import SurgeAlertResource
 from api.views import (
@@ -44,6 +45,7 @@ v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
 v1_api.register(ERUResource())
 v1_api.register(ERUOwnerResource())
+v1_api.register(HeopResource())
 
 # Notification resources
 v1_api.register(SurgeAlertResource())
@@ -57,5 +59,4 @@ urlpatterns = [
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
-
 ]
