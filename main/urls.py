@@ -33,6 +33,7 @@ from notifications.resources import SurgeAlertResource
 from api.views import (
     GetAuthToken,
     EsPageSearch,
+    AggregateByDtype,
     AggregateByTime,
     UpdateSubscriptionPreferences,
     AreaAggregate,
@@ -60,6 +61,7 @@ urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
+    url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
