@@ -10,8 +10,12 @@ class SnippetInline(admin.TabularInline):
     model = models.Snippet
 
 
+class EventContactInline(admin.TabularInline):
+    model = models.EventContact
+
+
 class EventAdmin(admin.ModelAdmin):
-    inlines = [KeyFigureInline, SnippetInline]
+    inlines = [KeyFigureInline, SnippetInline, EventContactInline]
 
 
 class ActionsTakenInline(admin.TabularInline):
@@ -47,6 +51,7 @@ admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
 admin.site.register(models.Country)
 admin.site.register(models.Appeal, AppealAdmin)
+
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
