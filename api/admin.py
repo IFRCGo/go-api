@@ -51,7 +51,7 @@ admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
 admin.site.register(models.Country)
 admin.site.register(models.Appeal, AppealAdmin)
-
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
+admin.site.register(models.Heop)
