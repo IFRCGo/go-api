@@ -7,12 +7,13 @@ from .models import (
     KeyFigure,
     Snippet,
     Event,
+    EventContact,
     Country,
     Region,
     Appeal,
     FieldReport,
+    FieldReportContact,
     Profile,
-    Contact,
     ActionsTaken,
     Action,
     ERUOwner,
@@ -66,14 +67,6 @@ class DisasterTypeResource(ModelResource):
         authorization = Authorization()
 
 
-class ContactResource(ModelResource):
-    class Meta:
-        queryset = Contact.objects.all()
-        allowed_methods = ['get']
-        authorization = Authorization()
-        authentication = ExpiringApiKeyAuthentication()
-
-
 class RegionResource(ModelResource):
     class Meta:
         queryset = Region.objects.all()
@@ -115,13 +108,21 @@ class SnippetResource(ModelResource):
         queryset = Snippet.objects.all()
 
 
+class EventContactResource(ModelResource):
+    class Meta:
+        queryset = EventContact.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
+        authentication = ExpiringApiKeyAuthentication()
+
+
 class EventResource(PublicModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
-    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True, use_in='detail')
+    contacts = fields.ToManyField(EventContactResource, 'eventcontact_set', full=True, null=True, use_in='detail')
     key_figures = fields.ToManyField(KeyFigureResource, 'keyfigure_set', full=True, null=True, use_in='detail')
     snippets = fields.ToManyField(SnippetResource, 'snippet_set', full=True, null=True, use_in='detail')
 
@@ -205,13 +206,21 @@ class ProfileResource(ModelResource):
         authorization = UserProfileAuthorization()
 
 
+class FieldReportContactResource(ModelResource):
+    class Meta:
+        queryset = FieldReportContact.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
+        authentication = ExpiringApiKeyAuthentication()
+
+
 class FieldReportResource(ModelResource):
     user = fields.ForeignKey(RelatedUserResource, 'user', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
-    contacts = fields.ToManyField(ContactResource, 'contacts', full=True, null=True)
+    contacts = fields.ToManyField(FieldReportContactResource, 'fieldreportcontact_set', full=True, null=True, use_in='detail')
     actions_taken = fields.ToManyField(ActionsTakenResource, 'actionstaken_set', full=True, null=True)
     class Meta:
         queryset = FieldReport.objects.all()
