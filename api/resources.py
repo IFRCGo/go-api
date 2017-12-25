@@ -153,7 +153,7 @@ class EventResource(PublicModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['-disaster_start_date']
+        ordering = ['disaster_start_date']
 
 
 class AppealResource(ModelResource):
@@ -180,7 +180,7 @@ class AppealResource(ModelResource):
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['-start_date', '-end_date']
+        ordering = ['start_date', 'end_date']
 
 
 class UserResource(ModelResource):
@@ -239,7 +239,7 @@ class FieldReportResource(ModelResource):
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
         }
-        ordering = ['-created_at']
+        ordering = ['created_at']
 
 
 
@@ -291,3 +291,4 @@ class HeopResource(ModelResource):
             'linked_event': ('exact', 'in'),
             'person': ('exact', 'in'),
         }
+        ordering = ['end_date', 'start_date']
