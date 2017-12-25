@@ -163,7 +163,7 @@ class AggregateByTime(PublicJsonRequestView):
                          .annotate(timespan=trunc_method(date_filter, tzinfo=timezone.utc)) \
                          .values('timespan') \
                          .annotate(count=Count('id')) \
-                         .order_by('-timespan') \
+                         .order_by('timespan') \
                          .values('timespan', 'count')
 
         return JsonResponse(dict(aggregate=list(aggregate)))
