@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'api',
     'notifications',
+    'registrations',
 ]
 
 GRAPHENE = {
