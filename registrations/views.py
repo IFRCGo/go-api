@@ -39,7 +39,7 @@ def create_active_user(raw):
 
 
 def set_user_profile_inactive(user, raw):
-    user.active = False
+    user.is_active = False
     user.profile.country = Country.objects.get(pk=raw['country'])
     user.profile.org_type = raw['organizationType']
     user.profile.org = raw['organization']
