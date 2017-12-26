@@ -577,10 +577,10 @@ class Profile(models.Model):
         max_length=4,
         blank=True,
     )
-    city = models.CharField(blank=True, max_length=100)
-    department = models.CharField(blank=True, max_length=100)
-    position = models.CharField(blank=True, max_length=100)
-    phone_number = models.CharField(blank=True, max_length=100)
+    city = models.CharField(blank=True, null=True, max_length=100)
+    department = models.CharField(blank=True, null=True, max_length=100)
+    position = models.CharField(blank=True, null=True, max_length=100)
+    phone_number = models.CharField(blank=True, null=True, max_length=100)
 
     def __str__(self):
         return self.user.username
