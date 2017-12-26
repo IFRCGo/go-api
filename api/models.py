@@ -572,6 +572,7 @@ class Profile(models.Model):
             ('DLGN', 'Delegation'),
             ('SCRT', 'Secretariat'),
             ('ICRC', 'ICRC'),
+            ('OTHR', 'Other'),
         ),
         max_length=4,
         blank=True,
