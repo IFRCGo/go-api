@@ -38,6 +38,9 @@ from api.views import (
     UpdateSubscriptionPreferences,
     AreaAggregate,
 )
+from registrations.views import (
+    NewRegistration,
+)
 
 # Api resources
 v1_api = Api(api_name='v1')
@@ -65,4 +68,5 @@ urlpatterns = [
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
+    url(r'^register', NewRegistration.as_view()),
 ]
