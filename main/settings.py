@@ -1,15 +1,20 @@
 import os
 
 local_test = True if os.environ.get('LOCAL_TEST') else False
-development_url = 'dsgoapi.northeurope.cloudapp.azure.com'
-production_url = 'proddsgoapi.northeurope.cloudapp.azure.com'
+production_url = os.environ.get('API_FQDN')
 localhost = 'localhost'
-BASE_URL = localhost if local_test else production_url
+
+BASE_URL = '%s:8000' % localhost if local_test else production_url
+
+ALLOWED_HOSTS = []
+if local_test:
+    ALLOWED_HOSTS.append(localhost)
+elif production_url is not None:
+    ALLOWED_HOSTS.append(production_url)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = True
-ALLOWED_HOSTS = [localhost, development_url, production_url,]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
