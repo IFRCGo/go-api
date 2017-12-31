@@ -1,10 +1,18 @@
 import json
+import pytz
+from datetime import timedelta, datetime
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-from api.views import bad_request, PublicJsonPostView, PublicJsonRequestView
+from api.views import (
+    bad_request,
+    bad_http_request,
+    PublicJsonPostView,
+    PublicJsonRequestView,
+)
 from api.utils import pretty_request
 from api.models import Country
 from .models import Pending
@@ -96,12 +104,41 @@ class NewRegistration(PublicJsonPostView):
         pending.save()
 
         email_context = {
-            'confirmation_link': '%s/verify_email/?token=%s' % (settings.BASE_URL,
-                                                                pending.token)
+            'confirmation_link': '%s/verify_email/?token=%s&user=%s' % (
+                settings.BASE_URL,
+                pending.token,
+                body['username'],
+            )
         }
+        print(email_context)
 
         send_notification('Please verify your email address',
                           [body['email']],
                           render_to_string('email/verify_email.html', email_context))
 
+        return JsonResponse({'status': 'ok'})
+
+
+class VerifyEmail(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        token = request.GET.get('token', None)
+        user = request.GET.get('user', None)
+        if not token or not user:
+            return bad_http_request('Credentials not found',
+                                    'The URL must include a token and user. Please check your verification email and try again. If this problem persists, contact a system administrator.')
+
+        try:
+            pending_user = Pending.objects.get(token=token, user__username=user)
+        except ObjectDoesNotExist:
+            return bad_http_request('User not found, or token incorrect',
+                                    'We could not find a user and token that matched those supplied. Please contact your system administrator.')
+
+        if pending_user.user.is_active:
+            return bad_http_request('%s is active' % user,
+                                    'The user is already active. If you need to reset your password, contact your system administrator.')
+
+        if pending_user.created_at > datetime.utcnow().replace(tzinfo=pytz.utc) + timedelta(hours=24):
+            return bad_http_request('The link is expired',
+                                    'You must verify your email within 24 hours. Please contact your system administrator.')
+        print(pending_user)
         return JsonResponse({'status': 'ok'})
