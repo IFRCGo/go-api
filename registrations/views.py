@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from api.views import (
     bad_request,
@@ -98,8 +98,9 @@ class NewRegistration(PublicJsonPostView):
                                          token=get_random_string(length=32))
 
         if not is_staff:
-            pending.admin_1 = admins[0]
-            pending.admin_2 = admins[1]
+            pending.admin_contact_1 = admins[0]
+            pending.admin_contact_2 = admins[1]
+            pending.admin_token = get_random_string(length=32)
 
         pending.save()
 
@@ -114,7 +115,7 @@ class NewRegistration(PublicJsonPostView):
 
         send_notification('Please verify your email address',
                           [body['email']],
-                          render_to_string('email/verify_email.html', email_context))
+                          render_to_string('email/registration/verify.html', email_context))
 
         return JsonResponse({'status': 'ok'})
 
@@ -136,8 +137,32 @@ class VerifyEmail(PublicJsonRequestView):
         if pending_user.user.is_active:
             return bad_http_request('%s is active' % user,
                                     'The user is already active. If you need to reset your password, contact your system administrator.')
-
+        if pending_user.email_verified:
+            return bad_http_request('You have already verified your email',
+                                    'A validation email has been sent to the administrators you listed.')
         if pending_user.created_at < datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(days=1):
             return bad_http_request('This link is expired',
                                     'You must verify your email within 24 hours. Please contact your system administrator.')
-        return JsonResponse({'status': 'ok'})
+
+        if is_valid_domain(pending_user.user.email):
+            pending_user.user.is_active = True
+            pending_user.user.save()
+            return HttpResponse(render_to_string('email/registration/success.html'))
+        else:
+            admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
+            email_context = {
+                'validation_link': '%s/validate_user/?token=%s&user=%s' % (
+                    settings.BASE_URL,
+                    pending_user.admin_token,
+                    user,
+                ),
+                'first_name': pending_user.user.first_name,
+                'last_name': pending_user.user.last_name,
+                'email': pending_user.user.email,
+            }
+            send_notification('Validate an outside IFRC GO user',
+                              admins,
+                              render_to_string('email/registration/validate.html', email_context))
+            pending_user.email_verified = True
+            pending_user.save()
+            return HttpResponse(render_to_string('email/registration/validation-sent.html'))
