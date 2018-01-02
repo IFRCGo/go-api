@@ -41,6 +41,7 @@ from api.views import (
 from registrations.views import (
     NewRegistration,
     VerifyEmail,
+    ValidateUser,
 )
 
 # Api resources
@@ -71,4 +72,5 @@ urlpatterns = [
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
+    url(r'^validate_user', ValidateUser.as_view()),
 ]
