@@ -41,6 +41,8 @@ def get_valid_admins(contacts):
 
 def create_active_user(raw):
     user = User.objects.create_user(username=raw['username'],
+                                    first_name=raw['firstname'],
+                                    last_name=raw['lastname'],
                                     email=raw['email'],
                                     password=raw['password'])
     return user
@@ -71,6 +73,8 @@ class NewRegistration(PublicJsonPostView):
             'country',
             'organizationType',
             'organization',
+            'firstname',
+            'lastname',
         ]
 
         missing_fields = [field for field in required_fields if field not in body]
@@ -80,19 +84,23 @@ class NewRegistration(PublicJsonPostView):
         is_staff = is_valid_domain(body['email'])
         admins = True if is_staff else get_valid_admins(body['contact'])
         if not admins:
-            return bad_request('Non-IFRC users must submit two valid admin emails')
+            return bad_request('Non-IFRC users must submit two valid admin emails.')
+        if User.objects.filter(email=body['email']).count() > 0:
+            return bad_request('A user with that email address already exists.')
+        if User.objects.filter(username=body['username']).count() > 0:
+            return bad_request('That username is taken, please choose a different one.')
 
         try:
             user = create_active_user(body)
         except:
-            return bad_request('Could not create user')
+            return bad_request('Could not create user.')
 
         try:
             # Note, this also sets the user's active status to False
             set_user_profile_inactive(user, body)
         except:
             User.objects.filter(username=body['username']).delete()
-            return bad_request('Could not create user profile')
+            return bad_request('Could not create user profile.')
 
         pending = Pending.objects.create(user=user,
                                          token=get_random_string(length=32))
@@ -178,7 +186,7 @@ class ValidateUser(PublicJsonRequestView):
             return bad_http_request('Credentials not found',
                                     'The URL must include a token and user. Please check your email and try again.')
         try:
-            pending_user = Pending.objects.get(token=token, user__username=user)
+            pending_user = Pending.objects.get(admin_token=token, user__username=user)
         except ObjectDoesNotExist:
             return bad_http_request('User not found, or token incorrect',
                                     'We could not find a user and token that matched those supplied.')
