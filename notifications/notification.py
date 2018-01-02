@@ -11,7 +11,6 @@ username = os.environ.get('EMAIL_USER')
 password = os.environ.get('EMAIL_PASS')
 
 
-
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
         self.recipients = recipients
