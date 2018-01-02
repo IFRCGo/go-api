@@ -137,8 +137,7 @@ class VerifyEmail(PublicJsonRequestView):
             return bad_http_request('%s is active' % user,
                                     'The user is already active. If you need to reset your password, contact your system administrator.')
 
-        if pending_user.created_at > datetime.utcnow().replace(tzinfo=pytz.utc) + timedelta(hours=24):
-            return bad_http_request('The link is expired',
+        if pending_user.created_at < datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(days=1):
+            return bad_http_request('This link is expired',
                                     'You must verify your email within 24 hours. Please contact your system administrator.')
-        print(pending_user)
         return JsonResponse({'status': 'ok'})
