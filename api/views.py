@@ -1,7 +1,7 @@
 import json
 
 from datetime import datetime
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
@@ -24,6 +24,10 @@ def bad_request(message):
         'statusCode': 400,
         'error_message': message
     }, status=400)
+
+
+def bad_http_request(header, message):
+    return HttpResponse('<h2>%s</h2><p>%s</p>' % (header, message), status=400)
 
 
 def unauthorized(message='You must be logged in'):
