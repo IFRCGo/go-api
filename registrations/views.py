@@ -13,7 +13,6 @@ from api.views import (
     PublicJsonPostView,
     PublicJsonRequestView,
 )
-from api.utils import pretty_request
 from api.models import Country
 from .models import Pending
 from notifications.notification import send_notification
@@ -63,7 +62,6 @@ def set_user_profile_inactive(user, raw):
 
 class NewRegistration(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
 
         required_fields = [
@@ -119,8 +117,6 @@ class NewRegistration(PublicJsonPostView):
                 body['username'],
             )
         }
-        print(email_context)
-
         send_notification('Please verify your email address',
                           [body['email']],
                           render_to_string('email/registration/verify.html', email_context))
@@ -169,7 +165,6 @@ class VerifyEmail(PublicJsonRequestView):
                 'last_name': pending_user.user.last_name,
                 'email': pending_user.user.email,
             }
-            print(email_context)
             send_notification('Validate an outside IFRC GO user',
                               admins,
                               render_to_string('email/registration/validate.html', email_context))
