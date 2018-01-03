@@ -153,7 +153,15 @@ class EventResource(PublicModelResource):
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['disaster_start_date']
+        ordering = [
+            'disaster_start_date',
+            'created_at',
+            'name',
+            'dtype',
+            'summary',
+            'num_affected',
+            'auto_generated',
+        ]
 
 
 class AppealResource(ModelResource):
@@ -180,7 +188,26 @@ class AppealResource(ModelResource):
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
-        ordering = ['start_date', 'end_date']
+        ordering = [
+            'start_date',
+            'end_date',
+
+            'name',
+            'aid',
+            'atype',
+            'dtype',
+
+            'num_beneficiaries',
+            'amount_requested',
+            'amount_funded',
+
+            'event',
+            'country',
+            'region',
+            'status',
+            'code',
+            'sector',
+        ]
 
 
 class UserResource(ModelResource):
@@ -232,6 +259,7 @@ class FieldReportResource(ModelResource):
         filtering = {
             'event': ALL_WITH_RELATIONS,
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'summary': ('exact', 'in'),
             'id': ('exact', 'in'),
             'rid': ('exact', 'in'),
             'countries': ('exact', 'in'),
@@ -239,7 +267,31 @@ class FieldReportResource(ModelResource):
             'status': ('exact', 'in'),
             'request_assistance': ('exact')
         }
-        ordering = ['created_at']
+        ordering = [
+            'created_at',
+            'summary',
+            'event',
+            'dtype',
+            'status',
+            'request_assistance',
+
+            'num_injured',
+            'num_dead',
+            'num_missing',
+            'num_affected',
+            'num_displaced',
+            'num_assisted',
+            'num_localstaff',
+            'num_volunteers',
+            'num_xpats_delegates',
+
+            'gov_num_injured',
+            'gov_num_dead',
+            'gov_num_missing',
+            'gov_num_affected',
+            'gov_num_displaced',
+            'gov_num_assisted',
+        ]
 
 
 
