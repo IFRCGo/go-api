@@ -145,19 +145,21 @@ class EventResource(PublicModelResource):
         allowed_methods = ['get']
         authorization = Authorization()
         filtering = {
+            'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'name': ('exact', 'iexact'),
+            'dtype': ('exact', 'in'),
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
             'countries': ('exact', 'in'),
             'regions': ('exact', 'in'),
-            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'disaster_start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
         }
         ordering = [
             'disaster_start_date',
             'created_at',
             'name',
             'dtype',
+            'eid',
             'summary',
             'num_affected',
             'auto_generated',
@@ -182,6 +184,7 @@ class AppealResource(ModelResource):
             'amount_funded': ('gt', 'gte', 'lt', 'lte', 'range'),
             'num_beneficiaries': ('gt', 'gte', 'lt', 'lte', 'range'),
             'atype': ('exact', 'in'),
+            'dtype': ('exact', 'in'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
@@ -260,6 +263,7 @@ class FieldReportResource(ModelResource):
             'event': ALL_WITH_RELATIONS,
             'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'summary': ('exact', 'in'),
+            'dtype': ('exact', 'in'),
             'id': ('exact', 'in'),
             'rid': ('exact', 'in'),
             'countries': ('exact', 'in'),
