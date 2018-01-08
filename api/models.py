@@ -515,6 +515,7 @@ class ERUOwner(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
     def __str__(self):
         return self.country.name
 
@@ -523,10 +524,13 @@ class ERU(models.Model):
     """ A resource that can be deployed """
     type = EnumIntegerField(ERUType, default=0)
     units = models.IntegerField(default=0)
+    equipment_units = models.IntegerField(default=0)
     # where deployed (none if available)
     countries = models.ManyToManyField(Country, blank=True)
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
+    available = models.BooleanField(default=False)
+
 
     def __str__(self):
         return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
