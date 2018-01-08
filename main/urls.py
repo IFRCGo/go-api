@@ -25,6 +25,8 @@ from api.resources import (
     AppealResource,
     FieldReportResource,
     UserResource,
+)
+from deployments.resources import (
     ERUResource,
     ERUOwnerResource,
     HeopResource
