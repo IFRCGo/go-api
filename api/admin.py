@@ -30,14 +30,6 @@ class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline]
 
 
-class ERUInline(admin.TabularInline):
-    model = models.ERU
-
-
-class ERUOwnerAdmin(admin.ModelAdmin):
-    inlines = [ERUInline]
-
-
 class AppealDocumentInline(admin.TabularInline):
     model = models.AppealDocument
 
@@ -53,6 +45,4 @@ admin.site.register(models.Country)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
-admin.site.register(models.ERUOwner, ERUOwnerAdmin)
-admin.site.register(models.Heop)
 admin.site.register(models.Profile)
