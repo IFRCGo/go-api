@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'api',
     'notifications',
     'registrations',
+    'deployments',
 ]
 
 GRAPHENE = {

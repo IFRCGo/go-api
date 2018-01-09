@@ -494,63 +494,6 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-class ERUType(IntEnum):
-    BASECAMP = 0
-    HEALTHCARE = 1
-    TELECOM = 2
-    LOGISTICS = 3
-    DEPLOY_HOSPITAL = 4
-    REFER_HOSPITAL = 5
-    RELIEF = 6
-    SANITATION_10 = 7
-    SANITATION_20 = 8
-    SANITATION_40 = 9
-
-
-class ERUOwner(models.Model):
-    """ A resource that may or may not be deployed """
-
-    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.country.name
-
-
-class ERU(models.Model):
-    """ A resource that can be deployed """
-    type = EnumIntegerField(ERUType, default=0)
-    units = models.IntegerField(default=0)
-    # where deployed (none if available)
-    countries = models.ManyToManyField(Country, blank=True)
-    # links to services
-    eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
-
-
-class Heop(models.Model):
-    """ A deployment of a head officer"""
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-
-    country = models.ForeignKey(Country, on_delete=models.CASCADE)
-    region = models.ForeignKey(Region, on_delete=models.CASCADE)
-
-    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
-    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
-
-    person = models.CharField(null=True, blank=True, max_length=100)
-    role = models.CharField(null=True, blank=True, max_length=32)
-    comments = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return '%s - %s' % (self.person, self.country)
-
-
 class Profile(models.Model):
     """ Holds location and identifying information about users """
 

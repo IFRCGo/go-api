@@ -15,7 +15,8 @@ from tastypie.models import ApiKey
 from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
-from .models import Appeal, Event, FieldReport, Heop
+from .models import Appeal, Event, FieldReport
+from deployments.models import Heop
 from notifications.models import Subscription
 
 
