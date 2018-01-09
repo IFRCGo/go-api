@@ -2,6 +2,10 @@ from django.db import models
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.models import Country, Region, Event, DisasterType
+from datetime import datetime
+
+
+DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 
 class ERUType(IntEnum):
@@ -58,8 +62,52 @@ class Heop(models.Model):
     dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
 
     person = models.CharField(null=True, blank=True, max_length=100)
+    role = models.CharField(default='HeOps', null=True, blank=True, max_length=32)
+    comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s (%s) %s - %s' % (self.person, self.country,
+                                    datetime.strftime(self.start_date, DATE_FORMAT),
+                                    datetime.strftime(self.end_date, DATE_FORMAT))
+
+
+class Fact(models.Model):
+    """ A FACT resource"""
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
+
+    person = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return '%s - %s' % (self.person, self.country)
+        return '%s (%s) %s - %s' % (self.person, self.country,
+                                    datetime.strftime(self.start_date, DATE_FORMAT),
+                                    datetime.strftime(self.end_date, DATE_FORMAT))
+
+
+class Rdit(models.Model):
+    """ An RDIT resource"""
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
+
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
+
+    person = models.CharField(null=True, blank=True, max_length=100)
+    role = models.CharField(null=True, blank=True, max_length=32)
+    comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s (%s) %s - %s' % (self.person, self.country,
+                                    datetime.strftime(self.start_date, DATE_FORMAT),
+                                    datetime.strftime(self.end_date, DATE_FORMAT))
