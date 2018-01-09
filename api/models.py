@@ -63,6 +63,7 @@ class Country(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = 'Countries'
 
     def __str__(self):
         return self.name
@@ -85,6 +86,8 @@ class Event(models.Model):
 
     class Meta:
         ordering = ('-disaster_start_date',)
+        verbose_name = 'Emergency'
+        verbose_name_plural = 'Emergencies'
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -524,6 +527,10 @@ class Profile(models.Model):
     department = models.CharField(blank=True, null=True, max_length=100)
     position = models.CharField(blank=True, null=True, max_length=100)
     phone_number = models.CharField(blank=True, null=True, max_length=100)
+
+    class Meta:
+        verbose_name = 'User profile'
+        verbose_name_plural = 'User profiles'
 
     def __str__(self):
         return self.user.username

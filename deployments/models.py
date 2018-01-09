@@ -29,6 +29,9 @@ class ERUOwner(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = 'ERU owner'
+        verbose_name_plural = 'ERU owners'
 
     def __str__(self):
         return self.country.name
@@ -65,6 +68,10 @@ class Heop(models.Model):
     role = models.CharField(default='HeOps', null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'HeOp'
+        verbose_name_plural = 'HeOps'
+
     def __str__(self):
         return '%s (%s) %s - %s' % (self.person, self.country,
                                     datetime.strftime(self.start_date, DATE_FORMAT),
@@ -86,6 +93,10 @@ class Fact(models.Model):
     role = models.CharField(null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'FACT'
+        verbose_name_plural = 'FACTs'
+
     def __str__(self):
         return '%s (%s) %s - %s' % (self.person, self.country,
                                     datetime.strftime(self.start_date, DATE_FORMAT),
@@ -106,6 +117,10 @@ class Rdit(models.Model):
     person = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'RDRT/RIT'
+        verbose_name_plural = 'RDRTs/RITs'
 
     def __str__(self):
         return '%s (%s) %s - %s' % (self.person, self.country,
