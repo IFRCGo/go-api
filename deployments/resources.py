@@ -11,6 +11,8 @@ from .models import (
     ERUOwner,
     ERU,
     Heop,
+    Fact,
+    Rdit,
 )
 
 
@@ -54,6 +56,42 @@ class HeopResource(ModelResource):
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     class Meta:
         queryset = Heop.objects.all()
+        allowed_methods = ['get']
+        authentication = ExpiringApiKeyAuthentication()
+        filtering = {
+            'country': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'linked_event': ('exact', 'in'),
+            'person': ('exact', 'in'),
+        }
+        ordering = ['end_date', 'start_date']
+
+
+class FactResource(ModelResource):
+    country = fields.ForeignKey(CountryResource, 'country', full=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True)
+    event = fields.ForeignKey(EventResource, 'event', null=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
+    class Meta:
+        queryset = Fact.objects.all()
+        allowed_methods = ['get']
+        authentication = ExpiringApiKeyAuthentication()
+        filtering = {
+            'country': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'linked_event': ('exact', 'in'),
+            'person': ('exact', 'in'),
+        }
+        ordering = ['end_date', 'start_date']
+
+
+class RditResource(ModelResource):
+    country = fields.ForeignKey(CountryResource, 'country', full=True)
+    region = fields.ForeignKey(RegionResource, 'region', full=True)
+    event = fields.ForeignKey(EventResource, 'event', null=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
+    class Meta:
+        queryset = Rdit.objects.all()
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {

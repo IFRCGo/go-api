@@ -12,3 +12,5 @@ class ERUOwnerAdmin(admin.ModelAdmin):
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.Heop)
+admin.site.register(models.Fact)
+admin.site.register(models.Rdit)
