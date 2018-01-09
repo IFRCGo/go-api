@@ -20,5 +20,9 @@ class Pending(models.Model):
 
     email_verified = models.BooleanField(default=False, editable=False)
 
+    class Meta:
+        verbose_name = 'Pending user'
+        verbose_name_plural = 'Pending users'
+
     def __str__(self):
         return self.user.email
