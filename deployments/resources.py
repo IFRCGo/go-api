@@ -59,12 +59,25 @@ class HeopResource(ModelResource):
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
+            'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
-            'linked_event': ('exact', 'in'),
+            'event': ('exact', 'in'),
+            'dtype': ('exact', 'in'),
             'person': ('exact', 'in'),
+            'role': ('exact', 'in'),
         }
-        ordering = ['end_date', 'start_date']
+        ordering = [
+            'start_date',
+            'end_date',
+            'country',
+            'region',
+            'event',
+            'dtype',
+            'person',
+            'role',
+        ]
 
 
 class FactResource(ModelResource):
@@ -77,12 +90,25 @@ class FactResource(ModelResource):
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
+            'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
-            'linked_event': ('exact', 'in'),
+            'event': ('exact', 'in'),
+            'dtype': ('exact', 'in'),
             'person': ('exact', 'in'),
+            'role': ('exact', 'in'),
         }
-        ordering = ['end_date', 'start_date']
+        ordering = [
+            'start_date',
+            'end_date',
+            'country',
+            'region',
+            'event',
+            'dtype',
+            'person',
+            'role',
+        ]
 
 
 class RditResource(ModelResource):
@@ -95,9 +121,22 @@ class RditResource(ModelResource):
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
+            'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
-            'linked_event': ('exact', 'in'),
+            'event': ('exact', 'in'),
+            'dtype': ('exact', 'in'),
             'person': ('exact', 'in'),
+            'role': ('exact', 'in'),
         }
-        ordering = ['end_date', 'start_date']
+        ordering = [
+            'start_date',
+            'end_date',
+            'country',
+            'region',
+            'event',
+            'dtype',
+            'person',
+            'role',
+        ]
