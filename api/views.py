@@ -10,6 +10,7 @@ from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count, Sum
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 from tastypie.models import ApiKey
 from .utils import pretty_request
@@ -194,13 +195,13 @@ class PublicJsonPostView(View):
         # Query the user
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
         # Query the key
         try:
             ApiKey.objects.get(user=user, key=key)
-        except ApiKey.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
         return user
@@ -217,12 +218,11 @@ class PublicJsonPostView(View):
 
 class GetAuthToken(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
+        if not 'username' in body or not 'password' in body:
+            return bad_request('Body must contain `username` and `password`')
         username = body['username']
         password = body['password']
-        if not username or not password:
-            return bad_request('Body must contain `username` and `password`')
 
         user = authenticate(username=username, password=password)
         if user is not None:
@@ -255,3 +255,29 @@ class UpdateSubscriptionPreferences(PublicJsonPostView):
             }, status=400)
         else:
             return JsonResponse({'statusCode': 200, 'created': len(created)})
+
+
+class ChangePassword(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        if not 'username' in body or (not 'password' in body and not 'token' in body):
+            return bad_request('Must include a `username` and either a `password` or `token`')
+
+        try:
+            user = User.objects.get(username=body['username'])
+        except ObjectDoesNotExist:
+            return bad_request('Could not authenticate')
+
+        if 'password' in body and not user.check_password(body['password']):
+            return bad_request('Could not authenticate')
+        elif 'token' in body:
+            return bad_request('Could not authenticate')
+
+        # TODO validate password
+        if not 'new_password' in body:
+            return bad_request('Must include a `new_password` property')
+
+        user.set_password(body['new_password'])
+        user.save()
+
+        return JsonResponse({'status': 'ok'})
