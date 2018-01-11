@@ -11,6 +11,8 @@ from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count, Sum
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
+from django.template.loader import render_to_string
 
 from tastypie.models import ApiKey
 from .utils import pretty_request
@@ -19,6 +21,8 @@ from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
 from deployments.models import Heop
 from notifications.models import Subscription
+from notifications.notification import send_notification
+from registrations.models import Recovery
 
 
 def bad_request(message):
@@ -279,5 +283,30 @@ class ChangePassword(PublicJsonPostView):
 
         user.set_password(body['new_password'])
         user.save()
+
+        return JsonResponse({'status': 'ok'})
+
+
+class RecoverPassword(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        if not 'email' in body:
+            return bad_request('Must include an `email` property')
+
+        try:
+            user = User.objects.get(email=body['email'])
+        except ObjectDoesNotExist:
+            return bad_request('That email is not associated with a user')
+
+        token = get_random_string(length=32)
+        recovery = Recovery.objects.create(user=user,
+                                           token=token)
+        email_context = {
+            'username': user.username,
+            'token': token
+        }
+        send_notification('Reset your password',
+                          [user.email],
+                          render_to_string('email/recover_password.html', email_context))
 
         return JsonResponse({'status': 'ok'})
