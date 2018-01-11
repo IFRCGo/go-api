@@ -26,3 +26,18 @@ class Pending(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class Recovery(models.Model):
+    """ Password reovery"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(max_length=12, editable=False)
+
+    def __str__(self):
+        return self.user.username
