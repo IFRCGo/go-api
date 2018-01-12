@@ -282,6 +282,7 @@ class ChangePassword(PublicJsonPostView):
 
             if recovery.token != body['token']:
                 return bad_request('Could not authenticate')
+            recovery.delete()
 
         # TODO validate password
         if not 'new_password' in body:
