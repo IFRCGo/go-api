@@ -10,7 +10,8 @@ from ftplib import FTP
 from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, Contact, SourceType, Source
+from django.core.exceptions import ObjectDoesNotExist
+from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, FieldReportContact, SourceType, Source
 from api.fixtures.dtype_map import PK_MAP
 
 
@@ -199,7 +200,7 @@ class Command(BaseCommand):
                 record.update({
                     'rdrt': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['RDRT']],
                     'fact': {'': 0, 'No': 0, 'Yes': 3, 'Planned/Requested': 2}[response['FACT']],
-                    #'eru': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
+                    'eru_relief': {'': 0, 'Yes': 3, 'Planned/Requested': 2, 'No': 0}[response['ERU']]
                 })
 
             field_report = FieldReport(**record)
@@ -207,7 +208,7 @@ class Command(BaseCommand):
 
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
-            except Country.DoesNotExist():
+            except ObjectDoesNotExist:
                 print('Could not find a matching country for %s' % report['CountryID'])
                 country = None
 
@@ -221,7 +222,7 @@ class Command(BaseCommand):
             actions = fetch_relation(actions_national, report['ReportID'])
             if len(actions) > 0:
                 txt = ' '.join([a['Value'] for a in actions if a['Value'] is not None])
-                act = ActionsTaken(organization='NATL', summary=txt, field_report=field_report)
+                act = ActionsTaken(organization='NTLS', summary=txt, field_report=field_report)
                 act.save()
                 for pk in [a['ActionTakenByRedCrossID'] for a in actions]:
                     act.actions.add(*Action.objects.filter(pk=pk))
@@ -263,13 +264,13 @@ class Command(BaseCommand):
                 fields = ['Originator', 'Primary', 'Federation', 'NationalSociety', 'MediaNationalSociety', 'Media']
                 for f in fields:
                     if contact_is_valid(contact, f):
-                        ct = Contact.objects.create(
+                        ct = FieldReportContact.objects.create(
                             ctype=f,
                             name=contact['%sName' % f],
                             title=contact['%sFunction' % f],
-                            email=contact['%sContact' % f]
+                            email=contact['%sContact' % f],
+                            field_report=field_report,
                         )
-                        field_report.contacts.add(ct)
 
         # org type mapping
         org_types = {
@@ -298,7 +299,7 @@ class Command(BaseCommand):
 
             try:
                 user = User.objects.get(username=user_data['UserName'])
-            except User.DoesNotExist:
+            except ObjectDoesNotExist:
                 user = None
 
             if user is None:

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+from .storage import AzureStorage
 
 
 # Write model properties to dictionary
@@ -62,21 +63,10 @@ class Country(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name_plural = 'Countries'
 
     def __str__(self):
         return self.name
-
-
-class Contact(models.Model):
-    """ Contact """
-
-    ctype = models.CharField(max_length=100, blank=True)
-    name = models.CharField(max_length=100)
-    title = models.CharField(max_length=300)
-    email = models.CharField(max_length=300)
-
-    def __str__(self):
-        return '%s: %s' % (self.name, self.title)
 
 
 class Event(models.Model):
@@ -87,8 +77,6 @@ class Event(models.Model):
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
-    contacts = models.ManyToManyField(Contact)
-    embed_snippet = models.CharField(max_length=300, null=True, blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
 
     disaster_start_date = models.DateTimeField()
@@ -98,6 +86,8 @@ class Event(models.Model):
 
     class Meta:
         ordering = ('-disaster_start_date',)
+        verbose_name = 'Emergency'
+        verbose_name_plural = 'Emergencies'
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -140,6 +130,35 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EventContact(models.Model):
+    """ Contact for event """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
+
+
+class KeyFigure(models.Model):
+    event = models.ForeignKey(Event)
+    # key figure metric
+    number = models.IntegerField()
+    # key figure units
+    deck = models.CharField(max_length=50)
+    # key figure website link, publication
+    source = models.CharField(max_length=256)
+
+
+class Snippet(models.Model):
+    """ Snippet of text """
+    snippet = models.CharField(max_length=300)
+    event = models.ForeignKey(Event)
 
 
 class GDACSEvent(models.Model):
@@ -196,7 +215,7 @@ class Appeal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
-    event = models.ForeignKey(Event, related_name='appeals', null=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
@@ -264,7 +283,23 @@ class Appeal(models.Model):
         return data
 
     def __str__(self):
-        return self.aid
+        return self.code
+
+
+def appeal_document_path(instance, filename):
+    return 'appeals/%s/%s' % (instance.appeal, filename)
+
+
+class AppealDocument(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    document = models.FileField(null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage())
+    document_url = models.URLField(blank=True)
+
+    appeal = models.ForeignKey(Appeal, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s - %s' % (self.appeal, self.name)
 
 
 class RequestChoices(IntEnum):
@@ -286,13 +321,15 @@ class FieldReport(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              related_name='user',
                              null=True,
+                             blank=True,
                              on_delete=models.SET_NULL)
 
-    rid = models.CharField(max_length=100)
+    # Used to differentiate reports that have and have not been synced from DMIS
+    rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(blank=True)
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
-    event = models.ForeignKey(Event, related_name='field_reports', null=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     status = models.IntegerField(default=0)
@@ -367,9 +404,6 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
     eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
-    # contacts
-    contacts = models.ManyToManyField(Contact)
-
     # meta
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -402,7 +436,20 @@ class FieldReport(models.Model):
 
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
-        return '%s - %s' % (self.rid, summary)
+        return '%s - %s' % (self.id, summary)
+
+
+class FieldReportContact(models.Model):
+    """ Contact for field report """
+
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s: %s' % (self.name, self.title)
 
 
 class Action(models.Model):
@@ -450,44 +497,6 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-class ERUType(IntEnum):
-    BASECAMP = 0
-    HEALTHCARE = 1
-    TELECOM = 2
-    LOGISTICS = 3
-    DEPLOY_HOSPITAL = 4
-    REFER_HOSPITAL = 5
-    RELIEF = 6
-    SANITATION_10 = 7
-    SANITATION_20 = 8
-    SANITATION_40 = 9
-
-
-class ERUOwner(models.Model):
-    """ A resource that may or may not be deployed """
-
-    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.country.name
-
-
-class ERU(models.Model):
-    """ A resource that can be deployed """
-    type = EnumIntegerField(ERUType, default=0)
-    units = models.IntegerField(default=0)
-    # where deployed (none if available)
-    countries = models.ManyToManyField(Country, blank=True)
-    # links to services
-    eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
-
-
 class Profile(models.Model):
     """ Holds location and identifying information about users """
 
@@ -509,14 +518,19 @@ class Profile(models.Model):
             ('DLGN', 'Delegation'),
             ('SCRT', 'Secretariat'),
             ('ICRC', 'ICRC'),
+            ('OTHR', 'Other'),
         ),
         max_length=4,
         blank=True,
     )
-    city = models.CharField(blank=True, max_length=100)
-    department = models.CharField(blank=True, max_length=100)
-    position = models.CharField(blank=True, max_length=100)
-    phone_number = models.CharField(blank=True, max_length=100)
+    city = models.CharField(blank=True, null=True, max_length=100)
+    department = models.CharField(blank=True, null=True, max_length=100)
+    position = models.CharField(blank=True, null=True, max_length=100)
+    phone_number = models.CharField(blank=True, null=True, max_length=100)
+
+    class Meta:
+        verbose_name = 'User profile'
+        verbose_name_plural = 'User profiles'
 
     def __str__(self):
         return self.user.username

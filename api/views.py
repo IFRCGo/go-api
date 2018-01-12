@@ -1,7 +1,7 @@
 import json
 
 from datetime import datetime
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
@@ -10,13 +10,19 @@ from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count, Sum
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
+from django.template.loader import render_to_string
 
 from tastypie.models import ApiKey
 from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
+from deployments.models import Heop
 from notifications.models import Subscription
+from notifications.notification import send_notification
+from registrations.models import Recovery
 
 
 def bad_request(message):
@@ -24,6 +30,10 @@ def bad_request(message):
         'statusCode': 400,
         'error_message': message
     }, status=400)
+
+
+def bad_http_request(header, message):
+    return HttpResponse('<h2>%s</h2><p>%s</p>' % (header, message), status=400)
 
 
 def unauthorized(message='You must be logged in'):
@@ -81,20 +91,46 @@ class AreaAggregate(PublicJsonRequestView):
         return JsonResponse(dict(aggregate))
 
 
+class AggregateByDtype(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        models = {
+            'appeal': Appeal,
+            'event': Event,
+            'fieldreport': FieldReport,
+            'heop': Heop,
+        }
+        mtype = request.GET.get('model_type', None)
+        if mtype is None or not mtype in models:
+            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
+
+        model = models[mtype]
+        aggregate = model.objects \
+                         .values('dtype') \
+                         .annotate(count=Count('id')) \
+                         .order_by('count') \
+                         .values('dtype', 'count')
+
+        return JsonResponse(dict(aggregate=list(aggregate)))
+
+
 class AggregateByTime(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         models = {
             'appeal': Appeal,
             'event': Event,
             'fieldreport': FieldReport,
+            'heop': Heop,
         }
 
         unit = request.GET.get('unit', None)
         start_date = request.GET.get('start_date', None)
-        model_type = request.GET.get('model_type', None)
+        mtype = request.GET.get('model_type', None)
 
-        if model_type is None or not model_type in models:
-            return bad_request('Must specify an `model_type` that is `appeal`, `event`, or `fieldreport`')
+        country = request.GET.get('country', None)
+        region = request.GET.get('region', None)
+
+        if mtype is None or not mtype in models:
+            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         if start_date is None:
             start_date = datetime(1980, 1, 1, tzinfo=timezone.utc)
@@ -106,22 +142,38 @@ class AggregateByTime(PublicJsonRequestView):
 
             start_date = start_date.replace(tzinfo=timezone.utc)
 
-        model = models[model_type]
-        filter_property = 'created_at'
-        if model_type == 'appeal':
-            filter_property = 'start_date'
-        elif model_type == 'event':
-            filter_property = 'disaster_start_date'
+        model = models[mtype]
 
-        filter_exp = filter_property + '__gte'
+        # set date filter property
+        date_filter = 'created_at'
+        if mtype == 'appeal' or mtype == 'heop':
+            date_filter = 'start_date'
+        elif mtype == 'event':
+            date_filter = 'disaster_start_date'
+
+        filter_obj = { date_filter + '__gte': start_date }
+
+        # useful shortcut for singular/plural location filters
+        is_appeal = True if mtype == 'appeal' else False
+
+        # set country and region filter properties
+        if country is not None:
+            country_filter = 'country' if is_appeal else 'countries__in'
+            countries = country if is_appeal else [country]
+            filter_obj[country_filter] = countries
+        elif region is not None:
+            region_filter = 'region' if is_appeal else 'regions__in'
+            regions = region if is_appeal else [region]
+            filter_obj[region_filter] = regions
+
         trunc_method = TruncMonth if unit == 'month' else TruncYear
 
         aggregate = model.objects \
-                         .filter(**{filter_exp: start_date}) \
-                         .annotate(timespan=trunc_method(filter_property, tzinfo=timezone.utc)) \
+                         .filter(**filter_obj) \
+                         .annotate(timespan=trunc_method(date_filter, tzinfo=timezone.utc)) \
                          .values('timespan') \
                          .annotate(count=Count('id')) \
-                         .order_by('-timespan') \
+                         .order_by('timespan') \
                          .values('timespan', 'count')
 
         return JsonResponse(dict(aggregate=list(aggregate)))
@@ -147,13 +199,13 @@ class PublicJsonPostView(View):
         # Query the user
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
         # Query the key
         try:
             ApiKey.objects.get(user=user, key=key)
-        except ApiKey.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
         return user
@@ -170,12 +222,11 @@ class PublicJsonPostView(View):
 
 class GetAuthToken(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-        print(pretty_request(request))
         body = json.loads(request.body.decode('utf-8'))
+        if not 'username' in body or not 'password' in body:
+            return bad_request('Body must contain `username` and `password`')
         username = body['username']
         password = body['password']
-        if not username or not password:
-            return bad_request('Body must contain `username` and `password`')
 
         user = authenticate(username=username, password=password)
         if user is not None:
@@ -208,3 +259,62 @@ class UpdateSubscriptionPreferences(PublicJsonPostView):
             }, status=400)
         else:
             return JsonResponse({'statusCode': 200, 'created': len(created)})
+
+
+class ChangePassword(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        if not 'username' in body or (not 'password' in body and not 'token' in body):
+            return bad_request('Must include a `username` and either a `password` or `token`')
+
+        try:
+            user = User.objects.get(username=body['username'])
+        except ObjectDoesNotExist:
+            return bad_request('Could not authenticate')
+
+        if 'password' in body and not user.check_password(body['password']):
+            return bad_request('Could not authenticate')
+        elif 'token' in body:
+            try:
+                recovery = Recovery.objects.get(user=user)
+            except ObjectDoesNotExist:
+                return bad_request('Could not authenticate')
+
+            if recovery.token != body['token']:
+                return bad_request('Could not authenticate')
+            recovery.delete()
+
+        # TODO validate password
+        if not 'new_password' in body:
+            return bad_request('Must include a `new_password` property')
+
+        user.set_password(body['new_password'])
+        user.save()
+
+        return JsonResponse({'status': 'ok'})
+
+
+class RecoverPassword(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        if not 'email' in body:
+            return bad_request('Must include an `email` property')
+
+        try:
+            user = User.objects.get(email=body['email'])
+        except ObjectDoesNotExist:
+            return bad_request('That email is not associated with a user')
+
+        token = get_random_string(length=32)
+        Recovery.objects.filter(user=user).delete()
+        recovery = Recovery.objects.create(user=user,
+                                           token=token)
+        email_context = {
+            'username': user.username,
+            'token': token
+        }
+        send_notification('Reset your password',
+                          [user.email],
+                          render_to_string('email/recover_password.html', email_context))
+
+        return JsonResponse({'status': 'ok'})
