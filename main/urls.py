@@ -18,40 +18,52 @@ from django.contrib import admin
 from graphene_django.views import GraphQLView
 from tastypie.api import Api
 from api.resources import (
+    CountryResource,
+    RegionResource,
     DisasterTypeResource,
     EventResource,
     AppealResource,
-    ContactResource,
-    CountryResource,
-    ActionResource,
-    ActionsTakenResource,
     FieldReportResource,
     UserResource,
+)
+from deployments.resources import (
     ERUResource,
     ERUOwnerResource,
+    HeopResource,
+    FactResource,
+    RditResource,
 )
 from notifications.resources import SurgeAlertResource
 from api.views import (
     GetAuthToken,
+    ChangePassword,
+    RecoverPassword,
     EsPageSearch,
+    AggregateByDtype,
     AggregateByTime,
     UpdateSubscriptionPreferences,
     AreaAggregate,
 )
+from registrations.views import (
+    NewRegistration,
+    VerifyEmail,
+    ValidateUser,
+)
 
 # Api resources
 v1_api = Api(api_name='v1')
+v1_api.register(CountryResource())
+v1_api.register(RegionResource())
 v1_api.register(DisasterTypeResource())
-v1_api.register(ContactResource())
 v1_api.register(EventResource())
 v1_api.register(AppealResource())
-v1_api.register(CountryResource())
-v1_api.register(ActionResource())
-v1_api.register(ActionsTakenResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
 v1_api.register(ERUResource())
 v1_api.register(ERUOwnerResource())
+v1_api.register(HeopResource())
+v1_api.register(FactResource())
+v1_api.register(RditResource())
 
 # Notification resources
 v1_api.register(SurgeAlertResource())
@@ -62,8 +74,13 @@ urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
+    url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
-
+    url(r'^register', NewRegistration.as_view()),
+    url(r'^verify_email', VerifyEmail.as_view()),
+    url(r'^validate_user', ValidateUser.as_view()),
+    url(r'^change_password', ChangePassword.as_view()),
+    url(r'^recover_password', RecoverPassword.as_view()),
 ]
