@@ -36,6 +36,8 @@ from deployments.resources import (
 from notifications.resources import SurgeAlertResource
 from api.views import (
     GetAuthToken,
+    ChangePassword,
+    RecoverPassword,
     EsPageSearch,
     AggregateByDtype,
     AggregateByTime,
@@ -79,4 +81,6 @@ urlpatterns = [
     url(r'^register', NewRegistration.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
+    url(r'^change_password', ChangePassword.as_view()),
+    url(r'^recover_password', RecoverPassword.as_view()),
 ]
