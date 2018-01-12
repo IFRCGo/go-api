@@ -275,7 +275,13 @@ class ChangePassword(PublicJsonPostView):
         if 'password' in body and not user.check_password(body['password']):
             return bad_request('Could not authenticate')
         elif 'token' in body:
-            return bad_request('Could not authenticate')
+            try:
+                recovery = Recovery.objects.get(user=user)
+            except ObjectDoesNotExist:
+                return bad_request('Could not authenticate')
+
+            if recovery.token != body['token']:
+                return bad_request('Could not authenticate')
 
         # TODO validate password
         if not 'new_password' in body:
