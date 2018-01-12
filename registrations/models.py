@@ -12,11 +12,11 @@ class Pending(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    token = models.CharField(max_length=12, editable=False)
+    token = models.CharField(max_length=32, editable=False)
 
     admin_contact_1 = models.EmailField(blank=True, null=True)
     admin_contact_2 = models.EmailField(blank=True, null=True)
-    admin_token = models.CharField(max_length=12, null=True, editable=False)
+    admin_token = models.CharField(max_length=32, null=True, editable=False)
 
     email_verified = models.BooleanField(default=False, editable=False)
 
@@ -37,7 +37,7 @@ class Recovery(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    token = models.CharField(max_length=12, editable=False)
+    token = models.CharField(max_length=32, editable=False)
 
     def __str__(self):
         return self.user.username
