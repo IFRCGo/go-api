@@ -305,6 +305,7 @@ class RecoverPassword(PublicJsonPostView):
             return bad_request('That email is not associated with a user')
 
         token = get_random_string(length=32)
+        Recovery.objects.filter(user=user).delete()
         recovery = Recovery.objects.create(user=user,
                                            token=token)
         email_context = {
