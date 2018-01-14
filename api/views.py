@@ -166,15 +166,31 @@ class AggregateByTime(PublicJsonRequestView):
             regions = region if is_appeal else [region]
             filter_obj[region_filter] = regions
 
+        # allow custom filter attributes
+        # TODO this should check if the model definition contains this field
+        for key, value in request.GET.items():
+            if key[0:7] == 'filter_':
+                filter_obj[key[7:]] = value
+
+        # allow arbitrary SUM functions
+        annotation_funcs = {
+            'count': Count('id')
+        }
+        output_values = ['timespan', 'count']
+        for key, value in request.GET.items():
+            if key[0:4] == 'sum_':
+                annotation_funcs[key[4:]] = Sum(value)
+                output_values.append(key[4:])
+
         trunc_method = TruncMonth if unit == 'month' else TruncYear
 
         aggregate = model.objects \
                          .filter(**filter_obj) \
                          .annotate(timespan=trunc_method(date_filter, tzinfo=timezone.utc)) \
                          .values('timespan') \
-                         .annotate(count=Count('id')) \
+                         .annotate(**annotation_funcs) \
                          .order_by('timespan') \
-                         .values('timespan', 'count')
+                         .values(*output_values)
 
         return JsonResponse(dict(aggregate=list(aggregate)))
 
