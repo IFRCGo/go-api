@@ -166,6 +166,12 @@ class AggregateByTime(PublicJsonRequestView):
             regions = region if is_appeal else [region]
             filter_obj[region_filter] = regions
 
+        # allow custom filter attributes
+        # TODO this should check if the model definition contains this field
+        for key, value in request.GET.items():
+            if key[0:7] == 'filter_':
+                filter_obj[key[7:]] = value
+
         trunc_method = TruncMonth if unit == 'month' else TruncYear
 
         aggregate = model.objects \
