@@ -1,4 +1,5 @@
 import json
+import pytz
 
 from datetime import datetime
 from django.http import JsonResponse, HttpResponse
@@ -247,6 +248,12 @@ class GetAuthToken(PublicJsonPostView):
         user = authenticate(username=username, password=password)
         if user is not None:
             api_key, created = ApiKey.objects.get_or_create(user=user)
+
+            # reset the key's created_at time each time we get new credentials
+            if not created:
+                api_key.created = datetime.utcnow().replace(tzinfo=pytz.utc)
+                api_key.save()
+
             return JsonResponse({
                 'token': api_key.key,
                 'username': username,
