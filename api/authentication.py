@@ -17,7 +17,7 @@ class ExpiringApiKeyAuthentication(ApiKeyAuthentication):
             current_time = datetime.utcnow()
             current_time = current_time.replace(tzinfo=pytz.utc)
 
-            if not (current_time - api_key.created) < token_duration:
+            if (current_time - api_key.created) > token_duration:
                 api_key.delete()
                 return self._unauthorized()
             else:
