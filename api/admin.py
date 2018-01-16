@@ -14,8 +14,12 @@ class EventContactInline(admin.TabularInline):
     model = models.EventContact
 
 
+class SituationReportInline(admin.TabularInline):
+    model = models.SituationReport
+
+
 class EventAdmin(admin.ModelAdmin):
-    inlines = [KeyFigureInline, SnippetInline, EventContactInline]
+    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
 
 
 class ActionsTakenInline(admin.TabularInline):
@@ -46,3 +50,4 @@ admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.Profile)
+admin.site.register(models.SituationReport)
