@@ -161,6 +161,22 @@ class Snippet(models.Model):
     event = models.ForeignKey(Event)
 
 
+def sitrep_document_path(instance, filename):
+    return 'sitreps/%s/%s' % (instance.event.id, filename)
+
+
+class SituationReport(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    document = models.FileField(null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage())
+    document_url = models.URLField(blank=True)
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s - %s' % (self.event, self.name)
+
+
 class GDACSEvent(models.Model):
     """ A GDACS type event, from alerts """
 
@@ -331,7 +347,7 @@ class FieldReport(models.Model):
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
-    regions = models.ManyToManyField(Region)
+    regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
 

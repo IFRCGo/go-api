@@ -1,13 +1,14 @@
 import os
+import threading
 from django.db import transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from django.db.models.fields.related import ManyToManyField
 from django.conf import settings
 
 from .esconnection import ES_CLIENT
-from .models import Profile, Event, Appeal, FieldReport
+from .models import Profile, Event, Appeal, FieldReport, Country
 from notifications.models import Subscription, SubscriptionType, RecordType
 from notifications.notification import send_notification
 
@@ -17,8 +18,26 @@ def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
-
 post_save.connect(create_profile, sender=User)
+
+
+def save_fieldreport_region(sender, instance, action, **kwargs):
+    if (action == 'post_add' or action == 'post_remove'):
+        SaveRegions(instance).start()
+m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
+
+
+class SaveRegions(threading.Thread):
+    def __init__(self, instance, **kwargs):
+        self.instance = instance
+        super(SaveRegions, self).__init__(**kwargs)
+
+    def run(self):
+        # TODO: get unique list of regions and set that directly
+        countries = Country.objects.filter(fieldreport=self.instance)
+        for country in countries:
+            if country.region is not None:
+                self.instance.regions.add(country.region)
 
 
 def index_es(sender, instance, created, **kwargs):
