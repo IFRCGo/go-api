@@ -8,6 +8,7 @@ from .models import (
     Snippet,
     Event,
     EventContact,
+    SituationReport,
     Country,
     Region,
     Appeal,
@@ -161,6 +162,19 @@ class EventResource(PublicModelResource):
             'num_affected',
             'auto_generated',
         ]
+
+
+class SituationReportResource(ModelResource):
+    class Meta:
+        queryset = SituationReport.objects.all()
+        resource_name = 'situation_report'
+        allowed_methods = ['get']
+        filtering = {
+            'event': ALL_WITH_RELATIONS,
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'name': ('exact', 'in'),
+            'document_url': ('exact', 'iexact'),
+        }
 
 
 class AppealResource(ModelResource):
