@@ -331,7 +331,7 @@ class FieldReport(models.Model):
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
     countries = models.ManyToManyField(Country)
-    regions = models.ManyToManyField(Region)
+    regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
 
