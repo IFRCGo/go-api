@@ -165,6 +165,7 @@ class EventResource(PublicModelResource):
 
 
 class SituationReportResource(ModelResource):
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True)
     class Meta:
         queryset = SituationReport.objects.all()
         resource_name = 'situation_report'
