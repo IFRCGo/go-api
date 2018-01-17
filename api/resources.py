@@ -12,6 +12,7 @@ from .models import (
     Country,
     Region,
     Appeal,
+    AppealDocument,
     FieldReport,
     FieldReportContact,
     Profile,
@@ -165,7 +166,7 @@ class EventResource(PublicModelResource):
 
 
 class SituationReportResource(ModelResource):
-    event = fields.ForeignKey(RelatedEventResource, 'event', null=True)
+    event = fields.ForeignKey(EventResource, 'event', null=True)
     class Meta:
         queryset = SituationReport.objects.all()
         resource_name = 'situation_report'
@@ -223,6 +224,21 @@ class AppealResource(ModelResource):
             'code',
             'sector',
         ]
+
+
+class AppealDocumentResource(ModelResource):
+    appeal = fields.ForeignKey(AppealResource, 'appeal', null=True)
+    class Meta:
+        queryset = AppealDocument.objects.all()
+        authentication = ExpiringApiKeyAuthentication()
+        resource_name = 'appeal_document'
+        allowed_methods = ['get']
+        filtering = {
+            'appeal': ALL_WITH_RELATIONS,
+            'created_at': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
+            'name': ('exact', 'in'),
+            'document_url': ('exact', 'iexact'),
+        }
 
 
 class UserResource(ModelResource):
