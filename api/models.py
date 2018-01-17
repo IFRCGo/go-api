@@ -78,6 +78,7 @@ class Event(models.Model):
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
+    glide = models.CharField(max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
