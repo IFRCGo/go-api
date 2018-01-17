@@ -75,7 +75,8 @@ class Command(BaseCommand):
                         'name': data['title'],
                         'summary': data['description'],
                         'disaster_start_date': data['publication_date'],
-                        'auto_generated': True
+                        'auto_generated': True,
+                        'alert_level': data['alert_level']
                     }
                     event = Event.objects.create(**fields)
                     # add countries
