@@ -18,8 +18,12 @@ class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
 
+class AppealReportInline(admin.TabularInline):
+    model = models.Appeal
+
+
 class EventAdmin(admin.ModelAdmin):
-    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
+    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline, AppealReportInline]
 
 
 class ActionsTakenInline(admin.TabularInline):
