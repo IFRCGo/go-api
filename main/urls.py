@@ -24,6 +24,7 @@ from api.resources import (
     EventResource,
     SituationReportResource,
     AppealResource,
+    AppealDocumentResource,
     FieldReportResource,
     UserResource,
 )
@@ -59,6 +60,7 @@ v1_api.register(DisasterTypeResource())
 v1_api.register(EventResource())
 v1_api.register(SituationReportResource())
 v1_api.register(AppealResource())
+v1_api.register(AppealDocumentResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
 v1_api.register(ERUResource())
