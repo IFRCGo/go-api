@@ -40,6 +40,7 @@ class AppealDocumentInline(admin.TabularInline):
 
 class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
+    list_display = ('code', 'name', 'start_date')
 
 
 admin.site.register(models.DisasterType)
