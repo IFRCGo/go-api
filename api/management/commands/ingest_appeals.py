@@ -4,7 +4,7 @@ import logging
 import requests
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
-from api.models import AppealType, Appeal, Region, Country, DisasterType
+from api.models import AppealType, AppealStatus, Appeal, Region, Country, DisasterType
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,8 @@ class Command(BaseCommand):
         records = response.json()
 
         # read from static file for development
-        # with open('appeals.json') as f:
+        #import json
+        #with open('appeals.json') as f:
         #     records = json.loads(f.read())
 
         print('%s current appeals' % Appeal.objects.all().count())
@@ -95,7 +96,7 @@ class Command(BaseCommand):
 
                 'sector': r['OSS_name'],
                 'code': r['APP_code'],
-                'status': r['APP_status'],
+                'status': {'Active': 0, 'Closed': 1, 'Frozen': 2, 'Archived': 3}[r['APP_status']],
 
                 'start_date': self.parse_date(detail['APD_startDate']),
                 'end_date': self.parse_date(detail['APD_endDate']),

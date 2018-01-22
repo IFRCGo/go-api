@@ -78,6 +78,7 @@ class Event(models.Model):
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
+    glide = models.CharField(max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -209,6 +210,13 @@ class AppealType(IntEnum):
     INTL = 2
 
 
+class AppealStatus(IntEnum):
+    ACTIVE = 0
+    CLOSED = 1
+    FROZEN = 2
+    ARCHIVED = 3
+
+
 class Appeal(models.Model):
     """ An appeal for a disaster and country, containing documents """
 
@@ -218,7 +226,7 @@ class Appeal(models.Model):
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     atype = EnumIntegerField(AppealType, default=0)
 
-    status = models.CharField(max_length=30, blank=True)
+    status = EnumIntegerField(AppealStatus, default=0)
     code = models.CharField(max_length=20, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
