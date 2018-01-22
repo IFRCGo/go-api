@@ -13,15 +13,15 @@ references:
   restore_repo: &restore_repo
     restore_cache:
       keys:
-        - v1-repo-{{ .Branch }}-{{ .Revision }}
-        - v1-repo-{{ .Branch }}
-        - v1-repo
+        - v0-repo-{{ .Branch }}-{{ .Revision }}
+        - v0-repo-{{ .Branch }}
+        - v0-repo
 
   restore_cache: &restore_cache
     restore_cache:
       keys:
-        - v1-dependencies-{{ checksum "requirements.txt"}}
-        - v1-dependencies
+        - v0-dependencies-{{ checksum "requirements.txt"}}
+        - v0-dependencies
       paths:
         - ~/caches/project.tar
 
@@ -36,7 +36,7 @@ references:
   restore_docker_cache: &restore_docker_cache
     restore_cache:
       keys:
-        - v1-docker-{{ .Branch }}
+        - v0-docker-{{ .Branch }}
       paths:
         - ~/caches/docker.tar
 
@@ -58,7 +58,7 @@ jobs:
       - *restore_repo
       - checkout
       - save_cache:
-          key: v1-repo-{{ .Branch }}-{{ .Revision }}
+          key: v0-repo-{{ .Branch }}-{{ .Revision }}
           paths:
             - ~/project
 
@@ -73,7 +73,7 @@ jobs:
             pip install -r requirements.txt
             ./manage.py test
       - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt"}}
+          key: v0-dependencies-{{ checksum "requirements.txt"}}
           paths:
             - ~/venv
 
@@ -85,7 +85,7 @@ jobs:
       - *restore_docker_cache
       - *build_docker
       - save_cache:
-          key: v1-docker-{{ .Branch }}-{{ epoch }}
+          key: v0-docker-{{ .Branch }}-{{ epoch }}
           paths:
             - ~/caches/docker.tar
       - *create_env
