@@ -82,48 +82,58 @@ class Heop(models.Model):
 class Fact(models.Model):
     """ A FACT resource"""
     start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
-
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
-
-    person = models.CharField(null=True, blank=True, max_length=100)
-    role = models.CharField(null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s %s' % (self.country, datetime.strftime(self.start_date, DATE_FORMAT))
 
     class Meta:
         verbose_name = 'FACT'
         verbose_name_plural = 'FACTs'
 
-    def __str__(self):
-        return '%s (%s) %s - %s' % (self.person, self.country,
-                                    datetime.strftime(self.start_date, DATE_FORMAT),
-                                    datetime.strftime(self.end_date, DATE_FORMAT))
 
-
-class Rdit(models.Model):
-    """ An RDIT resource"""
+class Rdrt(models.Model):
+    """ An RDRT/RIT resource"""
     start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     region = models.ForeignKey(Region, on_delete=models.CASCADE)
-
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
-
-    person = models.CharField(null=True, blank=True, max_length=100)
-    role = models.CharField(null=True, blank=True, max_length=32)
     comments = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return '%s %s' % (self.country, datetime.strftime(self.start_date, DATE_FORMAT))
 
     class Meta:
         verbose_name = 'RDRT/RIT'
         verbose_name_plural = 'RDRTs/RITs'
 
+
+class DeployedPerson(models.Model):
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    name = models.CharField(null=True, blank=True, max_length=100)
+    role = models.CharField(null=True, blank=True, max_length=32)
+    society_deployed_from = models.CharField(null=True, blank=True, max_length=100)
     def __str__(self):
-        return '%s (%s) %s - %s' % (self.person, self.country,
-                                    datetime.strftime(self.start_date, DATE_FORMAT),
-                                    datetime.strftime(self.end_date, DATE_FORMAT))
+        return '%s - %s - %s' % (self.name, self.name, self.society_deployed_from)
+
+
+class FactPerson(DeployedPerson):
+    fact = models.ForeignKey(Fact, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'FACT Person'
+        verbose_name_plural = 'FACT People'
+
+
+class RdrtPerson(DeployedPerson):
+    rdrt = models.ForeignKey(Rdrt, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'RDRT/RIT Person'
+        verbose_name_plural = 'RDRT/RIT People'
