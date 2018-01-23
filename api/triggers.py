@@ -83,10 +83,11 @@ def notify(sender, instance, created, **kwargs):
 
         # appeals have one country, events and reports have multiple
         # also include attached regions
-        if record_type == 'APPEAL' and instance.country is not None:
-            lookups.append('c%s' % instance.country.id)
-            if instance.country.region is not None:
-                lookups.append('%rs' % instance.country.region.id)
+        if record_type == 'APPEAL':
+            if instance.country is not None:
+                lookups.append('c%s' % instance.country.id)
+                if instance.country.region is not None:
+                    lookups.append('%rs' % instance.country.region.id)
         elif instance.countries is not None:
             countries = instance.countries.prefetch_related('region').all()
             lookups += ['c%s' % country.id for country in countries]
