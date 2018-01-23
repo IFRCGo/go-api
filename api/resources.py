@@ -81,22 +81,6 @@ class CountryResource(ModelResource):
         authorization = Authorization()
 
 
-class ActionResource(ModelResource):
-    class Meta:
-        queryset = Action.objects.all()
-        authorization = Authorization()
-        allowed_methods = ['get']
-
-
-class ActionsTakenResource(ModelResource):
-    actions = fields.ToManyField(ActionResource, 'actions', full=True, null=True)
-    class Meta:
-        queryset = ActionsTaken.objects.all()
-        resource_name = 'actions_taken'
-        allowed_methods = ['get']
-        authorization = Authorization()
-
-
 class KeyFigureResource(ModelResource):
     class Meta:
         queryset = KeyFigure.objects.all()
@@ -265,27 +249,23 @@ class ProfileResource(ModelResource):
         authorization = UserProfileAuthorization()
 
 
-class FieldReportContactResource(ModelResource):
-    class Meta:
-        queryset = FieldReportContact.objects.all()
-        allowed_methods = ['get']
-        authorization = Authorization()
-        authentication = ExpiringApiKeyAuthentication()
-
-
 class FieldReportResource(ModelResource):
     user = fields.ForeignKey(RelatedUserResource, 'user', full=True, null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
-    contacts = fields.ToManyField(FieldReportContactResource, 'fieldreportcontact_set', full=True, null=True, use_in='detail')
-    actions_taken = fields.ToManyField(ActionsTakenResource, 'actionstaken_set', full=True, null=True)
+    contacts = fields.ToManyField('api.resources.FieldReportContactResource', 'fieldreportcontact_set',
+                                  related_name='field_report',
+                                  full=True, null=True, use_in='detail')
+    actions_taken = fields.ToManyField('api.resources.ActionsTakenResource', 'actionstaken_set',
+                                       related_name='field_report',
+                                       full=True, null=True, use_in='detail')
     class Meta:
         queryset = FieldReport.objects.all()
         resource_name = 'field_report'
         always_return_data = True
-        authentication = ExpiringApiKeyAuthentication()
+        #authentication = ExpiringApiKeyAuthentication()
         authorization = FieldReportAuthorization()
         filtering = {
             'event': ALL_WITH_RELATIONS,
@@ -324,3 +304,29 @@ class FieldReportResource(ModelResource):
             'gov_num_displaced',
             'gov_num_assisted',
         ]
+
+
+class FieldReportContactResource(ModelResource):
+    field_report = fields.ForeignKey(FieldReportResource, 'field_report')
+    class Meta:
+        queryset = FieldReportContact.objects.all()
+        allowed_methods = ['get']
+        authorization = Authorization()
+        authentication = ExpiringApiKeyAuthentication()
+
+
+class ActionResource(ModelResource):
+    class Meta:
+        queryset = Action.objects.all()
+        authorization = Authorization()
+        allowed_methods = ['get']
+
+
+class ActionsTakenResource(ModelResource):
+    actions = fields.ToManyField(ActionResource, 'actions', full=True, null=True)
+    field_report = fields.ForeignKey(FieldReportResource, 'field_report')
+    class Meta:
+        queryset = ActionsTaken.objects.all()
+        resource_name = 'actions_taken'
+        allowed_methods = ['get']
+        authorization = Authorization()
