@@ -69,6 +69,12 @@ class Country(models.Model):
         return self.name
 
 
+class AlertLevel(IntEnum):
+    GREEN = 0
+    ORANGE = 1
+    RED = 2
+
+
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
@@ -78,6 +84,7 @@ class Event(models.Model):
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
+    alert_level = EnumIntegerField(AlertLevel, default=0)
     glide = models.CharField(max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField()
@@ -191,7 +198,7 @@ class GDACSEvent(models.Model):
     lat = models.FloatField()
     lon = models.FloatField()
     event_type = models.CharField(max_length=16)
-    alert_level = models.CharField(max_length=16)
+    alert_level = EnumIntegerField(AlertLevel, default=0)
     alert_score = models.CharField(max_length=16, null=True)
     severity = models.TextField()
     severity_unit = models.CharField(max_length=16)

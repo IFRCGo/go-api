@@ -34,12 +34,12 @@ class Command(BaseCommand):
         # get as XML
         xml2dict = XML2Dict()
         results = xml2dict.parse(response.content)
-        levels = ['Orange', 'Red']
+        levels = {'Orange': 1, 'Red': 2}
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
             print(alert_level)
-            if alert_level in levels:
+            if alert_level in levels.keys():
                 latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
                 eid = alert.pop(nspace + 'eventid')
                 alert_score = alert[nspace + 'alertscore'] if (nspace + 'alertscore') in alert else None
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                     'lat': latlon[0],
                     'lon': latlon[1],
                     'event_type': alert.pop(nspace + 'eventtype'),
-                    'alert_level': alert.pop(nspace + 'alertlevel'),
+                    'alert_level': levels[alert_level],
                     'alert_score': alert_score,
                     'severity': alert.pop(nspace + 'severity'),
                     'severity_unit': alert['@' + nspace + 'severity']['unit'],
@@ -75,7 +75,8 @@ class Command(BaseCommand):
                         'name': data['title'],
                         'summary': data['description'],
                         'disaster_start_date': data['publication_date'],
-                        'auto_generated': True
+                        'auto_generated': True,
+                        'alert_level': data['alert_level']
                     }
                     event = Event.objects.create(**fields)
                     # add countries
