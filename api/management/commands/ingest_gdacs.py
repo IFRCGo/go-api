@@ -34,7 +34,7 @@ class Command(BaseCommand):
         # get as XML
         xml2dict = XML2Dict()
         results = xml2dict.parse(response.content)
-        levels = {'Orange': 1, 'Red': 2}
+        levels = {'Green': 0, 'Orange': 1, 'Red': 2}
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
@@ -71,8 +71,19 @@ class Command(BaseCommand):
                         country = Country.objects.filter(name=c.strip())
                         if country.count() == 1:
                             gdacsevent.countries.add(country[0])
+
+                    title_elements = ['GDACS %s:' % alert_level]
+                    for field in ['country_text', 'event_type', 'severity']:
+                        if data[field] is not None:
+                            title_elements.append(str(data[field]))
+                    title = (' ').join(title_elements)
+
+                    # make sure we don't exceed the 100 character limit
+                    if len(title) > 97:
+                        title = '%s...' % title[:97]
+
                     fields = {
-                        'name': data['title'],
+                        'name': title,
                         'summary': data['description'],
                         'disaster_start_date': data['publication_date'],
                         'auto_generated': True,
