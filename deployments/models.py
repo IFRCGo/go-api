@@ -44,6 +44,7 @@ class ERU(models.Model):
     equipment_units = models.IntegerField(default=0)
     # where deployed (none if available)
     countries = models.ManyToManyField(Country, blank=True)
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
     available = models.BooleanField(default=False)
