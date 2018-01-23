@@ -12,7 +12,9 @@ from .models import (
     ERU,
     Heop,
     Fact,
-    Rdit,
+    FactPerson,
+    Rdrt,
+    RdrtPerson,
 )
 
 
@@ -80,63 +82,65 @@ class HeopResource(ModelResource):
         ]
 
 
+class FactPersonResource(ModelResource):
+    class Meta:
+        queryset = FactPerson.objects.all()
+        allowed_methods = ['get']
+
+
 class FactResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
     event = fields.ForeignKey(EventResource, 'event', null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
+    people = fields.ToManyField('deployments.resources.FactPersonResource', 'factperson_set', null=True, full=True)
     class Meta:
         queryset = Fact.objects.all()
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
             'event': ('exact', 'in'),
             'dtype': ('exact', 'in'),
-            'person': ('exact', 'in'),
-            'role': ('exact', 'in'),
         }
         ordering = [
             'start_date',
-            'end_date',
             'country',
             'region',
             'event',
             'dtype',
-            'person',
-            'role',
         ]
 
 
-class RditResource(ModelResource):
+class RdrtPersonResource(ModelResource):
+    class Meta:
+        queryset = RdrtPerson.objects.all()
+        allowed_methods = ['get']
+
+
+class RdrtResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
     event = fields.ForeignKey(EventResource, 'event', null=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
+    people = fields.ToManyField('deployments.resources.RdrtPersonResource', 'rdrtperson_set', null=True, full=True)
     class Meta:
-        queryset = Rdit.objects.all()
+        queryset = Rdrt.objects.all()
         allowed_methods = ['get']
         authentication = ExpiringApiKeyAuthentication()
         filtering = {
             'start_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
-            'end_date': ('gt', 'gte', 'lt', 'lte', 'range', 'year', 'month', 'day'),
             'country': ('exact', 'in'),
             'region': ('exact', 'in'),
             'event': ('exact', 'in'),
             'dtype': ('exact', 'in'),
-            'person': ('exact', 'in'),
-            'role': ('exact', 'in'),
         }
         ordering = [
             'start_date',
-            'end_date',
             'country',
             'region',
             'event',
             'dtype',
-            'person',
-            'role',
         ]
