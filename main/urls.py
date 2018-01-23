@@ -33,7 +33,7 @@ from deployments.resources import (
     ERUOwnerResource,
     HeopResource,
     FactResource,
-    RditResource,
+    RdrtResource,
 )
 from notifications.resources import SurgeAlertResource
 from api.views import (
@@ -67,7 +67,7 @@ v1_api.register(ERUResource())
 v1_api.register(ERUOwnerResource())
 v1_api.register(HeopResource())
 v1_api.register(FactResource())
-v1_api.register(RditResource())
+v1_api.register(RdrtResource())
 
 # Notification resources
 v1_api.register(SurgeAlertResource())
