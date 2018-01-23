@@ -209,6 +209,9 @@ class GDACSEvent(models.Model):
     countries = models.ManyToManyField(Country)
     country_text = models.TextField()
 
+    def __str__(self):
+        return self.title
+
 
 class AppealType(IntEnum):
     """ summarys of appeals """
@@ -536,6 +539,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         related_name='profile',
         primary_key=True,
+        editable=False,
     )
 
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
