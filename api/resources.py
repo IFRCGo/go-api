@@ -117,7 +117,7 @@ class EventContactResource(ModelResource):
 
 
 class EventResource(PublicModelResource):
-    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', full=True)
+    dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     appeals = fields.ToManyField(RelatedAppealResource, 'appeals', null=True, full=True)
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
