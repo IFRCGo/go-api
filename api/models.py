@@ -209,6 +209,9 @@ class GDACSEvent(models.Model):
     countries = models.ManyToManyField(Country)
     country_text = models.TextField()
 
+    def __str__(self):
+        return self.title
+
 
 class AppealType(IntEnum):
     """ summarys of appeals """
