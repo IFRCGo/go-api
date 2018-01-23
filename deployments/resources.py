@@ -5,6 +5,7 @@ from api.resources import (
     CountryResource,
     RegionResource,
     EventResource,
+    RelatedEventResource,
     DisasterTypeResource,
 )
 from .models import (
@@ -40,6 +41,7 @@ class RelatedERUOwnerResource(ModelResource):
 class ERUResource(ModelResource):
     countries = fields.ToManyField(CountryResource, 'countries', full=True, null=True)
     eru_owner = fields.ForeignKey(RelatedERUOwnerResource, 'eru_owner', full=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     class Meta:
         queryset = ERU.objects.all()
         authentication = ExpiringApiKeyAuthentication()
