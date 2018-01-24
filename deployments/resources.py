@@ -4,7 +4,6 @@ from api.authentication import ExpiringApiKeyAuthentication
 from api.resources import (
     CountryResource,
     RegionResource,
-    EventResource,
     RelatedEventResource,
     DisasterTypeResource,
 )
@@ -56,7 +55,7 @@ class ERUResource(ModelResource):
 class HeopResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
-    event = fields.ForeignKey(EventResource, 'event', null=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     class Meta:
         queryset = Heop.objects.all()
@@ -93,7 +92,7 @@ class FactPersonResource(ModelResource):
 class FactResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
-    event = fields.ForeignKey(EventResource, 'event', null=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     people = fields.ToManyField('deployments.resources.FactPersonResource', 'factperson_set', null=True, full=True)
     class Meta:
@@ -125,7 +124,7 @@ class RdrtPersonResource(ModelResource):
 class RdrtResource(ModelResource):
     country = fields.ForeignKey(CountryResource, 'country', full=True)
     region = fields.ForeignKey(RegionResource, 'region', full=True)
-    event = fields.ForeignKey(EventResource, 'event', null=True)
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     dtype = fields.ForeignKey(DisasterTypeResource, 'dtype', null=True, full=True)
     people = fields.ToManyField('deployments.resources.RdrtPersonResource', 'rdrtperson_set', null=True, full=True)
     class Meta:
