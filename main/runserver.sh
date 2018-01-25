@@ -37,16 +37,16 @@ echo "export DJANGO_DB_PASS=\"$DJANGO_DB_PASS\"" >> $HOME/.env
 echo "export DJANGO_DB_HOST=\"$DJANGO_DB_HOST\"" >> $HOME/.env
 echo "export DJANGO_DB_PORT=\"$DJANGO_DB_PORT\"" >> $HOME/.env
 echo "export APPEALS_USER=\"$APPEALS_USER\"" >> $HOME/.env
-echo "export APPEALS_USER=\"$APPEALS_USER\"" >> $HOME/.env
+echo "export APPEALS_PASS=\"$APPEALS_PASS\"" >> $HOME/.env
 echo "export ES_HOST=\"$ES_HOST\"" >> $HOME/.env
 echo "export EMAIL_HOST=\"$EMAIL_HOST\"" >> $HOME/.env
 echo "export EMAIL_PORT=\"$EMAIL_PORT\"" >> $HOME/.env
 echo "export EMAIL_USER=\"$EMAIL_USER\"" >> $HOME/.env
 echo "export EMAIL_PASS=\"$EMAIL_PASS\"" >> $HOME/.env
 echo "export API_FQDN=\"$API_FQDN\"" >> $HOME/.env
-(echo '30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
-(echo '45 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
-(echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_gdacs >> /home/ifrc/logs/ingest_gdacs.log 2>&1') | crontab -
+(crontab -l 2>/dev/null; echo '30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
+(crontab -l 2>/dev/null; echo '45 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
+(crontab -l 2>/dev/null; echo '*/20 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_gdacs >> /home/ifrc/logs/ingest_gdacs.log 2>&1') | crontab -
 service cron start
 
 tail -n 0 -f $HOME/logs/*.log &

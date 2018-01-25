@@ -24,7 +24,9 @@ post_save.connect(create_profile, sender=User)
 def save_fieldreport_region(sender, instance, action, **kwargs):
     if (action == 'post_add' or action == 'post_remove'):
         SaveRegions(instance).start()
-m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
+
+if os.environ.get('BULK_IMPORT') != '1':
+    m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
 
 
 class SaveRegions(threading.Thread):
