@@ -325,12 +325,19 @@ def appeal_document_path(instance, filename):
 
 
 class AppealDocument(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Don't set `auto_now_add` so we can modify it on save
+    created_at = models.DateTimeField()
     name = models.CharField(max_length=100)
     document = models.FileField(null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage())
     document_url = models.URLField(blank=True)
 
     appeal = models.ForeignKey(Appeal, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        # On save, if `created` is not set, make it the current time
+        if not self.id and not self.created_at:
+            self.created_at = timezone.now()
+        return super(AppealDocument, self).save(*args, **kwargs)
 
     def __str__(self):
         return '%s - %s' % (self.appeal, self.name)
