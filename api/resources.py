@@ -134,6 +134,7 @@ class EventResource(PublicModelResource):
             'dtype': ('exact', 'in'),
             'appeals': ALL_WITH_RELATIONS,
             'eid': ('exact', 'in'),
+            'id': ('exact', 'in'),
             'countries': ('exact', 'in'),
             'regions': ('exact', 'in'),
         }
@@ -175,6 +176,7 @@ class AppealResource(ModelResource):
         filtering = {
             'event': ALL_WITH_RELATIONS,
             'aid': ('exact', 'in'),
+            'id': ('exact', 'in'),
             'status': ('exact', 'iexact', 'in'),
             'code': ('exact', 'in'),
             'amount_requested': ('gt', 'gte', 'lt', 'lte', 'range'),
