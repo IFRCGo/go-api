@@ -260,7 +260,7 @@ class NewRegistration(PublicJsonPostView):
 
         send_notification('Validate your account',
                           [body['email']],
-                          render_to_string('email/registration/verify.html', email_context))
+                          render_to_string(template, email_context))
 
         return JsonResponse({'status': 'ok'})
 
@@ -293,7 +293,7 @@ class VerifyEmail(PublicJsonRequestView):
             pending_user.user.is_active = True
             pending_user.user.save()
             pending_user.delete()
-            return HttpResponse(render_to_string('email/registration/success.html'))
+            return HttpResponse(render_to_string('registration/success.html'))
         else:
             admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
             email_context = {
@@ -333,8 +333,8 @@ class ValidateUser(PublicJsonRequestView):
 
         pending_user.user.is_active = True
         pending_user.user.save()
-        send_notification('Your IFRC GO account is now active',
+        send_notification('Your account has been approved',
                           [pending_user.user.email],
-                          render_to_string('registration/success.html'))
+                          render_to_string('email/registration/outside-email-success.html'))
         pending_user.delete()
         return HttpResponse(render_to_string('registration/validation-success.html'))
