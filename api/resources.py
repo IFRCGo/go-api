@@ -162,6 +162,11 @@ class SituationReportResource(ModelResource):
             'name': ('exact', 'in'),
             'document_url': ('exact', 'iexact'),
         }
+        ordering = [
+            'created_at',
+            'name',
+            'document_url',
+        ]
 
 
 class AppealResource(ModelResource):
@@ -225,6 +230,11 @@ class AppealDocumentResource(ModelResource):
             'name': ('exact', 'in'),
             'document_url': ('exact', 'iexact'),
         }
+        ordering = [
+            'created_at',
+            'name',
+            'document_url',
+        ]
 
 
 class UserResource(ModelResource):
