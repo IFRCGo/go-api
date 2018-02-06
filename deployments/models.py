@@ -23,16 +23,18 @@ class ERUType(IntEnum):
 class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
-    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    national_society_country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'ERU owner'
-        verbose_name_plural = 'ERU owners'
+        verbose_name = 'National Society'
+        verbose_name_plural = 'National Societies'
 
     def __str__(self):
+        if self.country.society_name is not None:
+            return '%s (%s)' % (self.country.society_name, self.country.name)
         return self.country.name
 
 
