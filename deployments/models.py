@@ -10,15 +10,14 @@ DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 class ERUType(IntEnum):
     BASECAMP = 0
-    HEALTHCARE = 1
-    TELECOM = 2
-    LOGISTICS = 3
-    DEPLOY_HOSPITAL = 4
-    REFER_HOSPITAL = 5
-    RELIEF = 6
-    SANITATION_10 = 7
-    SANITATION_20 = 8
-    SANITATION_40 = 9
+    TELECOM = 1
+    LOGISTICS = 2
+    EMERGENCY_HOSPITAL = 3
+    EMERGENCY_CINIC = 4
+    RELIEF = 5
+    WASH_15 = 6
+    WASH_20 = 7
+    WASH_40 = 8
 
 
 class ERUOwner(models.Model):
@@ -51,7 +50,7 @@ class ERU(models.Model):
 
 
     def __str__(self):
-        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
+        return ['Basecamp', 'IT & Telecom', 'Logistics', 'RCRC Emergency Hospital', 'RCRC Emergency Clinic', 'Relief', 'WASH M15', 'WASH MSM20', 'WASH M40'][self.type]
 
 
 class Heop(models.Model):
