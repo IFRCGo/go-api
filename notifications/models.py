@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from api.models import Country, Region, DisasterType
+from api.models import Country, Region, Event, DisasterType
 
 
 class SurgeAlertType(IntEnum):
@@ -31,6 +31,7 @@ class SurgeAlert(models.Model):
     message = models.TextField()
     deployment_needed = models.BooleanField(default=False)
     is_private = models.BooleanField(default=False)
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
 
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField()
