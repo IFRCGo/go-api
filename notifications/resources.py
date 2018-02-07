@@ -3,10 +3,16 @@ from tastypie.resources import ModelResource
 from tastypie.authorization import Authorization, DjangoAuthorization
 from .models import SurgeAlert, Subscription
 from api.authentication import ExpiringApiKeyAuthentication
-from api.resources import CountryResource, RegionResource, DisasterTypeResource
+from api.resources import (
+    CountryResource,
+    RegionResource,
+    DisasterTypeResource,
+    RelatedEventResource,
+)
 from api.public_resource import PublicModelResource
 
 class SurgeAlertResource(PublicModelResource):
+    event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     def dehydrate(self, bundle):
         if self.has_valid_api_key(bundle.request) or not bundle.data['is_private']:
             return bundle.data

@@ -11,6 +11,7 @@ from .esconnection import ES_CLIENT
 from .models import Profile, Event, Appeal, FieldReport, Country
 from notifications.models import Subscription, SubscriptionType, RecordType
 from notifications.notification import send_notification
+from main.frontend import frontend_url
 
 
 # Save a user profile whenever we create a user
@@ -100,7 +101,18 @@ def notify(sender, instance, created, **kwargs):
 
         if len(subscribers):
             context = instance.to_dict()
-            context['resource_uri'] = '%s/%s/%s/' % (settings.BASE_URL, record_type.lower(), instance.id)
+
+            # Appeals do not have their own page, currently,
+            # but they do display on the homepage.
+            if record_type == 'APPEAL':
+                context['resource_uri'] = frontend_url
+            else:
+                frontend_path = {
+                    'EVENT': 'emergencies',
+                    'FIELD_REPORT': 'reports',
+                }[record_type]
+                context['resource_uri'] = '%s/%s/%s/' % (frontend_url, frontend_path, instance.id)
+
             context['admin_uri'] = '%s/%s/' % (settings.BASE_URL, 'admin')
             if instance.dtype is not None:
                 context['dtype'] = instance.dtype.name

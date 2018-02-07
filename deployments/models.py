@@ -10,31 +10,32 @@ DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 class ERUType(IntEnum):
     BASECAMP = 0
-    HEALTHCARE = 1
-    TELECOM = 2
-    LOGISTICS = 3
-    DEPLOY_HOSPITAL = 4
-    REFER_HOSPITAL = 5
-    RELIEF = 6
-    SANITATION_10 = 7
-    SANITATION_20 = 8
-    SANITATION_40 = 9
+    TELECOM = 1
+    LOGISTICS = 2
+    EMERGENCY_HOSPITAL = 3
+    EMERGENCY_CINIC = 4
+    RELIEF = 5
+    WASH_15 = 6
+    WASH_20 = 7
+    WASH_40 = 8
 
 
 class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
-    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    national_society_country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'ERU owner'
-        verbose_name_plural = 'ERU owners'
+        verbose_name = 'ERUs from a National Society'
+        verbose_name_plural = 'ERUs'
 
     def __str__(self):
-        return self.country.name
+        if self.national_society_country.society_name is not None:
+            return '%s (%s)' % (self.national_society_country.society_name, self.national_society_country.name)
+        return self.national_society_country.name
 
 
 class ERU(models.Model):
@@ -43,7 +44,7 @@ class ERU(models.Model):
     units = models.IntegerField(default=0)
     equipment_units = models.IntegerField(default=0)
     # where deployed (none if available)
-    countries = models.ManyToManyField(Country, blank=True)
+    deployed_to = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
@@ -51,7 +52,7 @@ class ERU(models.Model):
 
 
     def __str__(self):
-        return ['Basecamp', 'Healthcare', 'Telecom', 'Logistics', 'Deploy Hospital', 'Refer Hospital', 'Relief', 'Sanitation 10', 'Sanitation 20', 'Sanitation  40'][self.type]
+        return ['Basecamp', 'IT & Telecom', 'Logistics', 'RCRC Emergency Hospital', 'RCRC Emergency Clinic', 'Relief', 'WASH M15', 'WASH MSM20', 'WASH M40'][self.type]
 
 
 class Heop(models.Model):
