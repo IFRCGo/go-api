@@ -29,13 +29,13 @@ class ERUOwner(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'National Society'
-        verbose_name_plural = 'National Societies'
+        verbose_name = 'ERUs from a National Society'
+        verbose_name_plural = 'ERUs'
 
     def __str__(self):
-        if self.country.society_name is not None:
-            return '%s (%s)' % (self.country.society_name, self.country.name)
-        return self.country.name
+        if self.national_society_country.society_name is not None:
+            return '%s (%s)' % (self.national_society_country.society_name, self.national_society_country.name)
+        return self.national_society_country.name
 
 
 class ERU(models.Model):
@@ -44,7 +44,7 @@ class ERU(models.Model):
     units = models.IntegerField(default=0)
     equipment_units = models.IntegerField(default=0)
     # where deployed (none if available)
-    countries = models.ManyToManyField(Country, blank=True)
+    deployed_to = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
