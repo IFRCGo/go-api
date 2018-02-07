@@ -59,7 +59,7 @@
     "model": "api.DisasterType",
     "pk": "12",
     "fields": {
-      "name": "Food"
+      "name": "Flood"
     }
   },
   {
@@ -129,7 +129,7 @@
     "model": "api.DisasterType",
     "pk": "29",
     "fields": {
-      "name": "Local storm"
+      "name": "Local Storm"
     }
   },
   {
