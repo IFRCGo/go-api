@@ -83,10 +83,14 @@ class Command(BaseCommand):
                 country = country.first()
 
             # get the most recent appeal detail, using the appeal start date
+            # if there is more than one detail, the start date should be the *earliest
             if len(r['Details']) == 1:
                 detail = r['Details'][0]
+                start_date = self.parse_date(detail['APD_startDate'])
             else:
-                detail = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))[0]
+                details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
+                detail = details[0]
+                start_date = self.parse_date(details[-1]['APD_startDate'])
 
             atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
             atype = atypes[detail['APD_TYP_Id']]
@@ -110,7 +114,7 @@ class Command(BaseCommand):
                 'code': r['APP_code'],
                 'status': {'Active': 0, 'Closed': 1, 'Frozen': 2, 'Archived': 3}[r['APP_status']],
 
-                'start_date': self.parse_date(detail['APD_startDate']),
+                'start_date': start_date,
                 'end_date': self.parse_date(detail['APD_endDate']),
                 'num_beneficiaries': detail['APD_noBeneficiaries'],
                 'amount_requested': detail['APD_amountCHF'],
