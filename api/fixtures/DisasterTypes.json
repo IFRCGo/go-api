@@ -99,13 +99,6 @@
   },
   {
     "model": "api.DisasterType",
-    "pk": "21",
-    "fields": {
-      "name": "Food Insecurity"
-    }
-  },
-  {
-    "model": "api.DisasterType",
     "pk": "23",
     "fields": {
       "name": "Storm Surge"
@@ -172,6 +165,13 @@
     "pk": "68",
     "fields": {
       "name": "Transport Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "21",
+    "fields": {
+      "name": "Food Insecurity"
     }
   }
 ]
