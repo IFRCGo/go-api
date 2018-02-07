@@ -31,14 +31,14 @@ class ERUOwnerResource(ModelResource):
 
 
 class RelatedERUOwnerResource(ModelResource):
-    country = fields.ForeignKey(CountryResource, 'country', full=True)
+    national_society_country = fields.ForeignKey(CountryResource, 'national_society_country', full=True)
     class Meta:
         queryset = ERUOwner.objects.all()
         allowed_methods = ['get']
 
 
 class ERUResource(ModelResource):
-    countries = fields.ToManyField(CountryResource, 'countries', full=True, null=True)
+    deployed_to = fields.ForeignKey(CountryResource, 'deployed_to', full=True, null=True)
     eru_owner = fields.ForeignKey(RelatedERUOwnerResource, 'eru_owner', full=True)
     event = fields.ForeignKey(RelatedEventResource, 'event', null=True, full=True)
     class Meta:
