@@ -7,6 +7,9 @@ from django.core.management.base import BaseCommand
 from api.models import AppealType, AppealStatus, Appeal, Region, Country, DisasterType
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 
+dtype_keys = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
+dtype_vals = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
+
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
@@ -49,8 +52,17 @@ class Command(BaseCommand):
             sys.stdout.write('.') if (i % 100) == 0 else None
 
             # get the disaster type mapping
-            if r['ADT_name'] in DISASTER_TYPE_MAPPING:
-                disaster_name = DISASTER_TYPE_MAPPING[r['ADT_name']]
+            dname = '' if not r['ADT_name'] else r['ADT_name'].lower()
+            # sometimes for some reason the string starts with a period
+            if dname and dname[0] == '.':
+                dname = dname[1:]
+
+            if dname in dtype_keys:
+                idx = dtype_keys.index(dname)
+                disaster_name = DISASTER_TYPE_MAPPING[list(DISASTER_TYPE_MAPPING)[idx]]
+            elif dname in dtype_vals:
+                idx = dtype_vals.index(dname)
+                disaster_name = list(DISASTER_TYPE_MAPPING.values())[idx]
             else:
                 disaster_name = 'Other'
             dtype = DisasterType.objects.get(name=disaster_name)
