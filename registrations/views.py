@@ -16,6 +16,7 @@ from api.views import (
 from api.models import Country
 from .models import Pending
 from notifications.notification import send_notification
+from main.frontend import frontend_url
 
 
 def is_valid_domain(email):
@@ -333,8 +334,11 @@ class ValidateUser(PublicJsonRequestView):
 
         pending_user.user.is_active = True
         pending_user.user.save()
+        email_context = {
+            frontend_url: frontend_url
+        }
         send_notification('Your account has been approved',
                           [pending_user.user.email],
-                          render_to_string('email/registration/outside-email-success.html'))
+                          render_to_string('email/registration/outside-email-success.html'), email_context)
         pending_user.delete()
         return HttpResponse(render_to_string('registration/validation-success.html'))
