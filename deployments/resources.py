@@ -47,7 +47,7 @@ class ERUResource(ModelResource):
         filtering = {
             'eru_owner': ALL_WITH_RELATIONS,
             'type': ('exact', 'in'),
-            'countries': ('in', 'isnull'),
+            'deployed_to': ('in', 'isnull'),
         }
         allowed_methods = ['get']
 
