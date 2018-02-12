@@ -339,6 +339,6 @@ class ValidateUser(PublicJsonRequestView):
         }
         send_notification('Your account has been approved',
                           [pending_user.user.email],
-                          render_to_string('email/registration/outside-email-success.html'), email_context)
+                          render_to_string('email/registration/outside-email-success.html', email_context))
         pending_user.delete()
         return HttpResponse(render_to_string('registration/validation-success.html'))
