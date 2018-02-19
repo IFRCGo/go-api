@@ -14,20 +14,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get latest
-        now = dt.datetime.now()
-        start_date = (now - dt.timedelta(hours=12)).date()
-        end_date = now.date()
         nspace = '{http://www.gdacs.org}'
-        url = 'http://gdacs.org/rss.aspx'
+        url = 'http://www.gdacs.org/xml/rss_7d.xml'
 
-        data = {
-            'profile': 'ARCHIVES',
-            'fromarchive': 'true',
-            'from': str(start_date),
-            'to': str(end_date)
-        }
-
-        response = requests.get(url, params=data)
+        response = requests.get(url)
         if response.status_code != 200:
             raise Exception('Error querying GDACS')
 
