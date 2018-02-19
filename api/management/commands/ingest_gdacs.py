@@ -53,6 +53,11 @@ class Command(BaseCommand):
                     'vulnerability': alert['@' + nspace + 'vulnerability']['value'],
                     'country_text': alert.pop(nspace + 'country'),
                 }
+
+                # do some length checking
+                for key in ['event_type', 'alert_score', 'severity_unit', 'severity_value', 'population_unit', 'population_value']:
+                    if len(data[key]) > 16:
+                        data[key] = data[key][:16]
                 data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
                 gdacsevent, created = GDACSEvent.objects.get_or_create(eventid=eid, defaults=data)
                 if created:
