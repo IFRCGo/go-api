@@ -120,13 +120,6 @@
   },
   {
     "model": "api.DisasterType",
-    "pk": "29",
-    "fields": {
-      "name": "Local Storm"
-    }
-  },
-  {
-    "model": "api.DisasterType",
     "pk": "54",
     "fields": {
       "name": "Transport Accident"
