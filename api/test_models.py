@@ -10,7 +10,7 @@ class DisasterTypeTest(TestCase):
 
     def test_disaster_type_data(self):
         objs = models.DisasterType.objects.all()
-        self.assertEqual(len(objs), 25)
+        self.assertEqual(len(objs), 24)
 
 
 class EventTest(TestCase):

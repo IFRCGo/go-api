@@ -56,9 +56,7 @@ DISASTER_TYPE_MAPPING = {
     'Tsunami':'Tsunami',
     'Urban fire':'Fire',
     'Volcano':'Volcanic Eruption',
-    'Water accident':'Other',
-    'Tropical storm': 'Local Storm',
-    'Local storm': 'Local Storm'
+    'Water accident':'Other'
 }
 
 PK_MAP = {
@@ -80,7 +78,6 @@ PK_MAP = {
   "24": "24",
   "26": "4",
   "27": "27",
-  "29": "29",
   "30": "24",
   "35": "13",
   "54": "54",
