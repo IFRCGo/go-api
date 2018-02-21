@@ -24,7 +24,7 @@ class Command(BaseCommand):
         # get as XML
         xml2dict = XML2Dict()
         results = xml2dict.parse(response.content)
-        levels = {'Green': 0, 'Orange': 1, 'Red': 2}
+        levels = {'Orange': 1, 'Red': 2}
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
