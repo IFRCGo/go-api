@@ -24,6 +24,7 @@ from deployments.models import Heop
 from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery
+from main.frontend import frontend_url
 
 
 def bad_request(message):
@@ -333,6 +334,7 @@ class RecoverPassword(PublicJsonPostView):
         recovery = Recovery.objects.create(user=user,
                                            token=token)
         email_context = {
+            'base_url': frontend_url,
             'username': user.username,
             'token': token
         }

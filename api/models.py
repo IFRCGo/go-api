@@ -69,6 +69,12 @@ class Country(models.Model):
         return self.name
 
 
+class AlertLevel(IntEnum):
+    GREEN = 0
+    ORANGE = 1
+    RED = 2
+
+
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
@@ -78,6 +84,8 @@ class Event(models.Model):
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
+    alert_level = EnumIntegerField(AlertLevel, default=0)
+    glide = models.CharField(max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -190,7 +198,7 @@ class GDACSEvent(models.Model):
     lat = models.FloatField()
     lon = models.FloatField()
     event_type = models.CharField(max_length=16)
-    alert_level = models.CharField(max_length=16)
+    alert_level = EnumIntegerField(AlertLevel, default=0)
     alert_score = models.CharField(max_length=16, null=True)
     severity = models.TextField()
     severity_unit = models.CharField(max_length=16)
@@ -201,12 +209,22 @@ class GDACSEvent(models.Model):
     countries = models.ManyToManyField(Country)
     country_text = models.TextField()
 
+    def __str__(self):
+        return self.title
+
 
 class AppealType(IntEnum):
     """ summarys of appeals """
     DREF = 0
     APPEAL = 1
     INTL = 2
+
+
+class AppealStatus(IntEnum):
+    ACTIVE = 0
+    CLOSED = 1
+    FROZEN = 2
+    ARCHIVED = 3
 
 
 class Appeal(models.Model):
@@ -218,7 +236,7 @@ class Appeal(models.Model):
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     atype = EnumIntegerField(AppealType, default=0)
 
-    status = models.CharField(max_length=30, blank=True)
+    status = EnumIntegerField(AppealStatus, default=0)
     code = models.CharField(max_length=20, null=True)
     sector = models.CharField(max_length=100, blank=True)
 
@@ -307,12 +325,19 @@ def appeal_document_path(instance, filename):
 
 
 class AppealDocument(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Don't set `auto_now_add` so we can modify it on save
+    created_at = models.DateTimeField()
     name = models.CharField(max_length=100)
     document = models.FileField(null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage())
     document_url = models.URLField(blank=True)
 
     appeal = models.ForeignKey(Appeal, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        # On save, if `created` is not set, make it the current time
+        if not self.id and not self.created_at:
+            self.created_at = timezone.now()
+        return super(AppealDocument, self).save(*args, **kwargs)
 
     def __str__(self):
         return '%s - %s' % (self.appeal, self.name)
@@ -521,6 +546,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE,
         related_name='profile',
         primary_key=True,
+        editable=False,
     )
 
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
