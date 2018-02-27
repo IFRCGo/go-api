@@ -221,7 +221,6 @@ class AppealDocumentResource(ModelResource):
     appeal = fields.ForeignKey(AppealResource, 'appeal', null=True)
     class Meta:
         queryset = AppealDocument.objects.all()
-        authentication = ExpiringApiKeyAuthentication()
         resource_name = 'appeal_document'
         allowed_methods = ['get']
         filtering = {
