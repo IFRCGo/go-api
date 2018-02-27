@@ -11,6 +11,7 @@ from .esconnection import ES_CLIENT
 from .models import Profile, Event, Appeal, FieldReport, Country
 from notifications.models import Subscription, SubscriptionType, RecordType
 from notifications.notification import send_notification
+from main.frontend import frontend_url
 
 
 # Save a user profile whenever we create a user
@@ -24,7 +25,9 @@ post_save.connect(create_profile, sender=User)
 def save_fieldreport_region(sender, instance, action, **kwargs):
     if (action == 'post_add' or action == 'post_remove'):
         SaveRegions(instance).start()
-m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
+
+if os.environ.get('BULK_IMPORT') != '1':
+    m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
 
 
 class SaveRegions(threading.Thread):
@@ -83,10 +86,11 @@ def notify(sender, instance, created, **kwargs):
 
         # appeals have one country, events and reports have multiple
         # also include attached regions
-        if record_type == 'APPEAL' and instance.country is not None:
-            lookups.append('c%s' % instance.country.id)
-            if instance.country.region is not None:
-                lookups.append('%rs' % instance.country.region.id)
+        if record_type == 'APPEAL':
+            if instance.country is not None:
+                lookups.append('c%s' % instance.country.id)
+                if instance.country.region is not None:
+                    lookups.append('%rs' % instance.country.region.id)
         elif instance.countries is not None:
             countries = instance.countries.prefetch_related('region').all()
             lookups += ['c%s' % country.id for country in countries]
@@ -97,7 +101,18 @@ def notify(sender, instance, created, **kwargs):
 
         if len(subscribers):
             context = instance.to_dict()
-            context['resource_uri'] = '%s/%s/%s/' % (settings.BASE_URL, record_type.lower(), instance.id)
+
+            # Appeals do not have their own page, currently,
+            # but they do display on the homepage.
+            if record_type == 'APPEAL':
+                context['resource_uri'] = frontend_url
+            else:
+                frontend_path = {
+                    'EVENT': 'emergencies',
+                    'FIELD_REPORT': 'reports',
+                }[record_type]
+                context['resource_uri'] = '%s/%s/%s/' % (frontend_url, frontend_path, instance.id)
+
             context['admin_uri'] = '%s/%s/' % (settings.BASE_URL, 'admin')
             if instance.dtype is not None:
                 context['dtype'] = instance.dtype.name

@@ -14,32 +14,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get latest
-        now = dt.datetime.now()
-        start_date = (now - dt.timedelta(hours=12)).date()
-        end_date = now.date()
         nspace = '{http://www.gdacs.org}'
-        url = 'http://gdacs.org/rss.aspx'
+        url = 'http://www.gdacs.org/xml/rss_7d.xml'
 
-        data = {
-            'profile': 'ARCHIVES',
-            'fromarchive': 'true',
-            'from': str(start_date),
-            'to': str(end_date)
-        }
-
-        response = requests.get(url, params=data)
+        response = requests.get(url)
         if response.status_code != 200:
             raise Exception('Error querying GDACS')
 
         # get as XML
         xml2dict = XML2Dict()
         results = xml2dict.parse(response.content)
-        levels = ['Orange', 'Red']
+        levels = {'Orange': 1, 'Red': 2}
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
             print(alert_level)
-            if alert_level in levels:
+            if alert_level in levels.keys():
                 latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
                 eid = alert.pop(nspace + 'eventid')
                 alert_score = alert[nspace + 'alertscore'] if (nspace + 'alertscore') in alert else None
@@ -53,7 +43,7 @@ class Command(BaseCommand):
                     'lat': latlon[0],
                     'lon': latlon[1],
                     'event_type': alert.pop(nspace + 'eventtype'),
-                    'alert_level': alert.pop(nspace + 'alertlevel'),
+                    'alert_level': levels[alert_level],
                     'alert_score': alert_score,
                     'severity': alert.pop(nspace + 'severity'),
                     'severity_unit': alert['@' + nspace + 'severity']['unit'],
@@ -63,6 +53,11 @@ class Command(BaseCommand):
                     'vulnerability': alert['@' + nspace + 'vulnerability']['value'],
                     'country_text': alert.pop(nspace + 'country'),
                 }
+
+                # do some length checking
+                for key in ['event_type', 'alert_score', 'severity_unit', 'severity_value', 'population_unit', 'population_value']:
+                    if len(data[key]) > 16:
+                        data[key] = data[key][:16]
                 data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
                 gdacsevent, created = GDACSEvent.objects.get_or_create(eventid=eid, defaults=data)
                 if created:
@@ -71,11 +66,23 @@ class Command(BaseCommand):
                         country = Country.objects.filter(name=c.strip())
                         if country.count() == 1:
                             gdacsevent.countries.add(country[0])
+
+                    title_elements = ['GDACS %s:' % alert_level]
+                    for field in ['country_text', 'event_type', 'severity']:
+                        if data[field] is not None:
+                            title_elements.append(str(data[field]))
+                    title = (' ').join(title_elements)
+
+                    # make sure we don't exceed the 100 character limit
+                    if len(title) > 97:
+                        title = '%s...' % title[:97]
+
                     fields = {
-                        'name': data['title'],
+                        'name': title,
                         'summary': data['description'],
                         'disaster_start_date': data['publication_date'],
-                        'auto_generated': True
+                        'auto_generated': True,
+                        'alert_level': data['alert_level']
                     }
                     event = Event.objects.create(**fields)
                     # add countries

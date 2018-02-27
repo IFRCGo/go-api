@@ -10,7 +10,23 @@ class ERUOwnerAdmin(admin.ModelAdmin):
     inlines = [ERUInline]
 
 
+class FactPersonInline(admin.TabularInline):
+    model = models.FactPerson
+
+
+class FactAdmin(admin.ModelAdmin):
+    inlines = [FactPersonInline]
+
+
+class RdrtPersonInline(admin.TabularInline):
+    model = models.RdrtPerson
+
+
+class RdrtAdmin(admin.ModelAdmin):
+    inlines = [RdrtPersonInline]
+
+
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.Heop)
-admin.site.register(models.Fact)
-admin.site.register(models.Rdit)
+admin.site.register(models.Fact, FactAdmin)
+admin.site.register(models.Rdrt, RdrtAdmin)

@@ -16,11 +16,146 @@ from api.views import (
 from api.models import Country
 from .models import Pending
 from notifications.notification import send_notification
+from main.frontend import frontend_url
 
 
 def is_valid_domain(email):
     domain = email.lower().split('@')[1]
-    allowed_list = ['ifrc.org']
+    allowed_list = [
+        'ifrc.org',
+        'apdisasterresilience.org',
+        'arabrcrc.org',
+        'arcs.org.af',
+        'bdrcs.org',
+        'cck-cr.cz',
+        'ckcg.me',
+        'climatecentre.org',
+        'creuroja.ad',
+        'cri.it',
+        'croix-rouge.fr',
+        'croix-rouge.lu',
+        'croix-rouge.mc',
+        'croixrouge.ht',
+        'croixrougesenegal.com',
+        'crucearosie.ro',
+        'cruzroja.cl',
+        'cruzroja.es',
+        'cruzroja.gt',
+        'cruzroja.or.cr',
+        'cruzroja.org',
+        'cruzroja.org.ar',
+        'cruzroja.org.hn',
+        'cruzroja.org.pa',
+        'cruzroja.org.pe',
+        'cruzroja.org.py',
+        'cruzrojaboliviana.org',
+        'cruzrojacolombiana.org',
+        'cruzrojamexicana.org.mx',
+        'cruzrojanicaraguense.org',
+        'cruzrojasal.org.sv',
+        'cruzrojauruguaya.org',
+        'cruzrojavenezolana.org',
+        'cruzvermelha.org.br',
+        'cruzvermelha.pt',
+        'drk.de',
+        'drk.dk',
+        'egyptianrc.org',
+        'fijiredcross.org',
+        'grsproadsafety.org',
+        'guatemala.cruzroja.org',
+        'hck.hr',
+        'honduras.cruzroja.org',
+        'icrc.org',
+        'indianredcross.org',
+        'jamaicaredcross.org',
+        'jnrcs.org',
+        'jrc.or.jp',
+        'kenyaredcross.org',
+        'kizilay.org.tr',
+        'krcs.org.kw',
+        'laoredcross.org.la',
+        'livelihoodscentre.org',
+        'mauritiusredcross.com',
+        'mdais.org',
+        'nrcs.org',
+        'palestinercs.org',
+        'pck.org.pl',
+        'pmi.or.id',
+        'prcs.org.pk',
+        'pscentre.org',
+        'qrcs.org.qa',
+        'rcs.ir',
+        'rcsbahrain.org',
+        'rcuae.ae',
+        'redcrescent.az',
+        'redcrescent.kz',
+        'redcrescent.org.mv',
+        'redcrescent.org.my',
+        'redcrescent.tj',
+        'redcrescent.uz',
+        'redcross-eu.net',
+        'redcross.am',
+        'redcross.be',
+        'redcross.bg',
+        'redcross.by',
+        'redcross.ca',
+        'redcross.ch',
+        'redcross.ee',
+        'redcross.fi',
+        'redcross.ge',
+        'redcross.gr',
+        'redcross.ie',
+        'redcross.int',
+        'redcross.is',
+        'redcross.lk',
+        'redcross.lt',
+        'redcross.lv',
+        'redcross.md',
+        'redcross.mn',
+        'redcross.no',
+        'redcross.or.ke',
+        'redcross.or.kr',
+        'redcross.or.th',
+        'redcross.org',
+        'redcross.org.au',
+        'redcross.org.cn',
+        'redcross.org.cy',
+        'redcross.org.hk',
+        'redcross.org.jm',
+        'redcross.org.kh',
+        'redcross.org.lb',
+        'redcross.org.mm',
+        'redcross.org.mo',
+        'redcross.org.mt',
+        'redcross.org.mz',
+        'redcross.org.na',
+        'redcross.org.nz',
+        'redcross.org.ph',
+        'redcross.org.rs',
+        'redcross.org.sg',
+        'redcross.org.ua',
+        'redcross.org.uk',
+        'redcross.org.vn',
+        'redcross.org.za',
+        'redcross.ru',
+        'redcross.se',
+        'redcross.sk',
+        'redcross.tl',
+        'redcrosseth.org',
+        'redcrossmuseum.ch',
+        'redcrossug.org',
+        'redcrosszim.org.zw',
+        'rks.si',
+        'rodekors.dk',
+        'rodekruis.nl',
+        'roteskreuz.at',
+        'roteskreuz.li',
+        'sarc.sy',
+        'sierraleoneredcross.org',
+        'srcs.sd',
+        'standcom.ch',
+        'voroskereszt.hu'
+    ]
     if domain in allowed_list:
         return True
     return False
@@ -117,9 +252,16 @@ class NewRegistration(PublicJsonPostView):
                 body['username'],
             )
         }
-        send_notification('Please verify your email address',
+
+        # if validated email accounts get a different message
+        if is_staff:
+            template = 'email/registration/verify-staff-email.html'
+        else:
+            template = 'email/registration/verify-outside-email.html'
+
+        send_notification('Validate your account',
                           [body['email']],
-                          render_to_string('email/registration/verify.html', email_context))
+                          render_to_string(template, email_context))
 
         return JsonResponse({'status': 'ok'})
 
@@ -152,7 +294,7 @@ class VerifyEmail(PublicJsonRequestView):
             pending_user.user.is_active = True
             pending_user.user.save()
             pending_user.delete()
-            return HttpResponse(render_to_string('email/registration/success.html'))
+            return HttpResponse(render_to_string('registration/success.html'))
         else:
             admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
             email_context = {
@@ -165,7 +307,7 @@ class VerifyEmail(PublicJsonRequestView):
                 'last_name': pending_user.user.last_name,
                 'email': pending_user.user.email,
             }
-            send_notification('Validate an outside IFRC GO user',
+            send_notification('Reference to approve an account',
                               admins,
                               render_to_string('email/registration/validate.html', email_context))
             pending_user.email_verified = True
@@ -192,8 +334,11 @@ class ValidateUser(PublicJsonRequestView):
 
         pending_user.user.is_active = True
         pending_user.user.save()
-        send_notification('Your IFRC GO account is now active',
+        email_context = {
+            frontend_url: frontend_url
+        }
+        send_notification('Your account has been approved',
                           [pending_user.user.email],
-                          render_to_string('registration/success.html'))
+                          render_to_string('email/registration/outside-email-success.html', email_context))
         pending_user.delete()
         return HttpResponse(render_to_string('registration/validation-success.html'))

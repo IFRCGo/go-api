@@ -59,7 +59,7 @@
     "model": "api.DisasterType",
     "pk": "12",
     "fields": {
-      "name": "Food"
+      "name": "Flood"
     }
   },
   {
@@ -99,13 +99,6 @@
   },
   {
     "model": "api.DisasterType",
-    "pk": "21",
-    "fields": {
-      "name": "Food Insecurity"
-    }
-  },
-  {
-    "model": "api.DisasterType",
     "pk": "23",
     "fields": {
       "name": "Storm Surge"
@@ -123,13 +116,6 @@
     "pk": "27",
     "fields": {
       "name": "Pluvial/Flash Flood"
-    }
-  },
-  {
-    "model": "api.DisasterType",
-    "pk": "29",
-    "fields": {
-      "name": "Local storm"
     }
   },
   {
@@ -172,6 +158,13 @@
     "pk": "68",
     "fields": {
       "name": "Transport Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "21",
+    "fields": {
+      "name": "Food Insecurity"
     }
   }
 ]
