@@ -148,6 +148,7 @@ def is_valid_domain(email):
         'rks.si',
         'rodekors.dk',
         'rodekruis.nl',
+        'redcross.nl',
         'roteskreuz.at',
         'roteskreuz.li',
         'sarc.sy',
