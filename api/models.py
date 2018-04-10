@@ -165,7 +165,7 @@ class KeyFigure(models.Model):
 
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.CharField(max_length=300)
+    snippet = models.CharField(max_length=600)
     event = models.ForeignKey(Event)
 
 
