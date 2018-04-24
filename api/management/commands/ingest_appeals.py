@@ -120,5 +120,5 @@ class Command(BaseCommand):
                 'amount_requested': detail['APD_amountCHF'],
                 'amount_funded': amount_funded,
             }
-            appeal, created = Appeal.objects.get_or_create(code=fields['code'], defaults=fields)
+            appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
         print('%s appeals' % Appeal.objects.all().count())
