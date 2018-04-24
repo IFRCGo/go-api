@@ -151,9 +151,10 @@ class Subscription(models.Model):
 
         # Only sync subscriptions if the entire request is valid
         # We do this by just throwing out the old and creating the new
-        if len(new) and not len(errors):
+        if not len(errors):
             Subscription.objects.filter(user=user).delete()
-            Subscription.objects.bulk_create(new)
+            if len(new):
+                Subscription.objects.bulk_create(new)
 
         return errors, new
 
