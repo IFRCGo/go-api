@@ -312,7 +312,8 @@ class Command(BaseCommand):
                                            email=user_data['EmailAddress'],
                                            last_login=last_login,
                                            )
-                print(i) if (i % 100) == 0 else None
+                user.set_password(user_data['Password'])
+                user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
 
             # set user profile info
             user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) <= 100 else ''
@@ -323,9 +324,8 @@ class Command(BaseCommand):
             user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
             user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
 
-            user.set_password(user_data['Password'])
-            user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
             user.save()
+            print(i) if (i % 100) == 0 else None
 
         reports = FieldReport.objects.all()
         print('%s reports' % reports.count())
