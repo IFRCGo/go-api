@@ -154,7 +154,7 @@ class EventContact(models.Model):
 
 
 class KeyFigure(models.Model):
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
     # key figure metric
     number = models.IntegerField()
     # key figure units
@@ -166,7 +166,7 @@ class KeyFigure(models.Model):
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = models.TextField()
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
 
 def sitrep_document_path(instance, filename):
