@@ -15,7 +15,7 @@ services:
       - db
     links:
       - db
-  
+
   base:
     build: .
     image: developmentseed/ifrc-go-api:latest
@@ -24,7 +24,7 @@ services:
     <<: *base_django_setup
     ports:
       - 8000:8000
-    command: python manage.py runserver 0.0.0.0:8000 
+    command: python manage.py runserver 0.0.0.0:8000
 
   bash:
     <<: *base_django_setup
@@ -32,7 +32,7 @@ services:
 
   shell:
     <<: *base_django_setup
-    command: python manage.py shell 
+    command: python manage.py shell
 
   loaddata:
     <<: *base_django_setup
@@ -45,7 +45,7 @@ services:
   makemigrations:
     <<: *base_django_setup
     command: python manage.py makemigrations
-  
+
   test:
     <<: *base_django_setup
     command: python manage.py test -k
