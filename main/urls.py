@@ -76,6 +76,11 @@ v1_api.register(RdrtPersonResource())
 # Notification resources
 v1_api.register(SurgeAlertResource())
 
+from rest_framework import routers
+from deployments.views import ERUOwnerViewset
+router = routers.DefaultRouter()
+router.register(r'eru_owner', ERUOwnerViewset)
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(v1_api.urls)),
@@ -91,4 +96,6 @@ urlpatterns = [
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
     url(r'^recover_password', RecoverPassword.as_view()),
+
+    url(r'^api/v2/', include(router.urls)),
 ]
