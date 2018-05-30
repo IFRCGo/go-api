@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'tastypie',
+    'rest_framework',
     'graphene_django',
     'api',
     'notifications',
