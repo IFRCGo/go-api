@@ -10,7 +10,7 @@ services:
       DJANGO_DB_USER: test
       DJANGO_DB_PASS: test
     volumes:
-      - '.:/home/ifrc/work'
+      - '.:/home/ifrc/go-api'
     depends_on:
       - db
     links:
@@ -19,16 +19,16 @@ services:
   base:
     build: .
     image: developmentseed/ifrc-go-api:latest
-    entrypoint: /bin/bash
-    env_file: .env
-    volumes:
-      - '.:/home/ifrc/work'
 
   serve:
     <<: *base_django_setup
     ports:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000 
+
+  bash:
+    <<: *base_django_setup
+    entrypoint: /bin/bash
 
   shell:
     <<: *base_django_setup
