@@ -59,6 +59,12 @@ class EventContactSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('ctype', 'name', 'title', 'email', 'event', 'id',)
 
 # The list serializer can include a smaller subset of the to-many fields.
+# Also include a very minimal one for linking, and no other related fields.
+class MiniEventSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('name', 'dtype', 'id',)
+
 class ListEventSerializer(serializers.HyperlinkedModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     class Meta:
