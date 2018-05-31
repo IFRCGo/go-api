@@ -1,6 +1,20 @@
 version: '2'
 
 services:
+  base_django_setup: &base_django_setup
+    image: developmentseed/ifrc-go-api:latest
+    environment:
+      DJANGO_DB_NAME: test
+      DJANGO_SECRET_KEY: test
+      DJANGO_DB_HOST: db
+      DJANGO_DB_USER: test
+      DJANGO_DB_PASS: test
+    volumes:
+      - '.:/home/ifrc/work'
+    depends_on:
+      - db
+    links:
+      - db
   
   base:
     build: .
@@ -10,25 +24,42 @@ services:
     volumes:
       - '.:/home/ifrc/work'
 
+  serve:
+    <<: *base_django_setup
+    ports:
+      - 8000:8000
+    command: python manage.py runserver 0.0.0.0:8000 
+
+  shell:
+    <<: *base_django_setup
+    command: python manage.py shell 
+
+  loaddata:
+    <<: *base_django_setup
+    command: python manage.py loaddata Regions Countries DisasterTypes Actions
+
+  migrate:
+    <<: *base_django_setup
+    command: python manage.py migrate
+
+  makemigrations:
+    <<: *base_django_setup
+    command: python manage.py makemigrations
+  
   test:
     image: developmentseed/ifrc-go-api:latest
-    working_dir: /home/ifrc/work
-    entrypoint: bash -c './manage.py migrate; ./manage.py test'
-    env_file: .env
+    environment:
+      DJANGO_SECRET_KEY: test
+      LOCAL_TEST: 1
+    command: python manage.py test 
     volumes:
       - '.:/home/ifrc/work'
 
-  manage:
-    image: developmentseed/ifrc-go-api:latest
-    working_dir: /home/ifrc/work
-    entrypoint: ./manage.py
-    env_file: .env
+  db:
+    image: postgres:9.6
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
+      POSTGRES_DB: test
     volumes:
-      - '.:/home/ifrc/work'
-
-  server:
-    image: developmentseed/ifrc-go-api:latest
-    entrypoint: runserver.sh
-    env_file: .env
-    ports:
-      - "8000:80"
+      - './.tmp/pg:/var/lib/postgresql/data'

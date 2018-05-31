@@ -27,4 +27,4 @@ RUN chmod 755 /usr/local/bin/runserver.sh
 COPY ./ $HOME/go-api/
 WORKDIR $HOME/go-api/
 
-CMD "/usr/local/bin/runserver.sh"
+# CMD "/usr/local/bin/runserver.sh"
