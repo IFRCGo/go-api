@@ -81,6 +81,7 @@ v1_api.register(SurgeAlertResource())
 from rest_framework import routers
 from api import drf_views as api_views
 from deployments import drf_views as deployment_views
+from notifications import drf_views as notification_views
 
 router = routers.DefaultRouter()
 router.register(r'disaster_type', api_views.DisasterTypeViewset)
@@ -101,6 +102,9 @@ router.register(r'fact', deployment_views.FactViewset)
 router.register(r'rdrt', deployment_views.RdrtViewset)
 router.register(r'fact_person', deployment_views.FactPersonViewset)
 router.register(r'rdrt_person', deployment_views.RdrtPersonViewset)
+
+router.register(r'surge_alert', notification_views.SurgeAlertViewset)
+router.register(r'subscription', notification_views.SubscriptionViewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
