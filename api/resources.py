@@ -106,9 +106,9 @@ class EventResource(PublicModelResource):
     field_reports = fields.ToManyField(RelatedFieldReportResource, 'field_reports', null=True, full=True)
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
-    contacts = fields.ToManyField(EventContactResource, 'eventcontact_set', full=True, null=True, use_in='detail')
-    key_figures = fields.ToManyField(KeyFigureResource, 'keyfigure_set', full=True, null=True, use_in='detail')
-    snippets = fields.ToManyField(SnippetResource, 'snippet_set', full=True, null=True, use_in='detail')
+    contacts = fields.ToManyField(EventContactResource, 'contacts', full=True, null=True, use_in='detail')
+    key_figures = fields.ToManyField(KeyFigureResource, 'key_figures', full=True, null=True, use_in='detail')
+    snippets = fields.ToManyField(SnippetResource, 'snippets', full=True, null=True, use_in='detail')
 
     # Don't return field reports if the user isn't authenticated
     def dehydrate_field_reports(self, bundle):
@@ -266,10 +266,10 @@ class FieldReportResource(ModelResource):
     countries = fields.ToManyField(CountryResource, 'countries', full=True)
     regions = fields.ToManyField(RegionResource, 'regions', null=True, full=True, use_in='detail')
     event = fields.ForeignKey(RelatedEventResource, 'event', full=True, null=True)
-    contacts = fields.ToManyField('api.resources.FieldReportContactResource', 'fieldreportcontact_set',
+    contacts = fields.ToManyField('api.resources.FieldReportContactResource', 'contacts',
                                   related_name='field_report',
                                   full=True, null=True, use_in='detail')
-    actions_taken = fields.ToManyField('api.resources.ActionsTakenResource', 'actionstaken_set',
+    actions_taken = fields.ToManyField('api.resources.ActionsTakenResource', 'actions_taken',
                                        related_name='field_report',
                                        full=True, null=True, use_in='detail')
     class Meta:
