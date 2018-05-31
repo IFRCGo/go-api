@@ -76,10 +76,24 @@ v1_api.register(RdrtPersonResource())
 # Notification resources
 v1_api.register(SurgeAlertResource())
 
+# DRF routes
 from rest_framework import routers
-from deployments.views import ERUOwnerViewset
+from api import drf_views as api_views
+from deployments import views as deployment_views
+
 router = routers.DefaultRouter()
-router.register(r'eru_owner', ERUOwnerViewset)
+router.register(r'disaster_type', api_views.DisasterTypeViewset)
+router.register(r'region', api_views.RegionViewset)
+router.register(r'country', api_views.CountryViewset)
+router.register(r'event', api_views.EventViewset)
+router.register(r'situation_report', api_views.SituationReportViewset)
+router.register(r'appeal', api_views.AppealViewset)
+router.register(r'appeal_document', api_views.AppealDocumentViewset)
+router.register(r'profile', api_views.ProfileViewset)
+router.register(r'user', api_views.UserViewset)
+router.register(r'field_report', api_views.FieldReportViewset)
+
+router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
