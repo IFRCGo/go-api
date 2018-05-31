@@ -65,6 +65,7 @@ v1_api.register(AppealResource())
 v1_api.register(AppealDocumentResource())
 v1_api.register(FieldReportResource())
 v1_api.register(UserResource())
+
 v1_api.register(ERUResource())
 v1_api.register(ERUOwnerResource())
 v1_api.register(HeopResource())
@@ -79,7 +80,7 @@ v1_api.register(SurgeAlertResource())
 # DRF routes
 from rest_framework import routers
 from api import drf_views as api_views
-from deployments import views as deployment_views
+from deployments import drf_views as deployment_views
 
 router = routers.DefaultRouter()
 router.register(r'disaster_type', api_views.DisasterTypeViewset)
@@ -93,7 +94,13 @@ router.register(r'profile', api_views.ProfileViewset)
 router.register(r'user', api_views.UserViewset)
 router.register(r'field_report', api_views.FieldReportViewset)
 
+router.register(r'eru', deployment_views.ERUViewset)
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
+router.register(r'heop', deployment_views.HeopViewset)
+router.register(r'fact', deployment_views.FactViewset)
+router.register(r'rdrt', deployment_views.RdrtViewset)
+router.register(r'fact_person', deployment_views.FactPersonViewset)
+router.register(r'rdrt_person', deployment_views.RdrtPersonViewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
