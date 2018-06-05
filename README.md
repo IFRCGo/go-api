@@ -50,6 +50,8 @@ Access the site at http://localhost:8000
 
 ## Generate coverage report
 
+     $ docker-compose run --rm coverage
+
 ```(bash)
 coverage run --source='.' manage.py test
 coverage report
@@ -57,11 +59,16 @@ coverage report
 
 # Continuous Integration
 
-[Circle-ci handles continuous integration](https://circleci.com/gh/IFRCGo/go-api).
+[Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous integration.
 
-Pushes to `develop` will run the test suite against a test db.
+## Release to Docker Hub
 
-Pushes to `master` will create a new git tag, using the `version` value in `main/__init__.py`, and build and deploy a new Docker image to the IFRC Docker Hub account. The build will fail if the version already has a tag, so you must increment the version number in `main/__init__.py` before merging to `master`.
+To release a new version to docker hub do the following:
+
+- Update `version` value in `main/__init__.py`
+- Create a new git tag with the same version
+- Commit and make a PR against master
+- The tagged version of the code is used to build a new docker image and is pushed to docker hub
 
 # Deployment
 
