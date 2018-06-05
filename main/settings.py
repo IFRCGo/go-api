@@ -6,7 +6,7 @@ localhost = 'localhost'
 
 BASE_URL = '%s:8000' % localhost if local_test else production_url
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [localhost]
 if local_test:
     ALLOWED_HOSTS.append(localhost)
 elif production_url is not None:
@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'tastypie',
     'rest_framework',
+    'django_filters',
     'graphene_django',
     'api',
     'notifications',
@@ -34,8 +35,11 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ),
 }
 
 GRAPHENE = {
