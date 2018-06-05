@@ -10,85 +10,60 @@ A list of staff email domains, which the API will treat as single-validation, em
 
 ## Requirements
 
-- [Pyenv](https://github.com/pyenv/pyenv)
-- Python 3.6.3 `pyenv install 3.6.3`
-- [mdb tools](https://github.com/brianb/mdbtools) `brew install mdbtools`
+- docker and docker-compose
 
-## Running the Docker image locally
+## Local Development
 
-Check [Docker Hub](https://hub.docker.com/r/ifrcgo/go-api/tags/) for the latest tag.
+### Setup
 
-```(bash)
-docker run -p 80:80 --env-file .env -d -t ifrc/go-api:{TAG_NUMBER}
-```
+     $ docker-compose build
+     $ docker-compose run --rm migrate
+     $ docker-compose run --rm loaddata 
 
-To specify a command on a running image:
+### Running tests
 
-```(bash)
-docker ps
-# CONTAINER ID        IMAGE               COMMAND                   CREATED             STATUS              PORTS                NAMES
-# d0e64afa84b5        ifrc/go-api:16      "/bin/sh -c \"/usr/lo…"   22 minutes ago      Up 22 minutes       0.0.0.0:80->80/tcp   focused_allen
-docker exec -it d0e64afa84b5 python manage.py ingest_appeals
-```
+     $ docker-compose run --rm test
 
-## Setup
+### Making new migrations
 
-Start the environment and install the dependencies
+     $ docker-compose run --rm migrate
 
-```(bash)
-python -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
+### Making new migrations
 
-## Developing against a local sqlite db
+     $ docker-compose run --rm makemigrations
+    
 
-```(bash)
-# Add FTP credentials to environment
-source .env
-# echo $GO_FTPPASS
+### Accessing python shell 
 
-# Tells django to use a local sqlite db
-export LOCAL_TEST=true
+     $ docker-compose run --rm shell 
 
-python manage.py makemigrations
-python manage.py migrate
-python manage.py loaddata Actions Countries DisasterTypes
-python manage.py collectstatic
+### Running server
 
-# Disables automated elasticsearch indexing
-export BULK_IMPORT = 1
-python manage.py ingest_mdb
-python manage.py ingest_appeals
-python manage.py create_events
+     $ docker-compose run --rm --service-ports serve
+    
+Access the site at http://localhost:8000
 
-# Re-enable indexing to elasticsearch
-export BULK_IMPORT = 0
-python manage.py runserver
-```
+### Install new dependencies
 
-# Testing
+     $ docker-compose build
 
-## Run tests
-
-```(bash)
-python manage.py test
-```
 
 ## Generate coverage report
 
-```(bash)
-coverage run --source='.' manage.py test
-coverage report
-```
+     $ docker-compose run --rm coverage
 
 # Continuous Integration
 
-[Circle-ci handles continuous integration](https://circleci.com/gh/IFRCGo/go-api).
+[Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous integration.
 
-Pushes to `develop` will run the test suite against a test db.
+## Release to Docker Hub
 
-Pushes to `master` will create a new git tag, using the `version` value in `main/__init__.py`, and build and deploy a new Docker image to the IFRC Docker Hub account. The build will fail if the version already has a tag, so you must increment the version number in `main/__init__.py` before merging to `master`.
+To release a new version to docker hub do the following:
+
+- Update `version` value in `main/__init__.py`
+- Create a new git tag with the same version
+- Commit and make a PR against master
+- The tagged version of the code is used to build a new docker image and is pushed to docker hub
 
 # Deployment
 
