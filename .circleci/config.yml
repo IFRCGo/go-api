@@ -32,9 +32,9 @@ jobs:
       - run:
           name: Push image to Docker Hub
           command: |
-          if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
-            VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag docker-image:latest ifrcgo/go-api:$VERSION
-            docker push ifrcgo/go-api:$VERSION
-          fi
+            if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
+              VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker tag docker-image:latest ifrcgo/go-api:$VERSION
+              docker push ifrcgo/go-api:$VERSION
+            fi
