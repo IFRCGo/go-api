@@ -47,13 +47,12 @@ services:
     command: python manage.py makemigrations
   
   test:
-    image: developmentseed/ifrc-go-api:latest
-    environment:
-      DJANGO_SECRET_KEY: test
-      LOCAL_TEST: 1
-    command: python manage.py test 
-    volumes:
-      - '.:/home/ifrc/work'
+    <<: *base_django_setup
+    command: python manage.py test -k
+
+  coverage:
+    <<: *base_django_setup
+    command: coverage run --source='.' manage.py test -k
 
   db:
     image: postgres:9.6

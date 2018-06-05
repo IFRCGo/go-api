@@ -16,25 +16,18 @@ jobs:
           command: |
             docker-compose run --rm migrate
             docker-compose run --rm loaddata
-            # docker-compose run --rm test
-
-      - run:
-          name: Push tag to github
-          command: |
-            if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
-              mkdir -p ~/.ssh
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
-              VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
-              git tag $VERSION
-              git push origin $VERSION
-            fi
+            docker-compose run --rm test
 
       - run:
           name: Push image to Docker Hub
           command: |
             if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
-              VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
+              LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match v*)
+              echo $LATEST_GIT_TAG
+              
+              git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
+              docker-compose build
               docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker tag docker-image:latest ifrcgo/go-api:$VERSION
-              docker push ifrcgo/go-api:$VERSION
+              docker tag docker-image:latest ifrcgo/go-api:$LATEST_GIT_TAG
+              docker push ifrcgo/go-api:$LATEST_GIT_TAG
             fi
