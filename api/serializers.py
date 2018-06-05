@@ -12,6 +12,7 @@ from .models import (
     SituationReport,
 
     Appeal,
+    AppealType,
     AppealDocument,
 
     Profile,
