@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
@@ -47,6 +48,13 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
         else:
             return DetailEventSerializer
 
+    filter_backends = (filters.DjangoFilterBackend,)
+    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'dtype', 'summary', 'num_affected', 'alert_level', 'glide'),
+    filter_fields = {
+        'disaster_start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+    }
+
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReport.objects.all()
     serializer_class = SituationReportSerializer
@@ -54,6 +62,12 @@ class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Appeal.objects.all()
     serializer_class = AppealSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
+    filter_fields = {
+        'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+    }
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
