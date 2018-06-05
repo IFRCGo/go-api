@@ -40,6 +40,15 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
 
+class EventFilter(filters.FilterSet):
+    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    class Meta:
+        model = Event
+        fields = {
+            'disaster_start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class EventViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.all()
     def get_serializer_class(self):
@@ -47,27 +56,30 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
-
-    filter_backends = (filters.DjangoFilterBackend,)
     ordering_fields = ('disaster_start_date', 'created_at', 'name', 'dtype', 'summary', 'num_affected', 'alert_level', 'glide'),
-    filter_fields = {
-        'disaster_start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-        'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
-    }
+    filter_class = EventFilter
 
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReport.objects.all()
     serializer_class = SituationReportSerializer
 
+class AppealFilter(filters.FilterSet):
+    atype = filters.NumberFilter(name='atype', lookup_expr='exact')
+    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = Appeal
+        fields = {
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Appeal.objects.all()
     serializer_class = AppealSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
-    filter_fields = {
-        'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-        'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-    }
+    filter_class = AppealFilter
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
