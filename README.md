@@ -52,11 +52,6 @@ Access the site at http://localhost:8000
 
      $ docker-compose run --rm coverage
 
-```(bash)
-coverage run --source='.' manage.py test
-coverage report
-```
-
 # Continuous Integration
 
 [Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous integration.
