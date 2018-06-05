@@ -3,141 +3,31 @@
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 version: 2
 
-references:
-
-  container_python36: &container_python36
-    docker:
-      - image: circleci/python:3.6.2
-    working_dir: ~/project
-
-  restore_repo: &restore_repo
-    restore_cache:
-      keys:
-        - v0-repo-{{ .Branch }}-{{ .Revision }}
-        - v0-repo-{{ .Branch }}
-        - v0-repo
-
-  restore_cache: &restore_cache
-    restore_cache:
-      keys:
-        - v0-dependencies-{{ checksum "requirements.txt"}}
-        - v0-dependencies
-      paths:
-        - ~/caches/project.tar
-
-  create_env: &create_env
-    run:
-      name: Creating .env
-      command: |
-        touch .env
-        echo "DJANGO_SECRET_KEY=$DJANGO_SECRET_KEY" >> .env
-        echo "LOCAL_TEST=true" >> .env
-
-  restore_docker_cache: &restore_docker_cache
-    restore_cache:
-      keys:
-        - v0-docker-{{ .Branch }}
-      paths:
-        - ~/caches/docker.tar
-
-  build_docker: &build_docker
-    run:
-      name: Build docker image
-      command: |
-        set +o pipefail
-        docker load -i ~/caches/docker.tar | true
-        docker build --cache-from=docker-image:latest -t docker-image:latest .
-        mkdir -p ~/caches
-        docker save -o ~/caches/docker.tar docker-image
-
 jobs:
-
-  checkout_code:
-    <<: *container_python36
+  build:
+    machine: true
     steps:
-      - *restore_repo
       - checkout
-      - save_cache:
-          key: v0-repo-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ~/project
-
-  install_and_test:
-    <<: *container_python36
-    steps:
-      - *restore_repo
-      - *restore_cache
-      - run: |
-            python3 -m venv ~/venv
-            . ~/venv/bin/activate
-            pip install -r requirements.txt
-            ./manage.py test
-      - save_cache:
-          key: v0-dependencies-{{ checksum "requirements.txt"}}
-          paths:
-            - ~/venv
-
-  build_and_test_docker:
-    <<: *container_python36
-    steps:
-      - *restore_repo
-      - setup_remote_docker
-      - *restore_docker_cache
-      - *build_docker
-      - save_cache:
-          key: v0-docker-{{ .Branch }}-{{ epoch }}
-          paths:
-            - ~/caches/docker.tar
-      - *create_env
+      - run:
+          name: build docker base image
+          command: docker-compose build
       - run:
           name: Run tests
           command: |
-            docker run --env-file .env -t docker-image:latest ./manage.py test
+            docker-compose run --rm migrate
+            docker-compose run --rm loaddata
+            docker-compose run --rm test
 
-  deploy:
-    <<: *container_python36
-    steps:
-      - *restore_repo
-      - *restore_cache
-      - *create_env
-      - setup_remote_docker
-      - add_ssh_keys
-      - run:
-          name: Push tag to github
-          command: |
-            mkdir -p ~/.ssh
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-            VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
-            git tag $VERSION
-            git push origin $VERSION
-      - *restore_docker_cache
-      - *build_docker
       - run:
           name: Push image to Docker Hub
           command: |
-            VERSION=`awk -F\' '{print $2,$4}' main/__init__.py`
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag docker-image:latest ifrcgo/go-api:$VERSION
-            docker push ifrcgo/go-api:$VERSION
-
-workflows:
-  version: 2
-  build_test_deploy:
-    jobs:
-      - checkout_code
-      - install_and_test:
-          requires:
-            - checkout_code
-      - build_and_test_docker:
-          requires:
-            - checkout_code
-          filters:
-            branches:
-              only: master
-      - deploy:
-          requires:
-            - install_and_test
-            - build_and_test_docker
-          filters:
-            branches:
-              only: master
+            if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
+              LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match v*)
+              echo $LATEST_GIT_TAG
+              
+              git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
+              docker-compose build
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker tag docker-image:latest ifrcgo/go-api:$LATEST_GIT_TAG
+              docker push ifrcgo/go-api:$LATEST_GIT_TAG
+            fi
