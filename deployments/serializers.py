@@ -13,10 +13,16 @@ from api.serializers import (
     DisasterTypeSerializer,
 )
 
+class ERUSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ERU
+        fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+
 class ERUOwnerSerializer(serializers.ModelSerializer):
+    eru_set = ERUSetSerializer(many=True)
     class Meta:
         model = ERUOwner
-        fields = ('created_at', 'updated_at', 'national_society_country', 'id',)
+        fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
 
 class ERUSerializer(serializers.ModelSerializer):
     event = MiniEventSerializer()
