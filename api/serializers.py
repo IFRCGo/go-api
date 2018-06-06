@@ -127,7 +127,7 @@ class SourceSerializer(serializers.ModelSerializer):
 class ListFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
-        fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'id',)
+        fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
 
 class DetailFieldReportSerializer(serializers.ModelSerializer):
     user = UserSerializer()
