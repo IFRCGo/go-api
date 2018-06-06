@@ -30,8 +30,12 @@ class SourceInline(admin.TabularInline):
     model = models.Source
 
 
+class FieldReportContactInline(admin.TabularInline):
+    model = models.FieldReportContact
+
+
 class FieldReportAdmin(admin.ModelAdmin):
-    inlines = [ActionsTakenInline, SourceInline]
+    inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
 
 
 class AppealDocumentInline(admin.TabularInline):
