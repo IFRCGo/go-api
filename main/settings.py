@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'tastypie',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters',
     'graphene_django',
     'api',
