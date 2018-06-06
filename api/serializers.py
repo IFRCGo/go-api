@@ -125,7 +125,6 @@ class SourceSerializer(serializers.ModelSerializer):
         fields = ('stype', 'spec', 'id',)
 
 class ListFieldReportSerializer(serializers.ModelSerializer):
-    event = ListEventSerializer()
     class Meta:
         model = FieldReport
         fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'id',)
