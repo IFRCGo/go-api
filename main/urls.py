@@ -93,7 +93,7 @@ router.register(r'appeal', api_views.AppealViewset)
 router.register(r'appeal_document', api_views.AppealDocumentViewset)
 router.register(r'profile', api_views.ProfileViewset)
 router.register(r'user', api_views.UserViewset)
-router.register(r'field_report', api_views.FieldReportViewset)
+router.register(r'field_report', api_views.FieldReportViewset, base_name='field_report')
 
 router.register(r'eru', deployment_views.ERUViewset)
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
