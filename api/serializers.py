@@ -39,6 +39,11 @@ class CountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'id',)
 
+class MiniCountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('name', 'iso', 'society_name', 'id',)
+
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
@@ -68,6 +73,7 @@ class MiniEventSerializer(serializers.ModelSerializer):
 
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'id',)
@@ -77,6 +83,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     snippets = SnippetSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'id',)
@@ -87,6 +94,7 @@ class SituationReportSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'name', 'document', 'document_url', 'event', 'id',)
 
 class AppealSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
     class Meta:
         model = Appeal
         fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'country', 'region', 'id',)
@@ -97,6 +105,7 @@ class AppealDocumentSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'id',)
 
 class ProfileSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
     class Meta:
         model = Profile
         fields = ('country', 'org', 'org_type', 'city', 'department', 'position', 'phone_number')
@@ -125,6 +134,7 @@ class SourceSerializer(serializers.ModelSerializer):
         fields = ('stype', 'spec', 'id',)
 
 class ListFieldReportSerializer(serializers.ModelSerializer):
+    countries = MiniCountrySerializer(many=True)
     class Meta:
         model = FieldReport
         fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
