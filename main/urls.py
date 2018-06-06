@@ -17,27 +17,6 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from graphene_django.views import GraphQLView
 from tastypie.api import Api
-from api.resources import (
-    CountryResource,
-    RegionResource,
-    DisasterTypeResource,
-    EventResource,
-    SituationReportResource,
-    AppealResource,
-    AppealDocumentResource,
-    FieldReportResource,
-    UserResource,
-)
-from deployments.resources import (
-    ERUResource,
-    ERUOwnerResource,
-    HeopResource,
-    FactResource,
-    RdrtResource,
-    FactPersonResource,
-    RdrtPersonResource,
-)
-from notifications.resources import SurgeAlertResource
 from api.views import (
     GetAuthToken,
     ChangePassword,
@@ -53,29 +32,6 @@ from registrations.views import (
     VerifyEmail,
     ValidateUser,
 )
-
-# Api resources
-v1_api = Api(api_name='v1')
-v1_api.register(CountryResource())
-v1_api.register(RegionResource())
-v1_api.register(DisasterTypeResource())
-v1_api.register(EventResource())
-v1_api.register(SituationReportResource())
-v1_api.register(AppealResource())
-v1_api.register(AppealDocumentResource())
-v1_api.register(FieldReportResource())
-v1_api.register(UserResource())
-
-v1_api.register(ERUResource())
-v1_api.register(ERUOwnerResource())
-v1_api.register(HeopResource())
-v1_api.register(FactResource())
-v1_api.register(RdrtResource())
-v1_api.register(FactPersonResource())
-v1_api.register(RdrtPersonResource())
-
-# Notification resources
-v1_api.register(SurgeAlertResource())
 
 # DRF routes
 from rest_framework import routers
@@ -108,7 +64,6 @@ router.register(r'subscription', notification_views.SubscriptionViewset)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/', include(v1_api.urls)),
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
