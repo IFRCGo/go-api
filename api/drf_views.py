@@ -93,6 +93,15 @@ class UserViewset(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+class FieldReportFilter(filters.FilterSet):
+    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    class Meta:
+        model = FieldReport
+        fields = {
+            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class FieldReportViewset(viewsets.ModelViewSet):
     queryset = FieldReport.objects.all()
     def get_serializer_class(self):
@@ -100,3 +109,5 @@ class FieldReportViewset(viewsets.ModelViewSet):
             return ListFieldReportSerializer
         else:
             return DetailFieldReportSerializer
+    ordering_fields = ('summary', 'created_at', 'updated_at')
+    filter_class = FieldReportFilter
