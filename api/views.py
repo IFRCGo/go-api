@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
 
-from tastypie.models import ApiKey
+from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .authentication import token_duration
 from .esconnection import ES_CLIENT
@@ -222,7 +222,7 @@ class PublicJsonPostView(View):
 
         # Query the key
         try:
-            ApiKey.objects.get(user=user, key=key)
+            Token.objects.get(user=user, key=key)
         except ObjectDoesNotExist:
             return None
 
@@ -248,7 +248,7 @@ class GetAuthToken(PublicJsonPostView):
 
         user = authenticate(username=username, password=password)
         if user is not None:
-            api_key, created = ApiKey.objects.get_or_create(user=user)
+            api_key, created = Token.objects.get_or_create(user=user)
 
             # reset the key's created_at time each time we get new credentials
             if not created:
