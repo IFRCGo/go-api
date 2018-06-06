@@ -6,7 +6,14 @@ class SurgeAlertSerializer(serializers.ModelSerializer):
     event = MiniEventSerializer()
     class Meta:
         model = SurgeAlert
-        fields = ('atype', 'category', 'operation', 'message', 'deployment_needed', 'is_private', 'event',)
+        fields = ('atype', 'category', 'operation', 'message', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',)
+
+class UnauthenticatedSurgeAlertSerializer(serializers.ModelSerializer):
+    event = MiniEventSerializer()
+    class Meta:
+        model = SurgeAlert
+        fields = ('atype', 'category', 'operation', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',)
+
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
