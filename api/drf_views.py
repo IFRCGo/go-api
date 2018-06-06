@@ -1,3 +1,4 @@
+from rest_framework.authentication import TokenAuthentication
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
@@ -103,11 +104,18 @@ class FieldReportFilter(filters.FilterSet):
         }
 
 class FieldReportViewset(viewsets.ModelViewSet):
-    queryset = FieldReport.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return FieldReport.objects.all()
+        # for unauthenticated users, return public field reports
+        return FieldReport.objects.filter(visibility=3)
+
     def get_serializer_class(self):
         if self.action == 'list':
             return ListFieldReportSerializer
         else:
             return DetailFieldReportSerializer
+
     ordering_fields = ('summary', 'created_at', 'updated_at')
     filter_class = FieldReportFilter
