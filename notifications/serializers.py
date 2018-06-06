@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import SurgeAlert, Subscription
-from api.serializers import MiniEventSerializer
+from api.serializers import MiniEventSerializer, MiniCountrySerializer
 
 class SurgeAlertSerializer(serializers.ModelSerializer):
     event = MiniEventSerializer()
@@ -16,6 +16,7 @@ class UnauthenticatedSurgeAlertSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
     class Meta:
         model = Subscription
         fields = ('user', 'stype', 'rtype', 'country', 'region', 'dtype', 'lookup_id',)
