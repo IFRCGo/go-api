@@ -1,6 +1,10 @@
 import json
 import pytz
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import authentication, permissions
+
 from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,6 +28,19 @@ from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery
 from main.frontend import frontend_url
+
+
+class UpdateSubscriptionPreferences(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data)
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not create one or more subscription(s), aborting'
+            })
+        return Response({ 'data': 'Success' })
 
 
 def bad_request(message):
@@ -264,24 +281,6 @@ class GetAuthToken(PublicJsonPostView):
             })
         else:
             return bad_request('Could not authenticate')
-
-
-class UpdateSubscriptionPreferences(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        user = self.get_authenticated_user(request)
-        if not user:
-            return unauthorized()
-
-        body = json.loads(request.body.decode('utf-8'))
-        errors, created = Subscription.sync_user_subscriptions(user, body)
-        if len(errors):
-            return JsonResponse({
-                'statusCode': 400,
-                'error_message': 'Could not create one or more subscription(s), aborting',
-                'errors': errors
-            }, status=400)
-        else:
-            return JsonResponse({'statusCode': 200, 'created': len(created)})
 
 
 class ChangePassword(PublicJsonPostView):
