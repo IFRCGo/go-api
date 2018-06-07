@@ -1,15 +1,11 @@
 import os
 
-local_test = True if os.environ.get('LOCAL_TEST') else False
 production_url = os.environ.get('API_FQDN')
 localhost = 'localhost'
-
-BASE_URL = '%s:8000' % localhost if local_test else production_url
+BASE_URL = production_url if production_url else '%s:8000' % localhost
 
 ALLOWED_HOSTS = [localhost]
-if local_test:
-    ALLOWED_HOSTS.append(localhost)
-elif production_url is not None:
+if production_url is not None:
     ALLOWED_HOSTS.append(production_url)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -100,18 +96,6 @@ DATABASES = {
         'PORT': os.environ.get('DJANGO_DB_PORT'),
     }
 }
-
-if local_test:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'postgres',
-            'USER': 'postgres',
-            'PASSWORD': '',
-            'HOST': 'localhost',
-            'PORT': 5433,
-        }
-    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
