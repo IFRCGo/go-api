@@ -1,4 +1,5 @@
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
@@ -87,15 +88,23 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = AppealDocumentSerializer
 
 class ProfileViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def get_queryset(self):
+        return Profile.objects.filter(user=self.request.user)
 
 class UserViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def get_queryset(self):
+        return User.objects.all()
+        return User.objects.filter(pk=self.request.user.pk)
 
 class FieldReportFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    user = filters.NumberFilter(name='user', lookup_expr='exact')
     class Meta:
         model = FieldReport
         fields = {

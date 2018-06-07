@@ -1,7 +1,7 @@
 import json
 import pytz
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -17,7 +17,6 @@ from django.template.loader import render_to_string
 
 from rest_framework.authtoken.models import Token
 from .utils import pretty_request
-from .authentication import token_duration
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
 from deployments.models import Heop
@@ -260,7 +259,7 @@ class GetAuthToken(PublicJsonPostView):
                 'username': username,
                 'first': user.first_name,
                 'last': user.last_name,
-                'expires': api_key.created + token_duration,
+                'expires': api_key.created + timedelta(7),
                 'id': user.id,
             })
         else:
