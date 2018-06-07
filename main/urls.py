@@ -60,7 +60,7 @@ router.register(r'fact_person', deployment_views.FactPersonViewset)
 router.register(r'rdrt_person', deployment_views.RdrtPersonViewset)
 
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
-router.register(r'subscription', notification_views.SubscriptionViewset)
+router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -70,7 +70,7 @@ urlpatterns = [
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
-    url(r'^notifications', UpdateSubscriptionPreferences.as_view()),
+    url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
