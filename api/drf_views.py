@@ -87,19 +87,18 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     serializer_class = AppealDocumentSerializer
 
-class ProfileViewset(viewsets.ReadOnlyModelViewSet):
+class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
 
-class UserViewset(viewsets.ReadOnlyModelViewSet):
+class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     def get_queryset(self):
-        return User.objects.all()
         return User.objects.filter(pk=self.request.user.pk)
 
 class FieldReportFilter(filters.FilterSet):
