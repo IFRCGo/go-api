@@ -123,6 +123,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription',)
 
+    def update(self, instance, validated_data):
+        if 'profile' in validated_data:
+            profile_data = validated_data.pop('profile')
+            profile = Profile.objects.get(user=instance)
+            profile.city = profile_data.get('city', profile.city)
+            profile.org = profile_data.get('org', profile.org)
+            profile.org_type = profile_data.get('org_type', profile.org_type)
+            profile.department = profile_data.get('department', profile.department)
+            profile.position = profile_data.get('position', profile.position)
+            profile.phone_number = profile_data.get('phone_number', profile.phone_number)
+            profile.country = profile_data.get('country', profile.country)
+            profile.save()
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.save()
+        return instance
+
 class FieldReportContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReportContact
