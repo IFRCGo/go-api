@@ -14,7 +14,6 @@ class UnauthenticatedSurgeAlertSerializer(serializers.ModelSerializer):
         model = SurgeAlert
         fields = ('atype', 'category', 'operation', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',)
 
-
 class SubscriptionSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     class Meta:
