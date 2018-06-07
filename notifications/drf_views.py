@@ -1,4 +1,5 @@
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from .models import SurgeAlert, Subscription
 from .serializers import (
@@ -16,5 +17,8 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         return UnauthenticatedSurgeAlertSerializer
 
 class SubscriptionViewset(viewsets.ModelViewSet):
-    queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    def get_queryset(self):
+        return Subscription.objects.filter(user=self.request.user)
