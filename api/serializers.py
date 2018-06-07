@@ -23,6 +23,7 @@ from .models import (
     Source,
     FieldReport,
 )
+from notifications.models import Subscription
 
 class DisasterTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -110,11 +111,17 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('country', 'org', 'org_type', 'city', 'department', 'position', 'phone_number')
 
+class MiniSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = ('stype', 'rtype', 'country', 'region', 'dtype', 'lookup_id',)
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
+    subscription = MiniSubscriptionSerializer(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription',)
 
 class FieldReportContactSerializer(serializers.ModelSerializer):
     class Meta:
