@@ -38,6 +38,10 @@ services:
     <<: *base_django_setup
     command: python manage.py loaddata Regions Countries DisasterTypes Actions
 
+  createsuperuser:
+    <<: *base_django_setup
+    command: python manage.py createsuperuser
+
   migrate:
     <<: *base_django_setup
     command: python manage.py migrate
