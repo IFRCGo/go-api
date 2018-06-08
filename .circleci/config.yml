@@ -22,12 +22,16 @@ jobs:
           name: Push image to Docker Hub
           command: |
             if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
-              LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match v*)
-              echo $LATEST_GIT_TAG
-              
-              git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
-              docker-compose build
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker tag docker-image:latest ifrcgo/go-api:$LATEST_GIT_TAG
-              docker push ifrcgo/go-api:$LATEST_GIT_TAG
+              {
+                LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
+                echo $LATEST_GIT_TAG
+                
+                git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
+                docker-compose build
+                docker login -u $DOCKER_USER -p $DOCKER_PASS
+                docker tag docker-image:latest ifrcgo/go-api:$LATEST_GIT_TAG
+                docker push ifrcgo/go-api:$LATEST_GIT_TAG
+              } || {
+                echo 'No tag matching the condition found'
+              }
             fi
