@@ -57,4 +57,4 @@ tail -n 0 -f $HOME/logs/*.log &
 sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
 
 echo Starting nginx
-exec service nginx start
+exec nginx -g 'daemon off;'

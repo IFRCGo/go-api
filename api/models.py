@@ -147,14 +147,14 @@ class EventContact(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, related_name='contacts', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
 
 class KeyFigure(models.Model):
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, related_name='key_figures', on_delete=models.CASCADE)
     # key figure metric
     number = models.IntegerField()
     # key figure units
@@ -166,7 +166,7 @@ class KeyFigure(models.Model):
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = models.TextField()
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
 
 
 def sitrep_document_path(instance, filename):
@@ -487,7 +487,7 @@ class FieldReportContact(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
-    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+    field_report = models.ForeignKey(FieldReport, related_name='contacts', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
@@ -514,7 +514,7 @@ class ActionsTaken(models.Model):
     )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
-    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+    field_report = models.ForeignKey(FieldReport, related_name='actions_taken', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s: %s' % (self.organization, self.summary)
@@ -532,7 +532,7 @@ class Source(models.Model):
     """ Source of information """
     stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
     spec = models.TextField(blank=True)
-    field_report = models.ForeignKey(FieldReport, on_delete=models.CASCADE)
+    field_report = models.ForeignKey(FieldReport, related_name='sources', on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s: %s' % (self.stype.name, self.spec)
