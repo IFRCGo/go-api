@@ -19,7 +19,7 @@ RUN \
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
-	echo "daemon off;" >> /etc/nginx/nginx.conf
+	>> /etc/nginx/nginx.conf
 
 COPY main/runserver.sh /usr/local/bin/
 RUN chmod 755 /usr/local/bin/runserver.sh
