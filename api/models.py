@@ -69,6 +69,45 @@ class Country(models.Model):
         return self.name
 
 
+class VisibilityChoices(IntEnum):
+    MEMBERSHIP = 1
+    IFRC = 2
+    PUBLIC = 3
+
+
+class AdminKeyFigure(models.Model):
+    figure = models.CharField(max_length=100)
+    deck = models.CharField(max_length=50)
+    source = models.CharField(max_length=256)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+    class Meta:
+        ordering = ('source',)
+    def __str__(self):
+        return self.source
+
+
+class CountryKeyFigure(AdminKeyFigure):
+    country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
+
+
+class RegionKeyFigure(AdminKeyFigure):
+    region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
+
+
+class CountrySnippet(models.Model):
+    country = models.ForeignKey(Country, related_name='snippets', on_delete=models.CASCADE)
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage())
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+
+
+class RegionSnippet(models.Model):
+    region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+
+
 class AlertLevel(IntEnum):
     GREEN = 0
     ORANGE = 1
@@ -156,17 +195,23 @@ class EventContact(models.Model):
 class KeyFigure(models.Model):
     event = models.ForeignKey(Event, related_name='key_figures', on_delete=models.CASCADE)
     # key figure metric
-    number = models.IntegerField()
+    number = models.CharField(max_length=100)
     # key figure units
     deck = models.CharField(max_length=50)
     # key figure website link, publication
     source = models.CharField(max_length=256)
 
 
+def snippet_image_path(instance, filename):
+    return 'emergencies/%s/%s' % (instance.event.id, filename)
+
+
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.TextField()
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage())
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
 def sitrep_document_path(instance, filename):
@@ -348,12 +393,6 @@ class RequestChoices(IntEnum):
     REQUESTED = 1
     PLANNED = 2
     COMPLETE = 3
-
-
-class VisibilityChoices(IntEnum):
-    MEMBERSHIP = 1
-    IFRC = 2
-    PUBLIC = 3
 
 
 class FieldReport(models.Model):
