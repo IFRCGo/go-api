@@ -4,7 +4,7 @@ production_url = os.environ.get('API_FQDN')
 localhost = 'localhost'
 BASE_URL = production_url if production_url else '%s:8000' % localhost
 
-ALLOWED_HOSTS = [localhost]
+ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if production_url is not None:
     ALLOWED_HOSTS.append(production_url)
 
