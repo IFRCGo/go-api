@@ -2,7 +2,7 @@ version: '2'
 
 services:
   base_django_setup: &base_django_setup
-    image: developmentseed/ifrc-go-api:latest
+    image: ifrcgo/go-api:latest
     environment:
       DJANGO_DB_NAME: test
       DJANGO_SECRET_KEY: test
@@ -18,7 +18,7 @@ services:
 
   base:
     build: .
-    image: developmentseed/ifrc-go-api:latest
+    image: ifrcgo/go-api:latest
 
   serve:
     <<: *base_django_setup
