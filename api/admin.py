@@ -47,10 +47,35 @@ class AppealAdmin(admin.ModelAdmin):
     list_display = ('code', 'name', 'start_date')
 
 
+class CountryKeyFigureInline(admin.TabularInline):
+    model = models.CountryKeyFigure
+
+
+class RegionKeyFigureInline(admin.TabularInline):
+    model = models.RegionKeyFigure
+
+
+class CountrySnippetInline(admin.TabularInline):
+    model = models.CountrySnippet
+
+
+class RegionSnippetInline(admin.TabularInline):
+    model = models.RegionSnippet
+
+
+class CountryAdmin(admin.ModelAdmin):
+    inlines = [CountryKeyFigureInline, CountrySnippetInline]
+
+
+class RegionAdmin(admin.ModelAdmin):
+    inlines = [RegionKeyFigureInline, RegionSnippetInline]
+
+
 admin.site.register(models.DisasterType)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
-admin.site.register(models.Country)
+admin.site.register(models.Country, CountryAdmin)
+admin.site.register(models.Region, RegionAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
