@@ -29,10 +29,10 @@ class EventTest(TestCase):
         obj2 = models.Event.objects.get(name='disaster2')
         self.assertEqual(obj1.summary, 'test disaster')
         self.assertEqual(obj2.summary, 'another test disaster')
-        keyfig = obj2.keyfigure_set.all()
+        keyfig = obj2.key_figures.all()
         self.assertEqual(keyfig[0].deck, 'things')
         self.assertEqual(keyfig[0].number, 7)
-        snippet = obj2.snippet_set.all()
+        snippet = obj2.snippets.all()
         self.assertEqual(snippet[0].snippet, 'this is a snippet')
 
 

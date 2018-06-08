@@ -37,6 +37,10 @@ A list of staff email domains, which the API will treat as single-validation, em
 
      $ docker-compose run --rm shell 
 
+### Adding super user
+
+     $ docker-compose run --rm createsuperuser
+
 ### Running server
 
      $ docker-compose run --rm --service-ports serve
