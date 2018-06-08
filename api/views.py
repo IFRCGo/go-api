@@ -1,7 +1,11 @@
 import json
 import pytz
 
-from datetime import datetime
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import authentication, permissions
+
+from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -15,9 +19,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
 
-from tastypie.models import ApiKey
+from rest_framework.authtoken.models import Token
 from .utils import pretty_request
-from .authentication import token_duration
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
 from deployments.models import Heop
@@ -25,6 +28,19 @@ from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery
 from main.frontend import frontend_url
+
+
+class UpdateSubscriptionPreferences(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data)
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not create one or more subscription(s), aborting'
+            })
+        return Response({ 'data': 'Success' })
 
 
 def bad_request(message):
@@ -222,7 +238,7 @@ class PublicJsonPostView(View):
 
         # Query the key
         try:
-            ApiKey.objects.get(user=user, key=key)
+            Token.objects.get(user=user, key=key)
         except ObjectDoesNotExist:
             return None
 
@@ -248,7 +264,7 @@ class GetAuthToken(PublicJsonPostView):
 
         user = authenticate(username=username, password=password)
         if user is not None:
-            api_key, created = ApiKey.objects.get_or_create(user=user)
+            api_key, created = Token.objects.get_or_create(user=user)
 
             # reset the key's created_at time each time we get new credentials
             if not created:
@@ -260,29 +276,11 @@ class GetAuthToken(PublicJsonPostView):
                 'username': username,
                 'first': user.first_name,
                 'last': user.last_name,
-                'expires': api_key.created + token_duration,
+                'expires': api_key.created + timedelta(7),
                 'id': user.id,
             })
         else:
             return bad_request('Could not authenticate')
-
-
-class UpdateSubscriptionPreferences(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        user = self.get_authenticated_user(request)
-        if not user:
-            return unauthorized()
-
-        body = json.loads(request.body.decode('utf-8'))
-        errors, created = Subscription.sync_user_subscriptions(user, body)
-        if len(errors):
-            return JsonResponse({
-                'statusCode': 400,
-                'error_message': 'Could not create one or more subscription(s), aborting',
-                'errors': errors
-            }, status=400)
-        else:
-            return JsonResponse({'statusCode': 200, 'created': len(created)})
 
 
 class ChangePassword(PublicJsonPostView):

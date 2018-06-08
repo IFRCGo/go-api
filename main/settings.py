@@ -1,15 +1,11 @@
 import os
 
-local_test = True if os.environ.get('LOCAL_TEST') else False
 production_url = os.environ.get('API_FQDN')
 localhost = 'localhost'
+BASE_URL = production_url if production_url else '%s:8000' % localhost
 
-BASE_URL = '%s:8000' % localhost if local_test else production_url
-
-ALLOWED_HOSTS = []
-if local_test:
-    ALLOWED_HOSTS.append(localhost)
-elif production_url is not None:
+ALLOWED_HOSTS = [localhost, '0.0.0.0']
+if production_url is not None:
     ALLOWED_HOSTS.append(production_url)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,12 +21,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'tastypie',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
     'graphene_django',
     'api',
     'notifications',
     'registrations',
     'deployments',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+    ),
+}
 
 GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
@@ -78,7 +85,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
-# Use sqlite for local tests, postgresql for everything else
+# Use local postgres for dev, env-determined for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -89,14 +96,6 @@ DATABASES = {
         'PORT': os.environ.get('DJANGO_DB_PORT'),
     }
 }
-
-if local_test:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
