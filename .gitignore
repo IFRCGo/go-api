@@ -2,7 +2,7 @@
 env
 
 # secret settings env variables
-.env
+.env*
 
 # python stuff
 *.pyc
