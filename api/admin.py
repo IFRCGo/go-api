@@ -63,12 +63,28 @@ class RegionSnippetInline(admin.TabularInline):
     model = models.RegionSnippet
 
 
+class CountryLinkInline(admin.TabularInline):
+    model = models.CountryLink
+
+
+class RegionLinkInline(admin.TabularInline):
+    model = models.RegionLink
+
+
+class CountryContactInline(admin.TabularInline):
+    model = models.CountryContact
+
+
+class RegionContactInline(admin.TabularInline):
+    model = models.RegionContact
+
+
 class CountryAdmin(admin.ModelAdmin):
-    inlines = [CountryKeyFigureInline, CountrySnippetInline]
+    inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
 
 
 class RegionAdmin(admin.ModelAdmin):
-    inlines = [RegionKeyFigureInline, RegionSnippetInline]
+    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
 
 
 admin.site.register(models.DisasterType)
