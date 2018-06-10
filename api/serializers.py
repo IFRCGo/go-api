@@ -87,12 +87,12 @@ class CountryLinkSerializer(serializers.ModelSerializer):
 class RegionContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegionContact
-        fields = ('name', 'title', 'email', 'id',)
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
 
 class CountryContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountryContact
-        fields = ('name', 'title', 'email', 'id',)
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
 
 class RegionRelationSerializer(serializers.ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
