@@ -75,6 +75,8 @@ class VisibilityChoices(IntEnum):
     PUBLIC = 3
 
 
+# Common parent class for key figures.
+# Country/region variants inherit from this.
 class AdminKeyFigure(models.Model):
     figure = models.CharField(max_length=100)
     deck = models.CharField(max_length=50)
@@ -85,13 +87,18 @@ class AdminKeyFigure(models.Model):
     def __str__(self):
         return self.source
 
+class RegionKeyFigure(AdminKeyFigure):
+    region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
 
 class CountryKeyFigure(AdminKeyFigure):
     country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
 
 
-class RegionKeyFigure(AdminKeyFigure):
-    region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
+class RegionSnippet(models.Model):
+    region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
 class CountrySnippet(models.Model):
@@ -101,11 +108,27 @@ class CountrySnippet(models.Model):
     visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
-class RegionSnippet(models.Model):
-    region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(null=True, blank=True)
-    image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
-    visibility = EnumIntegerField(VisibilityChoices, default=3)
+class AdminLink(models.Model):
+    title = models.CharField(max_length=100)
+    url = models.URLField(max_length=300)
+
+class RegionLink(AdminLink):
+    region = models.ForeignKey(Region, related_name='links', on_delete=models.CASCADE)
+
+class CountryLink(AdminLink):
+    country = models.ForeignKey(Country, related_name='links', on_delete=models.CASCADE)
+
+
+class AdminContact(models.Model):
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+class RegionContact(AdminContact):
+    region = models.ForeignKey(Region, related_name='contacts', on_delete=models.CASCADE)
+
+class CountryContact(AdminContact):
+    country = models.ForeignKey(Country, related_name='contacts', on_delete=models.CASCADE)
 
 
 class AlertLevel(IntEnum):
