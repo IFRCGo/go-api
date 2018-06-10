@@ -2,8 +2,17 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
+
     Region,
     Country,
+    CountryKeyFigure,
+    RegionKeyFigure,
+    CountrySnippet,
+    RegionSnippet,
+    CountryLink,
+    RegionLink,
+    CountryContact,
+    RegionContact,
 
     KeyFigure,
     Snippet,
@@ -44,6 +53,60 @@ class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'iso', 'society_name', 'id',)
+
+class RegionKeyFigureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionKeyFigure
+        fields = ('region', 'figure', 'deck', 'source', 'visibility', 'id',)
+
+class CountryKeyFigureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryKeyFigure
+        fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
+
+class RegionSnippetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionSnippet
+        fields = ('region', 'snippet', 'image', 'visibility', 'id',)
+
+class CountrySnippetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountrySnippet
+        fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+
+class RegionLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionLink
+        fields = ('title', 'url', 'id',)
+
+class CountryLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryLink
+        fields = ('title', 'url', 'id',)
+
+class RegionContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionContact
+        fields = ('name', 'title', 'email', 'id',)
+
+class CountryContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryContact
+        fields = ('name', 'title', 'email', 'id',)
+
+class RegionRelationSerializer(serializers.ModelSerializer):
+    links = RegionLinkSerializer(many=True, read_only=True)
+    contacts = RegionContactSerializer(many=True, read_only=True)
+    class Meta:
+        model = Region
+        fields = ('links', 'contacts', 'name', 'id',)
+
+class CountryRelationSerializer(serializers.ModelSerializer):
+    links = CountryLinkSerializer(many=True, read_only=True)
+    contacts = CountryContactSerializer(many=True, read_only=True)
+    class Meta:
+        model = Country
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'id',)
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:

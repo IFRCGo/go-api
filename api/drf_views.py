@@ -5,8 +5,15 @@ from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
+
     Region,
+    RegionKeyFigure,
+    RegionSnippet,
+
     Country,
+    CountryKeyFigure,
+    CountrySnippet,
+
     Event,
     SituationReport,
     Appeal,
@@ -17,8 +24,17 @@ from .models import (
 
 from .serializers import (
     DisasterTypeSerializer,
+
     RegionSerializer,
+    RegionKeyFigureSerializer,
+    RegionSnippetSerializer,
+    RegionRelationSerializer,
+
     CountrySerializer,
+    CountryKeyFigureSerializer,
+    CountrySnippetSerializer,
+    CountryRelationSerializer,
+
     ListEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
@@ -36,11 +52,77 @@ class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
-    serializer_class = RegionSerializer
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return RegionSerializer
+        return RegionRelationSerializer
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
-    serializer_class = CountrySerializer
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CountrySerializer
+        return CountryRelationSerializer
+
+class RegionKeyFigureFilter(filters.FilterSet):
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = RegionKeyFigure
+        fields = ('region',)
+
+class RegionKeyFigureViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = RegionKeyFigureSerializer
+    filter_class = RegionKeyFigureFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return RegionKeyFigure.objects.all()
+        return RegionKeyFigure.objects.filter(visibility=3)
+
+class CountryKeyFigureFilter(filters.FilterSet):
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    class Meta:
+        model = CountryKeyFigure
+        fields = ('country',)
+
+class CountryKeyFigureViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = CountryKeyFigureSerializer
+    filter_class = CountryKeyFigureFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return CountryKeyFigure.objects.all()
+        return CountryKeyFigure.objects.filter(visibility=3)
+
+class RegionSnippetFilter(filters.FilterSet):
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = RegionSnippet
+        fields = ('region',)
+
+class RegionSnippetViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = RegionSnippetSerializer
+    filter_class = RegionSnippetFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return RegionSnippet.objects.all()
+        return RegionSnippet.objects.filter(visibility=3)
+
+class CountrySnippetFilter(filters.FilterSet):
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    class Meta:
+        model = CountrySnippet
+        fields = ('country',)
+
+class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = CountrySnippetSerializer
+    filter_class = CountrySnippetFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return CountrySnippet.objects.all()
+        return CountrySnippet.objects.filter(visibility=3)
 
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
