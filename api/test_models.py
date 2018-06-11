@@ -31,7 +31,7 @@ class EventTest(TestCase):
         self.assertEqual(obj2.summary, 'another test disaster')
         keyfig = obj2.key_figures.all()
         self.assertEqual(keyfig[0].deck, 'things')
-        self.assertEqual(keyfig[0].number, 7)
+        self.assertEqual(keyfig[0].number, '7')
         snippet = obj2.snippets.all()
         self.assertEqual(snippet[0].snippet, 'this is a snippet')
 
