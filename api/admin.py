@@ -124,6 +124,7 @@ class FieldReportAdmin(admin.ModelAdmin):
                 dtype=getattr(report, 'dtype'),
                 disaster_start_date=getattr(report, 'created_at'),
                 auto_generated=True,
+                auto_generated_source='Field report admin',
             )
             if getattr(report, 'countries').exists():
                 for country in report.countries.all():
@@ -158,6 +159,7 @@ class AppealAdmin(admin.ModelAdmin):
                 dtype=getattr(appeal, 'dtype'),
                 disaster_start_date=getattr(appeal, 'start_date'),
                 auto_generated=True,
+                auto_generated_source='Appeal admin',
             )
             if appeal.country is not None:
                 event.countries.add(appeal.country)
