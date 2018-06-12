@@ -153,7 +153,8 @@ class Event(models.Model):
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    auto_generated = models.BooleanField(default=False)
+    auto_generated = models.BooleanField(default=False, editable=False)
+    auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
 
     class Meta:
         ordering = ('-disaster_start_date',)
