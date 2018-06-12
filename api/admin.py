@@ -56,6 +56,21 @@ class AppealTypeFilter(admin.SimpleListFilter):
             return queryset.filter(atype=models.AppealType.INTL)
 
 
+class IsFeaturedFilter(admin.SimpleListFilter):
+    title = _('featured')
+    parameter_name = 'featured'
+    def lookups(self, request, model_admin):
+        return (
+            ('featured', _('Featured')),
+            ('not', _('Not Featured')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'featured':
+            return queryset.filter(is_featured=True)
+        if self.value() == 'not':
+            return queryset.filter(is_featured=False)
+
+
 class KeyFigureInline(admin.TabularInline):
     model = models.KeyFigure
 
@@ -75,6 +90,7 @@ class SituationReportInline(admin.TabularInline):
 class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     readonly_fields = ('appeals', 'field_reports', )
+    list_filter = [IsFeaturedFilter,]
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
             return format_html_join(
