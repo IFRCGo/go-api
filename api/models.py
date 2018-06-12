@@ -359,7 +359,7 @@ class Appeal(models.Model):
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
-        ordering = ('-end_date', '-start_date',)
+        ordering = ('-start_date', '-end_date',)
 
     def indexing(self):
         return {
