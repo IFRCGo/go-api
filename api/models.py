@@ -156,6 +156,9 @@ class Event(models.Model):
     auto_generated = models.BooleanField(default=False, editable=False)
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
 
+    # Meant to give the organization a way of highlighting certain, important events.
+    is_featured = models.BooleanField(default=False)
+
     class Meta:
         ordering = ('-disaster_start_date',)
         verbose_name = 'Emergency'
