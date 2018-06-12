@@ -20,6 +20,24 @@ class HasRelatedEventFilter(admin.SimpleListFilter):
             return queryset.filter(event__isnull=True)
 
 
+class MembershipFilter(admin.SimpleListFilter):
+    title = _('membership')
+    parameter_name = 'membership'
+    def lookups(self, request, model_admin):
+        return (
+            ('membership', _('Membership')),
+            ('ifrc', _('IFRC')),
+            ('public', _('Public')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'membership':
+            return queryset.filter(atype=models.VisibilityChoices.MEMBERSHIP)
+        if self.value() == 'ifrc':
+            return queryset.filter(atype=models.VisibilityChoices.IFRC)
+        if self.value() == 'public':
+            return queryset.filter(atype=models.VisibilityChoices.PUBLIC)
+
+
 class AppealTypeFilter(admin.SimpleListFilter):
     title = _('appeal type')
     parameter_name = 'appeal_type'
@@ -92,6 +110,31 @@ class FieldReportContactInline(admin.TabularInline):
 
 class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
+    list_display = ('summary', 'user', 'event', 'visibility',)
+    list_editable = ('event',)
+    list_select_related = ('event',)
+    search_fields = ['countries', 'regions', 'summary',]
+    list_filter = [HasRelatedEventFilter, MembershipFilter,]
+    actions = ['create_events',]
+
+    def create_events(self, request, queryset):
+        for report in queryset:
+            event = models.Event.objects.create(
+                name=report.summary,
+                dtype=getattr(report, 'dtype'),
+                disaster_start_date=getattr(report, 'created_at'),
+                auto_generated=True,
+            )
+            if getattr(report, 'countries').exists():
+                for country in report.countries.all():
+                    event.countries.add(country)
+            if getattr(report, 'regions').exists():
+                for region in report.regions.all():
+                    event.regions.add(region)
+            report.event = event
+            report.save()
+        self.message_user(request, '%s emergency object(s) created' % queryset.count())
+    create_events.short_description = 'Create emergencies from selected reports'
 
 
 class AppealDocumentInline(admin.TabularInline):
