@@ -323,6 +323,8 @@ class Appeal(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL)
+    unconfirmed_event = models.ForeignKey(Event, related_name='unconfirmed_appeals', null=True, blank=True, on_delete=models.SET_NULL, editable=False)
+
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
