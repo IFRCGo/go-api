@@ -5,6 +5,7 @@ from .models import (
 
     Region,
     Country,
+    District,
     CountryKeyFigure,
     RegionKeyFigure,
     CountrySnippet,
@@ -53,6 +54,17 @@ class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'iso', 'society_name', 'id',)
+
+class DistrictSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id',)
+
+class MiniDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id',)
 
 class RegionKeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -140,7 +152,8 @@ class ListEventSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'id',)
+        fields = ('name',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'id',)
 
 class DetailEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
@@ -150,7 +163,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'is_featured', 'id',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     class Meta:
