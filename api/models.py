@@ -327,7 +327,7 @@ class Appeal(models.Model):
     atype = EnumIntegerField(AppealType, default=0)
 
     status = EnumIntegerField(AppealStatus, default=0)
-    code = models.CharField(max_length=20, null=True)
+    code = models.CharField(max_length=20, null=True, unique=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
