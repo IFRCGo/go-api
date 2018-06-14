@@ -1,7 +1,7 @@
 from django.db import models
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from api.models import Country, Region, Event, DisasterType
+from api.models import District, Country, Region, Event, DisasterType
 from datetime import datetime
 
 
@@ -119,12 +119,12 @@ class DeployedPerson(models.Model):
     end_date = models.DateTimeField(null=True)
     name = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
-    society_deployed_from = models.CharField(null=True, blank=True, max_length=100)
     def __str__(self):
         return '%s - %s - %s' % (self.name, self.name, self.society_deployed_from)
 
 
 class FactPerson(DeployedPerson):
+    society_deployed_from = models.CharField(null=True, blank=True, max_length=100)
     fact = models.ForeignKey(Fact, on_delete=models.CASCADE)
 
     class Meta:
@@ -133,8 +133,15 @@ class FactPerson(DeployedPerson):
 
 
 class RdrtPerson(DeployedPerson):
+    society_deployed_from = models.CharField(null=True, blank=True, max_length=100)
     rdrt = models.ForeignKey(Rdrt, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = 'RDRT/RIT Person'
         verbose_name_plural = 'RDRT/RIT People'
+
+
+class PartnerSocietyDeployment(DeployedPerson):
+    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, blank=True, on_delete=models.SET_NULL)
+    country_deployed_to = models.ForeignKey(District, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
+    district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
