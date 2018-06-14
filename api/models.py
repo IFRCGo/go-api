@@ -159,7 +159,7 @@ class Event(models.Model):
 
     name = models.CharField(max_length=100)
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
-    districts = models.ManyToManyField(District)
+    districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
@@ -456,7 +456,7 @@ class FieldReport(models.Model):
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
-    districts = models.ManyToManyField(District)
+    districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)
