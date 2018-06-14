@@ -42,6 +42,10 @@ services:
     <<: *base_django_setup
     command: python manage.py createsuperuser
 
+  ingest_appeals:
+    <<: *base_django_setup
+    command: python manage.py ingest_appeals
+
   migrate:
     <<: *base_django_setup
     command: python manage.py migrate
