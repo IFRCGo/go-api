@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
@@ -11,11 +11,14 @@ class HasRelatedEventFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return (
             ('yes', _('Exists')),
+            ('confirm', _('Needs confirmation')),
             ('no', _('None')),
         )
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(event__isnull=False)
+            return queryset.filter(event__isnull=False).filter(unconfirmed_event=False)
+        if self.value() == 'confirm':
+            return queryset.filter(event__isnull=False).filter(unconfirmed_event=True)
         if self.value() == 'no':
             return queryset.filter(event__isnull=True)
 
@@ -162,13 +165,13 @@ class AppealDocumentInline(admin.TabularInline):
 
 class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
-    list_display = ('code', 'name', 'atype', 'event', 'start_date', 'end_date',)
+    list_display = ('code', 'name', 'atype', 'unconfirmed_event', 'event', 'start_date',)
     list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['code', 'name',]
     readonly_fields = ('region',)
     list_filter = [HasRelatedEventFilter, AppealTypeFilter,]
-    actions = ['create_events',]
+    actions = ['create_events', 'confirm_events',]
 
     def create_events(self, request, queryset):
         for appeal in queryset:
@@ -187,6 +190,20 @@ class AppealAdmin(admin.ModelAdmin):
             appeal.save()
         self.message_user(request, '%s emergency object(s) created' % queryset.count())
     create_events.short_description = 'Create emergencies from selected appeals'
+
+    def confirm_events(self, request, queryset):
+        errors = []
+        for appeal in queryset:
+            if not appeal.unconfirmed_event or not appeal.event:
+                errors.append(appeal.code)
+        if len(errors):
+            self.message_user(request, '%s %s not have an unconfirmed event.' % (', '.join(errors), 'does' if len(errors) == 1 else 'do'),
+                              level=messages.ERROR)
+        else:
+            for appeal in queryset:
+                appeal.unconfirmed_event = False
+                appeal.save()
+    confirm_events.short_description = 'Confirm emergencies as correct'
 
     def save_model(self, request, obj, form, change):
         if (obj.country):
