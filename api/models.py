@@ -73,15 +73,16 @@ class District(models.Model):
     """ Admin level 1 field """
 
     name = models.CharField(max_length=100)
-    iso = models.CharField(max_length=3, null=True)
-    country_code = models.CharField(max_length=10)
+    code = models.CharField(max_length=10)
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    country_iso = models.CharField(max_length=3, null=True)
+    country_name = models.CharField(max_length=100)
 
     class Meta:
-        ordering = ('country_code',)
+        ordering = ('code',)
 
     def __str__(self):
-        return self.name
+        return '%s - %s' % (self.country_name, self.name)
 
 
 class VisibilityChoices(IntEnum):
