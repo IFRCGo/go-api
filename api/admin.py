@@ -16,9 +16,9 @@ class HasRelatedEventFilter(admin.SimpleListFilter):
         )
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(event__isnull=False).filter(unconfirmed_event=False)
+            return queryset.filter(event__isnull=False).filter(needs_confirmation=False)
         if self.value() == 'confirm':
-            return queryset.filter(event__isnull=False).filter(unconfirmed_event=True)
+            return queryset.filter(event__isnull=False).filter(needs_confirmation=True)
         if self.value() == 'no':
             return queryset.filter(event__isnull=True)
 
@@ -165,7 +165,7 @@ class AppealDocumentInline(admin.TabularInline):
 
 class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
-    list_display = ('code', 'name', 'atype', 'unconfirmed_event', 'event', 'start_date',)
+    list_display = ('code', 'name', 'atype', 'needs_confirmation', 'event', 'start_date',)
     list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['code', 'name',]
@@ -194,14 +194,14 @@ class AppealAdmin(admin.ModelAdmin):
     def confirm_events(self, request, queryset):
         errors = []
         for appeal in queryset:
-            if not appeal.unconfirmed_event or not appeal.event:
+            if not appeal.needs_confirmation or not appeal.event:
                 errors.append(appeal.code)
         if len(errors):
             self.message_user(request, '%s %s not have an unconfirmed event.' % (', '.join(errors), 'does' if len(errors) == 1 else 'do'),
                               level=messages.ERROR)
         else:
             for appeal in queryset:
-                appeal.unconfirmed_event = False
+                appeal.needs_confirmation = False
                 appeal.save()
     confirm_events.short_description = 'Confirm emergencies as correct'
 

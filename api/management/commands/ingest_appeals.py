@@ -148,13 +148,13 @@ class Command(BaseCommand):
             }
             if event is not None:
                 fields['event'] = event
-                fields['unconfirmed_event'] = True
+                fields['needs_confirmation'] = True
 
             appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
             if created:
-                num_created = created + 1
+                num_created = num_created + 1
             else:
-                num_updated = updated + 1
+                num_updated = num_updated + 1
 
         print('%s appeals created' % num_created)
         print('%s appeals updated' % num_updated)
