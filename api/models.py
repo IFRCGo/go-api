@@ -69,6 +69,21 @@ class Country(models.Model):
         return self.name
 
 
+class District(models.Model):
+    """ Admin level 1 field """
+
+    name = models.CharField(max_length=100)
+    iso = models.CharField(max_length=3, null=True)
+    country_code = models.CharField(max_length=10)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('country_code',)
+
+    def __str__(self):
+        return self.name
+
+
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
     IFRC = 2
@@ -143,6 +158,7 @@ class Event(models.Model):
 
     name = models.CharField(max_length=100)
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
+    districts = models.ManyToManyField(District)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
@@ -439,6 +455,7 @@ class FieldReport(models.Model):
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
+    districts = models.ManyToManyField(District)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)
