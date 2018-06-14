@@ -1,5 +1,6 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
@@ -164,6 +165,31 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = AppealSerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
     filter_class = AppealFilter
+
+    def remove_unconfirmed_event(self, obj):
+        if obj['needs_confirmation']:
+            obj['event'] = None
+        return obj
+
+    def remove_unconfirmed_events(self, objs):
+        return [self.remove_unconfirmed_event(obj) for obj in objs]
+
+    # Overwrite retrieve, list to exclude the event if it requires confirmation
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(self.remove_unconfirmed_events(serializer.data))
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(self.remove_unconfirmed_events(serializer.data))
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(self.remove_unconfirmed_event(serializer.data))
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
