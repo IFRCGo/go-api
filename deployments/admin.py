@@ -26,8 +26,12 @@ class RdrtAdmin(admin.ModelAdmin):
     inlines = [RdrtPersonInline]
 
 
+class PartnerSocietyDeploymentAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)
+
+
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.Heop)
 admin.site.register(models.Fact, FactAdmin)
 admin.site.register(models.Rdrt, RdrtAdmin)
-admin.site.register(models.PartnerSocietyDeployment)
+admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)

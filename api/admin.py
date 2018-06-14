@@ -91,6 +91,7 @@ class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     readonly_fields = ('appeals', 'field_reports', )
     list_filter = [IsFeaturedFilter,]
+    autocomplete_fields = ('countries', 'districts',)
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
             return format_html_join(
@@ -130,6 +131,7 @@ class FieldReportAdmin(admin.ModelAdmin):
     list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['countries', 'regions', 'summary',]
+    autocomplete_fields = ('countries', 'districts',)
     list_filter = [HasRelatedEventFilter, MembershipFilter,]
     actions = ['create_events',]
 
@@ -224,7 +226,12 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
+class DistrictAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'country_name',)
+
+
 class CountryAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
 
 
@@ -237,7 +244,7 @@ admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
 admin.site.register(models.Country, CountryAdmin)
 admin.site.register(models.Region, RegionAdmin)
-admin.site.register(models.District)
+admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)
