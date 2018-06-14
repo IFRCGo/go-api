@@ -47,6 +47,7 @@ router.register(r'region_key_figure', api_views.RegionKeyFigureViewset, base_nam
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, base_name='country_key_figure')
 router.register(r'region_snippet', api_views.RegionSnippetViewset, base_name='region_snippet')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, base_name='country_snippet')
+router.register(r'district', api_views.DistrictViewset)
 router.register(r'event', api_views.EventViewset)
 router.register(r'situation_report', api_views.SituationReportViewset)
 router.register(r'appeal', api_views.AppealViewset)

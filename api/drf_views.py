@@ -15,6 +15,8 @@ from .models import (
     CountryKeyFigure,
     CountrySnippet,
 
+    District,
+
     Event,
     SituationReport,
     Appeal,
@@ -35,6 +37,9 @@ from .serializers import (
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
+
+    DistrictSerializer,
+    MiniDistrictSerializer,
 
     ListEventSerializer,
     DetailEventSerializer,
@@ -125,8 +130,17 @@ class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
             return CountrySnippet.objects.all()
         return CountrySnippet.objects.filter(visibility=3)
 
+class DistrictViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.all()
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return MiniDistrictSerializer
+        else:
+            return DistrictSerializer
+
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    is_featured = filters.BooleanFilter(name='is_featured')
     class Meta:
         model = Event
         fields = {
@@ -141,7 +155,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
-    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'dtype', 'summary', 'num_affected', 'alert_level', 'glide'),
+    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
     filter_class = EventFilter
 
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
