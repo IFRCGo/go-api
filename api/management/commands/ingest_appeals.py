@@ -21,18 +21,18 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get latest
-        url = 'http://go-api.ifrc.org/api/appeals'
-
-        auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-        response = requests.get(url, auth=auth)
-        if response.status_code != 200:
-            raise Exception('Error querying Appeals API')
-        records = response.json()
-
-        # read from static file for development
-        #import json
-        #with open('appeals.json') as f:
-        #     records = json.loads(f.read())
+        if (os.getenv('DJANGO_DB_NAME') != 'test'):
+            url = 'http://go-api.ifrc.org/api/appeals'
+            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            response = requests.get(url, auth=auth)
+            if response.status_code != 200:
+                raise Exception('Error querying Appeals API')
+            records = response.json()
+        else:
+            # read from static file for development
+            import json
+            with open('appeals.json') as f:
+                 records = json.loads(f.read())
 
         print('%s current appeals' % Appeal.objects.all().count())
 
