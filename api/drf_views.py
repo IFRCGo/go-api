@@ -167,6 +167,7 @@ class AppealFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     country = filters.NumberFilter(name='country', lookup_expr='exact')
     region = filters.NumberFilter(name='region', lookup_expr='exact')
+    code = filters.CharFilter(name='code', lookup_expr='exact')
     class Meta:
         model = Appeal
         fields = {
