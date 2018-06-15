@@ -92,7 +92,7 @@ class SituationReportInline(admin.TabularInline):
 
 class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
-    readonly_fields = ('appeals', 'field_reports', )
+    readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter,]
     autocomplete_fields = ('countries', 'districts',)
     def appeals(self, instance):
