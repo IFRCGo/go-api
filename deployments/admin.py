@@ -28,6 +28,11 @@ class RdrtAdmin(admin.ModelAdmin):
 
 class PartnerSocietyDeploymentAdmin(admin.ModelAdmin):
     autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)
+    readonly_fields = ('country_deployed_to',)
+    def save_model(self, request, obj, form, change):
+        if (obj.district_deployed_to):
+            obj.country_deployed_to = obj.district_deployed_to.country
+        super().save_model(request, obj, form, change)
 
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
