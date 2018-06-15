@@ -120,7 +120,7 @@ class DeployedPerson(models.Model):
     name = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
     def __str__(self):
-        return '%s - %s - %s' % (self.name, self.name, self.society_deployed_from)
+        return '%s - %s' % (self.name, self.role)
 
 
 class FactPerson(DeployedPerson):
@@ -143,5 +143,5 @@ class RdrtPerson(DeployedPerson):
 
 class PartnerSocietyDeployment(DeployedPerson):
     parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, blank=True, on_delete=models.SET_NULL)
-    country_deployed_to = models.ForeignKey(District, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
-    district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
+    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
+    district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, on_delete=models.SET_NULL)

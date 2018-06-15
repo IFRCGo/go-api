@@ -7,11 +7,13 @@ from .models import (
     FactPerson,
     Rdrt,
     RdrtPerson,
+    PartnerSocietyDeployment,
 )
 from api.serializers import (
     MiniEventSerializer,
     DisasterTypeSerializer,
     MiniCountrySerializer,
+    MiniDistrictSerializer,
 )
 
 class ERUSetSerializer(serializers.ModelSerializer):
@@ -67,3 +69,10 @@ class RdrtPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = RdrtPerson
         fields = ('start_date', 'end_date', 'name', 'role', 'society_deployed_from', 'rdrt', 'id',)
+
+class PartnerDeploymentSerializer(serializers.ModelSerializer):
+    country_deployed_to = MiniCountrySerializer()
+    district_deployed_to = MiniDistrictSerializer()
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'id',)

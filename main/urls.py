@@ -63,6 +63,7 @@ router.register(r'fact', deployment_views.FactViewset)
 router.register(r'rdrt', deployment_views.RdrtViewset)
 router.register(r'fact_person', deployment_views.FactPersonViewset)
 router.register(r'rdrt_person', deployment_views.RdrtPersonViewset)
+router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
 
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
