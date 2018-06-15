@@ -10,10 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Key figures, contacts, links, and embed models to country and region pages.
 - Create endpoints for key figures and embeds that respond to private/public setting.
+- Appeals and field report admins can create new emergency objects that automatically get attached as relations.
+- Newly ingested appeals will now try to guess at an emergency that it might belong to.
+- If a newly ingested appeal is attached, a needs_confirmation flag will ensure it does not show up in API responses.
+- Creates routes and relations for a district, essentially sub-country admin level.
+- Creates a new type of deployment, a national partner deployment.
 
 ### Changed
 
 - Altered the emergency key figure model to use a text type, ie "15%."
+- Appeals now order by start date, not end date.
+- Events now have a column for where they were auto-generated from.
 
 ## 1.0.0
 
