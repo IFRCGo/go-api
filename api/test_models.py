@@ -1,7 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+from rest_framework.test import APIRequestFactory
+from rest_framework.test import APITestCase
 
 import api.models as models
+import api.drf_views as views
 
 
 class DisasterTypeTest(TestCase):
@@ -58,22 +61,19 @@ class ProfileTest(TestCase):
         self.assertEqual(profile.org, 'org')
 
 
-"""
-class AppealTest(TestCase):
+class AppealTest(APITestCase):
     def setUp(self):
-        event = models.Event.objects.create(name='disaster1', summary='test disaster')
+        # An appeal with needs_confirmation=True should not return the event in the API response.
+        event = models.Event.objects.create(name='associated event', summary='foo')
         country = models.Country.objects.create(name='country')
-        models.Appeal.objects.create(aid='test1', disaster=event, country=country)
+        models.Appeal.objects.create(aid='test1', name='appeal', atype=1, code='abc', needs_confirmation=True, event=event, country=country)
 
-    def test_appeal_create(self):
-        event = models.Event.objects.get(name='disaster1')
-        self.assertEqual(event.countries(), ['country'])
-        country = models.Country.objects.get(name='country')
-        obj = models.Appeal.objects.get(aid='test1')
-        self.assertEqual(obj.aid, 'test1')
-        self.assertEqual(obj.country, country)
-        self.assertEqual(obj.event, event)
-"""
+    def test_unconfirmed_event(self):
+        response = self.client.get('/api/v2/appeal/?code=abc')
+        response = dict(dict(response.data)['results'][0])
+        self.assertIsNone(response['event'])
+        self.assertIsNotNone(response['country'])
+
 
 class FieldReportTest(TestCase):
 
