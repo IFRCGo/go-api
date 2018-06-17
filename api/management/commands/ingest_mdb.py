@@ -11,8 +11,19 @@ from zipfile import ZipFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from api.models import DisasterType, Country, FieldReport, Action, ActionsTaken, FieldReportContact, SourceType, Source
+from api.models import (
+    DisasterType,
+    Country,
+    FieldReport,
+    Action,
+    ActionsTaken,
+    FieldReportContact,
+    SourceType,
+    Source,
+    Event,
+)
 from api.fixtures.dtype_map import PK_MAP
+from api.event_sources import SOURCES
 
 
 def extract_table(dbfile, table):
@@ -47,10 +58,15 @@ def get_dbfile():
     ftppass = os.environ.get('GO_FTPPASS', None)
     dbpass = os.environ.get('GO_DBPASS', None)
     if ftphost is None or ftpuser is None or ftppass is None:
-        raise Exception('FTP credentials not provided (GO_FTPHOST, GO_FTPUSER, GO_FTPPASS)')
+        if os.path.exists('URLs.mdb'):
+            print('No credentials in env, using local MDB database file')
+            print('If this occurs outside development, contact an administrator')
+            return 'URLs.mdb'
+        else:
+            raise Exception('FTP credentials not provided (GO_FTPHOST, GO_FTPUSER, GO_FTPPASS)')
     if dbpass is None:
         raise Exception('Database encryption password not provided (GO_DBPASS)')
-    print('Connecting to FTP')
+    print('Attempting connection to FTP')
     ftp = FTP(ftphost)
     ftp.login(user=ftpuser, passwd=ftppass)
     ftp.cwd('/dmis/')
@@ -141,16 +157,24 @@ class Command(BaseCommand):
         # field report
         reports = extract_table(filename, 'EW_Reports')
         rids = [r.rid for r in FieldReport.objects.all()]
+        num_reports_created = 0
         print('%s reports in database' % len(reports))
         for i, report in enumerate(reports):
-            if report['ReportID'] in rids:
+
+            # Skip reports that we've already ingested.
+            # We don't have to update them because field reports can't be updated in DMIS.
+            rid = report['ReportID']
+            if rid in rids:
                 continue
-            print(i) if (i % 100) == 0 else None
+
+            report_name = report['Summary']
+            report_description = report['BriefSummary']
+            report_dtype = DisasterType.objects.get(pk=PK_MAP[report['DisasterTypeID']])
             record = {
-                'rid': report['ReportID'],
-                'summary': report['Summary'],
-                'description': report['BriefSummary'],
-                'dtype': DisasterType.objects.get(pk=PK_MAP[report['DisasterTypeID']]),
+                'rid': rid,
+                'summary': report_name,
+                'description': report_description,
+                'dtype': report_dtype,
                 'status': report['StatusID'],
                 'request_assistance': report['GovRequestsInternAssistance'],
                 'actions_others': report['ActionTakenByOthers']
@@ -204,7 +228,23 @@ class Command(BaseCommand):
                 })
 
             field_report = FieldReport(**record)
+
+            # Create an associated event object
+            event_record = {
+                'name': report_name if len(report_name) else report_dtype.name,
+                'summary': report_description,
+                'dtype': report_dtype,
+                'disaster_start_date': datetime.utcnow().replace(tzinfo=timezone.utc),
+                'auto_generated': True,
+                'auto_generated_source': SOURCES['report_ingest'],
+            }
+            event = Event(**event_record)
+            event.save()
+
+            print('Adding %s' % report_name)
+            field_report.event = event
             field_report.save()
+            num_reports_created = num_reports_created + 1
 
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
@@ -214,8 +254,10 @@ class Command(BaseCommand):
 
             if country is not None:
                 field_report.countries.add(country)
+                event.countries.add(country)
                 if country.region is not None:
-                    field_report.regions.add(country.region)
+                    #field_report.regions.add(country.region)
+                    event.regions.add(country.region)
 
             ### add items with foreignkeys to report
             # national red cross actions
@@ -271,6 +313,9 @@ class Command(BaseCommand):
                             email=contact['%sContact' % f],
                             field_report=field_report,
                         )
+        total_reports = FieldReport.objects.all()
+        print('%s reports created' % num_reports_created)
+        print('%s reports in database' % total_reports.count())
 
         # org type mapping
         org_types = {
@@ -323,9 +368,4 @@ class Command(BaseCommand):
             user.profile.department = user_data['Department'] if len(user_data['Department']) <= 100 else ''
             user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
             user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
-
             user.save()
-            print(i) if (i % 100) == 0 else None
-
-        reports = FieldReport.objects.all()
-        print('%s reports' % reports.count())
