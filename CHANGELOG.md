@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Improvements to the emergency admin page.
+- Field report DMIS ingest automatically creates new emergency objects.
 - Key figures, contacts, links, and embed models to country and region pages.
 - Create endpoints for key figures and embeds that respond to private/public setting.
 - Appeals and field report admins can create new emergency objects that automatically get attached as relations.
