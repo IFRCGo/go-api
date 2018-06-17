@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
+from api.event_sources import SOURCES
 import api.models as models
 
 
@@ -74,6 +75,33 @@ class IsFeaturedFilter(admin.SimpleListFilter):
             return queryset.filter(is_featured=False)
 
 
+class EventSourceFilter(admin.SimpleListFilter):
+    title = _('source')
+    parameter_name = 'event_source'
+    def lookups(self, request, model_admin):
+        return (
+            ('input', _('Manual input')),
+            ('gdacs', _('GDACs scraper')),
+            ('report_ingest', _('Field report ingest')),
+            ('report_admin', _('Field report admin')),
+            ('appeal_admin', _('Appeals admin')),
+            ('unknown', _('Unknown automated')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'input':
+            return queryset.filter(auto_generated=False)
+        if self.value() == 'gdacs':
+            return queryset.filter(auto_generated_source=SOURCES['gdacs'])
+        if self.value() == 'report_ingest':
+            return queryset.filter(auto_generated_source=SOURCES['report_ingest'])
+        if self.value() == 'report_admin':
+            return queryset.filter(auto_generated_source=SOURCES['report_admin'])
+        if self.value() == 'appeal_admin':
+            return queryset.filter(auto_generated_source=SOURCES['appeal_admin'])
+        if self.value() == 'unknown':
+            return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
+
+
 class KeyFigureInline(admin.TabularInline):
     model = models.KeyFigure
 
@@ -92,8 +120,10 @@ class SituationReportInline(admin.TabularInline):
 
 class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
+    list_display = ('name', 'alert_level', 'glide', 'auto_generated', 'auto_generated_source',)
+    list_filter = [IsFeaturedFilter, EventSourceFilter,]
+    search_fields = ['name', 'countries', 'dtype',]
     readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
-    list_filter = [IsFeaturedFilter,]
     autocomplete_fields = ('countries', 'districts',)
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
@@ -145,7 +175,7 @@ class FieldReportAdmin(admin.ModelAdmin):
                 dtype=getattr(report, 'dtype'),
                 disaster_start_date=getattr(report, 'created_at'),
                 auto_generated=True,
-                auto_generated_source='Field report admin',
+                auto_generated_source=SOURCES['report_admin'],
             )
             if getattr(report, 'countries').exists():
                 for country in report.countries.all():
@@ -180,7 +210,7 @@ class AppealAdmin(admin.ModelAdmin):
                 dtype=getattr(appeal, 'dtype'),
                 disaster_start_date=getattr(appeal, 'start_date'),
                 auto_generated=True,
-                auto_generated_source='Appeal admin',
+                auto_generated_source=SOURCES['appeal_admin'],
             )
             if appeal.country is not None:
                 event.countries.add(appeal.country)
