@@ -5,6 +5,7 @@ from encoder import XML2Dict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from api.models import Country, Event, GDACSEvent
+from api.event_sources import SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,7 @@ class Command(BaseCommand):
                         'summary': data['description'],
                         'disaster_start_date': data['publication_date'],
                         'auto_generated': True,
-                        'auto_generated_source': 'GDACs ingest',
+                        'auto_generated_source': SOURCES['gdacs'],
                         'alert_level': data['alert_level'],
                     }
                     event = Event.objects.create(**fields)
