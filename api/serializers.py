@@ -2,8 +2,18 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
+
     Region,
     Country,
+    District,
+    CountryKeyFigure,
+    RegionKeyFigure,
+    CountrySnippet,
+    RegionSnippet,
+    CountryLink,
+    RegionLink,
+    CountryContact,
+    RegionContact,
 
     KeyFigure,
     Snippet,
@@ -45,6 +55,71 @@ class MiniCountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = ('name', 'iso', 'society_name', 'id',)
 
+class DistrictSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id',)
+
+class MiniDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id',)
+
+class RegionKeyFigureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionKeyFigure
+        fields = ('region', 'figure', 'deck', 'source', 'visibility', 'id',)
+
+class CountryKeyFigureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryKeyFigure
+        fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
+
+class RegionSnippetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionSnippet
+        fields = ('region', 'snippet', 'image', 'visibility', 'id',)
+
+class CountrySnippetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountrySnippet
+        fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+
+class RegionLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionLink
+        fields = ('title', 'url', 'id',)
+
+class CountryLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryLink
+        fields = ('title', 'url', 'id',)
+
+class RegionContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionContact
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
+
+class CountryContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CountryContact
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
+
+class RegionRelationSerializer(serializers.ModelSerializer):
+    links = RegionLinkSerializer(many=True, read_only=True)
+    contacts = RegionContactSerializer(many=True, read_only=True)
+    class Meta:
+        model = Region
+        fields = ('links', 'contacts', 'name', 'id',)
+
+class CountryRelationSerializer(serializers.ModelSerializer):
+    links = CountryLinkSerializer(many=True, read_only=True)
+    contacts = CountryContactSerializer(many=True, read_only=True)
+    class Meta:
+        model = Country
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'id',)
+
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
@@ -77,7 +152,8 @@ class ListEventSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'id',)
+        fields = ('name',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'id',)
 
 class DetailEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
@@ -87,7 +163,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'is_featured', 'id',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     class Meta:
@@ -98,7 +174,7 @@ class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     class Meta:
         model = Appeal
-        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'country', 'region', 'id',)
+        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',)
 
 class AppealDocumentSerializer(serializers.ModelSerializer):
     class Meta:

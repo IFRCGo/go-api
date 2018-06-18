@@ -69,6 +69,85 @@ class Country(models.Model):
         return self.name
 
 
+class District(models.Model):
+    """ Admin level 1 field """
+
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
+    country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    country_iso = models.CharField(max_length=3, null=True)
+    country_name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ('code',)
+
+    def __str__(self):
+        return '%s - %s' % (self.country_name, self.name)
+
+
+class VisibilityChoices(IntEnum):
+    MEMBERSHIP = 1
+    IFRC = 2
+    PUBLIC = 3
+
+
+# Common parent class for key figures.
+# Country/region variants inherit from this.
+class AdminKeyFigure(models.Model):
+    figure = models.CharField(max_length=100)
+    deck = models.CharField(max_length=50)
+    source = models.CharField(max_length=256)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+    class Meta:
+        ordering = ('source',)
+    def __str__(self):
+        return self.source
+
+class RegionKeyFigure(AdminKeyFigure):
+    region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
+
+class CountryKeyFigure(AdminKeyFigure):
+    country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
+
+
+class RegionSnippet(models.Model):
+    region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+
+
+class CountrySnippet(models.Model):
+    country = models.ForeignKey(Country, related_name='snippets', on_delete=models.CASCADE)
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage())
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
+
+
+class AdminLink(models.Model):
+    title = models.CharField(max_length=100)
+    url = models.URLField(max_length=300)
+
+class RegionLink(AdminLink):
+    region = models.ForeignKey(Region, related_name='links', on_delete=models.CASCADE)
+
+class CountryLink(AdminLink):
+    country = models.ForeignKey(Country, related_name='links', on_delete=models.CASCADE)
+
+
+class AdminContact(models.Model):
+    ctype = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=300)
+    email = models.CharField(max_length=300)
+
+class RegionContact(AdminContact):
+    region = models.ForeignKey(Region, related_name='contacts', on_delete=models.CASCADE)
+
+class CountryContact(AdminContact):
+    country = models.ForeignKey(Country, related_name='contacts', on_delete=models.CASCADE)
+
+
 class AlertLevel(IntEnum):
     GREEN = 0
     ORANGE = 1
@@ -80,6 +159,7 @@ class Event(models.Model):
 
     name = models.CharField(max_length=100)
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
+    districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = models.TextField(blank=True)
@@ -90,7 +170,11 @@ class Event(models.Model):
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    auto_generated = models.BooleanField(default=False)
+    auto_generated = models.BooleanField(default=False, editable=False)
+    auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
+
+    # Meant to give the organization a way of highlighting certain, important events.
+    is_featured = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('-disaster_start_date',)
@@ -156,17 +240,23 @@ class EventContact(models.Model):
 class KeyFigure(models.Model):
     event = models.ForeignKey(Event, related_name='key_figures', on_delete=models.CASCADE)
     # key figure metric
-    number = models.IntegerField()
+    number = models.CharField(max_length=100)
     # key figure units
     deck = models.CharField(max_length=50)
     # key figure website link, publication
     source = models.CharField(max_length=256)
 
 
+def snippet_image_path(instance, filename):
+    return 'emergencies/%s/%s' % (instance.event.id, filename)
+
+
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.TextField()
+    snippet = models.TextField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage())
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
 def sitrep_document_path(instance, filename):
@@ -237,7 +327,7 @@ class Appeal(models.Model):
     atype = EnumIntegerField(AppealType, default=0)
 
     status = EnumIntegerField(AppealStatus, default=0)
-    code = models.CharField(max_length=20, null=True)
+    code = models.CharField(max_length=20, null=True, unique=True)
     sector = models.CharField(max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(default=0)
@@ -250,6 +340,7 @@ class Appeal(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL)
+    needs_confirmation = models.BooleanField(default=False)
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
 
@@ -290,7 +381,7 @@ class Appeal(models.Model):
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     class Meta:
-        ordering = ('-end_date', '-start_date',)
+        ordering = ('-start_date', '-end_date',)
 
     def indexing(self):
         return {
@@ -350,12 +441,6 @@ class RequestChoices(IntEnum):
     COMPLETE = 3
 
 
-class VisibilityChoices(IntEnum):
-    MEMBERSHIP = 1
-    IFRC = 2
-    PUBLIC = 3
-
-
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -371,6 +456,7 @@ class FieldReport(models.Model):
     description = models.TextField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
+    districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)

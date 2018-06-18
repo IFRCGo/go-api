@@ -11,6 +11,7 @@ from .models import (
     FactPerson,
     Rdrt,
     RdrtPerson,
+    PartnerSocietyDeployment,
 )
 from api.models import Country
 from .serializers import (
@@ -21,6 +22,7 @@ from .serializers import (
     RdrtSerializer,
     FactPersonSerializer,
     RdrtPersonSerializer,
+    PartnerDeploymentSerializer,
 )
 
 # https://github.com/carltongibson/django-filter/issues/137#issuecomment-127073878
@@ -92,3 +94,22 @@ class RdrtPersonViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = RdrtPerson.objects.all()
     serializer_class = RdrtPersonSerializer
+
+class PartnerDeploymentFilterset(filters.FilterSet):
+    parent_society = filters.NumberFilter(name='parent_society', lookup_expr='exact')
+    country_deployed_to = filters.NumberFilter(name='country_deployed_to', lookup_expr='exact')
+    district_deployed_to = filters.NumberFilter(name='district_deployed_to', lookup_expr='exact')
+    parent_society__in = ListFilter(name='parent_society__id')
+    country_deployed_to__in = ListFilter(name='country_deployed_to__id')
+    district_deployed_to__in = ListFilter(name='district_deployed_to__id')
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = {
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
+class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = PartnerSocietyDeployment.objects.all()
+    serializer_class = PartnerDeploymentSerializer
+    filter_class = PartnerDeploymentFilterset
