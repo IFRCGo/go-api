@@ -1,12 +1,22 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from .models import (
     DisasterType,
+
     Region,
+    RegionKeyFigure,
+    RegionSnippet,
+
     Country,
+    CountryKeyFigure,
+    CountrySnippet,
+
+    District,
+
     Event,
     SituationReport,
     Appeal,
@@ -17,8 +27,20 @@ from .models import (
 
 from .serializers import (
     DisasterTypeSerializer,
+
     RegionSerializer,
+    RegionKeyFigureSerializer,
+    RegionSnippetSerializer,
+    RegionRelationSerializer,
+
     CountrySerializer,
+    CountryKeyFigureSerializer,
+    CountrySnippetSerializer,
+    CountryRelationSerializer,
+
+    DistrictSerializer,
+    MiniDistrictSerializer,
+
     ListEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
@@ -36,14 +58,89 @@ class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
-    serializer_class = RegionSerializer
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return RegionSerializer
+        return RegionRelationSerializer
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
-    serializer_class = CountrySerializer
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CountrySerializer
+        return CountryRelationSerializer
+
+class RegionKeyFigureFilter(filters.FilterSet):
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = RegionKeyFigure
+        fields = ('region',)
+
+class RegionKeyFigureViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = RegionKeyFigureSerializer
+    filter_class = RegionKeyFigureFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return RegionKeyFigure.objects.all()
+        return RegionKeyFigure.objects.filter(visibility=3)
+
+class CountryKeyFigureFilter(filters.FilterSet):
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    class Meta:
+        model = CountryKeyFigure
+        fields = ('country',)
+
+class CountryKeyFigureViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = CountryKeyFigureSerializer
+    filter_class = CountryKeyFigureFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return CountryKeyFigure.objects.all()
+        return CountryKeyFigure.objects.filter(visibility=3)
+
+class RegionSnippetFilter(filters.FilterSet):
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = RegionSnippet
+        fields = ('region',)
+
+class RegionSnippetViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = RegionSnippetSerializer
+    filter_class = RegionSnippetFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return RegionSnippet.objects.all()
+        return RegionSnippet.objects.filter(visibility=3)
+
+class CountrySnippetFilter(filters.FilterSet):
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    class Meta:
+        model = CountrySnippet
+        fields = ('country',)
+
+class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    serializer_class = CountrySnippetSerializer
+    filter_class = CountrySnippetFilter
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return CountrySnippet.objects.all()
+        return CountrySnippet.objects.filter(visibility=3)
+
+class DistrictViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.all()
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return MiniDistrictSerializer
+        else:
+            return DistrictSerializer
 
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
+    is_featured = filters.BooleanFilter(name='is_featured')
     class Meta:
         model = Event
         fields = {
@@ -58,7 +155,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
-    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'dtype', 'summary', 'num_affected', 'alert_level', 'glide'),
+    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
     filter_class = EventFilter
 
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
@@ -70,6 +167,7 @@ class AppealFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     country = filters.NumberFilter(name='country', lookup_expr='exact')
     region = filters.NumberFilter(name='region', lookup_expr='exact')
+    code = filters.CharFilter(name='code', lookup_expr='exact')
     class Meta:
         model = Appeal
         fields = {
@@ -82,6 +180,31 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = AppealSerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
     filter_class = AppealFilter
+
+    def remove_unconfirmed_event(self, obj):
+        if obj['needs_confirmation']:
+            obj['event'] = None
+        return obj
+
+    def remove_unconfirmed_events(self, objs):
+        return [self.remove_unconfirmed_event(obj) for obj in objs]
+
+    # Overwrite retrieve, list to exclude the event if it requires confirmation
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(self.remove_unconfirmed_events(serializer.data))
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(self.remove_unconfirmed_events(serializer.data))
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(self.remove_unconfirmed_event(serializer.data))
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()

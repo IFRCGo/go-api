@@ -1,5 +1,77 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.utils.translation import gettext_lazy as _
+from django.utils.html import format_html_join
+from django.utils.safestring import mark_safe
 import api.models as models
+
+
+class HasRelatedEventFilter(admin.SimpleListFilter):
+    title = _('related emergency')
+    parameter_name = 'related_emergency'
+    def lookups(self, request, model_admin):
+        return (
+            ('yes', _('Exists')),
+            ('confirm', _('Needs confirmation')),
+            ('no', _('None')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(event__isnull=False).filter(needs_confirmation=False)
+        if self.value() == 'confirm':
+            return queryset.filter(event__isnull=False).filter(needs_confirmation=True)
+        if self.value() == 'no':
+            return queryset.filter(event__isnull=True)
+
+
+class MembershipFilter(admin.SimpleListFilter):
+    title = _('membership')
+    parameter_name = 'membership'
+    def lookups(self, request, model_admin):
+        return (
+            ('membership', _('Membership')),
+            ('ifrc', _('IFRC')),
+            ('public', _('Public')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'membership':
+            return queryset.filter(atype=models.VisibilityChoices.MEMBERSHIP)
+        if self.value() == 'ifrc':
+            return queryset.filter(atype=models.VisibilityChoices.IFRC)
+        if self.value() == 'public':
+            return queryset.filter(atype=models.VisibilityChoices.PUBLIC)
+
+
+class AppealTypeFilter(admin.SimpleListFilter):
+    title = _('appeal type')
+    parameter_name = 'appeal_type'
+    def lookups(self, request, model_admin):
+        return (
+            ('dref', _('DREF')),
+            ('appeal', _('Appeal')),
+            ('intl', _('Intl appeal')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'dref':
+            return queryset.filter(atype=models.AppealType.DREF)
+        if self.value() == 'appeal':
+            return queryset.filter(atype=models.AppealType.APPEAL)
+        if self.value() == 'intl':
+            return queryset.filter(atype=models.AppealType.INTL)
+
+
+class IsFeaturedFilter(admin.SimpleListFilter):
+    title = _('featured')
+    parameter_name = 'featured'
+    def lookups(self, request, model_admin):
+        return (
+            ('featured', _('Featured')),
+            ('not', _('Not Featured')),
+        )
+    def queryset(self, request, queryset):
+        if self.value() == 'featured':
+            return queryset.filter(is_featured=True)
+        if self.value() == 'not':
+            return queryset.filter(is_featured=False)
 
 
 class KeyFigureInline(admin.TabularInline):
@@ -20,6 +92,28 @@ class SituationReportInline(admin.TabularInline):
 
 class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
+    readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
+    list_filter = [IsFeaturedFilter,]
+    autocomplete_fields = ('countries', 'districts',)
+    def appeals(self, instance):
+        if getattr(instance, 'appeals').exists():
+            return format_html_join(
+                mark_safe('<br />'),
+                '{} - {}',
+                ((appeal.code, appeal.name) for appeal in instance.appeals.all())
+            )
+        return mark_safe('<span class="errors">No related appeals</span>')
+    appeals.short_description = 'Appeals'
+
+    def field_reports(self, instance):
+        if getattr(instance, 'field_reports').exists():
+            return format_html_join(
+                mark_safe('<br />'),
+                '{} - {}',
+                ((report.pk, report.summary) for report in instance.field_reports.all())
+            )
+        return mark_safe('<span class="errors">No related field reports</span>')
+    field_reports.short_description = 'Field Reports'
 
 
 class ActionsTakenInline(admin.TabularInline):
@@ -36,6 +130,33 @@ class FieldReportContactInline(admin.TabularInline):
 
 class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
+    list_display = ('summary', 'user', 'event', 'visibility',)
+    list_editable = ('event',)
+    list_select_related = ('event',)
+    search_fields = ['countries', 'regions', 'summary',]
+    autocomplete_fields = ('countries', 'districts',)
+    list_filter = [HasRelatedEventFilter, MembershipFilter,]
+    actions = ['create_events',]
+
+    def create_events(self, request, queryset):
+        for report in queryset:
+            event = models.Event.objects.create(
+                name=report.summary,
+                dtype=getattr(report, 'dtype'),
+                disaster_start_date=getattr(report, 'created_at'),
+                auto_generated=True,
+                auto_generated_source='Field report admin',
+            )
+            if getattr(report, 'countries').exists():
+                for country in report.countries.all():
+                    event.countries.add(country)
+            if getattr(report, 'regions').exists():
+                for region in report.regions.all():
+                    event.regions.add(region)
+            report.event = event
+            report.save()
+        self.message_user(request, '%s emergency object(s) created' % queryset.count())
+    create_events.short_description = 'Create emergencies from selected reports'
 
 
 class AppealDocumentInline(admin.TabularInline):
@@ -44,13 +165,103 @@ class AppealDocumentInline(admin.TabularInline):
 
 class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
-    list_display = ('code', 'name', 'start_date')
+    list_display = ('code', 'name', 'atype', 'needs_confirmation', 'event', 'start_date',)
+    list_editable = ('event',)
+    list_select_related = ('event',)
+    search_fields = ['code', 'name',]
+    readonly_fields = ('region',)
+    list_filter = [HasRelatedEventFilter, AppealTypeFilter,]
+    actions = ['create_events', 'confirm_events',]
+
+    def create_events(self, request, queryset):
+        for appeal in queryset:
+            event = models.Event.objects.create(
+                name=appeal.name,
+                dtype=getattr(appeal, 'dtype'),
+                disaster_start_date=getattr(appeal, 'start_date'),
+                auto_generated=True,
+                auto_generated_source='Appeal admin',
+            )
+            if appeal.country is not None:
+                event.countries.add(appeal.country)
+            if appeal.region is not None:
+                event.regions.add(appeal.region)
+            appeal.event = event
+            appeal.save()
+        self.message_user(request, '%s emergency object(s) created' % queryset.count())
+    create_events.short_description = 'Create emergencies from selected appeals'
+
+    def confirm_events(self, request, queryset):
+        errors = []
+        for appeal in queryset:
+            if not appeal.needs_confirmation or not appeal.event:
+                errors.append(appeal.code)
+        if len(errors):
+            self.message_user(request, '%s %s not have an unconfirmed event.' % (', '.join(errors), 'does' if len(errors) == 1 else 'do'),
+                              level=messages.ERROR)
+        else:
+            for appeal in queryset:
+                appeal.needs_confirmation = False
+                appeal.save()
+    confirm_events.short_description = 'Confirm emergencies as correct'
+
+    def save_model(self, request, obj, form, change):
+        if (obj.country):
+            obj.region = obj.country.region
+        super().save_model(request, obj, form, change)
+
+
+class CountryKeyFigureInline(admin.TabularInline):
+    model = models.CountryKeyFigure
+
+
+class RegionKeyFigureInline(admin.TabularInline):
+    model = models.RegionKeyFigure
+
+
+class CountrySnippetInline(admin.TabularInline):
+    model = models.CountrySnippet
+
+
+class RegionSnippetInline(admin.TabularInline):
+    model = models.RegionSnippet
+
+
+class CountryLinkInline(admin.TabularInline):
+    model = models.CountryLink
+
+
+class RegionLinkInline(admin.TabularInline):
+    model = models.RegionLink
+
+
+class CountryContactInline(admin.TabularInline):
+    model = models.CountryContact
+
+
+class RegionContactInline(admin.TabularInline):
+    model = models.RegionContact
+
+
+class DistrictAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'country_name',)
+
+
+class CountryAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+    inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
+
+
+class RegionAdmin(admin.ModelAdmin):
+    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
 
 
 admin.site.register(models.DisasterType)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent)
-admin.site.register(models.Country)
+admin.site.register(models.Country, CountryAdmin)
+admin.site.register(models.Region, RegionAdmin)
+admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument)
 admin.site.register(models.FieldReport, FieldReportAdmin)

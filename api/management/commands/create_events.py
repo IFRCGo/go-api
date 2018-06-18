@@ -14,6 +14,7 @@ class Command(BaseCommand):
                 'dtype': appeal.dtype,
                 'disaster_start_date': appeal.start_date,
                 'auto_generated': True,
+                'auto_generated_source': 'Automated appeal script',
             }
             event = Event.objects.create(**fields)
             if appeal.country is not None:
