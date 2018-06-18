@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from api.models import Appeal, Event
+from api.event_sources import SOURCES
 
 class Command(BaseCommand):
     help = 'Creates an event to go with each appeal that lacks one'
@@ -14,7 +15,7 @@ class Command(BaseCommand):
                 'dtype': appeal.dtype,
                 'disaster_start_date': appeal.start_date,
                 'auto_generated': True,
-                'auto_generated_source': 'Automated appeal script',
+                'auto_generated_source': SOURCES['appeal_admin'],
             }
             event = Event.objects.create(**fields)
             if appeal.country is not None:
