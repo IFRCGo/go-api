@@ -141,6 +141,8 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     is_featured = filters.BooleanFilter(name='is_featured')
+    country = filters.NumberFilter(name='countries', lookup_expr='exact')
+    region = filters.NumberFilter(name='regions', lookup_expr='exact')
     class Meta:
         model = Event
         fields = {

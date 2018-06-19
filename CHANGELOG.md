@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Attaches event representation to field reports
+- Attaches mini field report representation to events
+- Fixes event admin search field
 - Improvements to the emergency admin page.
 - Field report DMIS ingest automatically creates new emergency objects.
 - Key figures, contacts, links, and embed models to country and region pages.
