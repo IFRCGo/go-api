@@ -164,6 +164,7 @@ class FieldReportAdmin(admin.ModelAdmin):
     list_select_related = ('event',)
     search_fields = ['countries', 'regions', 'summary',]
     autocomplete_fields = ('countries', 'districts',)
+    readonly_fields = ('report_date', 'created_at', 'updated_at',)
     list_filter = [HasRelatedEventFilter, MembershipFilter,]
     actions = ['create_events',]
 
