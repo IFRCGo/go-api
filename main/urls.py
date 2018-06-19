@@ -49,6 +49,7 @@ router.register(r'region_snippet', api_views.RegionSnippetViewset, base_name='re
 router.register(r'country_snippet', api_views.CountrySnippetViewset, base_name='country_snippet')
 router.register(r'district', api_views.DistrictViewset)
 router.register(r'event', api_views.EventViewset)
+router.register(r'event_snippet', api_views.EventSnippetViewset, base_name='event_snippet')
 router.register(r'situation_report', api_views.SituationReportViewset)
 router.register(r'appeal', api_views.AppealViewset)
 router.register(r'appeal_document', api_views.AppealDocumentViewset)
