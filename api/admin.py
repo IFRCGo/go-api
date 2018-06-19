@@ -161,7 +161,6 @@ class FieldReportContactInline(admin.TabularInline):
 class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
     list_display = ('summary', 'event', 'visibility',)
-    list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['countries', 'regions', 'summary',]
     autocomplete_fields = ('countries', 'districts',)
@@ -196,7 +195,6 @@ class AppealDocumentInline(admin.TabularInline):
 class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
     list_display = ('code', 'name', 'atype', 'needs_confirmation', 'event', 'start_date',)
-    list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['code', 'name',]
     readonly_fields = ('region',)
