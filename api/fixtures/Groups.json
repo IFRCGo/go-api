@@ -1,0 +1,9 @@
+[
+  {
+    "model": "auth.Group",
+    "pk": "3",
+    "fields": {
+      "name": "IFRC Admins"
+    }
+  }
+]
