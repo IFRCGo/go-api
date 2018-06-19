@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from .models import (
     DisasterType,
 
@@ -18,6 +18,7 @@ from .models import (
     District,
 
     Event,
+    Snippet,
     SituationReport,
     Appeal,
     AppealDocument,
@@ -40,6 +41,7 @@ from .serializers import (
 
     DistrictSerializer,
     MiniDistrictSerializer,
+    SnippetSerializer,
 
     ListEventSerializer,
     DetailEventSerializer,
@@ -126,8 +128,13 @@ class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = CountrySnippetSerializer
     filter_class = CountrySnippetFilter
     def get_queryset(self):
+        user_groups = self.request.user.groups.all()
+        ifrc_group = Group.objects.get(pk=2)
         if self.request.user.is_authenticated:
-            return CountrySnippet.objects.all()
+            if ifrc_group in user_groups:
+                return CountrySnippet.objects.all()
+            else:
+                return CountrySnippet.objects.exclude(visibility=2)
         return CountrySnippet.objects.filter(visibility=3)
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
@@ -157,6 +164,19 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return DetailEventSerializer
     ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
     filter_class = EventFilter
+
+class EventSnippetViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = SnippetSerializer
+    authentication_classes = (TokenAuthentication,)
+    def get_queryset(self):
+        user_groups = self.request.user.groups.all()
+        ifrc_group = Group.objects.get(pk=2)
+        if self.request.user.is_authenticated:
+            if ifrc_group in user_groups:
+                return Snippet.objects.all()
+            else:
+                return Snippet.objects.exclude(visibility=2)
+        return Snippet.objects.filter(visibility=3)
 
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReport.objects.all()
