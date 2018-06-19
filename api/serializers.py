@@ -133,7 +133,7 @@ class KeyFigureSerializer(serializers.ModelSerializer):
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = ('snippet', 'id',)
+        fields = ('snippet', 'id', 'visibility',)
 
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -159,11 +159,10 @@ class DetailEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
-    snippets = SnippetSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'is_featured', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'id',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     class Meta:
