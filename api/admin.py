@@ -122,7 +122,7 @@ class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     list_display = ('name', 'alert_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
-    search_fields = ['name', 'countries', 'dtype',]
+    search_fields = ['name', 'countries__name', 'dtype__name',]
     readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
     autocomplete_fields = ('countries', 'districts',)
     def appeals(self, instance):
@@ -160,7 +160,7 @@ class FieldReportContactInline(admin.TabularInline):
 
 class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
-    list_display = ('summary', 'user', 'event', 'visibility',)
+    list_display = ('summary', 'event', 'visibility',)
     list_editable = ('event',)
     list_select_related = ('event',)
     search_fields = ['countries', 'regions', 'summary',]
