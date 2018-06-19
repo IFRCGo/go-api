@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Appeals now order by start date, not end date.
 - Events now have a column for where they were auto-generated from.
 
+### Removed
+
+- Removed event editable fields from appeal, field report list admin views.
+
 ## 1.0.0
 
 ### Added
