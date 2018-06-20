@@ -531,12 +531,21 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
     eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
-    # meta
+    # Created, updated at correspond to when the report entered this system.
+    # Report date is when historical reports were created.
+    # For reports that are not historical, it will be equal to created_at.
+    report_date = models.DateTimeField(null=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ('-created_at', '-updated_at',)
+
+    def save(self, *args, **kwargs):
+        # On save, is report_date is not set, set it to now.
+        if not self.id and not self.report_date:
+            self.report_date = timezone.now()
+        return super(FieldReport, self).save(*args, **kwargs)
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
