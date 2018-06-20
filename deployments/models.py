@@ -141,7 +141,14 @@ class RdrtPerson(DeployedPerson):
         verbose_name_plural = 'RDRT/RIT People'
 
 
+class PartnerSocietyActivities(models.Model):
+    activity = models.CharField(max_length=50)
+    def __str__(self):
+        return self.activity
+
+
 class PartnerSocietyDeployment(DeployedPerson):
+    activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
     parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, blank=True, on_delete=models.SET_NULL)
     country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
     district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, on_delete=models.SET_NULL)
