@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - Include filtering class for situation report and appeal documents.
+- Include report date, updated at timestamp in field report response.
 
 ## 1.0.1
 
