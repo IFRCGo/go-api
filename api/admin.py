@@ -163,7 +163,7 @@ class FieldReportAdmin(admin.ModelAdmin):
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
     search_fields = ['countries', 'regions', 'summary',]
-    autocomplete_fields = ('countries', 'districts',)
+    autocomplete_fields = ('event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at',)
     list_filter = [HasRelatedEventFilter, MembershipFilter,]
     actions = ['create_events',]
@@ -201,6 +201,7 @@ class AppealAdmin(admin.ModelAdmin):
     readonly_fields = ('region',)
     list_filter = [HasRelatedEventFilter, AppealTypeFilter,]
     actions = ['create_events', 'confirm_events',]
+    autocomplete_fields = ('event', 'country',)
 
     def create_events(self, request, queryset):
         for appeal in queryset:
