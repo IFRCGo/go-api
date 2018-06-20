@@ -25,6 +25,7 @@ from api.models import (
 from api.fixtures.dtype_map import PK_MAP
 from api.event_sources import SOURCES
 
+REPORT_DATE_FORMAT = '%m/%d/%y %H:%M:%S'
 
 def extract_table(dbfile, table):
     """ Extract a table from the Access database """
@@ -177,7 +178,8 @@ class Command(BaseCommand):
                 'dtype': report_dtype,
                 'status': report['StatusID'],
                 'request_assistance': report['GovRequestsInternAssistance'],
-                'actions_others': report['ActionTakenByOthers']
+                'actions_others': report['ActionTakenByOthers'],
+                'report_date': datetime.strptime(report['Inserted'], REPORT_DATE_FORMAT).replace(tzinfo=pytz.utc),
             }
             details = fetch_relation(details_rc, report['ReportID'])
             assert(len(details) <= 1)
@@ -333,9 +335,7 @@ class Command(BaseCommand):
             if user_data['LoginLastSuccess'] == '':
                 continue
 
-            last_login = datetime.strptime(user_data['LoginLastSuccess'],
-                                           '%m/%d/%y %H:%M:%S',
-                                           )
+            last_login = datetime.strptime(user_data['LoginLastSuccess'], REPORT_DATE_FORMAT,)
             last_login = pytz.UTC.localize(last_login)
 
             # skip users who haven't logged in for a year

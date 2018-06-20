@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.0.1
+
 ### Added
 
+- Adds a partner society deployment type table
 - Attaches event representation to field reports
 - Attaches mini field report representation to events
 - Fixes event admin search field
@@ -23,9 +26,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Uses autocomplete fields for events, countries in admin.
 - Altered the emergency key figure model to use a text type, ie "15%."
 - Appeals now order by start date, not end date.
 - Events now have a column for where they were auto-generated from.
+
+### Removed
+
+- Removed event editable fields from appeal, field report list admin views.
 
 ## 1.0.0
 
@@ -45,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.1...HEAD
+[1.0.1]: https://github.com/IFRCGo/go-api/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/IFRCGo/go-api/compare/0.1.20...1.0.0
 [0.1.20]: https://github.com/IFRCGo/go-api/compare/0.1.0...0.1.20
