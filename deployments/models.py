@@ -13,7 +13,7 @@ class ERUType(IntEnum):
     TELECOM = 1
     LOGISTICS = 2
     EMERGENCY_HOSPITAL = 3
-    EMERGENCY_CINIC = 4
+    EMERGENCY_CLINIC = 4
     RELIEF = 5
     WASH_15 = 6
     WASH_20 = 7
