@@ -4,10 +4,12 @@ import deployments.models as models
 
 class ERUInline(admin.TabularInline):
     model = models.ERU
+    autocomplete_fields = ('deployed_to', 'event',)
 
 
 class ERUOwnerAdmin(admin.ModelAdmin):
     inlines = [ERUInline]
+    autocomplete_fields = ('national_society_country',)
 
 
 class FactPersonInline(admin.TabularInline):
