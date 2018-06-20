@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+
+- Include filtering class for situation report and appeal documents.
+
 ## 1.0.1
 
 ### Added
