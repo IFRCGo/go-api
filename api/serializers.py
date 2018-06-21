@@ -143,7 +143,7 @@ class EventContactSerializer(serializers.ModelSerializer):
 class MiniFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
-        fields = ('num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'created_at', 'updated_at', 'id',)
+        fields = ('num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'created_at', 'updated_at', 'report_date', 'id',)
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
@@ -245,7 +245,7 @@ class ListFieldReportSerializer(serializers.ModelSerializer):
     event = MiniEventSerializer()
     class Meta:
         model = FieldReport
-        fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
+        fields = ('created_at', 'updated_at', 'report_date', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
 
 class DetailFieldReportSerializer(serializers.ModelSerializer):
     user = UserSerializer()

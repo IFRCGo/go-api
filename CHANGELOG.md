@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+
+- Add a CSV renderer so data can be exported as CSV for any model.
+- Include filtering class for situation report and appeal documents.
+- Include report date, updated at timestamp in field report response.
+
+### Changed
+
+- Made the district deployed to in partner deployments a many-to-many field.
+
 ## 1.0.1
 
 ### Added
