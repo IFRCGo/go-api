@@ -78,7 +78,7 @@ class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
 
 class PartnerDeploymentSerializer(serializers.ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
-    district_deployed_to = MiniDistrictSerializer()
+    district_deployed_to = MiniDistrictSerializer(many=True)
     activity = PartnerDeploymentActivitySerializer()
     class Meta:
         model = PartnerSocietyDeployment

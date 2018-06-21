@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
+from .view_filters import ListFilter
 from .models import (
     DisasterType,
 
@@ -160,9 +161,20 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
     filter_class = EventFilter
 
+class SituationReportFilter(filters.FilterSet):
+    event = filters.NumberFilter(name='event', lookup_expr='exact')
+    class Meta:
+        model = SituationReport
+        fields = {
+            'name': ('exact',),
+            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReport.objects.all()
     serializer_class = SituationReportSerializer
+    ordering_fields = ('created_at', 'name',)
+    filter_class = SituationReportFilter
 
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(name='atype', lookup_expr='exact')
@@ -208,9 +220,21 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
+class AppealDocumentFilter(filters.FilterSet):
+    appeal = filters.NumberFilter(name='appeal', lookup_expr='exact')
+    appeal__in = ListFilter(name='appeal__id')
+    class Meta:
+        model = AppealDocument
+        fields = {
+            'name': ('exact',),
+            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     serializer_class = AppealDocumentSerializer
+    ordering_fields = ('created_at', 'name',)
+    filter_class = AppealDocumentFilter
 
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
