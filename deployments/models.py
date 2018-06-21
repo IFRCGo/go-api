@@ -149,6 +149,8 @@ class PartnerSocietyActivities(models.Model):
 
 class PartnerSocietyDeployment(DeployedPerson):
     activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
-    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, blank=True, on_delete=models.SET_NULL)
-    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
-    district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, on_delete=models.SET_NULL)
+    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
+    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
+    district_deployed_to = models.ManyToManyField(District)
+    def __str__(self):
+        return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
