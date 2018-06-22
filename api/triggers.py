@@ -22,27 +22,6 @@ def create_profile(sender, instance, created, **kwargs):
 post_save.connect(create_profile, sender=User)
 
 
-def save_fieldreport_region(sender, instance, action, **kwargs):
-    if (action == 'post_add' or action == 'post_remove'):
-        SaveRegions(instance).start()
-
-if os.environ.get('BULK_IMPORT') != '1':
-    m2m_changed.connect(save_fieldreport_region, sender=FieldReport.countries.through)
-
-
-class SaveRegions(threading.Thread):
-    def __init__(self, instance, **kwargs):
-        self.instance = instance
-        super(SaveRegions, self).__init__(**kwargs)
-
-    def run(self):
-        # TODO: get unique list of regions and set that directly
-        countries = Country.objects.filter(fieldreport=self.instance)
-        for country in countries:
-            if country.region is not None:
-                self.instance.regions.add(country.region)
-
-
 def index_es(sender, instance, created, **kwargs):
     def on_commit():
         if ES_CLIENT is not None:
