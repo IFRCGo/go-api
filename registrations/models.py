@@ -29,7 +29,7 @@ class Pending(models.Model):
 
 
 class Recovery(models.Model):
-    """ Password reovery"""
+    """ Password recovery"""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
