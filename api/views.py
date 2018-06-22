@@ -249,7 +249,7 @@ class PublicJsonPostView(View):
         print(pretty_request(request))
 
     def post(self, request, *args, **kwargs):
-        if request.META.get('CONTENT_TYPE') != 'application/json':
+        if request.META.get('CONTENT_TYPE').find('application/json') == -1:
             return bad_request('Content-type must be `application/json`')
         return self.handle_post(request, *args, **kwargs)
 
