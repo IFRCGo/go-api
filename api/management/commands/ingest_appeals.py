@@ -1,17 +1,15 @@
 import os
 import sys
-import logging
 import requests
 import json
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
 from api.models import AppealType, AppealStatus, Appeal, Region, Country, DisasterType, Event
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
+from api.logger import logger
 
 dtype_keys = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 dtype_vals = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
-
-logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
@@ -21,20 +19,22 @@ class Command(BaseCommand):
         return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
 
     def handle(self, *args, **options):
+        logger.info('Starting appeals ingest')
         use_local_file = True if os.getenv('DJANGO_DB_NAME') == 'test' and os.path.exists('appeals.json') else False
 
         if use_local_file:
             # read from static file for development
-            print('Using local appeals.json file')
+            logger.info('Using local appeals.json file')
             with open('appeals.json') as f:
                 new_or_modified = json.loads(f.read())
         else:
             # get latest, determine which appeals need to be ingested based on last modified time
-            print('Querying appeals API for new appeals data')
+            logger.info('Querying appeals API for new appeals data')
             url = 'http://go-api.ifrc.org/api/appeals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
             response = requests.get(url, auth=auth)
             if response.status_code != 200:
+                logger.error('Error querying Appeals API')
                 raise Exception('Error querying Appeals API')
             records = response.json()
 
@@ -52,8 +52,8 @@ class Command(BaseCommand):
                 if last_modified > since_last_checked:
                     new_or_modified.append(r)
 
-        print('%s current appeals' % Appeal.objects.all().count())
-        print('Ingesting %s appeals' % len(new_or_modified))
+        logger.info('%s current appeals' % Appeal.objects.all().count())
+        logger.info('Ingesting %s appeals' % len(new_or_modified))
 
         num_created = 0
         num_updated = 0
@@ -150,12 +150,18 @@ class Command(BaseCommand):
                 fields['event'] = event
                 fields['needs_confirmation'] = True
 
-            appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
+            try:
+                appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
+            except:
+                logger.error('Could not create appeal with code %s' % fields['code'])
+                continue
+
             if created:
                 num_created = num_created + 1
             else:
                 num_updated = num_updated + 1
 
-        print('%s appeals created' % num_created)
-        print('%s appeals updated' % num_updated)
-        print('%s total appeals' % Appeal.objects.all().count())
+        logger.info('%s appeals created' % num_created)
+        logger.info('%s appeals updated' % num_updated)
+        logger.info('%s total appeals' % Appeal.objects.all().count())
+        logger.info('Appeals ingest completed')
