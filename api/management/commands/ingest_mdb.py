@@ -259,6 +259,7 @@ class Command(BaseCommand):
                 event.countries.add(country)
                 if country.region is not None:
                     # No need to add a field report region, as that happens through a trigger.
+                    field_report.regions.add(country.region)
                     event.regions.add(country.region)
 
             ### add items with foreignkeys to report
