@@ -5,7 +5,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 
 from api.esconnection import ES_CLIENT
-from api.indexes import EventPageMapping, AppealPageMapping, ReportPageMapping
+from api.indexes import GenericMapping
 from api.models import Event, Appeal, FieldReport
 
 class Command(BaseCommand):
@@ -13,9 +13,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print('Recreating indices')
-        self.recreate_index('page_event', EventPageMapping)
-        self.recreate_index('page_appeal', AppealPageMapping)
-        self.recreate_index('page_report', ReportPageMapping)
+        self.recreate_index('page_event', GenericMapping)
+        self.recreate_index('page_appeal', GenericMapping)
+        self.recreate_index('page_report', GenericMapping)
 
         print('Indexing events')
         self.push_table_to_index(index='page_event', model=Event)
@@ -42,12 +42,12 @@ class Command(BaseCommand):
         data = [
             self.convert_for_bulk(index, s) for s in list(query)
         ]
-        #print(data)
         created, errors = bulk(client=ES_CLIENT, actions=data)
         print('Created %s records' % created)
         if len(errors):
             print('Produced the following errors:')
             print('[%s]' % ', '.join(map(str, errors)))
+
 
     def convert_for_bulk(self, index, model_object):
         data = model_object.indexing()
