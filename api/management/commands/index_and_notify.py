@@ -3,6 +3,9 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.template.loader import render_to_string
+from elasticsearch.helpers import bulk
+from api.indexes import ES_PAGE_NAME
+from api.esconnection import ES_CLIENT
 from api.models import Country, Appeal, Event, FieldReport
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType
@@ -155,6 +158,36 @@ class Command(BaseCommand):
         send_notification(subject, recipients, html)
 
 
+    def index_new_records(self, records):
+        self.bulk([self.convert_for_bulk(record, create=True) for record in list(records)])
+
+
+    def index_updated_records(self, records):
+        self.bulk([self.convert_for_bulk(record, create=False) for record in list(records)])
+
+
+    def convert_for_bulk(self, record, create):
+        data = record.indexing()
+        metadata = {
+            '_op_type': 'create' if create else 'update',
+            '_index': ES_PAGE_NAME,
+            '_type': 'page',
+            '_id': record.es_id()
+        }
+        if (create):
+            metadata.update(**data)
+        else:
+            metadata['doc'] = data
+        return metadata
+
+
+    def bulk(self, actions):
+        created, errors = bulk(client=ES_CLIENT, actions=actions)
+        if len(errors):
+            logger.error('Produced the following errors:')
+            logger.error('[%s]' % ', '.join(map(str, errors)))
+
+
     def handle(self, *args, **options):
         t = self.get_time_threshold()
 
@@ -175,3 +208,17 @@ class Command(BaseCommand):
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+
+        logger.info('Indexing %s new field reports' % new_reports.count())
+        self.index_new_records(new_reports)
+        logger.info('Indexing %s new appeals' % new_appeals.count())
+        self.index_new_records(new_appeals)
+        logger.info('Indexing %s new events' % new_events.count())
+        self.index_new_records(new_events)
+
+        logger.info('Indexing %s updated field reports' % updated_reports.count())
+        self.index_updated_records(updated_reports)
+        logger.info('Indexing %s updated appeals' % updated_appeals.count())
+        self.index_updated_records(updated_appeals)
+        logger.info('Indexing %s updated events' % updated_events.count())
+        self.index_updated_records(updated_events)
