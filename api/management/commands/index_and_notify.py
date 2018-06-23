@@ -1,11 +1,16 @@
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.template.loader import render_to_string
 from api.models import Country, Appeal, Event, FieldReport
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType
+from notifications.hello import get_hello
+from notifications.notification import send_notification
+from main.frontend import frontend_url
 
-time_interval = timedelta(minutes=5)
+time_interval = timedelta(minutes=90)
 
 class Command(BaseCommand):
     help = 'Index and send notificatins about recently changed records'
@@ -61,16 +66,112 @@ class Command(BaseCommand):
         return emails
 
 
+    def get_template(self):
+        return 'email/generic_notification.html'
+
+
+    # Get the front-end url of the resource
+    def get_resource_uri (self, record, rtype):
+        # Determine the front-end URL
+        resource_uri = frontend_url
+        if rtype == RecordType.APPEAL and (
+                record.event is not None and not record.needs_confirmation):
+            # Appeals with confirmed emergencies link to that emergency
+            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
+        elif rtype != RecordType.APPEAL:
+            # Field reports and emergencies
+            resource_uri = '%s/%s/%s' % (
+                frontend_url,
+                'emergencies' if rtype == RecordType.EVENT else 'reports',
+                record.id
+            )
+        return resource_uri
+
+
+    def get_admin_uri (self, record, rtype):
+        admin_page = {
+            RecordType.FIELD_REPORT: 'fieldreport',
+            RecordType.APPEAL: 'appeal',
+            RecordType.EVENT: 'event',
+        }[rtype]
+        return '%s/admin/%s/%s/change' % (
+            settings.BASE_URL,
+            admin_page,
+            record.id,
+        )
+
+
+    def get_record_title(self, record, rtype):
+        if rtype == RecordType.FIELD_REPORT:
+            return record.summary
+        else:
+            return record.name
+
+
+    def get_record_display(self, rtype, count):
+        display = {
+            RecordType.FIELD_REPORT: 'field report',
+            RecordType.APPEAL: 'appeal',
+            RecordType.EVENT: 'event',
+        }[rtype]
+        if (count > 1):
+            display += 's'
+        return display
+
+
     def notify(self, records, rtype, stype):
-        if not records.count():
+        record_count = records.count()
+        if not record_count:
             return
         emails = self.gather_subscribers(records, rtype, stype)
-        # TODO send notifications to users
+        if not len(emails):
+            return
+
+        # Only serialize the first 10 records
+        entries = list(records) if record_count <= 10 else list(records[:10])
+        record_entries = []
+        for record in entries:
+            record_entries.append({
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+            })
+
+        template_path = self.get_template()
+        html = render_to_string(template_path, {
+            'hello': get_hello(),
+            'count': record_count,
+            'records': record_entries,
+        })
+        recipients = emails
+        adj = 'New' if stype == SubscriptionType.NEW else 'Modified'
+        record_type = self.get_record_display(rtype, record_count)
+        subject = '%s %s %s(s) in IFRC GO ' % (
+            record_count,
+            adj,
+            record_type,
+        )
+        logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
+        send_notification(subject, recipients, html)
 
 
     def handle(self, *args, **options):
         t = self.get_time_threshold()
 
-        self.notify(FieldReport.objects.filter(created_at__gte=t),
-                    RecordType.FIELD_REPORT,
-                    SubscriptionType.NEW)
+        new_reports = FieldReport.objects.filter(created_at__gte=t)
+        updated_reports = FieldReport.objects.filter(updated_at__gte=t)
+
+        new_appeals = Appeal.objects.filter(created_at__gte=t)
+        updated_appeals = Appeal.objects.filter(modified_at__gte=t)
+
+        new_events = Event.objects.filter(created_at__gte=t)
+        updated_events = Event.objects.filter(updated_at__gte=t)
+
+        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+        self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+
+        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+        self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+
+        self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+        self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
