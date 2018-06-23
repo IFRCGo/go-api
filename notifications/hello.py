@@ -11,4 +11,4 @@ hellos = [
 ]
 
 def get_hello():
-    return = random.choice(hellos)
+    return random.choice(hellos)
