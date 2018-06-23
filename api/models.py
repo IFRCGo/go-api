@@ -169,6 +169,7 @@ class Event(models.Model):
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     auto_generated = models.BooleanField(default=False, editable=False)
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
