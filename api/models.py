@@ -197,9 +197,7 @@ class Event(models.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
             'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.summary,
             'date': self.disaster_start_date,
         }
 
@@ -388,7 +386,6 @@ class Appeal(models.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
             'location': getattr(self.country, 'name', None),
             'date': self.start_date,
         }
@@ -553,9 +550,7 @@ class FieldReport(models.Model):
         return {
             'id': self.id,
             'name': self.summary,
-            'dtype': getattr(self.dtype, 'name', None),
             'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.description,
             'date': self.created_at,
         }
 
