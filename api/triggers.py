@@ -106,8 +106,3 @@ def notify(sender, instance, created, **kwargs):
             send_notification(subject, recipients, html)
 
     transaction.on_commit(on_commit)
-
-if os.environ.get('BULK_IMPORT') != '1':
-    post_save.connect(notify, sender=Event)
-    post_save.connect(notify, sender=Appeal)
-    post_save.connect(notify, sender=FieldReport)
