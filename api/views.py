@@ -82,7 +82,7 @@ class EsPageSearch(PublicJsonRequestView):
             'match': {
                 'body': {
                     'query': phrase,
-                    'fuzziness': 'AUTO'
+                    'fuzziness': 0
                 }
             }
         }
