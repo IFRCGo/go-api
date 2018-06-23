@@ -23,6 +23,7 @@ from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
+from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
 from notifications.notification import send_notification
@@ -76,18 +77,36 @@ class EsPageSearch(PublicJsonRequestView):
         phrase = request.GET.get('keyword', None)
         if phrase is None:
             return bad_request('Must include a `keyword`')
-        if page_type is None:
-            page_type = '*'
-        index = 'page_%s' % page_type
+        index = ES_PAGE_NAME
         query = {
-            'bool': {
-                'must': {'prefix': {'name': phrase }}
+            'match': {
+                'body': {
+                    'query': phrase,
+                    'fuzziness': 'AUTO'
+                }
             }
         }
+
+        sort = [
+            {'date': {'order': 'desc'}}
+        ]
+
+        if page_type is not None:
+            query = {
+                'bool': {
+                    'filter': {
+                        'term': {'type': page_type}
+                    },
+                    'must': {
+                        'match': query['match']
+                    }
+                }
+            }
+
         results = ES_CLIENT.search(
             index=index,
             doc_type='page',
-            body=json.dumps({'query': query}),
+            body=json.dumps({'query': query, 'sort': sort}),
         )
         return JsonResponse(results['hits'])
 
