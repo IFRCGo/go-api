@@ -13,7 +13,7 @@ from notifications.hello import get_hello
 from notifications.notification import send_notification
 from main.frontend import frontend_url
 
-time_interval = timedelta(minutes=90)
+time_interval = timedelta(minutes=5)
 
 class Command(BaseCommand):
     help = 'Index and send notificatins about recently changed records'
@@ -182,10 +182,27 @@ class Command(BaseCommand):
 
 
     def bulk(self, actions):
-        created, errors = bulk(client=ES_CLIENT, actions=actions)
-        if len(errors):
-            logger.error('Produced the following errors:')
-            logger.error('[%s]' % ', '.join(map(str, errors)))
+        try:
+            created, errors = bulk(client=ES_CLIENT, actions=actions)
+            if len(errors):
+                logger.error('Produced the following errors:')
+                logger.error('[%s]' % ', '.join(map(str, errors)))
+        except Exception as e:
+            logger.error('Could not index records')
+            logger.error('%s...' % str(e)[:512])
+
+
+    # Remove items in a queryset where updated_at == created_at.
+    # This leaves us with only ones that have been modified.
+    def filter_just_created(self, queryset):
+        if queryset.first() is None:
+            return []
+        if queryset.first().modified_at is not None:
+            return [record for record in queryset if (
+                record.modified_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
+        else:
+            return [record for record in queryset if (
+                record.updated_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
 
 
     def handle(self, *args, **options):
@@ -209,16 +226,16 @@ class Command(BaseCommand):
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
+        logger.info('Indexing %s updated field reports' % updated_reports.count())
+        self.index_updated_records(self.filter_just_created(updated_reports))
+        logger.info('Indexing %s updated appeals' % updated_appeals.count())
+        self.index_updated_records(self.filter_just_created(updated_appeals))
+        logger.info('Indexing %s updated events' % updated_events.count())
+        self.index_updated_records(self.filter_just_created(updated_events))
+
         logger.info('Indexing %s new field reports' % new_reports.count())
         self.index_new_records(new_reports)
         logger.info('Indexing %s new appeals' % new_appeals.count())
         self.index_new_records(new_appeals)
         logger.info('Indexing %s new events' % new_events.count())
         self.index_new_records(new_events)
-
-        logger.info('Indexing %s updated field reports' % updated_reports.count())
-        self.index_updated_records(updated_reports)
-        logger.info('Indexing %s updated appeals' % updated_appeals.count())
-        self.index_updated_records(updated_appeals)
-        logger.info('Indexing %s updated events' % updated_events.count())
-        self.index_updated_records(updated_events)
