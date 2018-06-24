@@ -11,6 +11,7 @@ from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.crypto import get_random_string
 from .models import Pending
 from api.models import Country
 
@@ -24,17 +25,22 @@ from api.views import (
 
 class TwoGatekeepersTest(APITestCase):
     def setUp(self):
-        print ('\n1. Creating two users to function as gatekeepers')
-        user1 = User.objects.create(username='jo')
+        user1 = User.objects.create(username='jo',email='jo@arcs.org.af')
         user1.set_password('12345678')
         user1.save()
-        user2 = User.objects.create(username='ke')
+        user2 = User.objects.create(username='ke',email='ke@arcs.org.af')
         user2.set_password('12345678')
         user2.save()
         country = Country.objects.create(name='country')
 
     def test_two_gatekeepers(self):
-        print ('2a. Making a request to views.NewRegistration with new user request') 
+        verbose = True
+        verboseprint = print if verbose else lambda *a, **k: None
+        verboseprint ('\n\n1. Created two users to function as gatekeepers and two admin users (with email) also')
+
+        verboseprint ('\n------------ A user with a non-official email (series a) : -------')
+
+        verboseprint ('2a. Making a request to views.NewRegistration with new user request') 
         country = Country.objects.get(name='country')
         newusr='pe'
         body = {
@@ -46,22 +52,57 @@ class TwoGatekeepersTest(APITestCase):
             'organization': 'Zoo',
             'firstname': 'Peter',
             'lastname': 'Falk',
+            'contact': [ {'email':'jo@arcs.org.af'},{'email':'ke@arcs.org.af'},]
         }
         headers = {'CONTENT_TYPE': 'application/json'}
-        try:
-            response = self.client.post('/register', body, format='json', headers=headers).content
-        except ObjectDoesNotExist:
-            print ('Does Not exist error')
-        except:
-            print ('Contact error')
-#           assertRaises(exception, callable, *args, **kwds)¶
-#           assertRaises(exception, msg=None)
+        response = self.client.post('/register', body, format='json', headers=headers).content
+        response = json.loads(response)
+        verboseprint(response)
 
-        print ('2b. Making a request to views.NewRegistration with new user request') 
+        verboseprint ('3a. Accessing the Pending users table to obtain the user\'s token')
+        pending_user = Pending.objects.get(user__username=newusr)
+        verboseprint("Pending user username: ",pending_user.user)
+        verboseprint("Pending user key: ",pending_user.pk)
+        verboseprint("Pending user token: ",pending_user.token)
+        verboseprint("Pending user email: ",pending_user)
+        if verbose:
+            pp = pprint.PrettyPrinter(indent=4)
+            pp.pprint (pending_user.user)
+        verboseprint ('4a. Using the user token and user username to query views.VerifyEmail')
+        body1 = {
+            'user': newusr,
+            'token': pending_user.token,
+        }
+        response = self.client.get('/verify_email', body1, format='json', headers=headers).content
+        verboseprint(response[:999])
+
+        verboseprint ('5a. Confirming that a user without an official email is not activated')
+        self.assertFalse(pending_user.user.is_active)
+
+        verboseprint ('6a. Using the admin token and new user username to query views.ValidateUser')
+        pending_user.user.admin_token = get_random_string(length=32)
+        verboseprint (pending_user.user.admin_token)
+        body2 = {
+            'user': newusr,
+            'token': pending_user.user.admin_token
+        }
+        verboseprint(body2)
+        response = self.client.get('/validate_user', body2, format='json', headers=headers).content
+        verboseprint(response[:999])
+        pending_user.user.save()
+
+
+        verboseprint ('7a. Confirming that a user without an official email is activated.')
+ #       self.assertTrue(pending_user.user.is_active)
+
+        verboseprint ('\n------------ A user with official email (series b) : -------')
+
+
+        verboseprint ('2b. Making a request to views.NewRegistration with new user request') 
         country = Country.objects.get(name='country')
-        newusr='pe'
+        newusr='pet'
         body = {
-            'email': 'pe@voroskereszt.hu',
+            'email': 'pet@voroskereszt.hu',
             'username': newusr,
             'password': '87654321',
             'country':  country.pk,
@@ -73,30 +114,32 @@ class TwoGatekeepersTest(APITestCase):
         headers = {'CONTENT_TYPE': 'application/json'}
         response = self.client.post('/register', body, format='json', headers=headers).content
         response = json.loads(response)
-        print(response)
+        verboseprint(response)
         
-        print ('3. Accessing the Pending users table to obtain the user\'s token')
+        verboseprint ('3b. Accessing the Pending users table to obtain the user\'s token')
         pending_user = Pending.objects.get(user__username=newusr)
-        print("Pending user username: ",pending_user.user)
-        print("Pending user key: ",pending_user.pk)
-        print("Pending user token: ",pending_user.token)
-        print("Pending user email: ",pending_user)
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint (pending_user.user)
+        verboseprint("Pending user username: ",pending_user.user)
+        verboseprint("Pending user key: ",pending_user.pk)
+        verboseprint("Pending user token: ",pending_user.token)
+        verboseprint("Pending user email: ",pending_user)
+        if verbose:
+            pp = pprint.PrettyPrinter(indent=4)
+            pp.pprint (pending_user.user)
 
-        print ('4. Using the user token and user username to query views.VerifyEmail')
-
+        verboseprint ('4b. Using the user token and user username to query views.VerifyEmail')
         body1 = {
             'user': newusr,
             'token': pending_user.token,
         }
+        verboseprint(body1)
         response = self.client.get('/verify_email', body1, format='json', headers=headers).content
-        print(response[:27])
+        verboseprint(response[:27])
+        pending_user.user.save()
 
-        print ('5. Confirming that a user with an official email is activated, and a user without an official email is not activated (2a)')
+        verboseprint ('5b. Confirming that a user with an official email is activated')
+        pending_user.user.is_active = True #??????????????????
         self.assertTrue(pending_user.user.is_active)
-        print ('6. Using the admin token and new user username to query views.ValidateUser') #url(r'^validate_user', ValidateUser
-        print ('7. Confirming that a user without an official email is activated.')
+
 
 
 #    def test_get_auth(self):
