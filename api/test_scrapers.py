@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 from django.test import TestCase
 from django.contrib.auth.models import User
@@ -201,3 +202,19 @@ class AppealNotificationTest(TestCase):
         )
         self.assertEqual(len(emails), 1)
         self.assertEqual(emails[0], user.email)
+
+
+class FilterJustCreatedTest(TestCase):
+    def setUp(self):
+        # create two appeals, modify one 2 seconds later.
+        appeal1 = Appeal.objects.create(aid='test1', name='appeal', atype=2, code='1')
+        appeal2 = Appeal.objects.create(aid='test2', name='appeal', atype=2, code='2')
+        time.sleep(1)
+        appeal1.name = 'something new'
+        appeal1.save()
+
+    def test_filter_just_created(self):
+        notify = Notify()
+        filtered = notify.filter_just_created(Appeal.objects.filter(created_at__gte=notify.get_time_threshold()))
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0].aid, 'test2')
