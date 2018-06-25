@@ -61,10 +61,11 @@ class TwoGatekeepersTest(APITestCase):
 
         verboseprint ('3a. Accessing the Pending users table to obtain the user\'s token')
         pending_user = Pending.objects.get(user__username=newusr)
-        verboseprint("Pending user username: ",pending_user.user)
-        verboseprint("Pending user key: ",pending_user.pk)
-        verboseprint("Pending user token: ",pending_user.token)
-        verboseprint("Pending user email: ",pending_user)
+        verboseprint(" Pending user username: ",pending_user.user)
+        verboseprint(" Pending user key: ",pending_user.pk)
+        verboseprint(" Pending user token: ",pending_user.token)
+        verboseprint(" Pending user admin_token: ",pending_user.admin_token)
+        verboseprint(" Pending user email: ",pending_user)
         if verbose:
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint (pending_user.user)
@@ -80,20 +81,20 @@ class TwoGatekeepersTest(APITestCase):
         self.assertFalse(pending_user.user.is_active)
 
         verboseprint ('6a. Using the admin token and new user username to query views.ValidateUser')
-        pending_user.user.admin_token = get_random_string(length=32)
-        verboseprint (pending_user.user.admin_token)
         body2 = {
             'user': newusr,
-            'token': pending_user.user.admin_token
+            'token': pending_user.admin_token
         }
         verboseprint(body2)
         response = self.client.get('/validate_user', body2, format='json', headers=headers).content
         verboseprint(response[:999])
-        pending_user.user.save()
+        #pending_user.save()
 
 
-        verboseprint ('7a. Confirming that a user without an official email is activated.')
- #       self.assertTrue(pending_user.user.is_active)
+        verboseprint ('7a. Confirming that a user without an official email is activated')
+        boarded_user = User.objects.get(username=newusr)
+        verboseprint(boarded_user)
+        self.assertTrue(boarded_user.is_active)
 
         verboseprint ('\n------------ A user with official email (series b) : -------')
 
@@ -118,10 +119,11 @@ class TwoGatekeepersTest(APITestCase):
         
         verboseprint ('3b. Accessing the Pending users table to obtain the user\'s token')
         pending_user = Pending.objects.get(user__username=newusr)
-        verboseprint("Pending user username: ",pending_user.user)
-        verboseprint("Pending user key: ",pending_user.pk)
-        verboseprint("Pending user token: ",pending_user.token)
-        verboseprint("Pending user email: ",pending_user)
+        verboseprint(" Pending user username: ",pending_user.user)
+        verboseprint(" Pending user key: ",pending_user.pk)
+        verboseprint(" Pending user token: ",pending_user.token)
+        verboseprint(" Pending user admin_token: ",pending_user.admin_token)
+        verboseprint(" Pending user email: ",pending_user)
         if verbose:
             pp = pprint.PrettyPrinter(indent=4)
             pp.pprint (pending_user.user)
@@ -134,21 +136,9 @@ class TwoGatekeepersTest(APITestCase):
         verboseprint(body1)
         response = self.client.get('/verify_email', body1, format='json', headers=headers).content
         verboseprint(response[:27])
-        pending_user.user.save()
 
         verboseprint ('5b. Confirming that a user with an official email is activated')
-        pending_user.user.is_active = True #??????????????????
-        self.assertTrue(pending_user.user.is_active)
-
-
-
-#    def test_get_auth(self):
-#        body = {
-#            'username': 'jo',
-#            'password': '12345678',
-#        }
-#        headers = {'CONTENT_TYPE': 'application/json'}
-#        response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
-#        response = json.loads(response)
-#        self.assertIsNotNone(response.get('token'))
-#        self.assertIsNotNone(response.get('expires'))
+        boarded_user = User.objects.get(username=newusr)
+        verboseprint(boarded_user)
+        self.assertTrue(boarded_user.is_active)
+#       self.assertIsNotNone(response.get('expires')) #just another assertion example
