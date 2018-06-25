@@ -35,6 +35,6 @@ class Command(BaseCommand):
             )
             # If it's a new permission, create a group for it
             group, created = Group.objects.get_or_create(
-                name='%s Admins' % region.name
+                name='%s Regional Admins' % region.name
             )
             group.permissions.add(permission)
