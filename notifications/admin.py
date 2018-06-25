@@ -1,7 +1,10 @@
 from django.contrib import admin
 import notifications.models as models
+from api.admin_classes import RegionRestrictedAdmin
 
-class SurgeAlertAdmin(admin.ModelAdmin):
+class SurgeAlertAdmin(RegionRestrictedAdmin):
+    country_in = 'event__countries__in'
+    region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
     search_fields = ('operation', 'message', 'event__name',)
 
