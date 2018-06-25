@@ -58,6 +58,7 @@ class TwoGatekeepersTest(APITestCase):
         response = self.client.post('/register', body, format='json', headers=headers).content
         response = json.loads(response)
         verboseprint(response)
+        self.assertIn('\'status\': \'ok\'',str(response))
 
         verboseprint ('3a. Accessing the Pending users table to obtain the user\'s token')
         pending_user = Pending.objects.get(user__username=newusr)
@@ -76,6 +77,7 @@ class TwoGatekeepersTest(APITestCase):
         }
         response = self.client.get('/verify_email', body1, format='json', headers=headers).content
         verboseprint(response[:999])
+        self.assertIn('We are verifying your IFRC references and will notify you',str(response))
 
         verboseprint ('5a. Confirming that a user without an official email is not activated')
         self.assertFalse(pending_user.user.is_active)
@@ -88,8 +90,7 @@ class TwoGatekeepersTest(APITestCase):
         verboseprint(body2)
         response = self.client.get('/validate_user', body2, format='json', headers=headers).content
         verboseprint(response[:999])
-        #pending_user.save()
-
+        self.assertIn('The IFRC GO user account is now active and a confirmation email has been sent to the new user',str(response))
 
         verboseprint ('7a. Confirming that a user without an official email is activated')
         boarded_user = User.objects.get(username=newusr)
@@ -116,6 +117,7 @@ class TwoGatekeepersTest(APITestCase):
         response = self.client.post('/register', body, format='json', headers=headers).content
         response = json.loads(response)
         verboseprint(response)
+        self.assertIn('\'status\': \'ok\'',str(response))
         
         verboseprint ('3b. Accessing the Pending users table to obtain the user\'s token')
         pending_user = Pending.objects.get(user__username=newusr)
@@ -135,7 +137,8 @@ class TwoGatekeepersTest(APITestCase):
         }
         verboseprint(body1)
         response = self.client.get('/verify_email', body1, format='json', headers=headers).content
-        verboseprint(response[:27])
+        verboseprint(response[:111])
+        self.assertIn('validated your email address and your IFRC Go account is now approved.',str(response))
 
         verboseprint ('5b. Confirming that a user with an official email is activated')
         boarded_user = User.objects.get(username=newusr)
