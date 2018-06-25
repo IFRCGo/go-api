@@ -35,6 +35,7 @@ from registrations.views import (
 
 # DRF routes
 from rest_framework import routers
+from rest_framework.documentation import include_docs_urls
 from api import drf_views as api_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
@@ -84,4 +85,5 @@ urlpatterns = [
     url(r'^recover_password', RecoverPassword.as_view()),
 
     url(r'^api/v2/', include(router.urls)),
+    url(r'^docs/', include_docs_urls(title='IFRC Go API')),
 ]
