@@ -38,3 +38,15 @@ class Command(BaseCommand):
                 name='%s Regional Admins' % region.name
             )
             group.permissions.add(permission)
+
+        # Create an IFRC permission and attach it to a group
+        ifrc_permission, perm_created = Permission.objects.get_or_create(
+            codename='ifrc_admin',
+            name='IFRC Admin',
+            content_type=ContentType.objects.get_for_model(Country),
+        )
+
+        ifrc_group, group_created = Group.objects.get_or_create(
+            name='IFRC Admins'
+        )
+        ifrc_group.permissions.add(ifrc_permission)
