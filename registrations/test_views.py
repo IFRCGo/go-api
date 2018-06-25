@@ -36,7 +36,7 @@ class TwoGatekeepersTest(APITestCase):
     def test_two_gatekeepers(self):
         verbose = True
         verboseprint = print if verbose else lambda *a, **k: None
-        verboseprint ('\n\n1. Created two users to function as gatekeepers and two admin users (with email) also')
+        verboseprint ('\n\n1. Created two users to function as gatekeepers (with checkable email)')
 
         verboseprint ('\n------------ A user with a non-official email (series a) : -------')
 
