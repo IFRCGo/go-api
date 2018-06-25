@@ -102,6 +102,10 @@ class EventSourceFilter(admin.SimpleListFilter):
             return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
 
 
+class DisasterTypeAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+
+
 class KeyFigureInline(admin.TabularInline):
     model = models.KeyFigure
 
@@ -122,7 +126,7 @@ class EventAdmin(admin.ModelAdmin):
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     list_display = ('name', 'alert_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
-    search_fields = ['name', 'countries__name', 'dtype__name',]
+    search_fields = ('name', 'countries__name', 'dtype__name',)
     readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
     autocomplete_fields = ('countries', 'districts',)
     def appeals(self, instance):
@@ -146,6 +150,10 @@ class EventAdmin(admin.ModelAdmin):
     field_reports.short_description = 'Field Reports'
 
 
+class GdacsAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+
+
 class ActionsTakenInline(admin.TabularInline):
     model = models.ActionsTaken
 
@@ -162,7 +170,7 @@ class FieldReportAdmin(admin.ModelAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
-    search_fields = ['countries', 'regions', 'summary',]
+    search_fields = ('countries', 'regions', 'summary',)
     autocomplete_fields = ('event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at',)
     list_filter = [HasRelatedEventFilter, MembershipFilter,]
@@ -197,7 +205,7 @@ class AppealAdmin(admin.ModelAdmin):
     inlines = [AppealDocumentInline]
     list_display = ('code', 'name', 'atype', 'needs_confirmation', 'event', 'start_date',)
     list_select_related = ('event',)
-    search_fields = ['code', 'name',]
+    search_fields = ('code', 'name',)
     readonly_fields = ('region',)
     list_filter = [HasRelatedEventFilter, AppealTypeFilter,]
     actions = ['create_events', 'confirm_events',]
@@ -239,6 +247,10 @@ class AppealAdmin(admin.ModelAdmin):
         if (obj.country):
             obj.region = obj.country.region
         super().save_model(request, obj, form, change)
+
+
+class AppealDocumentAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'appeal__code', 'appeal__name')
 
 
 class CountryKeyFigureInline(admin.TabularInline):
@@ -284,16 +296,25 @@ class CountryAdmin(admin.ModelAdmin):
 
 class RegionAdmin(admin.ModelAdmin):
     inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
+    search_fields = ('name',)
 
 
-admin.site.register(models.DisasterType)
+class UserProfileAdmin(admin.ModelAdmin):
+    search_fields = ('user__username', 'user__email',)
+
+
+class SituationReportAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'event__name',)
+
+
+admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
-admin.site.register(models.GDACSEvent)
+admin.site.register(models.GDACSEvent, GdacsAdmin)
 admin.site.register(models.Country, CountryAdmin)
 admin.site.register(models.Region, RegionAdmin)
 admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
-admin.site.register(models.AppealDocument)
+admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
-admin.site.register(models.Profile)
-admin.site.register(models.SituationReport)
+admin.site.register(models.Profile, UserProfileAdmin)
+admin.site.register(models.SituationReport, SituationReportAdmin)
