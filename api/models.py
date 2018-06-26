@@ -169,6 +169,7 @@ class Event(models.Model):
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     auto_generated = models.BooleanField(default=False, editable=False)
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
@@ -195,18 +196,17 @@ class Event(models.Model):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         return {
             'id': self.id,
+            'type': 'event',
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.summary,
+            'body': '%s %s' % (
+                self.name,
+                ', '.join(map(str, countries)) if len(countries) else None,
+            ),
             'date': self.disaster_start_date,
         }
 
     def es_id(self):
         return 'event-%s' % self.id
-
-    def es_index(self):
-        return 'page_event'
 
     def record_type(self):
         return 'EVENT'
@@ -386,17 +386,18 @@ class Appeal(models.Model):
     def indexing(self):
         return {
             'id': self.id,
+            'type': 'appeal',
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': getattr(self.country, 'name', None),
+            'body': '%s %s %s' % (
+                self.name,
+                getattr(self.country, 'name', None),
+                self.code,
+            ),
             'date': self.start_date,
         }
 
     def es_id(self):
         return 'appeal-%s' % self.id
-
-    def es_index(self):
-        return 'page_appeal'
 
     def record_type(self):
         return 'APPEAL'
@@ -551,18 +552,17 @@ class FieldReport(models.Model):
         countries = [c.name for c in self.countries.all()]
         return {
             'id': self.id,
+            'type': 'report',
             'name': self.summary,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.description,
+            'body': '%s %s' % (
+                self.summary,
+                ', '.join(map(str, countries)) if len(countries) else None
+            ),
             'date': self.created_at,
         }
 
     def es_id(self):
         return 'fieldreport-%s' % self.id
-
-    def es_index(self):
-        return 'page_report'
 
     def record_type(self):
         return 'FIELD_REPORT'

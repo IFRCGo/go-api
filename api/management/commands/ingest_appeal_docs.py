@@ -1,11 +1,10 @@
-import logging
 import requests
 from datetime import datetime, timezone
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument
+from api.logger import logger
 
-logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Ingest existing appeal documents'
@@ -16,13 +15,14 @@ class Command(BaseCommand):
         return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=timezone.utc)
 
     def handle(self, *args, **options):
-        print(datetime.utcnow())
+        logger.info('Starting appeal document ingest')
 
         # get latest
         url = 'https://proxy.hxlstandard.org/data.json?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1gJ4N_PYBqtwVuJ10d8zXWxQle_i84vDx5dHNBomYWdU%2Fedit%3Fusp%3Dsharing'
 
         response = requests.get(url)
         if response.status_code != 200:
+            logger.error('Error querying Appeal Document HXL API')
             raise Exception('Error querying Appeal Document HXL API')
         records = response.json()
 
@@ -59,6 +59,6 @@ class Command(BaseCommand):
                         appeal=appeal,
                     )
                     created.append(doc[0])
-        print('%s created' % len(created))
-        print('%s existing' % len(existing))
-        print('%s without appeals in system' % len(not_found))
+        logger.info('%s appeal documents created' % len(created))
+        logger.info('%s existing appeal documents' % len(existing))
+        logger.warn('%s documents without appeals in system' % len(not_found))

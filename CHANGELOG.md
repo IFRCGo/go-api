@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Logging to Azure Queue storage.
+- A cron job to detet changes to field reports, events, and appeals, and index them to elasticsearch/notify subscribers.
 - Add a CSV renderer so data can be exported as CSV for any model.
 - Include filtering class for situation report and appeal documents.
 - Include report date, updated at timestamp in field report response.
@@ -16,7 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Changed elasticsearch indexes to use one table.
+- Upgraded elasticsearch query to match terms, rather than prefix.
 - Made the district deployed to in partner deployments a many-to-many field.
+
+### Removed
+
+- Post-save triggers for indexing models to elasticsearch and notifying subscribers.
 
 ## 1.0.1
 
