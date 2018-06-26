@@ -18,6 +18,9 @@ class Pending(models.Model):
     admin_contact_2 = models.EmailField(blank=True, null=True)
     admin_token_1 = models.CharField(max_length=32, null=True, editable=False)
     admin_token_2 = models.CharField(max_length=32, null=True, editable=False)
+    admin_1_did_validation = models.BooleanField(default=False)
+    admin_2_did_validation = models.BooleanField(default=False)
+    
     admin_validat_status = models.IntegerField(default=0)
 
     email_verified = models.BooleanField(default=False, editable=False)

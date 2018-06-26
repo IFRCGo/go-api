@@ -247,6 +247,8 @@ class NewRegistration(PublicJsonPostView):
             pending.admin_contact_2      = admins[1]
             pending.admin_token_1        = get_random_string(length=32)
             pending.admin_token_2        = get_random_string(length=32)
+            pending.admin_1_did_validation = False
+            pending.admin_2_did_validation = False
             pending.admin_validat_status = 0
 
         pending.save()
@@ -351,17 +353,23 @@ class ValidateUser(PublicJsonRequestView):
             return bad_http_request('%s is active' % user,
                                     'The user is already active. You can modify user accounts any time using the admin interface.')
 
+        if  ((pending_user.admin_token_1 == token) and (pending_user.admin_1_did_validation == True)) or (
+             (pending_user.admin_token_2 == token) and (pending_user.admin_2_did_validation == True)):
+            return bad_http_request('Already a confirmed registration','You, as an administrator has already confirmed the registration of %s user' % user)
+
         pending_user.admin_validat_status += 1
         pending_user.save()
 
         if pending_user.admin_validat_status == 1:
-            if  pending_user.admin_token_1 == token: #we change the used admin token(1 or 2) for the future unusability
-                pending_user.admin_token_1 = get_random_string(length=32)
+            if  pending_user.admin_token_1 == token:
+                pending_user.admin_1_did_validation = True
             else:
-                pending_user.admin_token_2 = get_random_string(length=32)
+                pending_user.admin_2_did_validation = True
             pending_user.save()
             return HttpResponse(render_to_string('registration/validation-halfsuccess.html')) # half success, the other admin still have to approve it
         else:
+            pending_user.admin_1_did_validation = True
+            pending_user.admin_2_did_validation = True
             pending_user.user.is_active = True
             pending_user.user.save()
             email_context = {
