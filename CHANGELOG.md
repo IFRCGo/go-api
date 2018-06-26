@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add a CSV renderer so data can be exported as CSV for any model.
 - Include filtering class for situation report and appeal documents.
 - Include report date, updated at timestamp in field report response.
+- Include search fields for all relevant admin forms.
+- Include alert sorting and ordering.
 
 ### Changed
 
