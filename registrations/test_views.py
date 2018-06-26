@@ -76,8 +76,7 @@ class TwoGatekeepersTest(APITestCase):
         self.assertEqual(resp.status_code,200)
 
         # 6a_1repeat. The first token should be unusable now to query views.ValidateUser again
-        resp = self.client.get('/validate_user', body2, format='json', headers=headers) #resp.content: ...could not find a user and token that matched those supplied
-        print (resp.content)
+        resp = self.client.get('/validate_user', body2, format='json', headers=headers) #resp.content: You, as an administrator has already confirmed the registration of pe user
         self.assertEqual(resp.status_code,400)
 
         # 7a_1. Confirming that a user without an official email is STILL NOT activated
