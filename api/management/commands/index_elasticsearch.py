@@ -5,26 +5,25 @@ from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 
 from api.esconnection import ES_CLIENT
-from api.indexes import EventPageMapping, AppealPageMapping, ReportPageMapping
+from api.indexes import GenericMapping, ES_PAGE_NAME
 from api.models import Event, Appeal, FieldReport
+from api.logger import logger
 
 class Command(BaseCommand):
     help = 'Create a new elasticsearch index and bulk-index existing objects'
 
     def handle(self, *args, **options):
-        print('Recreating indices')
-        self.recreate_index('page_event', EventPageMapping)
-        self.recreate_index('page_appeal', AppealPageMapping)
-        self.recreate_index('page_report', ReportPageMapping)
+        logger.info('Recreating indices')
+        self.recreate_index(ES_PAGE_NAME, GenericMapping)
 
-        print('Indexing events')
-        self.push_table_to_index(index='page_event', model=Event)
+        logger.info('Indexing events')
+        self.push_table_to_index(model=Event)
 
-        print('Indexing appeals')
-        self.push_table_to_index(index='page_appeal', model=Appeal)
+        logger.info('Indexing appeals')
+        self.push_table_to_index(model=Appeal)
 
-        print('Indexing field reports')
-        self.push_table_to_index(index='page_report', model=FieldReport)
+        logger.info('Indexing field reports')
+        self.push_table_to_index(model=FieldReport)
 
     def recreate_index(self, index_name, index_mapping):
         indices_client = IndicesClient(client=ES_CLIENT)
@@ -36,25 +35,23 @@ class Command(BaseCommand):
                                    body=index_mapping)
 
 
-    def push_table_to_index(self, index, model):
-        print('Indexing %s models' % model.objects.all().count())
+    def push_table_to_index(self, model):
         query = model.objects.all()
         data = [
-            self.convert_for_bulk(index, s) for s in list(query)
+            self.convert_for_bulk(s) for s in list(query)
         ]
-        #print(data)
         created, errors = bulk(client=ES_CLIENT, actions=data)
-        print('Created %s records' % created)
+        logger.info('Created %s records' % created)
         if len(errors):
-            print('Produced the following errors:')
-            print('[%s]' % ', '.join(map(str, errors)))
+            logger.error('Produced the following errors:')
+            logger.error('[%s]' % ', '.join(map(str, errors)))
 
-    def convert_for_bulk(self, index, model_object):
+
+    def convert_for_bulk(self, model_object):
         data = model_object.indexing()
-        print(data)
         metadata = {
             '_op_type': 'create',
-            '_index': index,
+            '_index': ES_PAGE_NAME,
             '_type': 'page',
             '_id': model_object.es_id(),
         }
