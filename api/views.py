@@ -106,7 +106,12 @@ class EsPageSearch(PublicJsonRequestView):
         results = ES_CLIENT.search(
             index=index,
             doc_type='page',
-            body=json.dumps({'query': query, 'sort': sort}),
+            body=json.dumps({
+                'query': query,
+                'sort': sort,
+                'from': 0,
+                'size': 10
+            }),
         )
         return JsonResponse(results['hits'])
 
