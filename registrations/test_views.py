@@ -1,4 +1,4 @@
-# 1. create two users to function as gatekeepers
+# 1. Create two users to function as gatekeepers
 # 2. Make a request to views.NewRegistration with new user request
 # 3. Access the Pending users table to obtain the user's token
 # 4. Use the user token and user username to query views.VerifyEmail
@@ -34,13 +34,9 @@ class TwoGatekeepersTest(APITestCase):
         country = Country.objects.create(name='country')
 
     def test_two_gatekeepers(self):
-        verbose = True
-        verboseprint = print if verbose else lambda *a, **k: None
-        verboseprint ('\n\n1. Created two users to function as gatekeepers (with checkable email)')
-
-        verboseprint ('\n------------ A user with a non-official email (series a) : -------')
-
-        verboseprint ('2a. Making a request to views.NewRegistration with new user request') 
+        # 1. Created two users to function as gatekeepers (with checkable email)
+        #                                                          ------------ A user with a non-official email (series a) : -------
+        # 2a. Making a request to views.NewRegistration with new user request
         country = Country.objects.get(name='country')
         newusr='pe'
         body = {
@@ -55,83 +51,53 @@ class TwoGatekeepersTest(APITestCase):
             'contact': [ {'email':'jo@arcs.org.af'},{'email':'ke@arcs.org.af'},]
         }
         headers = {'CONTENT_TYPE': 'application/json'}
-        r = self.client.post('/register', body, format='json', headers=headers)
-        response = json.loads(r.content)
-        verboseprint(response)
-        self.assertIn('\'status\': \'ok\'',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.post('/register', body, format='json', headers=headers) #json.loads(resp.content): 'status': 'ok'
+        self.assertEqual(resp.status_code,200)
 
-        verboseprint ('3a. Accessing the Pending users table to obtain the user\'s token')
+        # 3a. Accessing the Pending users table to obtain the user\'s token
         pending_user = Pending.objects.get(user__username=newusr)
-        verboseprint(" Pending user username: ",pending_user.user)
-        verboseprint(" Pending user key: ",pending_user.pk)
-        verboseprint(" Pending user token: ",pending_user.token)
-        verboseprint(" Pending user admin_token_1: ",pending_user.admin_token_1)
-        verboseprint(" Pending user admin_token_2: ",pending_user.admin_token_2)
-        verboseprint(" Pending user admin_validat_status: ",pending_user.admin_validat_status)
-        verboseprint(" Pending user email: ",pending_user)
-        if verbose:
-            pp = pprint.PrettyPrinter(indent=4)
-            pp.pprint (pending_user.user)
-        verboseprint ('4a. Using the user token and user username to query views.VerifyEmail')
+        # 4a. Using the user token and user username to query views.VerifyEmail
         body1 = {
             'user': newusr,
             'token': pending_user.token,
         }
-        r = self.client.get('/verify_email', body1, format='json', headers=headers)
-        response = r.content
-        verboseprint(response[:999])
-        self.assertIn('We are verifying your IFRC references and will notify you',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.get('/verify_email', body1, format='json', headers=headers) #resp.content: We are verifying your IFRC references and will notify you
+        self.assertEqual(resp.status_code,200)
 
-        verboseprint ('5a. Confirming that a user without an official email is not activated')
+        # 5a. Confirming that a user without an official email is not activated
         self.assertFalse(pending_user.user.is_active)
 
-        verboseprint ('6a_1. Using the first admin token and new user username to query views.ValidateUser')
+        # 6a_1. Using the first admin token and new user username to query views.ValidateUser
         body2 = {
             'user': newusr,
             'token': pending_user.admin_token_1
         }
-        verboseprint(body2)
-        r = self.client.get('/validate_user', body2, format='json', headers=headers)
-        response=r.content
-        verboseprint(response[:999])
-        self.assertIn('The IFRC GO user account is still not active because an other administrator has to approve it also',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.get('/validate_user', body2, format='json', headers=headers) #resp.content: The IFRC GO user account is still not active because an other administrator has to approve it also
+        self.assertEqual(resp.status_code,200)
 
-        verboseprint ('6a_1repeat. The first token should be unusable now to query views.ValidateUser again')
-        r = self.client.get('/validate_user', body2, format='json', headers=headers)
-        response=r.content
-        verboseprint(response[:999])
-        self.assertIn('could not find a user and token that matched those supplied',str(response))
-        self.assertEqual(r.status_code,400)
+        # 6a_1repeat. The first token should be unusable now to query views.ValidateUser again
+        resp = self.client.get('/validate_user', body2, format='json', headers=headers) #resp.content: ...could not find a user and token that matched those supplied
+        print (resp.content)
+        self.assertEqual(resp.status_code,400)
 
-        verboseprint ('7a_1. Confirming that a user without an official email is STILL NOT activated')
+        # 7a_1. Confirming that a user without an official email is STILL NOT activated
         boarded_user = User.objects.get(username=newusr)
-        verboseprint(boarded_user)
         self.assertFalse(boarded_user.is_active)
 
-        verboseprint ('6a_2. Using the second admin token and new user username to query views.ValidateUser')
+        # 6a_2. Using the second admin token and new user username to query views.ValidateUser
         body3 = {
             'user': newusr,
             'token': pending_user.admin_token_2
         }
-        verboseprint(body3)
-        r = self.client.get('/validate_user', body3, format='json', headers=headers)
-        response=r.content
-        verboseprint(response[:999])
-        self.assertIn('The IFRC GO user account is now active and a confirmation email has been sent to the new user',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.get('/validate_user', body3, format='json', headers=headers) #resp.content: The IFRC GO user account is now active and a confirmation email has been sent
+        self.assertEqual(resp.status_code,200)
         
-        verboseprint ('7a_2. Confirming that a user without an official email is finally ACTIVATED')
+        # 7a_2. Confirming that a user without an official email is finally ACTIVATED
         boarded_user = User.objects.get(username=newusr)
-        verboseprint(boarded_user)
         self.assertTrue(boarded_user.is_active)
 
-        verboseprint ('\n------------ A user with official email (series b) : -------')
-
-
-        verboseprint ('2b. Making a request to views.NewRegistration with new user request') 
+        #                                                         ------------ A user with official email (series b) : -------
+        # 2b. Making a request to views.NewRegistration with new user request
         country = Country.objects.get(name='country')
         newusr='pet'
         body = {
@@ -145,40 +111,20 @@ class TwoGatekeepersTest(APITestCase):
             'lastname': 'Falk',
         }
         headers = {'CONTENT_TYPE': 'application/json'}
-        r = self.client.post('/register', body, format='json', headers=headers)
-        response=r.content
-        response = json.loads(response)
-        verboseprint(response)
-        self.assertIn('\'status\': \'ok\'',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.post('/register', body, format='json', headers=headers) #json.loads(resp.content): 'status': 'ok'
+        self.assertEqual(resp.status_code,200)
         
-        verboseprint ('3b. Accessing the Pending users table to obtain the user\'s token')
+        # 3b. Accessing the Pending users table to obtain the user\'s token
         pending_user = Pending.objects.get(user__username=newusr)
-        verboseprint(" Pending user username: ",pending_user.user)
-        verboseprint(" Pending user key: ",pending_user.pk)
-        verboseprint(" Pending user token: ",pending_user.token)
-        verboseprint(" Pending user admin_token_1: ",pending_user.admin_token_1)
-        verboseprint(" Pending user admin_token_2: ",pending_user.admin_token_2)
-        verboseprint(" Pending user admin_validat_status: ",pending_user.admin_validat_status)
-        verboseprint(" Pending user email: ",pending_user)
-        if verbose:
-            pp = pprint.PrettyPrinter(indent=4)
-            pp.pprint (pending_user.user)
 
-        verboseprint ('4b. Using the user token and user username to query views.VerifyEmail')
+        # 4b. Using the user token and user username to query views.VerifyEmail
         body1 = {
             'user': newusr,
             'token': pending_user.token,
         }
-        verboseprint(body1)
-        r = self.client.get('/verify_email', body1, format='json', headers=headers)
-        response=r.content
-        verboseprint(response[:111])
-        self.assertIn('validated your email address and your IFRC Go account is now approved.',str(response))
-        self.assertEqual(r.status_code,200)
+        resp = self.client.get('/verify_email', body1, format='json', headers=headers) #resp.content: ...validated your email address and your IFRC Go account is now approved
+        self.assertEqual(resp.status_code,200)
 
-        verboseprint ('5b. Confirming that a user with an official email is activated')
+        # 5b. Confirming that a user with an official email is activated
         boarded_user = User.objects.get(username=newusr)
-        verboseprint(boarded_user)
         self.assertTrue(boarded_user.is_active)
-#       self.assertIsNotNone(response.get('expires')) #just another assertion example
