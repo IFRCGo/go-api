@@ -5,7 +5,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 
 from api.esconnection import ES_CLIENT
-from api.indexes import GenericMapping, ES_PAGE_NAME
+from api.indexes import GenericMapping, GenericSetting, ES_PAGE_NAME
 from api.models import Event, Appeal, FieldReport
 from api.logger import logger
 
@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logger.info('Recreating indices')
-        self.recreate_index(ES_PAGE_NAME, GenericMapping)
+        self.recreate_index(ES_PAGE_NAME, GenericMapping, GenericSetting)
 
         logger.info('Indexing events')
         self.push_table_to_index(model=Event)
@@ -25,11 +25,12 @@ class Command(BaseCommand):
         logger.info('Indexing field reports')
         self.push_table_to_index(model=FieldReport)
 
-    def recreate_index(self, index_name, index_mapping):
+    def recreate_index(self, index_name, index_mapping, index_setting):
         indices_client = IndicesClient(client=ES_CLIENT)
         if indices_client.exists(index_name):
             indices_client.delete(index=index_name)
-        indices_client.create(index=index_name)
+        indices_client.create(index=index_name,
+                              body=index_setting)
         indices_client.put_mapping(doc_type='page',
                                    index=index_name,
                                    body=index_mapping)
