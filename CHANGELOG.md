@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Default country and regional user group and permissions.
+- A regionally restricted admin class to filter querysets depending on a user's permissions.
 - Logging to Azure Queue storage.
 - A cron job to detet changes to field reports, events, and appeals, and index them to elasticsearch/notify subscribers.
 - Add a CSV renderer so data can be exported as CSV for any model.
@@ -15,9 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Include report date, updated at timestamp in field report response.
 - Include search fields for all relevant admin forms.
 - Include API docs.
+- Include alert sorting and ordering.
 
 ### Changed
 
+- Changed region, country filter to list filters on field reports, events.
 - Changed elasticsearch indexes to use one table.
 - Upgraded elasticsearch query to match terms, rather than prefix.
 - Made the district deployed to in partner deployments a many-to-many field.

@@ -142,8 +142,8 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     is_featured = filters.BooleanFilter(name='is_featured')
-    country = filters.NumberFilter(name='countries', lookup_expr='exact')
-    region = filters.NumberFilter(name='regions', lookup_expr='exact')
+    countries__in = ListFilter(name='countries__id')
+    regions__in = ListFilter(name='regions__id')
     class Meta:
         model = Event
         fields = {
@@ -158,7 +158,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
-    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
+    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'alert_level',)
     filter_class = EventFilter
 
 class SituationReportFilter(filters.FilterSet):
@@ -192,7 +192,7 @@ class AppealFilter(filters.FilterSet):
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Appeal.objects.all()
     serializer_class = AppealSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
 
     def remove_unconfirmed_event(self, obj):
@@ -253,6 +253,8 @@ class UserViewset(viewsets.ModelViewSet):
 class FieldReportFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     user = filters.NumberFilter(name='user', lookup_expr='exact')
+    countries__in = ListFilter(name='countries__id')
+    regions__in = ListFilter(name='regions__id')
     class Meta:
         model = FieldReport
         fields = {
@@ -274,5 +276,5 @@ class FieldReportViewset(viewsets.ModelViewSet):
         else:
             return DetailFieldReportSerializer
 
-    ordering_fields = ('summary', 'created_at', 'updated_at')
+    ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
     filter_class = FieldReportFilter

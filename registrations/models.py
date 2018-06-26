@@ -16,7 +16,10 @@ class Pending(models.Model):
 
     admin_contact_1 = models.EmailField(blank=True, null=True)
     admin_contact_2 = models.EmailField(blank=True, null=True)
-    admin_token = models.CharField(max_length=32, null=True, editable=False)
+    admin_token_1 = models.CharField(max_length=32, null=True, editable=False)
+    admin_token_2 = models.CharField(max_length=32, null=True, editable=False)
+    admin_1_validated = models.BooleanField(default=False, editable=False)
+    admin_2_validated = models.BooleanField(default=False, editable=False)
 
     email_verified = models.BooleanField(default=False, editable=False)
 
@@ -29,7 +32,7 @@ class Pending(models.Model):
 
 
 class Recovery(models.Model):
-    """ Password reovery"""
+    """ Password recovery"""
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
