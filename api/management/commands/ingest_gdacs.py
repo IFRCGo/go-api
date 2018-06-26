@@ -20,6 +20,7 @@ class Command(BaseCommand):
         response = requests.get(url)
         if response.status_code != 200:
             logger.error('Error querying GDACS xml feed at http://www.gdacs.org/xml/rss_7d.xml')
+            logger.error(response.content)
             raise Exception('Error querying GDACS')
 
         # get as XML
