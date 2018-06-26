@@ -158,7 +158,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
-    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected',)
+    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'alert_level',)
     filter_class = EventFilter
 
 class SituationReportFilter(filters.FilterSet):
@@ -192,7 +192,7 @@ class AppealFilter(filters.FilterSet):
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Appeal.objects.all()
     serializer_class = AppealSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded',)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
 
     def remove_unconfirmed_event(self, obj):
@@ -274,5 +274,5 @@ class FieldReportViewset(viewsets.ModelViewSet):
         else:
             return DetailFieldReportSerializer
 
-    ordering_fields = ('summary', 'created_at', 'updated_at')
+    ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
     filter_class = FieldReportFilter
