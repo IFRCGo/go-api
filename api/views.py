@@ -88,6 +88,7 @@ class EsPageSearch(PublicJsonRequestView):
         }
 
         sort = [
+            {'_score': {'order': 'desc'}},
             {'date': {'order': 'desc'}}
         ]
 
