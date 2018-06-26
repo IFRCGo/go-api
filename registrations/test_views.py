@@ -70,7 +70,7 @@ class TwoGatekeepersTest(APITestCase):
         # 6a_1. Using the first admin token and new user username to query views.ValidateUser
         body2 = {
             'user': newusr,
-            'token': pending_user.admin_token_1
+            'token': pending_user.admin_token_1  #This test uses a 1, 1, 2 sequence. If you want to test 2, 2, 1 sequence, then change this row to _2 and the next 'token' row to _1.
         }
         resp = self.client.get('/validate_user', body2, format='json', headers=headers) #resp.content: The IFRC GO user account is still not active because an other administrator has to approve it also
         self.assertEqual(resp.status_code,200)

@@ -21,8 +21,6 @@ class Pending(models.Model):
     admin_1_did_validation = models.BooleanField(default=False)
     admin_2_did_validation = models.BooleanField(default=False)
     
-    admin_validat_status = models.IntegerField(default=0)
-
     email_verified = models.BooleanField(default=False, editable=False)
 
     class Meta:

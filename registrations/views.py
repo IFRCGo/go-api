@@ -249,7 +249,6 @@ class NewRegistration(PublicJsonPostView):
             pending.admin_token_2        = get_random_string(length=32)
             pending.admin_1_did_validation = False
             pending.admin_2_did_validation = False
-            pending.admin_validat_status = 0
 
         pending.save()
  
@@ -357,10 +356,9 @@ class ValidateUser(PublicJsonRequestView):
              (pending_user.admin_token_2 == token) and (pending_user.admin_2_did_validation == True)):
             return bad_http_request('Already a confirmed registration','You, as an administrator has already confirmed the registration of %s user' % user)
 
-        pending_user.admin_validat_status += 1
-        pending_user.save()
-
-        if pending_user.admin_validat_status == 1:
+        if  ((pending_user.admin_token_1 == token) and (pending_user.admin_2_did_validation == False)) or (
+             (pending_user.admin_token_2 == token) and (pending_user.admin_1_did_validation == False)):
+        #                             !^!                                 !^!        We have a token and OTHER admin did nothing: so we are in the first validation stage
             if  pending_user.admin_token_1 == token:
                 pending_user.admin_1_did_validation = True
             else:
