@@ -171,7 +171,8 @@ class Command(BaseCommand):
             fields = self.parse_appeal_record(r, is_new_appeal=True)
             try:
                 Appeal.objects.create(**fields)
-            except:
+            except Exception as e:
+                logger.error(str(e)[:100])
                 logger.error('Could not create appeal with code %s' % fields['code'])
                 continue
             num_created = num_created + 1
@@ -181,7 +182,8 @@ class Command(BaseCommand):
             fields = self.parse_appeal_record(r, is_new_appeal=False)
             try:
                 appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
-            except:
+            except Exception as e:
+                logger.error(str(e)[:100])
                 logger.error('Could not update appeal with code %s' % fields['code'])
                 continue
             num_updated = num_updated + 1
