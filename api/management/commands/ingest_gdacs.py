@@ -1,4 +1,3 @@
-import logging
 import requests
 import datetime as dt
 from encoder import XML2Dict
@@ -6,20 +5,22 @@ from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from api.models import Country, Event, GDACSEvent
 from api.event_sources import SOURCES
-
-logger = logging.getLogger(__name__)
+from api.logger import logger
 
 
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
 
     def handle(self, *args, **options):
+        logger.info('Starting GDACs ingest')
         # get latest
         nspace = '{http://www.gdacs.org}'
         url = 'http://www.gdacs.org/xml/rss_7d.xml'
 
         response = requests.get(url)
         if response.status_code != 200:
+            logger.error('Error querying GDACS xml feed at http://www.gdacs.org/xml/rss_7d.xml')
+            logger.error(response.content)
             raise Exception('Error querying GDACS')
 
         # get as XML
@@ -29,7 +30,6 @@ class Command(BaseCommand):
         added = 0
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace].decode('utf-8')
-            print(alert_level)
             if alert_level in levels.keys():
                 latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
                 eid = alert.pop(nspace + 'eventid')
@@ -90,4 +90,4 @@ class Command(BaseCommand):
                     # add countries
                     [event.countries.add(c) for c in gdacsevent.countries.all()]
 
-        print('%s events added' % added)
+        logger.info('%s GDACs events added' % added)
