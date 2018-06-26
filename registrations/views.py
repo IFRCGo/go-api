@@ -355,6 +355,11 @@ class ValidateUser(PublicJsonRequestView):
         pending_user.save()
 
         if pending_user.admin_validat_status == 1:
+            if  pending_user.admin_token_1 == token: #we change the used admin token(1 or 2) for the future unusability
+                pending_user.admin_token_1 = get_random_string(length=32)
+            else:
+                pending_user.admin_token_2 = get_random_string(length=32)
+            pending_user.save()
             return HttpResponse(render_to_string('registration/validation-halfsuccess.html')) # half success, the other admin still have to approve it
         else:
             pending_user.user.is_active = True

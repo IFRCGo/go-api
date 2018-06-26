@@ -99,6 +99,13 @@ class TwoGatekeepersTest(APITestCase):
         self.assertIn('The IFRC GO user account is still not active because an other administrator has to approve it also',str(response))
         self.assertEqual(r.status_code,200)
 
+        verboseprint ('6a_1repeat. The first token should be unusable now to query views.ValidateUser again')
+        r = self.client.get('/validate_user', body2, format='json', headers=headers)
+        response=r.content
+        verboseprint(response[:999])
+        self.assertIn('could not find a user and token that matched those supplied',str(response))
+        self.assertEqual(r.status_code,400)
+
         verboseprint ('7a_1. Confirming that a user without an official email is STILL NOT activated')
         boarded_user = User.objects.get(username=newusr)
         verboseprint(boarded_user)
