@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
+from api.admin_classes import RegionRestrictedAdmin
 import api.models as models
 
 
@@ -122,7 +123,10 @@ class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
 
-class EventAdmin(admin.ModelAdmin):
+class EventAdmin(RegionRestrictedAdmin):
+    country_in = 'countries__pk__in'
+    region_in = 'regions__pk__in'
+
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     list_display = ('name', 'alert_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
@@ -150,7 +154,9 @@ class EventAdmin(admin.ModelAdmin):
     field_reports.short_description = 'Field Reports'
 
 
-class GdacsAdmin(admin.ModelAdmin):
+class GdacsAdmin(RegionRestrictedAdmin):
+    country_in = 'countries__pk__in'
+    region_in = None
     search_fields = ('title',)
 
 
@@ -166,7 +172,10 @@ class FieldReportContactInline(admin.TabularInline):
     model = models.FieldReportContact
 
 
-class FieldReportAdmin(admin.ModelAdmin):
+class FieldReportAdmin(RegionRestrictedAdmin):
+    country_in = 'countries__pk__in'
+    region_in = 'regions__pk__in'
+
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
@@ -201,7 +210,9 @@ class AppealDocumentInline(admin.TabularInline):
     model = models.AppealDocument
 
 
-class AppealAdmin(admin.ModelAdmin):
+class AppealAdmin(RegionRestrictedAdmin):
+    country_in = 'country__pk__in'
+    region_in = 'region__pk__in'
     inlines = [AppealDocumentInline]
     list_display = ('code', 'name', 'atype', 'needs_confirmation', 'event', 'start_date',)
     list_select_related = ('event',)
@@ -249,7 +260,9 @@ class AppealAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-class AppealDocumentAdmin(admin.ModelAdmin):
+class AppealDocumentAdmin(RegionRestrictedAdmin):
+    country_in = 'appeal__country__in'
+    region_in = 'appeal__region__in'
     search_fields = ('name', 'appeal__code', 'appeal__name')
 
 
@@ -285,16 +298,22 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(admin.ModelAdmin):
+class DistrictAdmin(RegionRestrictedAdmin):
+    country_in = 'country__pk__in'
+    region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
 
 
-class CountryAdmin(admin.ModelAdmin):
+class CountryAdmin(RegionRestrictedAdmin):
+    country_in = 'pk__in'
+    region_in = 'region__pk__in'
     search_fields = ('name',)
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
 
 
-class RegionAdmin(admin.ModelAdmin):
+class RegionAdmin(RegionRestrictedAdmin):
+    country_in = None
+    region_in = 'pk__in'
     inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
     search_fields = ('name',)
 
@@ -303,7 +322,9 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'user__email',)
 
 
-class SituationReportAdmin(admin.ModelAdmin):
+class SituationReportAdmin(RegionRestrictedAdmin):
+    country_in = 'event__countries__in'
+    region_in = 'event__regions__in'
     search_fields = ('name', 'event__name',)
 
 
