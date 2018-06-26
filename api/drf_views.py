@@ -142,8 +142,8 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     is_featured = filters.BooleanFilter(name='is_featured')
-    country = filters.NumberFilter(name='countries', lookup_expr='exact')
-    region = filters.NumberFilter(name='regions', lookup_expr='exact')
+    countries__in = ListFilter(name='countries__id')
+    regions__in = ListFilter(name='regions__id')
     class Meta:
         model = Event
         fields = {
@@ -253,6 +253,8 @@ class UserViewset(viewsets.ModelViewSet):
 class FieldReportFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     user = filters.NumberFilter(name='user', lookup_expr='exact')
+    countries__in = ListFilter(name='countries__id')
+    regions__in = ListFilter(name='regions__id')
     class Meta:
         model = FieldReport
         fields = {

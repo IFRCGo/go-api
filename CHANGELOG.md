@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Changed region, country filter to list filters on field reports, events.
 - Changed elasticsearch indexes to use one table.
 - Upgraded elasticsearch query to match terms, rather than prefix.
 - Made the district deployed to in partner deployments a many-to-many field.
