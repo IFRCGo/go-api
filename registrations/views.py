@@ -237,21 +237,18 @@ class NewRegistration(PublicJsonPostView):
             User.objects.filter(username=body['username']).delete()
             return bad_request('Could not create user profile.')
 
-        try:
-            pending
-        except NameError:  #if not exists
-            pending = Pending.objects.create(user=user,
-                                            token=get_random_string(length=32))
+        pending = Pending.objects.create(user=user,
+                                         token=get_random_string(length=32))
         if not is_staff:
-            pending.admin_contact_1      = admins[0]
-            pending.admin_contact_2      = admins[1]
-            pending.admin_token_1        = get_random_string(length=32)
-            pending.admin_token_2        = get_random_string(length=32)
-            pending.admin_1_did_validation = False
+            pending.admin_contact_1 = admins[0]
+            pending.admin_contact_2 = admins[1]
+            pending.admin_token_1 = get_random_string(length=32)
+            pending.admin_token_2 = get_random_string(length=32)
+            pending.admin_1_validated = False
             pending.admin_2_did_validation = False
 
         pending.save()
- 
+
         email_context = {
             'confirmation_link': '%s/verify_email/?token=%s&user=%s' % (
                 settings.BASE_URL,
@@ -304,32 +301,21 @@ class VerifyEmail(PublicJsonRequestView):
             return HttpResponse(render_to_string('registration/success.html'))
         else:
             admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
-            email_context_1 = {
-                'validation_link': '%s/validate_user/?token=%s&user=%s' % (
-                    settings.BASE_URL,
-                    pending_user.admin_token_1,
-                    user,
-                ),
-                'first_name': pending_user.user.first_name,
-                'last_name': pending_user.user.last_name,
-                'email': pending_user.user.email,
-            }
-            email_context_2 = {
-                'validation_link': '%s/validate_user/?token=%s&user=%s' % (
-                    settings.BASE_URL,
-                    pending_user.admin_token_2,
-                    user,
-                ),
-                'first_name': pending_user.user.first_name,
-                'last_name': pending_user.user.last_name,
-                'email': pending_user.user.email,
-            }
-            send_notification('Reference to approve an account',
-                              admins[0],
-                              render_to_string('email/registration/validate.html', email_context_1))
-            send_notification('Reference to approve an account',
-                              admins[1],
-                              render_to_string('email/registration/validate.html', email_context_2))
+            for idx, admin in enumerate(admins):
+                token = pending_user.admin_token_1 if idx == 1 else pending_user.admin_token_2
+                email_context = {
+                    'validation_link': '%s/validate_user/?token=%s&user=%s' % (
+                        settings.BASE_URL,
+                        token,
+                        user,
+                    ),
+                    'first_name': pending_user.user.first_name,
+                    'last_name': pending_user.user.last_name,
+                    'email': pending_user.user.email,
+                }
+                send_notification('Reference to approve an account',
+                                  [admin],
+                                  render_to_string('email/registration/validate.html', email_context))
             pending_user.email_verified = True
             pending_user.save()
             return HttpResponse(render_to_string('registration/validation-sent.html'))
@@ -352,29 +338,27 @@ class ValidateUser(PublicJsonRequestView):
             return bad_http_request('%s is active' % user,
                                     'The user is already active. You can modify user accounts any time using the admin interface.')
 
-        if  ((pending_user.admin_token_1 == token) and (pending_user.admin_1_did_validation == True)) or (
-             (pending_user.admin_token_2 == token) and (pending_user.admin_2_did_validation == True)):
-            return bad_http_request('Already a confirmed registration','You, as an administrator has already confirmed the registration of %s user' % user)
+        # Determine which admin we're responding to.
+        admin = '1' if token == pending_user.admin_token_1 else '2'
+        did_validate = getattr(pending_user, 'admin_%s_validated' % admin)
 
-        if  ((pending_user.admin_token_1 == token) and (pending_user.admin_2_did_validation == False)) or (
-             (pending_user.admin_token_2 == token) and (pending_user.admin_1_did_validation == False)):
-        #                             !^!                                 !^!        We have a token and OTHER admin did nothing: so we are in the first validation stage
-            if  pending_user.admin_token_1 == token:
-                pending_user.admin_1_did_validation = True
-            else:
-                pending_user.admin_2_did_validation = True
-            pending_user.save()
-            return HttpResponse(render_to_string('registration/validation-halfsuccess.html')) # half success, the other admin still have to approve it
+        if did_validate:
+            return bad_http_request('Already confirmed',
+                                    'You have already confirmed this user.')
         else:
-            pending_user.admin_1_did_validation = True
-            pending_user.admin_2_did_validation = True
+            setattr(pending_user, 'admin_%s_validated' % admin, True)
+            pending_user.save()
+
+        if pending_user.admin_1_validated and pending_user.admin_2_validated:
             pending_user.user.is_active = True
             pending_user.user.save()
             email_context = {
-                frontend_url: frontend_url
+                'frontend_url': frontend_url
             }
             send_notification('Your account has been approved',
                               [pending_user.user.email],
                               render_to_string('email/registration/outside-email-success.html', email_context))
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
+        else:
+            return HttpResponse(render_to_string('registration/validation-halfsuccess.html'))
