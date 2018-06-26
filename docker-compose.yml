@@ -58,6 +58,10 @@ services:
     <<: *base_django_setup
     command: python manage.py makemigrations
 
+  make_permissions:
+    <<: *base_django_setup
+    command: python manage.py make_permissions
+
   test:
     <<: *base_django_setup
     command: python manage.py test -k

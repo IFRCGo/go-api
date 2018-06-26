@@ -1,6 +1,5 @@
 import os
 import csv
-import logging
 import subprocess
 import pytz
 from django.utils import timezone
@@ -24,6 +23,7 @@ from api.models import (
 )
 from api.fixtures.dtype_map import PK_MAP
 from api.event_sources import SOURCES
+from api.logger import logger
 
 REPORT_DATE_FORMAT = '%m/%d/%y %H:%M:%S'
 
@@ -33,7 +33,7 @@ def extract_table(dbfile, table):
     try:
         output = subprocess.check_output(cmd.split(' ')).splitlines()
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
     output = [o.decode('utf-8') for o in output]
     reader = csv.reader(output, delimiter=',', quotechar='"')
     records = []
@@ -60,14 +60,14 @@ def get_dbfile():
     dbpass = os.environ.get('GO_DBPASS', None)
     if ftphost is None or ftpuser is None or ftppass is None:
         if os.path.exists('URLs.mdb'):
-            print('No credentials in env, using local MDB database file')
-            print('If this occurs outside development, contact an administrator')
+            logger.info('No credentials in env, using local MDB database file')
+            logger.warn('If this occurs outside development, contact an administrator')
             return 'URLs.mdb'
         else:
             raise Exception('FTP credentials not provided (GO_FTPHOST, GO_FTPUSER, GO_FTPPASS)')
     if dbpass is None:
         raise Exception('Database encryption password not provided (GO_DBPASS)')
-    print('Attempting connection to FTP')
+    logger.info('Attempting connection to FTP')
     ftp = FTP(ftphost)
     ftp.login(user=ftpuser, passwd=ftppass)
     ftp.cwd('/dmis/')
@@ -85,12 +85,12 @@ def get_dbfile():
     for f in files:
         os.remove(f)
 
-    print('Fetching %s' % filename)
+    logger.info('Fetching %s' % filename)
     with open(filename, 'wb') as f:
         ftp.retrbinary('RETR ' + filename, f.write, 2014)
     ftp.quit()
 
-    print('Unzipping database file')
+    logger.info('Unzipping database file')
     zp = ZipFile(filename)
     zp.extractall('./', pwd=dbpass.encode('cp850', 'replace'))
     return 'URLs.mdb'
@@ -159,7 +159,7 @@ class Command(BaseCommand):
         reports = extract_table(filename, 'EW_Reports')
         rids = [r.rid for r in FieldReport.objects.all()]
         num_reports_created = 0
-        print('%s reports in database' % len(reports))
+        logger.info('%s reports in database' % len(reports))
         for i, report in enumerate(reports):
 
             # Skip reports that we've already ingested.
@@ -243,7 +243,7 @@ class Command(BaseCommand):
             event = Event(**event_record)
             event.save()
 
-            print('Adding %s' % report_name)
+            logger.info('Adding %s' % report_name)
             field_report.event = event
             field_report.save()
             num_reports_created = num_reports_created + 1
@@ -251,7 +251,7 @@ class Command(BaseCommand):
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
             except ObjectDoesNotExist:
-                print('Could not find a matching country for %s' % report['CountryID'])
+                logger.warn('Could not find a matching country for %s' % report['CountryID'])
                 country = None
 
             if country is not None:
@@ -259,6 +259,7 @@ class Command(BaseCommand):
                 event.countries.add(country)
                 if country.region is not None:
                     # No need to add a field report region, as that happens through a trigger.
+                    field_report.regions.add(country.region)
                     event.regions.add(country.region)
 
             ### add items with foreignkeys to report
@@ -316,8 +317,8 @@ class Command(BaseCommand):
                             field_report=field_report,
                         )
         total_reports = FieldReport.objects.all()
-        print('%s reports created' % num_reports_created)
-        print('%s reports in database' % total_reports.count())
+        logger.info('%s reports created' % num_reports_created)
+        logger.info('%s reports in database' % total_reports.count())
 
         # org type mapping
         org_types = {
@@ -330,7 +331,7 @@ class Command(BaseCommand):
 
         # add users
         user_records = extract_table(filename, 'DMISUsers')
-        print('%s users in database' % len(user_records))
+        processed_users = 0
         for i, user_data in enumerate(user_records):
             if user_data['LoginLastSuccess'] == '':
                 continue
@@ -369,3 +370,5 @@ class Command(BaseCommand):
             user.profile.position = user_data['Position'] if len(user_data['Position']) <= 100 else ''
             user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
             user.save()
+            processed_users = processed_users + 1
+        logger.info('%s updated active user records' % len(processed_users))
