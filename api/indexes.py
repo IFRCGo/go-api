@@ -4,6 +4,10 @@ GenericMapping = {
         'event_id': {'type': 'keyword'},
         'type': {'type': 'keyword'},
         'name': {'type': 'text'},
+        'keyword': {
+            'type': 'keyword',
+            'normalizer': 'lowercase'
+        },
         'body': {
             'type': 'text',
             'analyzer': 'autocomplete'
@@ -35,6 +39,13 @@ GenericSetting = {
                         'lowercase',
                         'autocomplete_filter'
                     ]
+                }
+            },
+            'normalizer': {
+                'lowercase': {
+                    'type': 'custom',
+                    'char_filter': [],
+                    'filter': ['lowercase']
                 }
             }
         }
