@@ -6,7 +6,6 @@
 # 6. Use the admin token and new user username to query views.ValidateUser
 # 7. Confirm that a user without an official email is activated.
 
-import json, pprint
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
