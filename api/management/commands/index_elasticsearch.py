@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch
 
 from api.esconnection import ES_CLIENT
 from api.indexes import GenericMapping, GenericSetting, ES_PAGE_NAME
-from api.models import Event, Appeal, FieldReport
+from api.models import Region, Country, Event, Appeal, FieldReport
 from api.logger import logger
 
 class Command(BaseCommand):
@@ -15,6 +15,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Recreating indices')
         self.recreate_index(ES_PAGE_NAME, GenericMapping, GenericSetting)
+
+        logger.info('Indexing regions')
+        self.push_table_to_index(model=Region)
+
+        logger.info('Indexing countries')
+        self.push_table_to_index(model=Country)
 
         logger.info('Indexing events')
         self.push_table_to_index(model=Event)

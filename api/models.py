@@ -45,6 +45,16 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'region',
+            'name': self.name,
+            'body': self.name,
+            'date': None
+        }
+
     class Meta:
         ordering = ('name',)
 
@@ -60,6 +70,19 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'country',
+            'name': self.name,
+            'body': '%s %s' % (
+                self.name,
+                self.society_name,
+            ),
+            'date': None
+        }
 
     class Meta:
         ordering = ('name',)
@@ -196,6 +219,7 @@ class Event(models.Model):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': self.id,
             'type': 'event',
             'name': self.name,
             'body': '%s %s' % (
@@ -386,6 +410,7 @@ class Appeal(models.Model):
     def indexing(self):
         return {
             'id': self.id,
+            'event_id': getattr(self, 'event.id', None),
             'type': 'appeal',
             'name': self.name,
             'body': '%s %s %s' % (
@@ -552,6 +577,7 @@ class FieldReport(models.Model):
         countries = [c.name for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': getattr(self, 'event.id', None),
             'type': 'report',
             'name': self.summary,
             'body': '%s %s' % (
