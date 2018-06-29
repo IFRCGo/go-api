@@ -33,7 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 - Post-save triggers for indexing models to elasticsearch and notifying subscribers.
-- Removed 'zone' countries from fixtures, since these should be regions.
 
 ## 1.0.1
 
