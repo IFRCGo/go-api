@@ -1,6 +1,7 @@
 GenericMapping = {
     'properties': {
         'id': {'type': 'keyword'},
+        'event_id': {'type': 'keyword'},
         'type': {'type': 'keyword'},
         'name': {'type': 'text'},
         'body': {
@@ -18,8 +19,12 @@ GenericSetting = {
             'filter': {
                 'autocomplete_filter': {
                     'type': 'edge_ngram',
-                    'min_gram': 1,
-                    'max_gram': 20
+                    'min_gram': 3,
+                    'max_gram': 10,
+                    'token_chars': [
+                        'letter',
+                        'digit'
+                    ]
                 }
             },
             'analyzer': {
