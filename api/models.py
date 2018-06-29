@@ -51,7 +51,8 @@ class Region(models.Model):
             'event_id': None,
             'type': 'region',
             'name': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
-            'body': self.name,
+            'keyword': None,
+            'body': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
             'date': None
         }
 
@@ -80,6 +81,7 @@ class Country(models.Model):
             'event_id': None,
             'type': 'country',
             'name': self.name,
+            'keyword': None,
             'body': '%s %s' % (
                 self.name,
                 self.society_name,
@@ -228,9 +230,10 @@ class Event(models.Model):
             'event_id': self.id,
             'type': 'event',
             'name': self.name,
+            'keyword': None,
             'body': '%s %s' % (
                 self.name,
-                ', '.join(map(str, countries)) if len(countries) else None,
+                ' '.join(map(str, countries)) if len(countries) else None,
             ),
             'date': self.disaster_start_date,
         }
@@ -416,13 +419,13 @@ class Appeal(models.Model):
     def indexing(self):
         return {
             'id': self.id,
-            'event_id': getattr(self, 'event.id', None),
+            'event_id': self.event.id if self.event is not None else None,
             'type': 'appeal',
             'name': self.name,
-            'body': '%s %s %s' % (
+            'keyword': self.code,
+            'body': '%s %s' % (
                 self.name,
-                getattr(self.country, 'name', None),
-                self.code,
+                getattr(self.country, 'name', None)
             ),
             'date': self.start_date,
         }
@@ -586,9 +589,10 @@ class FieldReport(models.Model):
             'event_id': getattr(self, 'event.id', None),
             'type': 'report',
             'name': self.summary,
+            'keyword': None,
             'body': '%s %s' % (
                 self.summary,
-                ', '.join(map(str, countries)) if len(countries) else None
+                ' '.join(map(str, countries)) if len(countries) else None
             ),
             'date': self.created_at,
         }
