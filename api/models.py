@@ -55,6 +55,9 @@ class Region(models.Model):
             'date': None
         }
 
+    def es_id(self):
+        return 'region-%s' % self.id
+
     class Meta:
         ordering = ('name',)
 
@@ -83,6 +86,9 @@ class Country(models.Model):
             ),
             'date': None
         }
+
+    def es_id(self):
+        return 'country-%s' % self.id
 
     class Meta:
         ordering = ('name',)
