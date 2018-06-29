@@ -71,6 +71,12 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
+class EsPageHealth(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        health = ES_CLIENT.cluster.health()
+        return JsonResponse(health)
+
+
 class EsPageSearch(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         page_type = request.GET.get('type', None)
@@ -79,17 +85,15 @@ class EsPageSearch(PublicJsonRequestView):
             return bad_request('Must include a `keyword`')
         index = ES_PAGE_NAME
         query = {
-            'match': {
-                'body': {
-                    'query': phrase,
-                    'fuzziness': 0
-                }
+            'multi_match': {
+                'query': phrase,
+                'fields': ['keyword^3', 'body']
             }
         }
 
         sort = [
-            {'_score': {'order': 'desc'}},
-            {'date': {'order': 'desc'}}
+            {'date': {'order': 'desc', 'missing': '_first'}},
+            '_score',
         ]
 
         if page_type is not None:
@@ -99,7 +103,7 @@ class EsPageSearch(PublicJsonRequestView):
                         'term': {'type': page_type}
                     },
                     'must': {
-                        'match': query['match']
+                        'multi_match': query['multi_match']
                     }
                 }
             }
@@ -112,7 +116,7 @@ class EsPageSearch(PublicJsonRequestView):
                 'sort': sort,
                 'from': 0,
                 'size': 10
-            }),
+            })
         )
         return JsonResponse(results['hits'])
 
