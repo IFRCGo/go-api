@@ -50,7 +50,7 @@ class Region(models.Model):
             'id': self.id,
             'event_id': None,
             'type': 'region',
-            'name': self.name,
+            'name': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
             'body': self.name,
             'date': None
         }
