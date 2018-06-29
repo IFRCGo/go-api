@@ -243,7 +243,6 @@ class Command(BaseCommand):
             event = Event(**event_record)
             event.save()
 
-            logger.info('Adding %s' % report_name)
             field_report.event = event
             field_report.save()
             num_reports_created = num_reports_created + 1
