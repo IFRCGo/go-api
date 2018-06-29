@@ -22,6 +22,7 @@ from api.views import (
     ChangePassword,
     RecoverPassword,
     EsPageSearch,
+    EsPageHealth,
     AggregateByDtype,
     AggregateByTime,
     UpdateSubscriptionPreferences,
@@ -72,6 +73,7 @@ router.register(r'subscription', notification_views.SubscriptionViewset, base_na
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
+    url(r'^api/v1/es_health/', EsPageHealth.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
