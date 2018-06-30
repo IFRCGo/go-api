@@ -144,6 +144,7 @@ class EventFilter(filters.FilterSet):
     is_featured = filters.BooleanFilter(name='is_featured')
     countries__in = ListFilter(name='countries__id')
     regions__in = ListFilter(name='regions__id')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
     class Meta:
         model = Event
         fields = {
@@ -182,6 +183,8 @@ class AppealFilter(filters.FilterSet):
     country = filters.NumberFilter(name='country', lookup_expr='exact')
     region = filters.NumberFilter(name='region', lookup_expr='exact')
     code = filters.CharFilter(name='code', lookup_expr='exact')
+    status = filters.NumberFilter(name='status', lookup_expr='exact')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
     class Meta:
         model = Appeal
         fields = {
@@ -255,6 +258,7 @@ class FieldReportFilter(filters.FilterSet):
     user = filters.NumberFilter(name='user', lookup_expr='exact')
     countries__in = ListFilter(name='countries__id')
     regions__in = ListFilter(name='regions__id')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
     class Meta:
         model = FieldReport
         fields = {
