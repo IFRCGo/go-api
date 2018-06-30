@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Add an API path for viewing elasticsearch cluster health.
+- Add a keyword field for appeal codes in ES that is heavily weighted.
+- Add countries and regions to elasticsearch indexes.
+- Add elasticsearch analyzer for autocomplete, apply it to body of generic page index.
 - Default country and regional user group and permissions.
 - A regionally restricted admin class to filter querysets depending on a user's permissions.
 - Logging to Azure Queue storage.
