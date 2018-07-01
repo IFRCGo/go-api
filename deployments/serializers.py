@@ -77,6 +77,7 @@ class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
         fields = ('activity', 'id',)
 
 class PartnerDeploymentSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()
     district_deployed_to = MiniDistrictSerializer(many=True)
     activity = PartnerDeploymentActivitySerializer()
