@@ -140,10 +140,16 @@ class EventContactSerializer(serializers.ModelSerializer):
         model = EventContact
         fields = ('ctype', 'name', 'title', 'email', 'event', 'id',)
 
+class FieldReportContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FieldReportContact
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
+
 class MiniFieldReportSerializer(serializers.ModelSerializer):
+    contacts = FieldReportContactSerializer(many=True)
     class Meta:
         model = FieldReport
-        fields = ('summary', 'description', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'created_at', 'updated_at', 'report_date', 'id',)
+        fields = ('summary', 'description', 'contacts', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'created_at', 'updated_at', 'report_date', 'id',)
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
@@ -223,11 +229,6 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class FieldReportContactSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FieldReportContact
-        fields = ('ctype', 'name', 'title', 'email', 'id',)
-
 class ActionsTakenSerializer(serializers.ModelSerializer):
     actions = serializers.SlugRelatedField(many=True, slug_field='name', read_only=True)
     class Meta:
@@ -254,6 +255,7 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
     actions_taken = ActionsTakenSerializer(many=True)
     sources = SourceSerializer(many=True)
     event = MiniEventSerializer()
+    countries = MiniCountrySerializer(many=True)
     class Meta:
         model = FieldReport
         fields = '__all__'
