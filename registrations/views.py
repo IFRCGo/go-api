@@ -245,7 +245,7 @@ class NewRegistration(PublicJsonPostView):
             pending.admin_token_1 = get_random_string(length=32)
             pending.admin_token_2 = get_random_string(length=32)
             pending.admin_1_validated = False
-            pending.admin_2_did_validation = False
+            pending.admin_2_validated = False
 
         pending.save()
 
