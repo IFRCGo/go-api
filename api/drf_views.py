@@ -301,8 +301,6 @@ class GenericFieldReportView(GenericAPIView):
     queryset = FieldReport.objects.all()
 
     def serialize(self, data, instance=None):
-        print('Request data', data)
-
         # Replace integer values for Int Enum types.
         # Otherwise, validation will fail.
         # This applies to visibility and request choices.
@@ -512,4 +510,4 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
             for error in errors:
                 logger.error(str(error)[:200])
 
-        return Response({'id': fieldreport.id}, status=HTTP_200_OK)
+        return Response({'id': instance.id}, status=HTTP_200_OK)
