@@ -229,8 +229,13 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class ActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Action
+        fields = ('name', 'id',)
+
 class ActionsTakenSerializer(serializers.ModelSerializer):
-    actions = serializers.SlugRelatedField(many=True, slug_field='name', read_only=True)
+    actions = ActionSerializer(many=True)
     class Meta:
         model = ActionsTaken
         fields = ('organization', 'actions', 'summary', 'id',)
@@ -256,6 +261,11 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
     sources = SourceSerializer(many=True)
     event = MiniEventSerializer()
     countries = MiniCountrySerializer(many=True)
+    class Meta:
+        model = FieldReport
+        fields = '__all__'
+
+class CreateFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'
