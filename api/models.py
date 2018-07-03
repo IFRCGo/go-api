@@ -262,6 +262,10 @@ class Snippet(models.Model):
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
+class DocumentTypes(models.Model):
+    type = models.CharField(max_length=30)
+    def __str__(self):
+        return self.type
 
 class SituationReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -270,6 +274,7 @@ class SituationReport(models.Model):
     document_url = models.URLField(blank=True)
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    type = models.ForeignKey(DocumentTypes, related_name='situation_reports', null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)

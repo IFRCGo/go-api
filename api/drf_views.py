@@ -163,6 +163,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(name='event', lookup_expr='exact')
+    type = filters.NumberFilter(name='type', lookup_expr='exact')
     class Meta:
         model = SituationReport
         fields = {
