@@ -175,7 +175,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
 class SituationReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'id',)
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'id', 'type', )
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
