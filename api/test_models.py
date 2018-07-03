@@ -97,7 +97,7 @@ class FieldReportTest(TestCase):
         self.assertIsNotNone(obj.report_date)
 
 
-class ProfileTest(TestCase):
+class ProfileTestDepartment(TestCase):
     def setUp(self):
         user = User.objects.create(username='test1', password='12345678!')
         user.profile.department = 'testdepartment'
