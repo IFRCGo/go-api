@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Add views to create, edit field reports.
+- Create a separate API route for emergency snippets.
 - Add an API path for viewing elasticsearch cluster health.
 - Add a keyword field for appeal codes in ES that is heavily weighted.
 - Add countries and regions to elasticsearch indexes.
