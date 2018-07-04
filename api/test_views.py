@@ -2,11 +2,8 @@ import json
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from .models import Country, Region, FieldReport
-
-from api.views import (
-    GetAuthToken,
-)
+import api.models as models
+import api.drf_views as views
 
 
 class AuthTokenTest(APITestCase):
@@ -27,15 +24,41 @@ class AuthTokenTest(APITestCase):
         self.assertIsNotNone(response.get('expires'))
 
 
+class SituationReportTypeTest(APITestCase):
+
+    fixtures = ['DisasterTypes']
+
+    def test_sit_rep_types(self):
+        type1 = models.SituationReportType.objects.create(type='Lyric')
+        type2 = models.SituationReportType.objects.create(type='Epic')
+        dtype1 = models.DisasterType.objects.get(pk=1)
+        event1 = models.Event.objects.create(name='disaster1', summary='test disaster1', dtype=dtype1)
+        report1 = models.SituationReport.objects.create(name='test1', event=event1, type=type1)
+        report2 = models.SituationReport.objects.create(name='test2', event=event1, type=type2)
+        report3 = models.SituationReport.objects.create(name='test3', event=event1, type=type2)
+
+        # Filter by event
+        response = self.client.get('/api/v2/situation_report/?limit=100&event=%s' % event1.id)
+        self.assertEqual(response.status_code, 200)
+        count = json.loads(response.content)['count']
+        self.assertEqual(count, 3)
+
+        # Filter by event and type
+        response = self.client.get('/api/v2/situation_report/?limit=100&event=%s&type=%s' % (event1.id, type2.id))
+        self.assertEqual(response.status_code, 200)
+        count = json.loads(response.content)['count']
+        self.assertEqual(count, 2)
+
+
 class FieldReportTest(APITestCase):
 
     fixtures = ['DisasterTypes', 'Actions']
 
     def test_create(self):
         user = User.objects.create(username='jo')
-        region = Region.objects.create(name=1)
-        country1 = Country.objects.create(name='abc', region=region)
-        country2 = Country.objects.create(name='xyz')
+        region = models.Region.objects.create(name=1)
+        country1 = models.Country.objects.create(name='abc', region=region)
+        country2 = models.Country.objects.create(name='xyz')
         body = {
             'countries': [country1.id, country2.id],
             'dtype': 7,
@@ -60,7 +83,7 @@ class FieldReportTest(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post('/api/v2/create_field_report/', body, format='json')
         response = json.loads(response.content)
-        created = FieldReport.objects.get(pk=response['id'])
+        created = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(created.countries.count(), 2)
         # one region created automatically
@@ -91,7 +114,7 @@ class FieldReportTest(APITestCase):
         body['visibility'] = 2
         response = self.client.put('/api/v2/update_field_report/%s/' % created.id, body, format='json')
         response = json.loads(response.content)
-        updated = FieldReport.objects.get(pk=response['id'])
+        updated = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(updated.countries.count(), 1)
         self.assertEqual(updated.countries.first().name, 'xyz')

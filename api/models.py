@@ -292,6 +292,13 @@ class Snippet(models.Model):
     visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
+class SituationReportType(models.Model):
+    """ Document type, to be able to filter Situation Reports """
+    type = models.CharField(max_length=50)
+    def __str__(self):
+        return self.type
+
+
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
@@ -303,6 +310,8 @@ class SituationReport(models.Model):
     document_url = models.URLField(blank=True)
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)

@@ -328,6 +328,10 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     search_fields = ('name', 'event__name',)
 
 
+class SituationReportTypeAdmin(admin.ModelAdmin):
+    search_fields = ('type',)
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
@@ -339,3 +343,4 @@ admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
+admin.site.register(models.SituationReportType, SituationReportTypeAdmin)

@@ -24,6 +24,7 @@ from .models import (
     Snippet,
     Event,
     SituationReport,
+    SituationReportType,
     Appeal,
     AppealDocument,
     Profile,
@@ -57,6 +58,7 @@ from .serializers import (
     ListEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
+    SituationReportTypeSerializer,
     AppealSerializer,
     AppealDocumentSerializer,
     UserSerializer,
@@ -176,13 +178,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'alert_level',)
     filter_class = EventFilter
 
-
 class EventSnippetFilter(filters.FilterSet):
     event = filters.NumberFilter(name='event', lookup_expr='exact')
     class Meta:
         model = Snippet
         fields = ('event',)
-
 
 class EventSnippetViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
@@ -193,7 +193,6 @@ class EventSnippetViewset(viewsets.ReadOnlyModelViewSet):
             return Snippet.objects.all()
         return Snippet.objects.filter(visibility=3)
 
-
 class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountrySnippetSerializer
@@ -203,9 +202,14 @@ class CountrySnippetViewset(viewsets.ReadOnlyModelViewSet):
             return CountrySnippet.objects.all()
         return CountrySnippet.objects.filter(visibility=3)
 
+class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = SituationReportType.objects.all()
+    serializer_class = SituationReportTypeSerializer
+    ordering_fields = ('type',)
 
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(name='event', lookup_expr='exact')
+    type = filters.NumberFilter(name='type', lookup_expr='exact')
     class Meta:
         model = SituationReport
         fields = {
