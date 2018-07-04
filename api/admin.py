@@ -328,7 +328,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     search_fields = ('name', 'event__name',)
 
 
-class DocumentTypeAdmin(admin.ModelAdmin):
+class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
 
 
@@ -343,4 +343,4 @@ admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
-admin.site.register(models.DocumentType, DocumentTypeAdmin)
+admin.site.register(models.SituationReportType, SituationReportTypeAdmin)
