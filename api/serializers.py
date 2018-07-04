@@ -19,6 +19,7 @@ from .models import (
     Snippet,
     EventContact,
     Event,
+    SituationReportType,
     SituationReport,
 
     Appeal,
@@ -172,10 +173,16 @@ class DetailEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'snippets', 'is_featured', 'field_reports', 'id',)
 
+class SituationReportTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SituationReportType
+        fields = ('type', 'id', )
+
 class SituationReportSerializer(serializers.ModelSerializer):
+    type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'id', 'type', )
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', )
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
