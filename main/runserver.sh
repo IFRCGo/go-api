@@ -43,6 +43,8 @@ echo "export EMAIL_HOST=\"$EMAIL_HOST\"" >> $HOME/.env
 echo "export EMAIL_PORT=\"$EMAIL_PORT\"" >> $HOME/.env
 echo "export EMAIL_USER=\"$EMAIL_USER\"" >> $HOME/.env
 echo "export EMAIL_PASS=\"$EMAIL_PASS\"" >> $HOME/.env
+echo "export AZURE_STORAGE_ACCOUNT=\"$AZURE_STORAGE_ACCOUNT\"" >> $HOME/.env
+echo "export AZURE_STORAGE_KEY=\"$AZURE_STORAGE_KEY\"" >> $HOME/.env
 echo "export API_FQDN=\"$API_FQDN\"" >> $HOME/.env
 echo "export FRONTEND_URL=\"$FRONTEND_URL\"" >> $HOME/.env
 (crontab -l 2>/dev/null; echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeal_docs >> /home/ifrc/logs/ingest_appeal_docs.log 2>&1') | crontab -

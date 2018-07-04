@@ -45,6 +45,20 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'region',
+            'name': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
+            'keyword': None,
+            'body': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
+            'date': None
+        }
+
+    def es_id(self):
+        return 'region-%s' % self.id
+
     class Meta:
         ordering = ('name',)
 
@@ -60,6 +74,23 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'country',
+            'name': self.name,
+            'keyword': None,
+            'body': '%s %s' % (
+                self.name,
+                self.society_name,
+            ),
+            'date': None
+        }
+
+    def es_id(self):
+        return 'country-%s' % self.id
 
     class Meta:
         ordering = ('name',)
@@ -196,11 +227,13 @@ class Event(models.Model):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': self.id,
             'type': 'event',
             'name': self.name,
+            'keyword': None,
             'body': '%s %s' % (
                 self.name,
-                ', '.join(map(str, countries)) if len(countries) else None,
+                ' '.join(map(str, countries)) if len(countries) else None,
             ),
             'date': self.disaster_start_date,
         }
@@ -395,12 +428,13 @@ class Appeal(models.Model):
     def indexing(self):
         return {
             'id': self.id,
+            'event_id': self.event.id if self.event is not None else None,
             'type': 'appeal',
             'name': self.name,
-            'body': '%s %s %s' % (
+            'keyword': self.code,
+            'body': '%s %s' % (
                 self.name,
-                getattr(self.country, 'name', None),
-                self.code,
+                getattr(self.country, 'name', None)
             ),
             'date': self.start_date,
         }
@@ -561,11 +595,13 @@ class FieldReport(models.Model):
         countries = [c.name for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': getattr(self, 'event.id', None),
             'type': 'report',
             'name': self.summary,
+            'keyword': None,
             'body': '%s %s' % (
                 self.summary,
-                ', '.join(map(str, countries)) if len(countries) else None
+                ' '.join(map(str, countries)) if len(countries) else None
             ),
             'date': self.created_at,
         }

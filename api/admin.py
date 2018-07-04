@@ -182,7 +182,7 @@ class FieldReportAdmin(RegionRestrictedAdmin):
     search_fields = ('countries', 'regions', 'summary',)
     autocomplete_fields = ('event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at',)
-    list_filter = [HasRelatedEventFilter, MembershipFilter,]
+    list_filter = [MembershipFilter,]
     actions = ['create_events',]
 
     def create_events(self, request, queryset):
