@@ -22,6 +22,7 @@ from api.views import (
     ChangePassword,
     RecoverPassword,
     EsPageSearch,
+    EsPageHealth,
     AggregateByDtype,
     AggregateByTime,
     UpdateSubscriptionPreferences,
@@ -50,6 +51,7 @@ router.register(r'region_snippet', api_views.RegionSnippetViewset, base_name='re
 router.register(r'country_snippet', api_views.CountrySnippetViewset, base_name='country_snippet')
 router.register(r'district', api_views.DistrictViewset)
 router.register(r'event', api_views.EventViewset)
+router.register(r'event_snippet', api_views.EventSnippetViewset, base_name='event_snippet')
 router.register(r'situation_report', api_views.SituationReportViewset)
 router.register(r'situation_report_type', api_views.SituationReportTypeViewset)
 router.register(r'appeal', api_views.AppealViewset)
@@ -73,10 +75,13 @@ router.register(r'subscription', notification_views.SubscriptionViewset, base_na
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
+    url(r'^api/v1/es_health/', EsPageHealth.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
+    url(r'^api/v2/create_field_report/', api_views.CreateFieldReport.as_view()),
+    url(r'^api/v2/update_field_report/(?P<pk>\d+)/', api_views.UpdateFieldReport.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^register', NewRegistration.as_view()),
