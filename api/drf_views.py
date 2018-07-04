@@ -20,6 +20,7 @@ from .models import (
 
     Event,
     SituationReport,
+    SituationReportType,
     Appeal,
     AppealDocument,
     Profile,
@@ -45,6 +46,7 @@ from .serializers import (
     ListEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
+    SituationReportTypeSerializer,
     AppealSerializer,
     AppealDocumentSerializer,
     UserSerializer,
@@ -160,6 +162,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return DetailEventSerializer
     ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'alert_level',)
     filter_class = EventFilter
+
+class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = SituationReportType.objects.all()
+    serializer_class = SituationReportTypeSerializer
+    ordering_fields = ('type',)
 
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(name='event', lookup_expr='exact')
