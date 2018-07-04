@@ -262,7 +262,8 @@ class Snippet(models.Model):
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
-class DocumentTypes(models.Model):
+class DocumentType(models.Model):
+    """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=30)
     def __str__(self):
         return self.type
@@ -274,7 +275,7 @@ class SituationReport(models.Model):
     document_url = models.URLField(blank=True)
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    type = models.ForeignKey(DocumentTypes, related_name='situation_reports', null=True, on_delete=models.CASCADE)
+    type = models.ForeignKey(DocumentType, related_name='situation_reports', null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)
