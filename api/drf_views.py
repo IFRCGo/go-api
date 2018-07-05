@@ -475,6 +475,11 @@ class GenericFieldReportView(GenericAPIView):
             )
 
 class CreateFieldReport(CreateAPIView, GenericFieldReportView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = FieldReport.objects.all()
+    serializer_class = CreateFieldReportSerializer
+
     def create(self, request):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
@@ -511,6 +516,11 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = FieldReport.objects.all()
+    serializer_class = CreateFieldReportSerializer
+
     def partial_update(self, request, *args, **kwargs):
         self.update(request, *args, **kwargs)
 
