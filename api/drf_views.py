@@ -80,8 +80,15 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
             return RegionSerializer
         return RegionRelationSerializer
 
+class CountryFilter(filters.FilterSet):
+    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    class Meta:
+        model = Country
+        fields = ('region',)
+
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
+    filter_class = CountryFilter
     def get_serializer_class(self):
         if self.action == 'list':
             return CountrySerializer
