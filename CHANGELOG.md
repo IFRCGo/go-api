@@ -8,6 +8,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- New field reports, when created at the `api/v2/create_field_report` endpoint, will create an attached emergency if none is attached already.
+- Add views to create, edit field reports.
+- Create a separate API route for emergency snippets.
+- Add an API path for viewing elasticsearch cluster health.
+- Add a keyword field for appeal codes in ES that is heavily weighted.
+- Add countries and regions to elasticsearch indexes.
+- Add elasticsearch analyzer for autocomplete, apply it to body of generic page index.
+- Default country and regional user group and permissions.
+- A regionally restricted admin class to filter querysets depending on a user's permissions.
+- Logging to Azure Queue storage.
+- A cron job to detet changes to field reports, events, and appeals, and index them to elasticsearch/notify subscribers.
+- Add a CSV renderer so data can be exported as CSV for any model.
+- Include filtering class for situation report and appeal documents.
+- Include report date, updated at timestamp in field report response.
+- Include search fields for all relevant admin forms.
+- Include API docs.
+- Include alert sorting and ordering.
+
+### Changed
+
+- Changed region, country filter to list filters on field reports, events.
+- Changed elasticsearch indexes to use one table.
+- Upgraded elasticsearch query to match terms, rather than prefix.
+- Made the district deployed to in partner deployments a many-to-many field.
+
+### Removed
+
+- Post-save triggers for indexing models to elasticsearch and notifying subscribers.
+
+## 1.0.1
+
+### Added
+
+- Adds a partner society deployment type table
+- Attaches event representation to field reports
+- Attaches mini field report representation to events
+- Fixes event admin search field
 - Improvements to the emergency admin page.
 - Field report DMIS ingest automatically creates new emergency objects.
 - Key figures, contacts, links, and embed models to country and region pages.
@@ -20,9 +57,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Uses autocomplete fields for events, countries in admin.
 - Altered the emergency key figure model to use a text type, ie "15%."
 - Appeals now order by start date, not end date.
 - Events now have a column for where they were auto-generated from.
+
+### Removed
+
+- Removed event editable fields from appeal, field report list admin views.
 
 ## 1.0.0
 
@@ -42,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.1...HEAD
+[1.0.1]: https://github.com/IFRCGo/go-api/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/IFRCGo/go-api/compare/0.1.20...1.0.0
 [0.1.20]: https://github.com/IFRCGo/go-api/compare/0.1.0...0.1.20

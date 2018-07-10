@@ -1,0 +1,9 @@
+<h1>{{ hello }}</h1>
+{% include "includes/notification-source.html" %}
+<p>We've detected {{ count }} new or modified records. Only the first 10 will be shown here.</p>
+{% if records|length %}
+  {% for record in records %}
+  <h2>{{ record.title }}</h2>
+  <p><a href="{{ record.resource_uri }}">View on IFRC GO</a> | <a href="{{ record.admin_uri }}">View on Admin Page</a></p>
+  {% endfor %}
+{% endif %}

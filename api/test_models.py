@@ -94,9 +94,10 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.rid, 'test1')
         self.assertEqual(obj.countries.all()[0], country)
         self.assertEqual(obj.event, event)
+        self.assertIsNotNone(obj.report_date)
 
 
-class ProfileTest(TestCase):
+class ProfileTestDepartment(TestCase):
     def setUp(self):
         user = User.objects.create(username='test1', password='12345678!')
         user.profile.department = 'testdepartment'

@@ -45,6 +45,20 @@ class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName)
 
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'region',
+            'name': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
+            'keyword': None,
+            'body': ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'Middle East North Africa'][self.name],
+            'date': None
+        }
+
+    def es_id(self):
+        return 'region-%s' % self.id
+
     class Meta:
         ordering = ('name',)
 
@@ -60,6 +74,23 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+
+    def indexing(self):
+        return {
+            'id': self.id,
+            'event_id': None,
+            'type': 'country',
+            'name': self.name,
+            'keyword': None,
+            'body': '%s %s' % (
+                self.name,
+                self.society_name,
+            ),
+            'date': None
+        }
+
+    def es_id(self):
+        return 'country-%s' % self.id
 
     class Meta:
         ordering = ('name',)
@@ -169,6 +200,7 @@ class Event(models.Model):
 
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     auto_generated = models.BooleanField(default=False, editable=False)
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
@@ -195,18 +227,19 @@ class Event(models.Model):
         countries = [getattr(c, 'name') for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': self.id,
+            'type': 'event',
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.summary,
+            'keyword': None,
+            'body': '%s %s' % (
+                self.name,
+                ' '.join(map(str, countries)) if len(countries) else None,
+            ),
             'date': self.disaster_start_date,
         }
 
     def es_id(self):
         return 'event-%s' % self.id
-
-    def es_index(self):
-        return 'page_event'
 
     def record_type(self):
         return 'EVENT'
@@ -259,6 +292,13 @@ class Snippet(models.Model):
     visibility = EnumIntegerField(VisibilityChoices, default=3)
 
 
+class SituationReportType(models.Model):
+    """ Document type, to be able to filter Situation Reports """
+    type = models.CharField(max_length=50)
+    def __str__(self):
+        return self.type
+
+
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
@@ -270,6 +310,8 @@ class SituationReport(models.Model):
     document_url = models.URLField(blank=True)
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
+    visibility = EnumIntegerField(VisibilityChoices, default=3)
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)
@@ -386,17 +428,19 @@ class Appeal(models.Model):
     def indexing(self):
         return {
             'id': self.id,
+            'event_id': self.event.id if self.event is not None else None,
+            'type': 'appeal',
             'name': self.name,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': getattr(self.country, 'name', None),
+            'keyword': self.code,
+            'body': '%s %s' % (
+                self.name,
+                getattr(self.country, 'name', None)
+            ),
             'date': self.start_date,
         }
 
     def es_id(self):
         return 'appeal-%s' % self.id
-
-    def es_index(self):
-        return 'page_appeal'
 
     def record_type(self):
         return 'APPEAL'
@@ -531,29 +575,39 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
     eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
-    # meta
+    # Created, updated at correspond to when the report entered this system.
+    # Report date is when historical reports were created.
+    # For reports that are not historical, it will be equal to created_at.
+    report_date = models.DateTimeField(null=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ('-created_at', '-updated_at',)
 
+    def save(self, *args, **kwargs):
+        # On save, is report_date is not set, set it to now.
+        if not self.id and not self.report_date:
+            self.report_date = timezone.now()
+        return super(FieldReport, self).save(*args, **kwargs)
+
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
         return {
             'id': self.id,
+            'event_id': getattr(self, 'event.id', None),
+            'type': 'report',
             'name': self.summary,
-            'dtype': getattr(self.dtype, 'name', None),
-            'location': ', '.join(map(str, countries)) if len(countries) else None,
-            'summary': self.description,
+            'keyword': None,
+            'body': '%s %s' % (
+                self.summary,
+                ' '.join(map(str, countries)) if len(countries) else None
+            ),
             'date': self.created_at,
         }
 
     def es_id(self):
         return 'fieldreport-%s' % self.id
-
-    def es_index(self):
-        return 'page_report'
 
     def record_type(self):
         return 'FIELD_REPORT'
