@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
+from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
 from .models import (
@@ -440,18 +441,18 @@ class GenericFieldReportView(GenericAPIView):
 
         return data, locations, meta
 
-    def save_locations(self, fieldreport, locations, is_update=False):
+    def save_locations(self, instance, locations, is_update=False):
         if is_update:
-            fieldreport.districts.clear()
-            fieldreport.countries.clear()
-            fieldreport.regions.clear()
+            instance.districts.clear()
+            instance.countries.clear()
+            instance.regions.clear()
         if 'districts' in locations:
-            fieldreport.districts.add(*locations['districts'])
+            instance.districts.add(*locations['districts'])
         if 'countries' in locations:
-            fieldreport.countries.add(*locations['countries'])
+            instance.countries.add(*locations['countries'])
             # Add countries in automatically, based on regions
             countries = Country.objects.filter(pk__in=locations['countries'])
-            fieldreport.regions.add(*[country.region for country in countries if (
+            instance.regions.add(*[country.region for country in countries if (
                 country.region is not None
             )])
 
@@ -487,6 +488,18 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
     queryset = FieldReport.objects.all()
     serializer_class = CreateFieldReportSerializer
 
+    def create_event(self, report):
+        event = Event.objects.create(
+            name=report.summary,
+            dtype=report.dtype,
+            disaster_start_date=report.created_at,
+            auto_generated=True,
+            auto_generated_source=SOURCES['new_report'],
+        )
+        report.event = event
+        report.save()
+        return event
+
     def create(self, request):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
@@ -514,6 +527,14 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             self.save_meta(fieldreport, meta)
         except Exception as e:
             errors.append(e)
+
+        # If the report doesn't have an emergency attached, create one.
+        if fieldreport.event is None:
+            event = self.create_event(fieldreport)
+            try:
+                self.save_locations(event, locations)
+            except Exception as e:
+                errors.append(e)
 
         if len(errors):
             logger.error('%s errors creating new field reports' % len(errors))
