@@ -7,6 +7,7 @@ from .models import (
     FactPerson,
     Rdrt,
     RdrtPerson,
+    PartnerSocietyActivities,
     PartnerSocietyDeployment,
 )
 from api.serializers import (
@@ -70,9 +71,16 @@ class RdrtPersonSerializer(serializers.ModelSerializer):
         model = RdrtPerson
         fields = ('start_date', 'end_date', 'name', 'role', 'society_deployed_from', 'rdrt', 'id',)
 
+class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnerSocietyActivities
+        fields = ('activity', 'id',)
+
 class PartnerDeploymentSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()
-    district_deployed_to = MiniDistrictSerializer()
+    district_deployed_to = MiniDistrictSerializer(many=True)
+    activity = PartnerDeploymentActivitySerializer()
     class Meta:
         model = PartnerSocietyDeployment
-        fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'id',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'activity', 'id',)

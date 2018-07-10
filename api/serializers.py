@@ -19,6 +19,7 @@ from .models import (
     Snippet,
     EventContact,
     Event,
+    SituationReportType,
     SituationReport,
 
     Appeal,
@@ -133,12 +134,23 @@ class KeyFigureSerializer(serializers.ModelSerializer):
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = ('snippet', 'id', 'visibility',)
+        fields = ('event', 'snippet', 'image', 'visibility', 'id',)
 
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventContact
         fields = ('ctype', 'name', 'title', 'email', 'event', 'id',)
+
+class FieldReportContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FieldReportContact
+        fields = ('ctype', 'name', 'title', 'email', 'id',)
+
+class MiniFieldReportSerializer(serializers.ModelSerializer):
+    contacts = FieldReportContactSerializer(many=True)
+    class Meta:
+        model = FieldReport
+        fields = ('summary', 'description', 'contacts', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'created_at', 'updated_at', 'report_date', 'id',)
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
@@ -150,24 +162,32 @@ class MiniEventSerializer(serializers.ModelSerializer):
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
+    field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     class Meta:
         model = Event
         fields = ('name',)
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'field_reports', 'id',)
 
 class DetailEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
+    field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'field_reports', 'id',)
+
+class SituationReportTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SituationReportType
+        fields = ('type', 'id', )
 
 class SituationReportSerializer(serializers.ModelSerializer):
+    type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'id',)
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', )
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
@@ -215,13 +235,13 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-class FieldReportContactSerializer(serializers.ModelSerializer):
+class ActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = FieldReportContact
-        fields = ('ctype', 'name', 'title', 'email', 'id',)
+        model = Action
+        fields = ('name', 'id',)
 
 class ActionsTakenSerializer(serializers.ModelSerializer):
-    actions = serializers.SlugRelatedField(many=True, slug_field='name', read_only=True)
+    actions = ActionSerializer(many=True)
     class Meta:
         model = ActionsTaken
         fields = ('organization', 'actions', 'summary', 'id',)
@@ -234,9 +254,10 @@ class SourceSerializer(serializers.ModelSerializer):
 
 class ListFieldReportSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
+    event = MiniEventSerializer()
     class Meta:
         model = FieldReport
-        fields = ('created_at', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
+        fields = ('created_at', 'updated_at', 'report_date', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
 
 class DetailFieldReportSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -244,6 +265,13 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
     actions_taken = ActionsTakenSerializer(many=True)
     sources = SourceSerializer(many=True)
+    event = MiniEventSerializer()
+    countries = MiniCountrySerializer(many=True)
+    class Meta:
+        model = FieldReport
+        fields = '__all__'
+
+class CreateFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'

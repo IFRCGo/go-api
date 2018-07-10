@@ -23,6 +23,7 @@ from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .esconnection import ES_CLIENT
 from .models import Appeal, Event, FieldReport
+from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
 from notifications.notification import send_notification
@@ -70,24 +71,52 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
+class EsPageHealth(PublicJsonRequestView):
+    def handle_get(self, request, *args, **kwargs):
+        health = ES_CLIENT.cluster.health()
+        return JsonResponse(health)
+
+
 class EsPageSearch(PublicJsonRequestView):
     def handle_get(self, request, *args, **kwargs):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
         if phrase is None:
             return bad_request('Must include a `keyword`')
-        if page_type is None:
-            page_type = '*'
-        index = 'page_%s' % page_type
+        index = ES_PAGE_NAME
         query = {
-            'bool': {
-                'must': {'prefix': {'name': phrase }}
+            'multi_match': {
+                'query': phrase,
+                'fields': ['keyword^3', 'body']
             }
         }
+
+        sort = [
+            {'date': {'order': 'desc', 'missing': '_first'}},
+            '_score',
+        ]
+
+        if page_type is not None:
+            query = {
+                'bool': {
+                    'filter': {
+                        'term': {'type': page_type}
+                    },
+                    'must': {
+                        'multi_match': query['multi_match']
+                    }
+                }
+            }
+
         results = ES_CLIENT.search(
             index=index,
             doc_type='page',
-            body=json.dumps({'query': query}),
+            body=json.dumps({
+                'query': query,
+                'sort': sort,
+                'from': 0,
+                'size': 10
+            })
         )
         return JsonResponse(results['hits'])
 
@@ -249,7 +278,7 @@ class PublicJsonPostView(View):
         print(pretty_request(request))
 
     def post(self, request, *args, **kwargs):
-        if request.META.get('CONTENT_TYPE') != 'application/json':
+        if request.META.get('CONTENT_TYPE').find('application/json') == -1:
             return bad_request('Content-type must be `application/json`')
         return self.handle_post(request, *args, **kwargs)
 

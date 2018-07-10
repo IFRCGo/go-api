@@ -13,7 +13,7 @@ class ERUType(IntEnum):
     TELECOM = 1
     LOGISTICS = 2
     EMERGENCY_HOSPITAL = 3
-    EMERGENCY_CINIC = 4
+    EMERGENCY_CLINIC = 4
     RELIEF = 5
     WASH_15 = 6
     WASH_20 = 7
@@ -141,7 +141,16 @@ class RdrtPerson(DeployedPerson):
         verbose_name_plural = 'RDRT/RIT People'
 
 
+class PartnerSocietyActivities(models.Model):
+    activity = models.CharField(max_length=50)
+    def __str__(self):
+        return self.activity
+
+
 class PartnerSocietyDeployment(DeployedPerson):
-    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, blank=True, on_delete=models.SET_NULL)
-    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, blank=True, on_delete=models.SET_NULL)
-    district_deployed_to = models.ForeignKey(District, related_name='district_partner_deployments', null=True, on_delete=models.SET_NULL)
+    activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
+    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
+    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
+    district_deployed_to = models.ManyToManyField(District)
+    def __str__(self):
+        return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
