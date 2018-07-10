@@ -36,7 +36,7 @@ services:
 
   loaddata:
     <<: *base_django_setup
-    command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions
+    command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
 
   createsuperuser:
     <<: *base_django_setup
