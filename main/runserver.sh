@@ -6,6 +6,7 @@ python manage.py migrate
 python manage.py loaddata Regions Countries Districts DisasterTypes Actions
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
+python manage.py make_permissions
 
 # Prepare log files and start outputting logs to stdout
 touch $HOME/logs/gunicorn.log
