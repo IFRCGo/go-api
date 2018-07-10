@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Add class to check for whether requesting user has IFRC role, attach it to relevant endpoints.
 - New field reports, when created at the `api/v2/create_field_report` endpoint, will create an attached emergency if none is attached already.
 - Add views to create, edit field reports.
 - Create a separate API route for emergency snippets.
