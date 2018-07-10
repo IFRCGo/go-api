@@ -1,7 +1,8 @@
 import json
 from django.test import TestCase
 from rest_framework.test import APITestCase
-from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, Permission
 import api.models as models
 import api.drf_views as views
 
@@ -135,3 +136,45 @@ class FieldReportTest(APITestCase):
         self.assertEqual(updated.visibility, 2)
         # emergency still attached
         self.assertEqual(updated.event.id, event_pk)
+
+
+class VisibilityTest(APITestCase):
+    def test_country_snippet_visibility(self):
+        country = models.Country.objects.create(name='1')
+        # create membership and IFRC snippets
+        models.CountrySnippet.objects.create(country=country, visibility=models.VisibilityChoices.MEMBERSHIP)
+        models.CountrySnippet.objects.create(country=country, visibility=models.VisibilityChoices.IFRC)
+        response = self.client.get('/api/v2/country_snippet/')
+        response = json.loads(response.content)
+        # no snippets available to anonymous user
+        self.assertEqual(response['count'], 0)
+
+        # perform the request with an authenticated user
+        user = User.objects.create(username='foo')
+        self.client.force_authenticate(user=user)
+        response = self.client.get('/api/v2/country_snippet/')
+        response = json.loads(response.content)
+        # one snippets available to anonymous user
+        self.assertEqual(response['count'], 1)
+
+        # perform the request with an ifrc user
+        user2 = User.objects.create(username='bar')
+        ifrc_permission = Permission.objects.create(
+            codename='ifrc_admin',
+            name='IFRC Admin',
+            content_type=ContentType.objects.get_for_model(models.Country),
+        )
+        user2.user_permissions.add(ifrc_permission)
+        self.client.force_authenticate(user=user2)
+        response = self.client.get('/api/v2/country_snippet/')
+        response = json.loads(response.content)
+        self.assertEqual(response['count'], 2)
+
+        # perform the request with a superuser
+        super_user = User.objects.create_superuser(username='baz', email='foo@baz.com', password='12345678')
+        self.client.force_authenticate(user=super_user)
+        response = self.client.get('/api/v2/country_snippet/')
+        response = json.loads(response.content)
+        self.assertEqual(response['count'], 2)
+
+        self.client.force_authenticate(user=None)
