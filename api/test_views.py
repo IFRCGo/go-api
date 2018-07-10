@@ -54,7 +54,7 @@ class FieldReportTest(APITestCase):
 
     fixtures = ['DisasterTypes', 'Actions']
 
-    def test_create(self):
+    def test_create_and_update(self):
         user = User.objects.create(username='jo')
         region = models.Region.objects.create(name=1)
         country1 = models.Country.objects.create(name='abc', region=region)
@@ -86,7 +86,7 @@ class FieldReportTest(APITestCase):
         created = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(created.countries.count(), 2)
-        # one region created automatically
+        # one region attached automatically
         self.assertEqual(created.regions.count(), 1)
 
         self.assertEqual(created.sources.count(), 2)
@@ -104,6 +104,10 @@ class FieldReportTest(APITestCase):
         self.assertEqual(created.visibility, 1)
         self.assertEqual(created.dtype.id, 7)
         self.assertEqual(created.summary, 'test')
+
+        # created an emergency automatically
+        self.assertEqual(created.event.name, 'test')
+        event_pk = created.event.id
 
         body['countries'] = [country2.id]
         body['sources'] = [
@@ -129,3 +133,5 @@ class FieldReportTest(APITestCase):
         self.assertEqual(updated.actions_taken.count(), 0)
         self.assertEqual(updated.contacts.count(), 1)
         self.assertEqual(updated.visibility, 2)
+        # emergency still attached
+        self.assertEqual(updated.event.id, event_pk)
