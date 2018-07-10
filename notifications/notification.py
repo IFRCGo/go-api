@@ -44,7 +44,7 @@ def send_notification (subject, recipients, html):
 
     msg['Subject'] = '[IFRCGO] %s' % subject
     msg['From'] = username.upper()
-    msg['To'] = ', '.join(recipients)
+    msg['To'] = 'no-reply@ifrc.org'
 
     text_body = MIMEText(strip_tags(html), 'plain')
     html_body = MIMEText(html, 'html')
@@ -52,4 +52,4 @@ def send_notification (subject, recipients, html):
     msg.attach(text_body)
     msg.attach(html_body)
 
-    SendMail(recipients, msg).start()
+    SendMail(['no-reply@ifrc.org'] + recipients, msg).start()
