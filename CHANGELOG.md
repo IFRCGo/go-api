@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.0.2
+
+### Added
+
+- Log to blob storage every three hours.
 - Modify send_notification script to omit email addressers from header.
 - Add class to check for whether requesting user has IFRC role, attach it to relevant endpoints.
 - New field reports, when created at the `api/v2/create_field_report` endpoint, will create an attached emergency if none is attached already.
@@ -86,7 +91,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.1...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.2...HEAD
+[1.0.2]: https://github.com/IFRCGo/go-api/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/IFRCGo/go-api/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/IFRCGo/go-api/compare/0.1.20...1.0.0
 [0.1.20]: https://github.com/IFRCGo/go-api/compare/0.1.0...0.1.20
