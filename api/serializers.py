@@ -119,7 +119,7 @@ class CountryRelationSerializer(serializers.ModelSerializer):
     contacts = CountryContactSerializer(many=True, read_only=True)
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'id',)
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
