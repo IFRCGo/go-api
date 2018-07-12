@@ -74,6 +74,9 @@ class Country(models.Model):
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True, on_delete=models.SET_NULL)
+    overview = models.TextField(blank=True, null=True)
+    key_priorities = models.TextField(blank=True, null=True)
+    inform_score = models.DecimalField(blank=True, null=True, decimal_places=2, max_digits=3)
 
     def indexing(self):
         return {
