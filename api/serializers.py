@@ -49,7 +49,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'id',)
+        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
