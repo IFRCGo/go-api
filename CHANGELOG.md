@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Fields for country overview, key priorities, and inform scores.
+
+### Changed
+
+- Modified logging interval to 90 minutes.
+
 ## 1.0.2
 
 ### Added

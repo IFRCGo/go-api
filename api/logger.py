@@ -18,9 +18,11 @@ if (os.environ.get('AZURE_STORAGE_ACCOUNT') is not None and
     handler = storage(account_name=os.environ.get('AZURE_STORAGE_ACCOUNT'),
                       account_key=os.environ.get('AZURE_STORAGE_KEY'),
                       filename='go.log',
-                      when='H',
-                      interval=3,
+                      when='M',
+                      interval=90,
                       container='logs',
                       )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+else:
+    logger.warn('No Azure credentials found, falling back to local logs.')
