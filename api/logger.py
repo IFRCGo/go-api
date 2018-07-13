@@ -19,7 +19,7 @@ if (os.environ.get('AZURE_STORAGE_ACCOUNT') is not None and
                       account_key=os.environ.get('AZURE_STORAGE_KEY'),
                       filename='go.log',
                       when='M',
-                      interval=5,
+                      interval=90,
                       container='logs',
                       )
     handler.setFormatter(formatter)
