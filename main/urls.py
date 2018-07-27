@@ -62,11 +62,8 @@ router.register(r'field_report', api_views.FieldReportViewset, base_name='field_
 
 router.register(r'eru', deployment_views.ERUViewset)
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
-router.register(r'heop', deployment_views.HeopViewset)
-router.register(r'fact', deployment_views.FactViewset)
-router.register(r'rdrt', deployment_views.RdrtViewset)
-router.register(r'fact_person', deployment_views.FactPersonViewset)
-router.register(r'rdrt_person', deployment_views.RdrtPersonViewset)
+router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset)
+router.register(r'personnel', deployment_views.PersonnelViewset)
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
 
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
