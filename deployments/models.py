@@ -55,6 +55,65 @@ class ERU(models.Model):
         return ['Basecamp', 'IT & Telecom', 'Logistics', 'RCRC Emergency Hospital', 'RCRC Emergency Clinic', 'Relief', 'WASH M15', 'WASH MSM20', 'WASH M40'][self.type]
 
 
+class PersonnelDeployment(models.Model):
+    country_deployed_to = models.ForeignKey(Country, on_delete=models.CASCADE)
+    region_deployed_to = models.ForeignKey(Region, on_delete=models.CASCADE)
+    event_deployed_to = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    comments = models.TextField(null=True, blank=True)
+    class Meta:
+        verbose_name_plural = 'Personnel Deployments'
+
+    def __str__(self):
+        return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
+
+
+class DeployedPerson(models.Model):
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    name = models.CharField(null=True, blank=True, max_length=100)
+    role = models.CharField(null=True, blank=True, max_length=32)
+    def __str__(self):
+        return '%s - %s' % (self.name, self.role)
+
+
+class Personnel(DeployedPerson):
+    type = models.CharField(
+        choices=(
+            ('fact', 'FACT'),
+            ('heop', 'HEOP'),
+            ('rdrt', 'RDRT'),
+        ),
+        max_length=4,
+    )
+    country_from = models.ForeignKey(Country, related_name='personnel_deployments', null=True, on_delete=models.SET_NULL)
+    deployment = models.ForeignKey(PersonnelDeployment, on_delete=models.CASCADE)
+    def __str__(self):
+        return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
+    class Meta:
+        verbose_name_plural = 'Personnel'
+
+
+class PartnerSocietyActivities(models.Model):
+    activity = models.CharField(max_length=50)
+    def __str__(self):
+        return self.activity
+
+
+class PartnerSocietyDeployment(DeployedPerson):
+    activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
+    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
+    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
+    district_deployed_to = models.ManyToManyField(District)
+    def __str__(self):
+        return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
+
+
+###############################################################################
+####################### Deprecated tables #####################################
+# https://github.com/IFRCGo/go-frontend/issues/335
+###############################################################################
+
+
 class Heop(models.Model):
     """ A deployment of a head officer"""
     start_date = models.DateTimeField(null=True)
@@ -114,15 +173,6 @@ class Rdrt(models.Model):
         verbose_name_plural = 'RDRTs/RITs'
 
 
-class DeployedPerson(models.Model):
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-    name = models.CharField(null=True, blank=True, max_length=100)
-    role = models.CharField(null=True, blank=True, max_length=32)
-    def __str__(self):
-        return '%s - %s' % (self.name, self.role)
-
-
 class FactPerson(DeployedPerson):
     society_deployed_from = models.CharField(null=True, blank=True, max_length=100)
     fact = models.ForeignKey(Fact, on_delete=models.CASCADE)
@@ -139,18 +189,3 @@ class RdrtPerson(DeployedPerson):
     class Meta:
         verbose_name = 'RDRT/RIT Person'
         verbose_name_plural = 'RDRT/RIT People'
-
-
-class PartnerSocietyActivities(models.Model):
-    activity = models.CharField(max_length=50)
-    def __str__(self):
-        return self.activity
-
-
-class PartnerSocietyDeployment(DeployedPerson):
-    activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
-    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
-    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
-    district_deployed_to = models.ManyToManyField(District)
-    def __str__(self):
-        return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)

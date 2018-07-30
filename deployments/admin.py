@@ -16,32 +16,21 @@ class ERUOwnerAdmin(RegionRestrictedAdmin):
     search_fields = ('national_society_country__name',)
 
 
-class HeopAdmin(RegionRestrictedAdmin):
-    country_in = 'country__pk__in'
-    region_in = 'region__pk__in'
-    search_fields = ('country__name', 'region__name', 'person', 'role',)
+class PersonnelAdmin(admin.ModelAdmin):
+    country_in = 'country_from__in'
+    region_in = 'country_from__region__in'
+    search_fields = ('name', 'role', 'type',)
+    list_display = ('name', 'role', 'start_date', 'end_date', 'country_from', 'deployment',)
 
 
-class FactPersonInline(admin.TabularInline):
-    model = models.FactPerson
+class PersonnelInline(admin.TabularInline):
+    model = models.Personnel
 
 
-class FactAdmin(RegionRestrictedAdmin):
-    country_in = 'country__pk__in'
-    region_in = 'region__pk__in'
-    inlines = [FactPersonInline]
-    search_fields = ('country__name', 'region__name',)
-
-
-class RdrtPersonInline(admin.TabularInline):
-    model = models.RdrtPerson
-
-
-class RdrtAdmin(RegionRestrictedAdmin):
-    country_in = 'country__pk__in'
-    region_in = 'region__pk__in'
-    inlines = [RdrtPersonInline]
-    search_fields = ('country__name', 'region__name',)
+class PersonnelDeploymentAdmin(admin.ModelAdmin):
+    search_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
+    inlines = [PersonnelInline]
+    list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
 
 class PartnerSocietyActivityAdmin(admin.ModelAdmin):
@@ -53,11 +42,11 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
     region_in = 'parent_society__region__in'
     autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)
     search_fields = ('activity__activity', 'name', 'role', 'country_deployed_to__name', 'parent_society__name', 'district_deployed_to__name',)
+    list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
-admin.site.register(models.Heop, HeopAdmin)
-admin.site.register(models.Fact, FactAdmin)
-admin.site.register(models.Rdrt, RdrtAdmin)
+admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
+admin.site.register(models.Personnel, PersonnelAdmin)
 admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)
 admin.site.register(models.PartnerSocietyActivities, PartnerSocietyActivityAdmin)

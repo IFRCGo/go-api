@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Hide emergencies key priorities field from admin pages.
+- Deprecate separate deployment tables for HEOP, FACT, and RDRT in favor of single Personnel table.
+- Include serializers, routes, and filters for Personnel, ERU tables.
 - Log to blob storage every three hours.
 - Modify send_notification script to omit email addressers from header.
 - Add class to check for whether requesting user has IFRC role, attach it to relevant endpoints.

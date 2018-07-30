@@ -309,6 +309,7 @@ class CountryAdmin(RegionRestrictedAdmin):
     region_in = 'region__pk__in'
     search_fields = ('name',)
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
+    exclude = ('key_priorities',)
 
 
 class RegionAdmin(RegionRestrictedAdmin):
