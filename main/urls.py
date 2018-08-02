@@ -69,6 +69,9 @@ router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 
+admin.site.site_header = 'IFRC Go administration'
+admin.site.site_title = 'IFRC Go admin'
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
