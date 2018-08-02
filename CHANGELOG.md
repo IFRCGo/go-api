@@ -8,7 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+### Changed
+
+## 1.1.0
+
+### Added
+
 - Fields for country overview, key priorities, and inform scores.
+- Change default Django admin site headers.
+- Change deployments admin title to better reflect 3Ws.
+- Hide emergencies key priorities field from admin pages.
+- Deprecate separate deployment tables for HEOP, FACT, and RDRT in favor of single Personnel table.
+- Include serializers, routes, and filters for Personnel, ERU tables.
 
 ### Changed
 
@@ -18,11 +29,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Change default Django admin site headers.
-- Change deployments admin title to better reflect 3Ws.
-- Hide emergencies key priorities field from admin pages.
-- Deprecate separate deployment tables for HEOP, FACT, and RDRT in favor of single Personnel table.
-- Include serializers, routes, and filters for Personnel, ERU tables.
 - Log to blob storage every three hours.
 - Modify send_notification script to omit email addressers from header.
 - Add class to check for whether requesting user has IFRC role, attach it to relevant endpoints.
@@ -102,7 +108,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.0.2...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/IFRCGo/go-api/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/IFRCGo/go-api/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/IFRCGo/go-api/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/IFRCGo/go-api/compare/0.1.20...1.0.0
