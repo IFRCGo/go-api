@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Change default Django admin site headers.
+- Change deployments admin title to better reflect 3Ws.
 - Hide emergencies key priorities field from admin pages.
 - Deprecate separate deployment tables for HEOP, FACT, and RDRT in favor of single Personnel table.
 - Include serializers, routes, and filters for Personnel, ERU tables.
