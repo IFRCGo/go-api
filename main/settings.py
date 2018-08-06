@@ -10,7 +10,7 @@ if production_url is not None:
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-DEBUG = False
+DEBUG = False if production_url is not None else True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
