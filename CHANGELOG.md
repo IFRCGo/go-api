@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added the visibility class to situation reports.
 - Fields for country overview, key priorities, and inform scores.
 
 ### Changed
