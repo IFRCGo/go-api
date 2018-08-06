@@ -38,6 +38,10 @@ services:
     <<: *base_django_setup
     command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
 
+  collectstatic:
+    <<: *base_django_setup
+    command: python manage.py collectstatic --noinput -l
+
   createsuperuser:
     <<: *base_django_setup
     command: python manage.py createsuperuser
