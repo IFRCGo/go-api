@@ -204,11 +204,12 @@ class SituationReportFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
-class SituationReportViewset(viewsets.ReadOnlyModelViewSet):
+class SituationReportViewset(ReadOnlyVisibilityViewset):
     queryset = SituationReport.objects.all()
     serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = SituationReportFilter
+    visibility_model_class = SituationReport
 
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(name='atype', lookup_expr='exact')
