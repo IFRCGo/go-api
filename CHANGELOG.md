@@ -8,10 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.1
+
+### Added
+
+- Redirect http to https at Nginx level.
+- Force https for new registration links.
+- Add IFRC and ERU HR as new personnel types.
 - Added the visibility class to situation reports.
 - Fields for country overview, key priorities, and inform scores.
-
-### Changed
 
 ## 1.1.0
 
@@ -111,7 +116,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/IFRCGo/go-api/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/IFRCGo/go-api/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/IFRCGo/go-api/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/IFRCGo/go-api/compare/1.0.0...1.0.1
