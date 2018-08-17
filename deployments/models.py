@@ -82,6 +82,8 @@ class Personnel(DeployedPerson):
             ('fact', 'FACT'),
             ('heop', 'HEOP'),
             ('rdrt', 'RDRT'),
+            ('ifrc', 'IFRC'),
+            ('eru', 'ERU HR'),
         ),
         max_length=4,
     )
