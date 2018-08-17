@@ -250,7 +250,7 @@ class NewRegistration(PublicJsonPostView):
         pending.save()
 
         email_context = {
-            'confirmation_link': '%s/verify_email/?token=%s&user=%s' % (
+            'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
                 settings.BASE_URL,
                 pending.token,
                 body['username'],
@@ -304,7 +304,7 @@ class VerifyEmail(PublicJsonRequestView):
             for idx, admin in enumerate(admins):
                 token = pending_user.admin_token_1 if idx == 1 else pending_user.admin_token_2
                 email_context = {
-                    'validation_link': '%s/validate_user/?token=%s&user=%s' % (
+                    'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
                         settings.BASE_URL,
                         token,
                         user,
