@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.2
+
+### Added
+
+- Fixed situation report endpoint to obey visibility settings.
+- Added country, regional filters to personnel deployments endpoint.
+
 ## 1.1.1
 
 ### Added
@@ -116,7 +123,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.2...HEAD
+[1.1.2]: https://github.com/IFRCGo/go-api/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/IFRCGo/go-api/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/IFRCGo/go-api/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/IFRCGo/go-api/compare/1.0.1...1.0.2
