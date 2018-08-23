@@ -53,7 +53,7 @@ class PersonnelDeploymentFilter(filters.FilterSet):
 
 class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = PersonnelDeployment.objects.all()
     serializer_class = PersonnelDeploymentSerializer
     filter_class = PersonnelDeploymentFilter
@@ -63,6 +63,8 @@ class PersonnelFilter(filters.FilterSet):
     country_from = filters.NumberFilter(name='country_from', lookup_expr='exact')
     type = filters.CharFilter(name='type', lookup_expr='exact')
     event_deployed_to = filters.NumberFilter(name='deployment__event_deployed_to', lookup_expr='exact')
+    country_deployed_to = filters.NumberFilter(name='deployment__country_deployed_to', lookup_expr='exact')
+    region_deployed_to = filters.NumberFilter(name='deployment__region_deployed_to', lookup_expr='exact')
     class Meta:
         model = Personnel
         fields = {
@@ -72,7 +74,7 @@ class PersonnelFilter(filters.FilterSet):
 
 class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
     serializer_class = PersonnelSerializer
     filter_class = PersonnelFilter
