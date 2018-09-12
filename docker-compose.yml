@@ -9,6 +9,8 @@ services:
       DJANGO_DB_HOST: db
       DJANGO_DB_USER: test
       DJANGO_DB_PASS: test
+      FRONTEND_URL: https://dsgoproxyapp.azurewebsites.net/
+      FRONTEND_URL_PRD: https://go.ifrc.org/
     volumes:
       - '.:/home/ifrc/go-api'
     depends_on:
