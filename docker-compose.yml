@@ -3,8 +3,6 @@ version: '2'
 services:
   base_django_setup: &base_django_setup
     image: ifrcgo/go-api:latest
-    env_file:
-      .env2
     environment:
       DJANGO_DB_NAME: test
       DJANGO_SECRET_KEY: test
