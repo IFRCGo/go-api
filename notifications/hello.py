@@ -1,7 +1,6 @@
 import random
 hellos = [
-    'Hello!',
-    'Dear Sir/Madam,',
+    'Hello,',
 ]
 
 def get_hello():
