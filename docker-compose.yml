@@ -9,6 +9,7 @@ services:
       DJANGO_DB_HOST: db
       DJANGO_DB_USER: test
       DJANGO_DB_PASS: test
+      FRONTEND_URL: $FRONTEND_URL
     volumes:
       - '.:/home/ifrc/go-api'
     depends_on:

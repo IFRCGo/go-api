@@ -1,13 +1,6 @@
 import random
 hellos = [
-    'Hey there',
-    'Hello!',
-    'G\'day',
-    'Howdy',
-    'Oh hi',
-    'Hi!',
-    'How are you?',
-    ':waves:',
+    'Hello,',
 ]
 
 def get_hello():

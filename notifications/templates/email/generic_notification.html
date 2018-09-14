@@ -1,5 +1,6 @@
-<h1>{{ hello }}</h1>
+<h1>{{ hello }}{% include "includes/logo.html" %}</h1>
 {% include "includes/notification-source.html" %}
+
 <p>We've detected {{ count }} new or modified records. Only the first 10 will be shown here.</p>
 {% if records|length %}
   {% for record in records %}
