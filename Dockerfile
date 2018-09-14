@@ -27,8 +27,4 @@ RUN chmod 755 /usr/local/bin/runserver.sh
 COPY ./ $HOME/go-api/
 WORKDIR $HOME/go-api/
 
-RUN \
-      cd /usr/local/lib/python*/site-packages/django/contrib/admin/ ; \
-      patch < /home/ifrc/go-api/main/sites_patch
-
 ENTRYPOINT ["./main/entrypoint.sh"]

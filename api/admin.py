@@ -1,3 +1,4 @@
+import os
 from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
@@ -345,3 +346,4 @@ admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
 admin.site.register(models.SituationReportType, SituationReportTypeAdmin)
+admin.site.site_url = site_url = 'https://' + os.environ.get('FRONTEND_URL')
