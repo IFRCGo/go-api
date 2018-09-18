@@ -73,7 +73,7 @@ class Country(models.Model):
     iso = models.CharField(max_length=2, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
-    region = models.ForeignKey(Region, blank=True, on_delete=models.PROTECT)
+    region = models.ForeignKey(Region, blank=True, on_delete=models.CASCADE)
     overview = models.TextField(blank=True, null=True)
     key_priorities = models.TextField(blank=True, null=True)
     inform_score = models.DecimalField(blank=True, null=True, decimal_places=2, max_digits=3)
