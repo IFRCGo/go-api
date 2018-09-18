@@ -195,6 +195,14 @@ class AppealSerializer(serializers.ModelSerializer):
         model = Appeal
         fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',)
 
+class AppealPlusSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    class Meta:
+        model = Appeal
+        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',)
+
 class AppealDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppealDocument
