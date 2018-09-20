@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.2
+
+### Added
+
+- Increasing data-upload-max-memory-size
+- Fixing frontend-url
+- Making region optional (in countries admin form)
+
+### Added
+
 ## 1.1.1
 
 ### Added
