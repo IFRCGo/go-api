@@ -347,3 +347,4 @@ admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
 admin.site.register(models.SituationReportType, SituationReportTypeAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
+admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
