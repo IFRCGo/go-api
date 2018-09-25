@@ -76,6 +76,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'notifications/templates/'),
+            os.path.join(BASE_DIR, 'api/templates/'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
