@@ -1,4 +1,8 @@
 {% load i18n static %}
 <div class="related-widget-wrapper">
     {{ rendered_widget }}
+    {% block links %}
+        {% spaceless %}
+        {% endspaceless %}
+    {% endblock %}
 </div>
