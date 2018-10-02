@@ -80,7 +80,7 @@
         "model": "api.Country",
         "pk": "8",
         "fields": {
-            "name": "Venezuela, RB",
+            "name": "Venezuela",
             "iso": "ve",
             "region": "1",
             "society_name": "Venezuelan Red Cross",
@@ -91,7 +91,7 @@
         "model": "api.Country",
         "pk": "10",
         "fields": {
-            "name": "Yemen, Rep.",
+            "name": "Yemen",
             "iso": "ye",
             "region": "4",
             "society_name": "Yemen Red Crescent Society",
@@ -949,7 +949,7 @@
         "model": "api.Country",
         "pk": "98",
         "fields": {
-            "name": "Kyrgyz Republic",
+            "name": "Kyrgyzstan",
             "iso": "kg",
             "region": "3",
             "society_name": "Red Crescent Society of Kyrgyzstan",
@@ -960,7 +960,7 @@
         "model": "api.Country",
         "pk": "99",
         "fields": {
-            "name": "Lao PDR",
+            "name": "Lao People's Democratic Republic",
             "iso": "la",
             "region": "2",
             "society_name": "Lao Red Cross",
@@ -1048,10 +1048,10 @@
         "model": "api.Country",
         "pk": "108",
         "fields": {
-            "name": "Macedonia, FYR",
+            "name": "The former Yugoslav Republic of Macedonia",
             "iso": "mk",
             "region": "3",
-            "society_name": "The Red Cross of The Former Yugoslav Republic of Macedonia",
+            "society_name": "The Red Cross of The former Yugoslav Republic of Macedonia",
             "society_url": ""
         }
     },
@@ -1565,7 +1565,7 @@
         "model": "api.Country",
         "pk": "163",
         "fields": {
-            "name": "Swaziland",
+            "name": "eSwatini",
             "iso": "sz",
             "region": "0",
             "society_name": "Baphalali Swaziland Red Cross Society",
@@ -1774,7 +1774,7 @@
         "model": "api.Country",
         "pk": "184",
         "fields": {
-            "name": "Congo, Rep.",
+            "name": "Congo",
             "iso": "cg",
             "region": "0",
             "society_name": "Congolese Red Cross",
@@ -1807,7 +1807,7 @@
         "model": "api.Country",
         "pk": "187",
         "fields": {
-            "name": "Congo, Dem. Rep.",
+            "name": "Democratic Republic of the Congo",
             "iso": "cd",
             "region": "0",
             "society_name": "Red Cross of the Democratic Republic of the Congo",
@@ -1851,7 +1851,7 @@
         "model": "api.Country",
         "pk": "192",
         "fields": {
-            "name": "Korea, Rep.",
+            "name": "Republic of Korea",
             "iso": "kr",
             "region": "2",
             "society_name": "The Republic of Korea National Red Cross",
@@ -1862,7 +1862,7 @@
         "model": "api.Country",
         "pk": "193",
         "fields": {
-            "name": "Korea, Dem. Rep.",
+            "name": "Democratic People's Republic of Korea",
             "iso": "KP",
             "region": "2",
             "society_name": "Red Cross Society of the Democratic People's Republic of Korea",
@@ -1884,7 +1884,7 @@
         "model": "api.Country",
         "pk": "195",
         "fields": {
-            "name": "Micronesia, Fed. Sts.",
+            "name": "Micronesia, Federated States of",
             "iso": "fm",
             "region": "2",
             "society_name": "Micronesia Red Cross",
@@ -1950,7 +1950,7 @@
         "model": "api.Country",
         "pk": "203",
         "fields": {
-            "name": "Iran, Islamic Rep.",
+            "name": "Iran, Islamic Republic of",
             "iso": "ir",
             "region": "4",
             "society_name": "Red Crescent Society of the Islamic Republic of Iran",
@@ -1961,7 +1961,7 @@
         "model": "api.Country",
         "pk": "204",
         "fields": {
-            "name": "Libyan Arab Jamahiriya",
+            "name": "Libya",
             "iso": "ly",
             "region": "4",
             "society_name": "Libyan Red Crescent",
@@ -1972,7 +1972,7 @@
         "model": "api.Country",
         "pk": "205",
         "fields": {
-            "name": "Palestinian territories",
+            "name": "Palestine",
             "iso": "ps",
             "region": "4",
             "society_name": "The Palestine Red Crescent Society",
@@ -2786,7 +2786,7 @@
         "model": "api.Country",
         "pk": "290",
         "fields": {
-            "name": "South Sudan, Rep. Of",
+            "name": "South Sudan",
             "iso": "ss",
             "region": "0",
             "society_name": "South Sudan Red Cross",
