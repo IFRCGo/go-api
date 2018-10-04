@@ -55,7 +55,6 @@ router.register(r'event_snippet', api_views.EventSnippetViewset, base_name='even
 router.register(r'situation_report', api_views.SituationReportViewset)
 router.register(r'situation_report_type', api_views.SituationReportTypeViewset)
 router.register(r'appeal', api_views.AppealViewset)
-router.register(r'appeal_plus', api_views.AppealPlusViewset)
 router.register(r'appeal_document', api_views.AppealDocumentViewset)
 router.register(r'profile', api_views.ProfileViewset, base_name='profile')
 router.register(r'user', api_views.UserViewset, base_name='user')

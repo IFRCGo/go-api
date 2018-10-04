@@ -64,7 +64,6 @@ from .serializers import (
     SituationReportSerializer,
     SituationReportTypeSerializer,
     AppealSerializer,
-    AppealPlusSerializer,
     AppealDocumentSerializer,
     UserSerializer,
     ProfileSerializer,
@@ -257,38 +256,6 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
-
-class AppealPlusViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.all()
-    serializer_class = AppealPlusSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
-    filter_class = AppealFilter
-
-    def remove_unconfirmed_event(self, obj):
-        if obj['needs_confirmation']:
-            obj['event'] = None
-        return obj
-
-    def remove_unconfirmed_events(self, objs):
-        return [self.remove_unconfirmed_event(obj) for obj in objs]
-
-    # Overwrite retrieve, list to exclude the event if it requires confirmation
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(self.remove_unconfirmed_events(serializer.data))
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(self.remove_unconfirmed_events(serializer.data))
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(self.remove_unconfirmed_event(serializer.data))
-
 
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(name='appeal', lookup_expr='exact')

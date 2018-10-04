@@ -13,8 +13,7 @@ from .models import (
     PartnerSocietyDeployment,
 )
 from api.serializers import (
-    MiniEventSerializer,
-    DisasterTypeSerializer,
+    ListEventSerializer,
     MiniCountrySerializer,
     MiniDistrictSerializer,
 )
@@ -34,7 +33,7 @@ class ERUOwnerSerializer(serializers.ModelSerializer):
 
 class ERUSerializer(serializers.ModelSerializer):
     deployed_to = MiniCountrySerializer()
-    event = MiniEventSerializer()
+    event = ListEventSerializer()
     eru_owner = ERUOwnerSerializer()
     class Meta:
         model = ERU
@@ -42,7 +41,7 @@ class ERUSerializer(serializers.ModelSerializer):
 
 class PersonnelDeploymentSerializer(serializers.ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
-    event_deployed_to = MiniEventSerializer()
+    event_deployed_to = ListEventSerializer()
     class Meta:
         model = PersonnelDeployment
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments', 'id',)
