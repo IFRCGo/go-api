@@ -163,6 +163,7 @@ class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+    dtype = DisasterTypeSerializer()
     class Meta:
         model = Event
         fields = ('name',)
