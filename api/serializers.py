@@ -192,12 +192,6 @@ class SituationReportSerializer(serializers.ModelSerializer):
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
-    class Meta:
-        model = Appeal
-        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',)
-
-class AppealPlusSerializer(serializers.ModelSerializer):
-    country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
     class Meta:
@@ -263,6 +257,7 @@ class SourceSerializer(serializers.ModelSerializer):
 
 class ListFieldReportSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     class Meta:
         model = FieldReport
