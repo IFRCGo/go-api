@@ -76,5 +76,5 @@ To release a new version to docker hub do the following:
 ## Deployment command
 
 ```(bash)
-docker run -p 80:80 --env-file .env -d -t ifrc/go-api:{TAG_NUMBER}
+docker run -p 80:80 --env-file .env -d -t ifrcgo/go-api:{TAG_NUMBER}
 ```
