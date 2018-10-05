@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'notifications',
     'registrations',
     'deployments',
+    'debug_toolbar',
 ]
 
 REST_FRAMEWORK = {
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -134,3 +136,9 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600 #default 2621440, 2.5MB -> 100MB
+
+# tricks to have debug toolbar when developing with docker
+INTERNAL_IPS = [ '127.0.0.1' ]
+import socket
+ip = socket.gethostbyname(socket.gethostname())
+INTERNAL_IPS += [ip[:-1] + '1']
