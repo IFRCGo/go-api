@@ -333,6 +333,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
 class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
 
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)

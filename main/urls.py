@@ -93,10 +93,3 @@ urlpatterns = [
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
 ]
-
-import debug_toolbar
-urlpatterns = [
-    url(r'^__debug__', include(debug_toolbar.urls)),
-     # For django versions before 2.0:
-     # url(r'^__debug__/', include(debug_toolbar.urls)),
-] + urlpatterns
