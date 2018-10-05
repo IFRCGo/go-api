@@ -291,7 +291,18 @@ class GetAuthToken(PublicJsonPostView):
         username = body['username']
         password = body['password']
 
-        user = authenticate(username=username, password=password)
+        #allowing different lower/uppercase lettered usernames:
+        caseSensitiveUsername = username
+        try:
+            findUser = User._default_manager.get(username__iexact=username)
+        except User.DoesNotExist:
+            findUser = None
+        if findUser is not None:
+            caseSensitiveUsername = findUser
+
+        #user = authenticate(username=username, password=password)
+        user = authenticate(username=caseSensitiveUsername, password=password)
+
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
@@ -319,7 +330,7 @@ class ChangePassword(PublicJsonPostView):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
         try:
-            user = User.objects.get(username=body['username'])
+            user = User.objects.get(username__iexact=body['username'])
         except ObjectDoesNotExist:
             return bad_request('Could not authenticate')
 
