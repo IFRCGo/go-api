@@ -292,16 +292,12 @@ class GetAuthToken(PublicJsonPostView):
         password = body['password']
 
         #allowing different lower/uppercase lettered usernames:
-        caseSensitiveUsername = username
         try:
-            findUser = User._default_manager.get(username__iexact=username)
+            case_sensitive_username = User.objects.get(username__iexact=username)
         except User.DoesNotExist:
-            findUser = None
-        if findUser is not None:
-            caseSensitiveUsername = findUser
+            case_sensitive_username = None
 
-        #user = authenticate(username=username, password=password)
-        user = authenticate(username=caseSensitiveUsername, password=password)
+        user = authenticate(username=case_sensitive_username, password=password)
 
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
