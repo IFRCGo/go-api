@@ -330,7 +330,7 @@ class ChangePassword(PublicJsonPostView):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
         try:
-            user = User.objects.get(username=body['username'])
+            user = User.objects.get(username__iexact=body['username'])
         except ObjectDoesNotExist:
             return bad_request('Could not authenticate')
 
