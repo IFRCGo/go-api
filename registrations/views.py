@@ -220,7 +220,7 @@ class NewRegistration(PublicJsonPostView):
         admins = True if is_staff else get_valid_admins(body['contact'])
         if not admins:
             return bad_request('Non-IFRC users must submit two valid admin emails.')
-        if User.objects.filter(email=body['email']).count() > 0:
+        if User.objects.filter(email__iexact=body['email']).count() > 0:
             return bad_request('A user with that email address already exists.')
         if User.objects.filter(username__iexact=body['username']).count() > 0:
             return bad_request('That username is taken, please choose a different one.')
