@@ -163,6 +163,7 @@ class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+    dtype = DisasterTypeSerializer()
     class Meta:
         model = Event
         fields = ('name',)
@@ -191,6 +192,8 @@ class SituationReportSerializer(serializers.ModelSerializer):
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
     class Meta:
         model = Appeal
         fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',)
@@ -254,6 +257,7 @@ class SourceSerializer(serializers.ModelSerializer):
 
 class ListFieldReportSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     class Meta:
         model = FieldReport
