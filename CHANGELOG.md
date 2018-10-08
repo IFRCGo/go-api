@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.7
 
 ### Added
-- Richer .csv output, allowing case insensitive username for login/pwdChange
+- Richer CSV output, allowing case insensitive username for login/pwdChange
 
 ## 1.1.6
 ## 1.1.5
