@@ -3,7 +3,7 @@ mkdir -p $HOME/logs $HOME/static
 
 # apply migrations, load fixture data, collect static files
 python manage.py migrate
-python manage.py loaddata Regions Countries Districts DisasterTypes Actions
+#python manage.py loaddata Regions Countries Districts DisasterTypes Actions #Needed only in case of empty database – otherwise it can cause conflicts
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
 python manage.py make_permissions
