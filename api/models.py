@@ -340,7 +340,7 @@ class GDACSEvent(models.Model):
     severity_value = models.CharField(max_length=16)
     population_unit = models.CharField(max_length=16)
     population_value = models.CharField(max_length=16)
-    vulnerability = models.IntegerField()
+    vulnerability = models.FloatField()
     countries = models.ManyToManyField(Country)
     country_text = models.TextField()
 
