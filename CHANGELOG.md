@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.11
+
+### Added
+- Type fixing in ingest_mdb and ingest_gdacs
+
+### Added
+
 ## 1.1.10
 ## 1.1.9
 ## 1.1.8
@@ -142,7 +149,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.10...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.11...HEAD
+[1.1.11]: https://github.com/IFRCGo/go-api/compare/1.1.10...1.1.11
 [1.1.10]: https://github.com/IFRCGo/go-api/compare/1.1.9...1.1.10
 [1.1.9]: https://github.com/IFRCGo/go-api/compare/1.1.8...1.1.9
 [1.1.8]: https://github.com/IFRCGo/go-api/compare/1.1.7...1.1.8
