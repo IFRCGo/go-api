@@ -177,7 +177,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'field_reports', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'field_reports', 'show_emergency', 'id',)
 
 class SituationReportTypeSerializer(serializers.ModelSerializer):
     class Meta:
