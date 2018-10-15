@@ -42,14 +42,12 @@ class Command(BaseCommand):
             with open('appeals.json', 'w') as outfile:
                 json.dump(records, outfile)
 
-            in_4_years = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(days=1460)
             codes = [a.code for a in Appeal.objects.all()]
             for r in records:
                 if not r['APP_code'] in codes:
                     new.append(r)
-                last_modified = self.parse_date(r['APP_modifyTime'])
-                if last_modified > in_4_years:
-                    modified.append(r)
+                # We use all records, do NOT check if last_modified > since_last_checked
+                modified.append(r)
 
         return new, modified
 
