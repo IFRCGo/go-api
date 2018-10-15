@@ -370,4 +370,4 @@ class Command(BaseCommand):
             user.profile.phone_number = user_data['PhoneNumberProf'] if len(user_data['PhoneNumberProf']) <= 100 else ''
             user.save()
             processed_users = processed_users + 1
-        logger.info('%s updated active user records' % len(processed_users))
+        logger.info('%s updated active user records' % processed_users)
