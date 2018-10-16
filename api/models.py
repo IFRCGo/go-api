@@ -210,6 +210,7 @@ class Event(models.Model):
 
     # Meant to give the organization a way of highlighting certain, important events.
     is_featured = models.BooleanField(default=False)
+    hide_attached_field_reports = models.BooleanField(default=False)
 
     class Meta:
         ordering = ('-disaster_start_date',)

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.12
+
+### Added
+- Possibility to hide attached field reports
+
+### Added
+
 ## 1.1.11
 
 ### Added
@@ -149,7 +156,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.11...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.12...HEAD
+[1.1.12]: https://github.com/IFRCGo/go-api/compare/1.1.11...1.1.12
 [1.1.11]: https://github.com/IFRCGo/go-api/compare/1.1.10...1.1.11
 [1.1.10]: https://github.com/IFRCGo/go-api/compare/1.1.9...1.1.10
 [1.1.9]: https://github.com/IFRCGo/go-api/compare/1.1.8...1.1.9
