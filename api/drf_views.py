@@ -205,7 +205,7 @@ class SituationReportFilter(filters.FilterSet):
         }
 
 class SituationReportViewset(ReadOnlyVisibilityViewset):
-    queryset = SituationReport.objects.all()
+    authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = SituationReportFilter
