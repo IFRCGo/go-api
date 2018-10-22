@@ -8,36 +8,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.13
+
+### Fixed
+- Bug where situation reports would only display public reports
+
 ## 1.1.12
 
 ### Added
 - Possibility to hide attached field reports
-
-### Added
 
 ## 1.1.11
 
 ### Added
 - Type fixing in ingest_mdb and ingest_gdacs
 
-### Added
-
-## 1.1.10
-## 1.1.9
-## 1.1.8
 ## 1.1.7
 
 ### Added
 - Richer CSV output, allowing case insensitive username for login/pwdChange
 
-## 1.1.6
-## 1.1.5
 ## 1.1.4
 
 ### Added
 - Hiding inline add, edit and delete icons even from superusers (on admin)
 
-## 1.1.3
 ## 1.1.2
 
 ### Added
@@ -156,15 +151,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.12...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.13...HEAD
+[1.1.13]: https://github.com/IFRCGo/go-api/compare/1.1.12...1.1.13
 [1.1.12]: https://github.com/IFRCGo/go-api/compare/1.1.11...1.1.12
 [1.1.11]: https://github.com/IFRCGo/go-api/compare/1.1.10...1.1.11
-[1.1.10]: https://github.com/IFRCGo/go-api/compare/1.1.9...1.1.10
-[1.1.9]: https://github.com/IFRCGo/go-api/compare/1.1.8...1.1.9
-[1.1.8]: https://github.com/IFRCGo/go-api/compare/1.1.7...1.1.8
 [1.1.7]: https://github.com/IFRCGo/go-api/compare/1.1.6...1.1.7
-[1.1.6]: https://github.com/IFRCGo/go-api/compare/1.1.5...1.1.6
-[1.1.5]: https://github.com/IFRCGo/go-api/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/IFRCGo/go-api/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/IFRCGo/go-api/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/IFRCGo/go-api/compare/1.1.1...1.1.2
