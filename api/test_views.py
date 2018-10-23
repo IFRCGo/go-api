@@ -10,13 +10,13 @@ import api.drf_views as views
 class AuthTokenTest(APITestCase):
     def setUp(self):
         user = User.objects.create(username='jo')
-        user.set_password('123456789')
+        user.set_password('12345678')
         user.save()
 
     def test_get_auth(self):
         body = {
             'username': 'jo',
-            'password': '123456789',
+            'password': '12345678',
         }
         headers = {'CONTENT_TYPE': 'application/json'}
         response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
