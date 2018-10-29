@@ -28,7 +28,8 @@ class PersonnelInline(admin.TabularInline):
 
 
 class PersonnelDeploymentAdmin(admin.ModelAdmin):
-    search_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
+    search_fields = ('country_deployed_to', 'region_deployed_to',)
+    autocomplete_fields = ('event_deployed_to',)
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
