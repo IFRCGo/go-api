@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.14
+
+### Added
+- Autocomplete feature of personal deployments (frontend#492)
+- Temporary stop of multiple Appeal email sending (#323)
+
+### Added
+
 ## 1.1.13
 
 ### Fixed
