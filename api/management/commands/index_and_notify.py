@@ -220,8 +220,8 @@ class Command(BaseCommand):
         self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
         self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
-        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-        self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+        #self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+        #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
