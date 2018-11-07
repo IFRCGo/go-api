@@ -327,7 +327,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 class SituationReportAdmin(RegionRestrictedAdmin):
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
-    search_fields = ('name', 'event__name',)
+    autocomplete_fields = ('event',)
 
 
 class SituationReportTypeAdmin(admin.ModelAdmin):

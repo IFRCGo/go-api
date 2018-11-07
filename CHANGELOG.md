@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.15
+
+### Added
+- Autocomplete feature of events for Situation Reports (frontend#502)
+
+### Added
+
 ## 1.1.14
 
 ### Added
@@ -159,7 +166,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.14...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.15...HEAD
+[1.1.15]: https://github.com/IFRCGo/go-api/compare/1.1.14...1.1.15
 [1.1.14]: https://github.com/IFRCGo/go-api/compare/1.1.13...1.1.14
 [1.1.13]: https://github.com/IFRCGo/go-api/compare/1.1.12...1.1.13
 [1.1.12]: https://github.com/IFRCGo/go-api/compare/1.1.11...1.1.12
