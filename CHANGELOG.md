@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.16
+
+### Added
+- Change default setting to non-'Public' when adding Situation Report (frontend#503)
+
+### Added
+
 ## 1.1.15
 
 ### Added
@@ -166,7 +173,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.15...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.16...HEAD
+[1.1.16]: https://github.com/IFRCGo/go-api/compare/1.1.15...1.1.16
 [1.1.15]: https://github.com/IFRCGo/go-api/compare/1.1.14...1.1.15
 [1.1.14]: https://github.com/IFRCGo/go-api/compare/1.1.13...1.1.14
 [1.1.13]: https://github.com/IFRCGo/go-api/compare/1.1.12...1.1.13
