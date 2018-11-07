@@ -315,7 +315,7 @@ class SituationReport(models.Model):
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
-    visibility = EnumIntegerField(VisibilityChoices, default=3)
+    visibility = EnumIntegerField(VisibilityChoices, default=2)
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)
