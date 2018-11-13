@@ -2631,17 +2631,6 @@
     },
     {
         "model": "api.Country",
-        "pk": "275",
-        "fields": {
-            "name": "Hong Kong (China)",
-            "iso": "hk",
-            "region": "2",
-            "society_name": "Hong Kong Red Cross",
-            "society_url": "http://www.redcross.org.hk/"
-        }
-    },
-    {
-        "model": "api.Country",
         "pk": "276",
         "fields": {
             "name": "Isle of Man",
@@ -2688,17 +2677,6 @@
             "name": "St. Martin (French part)",
             "iso": "MF",
             "society_name": "",
-            "society_url": ""
-        }
-    },
-    {
-        "model": "api.Country",
-        "pk": "281",
-        "fields": {
-            "name": "Republic of China (Taiwan)",
-            "iso": "TW",
-            "region": "2",
-            "society_name": "The Red Cross Society of the Republic of China",
             "society_url": ""
         }
     },
