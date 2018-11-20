@@ -10,6 +10,36 @@ from api.logger import logger
 
 dtype_keys = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 dtype_vals = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
+region2country = {'JAK': 'ID', #Jakarta Country Cluster Office: Indonesia
+                  'SAM': 'AR', #South Cone and Brazil Country Cluster Office: Argentina
+                  'TEG': 'HN', #Tegucigalpa Country Cluster Office: Honduras
+                  'AFR': 'KE', #Africa regional office: Kenya
+                  'EAF': 'KE', #Eastern Africa country cluster: Kenya
+                  'WAF': 'NG', #Western Africa country cluster: Nigeria
+                  'CAF': 'CM', #Central Africa country cluster: Cameroon
+                  'SAF': 'ZA', #Southern Africa country cluster: South Africa
+                  'CAM': 'HT', #Latin Caribbean Country Cluster Office: Haiti
+                  'CAR': 'TT', #Caribbean Country Cluster: Trinidad and Tobago
+                  'NAM': 'PA', #Americas regional office: Panama
+                  'AME': 'PA', #Americas regional office: Panama
+                  'ASI': 'MY', #Asia Pacific regional office / New Delhi country cluster: Malaysia
+                  'EEU': 'HU', #Europe Regional Office: Hungary
+                  'EUR': 'HU', #Europe Regional Office: Hungary
+                  'WEU': 'CH', #(Western) Europe regional office: Switzerland
+                  'NAF': 'TN', #MENA regional office / Tunis country cluster: Tunisia
+                  'MEA': 'GE', #MENA Regonal Office / Southern Caucasus country cluster: Georgia
+                  'OCE': 'FJ', #Suva Country Cluster Office: Fiji
+                  'WAF': 'SG', #Sahel country cluster: Senegal
+                  'WRD': 'CH', #IFRC Headquarters: Switzerland
+                  'SAM': 'PE', #Andean Country Cluster Office: Peru
+                  'SEA': 'TH', #Bangkok Country Cluster Office: Thailand
+                  'SAS': 'IN', #Southern Asia Country Cluster Office: India
+                  'EAS': 'CN', #Beijing Country Cluster Office: China
+                  'CAS': 'KZ', #Central Asia country cluster: Kazakhstan
+                  'HK':  'CN', #Hong Kong: China
+                  'TW':  'CN', #Taiwan: China
+                  'XK':  'RS', #Kosovo: Serbia
+}
 
 class Command(BaseCommand):
     help = 'Add new entries from Access database file'
@@ -64,6 +94,9 @@ class Command(BaseCommand):
         return dtype
 
     def parse_country(self, iso_code, country_name):
+        if iso_code in region2country:
+            iso_code = region2country[iso_code]
+
         if len(iso_code) == 2:
             country = Country.objects.filter(iso=iso_code.lower())
         else:
@@ -71,6 +104,7 @@ class Command(BaseCommand):
 
         if country.count() == 0:
             country = None
+            #print(iso_code + ' ' + country_name) # for debug purpose for the "orphan" iso_codes
         else:
             country = country.first()
         return country
