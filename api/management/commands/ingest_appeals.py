@@ -74,6 +74,9 @@ class Command(BaseCommand):
 
             codes = [a.code for a in Appeal.objects.all()]
             for r in records:
+                # Temporary filtering, the manual version should be kept:
+                if r['APP_code'] in ['MDR65002']:
+                    continue
                 if not r['APP_code'] in codes:
                     new.append(r)
                 # We use all records, do NOT check if last_modified > since_last_checked
