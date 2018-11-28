@@ -97,7 +97,7 @@ class Command(BaseCommand):
             RecordType.APPEAL: 'appeal',
             RecordType.EVENT: 'event',
         }[rtype]
-        return 'https://%s/admin/%s/%s/change' % (
+        return 'https://%s/admin/api/%s/%s/change' % (
             settings.BASE_URL,
             admin_page,
             record.id,
