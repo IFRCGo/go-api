@@ -224,6 +224,8 @@ class NewRegistration(PublicJsonPostView):
             return bad_request('A user with that email address already exists.')
         if User.objects.filter(username__iexact=body['username']).count() > 0:
             return bad_request('That username is taken, please choose a different one.')
+        if ' ' in body['username']:
+            return bad_request('Username can not contain spaces, please choose a different one.')
 
         try:
             user = create_active_user(body)
