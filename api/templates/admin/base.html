@@ -21,34 +21,33 @@
 
 <!-- Container -->
 <div id="container">
-
     {% if not is_popup %}
     <!-- Header -->
-    <div id="header" style="background: white">
-        <div id="branding" style="padding: 4px">
+    <div id="header" style="background: white;">
+        <div id="branding" style="padding: 4px;">
         {% block branding %}{% endblock %}
         </div>
         {% block usertools %}
         {% if has_permission %}
-        <div id="user-tools" style="color: #417690">
+        <div id="user-tools" style="color: #417690;">
             {% block welcome-msg %}
                 {% trans 'Welcome,' %}
                 <strong>{% firstof user.get_short_name user.get_username %}</strong>.
             {% endblock %}
             {% block userlinks %}
                 {% if site_url %}
-                    <a style="color: #395999" href="{{ site_url }}">{% trans 'View site' %}</a> /
+                    <a style="color: #395998" href="{{ site_url }}">{% trans 'View site' %}</a> /
                 {% endif %}
                 {% if user.is_active and user.is_staff %}
                     {% url 'django-admindocs-docroot' as docsroot %}
                     {% if docsroot %}
-                        <a style="color: #7999BB" href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
+                        <a style="color: #7999BA" href="{{ docsroot }}">{% trans 'Documentation' %}</a> /
                     {% endif %}
                 {% endif %}
                 {% if user.has_usable_password %}
-                <a style="color: #7999BB" href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+                <a style="color: #7999BA" href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
                 {% endif %}
-                <a style="color: #5080A0" href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+                <a style="color: #5080A1" href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
             {% endblock %}
         </div>
         {% endif %}
