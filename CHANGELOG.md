@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.19
+
+### Added
+- Changing admin banner style
+- Not allowing space into registered username
+
 ## 1.1.18
 ## 1.1.17
 ## 1.1.16
@@ -177,7 +183,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.18...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.19...HEAD
+[1.1.19]: https://github.com/IFRCGo/go-api/compare/1.1.18...1.1.19
 [1.1.18]: https://github.com/IFRCGo/go-api/compare/1.1.17...1.1.18
 [1.1.17]: https://github.com/IFRCGo/go-api/compare/1.1.16...1.1.17
 [1.1.16]: https://github.com/IFRCGo/go-api/compare/1.1.15...1.1.16
