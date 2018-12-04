@@ -377,3 +377,23 @@ class RecoverPassword(PublicJsonPostView):
                           render_to_string('email/recover_password.html', email_context))
 
         return JsonResponse({'status': 'ok'})
+
+class ShowUsername(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        if not 'email' in body:
+            return bad_request('Must include an `email` property')
+
+        try:
+            user = User.objects.get(email=body['email'])
+        except ObjectDoesNotExist:
+            return bad_request('That email is not associated with a user')
+
+        email_context = {
+            'username': user.username,
+        }
+        send_notification('Showing your username',
+                          [user.email],
+                          render_to_string('email/show_username.html', email_context))
+
+        return JsonResponse({'status': 'ok'})
