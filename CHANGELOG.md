@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.21
+
+### Added
+- Sending (only) username reminder
+
+### Added
+
 ## 1.1.20
 ## 1.1.19
 
@@ -184,7 +191,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.20...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.21...HEAD
+[1.1.21]: https://github.com/IFRCGo/go-api/compare/1.1.20...1.1.21
 [1.1.20]: https://github.com/IFRCGo/go-api/compare/1.1.19...1.1.20
 [1.1.19]: https://github.com/IFRCGo/go-api/compare/1.1.18...1.1.19
 [1.1.18]: https://github.com/IFRCGo/go-api/compare/1.1.17...1.1.18
