@@ -21,6 +21,7 @@ from api.views import (
     GetAuthToken,
     ChangePassword,
     RecoverPassword,
+    ShowUsername,
     EsPageSearch,
     EsPageHealth,
     AggregateByDtype,
@@ -89,6 +90,7 @@ urlpatterns = [
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
     url(r'^recover_password', RecoverPassword.as_view()),
+    url(r'^show_username', ShowUsername.as_view()),
 
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
