@@ -152,6 +152,7 @@ def is_valid_domain(email):
         'redcross.nl',
         'roteskreuz.at',
         'roteskreuz.li',
+        'rwandaredcross.org',
         'sarc.sy',
         'sierraleoneredcross.org',
         'srcs.sd',
