@@ -7,10 +7,6 @@ from api.logger import logger
 class Command(BaseCommand):
     help = 'Update staff status in auth_user table according to "Read only" group'
 
-    def parse_date(self, date_string):
-        timeformat = '%Y-%m-%dT%H:%M:%S'
-        return datetime.strptime(date_string[:18], timeformat).replace(tzinfo=timezone.utc)
-
     def get_readonly_users(self):
         readonly = []
         for u in User.objects.filter(is_staff=True).filter(is_superuser=False):
