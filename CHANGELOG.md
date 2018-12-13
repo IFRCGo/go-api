@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.23
 ## 1.1.22
 
 ### Added
 - A Read-only group for IFRC and Membership users and a script removing them from is_staff
 - Adding rwandaredcross to valid domain list
+- Upgrading urrllib3 with one version number
 
 ### Added
 
@@ -199,7 +201,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.22...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.23...HEAD
+[1.1.23]: https://github.com/IFRCGo/go-api/compare/1.1.22...1.1.23
 [1.1.22]: https://github.com/IFRCGo/go-api/compare/1.1.21...1.1.22
 [1.1.21]: https://github.com/IFRCGo/go-api/compare/1.1.20...1.1.21
 [1.1.20]: https://github.com/IFRCGo/go-api/compare/1.1.19...1.1.20
