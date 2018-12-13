@@ -52,5 +52,5 @@ six==1.11.0
 typing==3.6.2
 unicodecsv==0.14.1
 uritemplate==3.0.0
-urllib3==1.22
+urllib3==1.23
 XML2Dict==0.2.2
