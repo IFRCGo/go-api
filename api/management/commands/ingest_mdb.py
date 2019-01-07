@@ -363,6 +363,11 @@ class Command(BaseCommand):
             # set user profile info
             user.profile.org = user_data['OrgTypeSpec'] if len(user_data['OrgTypeSpec']) <= 100 else ''
             user.profile.org_type = org_types.get(user_data['OrgTypeID'])
+            # print(i, user_data['CountryID']) # - for debug purposes. Check go-api/data/Countries.csv for details.
+            if user_data['CountryID'] in ['275', '281']:
+                user_data['CountryID'] = '47' #Hong Kong or Taiwan should be handled as China. Macao (279) is other case.
+            elif user_data['CountryID'] in ['284']:
+                user_data['CountryID'] = '292' #Zone Central and West Africa -> Central Africa Country Cluster
             user.profile.country = Country.objects.get(pk=user_data['CountryID'])
             user.profile.city = user_data['City'] if len(user_data['City']) <= 100 else ''
             user.profile.department = user_data['Department'] if len(user_data['Department']) <= 100 else ''
