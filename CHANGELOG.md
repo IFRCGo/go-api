@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.25
 ## 1.1.24
 
 ### Added
+- Adding more Belgian domain names
 - Converting country names for mdb ingestion
 
 ## 1.1.23
@@ -206,7 +208,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.24...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.25...HEAD
+[1.1.25]: https://github.com/IFRCGo/go-api/compare/1.1.24...1.1.25
 [1.1.24]: https://github.com/IFRCGo/go-api/compare/1.1.23...1.1.24
 [1.1.23]: https://github.com/IFRCGo/go-api/compare/1.1.22...1.1.23
 [1.1.22]: https://github.com/IFRCGo/go-api/compare/1.1.21...1.1.22
