@@ -37,11 +37,11 @@ class MembershipFilter(admin.SimpleListFilter):
         )
     def queryset(self, request, queryset):
         if self.value() == 'membership':
-            return queryset.filter(atype=models.VisibilityChoices.MEMBERSHIP)
+            return queryset.filter(visibility=models.VisibilityChoices.MEMBERSHIP)
         if self.value() == 'ifrc':
-            return queryset.filter(atype=models.VisibilityChoices.IFRC)
+            return queryset.filter(visibility=models.VisibilityChoices.IFRC)
         if self.value() == 'public':
-            return queryset.filter(atype=models.VisibilityChoices.PUBLIC)
+            return queryset.filter(visibility=models.VisibilityChoices.PUBLIC)
 
 
 class AppealTypeFilter(admin.SimpleListFilter):
@@ -180,7 +180,7 @@ class FieldReportAdmin(RegionRestrictedAdmin):
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
-    search_fields = ('countries', 'regions', 'summary',)
+    search_fields = ('countries__name', 'regions__name', 'summary',)
     autocomplete_fields = ('event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at',)
     list_filter = [MembershipFilter,]
