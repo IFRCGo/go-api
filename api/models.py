@@ -65,6 +65,9 @@ class Region(models.Model):
     def __str__(self):
         return ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][self.name]
 
+    def region_name(self):
+        return str(self.name)
+
 
 class Country(models.Model):
     """ A country """
