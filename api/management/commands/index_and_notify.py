@@ -217,7 +217,7 @@ class Command(BaseCommand):
         new_events = Event.objects.filter(created_at__gte=t)
         updated_events = Event.objects.filter(updated_at__gte=t)
 
-        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+        #self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
         self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
         #self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
