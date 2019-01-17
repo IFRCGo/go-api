@@ -44,7 +44,8 @@ class DisasterTypeSerializer(serializers.ModelSerializer):
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
-        fields = ('name', 'id',)
+        fields = ('name', 'id', 'region_name')
+
 
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
