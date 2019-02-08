@@ -75,7 +75,7 @@ class Command(BaseCommand):
             codes = [a.code for a in Appeal.objects.all()]
             for r in records:
                 # Temporary filtering, the manual version should be kept:
-                if r['APP_code'] in ['MDR65002']:
+                if r['APP_code'] in ['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
                 if not r['APP_code'] in codes:
                     new.append(r)
