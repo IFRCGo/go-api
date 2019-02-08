@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.29
 ## 1.1.28
 ## 1.1.27
 ## 1.1.26
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.24
 
 ### Added
+- Database restoration and some exceptions to appeals ingest
 - Showing real region_name and temporarily disabling field report notifications
 - Field reports search issue fixed
 - Increasing Django version to 2.0.10 due to security vulnerability
@@ -214,7 +216,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.28...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.29...HEAD
+[1.1.29]: https://github.com/IFRCGo/go-api/compare/1.1.28...1.1.29
 [1.1.28]: https://github.com/IFRCGo/go-api/compare/1.1.27...1.1.28
 [1.1.27]: https://github.com/IFRCGo/go-api/compare/1.1.26...1.1.27
 [1.1.26]: https://github.com/IFRCGo/go-api/compare/1.1.25...1.1.26
