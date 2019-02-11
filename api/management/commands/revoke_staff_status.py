@@ -56,19 +56,22 @@ class Command(BaseCommand):
                     logger.error(str(e)[:100])
                     logger.error('Could not update user %s' % u.email)
                     continue
-                num_updated = num_updated + 1
+                num_updated += 1
                 logger.info(' %s user%s updated' % (num_updated, 's' if num_updated > 1 else ''))
             logger.info('... user%s moving completed' % ('s' if len(users) > 1 else ''))
-
         else:
             logger.info('... not found any users to be moved')
 
         ifrc_users = self.get_ifrc_domain_users()
         ifrc_grp = Group.objects.get(name='IFRC Admins')
         if len(ifrc_users) > 0:
-            logger.info('Adding IFRC Group membership to %s user%s' % (len(ifrc_users), 's' if len(ifrc_users) > 1 else ''))
+            logger.info('Adding IFRC Admins Group membership to %s user%s' % (len(ifrc_users), 's' if len(ifrc_users) > 1 else ''))
             num_i_updated = 0
             for u in ifrc_users:
                 ifrc_grp.user_set.add(u)
+                num_i_updated += 1
+                logger.info(' %s user%s added' % (num_i_updated, 's' if num_i_updated > 1 else ''))
+            logger.info('... user%s adding to IFRC Admins Group completed' % ('s' if len(ifrc_users) > 1 else ''))
         else:
             logger.info('... not found any users to be put into IFRC Admins')
+
