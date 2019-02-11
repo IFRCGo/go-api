@@ -74,4 +74,3 @@ class Command(BaseCommand):
             logger.info('... user%s adding to IFRC Admins Group completed' % ('s' if len(ifrc_users) > 1 else ''))
         else:
             logger.info('... not found any users to be put into IFRC Admins')
-
