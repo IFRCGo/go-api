@@ -1863,7 +1863,7 @@
         "pk": "193",
         "fields": {
             "name": "Democratic People's Republic of Korea",
-            "iso": "KP",
+            "iso": "kp",
             "region": "2",
             "society_name": "Red Cross Society of the Democratic People's Republic of Korea",
             "society_url": ""
