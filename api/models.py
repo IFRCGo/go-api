@@ -297,7 +297,7 @@ class Snippet(models.Model):
     image = models.ImageField(null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage())
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
-
+    weight = models.IntegerField(default=10)
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
