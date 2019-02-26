@@ -56,7 +56,6 @@ from .serializers import (
 
     DistrictSerializer,
     MiniDistrictSerializer,
-    SnippetSerializer,
 
     SnippetSerializer,
     ListEventSerializer,
