@@ -298,6 +298,8 @@ class Snippet(models.Model):
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     weight = models.IntegerField(default=10)
+    class Meta:
+        ordering = ('weight', 'id',)
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
