@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.36
 ## 1.1.35
 ## 1.1.34
 ## 1.1.33
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.24
 
 ### Added
-- Adding weight to snippets
+- Adding weight to snippets, offering it
 - Upgrading Django due to a vulnerability
 - Small version correction
 - Bulk update of group memberships
@@ -226,7 +227,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.35...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.36...HEAD
+[1.1.36]: https://github.com/IFRCGo/go-api/compare/1.1.35...1.1.36
 [1.1.35]: https://github.com/IFRCGo/go-api/compare/1.1.34...1.1.35
 [1.1.34]: https://github.com/IFRCGo/go-api/compare/1.1.33...1.1.34
 [1.1.33]: https://github.com/IFRCGo/go-api/compare/1.1.32...1.1.33
