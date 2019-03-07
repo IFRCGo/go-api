@@ -135,7 +135,7 @@ class KeyFigureSerializer(serializers.ModelSerializer):
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = ('event', 'snippet', 'image', 'visibility', 'weight', 'id',)
+        fields = ('event', 'snippet', 'image', 'visibility', 'position', 'id',)
 
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
