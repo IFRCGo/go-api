@@ -146,20 +146,30 @@ class RegionKeyFigure(AdminKeyFigure):
 class CountryKeyFigure(AdminKeyFigure):
     country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
 
+class PositionType(IntEnum):
+    TOP = 1
+    HIGH = 2
+    MIDDLE = 3
+    LOW = 4
+    BOTTOM = 5
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
     snippet = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
-
+    position = EnumIntegerField(PositionType, default=3)
+    class Meta:
+        ordering = ('position', 'id',)
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, related_name='snippets', on_delete=models.CASCADE)
     snippet = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
-
+    position = EnumIntegerField(PositionType, default=3)
+    class Meta:
+        ordering = ('position', 'id',)
 
 class AdminLink(models.Model):
     title = models.CharField(max_length=100)
@@ -290,16 +300,15 @@ class KeyFigure(models.Model):
 def snippet_image_path(instance, filename):
     return 'emergencies/%s/%s' % (instance.event.id, filename)
 
-
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage())
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
-    weight = models.IntegerField(default=10)
+    position = EnumIntegerField(PositionType, default=3)
     class Meta:
-        ordering = ('weight', 'id',)
+        ordering = ('position', 'id',)
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
