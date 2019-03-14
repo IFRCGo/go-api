@@ -53,7 +53,7 @@ class PersonnelDeploymentFilter(filters.FilterSet):
 
 class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = PersonnelDeployment.objects.all()
     serializer_class = PersonnelDeploymentSerializer
     filter_class = PersonnelDeploymentFilter
@@ -72,7 +72,7 @@ class PersonnelFilter(filters.FilterSet):
 
 class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
     serializer_class = PersonnelSerializer
     filter_class = PersonnelFilter
