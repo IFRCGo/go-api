@@ -19,6 +19,7 @@ from .models import (
     Snippet,
     EventContact,
     Event,
+    EventDeployments,
     SituationReportType,
     SituationReport,
 
@@ -169,6 +170,15 @@ class ListEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name',)
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'field_reports', 'id',)
+
+class ListEventDeploymentsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+    type = serializers.CharField()
+    deployments = serializers.IntegerField()
+    class Meta:
+        model = EventDeployments
+        fields = ('id', 'type', 'deployments',)
+
 
 class DetailEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
