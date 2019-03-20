@@ -62,6 +62,7 @@ router.register(r'user', api_views.UserViewset, base_name='user')
 router.register(r'field_report', api_views.FieldReportViewset, base_name='field_report')
 
 router.register(r'eru', deployment_views.ERUViewset)
+router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset)
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset)
 router.register(r'personnel', deployment_views.PersonnelViewset)
