@@ -58,7 +58,7 @@ def is_valid_domain(email):
         'cruzrojauruguaya.org',
         'cruzrojavenezolana.org',
         'cruzvermelha.org.br',
-        'cruzvermelha.pt',
+        'cruzvermelha.org.pt',
         'drk.de',
         'drk.dk',
         'egyptianrc.org',
