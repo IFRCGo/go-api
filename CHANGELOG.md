@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.40
+- Adding cruzvermelha.org.pt to the trusted domain list. Verbose countries and regions.
+
 ## 1.1.39
 - Adding Zambia (redcross.org.zm) to the trusted domain list.
 
@@ -232,7 +235,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.39...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.40...HEAD
+[1.1.40]: https://github.com/IFRCGo/go-api/compare/1.1.39...1.1.40
 [1.1.39]: https://github.com/IFRCGo/go-api/compare/1.1.38...1.1.39
 [1.1.38]: https://github.com/IFRCGo/go-api/compare/1.1.37...1.1.38
 [1.1.37]: https://github.com/IFRCGo/go-api/compare/1.1.36...1.1.37
