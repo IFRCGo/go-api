@@ -26,6 +26,7 @@ from .models import (
 
     Snippet,
     Event,
+    EventDeployments,
     Snippet,
     SituationReport,
     SituationReportType,
@@ -60,6 +61,7 @@ from .serializers import (
 
     SnippetSerializer,
     ListEventSerializer,
+    ListEventDeploymentsSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
     SituationReportTypeSerializer,
@@ -72,6 +74,34 @@ from .serializers import (
     CreateFieldReportSerializer,
 )
 from .logger import logger
+
+class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = EventDeployments.objects.raw("")
+    serializer_class = ListEventDeploymentsSerializer
+    def list(self, request):
+        self.queryset = EventDeployments.objects.raw(
+            '''SELECT deployments_personneldeployment.event_deployed_to_id as id,
+            deployments_personnel.type,
+            count(deployments_deployedperson.id) as deployments
+
+            FROM deployments_deployedperson
+
+            LEFT JOIN deployments_personnel
+            ON deployments_deployedperson.id = deployments_personnel.deployedperson_ptr_id
+
+            LEFT JOIN deployments_personneldeployment
+            ON deployments_personneldeployment.id = deployments_personnel.deployment_id
+
+            LEFT JOIN api_event
+            ON deployments_personneldeployment.event_deployed_to_id = api_event.id
+
+            WHERE deployments_deployedperson.end_date > CURRENT_TIMESTAMP
+            AND api_event.is_featured IS TRUE
+
+            GROUP BY deployments_personneldeployment.event_deployed_to_id, deployments_personnel.type
+            ORDER BY deployments_personneldeployment.event_deployed_to_id, deployments_personnel.type''')
+        serializer = ListEventDeploymentsSerializer(self.queryset, many=True)
+        return Response(serializer.data)
 
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
