@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
+from django.db.models import Q
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -92,6 +93,22 @@ class CountryFilter(filters.FilterSet):
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     filter_class = CountryFilter
+
+    def get_object(self):
+        pk = self.kwargs['pk']
+        try:
+            return Country.objects.get(pk=int(pk))
+        except ValueError:
+            # NOTE: If pk is not integer try searching for name or iso
+            country = Country.objects.filter(
+                Q(name__iexact=str(pk)) | Q(iso__iexact=str(pk))
+            )
+            if country.exists():
+                return country.first()
+            raise Country.DoesNotExist(
+                'Country matching query does not exist.'
+            )
+
     def get_serializer_class(self):
         if self.action == 'list':
             return CountrySerializer
