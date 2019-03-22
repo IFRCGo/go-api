@@ -6,11 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db import models
+from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
+from deployments.models import Personnel
+
 from .models import (
     DisasterType,
 
@@ -26,7 +29,6 @@ from .models import (
 
     Snippet,
     Event,
-    EventDeployments,
     Snippet,
     SituationReport,
     SituationReportType,
@@ -75,33 +77,20 @@ from .serializers import (
 )
 from .logger import logger
 
+
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = EventDeployments.objects.raw("")
     serializer_class = ListEventDeploymentsSerializer
-    def list(self, request):
-        self.queryset = EventDeployments.objects.raw(
-            '''SELECT deployments_personneldeployment.event_deployed_to_id as id,
-            deployments_personnel.type,
-            count(deployments_deployedperson.id) as deployments
 
-            FROM deployments_deployedperson
+    def get_queryset(self):
+        return Personnel.objects.filter(
+                end_date__gt=timezone.now(),
+            ).order_by().values(
+                'deployment__event_deployed_to', 'type',
+            ).annotate(
+                id=models.F('deployment__event_deployed_to'),
+                deployments=models.Count('type')
+            ).values('id', 'type', 'deployments')
 
-            LEFT JOIN deployments_personnel
-            ON deployments_deployedperson.id = deployments_personnel.deployedperson_ptr_id
-
-            LEFT JOIN deployments_personneldeployment
-            ON deployments_personneldeployment.id = deployments_personnel.deployment_id
-
-            LEFT JOIN api_event
-            ON deployments_personneldeployment.event_deployed_to_id = api_event.id
-
-            WHERE deployments_deployedperson.end_date > CURRENT_TIMESTAMP
-            AND api_event.is_featured IS TRUE
-
-            GROUP BY deployments_personneldeployment.event_deployed_to_id, deployments_personnel.type
-            ORDER BY deployments_personneldeployment.event_deployed_to_id, deployments_personnel.type''')
-        serializer = ListEventDeploymentsSerializer(self.queryset, many=True)
-        return Response(serializer.data)
 
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
@@ -131,7 +120,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         except ValueError:
             # NOTE: If pk is not integer try searching for name or iso
             country = Country.objects.filter(
-                Q(name__iexact=str(pk)) | Q(iso__iexact=str(pk))
+                models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk))
             )
             if country.exists():
                 return country.first()

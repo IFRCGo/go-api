@@ -201,12 +201,6 @@ class AlertLevel(IntEnum):
     RED = 2
 
 
-class EventDeployments(models.Model):
-    event_deployed_to = models.IntegerField(null=True, blank=True)
-    deployments = models.IntegerField(null=True, blank=True)
-    type = models.CharField(max_length=4, blank=True)
-
-
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
