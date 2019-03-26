@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+## 1.1.43
+- Country name into field_report notification email
+- Adding Austrian subdomains (e.g. s.roteskreuz.at) to domain list
+
 ## 1.1.42
 - Featured event deployments count
 
@@ -241,7 +245,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.42...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.43...HEAD
+[1.1.43]: https://github.com/IFRCGo/go-api/compare/1.1.42...1.1.43
 [1.1.42]: https://github.com/IFRCGo/go-api/compare/1.1.41...1.1.42
 [1.1.41]: https://github.com/IFRCGo/go-api/compare/1.1.40...1.1.41
 [1.1.40]: https://github.com/IFRCGo/go-api/compare/1.1.39...1.1.40
