@@ -106,7 +106,12 @@ class Command(BaseCommand):
 
     def get_record_title(self, record, rtype):
         if rtype == RecordType.FIELD_REPORT:
-            return record.summary
+            sendMe = record.summary
+            if record.countries.all():
+                country = record.countries.all()[0].name
+                if country not in sendMe:
+                    sendMe = sendMe + ' (' + country + ')'
+            return sendMe
         else:
             return record.name
 
@@ -197,7 +202,7 @@ class Command(BaseCommand):
     def filter_just_created(self, queryset):
         if queryset.first() is None:
             return []
-        if queryset.first().modified_at is not None:
+        if hasattr(queryset.first(), 'modified_at') and queryset.first().modified_at is not None:
             return [record for record in queryset if (
                 record.modified_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
         else:
