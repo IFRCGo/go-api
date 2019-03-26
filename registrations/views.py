@@ -155,6 +155,15 @@ def is_valid_domain(email):
         'rodekruis.nl',
         'redcross.nl',
         'roteskreuz.at',
+        'st.roteskreuz.at', # Steiermark (Styria)
+        's.roteskreuz.at',  # Salzburg
+        'b.roteskreuz.at',  # Burgenland
+        't.roteskreuz.at',  # Tirol (Tyrol)
+        'w.roteskreuz.at',  # Wien (Vienna)
+        'v.roteskreuz.at',  # Vorarlberg
+        'k.roteskreuz.at',  # Kaernten (Carinthia)
+        'n.roteskreuz.at',  # Niederoesterreich (lower Austria)
+        'o.roteskreuz.at',  # Oberoesterreich (upper Austria)
         'roteskreuz.li',
         'rwandaredcross.org',
         'sarc.sy',
@@ -162,7 +171,7 @@ def is_valid_domain(email):
         'sierraleoneredcross.org',
         'srcs.sd',
         'standcom.ch',
-        'voroskereszt.hu'
+        'voroskereszt.hu' # no comma
     ]
     if domain in allowed_list:
         return True
