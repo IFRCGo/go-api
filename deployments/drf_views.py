@@ -31,6 +31,7 @@ class ERUFilter(filters.FilterSet):
     deployed_to__in = ListFilter(name='deployed_to__id')
     type = filters.NumberFilter(name='type', lookup_expr='exact')
     event = filters.NumberFilter(name='event', lookup_expr='exact')
+    event__in = ListFilter(name='event')
     class Meta:
         model = ERU
         fields = ('available',)
