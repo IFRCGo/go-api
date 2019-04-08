@@ -38,7 +38,7 @@ class ERUFilter(filters.FilterSet):
 
 class ERUViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    #permission_classes = (IsAuthenticated,) # Some figures are shown on the home page also, and not only authenticated users should see them.
     queryset = ERU.objects.all()
     serializer_class = ERUSerializer
     filter_class = ERUFilter
