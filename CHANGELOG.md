@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.45
+
+### Added
+ - Some ERU figures should be shown on the home page
+
 ### Added
 
 ## 1.1.44
@@ -248,7 +253,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.44...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.45...HEAD
+[1.1.45]: https://github.com/IFRCGo/go-api/compare/1.1.44...1.1.45
 [1.1.44]: https://github.com/IFRCGo/go-api/compare/1.1.43...1.1.44
 [1.1.43]: https://github.com/IFRCGo/go-api/compare/1.1.42...1.1.43
 [1.1.42]: https://github.com/IFRCGo/go-api/compare/1.1.41...1.1.42
