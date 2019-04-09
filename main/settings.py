@@ -135,16 +135,24 @@ TINYMCE_DEFAULT_CONFIG = {
             anchor pagebreak
             ''',
     'toolbar1': '''
-            fullscreen preview bold italic underline | fontselect,
-            fontsizeselect  | forecolor backcolor | alignleft alignright |
-            aligncenter alignjustify | indent outdent | bullist numlist table |
-            | link image media | codesample |
+            bold italic underline fontsizeselect
+            | forecolor | alignleft alignright | aligncenter alignjustify
+            | indent outdent | bullist numlist |
+            | link visualchars charmap hr nonbreaking | code preview fullscreen
             ''',
-    'toolbar2': '''
-            visualblocks visualchars |
-            charmap hr pagebreak nonbreaking anchor |  code |
-            ''',
-    'contextmenu': 'formats | link image',
+
+#   If more formatting possibilities needed (or more rows), choose from these:
+#   'toolbar1': '''
+#           fullscreen preview bold italic underline | fontselect,
+#           fontsizeselect  | forecolor backcolor | alignleft alignright |
+#           aligncenter alignjustify | indent outdent | bullist numlist table |
+#           | link image media | codesample |
+#           ''',
+#   'toolbar2': '''
+#           visualblocks visualchars |
+#           charmap hr pagebreak nonbreaking anchor |  code |
+#           ''',
+    'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
 }
