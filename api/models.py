@@ -209,7 +209,7 @@ class Event(models.Model):
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
-    summary = HTMLField(blank=True)
+    summary = HTMLField(blank=True, default='')
     num_affected = models.IntegerField(null=True, blank=True)
     alert_level = EnumIntegerField(AlertLevel, default=0)
     glide = models.CharField(max_length=18, blank=True)
