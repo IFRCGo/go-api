@@ -96,7 +96,7 @@ urlpatterns = [
     url(r'^change_password', ChangePassword.as_view()),
     url(r'^recover_password', RecoverPassword.as_view()),
     url(r'^show_username', ShowUsername.as_view()),
-
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
+    url(r'^tinymce/', include('tinymce.urls')),
 ]
