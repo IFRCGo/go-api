@@ -168,7 +168,7 @@ class ListEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('name',)
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'field_reports', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'alert_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'field_reports', 'updated_at', 'id',)
 
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
