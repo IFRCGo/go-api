@@ -4,8 +4,7 @@ from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from .storage import AzureStorage
-#from tinymce import HTMLField
-
+from tinymce import HTMLField
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -210,7 +209,7 @@ class Event(models.Model):
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
-    summary = models.TextField(blank=True)
+    summary = HTMLField(blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
     alert_level = EnumIntegerField(AlertLevel, default=0)
     glide = models.CharField(max_length=18, blank=True)
@@ -516,7 +515,7 @@ class FieldReport(models.Model):
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(blank=True)
-    description = models.TextField(blank=True, default='')
+    description = HTMLField(blank=True, default='')
     dtype = models.ForeignKey(DisasterType, on_delete=models.PROTECT)
     event = models.ForeignKey(Event, related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
