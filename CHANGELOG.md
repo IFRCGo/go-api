@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.47
+## 1.1.46
+
+### Added
+ - We need to expose updated_at for events - also in detailed
+
 ## 1.1.45
 
 ### Added
@@ -253,7 +259,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.45...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.47...HEAD
+[1.1.47]: https://github.com/IFRCGo/go-api/compare/1.1.46...1.1.47
+[1.1.46]: https://github.com/IFRCGo/go-api/compare/1.1.45...1.1.46
 [1.1.45]: https://github.com/IFRCGo/go-api/compare/1.1.44...1.1.45
 [1.1.44]: https://github.com/IFRCGo/go-api/compare/1.1.43...1.1.44
 [1.1.43]: https://github.com/IFRCGo/go-api/compare/1.1.42...1.1.43
