@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.48
 
 ### Added
- - Wysiwyg editing by tinyMCE4-lite
+ - Wysiwyg HTML editing by tinyMCE4-lite
 
 ## 1.1.47
 ## 1.1.46
