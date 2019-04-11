@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.49
 ## 1.1.48
 
 ### Added
- - Wysiwyg editing via tinyMCE4-lite
+ - Wysiwyg HTML editing by tinyMCE4-lite
 
 ## 1.1.47
 ## 1.1.46
@@ -264,7 +265,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.48...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.49...HEAD
+[1.1.49]: https://github.com/IFRCGo/go-api/compare/1.1.48...1.1.49
 [1.1.48]: https://github.com/IFRCGo/go-api/compare/1.1.47...1.1.48
 [1.1.47]: https://github.com/IFRCGo/go-api/compare/1.1.46...1.1.47
 [1.1.46]: https://github.com/IFRCGo/go-api/compare/1.1.45...1.1.46
