@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django_filters',
     'graphene_django',
     'api',
+#   'per',
     'notifications',
     'registrations',
     'deployments',
