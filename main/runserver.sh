@@ -59,7 +59,11 @@ service cron start
 tail -n 0 -f $HOME/logs/*.log &
 
 # add
-sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
+if [ "$API_FQDN"x = prddsgocdnapi.azureedge.netx ]; then
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+else
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
+fi
 
 echo Starting nginx
 exec nginx -g 'daemon off;'
