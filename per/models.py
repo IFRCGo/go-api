@@ -19,7 +19,7 @@ def to_dict(instance):
             data[f.name] = f.value_from_object(instance)
     return data
 
-class PERStatus(IntEnum):
+class Status(IntEnum):
     NO                          = 0
     YES                         = 1
     NOT_REVIEWED                = 2 # Not Reviewed     
@@ -27,18 +27,18 @@ class PERStatus(IntEnum):
     PARTIALLY_EXISTS            = 4 # Partially exists
     NEED_IMPROVEMENTS           = 5 # Need improvements
     EXIST_COULD_BE_STRENGTHENED = 6 # Exist, could be strengthened
-    HIGH_PERFORMANCE            = 7 # High performance
+    HIGH_PERFORMANCE            = 7 # High Performance
 
-class PERLanguage(IntEnum):
+class Language(IntEnum):
     SPANISH = 0
     FRENCH =  1
     ENGLISH = 2
 
-class PERForm(models.Model):
+class Form(models.Model):
     """ PER form header """
     code = models.CharField(max_length=10)
     name = models.CharField(max_length=100)
-    language = EnumIntegerField(PERLanguage)
+    language = EnumIntegerField(Language)
     user = models.CharField(max_length=100, null=True, blank=True) #later maybe models.ForeignKey(RealUser, null=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True)
@@ -48,18 +48,21 @@ class PERForm(models.Model):
     class Meta:
         ordering = ('code', 'name', 'language', 'created_at')
 
-    def __str__(self):
-        return self.name
 
-class PERFormData(models.Model):
+    def __str__(self):
+        return '%s - %s (%s)' % (self.code, self.name, self.language)
+
+class FormData(models.Model):
     """ PER form data """
-    form = models.ForeignKey(PERForm, on_delete=models.CASCADE)
+    form = models.ForeignKey(Form, on_delete=models.CASCADE)
     question_id = models.CharField(max_length=10)
-    selected_option = EnumIntegerField(PERStatus)
+    selected_option = EnumIntegerField(Status)
     notes = models.TextField()
 
     class Meta:
         ordering = ('form', 'question_id')
+        verbose_name = 'Form Data'
+        verbose_name_plural = 'Form Data'
 
     def __str__(self):
         return self.name
