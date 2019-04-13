@@ -99,6 +99,9 @@ class PartnerSocietyActivities(models.Model):
     activity = models.CharField(max_length=50)
     def __str__(self):
         return self.activity
+    class Meta:
+        verbose_name = 'Partner society activity'
+        verbose_name_plural = 'Partner society activities'
 
 
 class PartnerSocietyDeployment(DeployedPerson):
