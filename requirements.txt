@@ -34,7 +34,7 @@ gunicorn==19.7.1
 idna==2.6
 iso8601==0.1.12
 itypes==1.1.0
-Jinja2==2.10
+Jinja2==2.10.1
 Markdown==2.6.11
 MarkupSafe==1.0
 Pillow==5.1.0
