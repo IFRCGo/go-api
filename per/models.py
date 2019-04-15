@@ -40,6 +40,7 @@ class Form(models.Model):
     name = models.CharField(max_length=100)
     language = EnumIntegerField(Language)
     user = models.CharField(max_length=100, null=True, blank=True) #later maybe models.ForeignKey(RealUser, null=True)
+    ns = models.CharField(max_length=100, null=True, blank=True) #later maybe models.ForeignKey(NationalSociety, null=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True)
     finalized = models.BooleanField(default=False)

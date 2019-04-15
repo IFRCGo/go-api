@@ -6,15 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.52
 ## 1.1.51
-
-### Added
- - PER forms
-
 ## 1.1.50
 
 ### Added
- - Jinja upgrade, api url alias
+ - PER forms and api.go.ifrc.org alias (prod)
+ - Jinja upgrade
 
 ## 1.1.49
 ## 1.1.48
@@ -275,7 +273,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.51...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.52...HEAD
+[1.1.52]: https://github.com/IFRCGo/go-api/compare/1.1.51...1.1.52
 [1.1.51]: https://github.com/IFRCGo/go-api/compare/1.1.50...1.1.51
 [1.1.50]: https://github.com/IFRCGo/go-api/compare/1.1.49...1.1.50
 [1.1.49]: https://github.com/IFRCGo/go-api/compare/1.1.48...1.1.49
