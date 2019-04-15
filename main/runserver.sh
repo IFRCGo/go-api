@@ -61,6 +61,7 @@ tail -n 0 -f $HOME/logs/*.log &
 # add
 if [ "$API_FQDN"x = prddsgocdnapi.azureedge.netx ]; then
     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+    sed -i "s/ALLOWED_HOSTS.append(production_url)/ALLOWED_HOSTS.append(production_url)\n    ALLOWED_HOSTS.append('api.go.ifrc.org')/" $HOME/go-api/main/settings.py
 else
     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
 fi

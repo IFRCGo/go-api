@@ -319,7 +319,7 @@ class VerifyEmail(PublicJsonRequestView):
         else:
             admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
             for idx, admin in enumerate(admins):
-                token = pending_user.admin_token_1 if idx == 1 else pending_user.admin_token_2
+                token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
                         settings.BASE_URL,
