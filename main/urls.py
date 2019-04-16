@@ -34,6 +34,9 @@ from registrations.views import (
     VerifyEmail,
     ValidateUser,
 )
+from per.views import (
+    FormSent,
+)
 
 # DRF routes
 from rest_framework import routers
@@ -60,18 +63,12 @@ router.register(r'appeal_document', api_views.AppealDocumentViewset)
 router.register(r'profile', api_views.ProfileViewset, base_name='profile')
 router.register(r'user', api_views.UserViewset, base_name='user')
 router.register(r'field_report', api_views.FieldReportViewset, base_name='field_report')
-
 router.register(r'eru', deployment_views.ERUViewset)
-router.register(
-    r'featured_event_deployments',
-    api_views.EventDeploymentsViewset,
-    base_name='featured_event_deployments',
-)
+router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset,base_name='featured_event_deployments')
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset)
 router.register(r'personnel', deployment_views.PersonnelViewset)
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
-
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 
@@ -91,6 +88,7 @@ urlpatterns = [
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^register', NewRegistration.as_view()),
+    url(r'^sendperform', FormSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
