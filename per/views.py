@@ -14,13 +14,13 @@ def create_form(raw):
                                name         = raw['name'],
                                language     = raw['language'],
                                ip_address   = raw['ip_address'],
-                               unique_id    = raw['unique_id'],
                                started_at   = raw['started_at'],
                                ended_at     = raw['ended_at'],
                                submitted_at = raw['submitted_at'],
                                comment      = raw['comment'],
                                validated    = raw['validated'],
                                finalized    = raw['finalized'],
+                               # unique_id  = raw['unique_id'], # only KoBo form provided
                                )
     form.save()
     return form

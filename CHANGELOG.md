@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.55
 ## 1.1.54
 ## 1.1.53
 ## 1.1.52
@@ -13,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.50
 
 ### Added
+ - Unique_id not needed to PER form (just from KoBo form)
  - PER form data (and header) insertion via JSON POST
  - api.go.ifrc.org alias (prod)
  - Registration fix (admin_1/admin_2 for non-IFRC users)
@@ -277,7 +279,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.54...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.55...HEAD
+[1.1.55]: https://github.com/IFRCGo/go-api/compare/1.1.54...1.1.55
 [1.1.54]: https://github.com/IFRCGo/go-api/compare/1.1.53...1.1.54
 [1.1.53]: https://github.com/IFRCGo/go-api/compare/1.1.52...1.1.53
 [1.1.52]: https://github.com/IFRCGo/go-api/compare/1.1.51...1.1.52
