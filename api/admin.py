@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
 import api.models as models
+from .storage import AzureStorage
 
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
