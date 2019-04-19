@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
 from tastypie.api import Api
 from api.views import (
@@ -97,4 +98,5 @@ urlpatterns = [
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
+    url(r'^favicon\.ico$',RedirectView.as_view(url='/data/favicon.ico')),
 ]
