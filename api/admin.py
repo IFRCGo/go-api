@@ -329,6 +329,18 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
 
+    def save_model(self, request, obj, form, change):
+        for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
+            if i<30:
+                if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
+                    models.SituationReport.objects.create(
+                        name        =obj.name if i == 0 else obj.name + '_' + str(i),
+                        document    =one_document,
+                        document_url=obj.document_url,
+                        event       =obj.event,
+                        type        =obj.type,
+                        visibility  =obj.visibility,
+                        )
 
 class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
