@@ -332,7 +332,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     autocomplete_fields = ('event',)
 
 # Did not work due to azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
-# So fieldsed.html and tabular.html templates were also neutralized
+# So fieldset.html and tabular.html templates were also neutralized
 #   def save_model(self, request, obj, form, change):
 #       if obj.name[:5] == 'debug':
 #           pdb.set_trace()

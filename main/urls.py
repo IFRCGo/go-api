@@ -98,5 +98,5 @@ urlpatterns = [
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
-    url(r'^favicon\.ico$',RedirectView.as_view(url='/data/favicon.ico')),
+    url(r'^favicon\.ico$',RedirectView.as_view(url='/static/favicon.ico')),
 ]
