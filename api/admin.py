@@ -7,6 +7,7 @@ from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
 import api.models as models
 from .storage import AzureStorage
+import pdb
 
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
@@ -332,7 +333,8 @@ class SituationReportAdmin(RegionRestrictedAdmin):
 
     def save_model(self, request, obj, form, change):
         if obj.name[:5] == 'debug':
-            import pdb; pdb.set_trace()
+            pdb.set_trace()
+            debug=True
         for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
             if i<30:
                 if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
