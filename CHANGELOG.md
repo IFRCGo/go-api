@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.56
+
+### Added
+ - Multiple file upload
+
 ## 1.1.55
 ## 1.1.54
 ## 1.1.53
@@ -279,7 +284,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.55...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.56...HEAD
+[1.1.56]: https://github.com/IFRCGo/go-api/compare/1.1.55...1.1.56
 [1.1.55]: https://github.com/IFRCGo/go-api/compare/1.1.54...1.1.55
 [1.1.54]: https://github.com/IFRCGo/go-api/compare/1.1.53...1.1.54
 [1.1.53]: https://github.com/IFRCGo/go-api/compare/1.1.52...1.1.53
