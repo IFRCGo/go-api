@@ -17,7 +17,7 @@
                         {% if field.is_readonly %}
                             <div class="readonly">{{ field.contents }}</div>
                         {% else %}
-                            {% if field.field.name == 'document' and opts.verbose_name == 'situation report' %}{# other types may come here also #}
+                            {% if field.field.name == 'DELETEMEdocument' and opts.verbose_name == 'situation report' %}{# other types may come here also #}
                                 <input type="file" name="documents_multiple" id="id_document" multiple />
                             {% else %}
                                 {{ field.field }}
