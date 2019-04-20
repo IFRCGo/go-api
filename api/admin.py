@@ -6,8 +6,6 @@ from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
 import api.models as models
-from .storage import AzureStorage
-import pdb
 
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
@@ -334,9 +332,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
 # Did not work due to azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
 # So fieldset.html and tabular.html templates were also neutralized
 #   def save_model(self, request, obj, form, change):
-#       if obj.name[:5] == 'debug':
-#           pdb.set_trace()
-#           debug=True
+#       #obj.save()???
 #       for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
 #           if i<30:
 #               if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
