@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.62
+
+### Added
+ - Modules upgrading (mainly Azure storage)
+
 ## 1.1.61
 
 ### Added
@@ -293,7 +298,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.61...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.62...HEAD
+[1.1.62]: https://github.com/IFRCGo/go-api/compare/1.1.61...1.1.62
 [1.1.61]: https://github.com/IFRCGo/go-api/compare/1.1.60...1.1.61
 [1.1.60]: https://github.com/IFRCGo/go-api/compare/1.1.59...1.1.60
 [1.1.59]: https://github.com/IFRCGo/go-api/compare/1.1.58...1.1.59
