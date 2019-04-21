@@ -123,6 +123,22 @@ class EventContactInline(admin.TabularInline):
 class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
+#Does not work here in Inline, only at normal Sit.Rep.Adm. Maybe need not test i == 0?
+#    def save_model(self, request, obj, form, change):
+#       if change:
+#           obj.save()
+#       else:
+#           for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
+#               if i<30:
+#                   if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
+#                       models.SituationReport.objects.create(
+#                           name        =obj.name if i == 0 else obj.name + '_' + str(i),
+#                           document    =one_document,
+#                           document_url=obj.document_url,
+#                           event       =obj.event,
+#                           type        =obj.type,
+#                           visibility  =obj.visibility,
+#                           )
 
 class EventAdmin(RegionRestrictedAdmin):
     country_in = 'countries__pk__in'
@@ -329,21 +345,22 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
 
-# Did not work due to azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
-# So fieldset.html and tabular.html templates were also neutralized
-#   def save_model(self, request, obj, form, change):
-#       #obj.save()???
-#       for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
-#           if i<30:
-#               if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
-#                   models.SituationReport.objects.create(
-#                       name        =obj.name if i == 0 else obj.name + '_' + str(i),
-#                       document    =one_document,
-#                       document_url=obj.document_url,
-#                       event       =obj.event,
-#                       type        =obj.type,
-#                       visibility  =obj.visibility,
-#                       )
+# Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
+    def save_model(self, request, obj, form, change):
+       if change:
+           obj.save()
+       else:
+           for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
+               if i<30:
+                   if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
+                       models.SituationReport.objects.create(
+                           name        =obj.name if i == 0 else obj.name + '_' + str(i),
+                           document    =one_document,
+                           document_url=obj.document_url,
+                           event       =obj.event,
+                           type        =obj.type,
+                           visibility  =obj.visibility,
+                           )
 
 class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
