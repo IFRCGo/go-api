@@ -57,8 +57,8 @@
                   <p>{{ field.contents }}</p>
               {% else %}
                   {{ field.field.errors.as_ul }}
-                  {% if field.field.name == 'DELETEMEdocument' and opts.verbose_name == 'Emergency' %}{# other types may come here also #}
-                      <input type="file" name="documents_multiple" id="id_document" multiple />
+                  {% if field.field.name == 'document' and opts.verbose_name == 'Emergency' and request.path|slice:"-5:" == '/add/' %}{# other types may come here also #}
+                      <input type="file" name="documents_multiple" id="id_documents" multiple />
                   {% else %}
                       {{ field.field }}
                   {% endif %}
