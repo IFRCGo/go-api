@@ -123,22 +123,6 @@ class EventContactInline(admin.TabularInline):
 class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
-#Does not work here in Inline, only at normal Sit.Rep.Adm. Maybe need not test i == 0?
-#    def save_model(self, request, obj, form, change):
-#       if change:
-#           obj.save()
-#       else:
-#           for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
-#               if i<30:
-#                   if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
-#                       models.SituationReport.objects.create(
-#                           name        =obj.name if i == 0 else obj.name + '_' + str(i),
-#                           document    =one_document,
-#                           document_url=obj.document_url,
-#                           event       =obj.event,
-#                           type        =obj.type,
-#                           visibility  =obj.visibility,
-#                           )
 
 class EventAdmin(RegionRestrictedAdmin):
     country_in = 'countries__pk__in'
@@ -169,6 +153,24 @@ class EventAdmin(RegionRestrictedAdmin):
             )
         return mark_safe('<span class="errors">No related field reports</span>')
     field_reports.short_description = 'Field Reports'
+
+# For multiple document fields inline. TO be FIXED: only the last one is saved. Change also tabular.html (DELETEME)
+#   def save_formset(self, request, form, formset, change):
+#       if hasattr(formset.model, 'document'): # SituationReports (or other similars)
+#           instances = formset.save(commit=False)
+#           for inst in formset.deleted_objects:
+#               inst.delete()
+#           for inst in formset.changed_objects:
+#               inst.save()
+#           for inst in formset.new_objects:
+#               for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
+#                   if i<30: # not letting tons of documents to be attached
+#                       inst.name     = inst.name if i == 0 else inst.name + '-' + str(i)
+#                       inst.document = one_document
+#                       inst.save()
+#           formset.save_m2m()
+#       else:
+#           formset.save()
 
 
 class GdacsAdmin(RegionRestrictedAdmin):
@@ -351,16 +353,15 @@ class SituationReportAdmin(RegionRestrictedAdmin):
            obj.save()
        else:
            for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
-               if i<30:
-                   if not change or i == 0: # In case of data change do not allow to multiple documents, only at first create time.
-                       models.SituationReport.objects.create(
-                           name        =obj.name if i == 0 else obj.name + '_' + str(i),
-                           document    =one_document,
-                           document_url=obj.document_url,
-                           event       =obj.event,
-                           type        =obj.type,
-                           visibility  =obj.visibility,
-                           )
+               if i<30: # not letting tons of documents to be attached
+                   models.SituationReport.objects.create(
+                       name        =obj.name if i == 0 else obj.name + '-' + str(i),
+                       document    =one_document,
+                       document_url=obj.document_url,
+                       event       =obj.event,
+                       type        =obj.type,
+                       visibility  =obj.visibility,
+                       )
 
 class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
