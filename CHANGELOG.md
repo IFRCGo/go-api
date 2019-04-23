@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.64
 ## 1.1.63
 
 ### Added
- - Multiple file upload v2
+ - Multiple file upload – only for sit.rep admin page
 
 ## 1.1.62
 
@@ -303,7 +304,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.63...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.64...HEAD
+[1.1.64]: https://github.com/IFRCGo/go-api/compare/1.1.63...1.1.64
 [1.1.63]: https://github.com/IFRCGo/go-api/compare/1.1.62...1.1.63
 [1.1.62]: https://github.com/IFRCGo/go-api/compare/1.1.61...1.1.62
 [1.1.61]: https://github.com/IFRCGo/go-api/compare/1.1.60...1.1.61
