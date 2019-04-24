@@ -129,7 +129,7 @@ class EventAdmin(RegionRestrictedAdmin):
     region_in = 'regions__pk__in'
 
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
-    list_display = ('name', 'alert_level', 'glide', 'auto_generated', 'auto_generated_source',)
+    list_display = ('name', 'ifrc_severity_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
     search_fields = ('name', 'countries__name', 'dtype__name',)
     readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
