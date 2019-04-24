@@ -210,8 +210,14 @@ class Event(models.Model):
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
     summary = HTMLField(blank=True, default='')
+
+    num_injured = models.IntegerField(null=True, blank=True)
+    num_dead = models.IntegerField(null=True, blank=True)
+    num_missing = models.IntegerField(null=True, blank=True)
     num_affected = models.IntegerField(null=True, blank=True)
-    alert_level = EnumIntegerField(AlertLevel, default=0)
+    num_displaced = models.IntegerField(null=True, blank=True)
+
+    ifrc_severity_level = EnumIntegerField(AlertLevel, default=0, verbose_name='IFRC Severity level') # Changed to ‘IFRC Severity level’ from alert_level - Sune's ask
     glide = models.CharField(max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField()
