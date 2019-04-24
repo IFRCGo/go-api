@@ -84,7 +84,7 @@ class Command(BaseCommand):
                         'disaster_start_date': data['publication_date'],
                         'auto_generated': True,
                         'auto_generated_source': SOURCES['gdacs'],
-                        'alert_level': data['alert_level'],
+                        'ifrc_severity_level': data['alert_level'],
                     }
                     event = Event.objects.create(**fields)
                     # add countries
