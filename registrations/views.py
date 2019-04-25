@@ -171,6 +171,7 @@ def is_valid_domain(email):
         'sierraleoneredcross.org',
         'srcs.sd',
         'standcom.ch',
+        'trcs.or.tz',
         'voroskereszt.hu' # no comma
     ]
     if domain in allowed_list:
