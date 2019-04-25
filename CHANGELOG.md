@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.67
+
+### Added
+ - Tanzania to trusted domains
+
 ## 1.1.66
 ## 1.1.65
 
@@ -310,7 +315,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.66...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.67...HEAD
+[1.1.67]: https://github.com/IFRCGo/go-api/compare/1.1.66...1.1.67
 [1.1.66]: https://github.com/IFRCGo/go-api/compare/1.1.65...1.1.66
 [1.1.65]: https://github.com/IFRCGo/go-api/compare/1.1.64...1.1.65
 [1.1.64]: https://github.com/IFRCGo/go-api/compare/1.1.63...1.1.64
