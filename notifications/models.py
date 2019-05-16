@@ -67,6 +67,7 @@ class RecordType(IntEnum):
     REGION = 5
     DTYPE = 6
 
+    PER_DUE_DATE = 7
 
 class Subscription(models.Model):
     """ User subscriptions """
@@ -83,6 +84,7 @@ class Subscription(models.Model):
     country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
 
     lookup_id = models.CharField(max_length=20, null=True, blank=True, editable=False)
 
