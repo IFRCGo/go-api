@@ -6,9 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.70
 ## 1.1.69
 
 ### Added
+ - PER permissions
  - New notification system – also events are listened to
 
 ## 1.1.68
@@ -325,7 +327,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.69...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.70...HEAD
+[1.1.70]: https://github.com/IFRCGo/go-api/compare/1.1.69...1.1.70
 [1.1.69]: https://github.com/IFRCGo/go-api/compare/1.1.68...1.1.69
 [1.1.68]: https://github.com/IFRCGo/go-api/compare/1.1.67...1.1.68
 [1.1.67]: https://github.com/IFRCGo/go-api/compare/1.1.66...1.1.67
