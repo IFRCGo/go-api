@@ -137,6 +137,9 @@ class Subscription(models.Model):
                     error = 'Could not find disaster type with primary key %s' % req['value']
                 fields['lookup_id'] = 'd%s' % req['value']
 
+            elif rtype == RecordType.PER_DUE_DATE:
+                fields['stype'] = SubscriptionType.NEW
+
             elif rtype == RecordType.SURGE_ALERT:
                 fields['stype'] = SubscriptionType.NEW
 

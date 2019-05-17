@@ -16,6 +16,7 @@ class UnauthenticatedSurgeAlertSerializer(serializers.ModelSerializer):
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
+    event = MiniEventSerializer()
     class Meta:
         model = Subscription
-        fields = ('user', 'stype', 'rtype', 'country', 'region', 'dtype', 'lookup_id',)
+        fields = ('user', 'stype', 'rtype', 'country', 'region', 'event', 'dtype', 'lookup_id',)
