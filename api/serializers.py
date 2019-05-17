@@ -219,7 +219,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class MiniSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
-        fields = ('stype', 'rtype', 'country', 'region', 'dtype', 'lookup_id',)
+        fields = ('stype', 'rtype', 'country', 'region', 'event', 'dtype', 'lookup_id',)
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
