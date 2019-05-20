@@ -43,6 +43,7 @@ from per.views import (
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from api import drf_views as api_views
+from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 
@@ -72,6 +73,7 @@ router.register(r'personnel', deployment_views.PersonnelViewset)
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
+router.register(r'per', per_views.FormViewset)
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
