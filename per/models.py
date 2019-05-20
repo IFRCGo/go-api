@@ -1,4 +1,5 @@
 import uuid
+from api.models import Country
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -40,8 +41,9 @@ class Form(models.Model):
     code = models.CharField(max_length=10)
     name = models.CharField(max_length=100)
     language = EnumIntegerField(Language)
-    user = models.CharField(max_length=100, null=True, blank=True) #later maybe models.ForeignKey(RealUser, null=True)
-    ns = models.CharField(max_length=100, null=True, blank=True) #later maybe models.ForeignKey(NationalSociety, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    ns = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(default=timezone.now)
