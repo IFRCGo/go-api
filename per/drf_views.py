@@ -14,11 +14,11 @@ from api.visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
 
 from .models import (
-    Form,
+    Form, FormData
 )
 
 from .serializers import (
-    ListFormSerializer,
+    ListFormSerializer, ListFormDataSerializer,
 )
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
@@ -30,4 +30,15 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
             return ListFormSerializer
 #       else:
 #           return DetailFormSerializer
+        ordering_fields = ('name',)
+
+class FormDataViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = FormData.objects.all()
+    #uncomment_me! authentication_classes = (TokenAuthentication,)
+    #uncomment_me! permission_classes = (IsAuthenticated,)
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ListFormDataSerializer
+#       else:
+#           return DetailFormDataSerializer
         ordering_fields = ('name',)
