@@ -13,6 +13,9 @@ def create_form(raw):
     form = Form.objects.create(code         = raw['code'],
                                name         = raw['name'],
                                language     = raw['language'],
+                               user_id      = raw['user_id'],
+                               country_id   = raw['country_id'],
+                               ns           = raw['ns'],
                                ip_address   = raw['ip_address'],
                                started_at   = raw['started_at'],
                                ended_at     = raw['ended_at'],
@@ -64,6 +67,12 @@ class FormSent(PublicJsonPostView):
             body['validated'] = False
         if 'finalized' not in body:
             body['finalized'] = False
+        if 'user_id' not in body:
+            body['user_id'] = None
+        if 'country_id' not in body:
+            body['country_id'] = None
+        if 'ns' not in body:
+            body['ns'] = None
 
 
         missing_fields = [field for field in required_fields if field not in body]
@@ -97,6 +106,9 @@ class FormSent(PublicJsonPostView):
 #            "unique_id": "1aad9295-ceb9-4ad5-9b10-84cc423e93f4",
 #            "started_at": "2019-04-11 11:42:22.278796+00",
 #            "submitted_at": "2019-04-11 09:42:52.278796+00",
+#            "user_id": 1111,
+#            "country_id": 47,
+#            "ns": "Huhhhu vorikeri",
 #            "data": [{"id": "1.1", "op": 3, "nt": "notes here"}, {"id": "1.2", "op": 0, "nt": "notes here also"}]
 #             }' \
 #  http://localhost:8000/sendperform
