@@ -42,6 +42,7 @@ class Command(BaseCommand):
         # Documents for each appeal code
         output = []
         for code in appeal_codes:
+            code = code.replace(' ', '')
             print(code)
             docs_url = 'http://www.ifrc.org/en/publications-and-reports/appeals/?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
             response = urlopen(docs_url)
