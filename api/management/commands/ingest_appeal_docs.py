@@ -1,5 +1,8 @@
 import requests
 from datetime import datetime, timezone
+from urllib.request import urlopen
+import json
+from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument
@@ -9,6 +12,21 @@ from api.logger import logger
 class Command(BaseCommand):
     help = 'Ingest existing appeal documents'
 
+    def makelist(self, table):
+        result = []
+        allrows = table.findAll('tr')
+        for row in allrows:
+            url=''
+            for a in row.find_all('a', href=True):
+                url = a['href']
+            result.append([url])
+            allcols = row.findAll('td')
+            for col in allcols:
+                thestrings = [s.strip() for s in col.findAll(text=True)]
+                thetext = ''.join(thestrings)
+                result[-1].append(thetext)
+        return result
+
     def parse_date(self, date_string):
         # 21Dec2017
         timeformat = '%d%b%Y'
@@ -17,22 +35,28 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Starting appeal document ingest')
 
-        # get latest
-        url = 'https://proxy.hxlstandard.org/data.json?url=https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1gJ4N_PYBqtwVuJ10d8zXWxQle_i84vDx5dHNBomYWdU%2Fedit%3Fusp%3Dsharing'
+        # First get all Appeal Codes
+        appeal_codes = [a.code for a in Appeal.objects.all()
 
-        response = requests.get(url)
-        if response.status_code != 200:
-            logger.error('Error querying Appeal Document HXL API')
-            raise Exception('Error querying Appeal Document HXL API')
-        records = response.json()
+        # Modify code taken from https://pastebin.com/ieMe9yPc to scrape `publications-and-reports` and find
+        # Documents for each appeal code
+        output = []
+        for code in appeal_codes:
+            print(code)
+            docs_url = 'http://www.ifrc.org/en/publications-and-reports/appeals/?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            response = urlopen(docs_url)
+            soup = BeautifulSoup(response.read(), "lxml")
+            div = soup.find('div', id='cw_content')
+            for t in div.findAll('tbody'):
+                print(self.makelist(t))
+                output = output + self.makelist(t)
 
-        # some logging variables
+        # Once we have all Documents in output, we add all missing Documents to the associated Appeal
         not_found = []
         existing = []
         created = []
 
-        # group records by appeal code
-        acodes = list(set([a[2] for a in records[2:]]))
+        acodes = list(set([a[2] for a in output]))
         for code in acodes:
             try:
                 appeal = Appeal.objects.get(code=code)
@@ -41,7 +65,7 @@ class Command(BaseCommand):
                 continue
 
             existing_docs = list(appeal.appealdocument_set.all())
-            docs = [a for a in records if a[2] == code]
+            docs = [a for a in output if a[2] == code]
             for doc in docs:
                 exists = len([a for a in existing_docs if a.document_url == doc[0]]) > 0
                 if exists:
