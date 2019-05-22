@@ -51,6 +51,10 @@ services:
     <<: *base_django_setup
     command: python manage.py ingest_appeals
 
+  ingest_appeal_docs:
+    <<: *base_django_setup
+    command: python manage.py ingest_appeal_docs
+
   ingest_mdb:
     <<: *base_django_setup
     command: python manage.py ingest_mdb
