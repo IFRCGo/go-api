@@ -88,7 +88,6 @@ class FormSent(PublicJsonPostView):
 
         if 'data' in body:
             for rubr in body['data']:
-                print (rubr)
                 try:
                     create_form_data(rubr, form)
                 except:
