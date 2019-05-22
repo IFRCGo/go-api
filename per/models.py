@@ -57,9 +57,11 @@ class Form(models.Model):
 
     class Meta:
         ordering = ('code', 'name', 'language', 'created_at')
+        verbose_name = 'Form Header'
+        verbose_name_plural = 'Form Headers'
 
     def __str__(self):
-        return '%s - %s (%s)' % (self.code, self.name, self.language)
+        return '%s - %s (%s, %s)' % (self.code, self.name, self.language, self.country)
 
 class FormData(models.Model):
     """ PER form data """
@@ -74,4 +76,4 @@ class FormData(models.Model):
         verbose_name_plural = 'Form Data'
 
     def __str__(self):
-        return self.name
+        return '%s / %s' % (self.question_id, self.form)
