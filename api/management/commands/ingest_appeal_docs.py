@@ -36,7 +36,7 @@ class Command(BaseCommand):
         logger.info('Starting appeal document ingest')
 
         # First get all Appeal Codes
-        appeal_codes = [a.code for a in Appeal.objects.all()
+        appeal_codes = [a.code for a in Appeal.objects.all()]
 
         # Modify code taken from https://pastebin.com/ieMe9yPc to scrape `publications-and-reports` and find
         # Documents for each appeal code
