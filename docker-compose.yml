@@ -55,6 +55,10 @@ services:
     <<: *base_django_setup
     command: python manage.py ingest_appeal_docs
 
+  ingest_appeal_docs_fullscan:
+    <<: *base_django_setup
+    command: python manage.py ingest_appeal_docs --fullscan
+
   ingest_mdb:
     <<: *base_django_setup
     command: python manage.py ingest_mdb
