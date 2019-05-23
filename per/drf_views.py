@@ -22,10 +22,12 @@ from .serializers import (
 )
 
 # stackoverflow.com/questions/35581292/how-to-filter-user-related-records-with-permissions-in-django-rest-framework
+# www.django-rest-framework.org/api-guide/filtering/#djangoobjectpermissionsfilter
 class FormViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_serializer_class(self):
         if self.action == 'list':
             return ListFormSerializer
