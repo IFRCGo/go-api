@@ -62,6 +62,7 @@ class Command(BaseCommand):
         output = []
         page_not_found = []
         for code in appeal_codes:
+            code = code.replace(' ', '')
             docs_url = 'http://www.ifrc.org/en/publications-and-reports/appeals/?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
             try:
                 response = urlopen(docs_url)
@@ -81,7 +82,6 @@ class Command(BaseCommand):
 
         acodes = list(set([a[2] for a in output]))
         for code in acodes:
-            code = code.replace(' ', '') # some codes have spaces, remove them
             try:
                 appeal = Appeal.objects.get(code=code)
             except ObjectDoesNotExist:

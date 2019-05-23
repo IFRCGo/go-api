@@ -29,7 +29,6 @@ def create_form(raw):
     return form
 
 def create_form_data(raw, form):
-
     form_data = FormData.objects.create(form= form,
                             question_id     = raw['id'],
                             selected_option = raw['op'],

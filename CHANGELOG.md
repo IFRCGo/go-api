@@ -6,12 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.75
+## 1.1.74
+## 1.1.73
+
+### Added
+ - New ingest_appeal_docs
+
 ## 1.1.72
 ## 1.1.71
 ## 1.1.70
 ## 1.1.69
 
 ### Added
+ - Filter formdata for country and region
  - NS data into form sending
  - Authentication to PER forms
  - PER permissions
@@ -331,7 +339,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.72...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.75...HEAD
+[1.1.75]: https://github.com/IFRCGo/go-api/compare/1.1.74...1.1.75
+[1.1.74]: https://github.com/IFRCGo/go-api/compare/1.1.73...1.1.74
+[1.1.73]: https://github.com/IFRCGo/go-api/compare/1.1.72...1.1.73
 [1.1.72]: https://github.com/IFRCGo/go-api/compare/1.1.71...1.1.72
 [1.1.71]: https://github.com/IFRCGo/go-api/compare/1.1.70...1.1.71
 [1.1.70]: https://github.com/IFRCGo/go-api/compare/1.1.69...1.1.70
