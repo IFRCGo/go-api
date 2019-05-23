@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'tastypie',
     'rest_framework',
     'rest_framework.authtoken',
+    'guardian',
     'django_filters',
     'graphene_django',
     'api',
@@ -68,6 +69,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
+)
 
 CORS_ORIGIN_ALLOW_ALL = True
 

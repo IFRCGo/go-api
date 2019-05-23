@@ -24,6 +24,8 @@ django-tastypie==0.14.1
 django-tinymce4-lite==1.7.4
 djangorestframework==3.8.2
 djangorestframework-csv==2.1.0
+django-guardian==1.5.1
+djangorestframework-guardian==0.1.1
 elasticsearch==6.0.0
 futures==3.1.1
 graphene==2.0
@@ -39,7 +41,7 @@ jsmin==2.2.2
 Markdown==2.6.11
 MarkupSafe==1.0
 Pillow==5.1.0
-pip==19.0.3
+pip==19.1.1
 promise==2.1
 psycopg2==2.7.3.2
 pycparser==2.19
