@@ -32,25 +32,30 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
         if not len(countries) and not len(regions):
             return queryset.none()
 
-        if dispatch == 0:
+        if dispatch == 0: # Django admin filtering
         # Create an OR filter for records relating to this country or region
             country_in = getattr(self, 'country_in', None)
             region_in = getattr(self, 'region_in', None)
         elif dispatch == 1:
-        # from drf_views.py
-            country_in = 'country__pk__in'
-            region_in = 'country__region_id__in'
+        # From drf_views.py - collection of PER-user-relevant PER form headers
+            from .admin import FormAdmin
+            country_in = FormAdmin.country_in
+            region_in = FormAdmin.region_in
         elif dispatch == 2:
-        # from drf_views.py
-            country_in = 'form__country__pk__in'
-            region_in = 'form__country__region_id__in'
+        # From drf_views.py - collection of PER-user-relevant PER data
+            from .admin import FormDataAdmin
+            country_in = FormDataAdmin.country_in
+            region_in = FormDataAdmin.region_in
+        elif dispatch == 3:
+        # From drf_views.py - collection of PER-user-relevant countries
+            country_in = 'pk__in'
+            region_in = 'region_id__in'
 
         query = Q()
         has_valid_query = False
         if len(countries) and country_in is not None:
             query.add(Q(**{country_in: countries}), Q.OR)
             has_valid_query = True
-        print(region_in)
         if len(regions) and region_in is not None:
             query.add(Q(**{region_in: regions}), Q.OR)
             has_valid_query = True
