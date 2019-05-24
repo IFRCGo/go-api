@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.78
 ## 1.1.77
 ## 1.1.76
 ## 1.1.75
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.69
 
 ### Added
+ - Country list for PER views
  - Permissions for PER views v1, v2
  - Filter formdata for country and region
  - NS data into form sending
@@ -342,7 +344,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.77...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.78...HEAD
+[1.1.78]: https://github.com/IFRCGo/go-api/compare/1.1.77...1.1.78
 [1.1.77]: https://github.com/IFRCGo/go-api/compare/1.1.76...1.1.77
 [1.1.76]: https://github.com/IFRCGo/go-api/compare/1.1.75...1.1.76
 [1.1.75]: https://github.com/IFRCGo/go-api/compare/1.1.74...1.1.75
