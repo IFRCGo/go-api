@@ -22,7 +22,7 @@ django-filter==1.1.0
 django-storages==1.7.1
 django-tastypie==0.14.1
 django-tinymce4-lite==1.7.4
-djangorestframework==3.8.2
+djangorestframework==3.9.1
 djangorestframework-csv==2.1.0
 django-guardian==1.5.1
 djangorestframework-guardian==0.1.1

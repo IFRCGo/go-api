@@ -39,6 +39,10 @@ def create_form_data(raw, form):
 
 class FormSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
+
+        #if not request.user.is_authenticated:
+        #    return bad_request('Could not insert PER data due to not logged in user.')
+
         body = json.loads(request.body.decode('utf-8'))
 
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
