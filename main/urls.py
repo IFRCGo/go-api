@@ -75,6 +75,7 @@ router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 router.register(r'per', per_views.FormViewset)
 router.register(r'perdata', per_views.FormDataViewset)
+router.register(r'percountry', per_views.FormCountryViewset)
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

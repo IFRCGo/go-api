@@ -13,6 +13,8 @@ from api.visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
 from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
+from api.models import Country
+from api.serializers import MiniCountrySerializer
 
 from .models import (
     Form, FormData
@@ -51,15 +53,21 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
         queryset =  FormData.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 2)
 
-    def get_current_user(self):
-        username = None
-        if self.request.user.is_authenticated:
-            user = User.objects.filter(pk=self.request.user.pk)
-            return user
-
     def get_serializer_class(self):
         if self.action == 'list':
             return ListFormDataSerializer
 #       else:
 #           return DetailFormDataSerializer
         ordering_fields = ('name',)
+
+class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    serializer_class = MiniCountrySerializer
+
+    def get_queryset(self):
+        queryset =  Country.objects.all()
+        return self.get_filtered_queryset(self.request, queryset, 3)
