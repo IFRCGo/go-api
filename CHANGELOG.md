@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.81
+
+### Added
+ - Region into PER response list
+
 ## 1.1.80
 ## 1.1.79
 
@@ -350,7 +355,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.80...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.81...HEAD
+[1.1.81]: https://github.com/IFRCGo/go-api/compare/1.1.80...1.1.81
 [1.1.80]: https://github.com/IFRCGo/go-api/compare/1.1.79...1.1.80
 [1.1.79]: https://github.com/IFRCGo/go-api/compare/1.1.78...1.1.79
 [1.1.78]: https://github.com/IFRCGo/go-api/compare/1.1.77...1.1.78
