@@ -3,11 +3,15 @@ from django.contrib.auth.models import User
 from .models import (
     Form, FormData,
 )
+from api.serializers import (
+    RegoCountrySerializer
+)
 
 class ListFormSerializer(serializers.ModelSerializer):
+    country = RegoCountrySerializer()
     class Meta:
         model = Form
-        fields = ('name', 'code', 'updated_at', 'user_id', 'country_id', 'ns', 'language', 'id',)
+        fields = ('name', 'code', 'updated_at', 'user_id', 'country', 'ns', 'language', 'id',)
 
 class ListFormDataSerializer(serializers.ModelSerializer):
     class Meta:
