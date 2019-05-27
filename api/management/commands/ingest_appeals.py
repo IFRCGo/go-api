@@ -238,6 +238,8 @@ class Command(BaseCommand):
         num_created = 0
         for i, r in enumerate(new):
             fields = self.parse_appeal_record(r, is_new_appeal=True)
+            if fields['code'] in bilaterals: # correction of the appeal record due to appealbilaterals api
+                fields['amount_funded'] += round(bilaterals[fields['code']],1)
             try:
                 Appeal.objects.create(**fields)
             except Exception as e:
@@ -249,8 +251,7 @@ class Command(BaseCommand):
         num_updated = 0
         for i, r in enumerate(modified):
             fields = self.parse_appeal_record(r, is_new_appeal=False)
-
-            if fields['code'] in bilaterals: # small correction to the appeal record due to appealbilaterals api
+            if fields['code'] in bilaterals: # correction of the appeal record due to appealbilaterals api
                 fields['amount_funded'] += round(bilaterals[fields['code']],1)
 
             try:
