@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.79
+
+### Added
+ - Appealbilaterals API integration
+
 ## 1.1.78
 ## 1.1.77
 ## 1.1.76
@@ -344,7 +349,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.78...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.79...HEAD
+[1.1.79]: https://github.com/IFRCGo/go-api/compare/1.1.78...1.1.79
 [1.1.78]: https://github.com/IFRCGo/go-api/compare/1.1.77...1.1.78
 [1.1.77]: https://github.com/IFRCGo/go-api/compare/1.1.76...1.1.77
 [1.1.76]: https://github.com/IFRCGo/go-api/compare/1.1.75...1.1.76
