@@ -57,8 +57,40 @@ class Command(BaseCommand):
             logger.info('Using local appeals.json file')
             with open('appeals.json') as f:
                 modified = json.loads(f.read())
+            logger.info('Using local appealbilaterals.json file')
+            with open('appealbilaterals.json') as f:
+                records = json.loads(f.read())
+                bilaterals = {}
+                for r in records: # code duplication ¤
+                    if r['APP_Code'] and r['AmountCHF']:
+                        if r['APP_Code'] in bilaterals.keys():
+                            bilaterals[r['APP_Code']] += r['AmountCHF']
+                        else:
+                            bilaterals[r['APP_Code']] = r['AmountCHF']
         else:
-            # get latest, determine which appeals need to be ingested based on last modified time
+            # get latest BILATERALS
+            logger.info('Querying appeals API for new appeals data')
+            url = 'http://go-api.ifrc.org/api/appealbilaterals'
+            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            response = requests.get(url, auth=auth)
+            if response.status_code != 200:
+                logger.error('Error querying AppealBilaterals API')
+                raise Exception('Error querying AppealBilaterals API')
+            records = response.json()
+
+            # write the current record file to local disk
+            with open('appealbilaterals.json', 'w') as outfile:
+                json.dump(records, outfile)
+
+            bilaterals = {}
+            for r in records: # code duplication ¤
+                if r['APP_Code'] and r['AmountCHF']:
+                    if r['APP_Code'] in bilaterals.keys():
+                        bilaterals[r['APP_Code']] += r['AmountCHF']
+                    else:
+                        bilaterals[r['APP_Code']] = r['AmountCHF']
+
+            # get latest APPEALS
             logger.info('Querying appeals API for new appeals data')
             url = 'http://go-api.ifrc.org/api/appeals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
@@ -77,12 +109,14 @@ class Command(BaseCommand):
                 # Temporary filtering, the manual version should be kept:
                 if r['APP_code'] in ['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
+                #if r['APP_code'] != 'MDRMZ014': # Debug to test bilateral additions or other specific appeals
+                #    continue
                 if not r['APP_code'] in codes:
                     new.append(r)
                 # We use all records, do NOT check if last_modified > since_last_checked
                 modified.append(r)
 
-        return new, modified
+        return new, modified, bilaterals
 
     def parse_disaster_name(self, dname):
         if dname in dtype_keys:
@@ -107,7 +141,7 @@ class Command(BaseCommand):
 
         if country.count() == 0:
             country = None
-            #print(iso_code + ' ' + country_name) # for debug purpose for the "orphan" iso_codes
+            #print(iso_code + ' ' + country_name) # Debug: for the "orphan" iso_codes
         else:
             country = country.first()
         return country
@@ -196,7 +230,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logger.info('Starting appeals ingest')
-        new, modified = self.get_new_or_modified_appeals()
+        new, modified, bilaterals = self.get_new_or_modified_appeals()
         logger.info('%s current appeals' % Appeal.objects.all().count())
         logger.info('Creating %s new appeals' % len(new))
         logger.info('Updating %s existing appeals that have been modified' % len(modified))
@@ -215,6 +249,10 @@ class Command(BaseCommand):
         num_updated = 0
         for i, r in enumerate(modified):
             fields = self.parse_appeal_record(r, is_new_appeal=False)
+
+            if fields['code'] in bilaterals: # small correction to the appeal record due to appealbilaterals api
+                fields['amount_funded'] += round(bilaterals[fields['code']],1)
+
             try:
                 appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
             except Exception as e:
