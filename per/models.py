@@ -43,7 +43,7 @@ class Form(models.Model):
     language = EnumIntegerField(Language)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
-    ns = models.CharField(max_length=100, null=True, blank=True)
+    ns = models.CharField(max_length=100, null=True, blank=True) # redundant, because country has defined ns – later in "more ns/country" case it can be useful.
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(auto_now=True)
     submitted_at = models.DateTimeField(default=timezone.now)
