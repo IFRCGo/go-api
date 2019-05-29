@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.82
+
+### Added
+ - FormData filtering
+
 ## 1.1.81
 
 ### Added
@@ -355,7 +360,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.81...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.82...HEAD
+[1.1.82]: https://github.com/IFRCGo/go-api/compare/1.1.81...1.1.82
 [1.1.81]: https://github.com/IFRCGo/go-api/compare/1.1.80...1.1.81
 [1.1.80]: https://github.com/IFRCGo/go-api/compare/1.1.79...1.1.80
 [1.1.79]: https://github.com/IFRCGo/go-api/compare/1.1.78...1.1.79
