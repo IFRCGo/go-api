@@ -11,7 +11,7 @@ class ListFormSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
     class Meta:
         model = Form
-        fields = ('name', 'code', 'updated_at', 'user_id', 'country', 'ns', 'language', 'id',)
+        fields = ('name', 'code', 'updated_at', 'user_id', 'country', 'language', 'id',)
 
 class ListFormDataSerializer(serializers.ModelSerializer):
     class Meta:
