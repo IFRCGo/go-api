@@ -7,6 +7,7 @@ from rest_framework import viewsets
 from django.contrib import admin
 from django.db import models
 from django.utils import timezone
+from django_filters import rest_framework as filters
 from api.exceptions import BadRequest
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewset
@@ -42,12 +43,22 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
 #           return DetailFormSerializer
         ordering_fields = ('name',)
 
+class FormDataFilter(filters.FilterSet):
+    form = filters.NumberFilter(name='form', lookup_expr='exact')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    class Meta:
+        model = FormData
+        fields = {
+            'form': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
 class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     queryset = FormData.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    filter_class = FormDataFilter
 
     def get_queryset(self):
         queryset =  FormData.objects.all()
