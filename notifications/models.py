@@ -60,14 +60,12 @@ class RecordType(IntEnum):
     EVENT = 0
     APPEAL = 1
     FIELD_REPORT = 2
-
     SURGE_ALERT = 3
-
     COUNTRY = 4
     REGION = 5
     DTYPE = 6
-
     PER_DUE_DATE = 7
+    FOLLOWED_EVENT = 8
 
 class Subscription(models.Model):
     """ User subscriptions """
@@ -99,6 +97,8 @@ class Subscription(models.Model):
             'regions': RecordType.REGION,
             'countries': RecordType.COUNTRY,
             'disasterTypes': RecordType.DTYPE,
+            'perDueDates': RecordType.PER_DUE_DATE,
+            'followedEvent': RecordType.FOLLOWED_EVENT,
         }
 
         stype_map = {
@@ -136,6 +136,13 @@ class Subscription(models.Model):
                 except DisasterType.DoesNotExist:
                     error = 'Could not find disaster type with primary key %s' % req['value']
                 fields['lookup_id'] = 'd%s' % req['value']
+
+            elif rtype == RecordType.FOLLOWED_EVENT:
+                try:
+                    fields['event'] = Event.objects.get(pk=req['value'])
+                except Event.DoesNotExist:
+                    error = 'Could not find followed emergency with primary key %s' % req['value']
+                fields['lookup_id'] = 'e%s' % req['value']
 
             elif rtype == RecordType.PER_DUE_DATE:
                 fields['stype'] = SubscriptionType.NEW
