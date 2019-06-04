@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.85
+
+### Added
+ - PER permission endpoint (to show PER tab or not?)
+
 ## 1.1.84
 
 ### Added
@@ -370,7 +375,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.84...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.85...HEAD
+[1.1.85]: https://github.com/IFRCGo/go-api/compare/1.1.84...1.1.85
 [1.1.84]: https://github.com/IFRCGo/go-api/compare/1.1.83...1.1.84
 [1.1.83]: https://github.com/IFRCGo/go-api/compare/1.1.82...1.1.83
 [1.1.82]: https://github.com/IFRCGo/go-api/compare/1.1.81...1.1.82
