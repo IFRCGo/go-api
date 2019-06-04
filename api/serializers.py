@@ -62,6 +62,11 @@ class RegoCountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = ('name', 'society_name', 'region', 'id',)
 
+class NotCountrySerializer(serializers.ModelSerializer): # fake serializer for a short data response for PER
+    class Meta:
+        model = Country
+        fields = ('id',)
+
 class DistrictSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     class Meta:

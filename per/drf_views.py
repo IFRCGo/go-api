@@ -15,7 +15,7 @@ from deployments.models import Personnel
 from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
-from api.serializers import MiniCountrySerializer
+from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
 
 from .models import (
     Form, FormData
@@ -82,3 +82,18 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset =  Country.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 3)
+
+class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    serializer_class = NotCountrySerializer
+
+    def get_queryset(self):
+        queryset =  Country.objects.all()
+        if self.get_filtered_queryset(self.request, queryset, 3).exists():
+            return [Country.objects.get(id=1)]
+        else:
+            return Country.objects.none()
