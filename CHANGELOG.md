@@ -6,15 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.87
 ## 1.1.86
 
 ### Added
- - Search users from regions
+ - Search users from regions and some PER statistics
 
 ## 1.1.85
 
 ### Added
- - PER permission endpoint (to show PER tab or not?)
+ - PER permission endpoint (to show PER tab or not)
 
 ## 1.1.84
 
@@ -380,7 +381,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.86...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.87...HEAD
+[1.1.87]: https://github.com/IFRCGo/go-api/compare/1.1.86...1.1.87
 [1.1.86]: https://github.com/IFRCGo/go-api/compare/1.1.85...1.1.86
 [1.1.85]: https://github.com/IFRCGo/go-api/compare/1.1.84...1.1.85
 [1.1.84]: https://github.com/IFRCGo/go-api/compare/1.1.83...1.1.84
