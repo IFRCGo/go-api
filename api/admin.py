@@ -9,7 +9,22 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, ChoiceDropdownFilter, RelatedDropdownFilter
 )
 import api.models as models
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
+class GoUserAdmin(UserAdmin):
+    list_filter = (
+        ('profile__country__region', RelatedDropdownFilter),
+        ('profile__country', RelatedDropdownFilter),
+        ('groups', RelatedDropdownFilter),
+        'is_staff',
+        'is_superuser',
+        'is_active',
+    )
+
+admin.site.unregister(User)
+admin.site.register(User, GoUserAdmin)
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
     title = _('related emergency')
