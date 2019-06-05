@@ -108,7 +108,6 @@ class Subscription(models.Model):
 
         new = []
         errors = []
-        already_exists = False
         for req in body:
             rtype = rtype_map.get(req['type'], None)
             fields = { 'rtype': rtype, 'user': user }
@@ -142,9 +141,8 @@ class Subscription(models.Model):
                 lookup_id = 'e%s' % req['value']
                 if Subscription.objects.filter(user=user, lookup_id=lookup_id) and not deletePrevious:
                     # We check existence only when the previous subscriptions are not to be deleted (add only 1!)
-                    already_exists = True
+                    # In this case there is no need to continue the for loop, so "new" will be empty. See ¤ below.
                     break
-                    # In this case there is no neet to continue the for loop
                 else:
                     try:
                         fields['event'] = Event.objects.get(pk=req['value'])
@@ -174,8 +172,8 @@ class Subscription(models.Model):
         if not len(errors):
             if deletePrevious:
                 Subscription.objects.filter(user=user).delete()
-            if len(new) and not already_exists:
-                # Already_exists can be true only when we add 1 new event to follow
+            if len(new):
+                # When we try to add 1 new event which already exists, then "new" remains empty due to the above ¤ break.
                 Subscription.objects.bulk_create(new)
 
         return errors, new
