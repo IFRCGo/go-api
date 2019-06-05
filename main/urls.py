@@ -76,6 +76,7 @@ router.register(r'subscription', notification_views.SubscriptionViewset, base_na
 router.register(r'per', per_views.FormViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
+router.register(r'perstat', per_views.FormStatViewset)
 router.register(r'per_mission', per_views.FormPermissionViewset)
 
 admin.site.site_header = 'IFRC Go administration'
