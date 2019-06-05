@@ -22,7 +22,7 @@ from .models import (
 )
 
 from .serializers import (
-    ListFormSerializer, ListFormDataSerializer,
+    FormStatSerializer, ListFormSerializer, ListFormDataSerializer,
 )
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
@@ -82,6 +82,23 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset =  Country.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 3)
+
+class FormStatViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Form.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    # permission_classes = (IsAuthenticated,)
+    # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+
+    def get_queryset(self):
+        queryset =  Form.objects.all()
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return FormStatSerializer
+#       else:
+#           return DetailFormSerializer
+        ordering_fields = ('name',)
 
 class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()

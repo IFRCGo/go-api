@@ -7,6 +7,12 @@ from api.serializers import (
     RegoCountrySerializer, UserSerializer
 )
 
+class FormStatSerializer(serializers.ModelSerializer):
+    #country = RegoCountrySerializer()
+    class Meta:
+        model = Form
+        fields = ('name', 'code', 'country_id', 'language', 'id',)
+
 class ListFormSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
     user = UserSerializer()
