@@ -5,6 +5,9 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
+from django_admin_listfilter_dropdown.filters import (
+    DropdownFilter, ChoiceDropdownFilter, RelatedDropdownFilter
+)
 import api.models as models
 
 
@@ -339,7 +342,11 @@ class RegionAdmin(RegionRestrictedAdmin):
 
 
 class UserProfileAdmin(admin.ModelAdmin):
-    search_fields = ('user__username', 'user__email',)
+    search_fields = ('user__username', 'user__email', 'country__name',)
+    list_filter = (
+        ('country__region', RelatedDropdownFilter),
+        ('country', RelatedDropdownFilter),
+    )
 
 
 class SituationReportAdmin(RegionRestrictedAdmin):

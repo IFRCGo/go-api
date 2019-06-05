@@ -26,6 +26,7 @@ djangorestframework==3.9.1
 djangorestframework-csv==2.1.0
 django-guardian==1.5.1
 djangorestframework-guardian==0.1.1
+django-admin-list-filter-dropdown==1.0.2
 elasticsearch==6.0.0
 futures==3.1.1
 graphene==2.0
