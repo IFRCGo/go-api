@@ -88,7 +88,7 @@ class Subscription(models.Model):
 
     # Given a request containing new subscriptions, validate and
     # sync the subscriptions.
-    def sync_user_subscriptions(user, body):
+    def sync_user_subscriptions(user, body, deletePrevious):
         rtype_map = {
             'event': RecordType.EVENT,
             'appeal': RecordType.APPEAL,
@@ -108,6 +108,7 @@ class Subscription(models.Model):
 
         new = []
         errors = []
+        already_exists = False
         for req in body:
             rtype = rtype_map.get(req['type'], None)
             fields = { 'rtype': rtype, 'user': user }
@@ -138,11 +139,18 @@ class Subscription(models.Model):
                 fields['lookup_id'] = 'd%s' % req['value']
 
             elif rtype == RecordType.FOLLOWED_EVENT:
-                try:
-                    fields['event'] = Event.objects.get(pk=req['value'])
-                except Event.DoesNotExist:
-                    error = 'Could not find followed emergency with primary key %s' % req['value']
-                fields['lookup_id'] = 'e%s' % req['value']
+                lookup_id = 'e%s' % req['value']
+                if Subscription.objects.filter(user=user, lookup_id=lookup_id) and not deletePrevious:
+                    # We check existence only when the previous subscriptions are not to be deleted (add only 1!)
+                    already_exists = True
+                    break
+                    # In this case there is no neet to continue the for loop
+                else:
+                    try:
+                        fields['event'] = Event.objects.get(pk=req['value'])
+                    except Event.DoesNotExist:
+                        error = 'Could not find followed emergency with primary key %s' % req['value']
+                    fields['lookup_id'] = 'e%s' % req['value']
 
             elif rtype == RecordType.PER_DUE_DATE:
                 fields['stype'] = SubscriptionType.NEW
@@ -162,10 +170,12 @@ class Subscription(models.Model):
                 new.append(Subscription(**fields))
 
         # Only sync subscriptions if the entire request is valid
-        # We do this by just throwing out the old and creating the new
+        # We do this by just throwing out the old and creating the new – except in case of adding 1 new event to follow
         if not len(errors):
-            Subscription.objects.filter(user=user).delete()
-            if len(new):
+            if deletePrevious:
+                Subscription.objects.filter(user=user).delete()
+            if len(new) and not already_exists:
+                # Already_exists can be true only when we add 1 new event to follow
                 Subscription.objects.bulk_create(new)
 
         return errors, new
