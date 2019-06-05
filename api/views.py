@@ -31,19 +31,6 @@ from registrations.models import Recovery
 from main.frontend import frontend_url
 
 
-class UpdateSubscriptionPreferences(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
-    def post(self, request):
-        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data)
-        if len(errors):
-            return Response({
-                'status': 400,
-                'data': 'Could not create one or more subscription(s), aborting'
-            })
-        return Response({ 'data': 'Success' })
-
-
 def bad_request(message):
     return JsonResponse({
         'statusCode': 400,
@@ -60,6 +47,32 @@ def unauthorized(message='You must be logged in'):
         'statusCode': 401,
         'error_message': message
     }, status=401)
+
+
+class UpdateSubscriptionPreferences(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, True) # deletePrevious
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not create one or more subscription(s), aborting'
+            })
+        return Response({ 'data': 'Success' })
+
+
+class AddSubscription(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, False) # do not deletePrevious ones, add only 1 subscription
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not add subscription, aborting'
+            })
+        return Response({ 'data': 'Success' })
 
 
 class PublicJsonRequestView(View):
