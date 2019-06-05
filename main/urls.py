@@ -27,6 +27,7 @@ from api.views import (
     EsPageHealth,
     AggregateByDtype,
     AggregateByTime,
+    AddSubscription,
     UpdateSubscriptionPreferences,
     AreaAggregate,
 )
@@ -94,6 +95,7 @@ urlpatterns = [
     url(r'^api/v2/update_field_report/(?P<pk>\d+)/', api_views.UpdateFieldReport.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
+    url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
