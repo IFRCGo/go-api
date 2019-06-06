@@ -74,6 +74,17 @@ class AddSubscription(APIView):
             })
         return Response({ 'data': 'Success' })
 
+class DelSubscription(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors = Subscription.del_user_subscriptions(self.request.user, request.data)
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not remove subscription, aborting'
+            })
+        return Response({ 'data': 'Success' })
 
 class PublicJsonRequestView(View):
     http_method_names = ['get', 'head', 'options']
