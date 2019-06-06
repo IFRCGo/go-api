@@ -179,5 +179,26 @@ class Subscription(models.Model):
 
         return errors, new
 
+
+    def del_user_subscriptions(user, body):
+        req = body[0]
+        errors = []
+        error = None
+        lookup_id = 'e%s' % req['value']
+        if Subscription.objects.filter(user=user, lookup_id=lookup_id):
+            try:
+                Subscription.objects.filter(user=user, lookup_id=lookup_id).delete()
+            except Event.DoesNotExist:
+                error = 'Could not remove followed emergency with lookup_id %s' % lookup_id
+
+        if error is not None:
+            errors.append({
+                'error': error,
+                'record': req,
+            })
+
+        return errors
+
+
     def __str__(self):
         return '%s %s' % (self.user.username, self.rtype)
