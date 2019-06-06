@@ -141,7 +141,8 @@ class Subscription(models.Model):
                 lookup_id = 'e%s' % req['value']
                 if Subscription.objects.filter(user=user, lookup_id=lookup_id) and not deletePrevious:
                     # We check existence only when the previous subscriptions are not to be deleted (add only 1!)
-                    # In this case there is no need to continue the for loop, so "new" will be empty. See ¤ below.
+                    # In this case there is no need to continue the for loop. See ¤ below.
+                    new = [] # Not needed in ordinary cases, just a defense for malicious "halfway set data" sending
                     break
                 else:
                     try:
