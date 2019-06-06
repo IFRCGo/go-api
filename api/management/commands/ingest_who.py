@@ -126,7 +126,7 @@ class Command(BaseCommand):
                 'disaster_start_date': date,
                 'auto_generated': True,
                 'auto_generated_source': data['guid'].decode("utf-8"),
-                'alert_level': alert_level,
+                'ifrc_severity_level': alert_level,
             }
             event = Event.objects.create(**fields)
             added += 1
