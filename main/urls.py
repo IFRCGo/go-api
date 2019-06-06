@@ -28,6 +28,7 @@ from api.views import (
     AggregateByDtype,
     AggregateByTime,
     AddSubscription,
+    DelSubscription,
     UpdateSubscriptionPreferences,
     AreaAggregate,
 )
@@ -96,6 +97,7 @@ urlpatterns = [
     url(r'^get_auth_token', GetAuthToken.as_view()),
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
+    url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
