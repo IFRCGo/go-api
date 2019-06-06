@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.91
+
+### Added
+ - Delete subscription of one event
+
 ## 1.1.90
 
 ### Added
@@ -392,7 +397,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.90...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.91...HEAD
+[1.1.91]: https://github.com/IFRCGo/go-api/compare/1.1.90...1.1.91
 [1.1.90]: https://github.com/IFRCGo/go-api/compare/1.1.89...1.1.90
 [1.1.89]: https://github.com/IFRCGo/go-api/compare/1.1.88...1.1.89
 [1.1.88]: https://github.com/IFRCGo/go-api/compare/1.1.87...1.1.88
