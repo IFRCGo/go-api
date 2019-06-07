@@ -61,7 +61,11 @@ class Form(models.Model):
         verbose_name_plural = 'Forms'
 
     def __str__(self):
-        return '%s - %s (%s, %s)' % (self.code, self.name, self.language, self.country)
+        if self.country is None:
+            name = None
+        else:
+            name = self.country.society_name
+        return '%s - %s (%s, %s)' % (self.code, self.name, self.language, name)
 
 class FormData(models.Model):
     """ PER form data """
