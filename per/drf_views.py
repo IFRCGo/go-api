@@ -18,12 +18,35 @@ from api.models import Country
 from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
 
 from .models import (
-    Form, FormData
+    Draft, Form, FormData
 )
 
 from .serializers import (
-    FormStatSerializer, ListFormSerializer, ListFormDataSerializer,
+    ListDraftSerializer, FormStatSerializer, ListFormSerializer, ListFormDataSerializer,
 )
+
+class DraftFilter(filters.FilterSet):
+    user = filters.NumberFilter(name='user', lookup_expr='exact')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    class Meta:
+        model = Draft
+        fields = {
+            'user': ('exact',),
+        }
+
+class DraftViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Draft.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    filter_class = DraftFilter
+    # It is not checked whether this user is the same as the saver. Maybe (for helpers) it is not needed really.
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ListDraftSerializer
+#       else:
+#           return DetailDraftSerializer
+        ordering_fields = ('name',)
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Form.objects.all()
@@ -31,6 +54,7 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    # It is not checked whether this user is the same as the saver. Maybe (for helpers) it is not needed really.
 
     def get_queryset(self):
         queryset =  Form.objects.all()
@@ -86,8 +110,6 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
 class FormStatViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
-    # permission_classes = (IsAuthenticated,)
-    # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def get_queryset(self):
         queryset =  Form.objects.all()
