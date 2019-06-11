@@ -36,6 +36,21 @@ class Language(IntEnum):
     FRENCH =  1
     ENGLISH = 2
 
+class Draft(models.Model):
+    """ PER draft form header """
+    code = models.CharField(max_length=10)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    data = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
+
+    class Meta:
+        ordering = ('code', 'created_at')
+        verbose_name = 'Draft Form'
+        verbose_name_plural = 'Draft Forms'
+
+    def __str__(self):
+        return '%s - %s' % (self.code, self.user)
+
 class Form(models.Model):
     """ PER form header """
     code = models.CharField(max_length=10)

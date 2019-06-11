@@ -102,6 +102,7 @@ class EventSourceFilter(admin.SimpleListFilter):
         return (
             ('input', _('Manual input')),
             ('gdacs', _('GDACs scraper')),
+            ('who', _('WHO scraper')),
             ('report_ingest', _('Field report ingest')),
             ('report_admin', _('Field report admin')),
             ('appeal_admin', _('Appeals admin')),
@@ -112,6 +113,8 @@ class EventSourceFilter(admin.SimpleListFilter):
             return queryset.filter(auto_generated=False)
         if self.value() == 'gdacs':
             return queryset.filter(auto_generated_source=SOURCES['gdacs'])
+        if self.value() == 'who':
+            return queryset.filter(auto_generated_source__startswith='www.who.int')
         if self.value() == 'report_ingest':
             return queryset.filter(auto_generated_source=SOURCES['report_ingest'])
         if self.value() == 'report_admin':
