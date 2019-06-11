@@ -38,6 +38,7 @@ from registrations.views import (
     ValidateUser,
 )
 from per.views import (
+    DraftSent,
     FormSent,
 )
 
@@ -76,6 +77,7 @@ router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 router.register(r'per', per_views.FormViewset)
+router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
 router.register(r'perstat', per_views.FormStatViewset)
@@ -100,6 +102,7 @@ urlpatterns = [
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
+    url(r'^sendperdraft', DraftSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
