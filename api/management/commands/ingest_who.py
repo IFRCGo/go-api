@@ -20,10 +20,9 @@ class Command(BaseCommand):
         nspace = '{https://www.who.int}'
         url = 'https://www.who.int/feeds/entity/csr/don/en/rss.xml'
 
-
         response = requests.get(url)
         if response.status_code != 200:
-            logger.error('Error querying WHO xml feed at https://www.who.int/feeds/entity/csr/don/en/rss.xml')
+            logger.error('Error querying WHO xml feed at ' + url)
             logger.error(response.content)
             raise Exception('Error querying WHO')
 

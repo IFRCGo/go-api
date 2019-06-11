@@ -6,7 +6,17 @@ from api.views import (
     PublicJsonPostView,
     PublicJsonRequestView,
 )
-from .models import Form, FormData
+from .models import (
+    Draft, Form, FormData
+)
+
+def create_draft(raw):
+    draft = Draft.objects.create(code       = raw['code'],
+                               user_id      = raw['user_id'],
+                               data         = raw['data'],
+                               )
+    draft.save()
+    return draft
 
 def create_form(raw):
 
@@ -96,6 +106,32 @@ class FormSent(PublicJsonPostView):
                     create_form_data(rubr, form)
                 except:
                     return bad_request('Could not insert PER formdata record.')
+
+        return JsonResponse({'status': 'ok'})
+
+class DraftSent(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+
+        #if not request.user.is_authenticated:
+        #    return bad_request('Could not insert PER data due to not logged in user.')
+
+        body = json.loads(request.body.decode('utf-8'))
+
+        required_fields = [
+            'code', 'user_id',
+        ]
+
+        missing_fields = [field for field in required_fields if field not in body]
+        if len(missing_fields):
+            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
+
+        if ' ' in body['code']:
+            return bad_request('Code can not contain spaces, please choose a different one.')
+
+        try:
+            form = create_draft(body)
+        except:
+            return bad_request('Could not insert PER draft.')
 
         return JsonResponse({'status': 'ok'})
 
