@@ -14,7 +14,6 @@ class ListDraftSerializer(serializers.ModelSerializer):
         fields = ('code', 'user', 'data',)
 
 class FormStatSerializer(serializers.ModelSerializer):
-    #country = RegoCountrySerializer()
     class Meta:
         model = Form
         fields = ('name', 'code', 'country_id', 'language', 'id',)

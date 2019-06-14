@@ -11,6 +11,7 @@ from .models import (
 )
 
 def create_draft(raw):
+    Draft.objects.filter(code=raw['code'], user_id=raw['user_id']).delete()  # If exists (a previous draft), delete it.
     draft = Draft.objects.create(code       = raw['code'],
                                user_id      = raw['user_id'],
                                data         = raw['data'],
