@@ -1,8 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
+from enumfields import IntEnum, EnumIntegerField
 from .storage import AzureStorage
 from tinymce import HTMLField
 
