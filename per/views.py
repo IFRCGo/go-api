@@ -63,6 +63,7 @@ class FormSent(PublicJsonPostView):
             body['ip_address'] = request.META.get('REMOTE_ADDR')
 
         required_fields = [
+            'user_id',
             'code',
             'name',
             'language',
@@ -101,14 +102,110 @@ class FormSent(PublicJsonPostView):
         except:
             return bad_request('Could not insert PER form record.')
 
+        if hasattr(form,'status_code') and form.status_code == 400:
+            return bad_request('Could not insert PER form record due to inner failure.')
+
         if 'data' in body:
             for rubr in body['data']:
                 try:
-                    create_form_data(rubr, form)
+                    form_data = create_form_data(rubr, form)
                 except:
                     return bad_request('Could not insert PER formdata record.')
 
+                if hasattr(form_data,'status_code') and form_data.status_code == 400:
+                    return bad_request('Could not insert PER form data record due to inner failure.')
+
         return JsonResponse({'status': 'ok'})
+
+
+def change_form(raw):
+
+    if 'code' not in raw:
+        return bad_request('Code sending is mandatory')
+    if 'user_id' not in raw:
+        return bad_request('User_id sending is mandatory')
+
+    form = Form.objects.filter(code=raw['code'], user_id=raw['user_id'])[0]  # If exists, get the first. We keep only 1 language per user
+    if not form:
+        return bad_request('Could not find PER form record.')
+
+    form.code         = raw['code']         # mandatory
+    form.user_id      = raw['user_id']      # mandatory
+    form.name         = raw['name']         if 'name'         in raw else form.name
+    form.language     = raw['language']     if 'language'     in raw else form.language
+    form.country_id   = raw['country_id']   if 'country_id'   in raw else form.country_id
+    form.ns           = raw['ns']           if 'ns'           in raw else form.ns
+    form.ip_address   = raw['ip_address']   if 'ip_address'   in raw else form.ip_address
+    form.started_at   = raw['started_at']   if 'started_at'   in raw else form.started_at
+    form.ended_at     = raw['ended_at']     if 'ended_at'     in raw else form.ended_at
+    form.submitted_at = raw['submitted_at'] if 'submitted_at' in raw else form.submitted_at
+    form.comment      = raw['comment']      if 'comment'      in raw else form.comment
+    form.validated    = raw['validated']    if 'validated'    in raw else form.validated
+    form.finalized    = raw['finalized']    if 'finalized'    in raw else form.finalized
+    form.save()
+
+    return form
+
+def change_form_data(raw, form):
+    if 'id' not in raw:
+        return bad_request('Question_id sending is mandatory')
+    form_data = FormData.objects.filter(question_id=raw['id'])[0]  # If exists data item, get the first. We keep only 1 answer per question_id
+    if not form_data:
+        return bad_request('Could not find PER form data record.')
+
+    form_data.question_id     = raw['id'] # mandatory
+    form_data.selected_option = raw['op'] if 'op' in raw else form_data.selected_option
+    form_data.notes           = raw['nt'] if 'nt' in raw else form_data.notes
+
+    form_data.save()
+    return form_data
+
+class FormEdit(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+
+        #if not request.user.is_authenticated:
+        #    return bad_request('Could not insert PER data due to not logged in user.')
+
+        body = json.loads(request.body.decode('utf-8'))
+
+        required_fields = [
+            'user_id',
+            'code',
+        ]
+
+        currentDT = datetime.datetime.now(pytz.timezone('UTC'))
+        if 'ended_at' not in body:
+            body['ended_at']     = str(currentDT)
+        if 'submitted_at' not in body:
+            body['submitted_at'] = str(currentDT)
+
+        missing_fields = [field for field in required_fields if field not in body]
+        if len(missing_fields):
+            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
+
+        if ' ' in body['code']:
+            return bad_request('Code can not contain spaces, please choose a different one.')
+
+        try:
+            form = change_form(body)
+        except:
+            return bad_request('Could not change PER form record.')
+
+        if hasattr(form,'status_code') and form.status_code == 400:
+            return bad_request('Could not change PER form record due to inner failure.')
+
+        if 'data' in body:
+            for rubr in body['data']:
+                try:
+                    form_data = change_form_data(rubr, form)
+                except:
+                    return bad_request('Could not change PER formdata record.')
+
+                if hasattr(form_data,'status_code') and form_data.status_code == 400:
+                    return bad_request('Could not change PER form data record due to inner failure.')
+
+        return JsonResponse({'status': 'ok'})
+
 
 class DraftSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
