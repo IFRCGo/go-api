@@ -40,6 +40,7 @@ from registrations.views import (
 from per.views import (
     DraftSent,
     FormSent,
+    FormEdit,
 )
 
 # DRF routes
@@ -102,6 +103,7 @@ urlpatterns = [
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
+    url(r'^editperform', FormEdit.as_view()),
     url(r'^sendperdraft', DraftSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
