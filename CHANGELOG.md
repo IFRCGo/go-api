@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.95
+
+### Added
+ - Filtering red WHO alerts. PER edit via /editperform
+
 ## 1.1.94
 
 ### Added
@@ -412,7 +417,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.94...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.95...HEAD
+[1.1.95]: https://github.com/IFRCGo/go-api/compare/1.1.94...1.1.95
 [1.1.94]: https://github.com/IFRCGo/go-api/compare/1.1.93...1.1.94
 [1.1.93]: https://github.com/IFRCGo/go-api/compare/1.1.92...1.1.93
 [1.1.92]: https://github.com/IFRCGo/go-api/compare/1.1.91...1.1.92
