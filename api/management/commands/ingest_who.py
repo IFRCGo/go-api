@@ -115,9 +115,11 @@ class Command(BaseCommand):
                 title = '%s...' % title[:99]
             date = parse(data['pubDate'].decode("utf-8"))
             if data['category'].decode("utf-8") == 'news':
-                alert_level = 0
-            else:
                 alert_level = 1
+            else:
+                alert_level = 2
+            if "Ebola" in title:
+                alert_level=2
                 
             fields = {
                 'name': title,
