@@ -11,10 +11,18 @@ from api.logger import logger
 username = os.environ.get('EMAIL_USER')
 password = os.environ.get('EMAIL_PASS')
 
-
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
-        self.recipients = recipients
+#       recipients = ['dsdsdf@ss.ss', 'zoltan.szabo@ifrc.org', 'szabozoltan969@gmail.com']
+        self.recipients = []
+        if 'zoltan.szabo@ifrc.org' in recipients:
+            self.recipients.append('zoltan.szabo@ifrc.org')
+#        if 'szabozoltan969@gmail.com' in recipients:
+#            self.recipients.append('szabozoltan969@gmail.com')
+#        if 'mununuri.musori@ifrc.org' in recipients:
+#            self.recipients.append('mununuri.musori@ifrc.org')
+
+        #self.recipients = recipients
         self.msg = msg
         super(SendMail, self).__init__(**kwargs)
 
