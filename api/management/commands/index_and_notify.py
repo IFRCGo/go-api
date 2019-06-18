@@ -8,7 +8,7 @@ from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
 from api.models import Country, Appeal, Event, FieldReport
 from api.logger import logger
-from notifications.models import RecordType, SubscriptionType
+from notifications.models import RecordType, SubscriptionType, Subscription
 from notifications.hello import get_hello
 from notifications.notification import send_notification
 from main.frontend import frontend_url
@@ -56,15 +56,18 @@ class Command(BaseCommand):
         # Start with any users subscribed directly to this record type.
         subscribers = User.objects.filter(subscription__rtype=rtype, subscription__stype=stype).values('email')
 
-        dtypes = list(set(['d%s' % record.dtype.id for record in records if record.dtype is not None]))
-        if (rtype == RecordType.APPEAL):
-            countries, regions = self.gather_country_and_region(records)
-        else:
-            countries, regions = self.gather_countries_and_regions(records)
+        # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
+        if (rtype != RecordType.FOLLOWED_EVENT):
+            dtypes = list(set(['d%s' % record.dtype.id for record in records if record.dtype is not None]))
 
-        lookups = dtypes + countries + regions
-        if len(lookups):
-            subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
+            if (rtype == RecordType.APPEAL):
+                countries, regions = self.gather_country_and_region(records)
+            else:
+                countries, regions = self.gather_countries_and_regions(records)
+
+            lookups = dtypes + countries + regions
+            if len(lookups):
+                subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
         emails = [subscriber['email'] for subscriber in subscribers]
         return emails
 
@@ -96,6 +99,7 @@ class Command(BaseCommand):
             RecordType.FIELD_REPORT: 'fieldreport',
             RecordType.APPEAL: 'appeal',
             RecordType.EVENT: 'event',
+            RecordType.FOLLOWED_EVENT: 'event',
         }[rtype]
         return 'https://%s/admin/api/%s/%s/change' % (
             settings.BASE_URL,
@@ -121,6 +125,7 @@ class Command(BaseCommand):
             RecordType.FIELD_REPORT: 'field report',
             RecordType.APPEAL: 'appeal',
             RecordType.EVENT: 'event',
+            RecordType.FOLLOWED_EVENT: 'event',
         }[rtype]
         if (count > 1):
             display += 's'
@@ -153,6 +158,42 @@ class Command(BaseCommand):
         })
         recipients = emails
         adj = 'New' if stype == SubscriptionType.NEW else 'Modified'
+        record_type = self.get_record_display(rtype, record_count)
+        subject = '%s %s %s(s) in IFRC GO ' % (
+            record_count,
+            adj,
+            record_type,
+        )
+        logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
+        send_notification(subject, recipients, html)
+
+#   Code duplication. To be done nicer:
+    def notify_personal(self, records, rtype, stype, uid):
+        record_count = records.count()
+        if not record_count:
+            return
+        emails = list(User.objects.get(pk=uid).email)
+        if not len(emails):
+            return
+
+        # Only serialize the first 10 records
+        entries = list(records) if record_count <= 10 else list(records[:10])
+        record_entries = []
+        for record in entries:
+            record_entries.append({
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+            })
+
+        template_path = self.get_template()
+        html = render_to_string(template_path, {
+            'hello': get_hello(),
+            'count': record_count,
+            'records': record_entries,
+        })
+        recipients = emails
+        adj = '' if stype == SubscriptionType.NEW else ''
         record_type = self.get_record_display(rtype, record_count)
         subject = '%s %s %s(s) in IFRC GO ' % (
             record_count,
@@ -222,6 +263,10 @@ class Command(BaseCommand):
         new_events = Event.objects.filter(created_at__gte=t)
         updated_events = Event.objects.filter(updated_at__gte=t)
 
+        followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
+        #followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
+
+
         #self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
         self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
@@ -230,6 +275,11 @@ class Command(BaseCommand):
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+
+        for p in followed_eventparams:
+            followed_events = Event.objects.filter(updated_at__gte=t, pk=p.event_id)
+            if len(followed_events):
+                self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, p.user_id)
 
         logger.info('Indexing %s updated field reports' % updated_reports.count())
         self.index_updated_records(self.filter_just_created(updated_reports))

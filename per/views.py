@@ -120,17 +120,16 @@ class FormSent(PublicJsonPostView):
 
 def change_form(raw):
 
-    if 'code' not in raw:
-        return bad_request('Code sending is mandatory')
-    if 'user_id' not in raw:
-        return bad_request('User_id sending is mandatory')
+    if 'id' not in raw:
+        return bad_request('Id sending is mandatory')
 
-    form = Form.objects.filter(code=raw['code'], user_id=raw['user_id'])[0]  # If exists, get the first. We keep only 1 language per user
+    form = Form.objects.get(pk=int(raw['id']))  # If exists, get it
+
     if not form:
         return bad_request('Could not find PER form record.')
 
-    form.code         = raw['code']         # mandatory
-    form.user_id      = raw['user_id']      # mandatory
+    #form.code         = raw['code']         # we do not change it
+    #form.user_id      = raw['user_id']      # we do not change it
     form.name         = raw['name']         if 'name'         in raw else form.name
     form.language     = raw['language']     if 'language'     in raw else form.language
     form.country_id   = raw['country_id']   if 'country_id'   in raw else form.country_id
@@ -147,13 +146,15 @@ def change_form(raw):
     return form
 
 def change_form_data(raw, form):
+    if 'form_id' not in raw:
+        return bad_request('Form_id sending is mandatory')
     if 'id' not in raw:
         return bad_request('Question_id sending is mandatory')
-    form_data = FormData.objects.filter(question_id=raw['id'])[0]  # If exists data item, get the first. We keep only 1 answer per question_id
+    form_data = FormData.objects.filter(form_id=raw['form_id'], question_id=raw['id'])[0]  # If exists data item, get the first. We keep only 1 answer per question_id
     if not form_data:
         return bad_request('Could not find PER form data record.')
 
-    form_data.question_id     = raw['id'] # mandatory
+    #form_data.question_id     = raw['id'] # we do not change it
     form_data.selected_option = raw['op'] if 'op' in raw else form_data.selected_option
     form_data.notes           = raw['nt'] if 'nt' in raw else form_data.notes
 
@@ -169,8 +170,7 @@ class FormEdit(PublicJsonPostView):
         body = json.loads(request.body.decode('utf-8'))
 
         required_fields = [
-            'user_id',
-            'code',
+            'id',
         ]
 
         currentDT = datetime.datetime.now(pytz.timezone('UTC'))
@@ -183,9 +183,6 @@ class FormEdit(PublicJsonPostView):
         if len(missing_fields):
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        if ' ' in body['code']:
-            return bad_request('Code can not contain spaces, please choose a different one.')
-
         try:
             form = change_form(body)
         except:
@@ -196,6 +193,7 @@ class FormEdit(PublicJsonPostView):
 
         if 'data' in body:
             for rubr in body['data']:
+                rubr['form_id'] = body['id']
                 try:
                     form_data = change_form_data(rubr, form)
                 except:
