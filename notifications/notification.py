@@ -13,14 +13,22 @@ password = os.environ.get('EMAIL_PASS')
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
+###################################################### just for test time \
 #       recipients = ['dsdsdf@ss.ss', 'zoltan.szabo@ifrc.org', 'szabozoltan969@gmail.com']
         self.recipients = []
-        if 'zoltan.szabo@ifrc.org' in recipients:
-            self.recipients.append('zoltan.szabo@ifrc.org')
-#        if 'szabozoltan969@gmail.com' in recipients:
-#            self.recipients.append('szabozoltan969@gmail.com')
-#        if 'mununuri.musori@ifrc.org' in recipients:
-#            self.recipients.append('mununuri.musori@ifrc.org')
+        a = 'zoltan.szabo@ifrc.org'
+        if a  in recipients:
+            self.recipients.append(a)
+        a = 'szabozoltan69@gmail.com'
+        if a  in recipients:
+            self.recipients.append(a)
+        a = 'szabozoltan969@gmail.com'
+        if a  in recipients:
+            self.recipients.append(a)
+        a = 'guido.pizzini@ifrc.org'
+        if a  in recipients:
+            self.recipients.append(a)
+###################################################### just for test time /
 
         #self.recipients = recipients
         self.msg = msg
