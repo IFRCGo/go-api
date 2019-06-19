@@ -41,7 +41,8 @@ class SendMail(threading.Thread):
             server.starttls()
             server.ehlo()
             server.login(username, password)
-            server.sendmail(username, self.recipients, self.msg.as_string())
+            if len(self.recipients) > 0:
+                server.sendmail(username, self.recipients, self.msg.as_string())
             server.quit()
             logger.info('Notifications sent!')
         except SMTPAuthenticationError:
