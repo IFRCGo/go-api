@@ -203,7 +203,8 @@ class Command(BaseCommand):
             record_type,
         )
         logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
-        send_notification(subject, recipients, html)
+        if len(recipients):
+            send_notification(subject, list(recipients), html)
 
 
     def index_new_records(self, records):
