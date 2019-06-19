@@ -54,7 +54,7 @@ class Command(BaseCommand):
     def gather_subscribers(self, records, rtype, stype):
         # Gather the email addresses of users who should be notified
         # Start with any users subscribed directly to this record type.
-        subscribers = User.objects.filter(subscription__rtype=rtype, subscription__stype=stype).values('email')
+        subscribers = User.objects.filter(subscription__rtype=rtype, subscription__stype=stype, is_active=True).values('email')
 
         # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
         if (rtype != RecordType.FOLLOWED_EVENT):
@@ -67,7 +67,7 @@ class Command(BaseCommand):
 
             lookups = dtypes + countries + regions
             if len(lookups):
-                subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups).values('email')).distinct()
+                subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups, is_active=True).values('email')).distinct()
         emails = [subscriber['email'] for subscriber in subscribers]
         return emails
 
@@ -172,9 +172,11 @@ class Command(BaseCommand):
         record_count = records.count()
         if not record_count:
             return
-        emails = list(User.objects.get(pk=uid).email)
-        if not len(emails):
+        users = User.objects.filter(pk=uid, is_active=True)
+        if not len(users):
             return
+        else:
+            emails = users.values('email').distinct()
 
         # Only serialize the first 10 records
         entries = list(records) if record_count <= 10 else list(records[:10])
