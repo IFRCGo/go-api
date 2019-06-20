@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.101
+
+### Added
+ - Fix event notification bug
+
 ## 1.1.100
 
 ### Added
@@ -442,7 +447,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.100...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.101...HEAD
+[1.1.101]: https://github.com/IFRCGo/go-api/compare/1.1.100...1.1.101
 [1.1.100]: https://github.com/IFRCGo/go-api/compare/1.1.99...1.1.100
 [1.1.99]: https://github.com/IFRCGo/go-api/compare/1.1.98...1.1.99
 [1.1.98]: https://github.com/IFRCGo/go-api/compare/1.1.97...1.1.98
