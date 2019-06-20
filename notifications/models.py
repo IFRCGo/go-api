@@ -97,7 +97,7 @@ class Subscription(models.Model):
             'regions': RecordType.REGION,
             'countries': RecordType.COUNTRY,
             'disasterTypes': RecordType.DTYPE,
-            'perDueDates': RecordType.PER_DUE_DATE,
+            'perDueDate': RecordType.PER_DUE_DATE,
             'followedEvent': RecordType.FOLLOWED_EVENT,
         }
 
@@ -184,12 +184,21 @@ class Subscription(models.Model):
         req = body[0]
         errors = []
         error = None
-        lookup_id = 'e%s' % req['value']
-        if Subscription.objects.filter(user=user, lookup_id=lookup_id):
-            try:
-                Subscription.objects.filter(user=user, lookup_id=lookup_id).delete()
-            except Event.DoesNotExist:
-                error = 'Could not remove followed emergency with lookup_id %s' % lookup_id
+        if 'value' in req:
+            lookup_id = 'e%s' % req['value']
+            if Subscription.objects.filter(user=user, lookup_id=lookup_id):
+                try:
+                    Subscription.objects.filter(user=user, lookup_id=lookup_id).delete()
+                except Subscription.DoesNotExist:
+                    error = 'Could not remove followed subscription with lookup_id %s' % lookup_id
+        elif 'perDueDate' in req:
+            if Subscription.objects.filter(user=user, rtype=RecordType.PER_DUE_DATE):
+                try:
+                    Subscription.objects.filter(user=user, rtype=RecordType.PER_DUE_DATE).delete()
+                except Subscription.DoesNotExist:
+                    error = 'Could not remove PER_DUE_DATE subscription'
+        else:
+            error = 'Wrong deletion format, value or perDueDate should be given.'
 
         if error is not None:
             errors.append({
