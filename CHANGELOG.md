@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.100
+
+### Added
+ - PER_DUE_DATE subscription and deletion
+
 ## 1.1.99
 
 ### Added
@@ -437,7 +442,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.99...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.100...HEAD
+[1.1.100]: https://github.com/IFRCGo/go-api/compare/1.1.99...1.1.100
 [1.1.99]: https://github.com/IFRCGo/go-api/compare/1.1.98...1.1.99
 [1.1.98]: https://github.com/IFRCGo/go-api/compare/1.1.97...1.1.98
 [1.1.97]: https://github.com/IFRCGo/go-api/compare/1.1.96...1.1.97
