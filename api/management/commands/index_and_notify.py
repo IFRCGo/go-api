@@ -176,7 +176,7 @@ class Command(BaseCommand):
         if not len(users):
             return
         else:
-            emails = users.values('email').distinct()
+            emails = [users.values('email')[0]['email']]  # It is only one email in this case
 
         # Only serialize the first 10 records
         entries = list(records) if record_count <= 10 else list(records[:10])
