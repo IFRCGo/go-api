@@ -14,11 +14,11 @@ emailhost = os.environ.get('EMAIL_HOST')
 emailport = os.environ.get('EMAIL_PORT')
 prod = os.environ.get('PRODUCTION')
 
-testEmails=[]
 testEmails=os.environ.get('TEST_EMAILS')
 if testEmails:
     testEmails = testEmails.split()
 else:
+    testEmails=[]
     testEmails.append('zoltan.szabo@ifrc.org')
 
 
