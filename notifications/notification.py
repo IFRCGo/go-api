@@ -16,7 +16,7 @@ prod = os.environ.get('PRODUCTION')
 
 testEmails=os.environ.get('TEST_EMAILS')
 if testEmails:
-    testEmails = testEmails.split()
+    testEmails = testEmails.split(',')
 else:
     testEmails=[]
     testEmails.append('zoltan.szabo@ifrc.org')
@@ -32,7 +32,7 @@ class SendMail(threading.Thread):
             self.recipients = []
             for eml in testEmails:
                 if eml and (eml in recipients):
-                    self.recipients.append(a)
+                    self.recipients.append(eml)
 
         self.msg = msg
         super(SendMail, self).__init__(**kwargs)
