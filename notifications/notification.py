@@ -25,7 +25,7 @@ else:
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
 
-        if prod == 1:
+        if int(prod) == 1:
             self.recipients = recipients
         else:
             logger.info('Using test email addresses...')
