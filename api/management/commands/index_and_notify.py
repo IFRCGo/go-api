@@ -14,6 +14,7 @@ from notifications.notification import send_notification
 from main.frontend import frontend_url
 
 time_interval = timedelta(minutes=5)
+events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
     help = 'Index and send notificatins about recently changed records'
@@ -164,10 +165,21 @@ class Command(BaseCommand):
             adj,
             record_type,
         )
+
+        # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
+        if stype == SubscriptionType.EDIT:
+            for e in list(records.values('id'))[:10]:
+                i = e['id']
+                if i not in events_sent_to:
+                    events_sent_to[i] = []
+                email_list_to_add = list(set(events_sent_to[i] + recipients))
+                if email_list_to_add:
+                    events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
+
         logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
         send_notification(subject, recipients, html)
 
-#   Code duplication. To be done nicer:
+#   Almost code duplication - usually run for 1 person, but the syntax kept the plurals:
     def notify_personal(self, records, rtype, stype, uid):
         record_count = records.count()
         if not record_count:
@@ -202,9 +214,15 @@ class Command(BaseCommand):
             adj,
             record_type,
         )
-        logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
         if len(recipients):
-            send_notification(subject, list(recipients), html)
+            # check if email is not in events_sent_to{event_id: recipients}
+            if not emails:
+                logger.info('Silent about %s one-by-one subscribed %s – user has not set email address' % (adj.lower(), record_type))
+            elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
+                logger.info('Notifying %s subscriber about %s %s one-by-one subscribed %s' % (len(emails), record_count, adj.lower(), record_type))
+                send_notification(subject, list(recipients), html)
+            else:
+                logger.info('Silent about %s one-by-one subscribed %s – user already notified via generic subscription' % (adj.lower(), record_type))
 
 
     def index_new_records(self, records):
