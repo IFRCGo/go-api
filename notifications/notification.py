@@ -14,10 +14,12 @@ emailhost = os.environ.get('EMAIL_HOST')
 emailport = os.environ.get('EMAIL_PORT')
 prod = os.environ.get('PRODUCTION')
 
-testemails=[]
-testemails=os.environ.get('TEST_EMAILS').split()
-if not testemails:
-    testemails.append('zoltan.szabo@ifrc.org')
+testEmails=[]
+testEmails=os.environ.get('TEST_EMAILS')
+if testEmails:
+    testEmails = testEmails.split()
+else:
+    testEmails.append('zoltan.szabo@ifrc.org')
 
 
 class SendMail(threading.Thread):
@@ -26,9 +28,9 @@ class SendMail(threading.Thread):
         if prod == 1:
             self.recipients = recipients
         else:
-            logger.info('Using only test email addresses...')
+            logger.info('Using test email addresses...')
             self.recipients = []
-            for eml in testemails:
+            for eml in testEmails:
                 if eml and (eml in recipients):
                     self.recipients.append(a)
 
