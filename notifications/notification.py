@@ -10,33 +10,34 @@ from api.logger import logger
 
 username = os.environ.get('EMAIL_USER')
 password = os.environ.get('EMAIL_PASS')
+emailhost = os.environ.get('EMAIL_HOST')
+emailport = os.environ.get('EMAIL_PORT')
+prod = os.environ.get('PRODUCTION')
+
+testemails=[]
+testemails=os.environ.get('TEST_EMAILS').split()
+if not testemails:
+    testemails.append('zoltan.szabo@ifrc.org')
+
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
-###################################################### just for test time \
-#       recipients = ['dsdsdf@ss.ss', 'zoltan.szabo@ifrc.org', 'szabozoltan969@gmail.com']
-        self.recipients = []
-        a = 'zoltan.szabo@ifrc.org'
-        if a  in recipients:
-            self.recipients.append(a)
-        a = 'szabozoltan69@gmail.com'
-        if a  in recipients:
-            self.recipients.append(a)
-        a = 'szabozoltan969@gmail.com'
-        if a  in recipients:
-            self.recipients.append(a)
-        a = 'guido.pizzini@ifrc.org'
-        if a  in recipients:
-            self.recipients.append(a)
-###################################################### just for test time /
 
-        #self.recipients = recipients
+        if prod == 1:
+            self.recipients = recipients
+        else:
+            logger.info('Using only test email addresses...')
+            self.recipients = []
+            for eml in testemails:
+                if eml and (eml in recipients):
+                    self.recipients.append(a)
+
         self.msg = msg
         super(SendMail, self).__init__(**kwargs)
 
     def run(self):
         try:
-            server = smtplib.SMTP('smtp.office365.com', '587')
+            server = smtplib.SMTP(emailhost, emailport)
             server.ehlo()
             server.starttls()
             server.ehlo()
