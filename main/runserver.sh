@@ -59,6 +59,7 @@ echo "export FRONTEND_URL=\"$FRONTEND_URL\"" >> $HOME/.env
 echo "export PRODUCTION=\"$PRODUCTION\"" >> $HOME/.env
 echo "export TEST_EMAILS=\"$TEST_EMAILS\"" >> $HOME/.env
 
+(crontab -l 2>/dev/null; echo 'SHELL=/bin/bash') | crontab -
 (crontab -l 2>/dev/null; echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeal_docs >> /home/ifrc/logs/ingest_appeal_docs.log 2>&1') | crontab -
 #(crontab -l 2>/dev/null; echo '30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
 (crontab -l 2>/dev/null; echo '45 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
