@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.110
+## 1.1.109
+## 1.1.108
+
+### Added
+ - Upload NS logo
+
 ## 1.1.107
 
 ### Added
@@ -465,7 +472,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.107...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.110...HEAD
+[1.1.110]: https://github.com/IFRCGo/go-api/compare/1.1.109...1.1.110
+[1.1.109]: https://github.com/IFRCGo/go-api/compare/1.1.108...1.1.109
+[1.1.108]: https://github.com/IFRCGo/go-api/compare/1.1.107...1.1.108
 [1.1.107]: https://github.com/IFRCGo/go-api/compare/1.1.106...1.1.107
 [1.1.106]: https://github.com/IFRCGo/go-api/compare/1.1.105...1.1.106
 [1.1.105]: https://github.com/IFRCGo/go-api/compare/1.1.104...1.1.105
