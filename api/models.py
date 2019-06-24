@@ -67,6 +67,8 @@ class Region(models.Model):
     def region_name(self):
         return str(self.name)
 
+def logo_document_path(instance, filename):
+    return 'logos/%s/%s' % (instance.country.id, filename)
 
 class Country(models.Model):
     """ A country """
@@ -79,6 +81,9 @@ class Country(models.Model):
     overview = models.TextField(blank=True, null=True)
     key_priorities = models.TextField(blank=True, null=True)
     inform_score = models.DecimalField(blank=True, null=True, decimal_places=2, max_digits=3)
+    logo = models.FileField(blank=True, null=True, upload_to=logo_document_path, storage=AzureStorage())
+    # to test locally you can use:                 upload_to='documents/')
+
 
     def indexing(self):
         return {
