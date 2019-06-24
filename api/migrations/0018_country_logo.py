@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='logo',
-            field=models.FileField(blank=True, null=True, storage=api.storage.AzureStorage(), upload_to=api.models.logo_document_path))
+            field=models.FileField(blank=True, null=True, storage=api.storage.AzureStorage(), upload_to=api.models.logo_document_path)
         ),
     ]
