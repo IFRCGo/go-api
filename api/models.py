@@ -68,7 +68,7 @@ class Region(models.Model):
         return str(self.name)
 
 def logo_document_path(instance, filename):
-    return 'logos/%s/%s' % (instance.country.id, filename)
+    return 'logos/%s/%s' % (instance.iso, filename)
 
 class Country(models.Model):
     """ A country """
