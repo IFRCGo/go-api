@@ -86,7 +86,7 @@ class Command(BaseCommand):
             # Appeals with confirmed emergencies link to that emergency
             resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
         elif rtype != RecordType.APPEAL:
-            # Field reports and emergencies
+            # Field reports and (followed or globally subscribed) emergencies
             resource_uri = '%s/%s/%s' % (
                 frontend_url,
                 'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports',
