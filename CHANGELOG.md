@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.108
 
 ### Added
- - Upload NS logo to logo/country_iso/filename
+ - Upload NS logo to logos/country_iso/filename
 
 ## 1.1.107
 
