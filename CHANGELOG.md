@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.112
 
 ### Added
- - Fix EMAIL_HOST in .env file
+ - Fix EMAIL_HOST variable in .env file
 
 ## 1.1.111
 ## 1.1.110
