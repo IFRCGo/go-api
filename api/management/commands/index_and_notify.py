@@ -89,7 +89,7 @@ class Command(BaseCommand):
             # Field reports and emergencies
             resource_uri = '%s/%s/%s' % (
                 frontend_url,
-                'emergencies' if rtype == RecordType.EVENT else 'reports',
+                'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports',
                 record.id
             )
         return resource_uri
