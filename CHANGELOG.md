@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.112
+
+### Added
+ - Fix EMAIL_HOST in .env file
+
 ## 1.1.111
 ## 1.1.110
 ## 1.1.109
@@ -473,7 +478,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.111...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.112...HEAD
+[1.1.112]: https://github.com/IFRCGo/go-api/compare/1.1.111...1.1.112
 [1.1.111]: https://github.com/IFRCGo/go-api/compare/1.1.110...1.1.111
 [1.1.110]: https://github.com/IFRCGo/go-api/compare/1.1.109...1.1.110
 [1.1.109]: https://github.com/IFRCGo/go-api/compare/1.1.108...1.1.109
