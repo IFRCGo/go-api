@@ -4,6 +4,7 @@ from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
 from .storage import AzureStorage
 from tinymce import HTMLField
+from django.core.validators import FileExtensionValidator
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -81,8 +82,9 @@ class Country(models.Model):
     overview = models.TextField(blank=True, null=True)
     key_priorities = models.TextField(blank=True, null=True)
     inform_score = models.DecimalField(blank=True, null=True, decimal_places=2, max_digits=3)
-    logo = models.FileField(blank=True, null=True, upload_to=logo_document_path, storage=AzureStorage())
-    # to test locally you can use:                 upload_to='documents/')
+    #logo = models.FileField(blank=True, null=True, upload_to='documents/', # for local tests
+    logo = models.FileField(blank=True, null=True, upload_to=logo_document_path,
+        storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png','jpg','gif'])])
 
 
     def indexing(self):

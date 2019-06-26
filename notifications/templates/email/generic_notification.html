@@ -5,6 +5,12 @@
 {% if records|length %}
   {% for record in records %}
   <h2>{{ record.title }}</h2>
-  <p><a href="{{ record.resource_uri }}">View on IFRC GO</a> | <a href="{{ record.admin_uri }}">View on Admin Page</a></p>
+{% autoescape off %}
+  <div>{{ record.content }}</div>
+{% endautoescape %}
+  <p><a href="{{ record.resource_uri }}">Open in GO</a>
+{% if is_staff %}
+ | <a href="{{ record.admin_uri }}">Admin</a></p>
+{% endif %}
   {% endfor %}
 {% endif %}

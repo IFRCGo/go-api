@@ -12,13 +12,13 @@ from notifications.models import RecordType, SubscriptionType, Subscription
 from notifications.hello import get_hello
 from notifications.notification import send_notification
 from main.frontend import frontend_url
+import html
 
 time_interval = timedelta(minutes=5)
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
     help = 'Index and send notificatins about recently changed records'
-
 
     def get_time_threshold(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
@@ -120,6 +120,15 @@ class Command(BaseCommand):
         else:
             return record.name
 
+    def get_record_content(self, record, rtype):
+        if rtype == RecordType.FIELD_REPORT:
+            sendMe = record.description
+        elif rtype == RecordType.APPEAL:
+            sendMe = record.sector
+        else:
+            sendMe = record.summary
+            return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
+
 
     def get_record_display(self, rtype, count):
         display = {
@@ -149,6 +158,7 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
+                'content': self.get_record_content(record, rtype),
             })
 
         template_path = self.get_template()
@@ -156,6 +166,7 @@ class Command(BaseCommand):
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
+            'is_staff': True, # TODO: fork the sending to "is_staff / not ~" groups
         })
         recipients = emails
         adj = 'New' if stype == SubscriptionType.NEW else 'Modified'
@@ -198,13 +209,15 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
+                'content': self.get_record_content(record, rtype),
             })
-
+        is_staff = users.values('is_staff')[0]['is_staff']
         template_path = self.get_template()
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
+            'is_staff': is_staff,
         })
         recipients = emails
         adj = '' if stype == SubscriptionType.NEW else ''
