@@ -8,12 +8,15 @@ from .models import Project
 import w3.models as models
 import w3.drf_views as views
 
-# insert into w3_project (name,programme_type,sector,start_date,end_date,budget_amount,budget_currency,status,project_district_id,reporting_ns_id,user_id) values ('aaa',1,0,now(),now(),5000,'CHF',0,111,111,111);
+# Just for db test: insert into w3_project (name,programme_type,sector,start_date,end_date,budget_amount,budget_currency,status,project_district_id,reporting_ns_id,user_id) values ('aaa',1,0,now(),now(),5000,0,0,111,111,111);
+
+username = 'jo'
+password = '12345678'
 
 class ProjectGetTest(APITestCase):
     def setUp(self):
-        user = User.objects.create(username='jo')
-        user.set_password('12345678')
+        user = User.objects.create(username=username)
+        user.set_password(password)
         user.save()
 
         country1 = Country.objects.create(name='country1')
@@ -27,25 +30,24 @@ class ProjectGetTest(APITestCase):
         district2.save
 
         first = Project.objects.create(
-                     user = user
-                    ,reporting_ns = country1
+                     user             = user
+                    ,reporting_ns     = country1
                     ,project_district = district1
-                    ,name = 'aaa'
-                    ,programme_type = 0
-                    ,sector = 0
-                    ,start_date = '2011-11-11'
-                    ,end_date = '2011-11-11'
-                    ,budget_amount = 6000
-                    ,budget_currency = 'CHF'
-                    ,status = 0)
+                    ,name             = 'aaa'
+                    ,programme_type   = 0
+                    ,sector           = 0
+                    ,start_date       = '2011-11-11'
+                    ,end_date         = '2011-11-11'
+                    ,budget_amount    = 6000
+                    ,budget_currency  = 0
+                    ,status           = 0)
         first.save()
 
     def test_1(self):
-        user = User.objects.get(username='jo')
-        import pdb; pdb.set_trace()
+        user = User.objects.get(username=username)
         body = {
-            'username': user.username,
-            'password': '12345678'
+            'username': username,
+            'password': password
         }
         headers = {'CONTENT_TYPE': 'application/json'}
         response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
@@ -53,30 +55,10 @@ class ProjectGetTest(APITestCase):
         token = response.get('token')
         self.assertIsNotNone(token)
         self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
-        self.client.force_authenticate(user = user)
         resp = self.client.get('/api/v2/project/')
-        print (resp.status_code)
-        #self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
 
-#class AuthTokenTest(APITestCase):
-#    def setUp(self):
-#        user = User.objects.create(username='jo')
-#        user.set_password('12345678')
-#        user.save()
-#
-#    def test_get_auth(self):
-#        body = {
-#            'username': 'jo',
-#            'password': '12345678',
-#        }
-#        headers = {'CONTENT_TYPE': 'application/json'}
-#        response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
-#        response = json.loads(response)
-#        self.assertIsNotNone(response.get('token'))
-#        self.assertIsNotNone(response.get('expires'))
-#
-#
 #class SituationReportTypeTest(APITestCase):
 #
 #    fixtures = ['DisasterTypes']
