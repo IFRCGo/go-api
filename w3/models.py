@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from enumfields import Enum, IntEnum, EnumIntegerField, EnumField
 from api.models import Country, District
-from django.http import JsonResponse
 
 class ProgrammeTypes(IntEnum):
     BILATERAL = 0
@@ -15,20 +14,10 @@ class Statuses(IntEnum):
     IN_PROGRESS = 0
     COMPLETED = 1
 
-class Currencies(Enum):
-    SWISS_FRANC = 'CHF'
-    EURO = 'EUR'
-    US_DOLLAR = 'USD'
-
-    def toJSON(self):
-        if self == 'CHF':
-            return JsonResponse({'Currencies':0})
-        elif self == 'EUR':
-            return JsonResponse({'Currencies':1})
-        elif self == 'USD':
-            return JsonResponse({'Currencies':2})
-        else:
-            return JsonResponse({'Currencies':0})
+class Currencies(IntEnum):
+    CHF = 0
+    EUR = 1
+    USD = 2
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
@@ -40,7 +29,7 @@ class Project(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     budget_amount = models.IntegerField()
-    budget_currency = EnumField(Currencies, max_length=4)
+    budget_currency = EnumIntegerField(Currencies)
     status = EnumIntegerField(Statuses)
 
     def __str__(self):
