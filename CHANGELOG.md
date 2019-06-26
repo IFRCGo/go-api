@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.115
+
+### Added
+ - Logo upload file extension filtering. Notification enhancements
+
 ## 1.1.114
 
 ### Added
@@ -484,7 +489,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.114...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.115...HEAD
+[1.1.115]: https://github.com/IFRCGo/go-api/compare/1.1.114...1.1.115
 [1.1.114]: https://github.com/IFRCGo/go-api/compare/1.1.113...1.1.114
 [1.1.113]: https://github.com/IFRCGo/go-api/compare/1.1.112...1.1.113
 [1.1.112]: https://github.com/IFRCGo/go-api/compare/1.1.111...1.1.112
