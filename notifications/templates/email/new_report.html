@@ -7,7 +7,11 @@
 {% if description %}
   <p>{{ description }}</p>
 {% else %}
-<p>No description is currently available. If you're an admin, you can <a href="{{ admin_uri }}">log in and add a description</a>.</p>
+<p>No description is currently available.
+  {% if is_staff %}
+    As an admin you can <a href="{{ admin_uri }}"> add a description</a>.
+  {% endif %}
+</p>
 {% endif %}
 
 {% if countries|length %}
