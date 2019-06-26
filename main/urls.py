@@ -42,12 +42,16 @@ from per.views import (
     FormSent,
     FormEdit,
 )
+from w3.views import (
+    ProjectSent,
+)
 
 # DRF routes
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from api import drf_views as api_views
 from per import drf_views as per_views
+from w3 import drf_views as w3_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 
@@ -83,6 +87,7 @@ router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
 router.register(r'perstat', per_views.FormStatViewset)
 router.register(r'per_mission', per_views.FormPermissionViewset)
+router.register(r'project', w3_views.ProjectViewset)
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
@@ -105,6 +110,7 @@ urlpatterns = [
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
     url(r'^sendperdraft', DraftSent.as_view()),
+    url(r'^sendproject', ProjectSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
