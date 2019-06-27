@@ -149,7 +149,7 @@ class Project(models.Model):
             postfix = None
         else:
             postfix = self.reporting_ns.society_name
-        return '%s ( %s)' % (self.name, postfix)
+        return '%s (%s)' % (self.name, postfix)
 
 
 ###############################################################################
