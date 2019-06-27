@@ -16,6 +16,9 @@ from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
 from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
+from django.conf import settings
+from datetime import datetime
+import pytz
 
 from .models import (
     Draft, Form, FormData
@@ -136,5 +139,25 @@ class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
         queryset =  Country.objects.all()
         if self.get_filtered_queryset(self.request, queryset, 3).exists():
             return [Country.objects.get(id=1)]
+        else:
+            return Country.objects.none()
+
+class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MiniCountrySerializer
+
+    def get_queryset(self):
+        last_deadline = settings.PER_LAST_DEADLINE
+        next_deadline = settings.PER_NEXT_DEADLINE
+        timezone = pytz.timezone("Europe/Zurich")
+        if not last_deadline:
+            last_deadline = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 111111))
+        if not next_deadline:
+            next_deadline = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 111111))
+        queryset =  Country.objects.filter(form__submitted_at__gt=last_deadline)
+        if queryset.exists():
+            return queryset
         else:
             return Country.objects.none()
