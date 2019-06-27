@@ -17,4 +17,3 @@ class ERUOwnerTest(TestCase):
         self.assertEqual(erus.count(), 1)
         self.assertEqual(erus[0].type, 2)
         self.assertEqual(erus[0].units, 6)
-

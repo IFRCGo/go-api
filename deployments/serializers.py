@@ -11,6 +11,7 @@ from .models import (
     RdrtPerson,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
+    Project
 )
 from api.serializers import (
     ListEventSerializer,
@@ -66,3 +67,8 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartnerSocietyDeployment
         fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'activity', 'id',)
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = '__all__'
