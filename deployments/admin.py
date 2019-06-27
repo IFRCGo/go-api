@@ -46,8 +46,14 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
+class ProjectAdmin(admin.ModelAdmin):
+    reporting_ns_in = 'country_from__in'
+    search_fields = ('name',)
+
+
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
 admin.site.register(models.Personnel, PersonnelAdmin)
 admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)
 admin.site.register(models.PartnerSocietyActivities, PartnerSocietyActivityAdmin)
+admin.site.register(models.Project, ProjectAdmin)
