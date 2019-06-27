@@ -13,7 +13,7 @@ from .models import (
 
 # Create your views here.
 
-class ProjectSent(PublicJsonPostView):
+class CreateProject(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
 
         body = json.loads(request.body.decode('utf-8'))

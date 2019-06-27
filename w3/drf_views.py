@@ -40,12 +40,10 @@ class ProjectViewset(viewsets.ReadOnlyModelViewSet):
     # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     # get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
     filter_class = ProjectFilter
+    serializer_class = ProjectSerializer
+    ordering_fields = ('name',)
 
 #    def get_queryset(self):
 #        queryset =  Project.objects.all()
 #        return self.get_filtered_queryset(self.request, queryset, 2)
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return ProjectSerializer
-        ordering_fields = ('name',)
