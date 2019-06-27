@@ -145,7 +145,11 @@ class Project(models.Model):
     status = EnumIntegerField(Statuses)
 
     def __str__(self):
-        return self.name
+        if self.reporting_ns is None:
+            postfix = None
+        else:
+            postfix = self.reporting_ns.society_name
+        return '%s ( %s)' % (self.name, postfix)
 
 
 ###############################################################################
