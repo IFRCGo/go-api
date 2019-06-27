@@ -43,7 +43,7 @@ from per.views import (
     FormEdit,
 )
 from w3.views import (
-    ProjectSent,
+    CreateProject,
 )
 
 # DRF routes
@@ -106,11 +106,11 @@ urlpatterns = [
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
+    url(r'^api/v2/create_project', CreateProject.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
     url(r'^sendperdraft', DraftSent.as_view()),
-    url(r'^sendproject', ProjectSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
