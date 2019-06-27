@@ -18,9 +18,9 @@ class Sectors(IntEnum):
     PREPAREDNESS = 7
 
 class Statuses(IntEnum):
-    ONGOING = 0
-    COMPLETED = 1
-    PLANNED = 2
+    PLANNED = 0
+    ONGOING = 1
+    COMPLETED = 0
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project

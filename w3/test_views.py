@@ -39,7 +39,6 @@ class ProjectGetTest(APITestCase):
                     ,start_date       = '2011-11-11'
                     ,end_date         = '2011-11-11'
                     ,budget_amount    = 6000
-                    ,budget_currency  = 0
                     ,status           = 0)
         first.save()
 
@@ -57,6 +56,36 @@ class ProjectGetTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
         resp = self.client.get('/api/v2/project/')
         self.assertEqual(resp.status_code, 200)
+
+    def test_2(self):
+        country2 = Country.objects.get(name='country2')
+        district2 = District.objects.get(name='district2')
+        user = User.objects.get(username=username)
+        body = {
+            'username': username,
+            'password': password
+        }
+        headers = {'CONTENT_TYPE': 'application/json'}
+        response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
+        response = json.loads(response)
+        token = response.get('token')
+        self.assertIsNotNone(token)
+        body = {
+            'user'             : user.id,
+            'reporting_ns'     : country2.id,
+            'project_district' : district2.id,
+            'name'             : 'bbb',
+            'programme_type'   : 0,
+            'sector'           : 0,
+            'start_date'       : '2012-11-12',
+            'end_date'         : '2013-11-13',
+            'budget_amount'    : 7000,
+            'status'           : 0
+        }
+        self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
+#        self.client.force_authenticate(user=user)
+#        resp = self.client.post('/api/v2/create_project/', body, format='json')
+#        self.assertEqual(resp.status_code, 200)
 
 
 #class SituationReportTypeTest(APITestCase):

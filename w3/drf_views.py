@@ -25,12 +25,11 @@ from .serializers import (
 )
 
 class ProjectFilter(filters.FilterSet):
-    form = filters.NumberFilter(name='form', lookup_expr='exact')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    budget_amount = filters.NumberFilter(name='budget', lookup_expr='exact')
     class Meta:
         model = Project
         fields = {
-            'form': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
 class ProjectViewset(viewsets.ReadOnlyModelViewSet):
