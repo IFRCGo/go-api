@@ -8,8 +8,6 @@ from .models import Project
 import w3.models as models
 import w3.drf_views as views
 
-# Just for db test: insert into w3_project (name,programme_type,sector,start_date,end_date,budget_amount,budget_currency,status,project_district_id,reporting_ns_id,user_id) values ('aaa',1,0,now(),now(),5000,0,0,111,111,111);
-
 username = 'jo'
 password = '12345678'
 
