@@ -96,7 +96,7 @@ class ProjectGetTest(APITestCase):
         self.client.force_authenticate(user=user, token=token)
         resp = self.client.post('/api/v2/create_project/', body, format='json')
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(Project.objects.all()), 3) # we created 2 projects until now here
+        self.assertEqual(len(Project.objects.all()), 3) # we created 3 projects until now here
 
     def test_get_projects(self):
         user = User.objects.get(username=username)
