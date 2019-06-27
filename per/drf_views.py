@@ -25,7 +25,7 @@ from .models import (
 )
 
 from .serializers import (
-    ListDraftSerializer, FormStatSerializer, ListFormSerializer, ListFormDataSerializer,
+    ListDraftSerializer, FormStatSerializer, ListFormSerializer, ListFormDataSerializer, ShortFormSerializer
 )
 
 class DraftFilter(filters.FilterSet):
@@ -143,10 +143,11 @@ class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
             return Country.objects.none()
 
 class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Country.objects.all()
+    queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-    serializer_class = MiniCountrySerializer
+    country = MiniCountrySerializer
+    serializer_class = ShortFormSerializer
 
     def get_queryset(self):
         last_deadline = settings.PER_LAST_DEADLINE
@@ -156,8 +157,8 @@ class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
             last_deadline = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 111111))
         if not next_deadline:
             next_deadline = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 111111))
-        queryset =  Country.objects.filter(form__submitted_at__gt=last_deadline)
+        queryset =  Form.objects.filter(submitted_at__gt=last_deadline)
         if queryset.exists():
             return queryset
         else:
-            return Country.objects.none()
+            return Form.objects.none()
