@@ -29,7 +29,6 @@ INSTALLED_APPS = [
     'graphene_django',
     'api',
     'per',
-    'w3',
     'notifications',
     'registrations',
     'deployments',
