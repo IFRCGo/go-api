@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ('start_date', models.DateField()),
                 ('end_date', models.DateField()),
                 ('budget_amount', models.IntegerField()),
-                ('budget_currency', enumfields.fields.EnumIntegerField(enum=w3.models.Currencies)),
                 ('status', enumfields.fields.EnumIntegerField(enum=w3.models.Statuses)),
                 ('project_district', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.District')),
                 ('reporting_ns', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Country')),

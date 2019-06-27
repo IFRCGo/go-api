@@ -9,15 +9,18 @@ class ProgrammeTypes(IntEnum):
 
 class Sectors(IntEnum):
     WASH = 0
+    PGI = 1
+    CEA = 2
+    MIGRATION = 3
+    HEALTH = 4
+    DRR = 5
+    SHELTER = 6
+    PREPAREDNESS = 7
 
 class Statuses(IntEnum):
-    IN_PROGRESS = 0
+    ONGOING = 0
     COMPLETED = 1
-
-class Currencies(IntEnum):
-    CHF = 0
-    EUR = 1
-    USD = 2
+    PLANNED = 2
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
@@ -29,7 +32,6 @@ class Project(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     budget_amount = models.IntegerField()
-    budget_currency = EnumIntegerField(Currencies)
     status = EnumIntegerField(Statuses)
 
     def __str__(self):
