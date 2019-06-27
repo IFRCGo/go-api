@@ -29,3 +29,9 @@ class ListFormDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormData
         fields = ('form', 'question_id', 'selected_option', 'notes')
+
+class ShortFormSerializer(serializers.ModelSerializer):
+    country = RegoCountrySerializer()
+    class Meta:
+        model = Form
+        fields = ('name', 'code', 'updated_at', 'country', 'language', 'id',)
