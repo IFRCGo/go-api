@@ -43,6 +43,7 @@ from per.views import (
     FormEdit,
 )
 
+
 # DRF routes
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
@@ -83,6 +84,7 @@ router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
 router.register(r'perstat', per_views.FormStatViewset)
 router.register(r'per_mission', per_views.FormPermissionViewset)
+router.register(r'project', deployment_views.ProjectViewset)
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
@@ -101,6 +103,7 @@ urlpatterns = [
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
+    url(r'^api/v2/create_project', deployment_views.CreateProject.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),

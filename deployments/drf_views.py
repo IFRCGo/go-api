@@ -1,6 +1,9 @@
+import json, datetime, pytz
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
+from django.shortcuts import render
+from django.http import JsonResponse
 from rest_framework import viewsets
 from .models import (
     ERUOwner,
@@ -8,6 +11,10 @@ from .models import (
     PersonnelDeployment,
     Personnel,
     PartnerSocietyDeployment,
+    ProgrammeTypes,
+    Sectors,
+    Statuses,
+    Project,
 )
 from api.models import Country
 from api.view_filters import ListFilter
@@ -17,7 +24,15 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
+    ProjectSerializer,
 )
+from api.views import (
+    bad_request,
+    bad_http_request,
+    PublicJsonPostView,
+    PublicJsonRequestView,
+)
+
 
 class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
@@ -97,3 +112,75 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = PartnerSocietyDeployment.objects.all()
     serializer_class = PartnerDeploymentSerializer
     filter_class = PartnerDeploymentFilterset
+
+
+
+
+class ProjectFilter(filters.FilterSet):
+    budget_amount = filters.NumberFilter(name='budget_amount', lookup_expr='exact')
+    country = filters.CharFilter(name='country', method='filter_country')
+
+    def filter_country(self, queryset, name, value):
+        return queryset.filter(project_district__country__iso=value)
+        
+    class Meta:
+        model = Project
+        fields = [
+            'country',
+            'budget_amount',
+            'start_date',
+            'end_date'
+        ]
+
+class ProjectViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Project.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    filter_class = ProjectFilter
+    serializer_class = ProjectSerializer
+    ordering_fields = ('name',)
+
+
+class CreateProject(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        body = json.loads(request.body.decode('utf-8'))
+        # Recently it is not checked whether what user is this (same with the logged in or not).
+        required_fields = [
+            'user',
+            'reporting_ns',
+            'project_district',
+            'name',
+        ]
+        missing_fields = [field for field in required_fields if field not in body]
+        if len(missing_fields):
+            return bad_request('Could not complete request due to missing mandatory field. Please submit %s' % ', '.join(missing_fields))
+
+        currentDT = datetime.datetime.now(pytz.timezone('UTC'))
+        if 'programme_type' not in body:
+            body['programme_type'] = ProgrammeTypes.MULTILATERAL
+        if 'sector' not in body:
+            body['sector'] = Sectors.WASH
+        if 'start_date' not in body:
+            body['start_date']   = str(currentDT)
+        if 'end_date' not in body:
+            body['end_date']   = str(currentDT)
+        if 'budget_amount' not in body:
+            body['budget_amount'] = 0
+        if 'status' not in body:
+            body['status'] = Statuses.ONGOING
+        project = Project.objects.create(user_id             = body['user'],
+                                         reporting_ns_id     = body['reporting_ns'],
+                                         project_district_id = body['project_district'],
+                                         name                = body['name'],
+                                         programme_type      = body['programme_type'],
+                                         sector              = body['sector'],
+                                         start_date          = body['start_date'],
+                                         end_date            = body['end_date'],
+                                         budget_amount       = body['budget_amount'],
+                                         status              = body['status'],
+                                         )
+        try:
+            project.save()
+        except:
+            return bad_request('Could not create Project record.')
+        return JsonResponse({'status': 'ok'})
