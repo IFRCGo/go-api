@@ -5,8 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
 from api.models import Country, District
 from .models import Project
-import w3.models as models
-import w3.drf_views as views
 
 username = 'jo'
 password = '12345678'
