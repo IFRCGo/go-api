@@ -98,10 +98,33 @@ class ProjectGetTest(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(Project.objects.all()), 3) # we created 2 projects until now here
 
-    # def test_get_projects(self):
-    #     resp = self.client.get('/api/v2/project/', format='json')
-    #     self.assertEqual(resp.status_code, 200)
-    #     data = json.loads(resp.content)
-    #     print(data)
+    def test_get_projects(self):
+        user = User.objects.get(username=username)
+        body = {
+            'username': username,
+            'password': password
+        }
+        headers = {'CONTENT_TYPE': 'application/json'}
+        response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
+        response = json.loads(response)
+        token = response.get('token')
+        self.assertIsNotNone(token)
+        self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
+        resp = self.client.get('/api/v2/project/', format='json')
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertEqual(data['count'], 2)
+        self.assertEqual(data['results'][0]['name'], 'aaa')
+        resp_country_filter = self.client.get('/api/v2/project/?country=YY', format='json')
+        self.assertEqual(resp_country_filter.status_code, 200)
+        data = json.loads(resp_country_filter.content)
+        self.assertEqual(data['count'], 1)
+        self.assertEqual(data['results'][0]['name'], 'bbb')       
+        resp_budget_filter = self.client.get('/api/v2/project/?budget_amount=6000', format='json')
+        self.assertEqual(resp_budget_filter.status_code, 200)
+        data = json.loads(resp_budget_filter.content)
+        self.assertEqual(data['count'], 1)
+        self.assertEqual(data['results'][0]['name'], 'aaa')  
+
 
 
