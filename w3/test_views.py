@@ -74,7 +74,7 @@ class ProjectGetTest(APITestCase):
             'user'             : user.id,
             'reporting_ns'     : country2.id,
             'project_district' : district2.id,
-            'name'             : 'bbb',
+            'name'             : 'CreateMePls',
             'programme_type'   : 0,
             'sector'           : 0,
             'start_date'       : '2012-11-12',
@@ -83,9 +83,10 @@ class ProjectGetTest(APITestCase):
             'status'           : 0
         }
         self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
-#        self.client.force_authenticate(user=user)
-#        resp = self.client.post('/api/v2/create_project/', body, format='json')
-#        self.assertEqual(resp.status_code, 200)
+        self.client.force_authenticate(user=user, token=token)
+        resp = self.client.post('/api/v2/create_project/', body, format='json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(Project.objects.all()), 2) # we created 2 projects until now, here in test
 
 
 #class SituationReportTypeTest(APITestCase):
