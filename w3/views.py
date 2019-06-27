@@ -19,8 +19,9 @@ from .models import (
 class CreateProject(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
+        # Recently it is not checked whether what user is this (same with the logged in or not).
         required_fields = [
-            'user_id',
+            'user',
             'reporting_ns',
             'project_district',
             'name',
@@ -42,16 +43,16 @@ class CreateProject(PublicJsonPostView):
             body['budget_amount'] = 0
         if 'status' not in body:
             body['status'] = Statuses.ONGOING
-        project = Project.objects.create(user_id           = body['user_id'],
-                                         reporting_ns      = body['reporting_ns'],
-                                         project_district  = body['project_district'],
-                                         name              = body['name'],
-                                         programme_type    = body['programme_type'],
-                                         sector            = body['sector'],
-                                         start_date        = body['start_date'],
-                                         end_date          = body['end_date'],
-                                         budget_amount     = body['budget_amount'],
-                                         status            = body['status'],
+        project = Project.objects.create(user_id             = body['user'],
+                                         reporting_ns_id     = body['reporting_ns'],
+                                         project_district_id = body['project_district'],
+                                         name                = body['name'],
+                                         programme_type      = body['programme_type'],
+                                         sector              = body['sector'],
+                                         start_date          = body['start_date'],
+                                         end_date            = body['end_date'],
+                                         budget_amount       = body['budget_amount'],
+                                         status              = body['status'],
                                          )
         try:
             project.save()
