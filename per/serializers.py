@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from api.models import Region
 from .models import (
     Draft, Form, FormData,
 )
@@ -35,3 +36,15 @@ class ShortFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
         fields = ('name', 'code', 'updated_at', 'country', 'language', 'id',)
+
+class EngagedNSPercentageSerializer(serializers.ModelSerializer):
+    country__count = serializers.IntegerField()
+    forms_sent = serializers.IntegerField()
+    class Meta:
+        model = Region
+        fields = ('id', 'country__count', 'forms_sent',)
+
+class GlobalPreparednessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Form
+        fields = ('id', 'code',)
