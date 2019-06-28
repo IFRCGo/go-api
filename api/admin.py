@@ -12,6 +12,8 @@ import api.models as models
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from rest_framework.authtoken.admin import TokenAdmin
+from rest_framework.authtoken.models import Token
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -25,6 +27,13 @@ class GoUserAdmin(UserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, GoUserAdmin)
+
+class GoTokenAdmin(TokenAdmin):
+    search_fields = ('user__username', 'user__email',)
+
+admin.site.unregister(Token)
+admin.site.register(Token, GoTokenAdmin)
+
 
 class HasRelatedEventFilter(admin.SimpleListFilter):
     title = _('related emergency')

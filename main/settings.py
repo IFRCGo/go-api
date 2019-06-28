@@ -185,5 +185,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600 # default 2621440, 2.5MB -> 100MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000    # default 1000, was not enough for Mozambique Cyclone Idai page
 
 timezone = pytz.timezone("Europe/Zurich")
-PER_LAST_DEADLINE=timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 111111))
-PER_NEXT_DEADLINE=timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 111111))
+PER_LAST_DUEDATE=timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
+PER_NEXT_DUEDATE=timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
