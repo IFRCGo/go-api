@@ -12,17 +12,26 @@ from api.exceptions import BadRequest
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
-from django.db.models import Q
+from django.db.models import Count, Q
 from .admin_classes import RegionRestrictedAdmin
-from api.models import Country
+from api.models import Country, Region
 from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
+from django.conf import settings
+from datetime import datetime
+import pytz
 
 from .models import (
     Draft, Form, FormData
 )
 
 from .serializers import (
-    ListDraftSerializer, FormStatSerializer, ListFormSerializer, ListFormDataSerializer,
+    ListDraftSerializer,
+    FormStatSerializer,
+    ListFormSerializer,
+    ListFormDataSerializer,
+    ShortFormSerializer,
+    EngagedNSPercentageSerializer,
+    GlobalPreparednessSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -138,3 +147,76 @@ class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
             return [Country.objects.get(id=1)]
         else:
             return Country.objects.none()
+
+class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
+    """Countries and their forms which were submitted since last due date"""
+
+    queryset = Form.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    country = MiniCountrySerializer
+    serializer_class = ShortFormSerializer
+
+    def get_queryset(self):
+        last_duedate = settings.PER_LAST_DUEDATE
+        next_duedate = settings.PER_NEXT_DUEDATE
+        timezone = pytz.timezone("Europe/Zurich")
+        if not last_duedate:
+            last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
+        if not next_duedate:
+            next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
+        queryset =  Form.objects.filter(submitted_at__gt=last_duedate)
+        if queryset.exists():
+            return queryset
+        else:
+            return Form.objects.none()
+
+class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
+    """National Societies engaged in per process"""
+    queryset = Region.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = EngagedNSPercentageSerializer
+
+    def get_queryset(self):
+        last_duedate = settings.PER_LAST_DUEDATE
+        next_duedate = settings.PER_NEXT_DUEDATE
+        timezone = pytz.timezone("Europe/Zurich")
+        if not last_duedate:
+            last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
+        if not next_duedate:
+            next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
+        queryset1 = Region.objects.all().annotate(Count('country')).values('id', 'country__count')
+        queryset2 = Region.objects.filter(country__form__submitted_at__gt=last_duedate) \
+                    .values('id').annotate(forms_sent=Count('country'))
+        # We merge the 2 lists (all and forms_sent), like {'id': 2, 'country__count': 37} and {'id': 2, 'forms_sent': 2} to
+        #                                                 {'id': 2, 'country__count': 37, 'forms_sent': 2}, even with zeroes.
+        result=[]
+        for i in queryset1:
+            i['forms_sent'] = 0
+            for j in queryset2:
+                if int(j['id']) == int(i['id']):
+                # if this never occurs, (so no form-sender country in this region), forms_sent remain 0
+                    i['forms_sent'] = j['forms_sent']
+            result.append(i)
+        # [{'id': 0, 'country__count': 49, 'forms_sent': 0}, {'id': 1, 'country__count': 35, 'forms_sent': 1}...
+        return result
+
+class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
+    """Global Preparedness Highlights"""
+    # needed: select a.id, a.code, b.question_id from per_form a join per_formdata b on a.id=b.form_id where selected_option = 7 and submitted_at > '1111-11-11';
+    # TODO: put formdata.question_id also into the response
+    queryset = Form.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = GlobalPreparednessSerializer
+    def get_queryset(self):
+        last_duedate = settings.PER_LAST_DUEDATE
+        next_duedate = settings.PER_NEXT_DUEDATE
+        timezone = pytz.timezone("Europe/Zurich")
+        if not last_duedate:
+            last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
+        if not next_duedate:
+            next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
+        queryset = Form.objects.filter(submitted_at__gt=last_duedate, formdata__selected_option=7).values('id', 'code')
+        return queryset
