@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.120
+
+### Added
+ - PER visualization and phase administration
+
 ## 1.1.119
 
 ### Added
@@ -505,7 +510,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.119...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.120...HEAD
+[1.1.120]: https://github.com/IFRCGo/go-api/compare/1.1.119...1.1.120
 [1.1.119]: https://github.com/IFRCGo/go-api/compare/1.1.118...1.1.119
 [1.1.118]: https://github.com/IFRCGo/go-api/compare/1.1.117...1.1.118
 [1.1.117]: https://github.com/IFRCGo/go-api/compare/1.1.116...1.1.117
