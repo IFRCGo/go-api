@@ -46,5 +46,5 @@ class EngagedNSPercentageSerializer(serializers.ModelSerializer):
 
 class GlobalPreparednessSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Form
-        fields = ('id', 'code',)
+        model = FormData
+        fields = '__all__'

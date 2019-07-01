@@ -218,5 +218,6 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = Form.objects.filter(submitted_at__gt=last_duedate, formdata__selected_option=7).values('id', 'code')
+        queryset = FormData.objects.filter(form__submitted_at__gt='1111-11-11', selected_option=7) #.select_related('form')
+       #queryset = Form.objects.filter(submitted_at__gt=last_duedate, formdata__selected_option=7).values('id', 'code')
         return queryset
