@@ -130,7 +130,7 @@ class Sectors(IntEnum):
 class Statuses(IntEnum):
     PLANNED = 0
     ONGOING = 1
-    COMPLETED = 0
+    COMPLETED = 2
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
