@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import Region
 from .models import (
-    Draft, Form, FormData,
+    Draft, Form, FormData, NSPhase
 )
 from api.serializers import (
     RegoCountrySerializer, UserSerializer
@@ -44,7 +44,14 @@ class EngagedNSPercentageSerializer(serializers.ModelSerializer):
         model = Region
         fields = ('id', 'country__count', 'forms_sent',)
 
-class GlobalPreparednessSerializer(serializers.ModelSerializer):
+class GlobalPreparednessSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    code = serializers.CharField(max_length=10)
+    question_id = serializers.CharField(max_length=20)
     class Meta:
-        model = Form
-        fields = ('id', 'code',)
+        fields = ('id', 'code', 'question_id',)
+
+class NSPhaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NSPhase
+        fields = ('id', 'country', 'phase', 'updated_at')
