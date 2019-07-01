@@ -229,6 +229,7 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
 
 class NSPhaseFilter(filters.FilterSet):
     country = filters.NumberFilter(name='country', lookup_expr='exact')
+    phase = filters.NumberFilter(name='phase', lookup_expr='exact')
     id = filters.NumberFilter(name='id', lookup_expr='exact')
 
     class Meta:
@@ -248,7 +249,11 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
-        # Giving a default value when queryset is empty - would like to have country parameter also
-        if not queryset:
-            queryset = "{'phase': '0'}"
+        # Giving a default value when queryset is empty, with the given country_id (if exists)
+        if not queryset and Country.objects.filter(pk = self.request.query_params.get('country', None)):
+            j = {'id': -1}
+            j.update({'country': Country.objects.get(pk = self.request.query_params.get('country', None))})
+            j.update({'updated_at': pytz.timezone("Europe/Zurich").localize(datetime(2011, 11, 11, 1, 1, 1, 0))})
+            j.update({'phase': 0})
+            return [j]
         return queryset
