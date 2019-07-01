@@ -21,6 +21,31 @@ def to_dict(instance):
             data[f.name] = f.value_from_object(instance)
     return data
 
+class ProcessPhase(IntEnum):
+    ORIENTATION = 0
+    ASSESSMENT = 1
+    PRIORITIZATION = 2
+    PLAN_OF_ACTION = 3
+    ACTION_AND_ACCOUNTABILITY = 4
+
+class NSPhase(models.Model):
+    """ NS PER Process Phase """
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.ORIENTATION)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('updated_at', 'country', )
+        verbose_name = 'NS PER Process Phase'
+        verbose_name_plural = 'NS-es PER Process Phase'
+
+    def __str__(self):
+        if self.country is None:
+            name = None
+        else:
+            name = self.country.society_name
+        return '%s (%s)' % (name, self.phase)
+
 class Status(IntEnum):
     NO                          = 0
     YES                         = 1

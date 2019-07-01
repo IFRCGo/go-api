@@ -21,7 +21,7 @@ from datetime import datetime
 import pytz
 
 from .models import (
-    Draft, Form, FormData
+    Draft, Form, FormData, NSPhase
 )
 
 from .serializers import (
@@ -32,6 +32,7 @@ from .serializers import (
     ShortFormSerializer,
     EngagedNSPercentageSerializer,
     GlobalPreparednessSerializer,
+    NSPhaseSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -204,12 +205,11 @@ class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
 
 class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
     """Global Preparedness Highlights"""
-    # needed: select a.id, a.code, b.question_id from per_form a join per_formdata b on a.id=b.form_id where selected_option = 7 and submitted_at > '1111-11-11';
-    # TODO: put formdata.question_id also into the response
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = GlobalPreparednessSerializer
+
     def get_queryset(self):
         last_duedate = settings.PER_LAST_DUEDATE
         next_duedate = settings.PER_NEXT_DUEDATE
@@ -218,5 +218,37 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = Form.objects.filter(submitted_at__gt=last_duedate, formdata__selected_option=7).values('id', 'code')
+        queryset = FormData.objects.filter(form__submitted_at__gt=last_duedate, selected_option=7).select_related('form')
+        result=[]
+        for i in queryset:
+            j = {'id': i.form.id}
+            j.update({'code': i.form.code})
+            j.update({'question_id': i.question_id})
+            result.append(j)
+        return result
+
+class NSPhaseFilter(filters.FilterSet):
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+
+    class Meta:
+        model = NSPhase
+        fields = {
+            'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
+class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
+    """NS PER Process Phase Viewset"""
+    queryset = NSPhase.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = NSPhaseSerializer
+    filter_class = NSPhaseFilter
+
+    def filter_queryset(self, queryset):
+        for backend in list(self.filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        # Giving a default value when queryset is empty - would like to have country parameter also
+        if not queryset:
+            queryset = "{'phase': '0'}"
         return queryset
