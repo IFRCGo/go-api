@@ -19,5 +19,9 @@ class FormDataAdmin(RegionRestrictedAdmin):
     region_in = 'form__country__region_id__in'
     search_fields = ('question_id', 'form__name', 'form__code', )
 
+class NSPhaseAdmin(RegionRestrictedAdmin):
+    search_fields = ('phase',)
+
 admin.site.register(models.Form, FormAdmin)
+admin.site.register(models.NSPhase, NSPhaseAdmin)
 #admin.site.register(models.FormData, FormDataAdmin) - if we want to edit form data in Django
