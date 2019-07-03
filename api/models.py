@@ -73,12 +73,13 @@ def logo_document_path(instance, filename):
 
 class CountryType(IntEnum):
     '''
-        We use the Country model for some things that are not "Countries".
-        For eg. IFRC (Not a country) or groups of countries like Southeast Asia (A region, not a country)
+        We use the Country model for some things that are not "Countries". This helps classify the type.
     '''
-    NOT_COUNTRY = 0
     COUNTRY = 1
-    GROUPING = 2
+    CLUSTER = 2
+    REGION = 3
+    COUNTRY_OFFICE = 4
+    REPRESENTATIVE_OFFICE = 5
     
 
 class Country(models.Model):
