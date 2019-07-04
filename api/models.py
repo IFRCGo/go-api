@@ -71,10 +71,22 @@ class Region(models.Model):
 def logo_document_path(instance, filename):
     return 'logos/%s/%s' % (instance.iso, filename)
 
+class CountryType(IntEnum):
+    '''
+        We use the Country model for some things that are not "Countries". This helps classify the type.
+    '''
+    COUNTRY = 1
+    CLUSTER = 2
+    REGION = 3
+    COUNTRY_OFFICE = 4
+    REPRESENTATIVE_OFFICE = 5
+    
+
 class Country(models.Model):
     """ A country """
 
     name = models.CharField(max_length=100)
+    record_type = EnumIntegerField(CountryType, default=1, help_text='Type of entity')
     iso = models.CharField(max_length=2, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
@@ -120,6 +132,7 @@ class District(models.Model):
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     country_iso = models.CharField(max_length=3, null=True)
     country_name = models.CharField(max_length=100)
+    is_enclave = models.BooleanField(default=False, help_text='Is it an enclave away from parent country?') # used to mark if the district is far away from the country
 
     class Meta:
         ordering = ('code',)
