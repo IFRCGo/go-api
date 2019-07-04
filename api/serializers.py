@@ -288,6 +288,7 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
     sources = SourceSerializer(many=True)
     event = MiniEventSerializer()
     countries = MiniCountrySerializer(many=True)
+    districts = MiniDistrictSerializer(many=True)
     class Meta:
         model = FieldReport
         fields = '__all__'
