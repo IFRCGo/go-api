@@ -66,6 +66,8 @@ class RecordType(IntEnum):
     DTYPE = 6
     PER_DUE_DATE = 7
     FOLLOWED_EVENT = 8
+    SURGE_DEPLOYMENT_MESSAGES = 9
+    SURGE_APPROACHING_END_OF_MISSION = 10
 
 class Subscription(models.Model):
     """ User subscriptions """
@@ -94,6 +96,8 @@ class Subscription(models.Model):
             'appeal': RecordType.APPEAL,
             'fieldReport': RecordType.FIELD_REPORT,
             'surge': RecordType.SURGE_ALERT,
+            'surgeDM': RecordType.SURGE_DEPLOYMENT_MESSAGES,
+            'surgeAEM': RecordType.SURGE_APPROACHING_END_OF_MISSION,
             'regions': RecordType.REGION,
             'countries': RecordType.COUNTRY,
             'disasterTypes': RecordType.DTYPE,
@@ -155,6 +159,12 @@ class Subscription(models.Model):
                 fields['stype'] = SubscriptionType.NEW
 
             elif rtype == RecordType.SURGE_ALERT:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.SURGE_APPROACHING_END_OF_MISSION:
                 fields['stype'] = SubscriptionType.NEW
 
             else:
