@@ -355,7 +355,9 @@ class DistrictAdmin(RegionRestrictedAdmin):
 
 class CountryAdmin(RegionRestrictedAdmin):
     country_in = 'pk__in'
+    list_display = ('__str__', 'record_type')
     region_in = 'region__pk__in'
+    list_editable = ('record_type',)
     search_fields = ('name',)
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
     exclude = ('key_priorities',)
