@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.122
 
 ### Added
- - Three surge types to subscribe
+ - Two new surge types to subscribe
 
 ## 1.1.121
 ## 1.1.120
