@@ -181,8 +181,14 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
 
+class DistrictFilter(filters.FilterSet):
+    class Meta:
+        model = District
+        fields = ('country',)
+
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all()
+    filter_class = DistrictFilter
     def get_serializer_class(self):
         if self.action == 'list':
             return MiniDistrictSerializer
