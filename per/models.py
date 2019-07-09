@@ -51,7 +51,7 @@ class ProcessPhase(IntEnum):
 
 class NSPhase(models.Model):
     """ NS PER Process Phase """
-    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1 ) #default=1 needed only for the migration, can be deleted later
     phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.ORIENTATION)
     updated_at = models.DateTimeField(auto_now=True)
 
