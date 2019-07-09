@@ -6,6 +6,7 @@ from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from tinymce import HTMLField
+from deployments.models import ERUType
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -21,6 +22,26 @@ def to_dict(instance):
             data[f.name] = f.value_from_object(instance)
     return data
 
+class ERUReadiness(models.Model):
+    """ ERU Readiness concerning personnel and equipment """
+    national_society = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    ERU_type = EnumIntegerField(ERUType, default=0)
+    is_personnel = models.BooleanField(default=False)
+    is_equipment = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('updated_at', 'national_society', )
+        verbose_name = 'ERU Readiness'
+        verbose_name_plural = 'NS-es ERU Readiness'
+
+    def __str__(self):
+        if self.national_society is None:
+            name = None
+        else:
+            name = self.national_society.society_name
+        return '%s (%s)' % (name, self.ERU_type)
+
 class ProcessPhase(IntEnum):
     ORIENTATION = 0
     ASSESSMENT = 1
@@ -30,7 +51,7 @@ class ProcessPhase(IntEnum):
 
 class NSPhase(models.Model):
     """ NS PER Process Phase """
-    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1 ) #default=1 needed only for the migration, can be deleted later
     phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.ORIENTATION)
     updated_at = models.DateTimeField(auto_now=True)
 

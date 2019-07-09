@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from api.models import District, Country, Region, Event, DisasterType
+from api.models import District, Country, Region, Event, DisasterType, Appeal
 from datetime import datetime
 
 
@@ -44,12 +44,19 @@ class ERU(models.Model):
     type = EnumIntegerField(ERUType, default=0)
     units = models.IntegerField(default=0)
     equipment_units = models.IntegerField(default=0)
+    num_people_deployed = models.IntegerField(default=0)
     # where deployed (none if available)
     deployed_to = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    appeal = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL)
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
+    supporting_societies = models.CharField(null=True, blank=True, max_length=500)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
     available = models.BooleanField(default=False)
+    alert_date = models.DateTimeField(null=True)
 
 
     def __str__(self):
@@ -60,6 +67,12 @@ class PersonnelDeployment(models.Model):
     country_deployed_to = models.ForeignKey(Country, on_delete=models.CASCADE)
     region_deployed_to = models.ForeignKey(Region, on_delete=models.CASCADE)
     event_deployed_to = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    appeal_deployed_to = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL)
+    alert_date = models.DateTimeField(null=True)
+    exp_start_date = models.DateTimeField(null=True)
+    end_duration = models.CharField(null=True, blank=True, max_length=100)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
     comments = models.TextField(null=True, blank=True)
     class Meta:
         verbose_name_plural = 'Personnel Deployments'
