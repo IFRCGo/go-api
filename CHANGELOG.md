@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.125
+
+### Added
+ - Country is unique in PER NS Phase.
+ - Some new fields to deployment tables (to be able to ingest from Google Sprsh)
+
 ## 1.1.124
 ## 1.1.123
 ## 1.1.122
@@ -518,7 +524,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.124...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.125...HEAD
+[1.1.125]: https://github.com/IFRCGo/go-api/compare/1.1.124...1.1.125
 [1.1.124]: https://github.com/IFRCGo/go-api/compare/1.1.123...1.1.124
 [1.1.123]: https://github.com/IFRCGo/go-api/compare/1.1.122...1.1.123
 [1.1.122]: https://github.com/IFRCGo/go-api/compare/1.1.121...1.1.122
