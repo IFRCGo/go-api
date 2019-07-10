@@ -55,3 +55,8 @@ class NSPhaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = NSPhase
         fields = ('id', 'country', 'phase', 'updated_at')
+
+class MiniUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name', 'email')
