@@ -22,6 +22,38 @@ def to_dict(instance):
             data[f.name] = f.value_from_object(instance)
     return data
 
+class PriorityValue(IntEnum):
+    LOW  = 0
+    MID  = 1
+    HIGH = 2
+
+class WorkPlanStatus(IntEnum):
+    STANDBY            = 0
+    ONGOING            = 1
+    CANCELLED          = 2
+    DELAYED            = 3
+    PENDING            = 4
+    NEED_IMPROVEMENTS  = 5
+    FINISHED           = 6
+    APPROVED           = 7
+    CLOSED             = 8
+
+class WorkPlan(models.Model):
+    prioritization = EnumIntegerField(PriorityValue)
+    components = models.CharField(max_length=900)
+    benchmark = models.CharField(max_length=900)
+    actions = models.CharField(max_length=900)
+    comments = models.CharField(max_length=900)
+    timeline = models.DateTimeField(auto_now=True)
+    status = EnumIntegerField(WorkPlanStatus)
+    support_required = models.BooleanField(default=False)
+    focal_point = models.CharField(max_length=90)
+
+    class Meta:
+        ordering = ('prioritization', )
+        verbose_name = 'PER Work Plan'
+        verbose_name_plural = 'PER Work Plans'
+
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """
     national_society = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
