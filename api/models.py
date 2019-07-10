@@ -80,6 +80,12 @@ class CountryType(IntEnum):
     REGION = 3
     COUNTRY_OFFICE = 4
     REPRESENTATIVE_OFFICE = 5
+
+    # select name, society_name, record_type from api_country where name like '%luster%';
+    # select name, society_name, record_type from api_country where name like '%egion%';
+    # select name, society_name, record_type from api_country where name like '%ffice%'; -- no result
+    # update api_country set record_type=2 where name like '%luster%';
+    # update api_country set record_type=3 where name like '%egion%';
     
 
 class Country(models.Model):

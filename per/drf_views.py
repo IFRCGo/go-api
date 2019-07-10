@@ -20,6 +20,7 @@ from django.conf import settings
 from datetime import datetime
 import pytz
 
+from django.contrib.auth.models import User, Group
 from .models import (
     Draft, Form, FormData, NSPhase
 )
@@ -33,6 +34,7 @@ from .serializers import (
     EngagedNSPercentageSerializer,
     GlobalPreparednessSerializer,
     NSPhaseSerializer,
+    MiniUserSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -89,6 +91,7 @@ class FormDataFilter(filters.FilterSet):
         }
 
 class FormDataViewset(viewsets.ReadOnlyModelViewSet):
+    """Can use 'new' GET parameter for using data only after the last due_date"""
     queryset = FormData.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -97,8 +100,24 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = FormDataFilter
 
     def get_queryset(self):
-        queryset =  FormData.objects.all()
-        return self.get_filtered_queryset(self.request, queryset, 2)
+        queryset = FormData.objects.all()
+        cond1 = Q()
+        cond2 = Q() # This way only those conditions will be effective which we set later:
+        if 'new' in self.request.query_params.keys():
+            last_duedate = settings.PER_LAST_DUEDATE
+            timezone = pytz.timezone("Europe/Zurich")
+            if not last_duedate:
+                last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
+            cond1 = Q(form__submitted_at__gt=last_duedate)
+        if 'country' in self.request.query_params.keys():
+            cid = self.request.query_params.get('country', None) or 0
+            country = Country.objects.filter(pk=cid)
+            if country:
+                cond2 = Q(form__country_id=country[0].id)
+        queryset = FormData.objects.filter(cond1 & cond2)
+        if queryset.exists():
+            queryset = self.get_filtered_queryset(self.request, queryset, 2)
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -108,6 +127,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
         ordering_fields = ('name',)
 
 class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
+    """shows the (PER editable) countries for a user."""
     queryset = Country.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -119,7 +139,40 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
         queryset =  Country.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 3)
 
+class FormCountryUsersViewset(viewsets.ReadOnlyModelViewSet):
+    """Names and email addresses of the PER responsible users in a GIVEN country.
+    Without country parameter it gives back empty set, not error."""
+    queryset = User.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MiniUserSerializer
+
+    def get_queryset(self):
+        country = Country.objects.filter(pk=self.request.query_params.get('country', None))
+        if country: # First we try to search a country PER admin
+            regid = country.values('region')[0]['region']
+            regionname = ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][regid]
+            countryname = country.values('name')[0]['name']
+            cond1 = Q(groups__name__contains='PER')
+            cond2 = Q(groups__name__icontains=countryname)
+            queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
+            if queryset.exists():
+                return queryset
+            else: # Now let's try to get a Region admin for that country
+                cond2 = Q(groups__name__icontains=regionname)
+                cond3 = Q(groups__name__contains='Region')
+                queryset = User.objects.filter(cond1 & cond2 & cond3).values('first_name', 'last_name', 'email')
+                if queryset.exists():
+                    return queryset
+                else: # Finally we can show only PER Core admins
+                    cond2 = Q(groups__name__contains='Core Admins') # region also can come here
+                    queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
+                    if queryset.exists():
+                        return queryset
+        return User.objects.none()
+
 class FormStatViewset(viewsets.ReadOnlyModelViewSet):
+    """Shows name, code, country_id, language of filled forms"""
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
 
@@ -135,6 +188,7 @@ class FormStatViewset(viewsets.ReadOnlyModelViewSet):
         ordering_fields = ('name',)
 
 class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
+    """Shows if a user has permission to PER frontend tab or not"""
     queryset = Country.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -151,10 +205,7 @@ class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
 
 class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
     """Countries and their forms which were submitted since last due date"""
-
     queryset = Form.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
     country = MiniCountrySerializer
     serializer_class = ShortFormSerializer
 
