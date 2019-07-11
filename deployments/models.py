@@ -44,19 +44,18 @@ class ERU(models.Model):
     type = EnumIntegerField(ERUType, default=0)
     units = models.IntegerField(default=0)
     equipment_units = models.IntegerField(default=0)
-    num_people_deployed = models.IntegerField(default=0)
+    num_people_deployed = models.IntegerField(default=0, help_text='Still not used in frontend')
     # where deployed (none if available)
     deployed_to = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
-    appeal = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL)
+    appeal = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL, help_text='Still not used in frontend')
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
-    supporting_societies = models.CharField(null=True, blank=True, max_length=500)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-
+    supporting_societies = models.CharField(null=True, blank=True, max_length=500, help_text='Still not used in frontend')
+    start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    end_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
     available = models.BooleanField(default=False)
-    alert_date = models.DateTimeField(null=True)
+    alert_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
 
 
     def __str__(self):
@@ -67,12 +66,12 @@ class PersonnelDeployment(models.Model):
     country_deployed_to = models.ForeignKey(Country, on_delete=models.CASCADE)
     region_deployed_to = models.ForeignKey(Region, on_delete=models.CASCADE)
     event_deployed_to = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
-    appeal_deployed_to = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL)
-    alert_date = models.DateTimeField(null=True)
-    exp_start_date = models.DateTimeField(null=True)
-    end_duration = models.CharField(null=True, blank=True, max_length=100)
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
+    appeal_deployed_to = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL, help_text='Still not used in frontend')
+    alert_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    exp_start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    end_duration = models.CharField(null=True, blank=True, max_length=100, help_text='Still not used in frontend')
+    start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    end_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
     comments = models.TextField(null=True, blank=True)
     class Meta:
         verbose_name_plural = 'Personnel Deployments'
@@ -163,6 +162,27 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
+
+
+class ERUReadiness(models.Model):
+    """ ERU Readiness concerning personnel and equipment """
+    national_society = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
+    ERU_type = EnumIntegerField(ERUType, default=0)
+    is_personnel = models.BooleanField(default=False)
+    is_equipment = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('updated_at', 'national_society', )
+        verbose_name = 'ERU Readiness'
+        verbose_name_plural = 'NS-es ERU Readiness'
+
+    def __str__(self):
+        if self.national_society is None:
+            name = None
+        else:
+            name = self.national_society
+        return '%s (%s)' % (self.ERU_type, name)
 
 
 ###############################################################################
