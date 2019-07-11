@@ -51,9 +51,14 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class ERUReadinessAdmin(admin.ModelAdmin):
+    search_fields = ('national_society',)
+
+
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
 admin.site.register(models.Personnel, PersonnelAdmin)
 admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)
 admin.site.register(models.PartnerSocietyActivities, PartnerSocietyActivityAdmin)
 admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.ERUReadiness, ERUReadinessAdmin)
