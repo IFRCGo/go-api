@@ -22,7 +22,7 @@ import pytz
 
 from django.contrib.auth.models import User, Group
 from .models import (
-    Draft, Form, FormData, NSPhase, WorkPlan
+    Draft, Form, FormData, NSPhase, WorkPlan, Overview
 )
 
 from .serializers import (
@@ -36,6 +36,7 @@ from .serializers import (
     NSPhaseSerializer,
     MiniUserSerializer,
     WorkPlanSerializer,
+    OverviewSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -312,6 +313,7 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
 
 class WorkPlanFilter(filters.FilterSet):
     id = filters.NumberFilter(name='id', lookup_expr='exact')
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
     class Meta:
         model = WorkPlan
         fields = {
@@ -325,4 +327,21 @@ class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     filter_class = WorkPlanFilter
     serializer_class = WorkPlanSerializer
+
+class OverviewFilter(filters.FilterSet):
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    class Meta:
+        model = Overview
+        fields = {
+            'id': ('exact',),
+        }
+
+class OverviewViewset(viewsets.ReadOnlyModelViewSet):
+    """ PER Work Plan Viewset"""
+    queryset = Overview.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    filter_class = OverviewFilter
+    serializer_class = OverviewSerializer
 
