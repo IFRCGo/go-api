@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ## 1.1.128
+
+### Added
+ - Country settings and PER endpoints
+
+## 1.1.128
 ## 1.1.127
 
 ### Added
@@ -532,6 +537,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 0.1.20
 
 [Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.128...HEAD
+[1.1.128]: https://github.com/IFRCGo/go-api/compare/1.1.128...1.1.128
 [1.1.128]: https://github.com/IFRCGo/go-api/compare/1.1.127...1.1.128
 [1.1.127]: https://github.com/IFRCGo/go-api/compare/1.1.126...1.1.127
 [1.1.126]: https://github.com/IFRCGo/go-api/compare/1.1.125...1.1.126
