@@ -22,7 +22,7 @@ import pytz
 
 from django.contrib.auth.models import User, Group
 from .models import (
-    Draft, Form, FormData, NSPhase
+    Draft, Form, FormData, NSPhase, WorkPlan
 )
 
 from .serializers import (
@@ -35,6 +35,7 @@ from .serializers import (
     GlobalPreparednessSerializer,
     NSPhaseSerializer,
     MiniUserSerializer,
+    WorkPlanSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -308,3 +309,20 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
             j.update({'phase': 0})
             return [j]
         return queryset
+
+class WorkPlanFilter(filters.FilterSet):
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    class Meta:
+        model = WorkPlan
+        fields = {
+            'id': ('exact',),
+        }
+
+class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
+    """ PER Work Plan Viewset"""
+    queryset = WorkPlan.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    filter_class = WorkPlanFilter
+    serializer_class = WorkPlanSerializer
+
