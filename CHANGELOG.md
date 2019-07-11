@@ -6,15 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.131
 ## 1.1.130
 
 ### Added
- - PER Overview
+ - PER Overview (get, add)
 
 ## 1.1.129
 
 ### Added
- - PER Work Plans and some restructuration
+ - PER Work Plans
 
 ## 1.1.128
 ## 1.1.127
@@ -541,7 +542,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.130...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.132...HEAD
+[1.1.132]: https://github.com/IFRCGo/go-api/compare/1.1.131...1.1.132
+[1.1.131]: https://github.com/IFRCGo/go-api/compare/1.1.130...1.1.131
 [1.1.130]: https://github.com/IFRCGo/go-api/compare/1.1.129...1.1.130
 [1.1.129]: https://github.com/IFRCGo/go-api/compare/1.1.128...1.1.129
 [1.1.128]: https://github.com/IFRCGo/go-api/compare/1.1.127...1.1.128
