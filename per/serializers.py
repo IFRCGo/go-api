@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import Region
 from .models import (
-    Draft, Form, FormData, NSPhase
+    Draft, Form, FormData, NSPhase, WorkPlan, Overview
 )
 from api.serializers import (
     RegoCountrySerializer, UserSerializer
@@ -60,3 +60,14 @@ class MiniUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name', 'email')
+
+class WorkPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkPlan
+        fields = '__all__'
+
+class OverviewSerializer(serializers.ModelSerializer):
+    country = RegoCountrySerializer()
+    class Meta:
+        model = Overview
+        fields = '__all__'

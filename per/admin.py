@@ -25,7 +25,11 @@ class NSPhaseAdmin(RegionRestrictedAdmin):
 class WorkPlanAdmin(RegionRestrictedAdmin):
     search_fields = ('prioritization',)
 
-admin.site.register(models.WorkPlan, WorkPlanAdmin)
+class OverviewAdmin(RegionRestrictedAdmin):
+    search_fields = ('country',)
+
 admin.site.register(models.Form, FormAdmin)
-admin.site.register(models.NSPhase, NSPhaseAdmin)
 #admin.site.register(models.FormData, FormDataAdmin) - if we want to edit form data in Django
+admin.site.register(models.NSPhase, NSPhaseAdmin)
+admin.site.register(models.WorkPlan, WorkPlanAdmin)
+admin.site.register(models.Overview, OverviewAdmin)
