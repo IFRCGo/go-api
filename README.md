@@ -6,7 +6,7 @@
 
 ## Staff email domains
 
-A list of staff email domains, which the API will treat as single-validation, email-verification only, is to be found [here](https://github.com/IFRCGo/go-api/blob/develop/registrations/views.py#L24).
+A list of staff email domains, which the API will treat as single-validation, email-verification only, is to be found [here](https://github.com/IFRCGo/go-api/blob/master/registrations/views.py#L25).
 
 ## Requirements
 
