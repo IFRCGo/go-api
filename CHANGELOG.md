@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.129
 
 ### Added
- - PER Work Plans and some restructuration
+ - PER Work Plans
 
 ## 1.1.128
 ## 1.1.127
