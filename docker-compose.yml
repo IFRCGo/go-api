@@ -77,7 +77,7 @@ services:
 
   test:
     <<: *base_django_setup
-    command: python manage.py test -k
+    command: python manage.py test
 
   coverage:
     <<: *base_django_setup
