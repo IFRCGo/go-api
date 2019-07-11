@@ -7,7 +7,7 @@ from api.views import (
     PublicJsonRequestView,
 )
 from .models import (
-    Draft, Form, FormData
+    Draft, Form, FormData, WorkPlan, Overview
 )
 
 def create_draft(raw):
@@ -228,6 +228,101 @@ class DraftSent(PublicJsonPostView):
             form = create_draft(body)
         except:
             return bad_request('Could not insert PER draft.')
+
+        return JsonResponse({'status': 'ok'})
+
+
+def create_workplan(raw):
+    # WorkPlan.objects.filter(code=raw['code'], user_id=raw['user_id']).delete()  # If exists (a previous WorkPlan), delete it.
+    workplan = WorkPlan.objects.create(prioritization   = raw['prioritization'],
+                                       components       = raw['components'],
+                                       benchmark        = raw['benchmark'],
+                                       actions          = raw['actions'],
+                                       comments         = raw['comments'],
+                                       timeline         = raw['timeline'] \
+                                         if 'timeline' in raw else str(datetime.datetime.now(pytz.timezone('UTC'))),
+                                       status           = raw['status'],
+                                       support_required = raw['support_required'],
+                                       focal_point      = raw['focal_point'],
+                                       country_id       = raw['country_id'],
+                                       code             = raw['code'],
+                                       question_id      = raw['question_id'],
+                                       user_id          = raw['user_id'],
+                                       )
+    workplan.save()
+    return workplan
+
+class WorkPlanSent(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+
+        #if not request.user.is_authenticated:
+        #    return bad_request('Could not insert PER data due to not logged in user.')
+
+        body = json.loads(request.body.decode('utf-8'))
+
+        required_fields = [
+            'country_id', 'user_id',
+        ]
+        missing_fields = [field for field in required_fields if field not in body]
+        if len(missing_fields):
+            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
+
+        if ' ' in body['question_id']:
+            return bad_request('Question_id can not contain spaces, please choose a different one.')
+
+        try:
+            workplan = create_workplan(body)
+        except:
+            return bad_request('Could not insert PER WorkPlan.')
+
+        return JsonResponse({'status': 'ok'})
+
+
+def create_overview(raw):
+    # Overview.objects.filter(code=raw['code'], user_id=raw['user_id']).delete()  # If exists (a previous Overview), delete it.
+    overview = Overview.objects.create(country_id                           = raw['country_id'],
+                                       user_id                              = raw['user_id'],
+                                       date_of_current_capacity_assessment  = raw['date_of_current_capacity_assessment'] \
+                                         if 'date_of_current_capacity_assessment' in raw else str(datetime.datetime.now(pytz.timezone('UTC'))),
+                                       type_of_capacity_assessment          = raw['type_of_capacity_assessment'],
+                                       branch_involved                      = raw['branch_involved'],
+                                       focal_point_name                     = raw['focal_point_name'],
+                                       focal_point_email                    = raw['focal_point_email'],
+                                       had_previous_assessment              = raw['had_previous_assessment'],
+                                       focus                                = raw['focus'],
+                                       facilitated_by                       = raw['facilitated_by'],
+                                       facilitator_email                    = raw['facilitator_email'],
+                                       phone_number                         = raw['phone_number'],
+                                       skype_address                        = raw['skype_address'],
+                                       date_of_mid_term_review              = raw['date_of_mid_term_review'] \
+                                         if 'date_of_mid_term_review' in raw else str(datetime.datetime.now(pytz.timezone('UTC'))),
+                                       approximate_date_next_capacity_assmt = raw['approximate_date_next_capacity_assmt'] \
+                                         if 'approximate_date_next_capacity_assmt' in raw else str(datetime.datetime.now(pytz.timezone('UTC'))),
+                                       )
+
+    overview.save()
+    return overview
+
+class OverviewSent(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+
+        #if not request.user.is_authenticated:
+        #    return bad_request('Could not insert PER data due to not logged in user.')
+
+        body = json.loads(request.body.decode('utf-8'))
+
+        required_fields = [
+            'country_id', 'user_id',
+        ]
+
+        missing_fields = [field for field in required_fields if field not in body]
+        if len(missing_fields):
+            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
+
+        try:
+            overview = create_overview(body)
+        except:
+            return bad_request('Could not insert PER Overview.')
 
         return JsonResponse({'status': 'ok'})
 
