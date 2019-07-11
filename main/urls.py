@@ -41,8 +41,9 @@ from per.views import (
     DraftSent,
     FormSent,
     FormEdit,
+    WorkPlanSent,
+    OverviewSent,
 )
-
 
 # DRF routes
 from rest_framework import routers
@@ -115,6 +116,8 @@ urlpatterns = [
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
     url(r'^sendperdraft', DraftSent.as_view()),
+    url(r'^sendperoverview', OverviewSent.as_view()),
+    url(r'^sendperworkplan', WorkPlanSent.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),

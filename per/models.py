@@ -556,19 +556,18 @@ class WorkPlanStatus(IntEnum):
 
 class WorkPlan(models.Model):
     prioritization = EnumIntegerField(PriorityValue)
-    components = models.CharField(max_length=900,null=True, blank=True,
-      help_text='Redundant, if the form details are given below')
+    components = models.CharField(max_length=900,null=True, blank=True)
     benchmark = models.CharField(max_length=900,null=True, blank=True)
     actions = models.CharField(max_length=900,null=True, blank=True)
     comments = models.CharField(max_length=900,null=True, blank=True)
-    timeline = models.DateTimeField(auto_now=True)
+    timeline = models.DateTimeField()
     status = EnumIntegerField(WorkPlanStatus)
     support_required = models.BooleanField(default=False)
     focal_point = models.CharField(max_length=90,null=True, blank=True)
-    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL,
-      help_text='Redundant, if the form is given below')
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     code = models.CharField(max_length=10, null=True, blank=True)
     question_id = models.CharField(max_length=10, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ('prioritization', 'country')
@@ -590,13 +589,14 @@ class CAssessmentType(IntEnum):
     SELF_ASSESSMENT  = 0
     SIMULATION       = 1
     OPERATIONAL      = 2
-    POST_OPERATIONAL =3
+    POST_OPERATIONAL = 3
 
 class Overview(models.Model):
     # Without related_name Django gives: Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
     country = models.ForeignKey(Country, related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL)
     # national_society = models.CharField(max_length=90,null=True, blank=True) Redundant
-    date_of_current_capacity_assessment = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    date_of_current_capacity_assessment = models.DateTimeField()
     type_of_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
     branch_involved = models.CharField(max_length=90,null=True, blank=True)
     focal_point_name = models.CharField(max_length=90,null=True, blank=True)
@@ -607,8 +607,8 @@ class Overview(models.Model):
     facilitator_email = models.CharField(max_length=90,null=True, blank=True)
     phone_number = models.CharField(max_length=90,null=True, blank=True)
     skype_address = models.CharField(max_length=90,null=True, blank=True)
-    date_of_mid_term_review = models.DateTimeField(auto_now=True)
-    approximate_date_next_capacity_assmt = models.DateTimeField(auto_now=True)
+    date_of_mid_term_review = models.DateTimeField()
+    approximate_date_next_capacity_assmt = models.DateTimeField()
 
     class Meta:
         ordering = ('country',)
