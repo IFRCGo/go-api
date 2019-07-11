@@ -108,8 +108,8 @@ class Form(models.Model):
             name = self.country.society_name
         return '%s - %s (%s, %s)' % (self.code, self.name, self.language, name)
 
-def question_details(question_id, form):
-    q = form.code + question_id
+def question_details(question_id, code):
+    q = code + question_id
     # Do not edit it manually. It is generated from frontend files (PER/form_questions_to_python) via some shell scripts:
     if q == 'a1c0q0' : return '1.1 NS establishes its auxiliary role to the public authorities through a clear mandate and roles set out in applicable legislation policies and plans.'
     elif q == 'a1c0q1' : return '1.2 NS mandate is aligned with RCRC Fundamental Principles.'
@@ -519,7 +519,7 @@ def question_details(question_id, form):
     elif q == 'a5c12q11' : return '37.12 NS has a donation tracking system and works with the IFRC on joint operational shared services platforms (Mob table etc.).NS has a donation tracking system and works with the IFRC on joint operational shared services platforms (Mob table etc.).'
     elif q == 'a5c12q12' : return 'Component 37 performance'
     else:
-        return str(question_id) + ' in ' + '%s - %s (%s, %s)' % (form.code, form.name, form.language, form.country)
+        return ''
 
 class FormData(models.Model):
     """ PER form data """
@@ -536,7 +536,7 @@ class FormData(models.Model):
     def __str__(self):
 
         #return '%s / %s' % (self.question_id, self.form)
-        return question_details(self.question_id, self.form)
+        return question_details(self.question_id, self.form.code)
 
 class PriorityValue(IntEnum):
     LOW  = 0
@@ -568,7 +568,6 @@ class WorkPlan(models.Model):
     country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL,
       help_text='Redundant, if the form is given below')
     code = models.CharField(max_length=10, null=True, blank=True)
-    form = models.ForeignKey(Form, null=True, blank=True, on_delete=models.SET_NULL)
     question_id = models.CharField(max_length=10, null=True, blank=True)
 
     class Meta:
@@ -581,8 +580,44 @@ class WorkPlan(models.Model):
             name = None
         else:
             name = self.country.society_name
-        if self.question_id and self.form:
-            verbose = question_details(self.question_id, self.form)
+        if self.question_id and self.code:
+            verbose = question_details(self.question_id, self.code)
             if verbose and name:
                 return '%s, %s' % (name, verbose)
         return '%s [%s %s]' % (name, self.code, self.question_id)
+
+class CAssessmentType(IntEnum):
+    SELF_ASSESSMENT  = 0
+    SIMULATION       = 1
+    OPERATIONAL      = 2
+    POST_OPERATIONAL =3
+
+class Overview(models.Model):
+    # Without related_name Django gives: Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
+    country = models.ForeignKey(Country, related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL)
+    # national_society = models.CharField(max_length=90,null=True, blank=True) Redundant
+    date_of_current_capacity_assessment = models.DateTimeField(auto_now=True)
+    type_of_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
+    branch_involved = models.CharField(max_length=90,null=True, blank=True)
+    focal_point_name = models.CharField(max_length=90,null=True, blank=True)
+    focal_point_email = models.CharField(max_length=90,null=True, blank=True)
+    had_previous_assessment = models.BooleanField(default=False)
+    focus = models.CharField(max_length=90,null=True, blank=True)
+    facilitated_by = models.CharField(max_length=90,null=True, blank=True)
+    facilitator_email = models.CharField(max_length=90,null=True, blank=True)
+    phone_number = models.CharField(max_length=90,null=True, blank=True)
+    skype_address = models.CharField(max_length=90,null=True, blank=True)
+    date_of_mid_term_review = models.DateTimeField(auto_now=True)
+    approximate_date_next_capacity_assmt = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('country',)
+        verbose_name = 'PER General Overview'
+        verbose_name_plural = 'PER General Overviews'
+
+    def __str__(self):
+        if self.country is None:
+            name = None
+        else:
+            name = self.country.society_name
+        return '%s (%s)' % (name, self.focal_point_name)
