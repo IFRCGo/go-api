@@ -62,11 +62,13 @@ class MiniUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'email')
 
 class WorkPlanSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
     class Meta:
         model = WorkPlan
         fields = '__all__'
 
 class OverviewSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
     country = RegoCountrySerializer()
     class Meta:
         model = Overview
