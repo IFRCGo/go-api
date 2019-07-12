@@ -142,37 +142,38 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
         queryset =  Country.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 3)
 
-class FormCountryUsersViewset(viewsets.ReadOnlyModelViewSet):
-    """Names and email addresses of the PER responsible users in a GIVEN country.
-    Without country parameter it gives back empty set, not error."""
-    queryset = User.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    serializer_class = MiniUserSerializer
-
-    def get_queryset(self):
-        country = Country.objects.filter(pk=self.request.query_params.get('country', None))
-        if country: # First we try to search a country PER admin
-            regid = country.values('region')[0]['region']
-            regionname = ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][regid]
-            countryname = country.values('name')[0]['name']
-            cond1 = Q(groups__name__contains='PER')
-            cond2 = Q(groups__name__icontains=countryname)
-            queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
-            if queryset.exists():
-                return queryset
-            else: # Now let's try to get a Region admin for that country
-                cond2 = Q(groups__name__icontains=regionname)
-                cond3 = Q(groups__name__contains='Region')
-                queryset = User.objects.filter(cond1 & cond2 & cond3).values('first_name', 'last_name', 'email')
-                if queryset.exists():
-                    return queryset
-                else: # Finally we can show only PER Core admins
-                    cond2 = Q(groups__name__contains='Core Admins') # region also can come here
-                    queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
-                    if queryset.exists():
-                        return queryset
-        return User.objects.none()
+# Not used:
+# class FormCountryUsersViewset(viewsets.ReadOnlyModelViewSet):
+#    """Names and email addresses of the PER responsible users in a GIVEN country.
+#    Without country parameter it gives back empty set, not error."""
+#    queryset = User.objects.all()
+#    authentication_classes = (TokenAuthentication,)
+#    permission_classes = (IsAuthenticated,)
+#    serializer_class = MiniUserSerializer
+#
+#    def get_queryset(self):
+#        country = Country.objects.filter(pk=self.request.query_params.get('country', None))
+#        if country: # First we try to search a country PER admin
+#            regid = country.values('region')[0]['region']
+#            regionname = ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][regid]
+#            countryname = country.values('name')[0]['name']
+#            cond1 = Q(groups__name__contains='PER')
+#            cond2 = Q(groups__name__icontains=countryname)
+#            queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
+#            if queryset.exists():
+#                return queryset
+#            else: # Now let's try to get a Region admin for that country
+#                cond2 = Q(groups__name__icontains=regionname)
+#                cond3 = Q(groups__name__contains='Region')
+#                queryset = User.objects.filter(cond1 & cond2 & cond3).values('first_name', 'last_name', 'email')
+#                if queryset.exists():
+#                    return queryset
+#                else: # Finally we can show only PER Core admins
+#                    cond2 = Q(groups__name__contains='Core Admins') # region also can come here
+#                    queryset = User.objects.filter(cond1 & cond2).values('first_name', 'last_name', 'email')
+#                    if queryset.exists():
+#                        return queryset
+#        return User.objects.none()
 
 class FormStatViewset(viewsets.ReadOnlyModelViewSet):
     """Shows name, code, country_id, language of filled forms"""
