@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.133
+
+### Added
+ - Mini userserializer to PER
+
 ## 1.1.131
 ## 1.1.130
 
@@ -542,7 +547,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.132...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.133...HEAD
+[1.1.133]: https://github.com/IFRCGo/go-api/compare/1.1.132...1.1.133
 [1.1.132]: https://github.com/IFRCGo/go-api/compare/1.1.131...1.1.132
 [1.1.131]: https://github.com/IFRCGo/go-api/compare/1.1.130...1.1.131
 [1.1.130]: https://github.com/IFRCGo/go-api/compare/1.1.129...1.1.130
