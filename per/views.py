@@ -6,9 +6,12 @@ from api.views import (
     PublicJsonPostView,
     PublicJsonRequestView,
 )
+from rest_framework import viewsets
+from django.contrib.auth.models import User
 from .models import (
     Draft, Form, FormData, WorkPlan, Overview
 )
+from rest_framework.authtoken.models import Token
 
 def create_draft(raw):
     Draft.objects.filter(code=raw['code'], user_id=raw['user_id']).delete()  # If exists (a previous draft), delete it.
@@ -163,9 +166,18 @@ def change_form_data(raw, form):
 
 class FormEdit(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-
-        #if not request.user.is_authenticated:
-        #    return bad_request('Could not insert PER data due to not logged in user.')
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
 
         body = json.loads(request.body.decode('utf-8'))
 
@@ -207,9 +219,18 @@ class FormEdit(PublicJsonPostView):
 
 class DraftSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-
-        #if not request.user.is_authenticated:
-        #    return bad_request('Could not insert PER data due to not logged in user.')
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
 
         body = json.loads(request.body.decode('utf-8'))
 
@@ -254,9 +275,18 @@ def create_workplan(raw):
 
 class WorkPlanSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-
-        #if not request.user.is_authenticated:
-        #    return bad_request('Could not insert PER data due to not logged in user.')
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
 
         body = json.loads(request.body.decode('utf-8'))
 
@@ -305,9 +335,18 @@ def create_overview(raw):
 
 class OverviewSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-
-        #if not request.user.is_authenticated:
-        #    return bad_request('Could not insert PER data due to not logged in user.')
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
 
         body = json.loads(request.body.decode('utf-8'))
 
@@ -323,6 +362,69 @@ class OverviewSent(PublicJsonPostView):
             overview = create_overview(body)
         except:
             return bad_request('Could not insert PER Overview.')
+
+        return JsonResponse({'status': 'ok'})
+
+def delete_workplan(raw):
+    WorkPlan.objects.filter(id=raw['id']).delete()
+    return
+
+class DelWorkPlan(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+            #origtoken = Token.objects.get_or_create(user=u)
+        else:
+            return bad_request('User token is not given.')
+        if not u: # or receivedtoken.key != origtoken:
+            return bad_request('User is not logged in or inactive.')
+
+        # Did not work any of these...
+        # if not request.user.is_authenticated:
+        #   return bad_request('Could not insert PER data due to not logged in user.')
+        # a = self.get_authenticated_user(self, request)
+        # auth_header = request.META.get('HTTP_AUTHORIZATION')
+        # parts = auth_header[6:].split(':')
+
+        body = json.loads(request.body.decode('utf-8'))
+        try:
+            workplan = delete_workplan(body)
+        except:
+            return bad_request('Could not delete PER WorkPlan.')
+
+        return JsonResponse({'status': 'ok'})
+
+def delete_overview(raw):
+    Overview.objects.filter(id=raw['id']).delete()
+    return
+
+class DelOverview(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
+
+        body = json.loads(request.body.decode('utf-8'))
+
+        try:
+            workplan = delete_overview(body)
+        except:
+            return bad_request('Could not delete PER Overview.')
 
         return JsonResponse({'status': 'ok'})
 

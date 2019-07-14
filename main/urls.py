@@ -43,6 +43,8 @@ from per.views import (
     FormEdit,
     WorkPlanSent,
     OverviewSent,
+    DelWorkPlan,
+    DelOverview,
 )
 
 # DRF routes
@@ -118,6 +120,8 @@ urlpatterns = [
     url(r'^sendperdraft', DraftSent.as_view()),
     url(r'^sendperoverview', OverviewSent.as_view()),
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
+    url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
+    url(r'^api/v2/del_peroverview', DelOverview.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
