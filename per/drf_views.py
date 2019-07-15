@@ -23,7 +23,7 @@ import pytz
 
 from django.contrib.auth.models import User, Group
 from .models import (
-    Draft, Form, FormData, NSPhase, WorkPlan, Overview
+    Draft, Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
 )
 
 from .serializers import (
@@ -38,6 +38,7 @@ from .serializers import (
     MiniUserSerializer,
     WorkPlanSerializer,
     OverviewSerializer,
+    ListNiceDocSerializer,
 )
 
 class DraftFilter(filters.FilterSet):
@@ -95,6 +96,7 @@ class FormDataFilter(filters.FilterSet):
 
 class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     """Can use 'new' GET parameter for using data only after the last due_date"""
+    # Duplicate of PERDocsViewset
     queryset = FormData.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -141,6 +143,55 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset =  Country.objects.all()
         return self.get_filtered_queryset(self.request, queryset, 3)
+
+class PERDocsFilter(filters.FilterSet):
+    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    class Meta:
+        model = NiceDocument
+        fields = {
+            'id': ('exact',),
+        }
+
+class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
+    """ To collect PER Documents """
+    # Duplicate of FormDataViewset
+    queryset = NiceDocument.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    filter_class = PERDocsFilter
+
+    def get_queryset(self):
+        queryset = NiceDocument.objects.all()
+        cond1 = Q()
+        cond2 = Q()
+        cond3 = Q() # This way only those conditions will be effective which we set later:
+        if 'new' in self.request.query_params.keys():
+            last_duedate = settings.PER_LAST_DUEDATE
+            timezone = pytz.timezone("Europe/Zurich")
+            if not last_duedate:
+                last_duedate = timezone.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
+            cond1 = Q(created_at__gt=last_duedate)
+        if 'country' in self.request.query_params.keys():
+            cid = self.request.query_params.get('country', None) or 0
+            country = Country.objects.filter(pk=cid)
+            if country:
+                cond2 = Q(country_id=country[0].id)
+        if 'visible' in self.request.query_params.keys():
+            cond3 = Q(visibility=1)
+        queryset = NiceDocument.objects.filter(cond1 & cond2 & cond3)
+        if queryset.exists():
+            queryset = self.get_filtered_queryset(self.request, queryset, 4)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ListNiceDocSerializer
+#       else:
+#           return DetailFormDataSerializer
+        ordering_fields = ('name', 'country',)
+
 
 # Not used:
 # class FormCountryUsersViewset(viewsets.ReadOnlyModelViewSet):

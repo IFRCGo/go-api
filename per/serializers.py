@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from api.models import Region
 from .models import (
-    Draft, Form, FormData, NSPhase, WorkPlan, Overview
+    Draft, Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
 )
 from api.serializers import (
     RegoCountrySerializer, UserSerializer
@@ -30,6 +30,12 @@ class ListFormDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormData
         fields = ('form', 'question_id', 'selected_option', 'notes')
+
+class ListNiceDocSerializer(serializers.ModelSerializer):
+    country = RegoCountrySerializer()
+    class Meta:
+        model = NiceDocument
+        fields = ('name', 'country', 'document_url', 'visibility')
 
 class ShortFormSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()

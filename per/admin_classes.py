@@ -50,6 +50,10 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
         # From drf_views.py - collection of PER-user-relevant countries
             country_in = 'pk__in'
             region_in = 'region_id__in'
+        elif dispatch == 4:
+        # From drf_views.py NiceDocuments, PERDocsViewset - collection of PER-user-relevant countries for Docs
+            country_in = 'country_id__in'
+            region_in = 'country__region__in'
 
         query = Q()
         has_valid_query = False

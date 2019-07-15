@@ -84,6 +84,7 @@ router.register(r'subscription', notification_views.SubscriptionViewset, base_na
 router.register(r'per', per_views.FormViewset)
 router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
+router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
 #router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'perstat', per_views.FormStatViewset)
