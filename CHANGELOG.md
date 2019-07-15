@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.136
+
+### Added
+ - List PER Documents, filtered by countries
+
 ## 1.1.135
 
 ### Added
@@ -557,7 +562,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.135...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.136...HEAD
+[1.1.136]: https://github.com/IFRCGo/go-api/compare/1.1.135...1.1.136
 [1.1.135]: https://github.com/IFRCGo/go-api/compare/1.1.134...1.1.135
 [1.1.134]: https://github.com/IFRCGo/go-api/compare/1.1.133...1.1.134
 [1.1.133]: https://github.com/IFRCGo/go-api/compare/1.1.132...1.1.133
