@@ -7,6 +7,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from tinymce import HTMLField
 from deployments.models import ERUType
+from api.storage import AzureStorage
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -621,3 +622,29 @@ class Overview(models.Model):
         else:
             name = self.country.society_name
         return '%s (%s)' % (name, self.focal_point_name)
+
+class Visibilities(IntEnum):
+    HIDDEN = 0
+    VISIBLE = 1
+
+
+def sitrep_document_path(instance, filename):
+    return 'perdocs/%s/%s' % (instance.country.id, filename)
+
+
+class NiceDocument(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    document = models.FileField(null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage())
+    document_url = models.URLField(blank=True)
+    country = models.ForeignKey(Country, related_name='perdoc_country', null=True, blank=True, on_delete=models.SET_NULL)
+    visibility = EnumIntegerField(Visibilities, default=Visibilities.VISIBLE)
+
+    class Meta:
+        ordering = ('visibility', 'country')
+        verbose_name = 'PER Document'
+        verbose_name_plural = 'PER Documents'
+
+    def __str__(self):
+        return '%s - %s' % (self.country, self.name)
+
