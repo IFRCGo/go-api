@@ -604,6 +604,8 @@ class Overview(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     date_of_current_capacity_assessment = models.DateTimeField()
     type_of_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
+    date_of_last_capacity_assessment = models.DateTimeField(null=True, blank=True)
+    type_of_last_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
     branch_involved = models.CharField(max_length=90,null=True, blank=True)
     focal_point_name = models.CharField(max_length=90,null=True, blank=True)
     focal_point_email = models.CharField(max_length=90,null=True, blank=True)
