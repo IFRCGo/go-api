@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.140
+
+### Added
+ - Overview table addons
+
 ## 1.1.139
 
 ### Added
@@ -577,7 +582,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.139...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.140...HEAD
+[1.1.140]: https://github.com/IFRCGo/go-api/compare/1.1.139...1.1.140
 [1.1.139]: https://github.com/IFRCGo/go-api/compare/1.1.138...1.1.139
 [1.1.138]: https://github.com/IFRCGo/go-api/compare/1.1.137...1.1.138
 [1.1.137]: https://github.com/IFRCGo/go-api/compare/1.1.136...1.1.137
