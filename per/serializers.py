@@ -10,6 +10,7 @@ from api.serializers import (
 
 class ListDraftSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    country = RegoCountrySerializer()
     class Meta:
         model = Draft
         fields = ('country', 'code', 'user', 'data',)
