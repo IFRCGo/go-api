@@ -68,6 +68,7 @@ class Draft(models.Model):
     code = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     data = models.TextField(null=True, blank=True)
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
 
     class Meta:
@@ -76,7 +77,11 @@ class Draft(models.Model):
         verbose_name_plural = 'Draft Forms'
 
     def __str__(self):
-        return '%s - %s' % (self.code, self.user)
+        if self.country is None:
+            country = None
+        else:
+            country = self.country.society_name
+        return '%s - %s (%s)' % (self.code, self.user, country)
 
 class Form(models.Model):
     """ PER form header """
