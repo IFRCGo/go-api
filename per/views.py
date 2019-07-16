@@ -14,10 +14,11 @@ from .models import (
 from rest_framework.authtoken.models import Token
 
 def create_draft(raw):
-    Draft.objects.filter(code=raw['code'], user_id=raw['user_id']).delete()  # If exists (a previous draft), delete it.
+    Draft.objects.filter(code=raw['code'], country_id=raw['country_id'], user_id=raw['user_id']).delete()  # If exists (a previous draft), delete it.
     draft = Draft.objects.create(code       = raw['code'],
                                user_id      = raw['user_id'],
                                data         = raw['data'],
+                               country_id   = raw['country_id'],
                                )
     draft.save()
     return draft
