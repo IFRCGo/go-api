@@ -12,7 +12,7 @@ class ListDraftSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = Draft
-        fields = ('code', 'user', 'data',)
+        fields = ('country', 'code', 'user', 'data',)
 
 class FormStatSerializer(serializers.ModelSerializer):
     class Meta:
