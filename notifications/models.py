@@ -107,10 +107,10 @@ class Subscription(models.Model):
             'disasterTypes': RecordType.DTYPE,
             'perDueDate': RecordType.PER_DUE_DATE,
             'followedEvent': RecordType.FOLLOWED_EVENT,
-            'weeklyDigest': WEEKLY_DIGEST,
-            'newDisasters': NEW_DISASTERS,
-            'newOperations': NEW_OPERATIONS,
-            'general': GENERAL_ANNOUNCEMENTS,
+            'weeklyDigest': RecordType.WEEKLY_DIGEST,
+            'newDisasters': RecordType.NEW_DISASTERS,
+            'newOperations': RecordType.NEW_OPERATIONS,
+            'general': RecordType.GENERAL_ANNOUNCEMENTS,
 
         }
 
@@ -174,6 +174,18 @@ class Subscription(models.Model):
                 fields['stype'] = SubscriptionType.NEW
 
             elif rtype == RecordType.SURGE_APPROACHING_END_OF_MISSION:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.WEEKLY_DIGEST:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.NEW_DISASTERS:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.NEW_OPERATIONS:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.GENERAL_ANNOUNCEMENTS:
                 fields['stype'] = SubscriptionType.NEW
 
             else:
