@@ -281,8 +281,8 @@ class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
 class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
     """National Societies engaged in per process"""
     queryset = Region.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
+    # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     serializer_class = EngagedNSPercentageSerializer
 
     def get_queryset(self):
@@ -347,8 +347,8 @@ class NSPhaseFilter(filters.FilterSet):
 class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
     """NS PER Process Phase Viewset"""
     queryset = NSPhase.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
+    # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     serializer_class = NSPhaseSerializer
     filter_class = NSPhaseFilter
 
@@ -376,8 +376,8 @@ class WorkPlanFilter(filters.FilterSet):
 class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Work Plan Viewset"""
     queryset = WorkPlan.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
+    # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = WorkPlanFilter
     serializer_class = WorkPlanSerializer
 
@@ -393,8 +393,8 @@ class OverviewFilter(filters.FilterSet):
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Work Plan Viewset"""
     queryset = Overview.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
+    # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = OverviewFilter
     serializer_class = OverviewSerializer
 
