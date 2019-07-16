@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.138
+
+### Added
+ - Weekly digest and opening some PER views to public
+
 ## 1.1.137
 
 ### Added
@@ -567,7 +572,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.137...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.138...HEAD
+[1.1.138]: https://github.com/IFRCGo/go-api/compare/1.1.137...1.1.138
 [1.1.137]: https://github.com/IFRCGo/go-api/compare/1.1.136...1.1.137
 [1.1.136]: https://github.com/IFRCGo/go-api/compare/1.1.135...1.1.136
 [1.1.135]: https://github.com/IFRCGo/go-api/compare/1.1.134...1.1.135
