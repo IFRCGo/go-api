@@ -35,7 +35,7 @@ class ListNiceDocSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
     class Meta:
         model = NiceDocument
-        fields = ('name', 'country', 'document_url', 'visibility')
+        fields = ('name', 'country', 'document', 'document_url', 'visibility')
 
 class ShortFormSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
