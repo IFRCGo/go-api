@@ -44,6 +44,7 @@ from .serializers import (
 class DraftFilter(filters.FilterSet):
     user = filters.NumberFilter(name='user', lookup_expr='exact')
     code = filters.CharFilter(name='code', lookup_expr='exact')
+    country = filters.CharFilter(name='country', lookup_expr='exact')
     id = filters.NumberFilter(name='id', lookup_expr='exact')
     class Meta:
         model = Draft
