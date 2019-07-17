@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('name', models.CharField(max_length=100)),
-                ('document', models.FileField(blank=True, null=True, storage=api.storage.AzureStorage(), upload_to=per.models.sitrep_document_path)),
+                ('document', models.FileField(blank=True, null=True, storage=api.storage.AzureStorage(), upload_to=per.models.nice_document_path)),
                 ('document_url', models.URLField(blank=True)),
                 ('visibility', enumfields.fields.EnumIntegerField(default=1, enum=per.models.Visibilities)),
                 ('country', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='perdoc_country', to='api.Country')),
