@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.144
+## 1.1.143
+
+### Added
+ - Changing misleading variable name
+
 ## 1.1.142
 
 ### Added
@@ -592,7 +598,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.142...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.144...HEAD
+[1.1.144]: https://github.com/IFRCGo/go-api/compare/1.1.143...1.1.144
+[1.1.143]: https://github.com/IFRCGo/go-api/compare/1.1.142...1.1.143
 [1.1.142]: https://github.com/IFRCGo/go-api/compare/1.1.141...1.1.142
 [1.1.141]: https://github.com/IFRCGo/go-api/compare/1.1.140...1.1.141
 [1.1.140]: https://github.com/IFRCGo/go-api/compare/1.1.139...1.1.140
