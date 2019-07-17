@@ -24,16 +24,17 @@ def to_dict(instance):
     return data
 
 class ProcessPhase(IntEnum):
-    ORIENTATION = 0
-    ASSESSMENT = 1
-    PRIORITIZATION = 2
-    PLAN_OF_ACTION = 3
-    ACTION_AND_ACCOUNTABILITY = 4
+    BASELINE = 0
+    ORIENTATION = 1
+    ASSESSMENT = 2
+    PRIORITIZATION = 3
+    PLAN_OF_ACTION = 4
+    ACTION_AND_ACCOUNTABILITY = 5
 
 class NSPhase(models.Model):
     """ NS PER Process Phase """
     country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1 ) #default=1 needed only for the migration, can be deleted later
-    phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.ORIENTATION)
+    phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.BASELINE)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
