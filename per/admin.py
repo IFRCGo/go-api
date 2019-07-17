@@ -28,8 +28,26 @@ class WorkPlanAdmin(RegionRestrictedAdmin):
 class OverviewAdmin(RegionRestrictedAdmin):
     search_fields = ('country',)
 
+class NiceDocumentAdmin(RegionRestrictedAdmin):
+    country_in = 'country__in'
+#   Duplicated from situation reports
+    def save_model(self, request, obj, form, change):
+       if change:
+           obj.save()
+       else:
+           for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
+               if i<30: # not letting tons of documents to be attached
+                   models.NiceDocument.objects.create(
+                       name        =obj.name if i == 0 else obj.name + '-' + str(i),
+                       document    =one_document,
+                       document_url=obj.document_url,
+                       country     =obj.country,
+                       visibility  =obj.visibility,
+                       )
+
 admin.site.register(models.Form, FormAdmin)
 #admin.site.register(models.FormData, FormDataAdmin) - if we want to edit form data in Django
 admin.site.register(models.NSPhase, NSPhaseAdmin)
 admin.site.register(models.WorkPlan, WorkPlanAdmin)
 admin.site.register(models.Overview, OverviewAdmin)
+admin.site.register(models.NiceDocument, NiceDocumentAdmin)

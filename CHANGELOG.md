@@ -6,6 +6,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.142
+
+### Added
+ - Country Expanded
+
+## 1.1.141
+
+### Added
+ - Create Draft.country via sendperdraft
+
+## 1.1.140
+
+### Added
+ - Overview table addons
+
+## 1.1.139
+
+### Added
+ - Draft, country filtering
+
+## 1.1.138
+
+### Added
+ - Weekly digest and opening some PER views to public
+
+## 1.1.137
+
+### Added
+ - Better PER Doc serializer
+
+## 1.1.136
+
+### Added
+ - List PER Documents, filtered by countries
+
+## 1.1.135
+
+### Added
+ - PER Document upload as file
+
+## 1.1.134
+
+### Added
+ - Authorization is required when PER data is sent/deleted
+
+## 1.1.133
+
+### Added
+ - Mini userserializer to PER
+
 ## 1.1.131
 ## 1.1.130
 
@@ -542,7 +592,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.132...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.142...HEAD
+[1.1.142]: https://github.com/IFRCGo/go-api/compare/1.1.141...1.1.142
+[1.1.141]: https://github.com/IFRCGo/go-api/compare/1.1.140...1.1.141
+[1.1.140]: https://github.com/IFRCGo/go-api/compare/1.1.139...1.1.140
+[1.1.139]: https://github.com/IFRCGo/go-api/compare/1.1.138...1.1.139
+[1.1.138]: https://github.com/IFRCGo/go-api/compare/1.1.137...1.1.138
+[1.1.137]: https://github.com/IFRCGo/go-api/compare/1.1.136...1.1.137
+[1.1.136]: https://github.com/IFRCGo/go-api/compare/1.1.135...1.1.136
+[1.1.135]: https://github.com/IFRCGo/go-api/compare/1.1.134...1.1.135
+[1.1.134]: https://github.com/IFRCGo/go-api/compare/1.1.133...1.1.134
+[1.1.133]: https://github.com/IFRCGo/go-api/compare/1.1.132...1.1.133
 [1.1.132]: https://github.com/IFRCGo/go-api/compare/1.1.131...1.1.132
 [1.1.131]: https://github.com/IFRCGo/go-api/compare/1.1.130...1.1.131
 [1.1.130]: https://github.com/IFRCGo/go-api/compare/1.1.129...1.1.130

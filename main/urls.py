@@ -43,6 +43,8 @@ from per.views import (
     FormEdit,
     WorkPlanSent,
     OverviewSent,
+    DelWorkPlan,
+    DelOverview,
 )
 
 # DRF routes
@@ -82,8 +84,9 @@ router.register(r'subscription', notification_views.SubscriptionViewset, base_na
 router.register(r'per', per_views.FormViewset)
 router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
+router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset)
-router.register(r'percountryusers', per_views.FormCountryUsersViewset)
+#router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'perstat', per_views.FormStatViewset)
 router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'peroverview', per_views.OverviewViewset)
@@ -118,6 +121,8 @@ urlpatterns = [
     url(r'^sendperdraft', DraftSent.as_view()),
     url(r'^sendperoverview', OverviewSent.as_view()),
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
+    url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
+    url(r'^api/v2/del_peroverview', DelOverview.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
