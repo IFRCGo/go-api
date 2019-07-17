@@ -635,14 +635,14 @@ class Visibilities(IntEnum):
     VISIBLE = 1
 
 
-def sitrep_document_path(instance, filename):
+def nice_document_path(instance, filename):
     return 'perdocs/%s/%s' % (instance.country.id, filename)
 
 
 class NiceDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=100)
-    document = models.FileField(null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage())
+    document = models.FileField(null=True, blank=True, upload_to=nice_document_path, storage=AzureStorage())
     document_url = models.URLField(blank=True)
     country = models.ForeignKey(Country, related_name='perdoc_country', null=True, blank=True, on_delete=models.SET_NULL)
     visibility = EnumIntegerField(Visibilities, default=Visibilities.VISIBLE)
