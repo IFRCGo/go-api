@@ -7,6 +7,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from tinymce import HTMLField
 from deployments.models import ERUType
+from api.storage import AzureStorage
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -67,6 +68,7 @@ class Draft(models.Model):
     code = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     data = models.TextField(null=True, blank=True)
+    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
 
     class Meta:
@@ -75,7 +77,11 @@ class Draft(models.Model):
         verbose_name_plural = 'Draft Forms'
 
     def __str__(self):
-        return '%s - %s' % (self.code, self.user)
+        if self.country is None:
+            country = None
+        else:
+            country = self.country.society_name
+        return '%s - %s (%s)' % (self.code, self.user, country)
 
 class Form(models.Model):
     """ PER form header """
@@ -598,6 +604,8 @@ class Overview(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     date_of_current_capacity_assessment = models.DateTimeField()
     type_of_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
+    date_of_last_capacity_assessment = models.DateTimeField(null=True, blank=True)
+    type_of_last_capacity_assessment = EnumIntegerField(CAssessmentType, default=CAssessmentType.SELF_ASSESSMENT)
     branch_involved = models.CharField(max_length=90,null=True, blank=True)
     focal_point_name = models.CharField(max_length=90,null=True, blank=True)
     focal_point_email = models.CharField(max_length=90,null=True, blank=True)
@@ -621,3 +629,29 @@ class Overview(models.Model):
         else:
             name = self.country.society_name
         return '%s (%s)' % (name, self.focal_point_name)
+
+class Visibilities(IntEnum):
+    HIDDEN = 0
+    VISIBLE = 1
+
+
+def sitrep_document_path(instance, filename):
+    return 'perdocs/%s/%s' % (instance.country.id, filename)
+
+
+class NiceDocument(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100)
+    document = models.FileField(null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage())
+    document_url = models.URLField(blank=True)
+    country = models.ForeignKey(Country, related_name='perdoc_country', null=True, blank=True, on_delete=models.SET_NULL)
+    visibility = EnumIntegerField(Visibilities, default=Visibilities.VISIBLE)
+
+    class Meta:
+        ordering = ('visibility', 'country')
+        verbose_name = 'PER Document'
+        verbose_name_plural = 'PER Documents'
+
+    def __str__(self):
+        return '%s - %s' % (self.country, self.name)
+

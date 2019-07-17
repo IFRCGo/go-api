@@ -68,6 +68,10 @@ class RecordType(IntEnum):
     FOLLOWED_EVENT = 8
     SURGE_DEPLOYMENT_MESSAGES = 9
     SURGE_APPROACHING_END_OF_MISSION = 10
+    WEEKLY_DIGEST = 11
+    NEW_DISASTERS = 12
+    NEW_OPERATIONS = 13
+    GENERAL_ANNOUNCEMENTS = 14
 
 class Subscription(models.Model):
     """ User subscriptions """
@@ -103,6 +107,11 @@ class Subscription(models.Model):
             'disasterTypes': RecordType.DTYPE,
             'perDueDate': RecordType.PER_DUE_DATE,
             'followedEvent': RecordType.FOLLOWED_EVENT,
+            'weeklyDigest': RecordType.WEEKLY_DIGEST,
+            'newDisasters': RecordType.NEW_DISASTERS,
+            'newOperations': RecordType.NEW_OPERATIONS,
+            'general': RecordType.GENERAL_ANNOUNCEMENTS,
+
         }
 
         stype_map = {
@@ -165,6 +174,18 @@ class Subscription(models.Model):
                 fields['stype'] = SubscriptionType.NEW
 
             elif rtype == RecordType.SURGE_APPROACHING_END_OF_MISSION:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.WEEKLY_DIGEST:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.NEW_DISASTERS:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.NEW_OPERATIONS:
+                fields['stype'] = SubscriptionType.NEW
+
+            elif rtype == RecordType.GENERAL_ANNOUNCEMENTS:
                 fields['stype'] = SubscriptionType.NEW
 
             else:

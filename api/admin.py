@@ -384,6 +384,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     autocomplete_fields = ('event',)
 
 # Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
+# Has a duplication at PER NiceDocuments
     def save_model(self, request, obj, form, change):
        if change:
            obj.save()
