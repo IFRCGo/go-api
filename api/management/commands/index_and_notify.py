@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+from django.db.models import Q
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -14,7 +15,9 @@ from notifications.notification import send_notification
 from main.frontend import frontend_url
 import html
 
-time_interval = timedelta(minutes=5)
+time_interval = timedelta(minutes = 5)
+time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
+
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
@@ -22,6 +25,9 @@ class Command(BaseCommand):
 
     def get_time_threshold(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
+
+    def get_time_threshold2(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva2
 
 
     def gather_country_and_region(self, records):
@@ -75,6 +81,7 @@ class Command(BaseCommand):
 
     def get_template(self):
         return 'email/generic_notification.html'
+        #new will be: return 'design/generic_notification.html'
 
 
     # Get the front-end url of the resource
@@ -125,9 +132,13 @@ class Command(BaseCommand):
             sendMe = record.description
         elif rtype == RecordType.APPEAL:
             sendMe = record.sector
-        else:
+            if record.code:
+                sendMe += ', ' + record.code
+        elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
-            return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
+        else:
+            sendMe = '?'
+        return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
 
 
     def get_record_display(self, rtype, count):
@@ -263,7 +274,7 @@ class Command(BaseCommand):
 
     def bulk(self, actions):
         try:
-            created, errors = bulk(client=ES_CLIENT, actions=actions)
+            created, errors = bulk(client=ES_CLIENT , actions=actions)
             if len(errors):
                 logger.error('Produced the following errors:')
                 logger.error('[%s]' % ', '.join(map(str, errors)))
@@ -287,31 +298,37 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         t = self.get_time_threshold()
+        t2 = self.get_time_threshold2()
 
-        new_reports = FieldReport.objects.filter(created_at__gte=t)
-        updated_reports = FieldReport.objects.filter(updated_at__gte=t)
+        cond1 = Q(created_at__gte=t)
+        condU = Q(updated_at__gte=t)
+        condR = Q(real_data_update__gte=t) # instead of modified at
+        cond2 = Q(previous_update__gte=t2) # we negate thes, so we want: no previous_update in the last day. So: send 1-ce a day!
 
-        new_appeals = Appeal.objects.filter(created_at__gte=t)
-        updated_appeals = Appeal.objects.filter(modified_at__gte=t)
+        new_reports = FieldReport.objects.filter(cond1)
+        updated_reports = FieldReport.objects.filter(condU & ~cond2)
 
-        new_events = Event.objects.filter(created_at__gte=t)
-        updated_events = Event.objects.filter(updated_at__gte=t)
+        new_appeals = Appeal.objects.filter(cond1)
+        updated_appeals = Appeal.objects.filter(condR & ~cond2)
+
+        new_events = Event.objects.filter(cond1)
+        updated_events = Event.objects.filter(condU & ~cond2)
 
         followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
         #followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
-
         #self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
         self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
-        #self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
         #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
         for p in followed_eventparams:
-            followed_events = Event.objects.filter(updated_at__gte=t, pk=p.event_id)
+            cond3 = Q(pk=p.event_id)
+            followed_events = Event.objects.filter(condU & ~cond2 & cond3)
             if len(followed_events):
                 self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, p.user_id)
 

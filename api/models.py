@@ -248,6 +248,7 @@ class Event(models.Model):
     disaster_start_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    previous_update = models.DateTimeField(null=True, blank=True)
 
     auto_generated = models.BooleanField(default=False, editable=False)
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
@@ -429,6 +430,8 @@ class Appeal(models.Model):
     end_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    previous_update = models.DateTimeField(null=True, blank=True)
+    real_data_update = models.DateTimeField(null=True, blank=True)
 
     event = models.ForeignKey(Event, related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(default=False)
@@ -630,6 +633,7 @@ class FieldReport(models.Model):
     report_date = models.DateTimeField(null=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    previous_update = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ('-created_at', '-updated_at',)
