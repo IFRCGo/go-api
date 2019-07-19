@@ -274,7 +274,7 @@ class Command(BaseCommand):
         if len(recipients):
             # check if email is not in events_sent_to{event_id: recipients}
             if not emails:
-                logger.info('Silent about %s one-by-one subscribed %s – user has not set email address' % (adj.lower(), record_type))
+                logger.info('Silent about a one-by-one subscribed %s – user has not set email address' % (record_type))
             elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
                 logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
                 send_notification(subject, list(recipients), html)
