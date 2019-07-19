@@ -59,15 +59,25 @@ class Command(BaseCommand):
 
 
     def gather_subscribers(self, records, rtype, stype):
+        # Correction for the new notification types:
+        if  rtype == RecordType.EVENT or rtype == RecordType.FIELD_REPORT:
+            rtype_of_subscr = RecordType.NEW_EMERGENCIES
+            stype = SubscriptionType.NEW
+        elif rtype == RecordType.APPEAL:
+            rtype_of_subscr = RecordType.NEW_OPERATIONS
+            stype = SubscriptionType.NEW
+        else:
+            rtype_of_subscr = rtype
+
         # Gather the email addresses of users who should be notified
         # Start with any users subscribed directly to this record type.
-        subscribers = User.objects.filter(subscription__rtype=rtype, subscription__stype=stype, is_active=True).values('email')
+        subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True).values('email')
 
         # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
-        if (rtype != RecordType.FOLLOWED_EVENT):
+        if (rtype_of_subscr != RecordType.FOLLOWED_EVENT):
             dtypes = list(set(['d%s' % record.dtype.id for record in records if record.dtype is not None]))
 
-            if (rtype == RecordType.APPEAL):
+            if (rtype_of_subscr == RecordType.NEW_OPERATIONS):
                 countries, regions = self.gather_country_and_region(records)
             else:
                 countries, regions = self.gather_countries_and_regions(records)
@@ -304,6 +314,7 @@ class Command(BaseCommand):
         condU = Q(updated_at__gte=t)
         condR = Q(real_data_update__gte=t) # instead of modified at
         cond2 = Q(previous_update__gte=t2) # we negate thes, so we want: no previous_update in the last day. So: send 1-ce a day!
+        condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
 
         new_reports = FieldReport.objects.filter(cond1)
         updated_reports = FieldReport.objects.filter(condU & ~cond2)
@@ -311,20 +322,20 @@ class Command(BaseCommand):
         new_appeals = Appeal.objects.filter(cond1)
         updated_appeals = Appeal.objects.filter(condR & ~cond2)
 
-        new_events = Event.objects.filter(cond1)
+        new_events = Event.objects.filter(cond1).exclude(condF)
         updated_events = Event.objects.filter(condU & ~cond2)
 
         followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
-        #followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
+        ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
-        #self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-        self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+        #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
         self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
         #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-        self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+        #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
         for p in followed_eventparams:
             cond3 = Q(pk=p.event_id)
