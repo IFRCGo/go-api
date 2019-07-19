@@ -27,17 +27,17 @@ class FieldReportNotificationTest(TestCase):
         report.countries.add(country2)
 
     def test_new_record_subscription(self):
-        # Subscription to new field reports
+        # Subscription to NEW_EMERGENCIES (orig: new field reports)
         user = get_user()
         Subscription.objects.create(
             user=user,
-            rtype=RecordType.FIELD_REPORT,
+            rtype=RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
             stype=SubscriptionType.NEW,
         )
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
-            RecordType.FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 1)
@@ -118,10 +118,10 @@ class FieldReportNotificationTest(TestCase):
             lookup_id='r%s' % r.id,
         )
 
-        # User 2: New field report subscription
+        # User 2: NEW_EMERGENCIES subscription (instead of the original New field report subscription)
         Subscription.objects.create(
             user=user2,
-            rtype=RecordType.FIELD_REPORT,
+            rtype=RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
             stype=SubscriptionType.NEW,
         )
 
