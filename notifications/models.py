@@ -57,9 +57,9 @@ class SubscriptionType(IntEnum):
 
 class RecordType(IntEnum):
     """ Types of notifications a user can subscribe to """
-    EVENT = 0
-    APPEAL = 1
-    FIELD_REPORT = 2
+    EVENT = 0        # will be obsolete, migrated to NEW_EMERGENCIES
+    APPEAL = 1       # will be obsolete, migrated to                 NEW_OPERATIONS
+    FIELD_REPORT = 2 # will be obsolete, migrated to NEW_EMERGENCIES
     SURGE_ALERT = 3
     COUNTRY = 4
     REGION = 5
@@ -69,9 +69,16 @@ class RecordType(IntEnum):
     SURGE_DEPLOYMENT_MESSAGES = 9
     SURGE_APPROACHING_END_OF_MISSION = 10
     WEEKLY_DIGEST = 11
-    NEW_DISASTERS = 12
+    NEW_EMERGENCIES = 12
     NEW_OPERATIONS = 13
     GENERAL_ANNOUNCEMENTS = 14
+# Migration
+# update      notification_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
+# delete from notification_subscription                       where rtype=0; -- EVENT    > EMERGENCY
+# update      notification_subscription set rtype=13, stype=0 where rtype=1; -- APPEAL   >            OPERATION
+# delete from notification_subscription                       where rtype=1; -- APPEAL   >            OPERATION
+# update      notification_subscription set rtype=12, stype=0 where rtype=2; -- FIELDREP > EMERGENCY
+# delete from notification_subscription                       where rtype=2; -- FIELDREP > EMERGENCY
 
 class Subscription(models.Model):
     """ User subscriptions """
@@ -108,7 +115,7 @@ class Subscription(models.Model):
             'perDueDate': RecordType.PER_DUE_DATE,
             'followedEvent': RecordType.FOLLOWED_EVENT,
             'weeklyDigest': RecordType.WEEKLY_DIGEST,
-            'newDisasters': RecordType.NEW_DISASTERS,
+            'newEmergencies': RecordType.NEW_EMERGENCIES,
             'newOperations': RecordType.NEW_OPERATIONS,
             'general': RecordType.GENERAL_ANNOUNCEMENTS,
 
@@ -179,7 +186,7 @@ class Subscription(models.Model):
             elif rtype == RecordType.WEEKLY_DIGEST:
                 fields['stype'] = SubscriptionType.NEW
 
-            elif rtype == RecordType.NEW_DISASTERS:
+            elif rtype == RecordType.NEW_EMERGENCIES:
                 fields['stype'] = SubscriptionType.NEW
 
             elif rtype == RecordType.NEW_OPERATIONS:
