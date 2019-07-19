@@ -14,7 +14,7 @@ class Command(BaseCommand):
 """CREATE OR REPLACE FUNCTION update_previous_column()
 RETURNS TRIGGER AS $$
 BEGIN
-   NEW.previous_update = OLD.updated_at; 
+   NEW.previous_update = OLD.updated_at;
 --             ^ here we use updated_at
    RETURN NEW;
 END;
@@ -48,4 +48,28 @@ ON api_appeal FOR EACH ROW
        OR (OLD.amount_requested  IS DISTINCT FROM NEW.amount_requested)
        OR (OLD.amount_funded     IS DISTINCT FROM NEW.amount_funded))
     EXECUTE PROCEDURE appeal_real_data_update();
+
+BEGIN;
+UPDATE      notifications_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
+DELETE FROM notifications_subscription                       where rtype=0; -- EVENT    > EMERGENCY
+UPDATE      notifications_subscription set rtype=13, stype=0 where rtype=1; -- APPEAL   >            OPERATION
+DELETE FROM notifications_subscription                       where rtype=1; -- APPEAL   >            OPERATION
+UPDATE      notifications_subscription set rtype=12, stype=0 where rtype=2; -- FIELDREP > EMERGENCY
+DELETE FROM notifications_subscription                       where rtype=2; -- FIELDREP > EMERGENCY
+COMMIT;
+
+-- delete duplications (after merge):
+BEGIN;
+DELETE FROM notifications_subscription a USING notifications_subscription b
+WHERE a.id < b.id
+AND a.stype                   = b.stype
+AND a.rtype                   = b.rtype
+AND coalesce(a.lookup_id ,'') = coalesce(b.lookup_id  ,'')
+AND coalesce(a.country_id, 0) = coalesce(b.country_id , 0)
+AND coalesce(a.dtype_id  , 0) = coalesce(b.dtype_id   , 0)
+AND coalesce(a.region_id , 0) = coalesce(b.region_id  , 0)
+AND a.user_id                 = b.user_id
+AND coalesce(a.event_id  , 0) = coalesce(b.event_id   , 0);
+COMMIT;
 """)
+        print("Db changes finished.");
