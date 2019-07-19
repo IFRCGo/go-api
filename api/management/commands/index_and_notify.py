@@ -17,11 +17,22 @@ import html
 
 time_interval = timedelta(minutes = 5)
 time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
+time_interva7 = timedelta(   days = 7) # for digest mode
+basetime = 51800 #weekday - hour - min for digest timing (5 minutes once a week)
 
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
     help = 'Index and send notificatins about recently changed records'
+
+    # Digest mode duration is 5 minutes once a week
+    def is_digest_mode(self):
+        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        weekdayhourmin = int(today.strftime('%w%H%M'))
+        if basetime <= weekdayhourmin and weekdayhourmin < basetime + 5:
+            return True
+        else:
+            return False
 
     def get_time_threshold(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
@@ -29,6 +40,8 @@ class Command(BaseCommand):
     def get_time_threshold2(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva2
 
+    def get_time_threshold_digest(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva7
 
     def gather_country_and_region(self, records):
         # Appeals only, since these have a single country/region
@@ -69,9 +82,15 @@ class Command(BaseCommand):
         else:
             rtype_of_subscr = rtype
 
+        if self.is_digest_mode():
+            condition_digest =  Q(subscription__rtype=RecordType.WEEKLY_DIGEST)
+        else:
+            condition_digest = ~Q(subscription__rtype=RecordType.WEEKLY_DIGEST)
+
         # Gather the email addresses of users who should be notified
         # Start with any users subscribed directly to this record type.
-        subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, subscription__stype=stype, is_active=True).values('email')
+        subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
+                                          subscription__stype=stype, is_active=True).filter(condition_digest).values('email')
 
         # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
         if (rtype_of_subscr != RecordType.FOLLOWED_EVENT):
@@ -190,13 +209,16 @@ class Command(BaseCommand):
             'is_staff': True, # TODO: fork the sending to "is_staff / not ~" groups
         })
         recipients = emails
-        adj = 'New' if stype == SubscriptionType.NEW else 'Modified'
+        adj = 'new' if stype == SubscriptionType.NEW else 'modified'
         record_type = self.get_record_display(rtype, record_count)
-        subject = '%s %s %s(s) in IFRC GO ' % (
+        multiplier = '' if record_count == 1 else 's'
+        subject = '%s %s %s in IFRC GO ' % (
             record_count,
             adj,
-            record_type,
+            record_type + multiplier,
         )
+        if self.is_digest_mode():
+            subject += ' [weekly digest]'
 
         # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
         if stype == SubscriptionType.EDIT:
@@ -208,7 +230,8 @@ class Command(BaseCommand):
                 if email_list_to_add:
                     events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
 
-        logger.info('Notifying %s subscriber(s) about %s %s %s' % (len(emails), record_count, adj.lower(), record_type))
+        multiplier = '' if len(emails) == 1 else 's'
+        logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), multiplier, record_count, adj, record_type))
         send_notification(subject, recipients, html)
 
 #   Almost code duplication - usually run for 1 person, but the syntax kept the plurals:
@@ -241,22 +264,22 @@ class Command(BaseCommand):
             'is_staff': is_staff,
         })
         recipients = emails
-        adj = '' if stype == SubscriptionType.NEW else ''
         record_type = self.get_record_display(rtype, record_count)
-        subject = '%s %s %s(s) in IFRC GO ' % (
-            record_count,
-            adj,
+        subject = 'Modified %s in IFRC GO ' % (
             record_type,
         )
+        if self.is_digest_mode():
+            subject += ' [weekly digest]'
+
         if len(recipients):
             # check if email is not in events_sent_to{event_id: recipients}
             if not emails:
                 logger.info('Silent about %s one-by-one subscribed %s – user has not set email address' % (adj.lower(), record_type))
             elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
-                logger.info('Notifying %s subscriber about %s %s one-by-one subscribed %s' % (len(emails), record_count, adj.lower(), record_type))
+                logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
                 send_notification(subject, list(recipients), html)
             else:
-                logger.info('Silent about %s one-by-one subscribed %s – user already notified via generic subscription' % (adj.lower(), record_type))
+                logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
 
     def index_new_records(self, records):
@@ -307,13 +330,16 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        t = self.get_time_threshold()
+        if self.is_digest_mode():
+            t = self.get_time_threshold_digest() # in digest mode (1ce a week, for new_entities only) we use a bigger interval
+        else:
+            t = self.get_time_threshold()
         t2 = self.get_time_threshold2()
 
         cond1 = Q(created_at__gte=t)
         condU = Q(updated_at__gte=t)
         condR = Q(real_data_update__gte=t) # instead of modified at
-        cond2 = Q(previous_update__gte=t2) # we negate thes, so we want: no previous_update in the last day. So: send 1-ce a day!
+        cond2 = Q(previous_update__gte=t2) # we negate this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
 
         new_reports = FieldReport.objects.filter(cond1)
