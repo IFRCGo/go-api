@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.148
 ## 1.1.147
 ## 1.1.146
 
 ### Added
+ - Change notification tests
  - New notification features (timing, layout)
 
 ## 1.1.145
@@ -609,7 +611,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.147...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.148...HEAD
+[1.1.148]: https://github.com/IFRCGo/go-api/compare/1.1.147...1.1.148
 [1.1.147]: https://github.com/IFRCGo/go-api/compare/1.1.146...1.1.147
 [1.1.146]: https://github.com/IFRCGo/go-api/compare/1.1.145...1.1.146
 [1.1.145]: https://github.com/IFRCGo/go-api/compare/1.1.144...1.1.145
