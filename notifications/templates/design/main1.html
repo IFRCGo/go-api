@@ -1,0 +1,49 @@
+          <!-- Main -->
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+            <tr>
+              <td align="center">
+                <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+                  <tr>
+                    <td class="td td-shell" style="width:650px;min-width:650px;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;" >
+                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td class="text-center td-global table-heading-main pb-25" style="padding-bottom:25px;text-align:center;color:#000000;font-family:'Lato', Arial, sans-serif;font-weight:bold;font-size:24px;" >{{ subject }}</td>
+                        </tr>
+                        <tr>
+                          <td class="td-global td-global-font-style text-center text-italic pb-30" style="padding-bottom:30px;font-style:italic;text-align:center;color:#000000;font-family:'Lato', Arial, sans-serif;font-weight:300;font-size:18px;" >You are receiving this update based on your selected preferences.<br/><a href="https://go.ifrc.org/account" target="_blank" class="link" style="font-family:'Lato', Arial, sand-serif;text-decoration:underline;color:#000;" >Update your preferences</a></td>
+                        </tr>
+{% if count > 10 %}
+                        <tr>
+                          <td class="td-global td-global-font-style text-center text-italic pb-30" style="padding-bottom:30px;font-style:italic;text-align:center;color:#000000;font-family:'Lato', Arial, sans-serif;font-weight:300;font-size:18px;" ><p>We've detected {{ count }} records – only the first 10 will be shown here.</p>
+                        </td>
+{% endif %}
+                        </tr>
+                        <tr>
+                          <td class="td pt-30 pb-30" style="padding-top:30px;padding-bottom:30px;" >
+{% if records|length %}
+  {% for record in records %}
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" class="table-annce" style="background-color:#f8f8f8;background-image:none;background-repeat:repeat;background-position:top left;background-attachment:scroll;padding-top:40px;padding-bottom:40px;padding-right:30px;padding-left:30px;" >
+                              <tr>
+                                <td class="td-global table-heading-title pb-20 text-center" style="padding-bottom:20px;text-align:center;color:#000000;font-family:'Lato', Arial, sans-serif;text-transform:uppercase;font-weight:bold;" >{{ record.title }}</td>
+                              </tr>
+                              <tr>
+                                <td class="td-global td-global-font-style" style="color:#000000;font-family:'Lato', Arial, sans-serif;font-weight:300;font-size:18px;" >
+    {% autoescape off %}
+    {{ record.content }} <br/><a href="{{ record.resource_uri }}" style="font-family:'Lato', Arial, sand-serif;text-decoration:underline;color:#000;">Read&nbsp;more</a>{% if is_staff %} | <a href="{{ record.admin_uri }}" style="font-family:'Lato', Arial, sand-serif;text-decoration:underline;color:#000;">GO Admin</a>{% endif %}
+    {% endautoescape %}
+                                </td>
+                              </tr>
+                            </table>
+                            <br/>
+  {% endfor %}
+{% endif %}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <!-- END Main -->
