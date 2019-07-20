@@ -18,8 +18,8 @@ import html
 time_interval = timedelta(minutes = 5)
 time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
 time_interva7 = timedelta(   days = 7) # for digest mode
-basetime = 51800 #weekday - hour - min for digest timing (5 minutes once a week)
-
+basetime = 10500 # weekday - hour - min for digest timing (5 minutes once a week)
+short = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
@@ -109,8 +109,8 @@ class Command(BaseCommand):
 
 
     def get_template(self):
-        return 'email/generic_notification.html'
-        #new will be: return 'design/generic_notification.html'
+        #old: return 'email/generic_notification.html'
+        return 'design/generic_notification.html'
 
 
     # Get the front-end url of the resource
@@ -185,7 +185,7 @@ class Command(BaseCommand):
     def notify(self, records, rtype, stype):
         record_count = records.count()
         if not record_count:
-            return
+                return
         emails = self.gather_subscribers(records, rtype, stype)
         if not len(emails):
             return
@@ -194,31 +194,35 @@ class Command(BaseCommand):
         entries = list(records) if record_count <= 10 else list(records[:10])
         record_entries = []
         for record in entries:
+            shortened = self.get_record_content(record, rtype)
+            if len(shortened) > short:
+                shortened = shortened[:short] + \
+                            shortened[short:].split(' ', 1)[0] + '...' # look for the first space
             record_entries.append({
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'content': self.get_record_content(record, rtype),
+                'content': shortened,
             })
 
+        adj = 'new' if stype == SubscriptionType.NEW else 'modified'
+        record_type = self.get_record_display(rtype, record_count)
+        subject = '%s %s %s in IFRC GO' % (
+            record_count,
+            adj,
+            record_type,
+        )
+        if self.is_digest_mode():
+            subject += ' [weekly digest]'
         template_path = self.get_template()
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
             'is_staff': True, # TODO: fork the sending to "is_staff / not ~" groups
+            'subject': subject,
         })
         recipients = emails
-        adj = 'new' if stype == SubscriptionType.NEW else 'modified'
-        record_type = self.get_record_display(rtype, record_count)
-        multiplier = '' if record_count == 1 else 's'
-        subject = '%s %s %s in IFRC GO ' % (
-            record_count,
-            adj,
-            record_type + multiplier,
-        )
-        if self.is_digest_mode():
-            subject += ' [weekly digest]'
 
         # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
         if stype == SubscriptionType.EDIT:
@@ -230,8 +234,8 @@ class Command(BaseCommand):
                 if email_list_to_add:
                     events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
 
-        multiplier = '' if len(emails) == 1 else 's'
-        logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), multiplier, record_count, adj, record_type))
+        plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+        logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
         send_notification(subject, recipients, html)
 
 #   Almost code duplication - usually run for 1 person, but the syntax kept the plurals:
@@ -249,27 +253,32 @@ class Command(BaseCommand):
         entries = list(records) if record_count <= 10 else list(records[:10])
         record_entries = []
         for record in entries:
+            shortened = self.get_record_content(record, rtype)
+            if len(shortened) > short:
+                shortened = shortened[:short] + \
+                            shortened[short:].split(' ', 1)[0] + '...' # look for the first space
             record_entries.append({
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'content': self.get_record_content(record, rtype),
+                'content': shortened,
             })
         is_staff = users.values('is_staff')[0]['is_staff']
+        record_type = self.get_record_display(rtype, record_count)
+        subject = 'Modified %s in IFRC GO' % (
+            record_type,
+        )
+        if self.is_digest_mode():
+            subject += ' [weekly digest]'
         template_path = self.get_template()
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
             'is_staff': is_staff,
+            'subject': subject,
         })
         recipients = emails
-        record_type = self.get_record_display(rtype, record_count)
-        subject = 'Modified %s in IFRC GO ' % (
-            record_type,
-        )
-        if self.is_digest_mode():
-            subject += ' [weekly digest]'
 
         if len(recipients):
             # check if email is not in events_sent_to{event_id: recipients}
