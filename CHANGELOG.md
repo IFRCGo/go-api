@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.152
+
+### Added
+ - Multiple followed events for digest email
+
 ## 1.1.151
 
 ### Added
@@ -622,7 +627,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.151...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.152...HEAD
+[1.1.152]: https://github.com/IFRCGo/go-api/compare/1.1.151...1.1.152
 [1.1.151]: https://github.com/IFRCGo/go-api/compare/1.1.150...1.1.151
 [1.1.150]: https://github.com/IFRCGo/go-api/compare/1.1.149...1.1.150
 [1.1.149]: https://github.com/IFRCGo/go-api/compare/1.1.148...1.1.149
