@@ -18,7 +18,7 @@ import html
 time_interval = timedelta(minutes = 5)
 time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
 time_interva7 = timedelta(   days = 7) # for digest mode
-basetime = 10500 # weekday - hour - min for digest timing (5 minutes once a week)
+basetime = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
 short = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
@@ -225,7 +225,7 @@ class Command(BaseCommand):
         recipients = emails
 
         # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
-        if stype == SubscriptionType.EDIT:
+        if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
             for e in list(records.values('id'))[:10]:
                 i = e['id']
                 if i not in events_sent_to:
@@ -238,16 +238,16 @@ class Command(BaseCommand):
         logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
         send_notification(subject, recipients, html)
 
-#   Almost code duplication - usually run for 1 person, but the syntax kept the plurals:
+    # Almost code duplication - run for 1 person (event can be more):
     def notify_personal(self, records, rtype, stype, uid):
         record_count = records.count()
         if not record_count:
             return
-        users = User.objects.filter(pk=uid, is_active=True)
-        if not len(users):
+        usr = User.objects.filter(pk=uid, is_active=True)
+        if not len(usr):
             return
         else:
-            emails = [users.values('email')[0]['email']]  # It is only one email in this case
+            emails = list(usr.values_list('email', flat=True))  # Only one email in this case
 
         # Only serialize the first 10 records
         entries = list(records) if record_count <= 10 else list(records[:10])
@@ -263,9 +263,11 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'content': shortened,
             })
-        is_staff = users.values('is_staff')[0]['is_staff']
+
+            is_staff = usr.values_list('is_staff', flat=True)[0]
         record_type = self.get_record_display(rtype, record_count)
-        subject = 'Modified %s in IFRC GO' % (
+        subject = '%s followed %s modified in IFRC GO' % (
+            record_count,
             record_type,
         )
         if self.is_digest_mode():
@@ -283,10 +285,11 @@ class Command(BaseCommand):
         if len(recipients):
             # check if email is not in events_sent_to{event_id: recipients}
             if not emails:
-                logger.info('Silent about a one-by-one subscribed %s – user has not set email address' % (record_type))
+                logger.info('Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid))
+            # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
             elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
                 logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
-                send_notification(subject, list(recipients), html)
+                send_notification(subject, recipients, html)
             else:
                 logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
@@ -348,17 +351,17 @@ class Command(BaseCommand):
         cond1 = Q(created_at__gte=t)
         condU = Q(updated_at__gte=t)
         condR = Q(real_data_update__gte=t) # instead of modified at
-        cond2 = Q(previous_update__gte=t2) # we negate this, so we want: no previous_update in the last day. So: send once a day!
+        cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
 
         new_reports = FieldReport.objects.filter(cond1)
-        updated_reports = FieldReport.objects.filter(condU & ~cond2)
+        updated_reports = FieldReport.objects.filter(condU & cond2)
 
         new_appeals = Appeal.objects.filter(cond1)
-        updated_appeals = Appeal.objects.filter(condR & ~cond2)
+        updated_appeals = Appeal.objects.filter(condR & cond2)
 
         new_events = Event.objects.filter(cond1).exclude(condF)
-        updated_events = Event.objects.filter(condU & ~cond2)
+        updated_events = Event.objects.filter(condU & cond2)
 
         followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
         ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
@@ -372,11 +375,13 @@ class Command(BaseCommand):
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
-        for p in followed_eventparams:
-            cond3 = Q(pk=p.event_id)
-            followed_events = Event.objects.filter(condU & ~cond2 & cond3)
-            if len(followed_events):
-                self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, p.user_id)
+        users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
+        for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
+            eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
+            cond3 = Q(pk__in=eventlist) # getting their events as a condition
+            followed_events = Event.objects.filter(condU & cond2 & cond3)
+            if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
+                self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
 
         logger.info('Indexing %s updated field reports' % updated_reports.count())
         self.index_updated_records(self.filter_just_created(updated_reports))
