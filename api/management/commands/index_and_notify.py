@@ -23,7 +23,7 @@ short = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
-    help = 'Index and send notificatins about recently changed records'
+    help = 'Index and send notifications about new and recently changed records'
 
     # Digest mode duration is 5 minutes once a week
     def is_digest_mode(self):
