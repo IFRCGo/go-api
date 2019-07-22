@@ -55,7 +55,7 @@ class CountrySerializer(serializers.ModelSerializer):
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'society_name', 'id',)
+        fields = ('name', 'iso', 'society_name', 'id', 'record_type',)
 
 class RegoCountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,7 +76,7 @@ class DistrictSerializer(serializers.ModelSerializer):
 class MiniDistrictSerializer(serializers.ModelSerializer):
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id',)
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
 
 class RegionKeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
