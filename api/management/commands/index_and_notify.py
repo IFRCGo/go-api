@@ -12,6 +12,7 @@ from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription
 from notifications.hello import get_hello
 from notifications.notification import send_notification
+from deployments.models import PersonnelDeployment
 from main.frontend import frontend_url
 import html
 
@@ -92,8 +93,9 @@ class Command(BaseCommand):
         subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
                                           subscription__stype=stype, is_active=True).filter(condition_digest).values('email')
 
-        # For FOLLOWED_EVENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
-        if (rtype_of_subscr != RecordType.FOLLOWED_EVENT):
+        # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
+        if (rtype_of_subscr != RecordType.FOLLOWED_EVENT) and \
+           (rtype_of_subscr != RecordType.SURGE_DEPLOYMENT_MESSAGES):
             dtypes = list(set(['d%s' % record.dtype.id for record in records if record.dtype is not None]))
 
             if (rtype_of_subscr == RecordType.NEW_OPERATIONS):
@@ -117,7 +119,9 @@ class Command(BaseCommand):
     def get_resource_uri (self, record, rtype):
         # Determine the front-end URL
         resource_uri = frontend_url
-        if rtype == RecordType.APPEAL and (
+        if rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+            resource_uri = '%s/%s' % (frontend_url, 'deployments')  # can be further sophisticated
+        elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
             resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
@@ -133,12 +137,13 @@ class Command(BaseCommand):
 
     def get_admin_uri (self, record, rtype):
         admin_page = {
-            RecordType.FIELD_REPORT: 'fieldreport',
-            RecordType.APPEAL: 'appeal',
-            RecordType.EVENT: 'event',
-            RecordType.FOLLOWED_EVENT: 'event',
+            RecordType.FIELD_REPORT: 'api/fieldreport',
+            RecordType.APPEAL: 'api/appeal',
+            RecordType.EVENT: 'api/event',
+            RecordType.FOLLOWED_EVENT: 'api/event',
+            RecordType.SURGE_DEPLOYMENT_MESSAGES: 'deployments/personneldeployment',
         }[rtype]
-        return 'https://%s/admin/api/%s/%s/change' % (
+        return 'https://%s/admin/%s/%s/change' % (
             settings.BASE_URL,
             admin_page,
             record.id,
@@ -153,6 +158,8 @@ class Command(BaseCommand):
                 if country not in sendMe:
                     sendMe = sendMe + ' (' + country + ')'
             return sendMe
+        elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+            return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)
         else:
             return record.name
 
@@ -165,6 +172,8 @@ class Command(BaseCommand):
                 sendMe += ', ' + record.code
         elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
+        elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+            sendMe = record.comments
         else:
             sendMe = '?'
         return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
@@ -176,6 +185,7 @@ class Command(BaseCommand):
             RecordType.APPEAL: 'appeal',
             RecordType.EVENT: 'event',
             RecordType.FOLLOWED_EVENT: 'event',
+            RecordType.SURGE_DEPLOYMENT_MESSAGES: 'surge deployment'
         }[rtype]
         if (count > 1):
             display += 's'
@@ -363,6 +373,15 @@ class Command(BaseCommand):
         new_events = Event.objects.filter(cond1).exclude(condF)
         updated_events = Event.objects.filter(condU & cond2)
 
+        new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
+        # No need for indexing for personnel deployments
+
+        # Approaching End of Mission ? new_approanching_end = PersonnelDeployment.objects.filter(end-date is close?)
+        # No need for indexing for Approaching End of Mission
+
+        # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is close)
+        # No need for indexing for PER Due Dates
+
         followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
         ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
@@ -374,6 +393,8 @@ class Command(BaseCommand):
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+
+        self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
         users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
         for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
