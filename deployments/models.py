@@ -3,8 +3,7 @@ from django.conf import settings
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.models import District, Country, Region, Event, DisasterType, Appeal
-from datetime import datetime
-
+from datetime import datetime, timezone, timedelta
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
@@ -72,6 +71,10 @@ class PersonnelDeployment(models.Model):
     end_duration = models.CharField(null=True, blank=True, max_length=100, help_text='Still not used in frontend')
     start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
     end_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    created_at = models.DateTimeField(auto_now_add=True) #, default = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta('1 year'))
+    updated_at = models.DateTimeField(auto_now=True)
+    previous_update = models.DateTimeField(null=True, blank=True)
+
     comments = models.TextField(null=True, blank=True)
     class Meta:
         verbose_name_plural = 'Personnel Deployments'
