@@ -384,7 +384,6 @@ class Command(BaseCommand):
         new_events = Event.objects.filter(cond1).exclude(condF)
         updated_events = Event.objects.filter(condU & cond2)
 
-        import pdb; pdb.set_trace()
         new_surgealerts = SurgeAlert.objects.filter(cond1)
 
         new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
