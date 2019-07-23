@@ -1,6 +1,8 @@
 from django.contrib import admin
 import notifications.models as models
 from api.admin_classes import RegionRestrictedAdmin
+from django_admin_listfilter_dropdown.filters import ChoiceDropdownFilter
+
 
 class SurgeAlertAdmin(RegionRestrictedAdmin):
     country_in = 'event__countries__in'
@@ -10,7 +12,8 @@ class SurgeAlertAdmin(RegionRestrictedAdmin):
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
-    search_fields = ('user__username',)
+    search_fields = ('user__username', 'rtype')
+    list_filter   = (('rtype', ChoiceDropdownFilter),)
 
 
 admin.site.register(models.SurgeAlert, SurgeAlertAdmin)
