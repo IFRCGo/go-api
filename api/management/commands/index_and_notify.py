@@ -9,7 +9,7 @@ from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
 from api.models import Country, Appeal, Event, FieldReport
 from api.logger import logger
-from notifications.models import RecordType, SubscriptionType, Subscription
+from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
 from notifications.notification import send_notification
 from deployments.models import PersonnelDeployment
@@ -83,19 +83,22 @@ class Command(BaseCommand):
         else:
             rtype_of_subscr = rtype
 
-        if self.is_digest_mode():
-            condition_digest =  Q(subscription__rtype=RecordType.WEEKLY_DIGEST)
-        else:
-            condition_digest = ~Q(subscription__rtype=RecordType.WEEKLY_DIGEST)
-
         # Gather the email addresses of users who should be notified
+        if self.is_digest_mode():
+            subscribers = User.objects.filter(subscription__rtype=RecordType.WEEKLY_DIGEST, \
+                                          is_active=True).values('email')
+            # In digest mode we do not care about other circumstances, just get every subscriber's email.
+            emails = [subscriber['email'] for subscriber in subscribers]
+            return emails
+        else:
         # Start with any users subscribed directly to this record type.
-        subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
-                                          subscription__stype=stype, is_active=True).filter(condition_digest).values('email')
+            subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
+                                          subscription__stype=stype, is_active=True).values('email')
 
         # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
-        if (rtype_of_subscr != RecordType.FOLLOWED_EVENT) and \
-           (rtype_of_subscr != RecordType.SURGE_DEPLOYMENT_MESSAGES):
+        if rtype_of_subscr != RecordType.FOLLOWED_EVENT and \
+           rtype_of_subscr != RecordType.SURGE_ALERT and \
+           rtype_of_subscr != RecordType.SURGE_DEPLOYMENT_MESSAGES:
             dtypes = list(set(['d%s' % record.dtype.id for record in records if record.dtype is not None]))
 
             if (rtype_of_subscr == RecordType.NEW_OPERATIONS):
@@ -119,7 +122,9 @@ class Command(BaseCommand):
     def get_resource_uri (self, record, rtype):
         # Determine the front-end URL
         resource_uri = frontend_url
-        if rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
+        if   rtype == RecordType.SURGE_ALERT:
+            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
+        elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             resource_uri = '%s/%s' % (frontend_url, 'deployments')  # can be further sophisticated
         elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
@@ -142,6 +147,7 @@ class Command(BaseCommand):
             RecordType.EVENT: 'api/event',
             RecordType.FOLLOWED_EVENT: 'api/event',
             RecordType.SURGE_DEPLOYMENT_MESSAGES: 'deployments/personneldeployment',
+            RecordType.SURGE_ALERT: 'notifications/surgealert',
         }[rtype]
         return 'https://%s/admin/%s/%s/change' % (
             settings.BASE_URL,
@@ -158,6 +164,8 @@ class Command(BaseCommand):
                 if country not in sendMe:
                     sendMe = sendMe + ' (' + country + ')'
             return sendMe
+        elif rtype == RecordType.SURGE_ALERT:
+            return record.operation + ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)
         else:
@@ -172,6 +180,8 @@ class Command(BaseCommand):
                 sendMe += ', ' + record.code
         elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
+        elif rtype == RecordType.SURGE_ALERT:
+            sendMe = record.message
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             sendMe = record.comments
         else:
@@ -185,7 +195,8 @@ class Command(BaseCommand):
             RecordType.APPEAL: 'appeal',
             RecordType.EVENT: 'event',
             RecordType.FOLLOWED_EVENT: 'event',
-            RecordType.SURGE_DEPLOYMENT_MESSAGES: 'surge deployment'
+            RecordType.SURGE_DEPLOYMENT_MESSAGES: 'surge deployment',
+            RecordType.SURGE_ALERT: 'surge alert',
         }[rtype]
         if (count > 1):
             display += 's'
@@ -373,6 +384,8 @@ class Command(BaseCommand):
         new_events = Event.objects.filter(cond1).exclude(condF)
         updated_events = Event.objects.filter(condU & cond2)
 
+        new_surgealerts = SurgeAlert.objects.filter(cond1)
+
         new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
         # No need for indexing for personnel deployments
 
@@ -393,6 +406,8 @@ class Command(BaseCommand):
 
         self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
         #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+
+        self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
 
         self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 

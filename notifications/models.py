@@ -248,4 +248,4 @@ class Subscription(models.Model):
 
 
     def __str__(self):
-        return '%s %s' % (self.user.username, self.rtype)
+        return '%s %s (%s)' % (self.user.username, self.rtype, self.user.email)
