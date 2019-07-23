@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.156
+
+### Added
+ - Surge Alerts to notifications
+
 ## 1.1.155
 
 ### Added
@@ -634,7 +639,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.155...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.156...HEAD
+[1.1.156]: https://github.com/IFRCGo/go-api/compare/1.1.155...1.1.156
 [1.1.155]: https://github.com/IFRCGo/go-api/compare/1.1.154...1.1.155
 [1.1.154]: https://github.com/IFRCGo/go-api/compare/1.1.153...1.1.154
 [1.1.153]: https://github.com/IFRCGo/go-api/compare/1.1.152...1.1.153
