@@ -161,8 +161,9 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
     class Meta:
         model = FieldReport
-        fields = ('summary', 'description', 'contacts',    'num_injured',     'num_dead',     'num_missing',     'num_affected',     'num_displaced',     'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
-                                                       'gov_num_injured', 'gov_num_dead', 'gov_num_missing', 'gov_num_affected', 'gov_num_displaced', 'gov_num_assisted', 'created_at', 'updated_at', 'report_date', 'id',)
+        fields = ('summary', 'description', 'contacts',    'num_injured',      'num_dead',      'num_missing',      'num_affected',      'num_displaced',      'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
+                                                       'gov_num_injured',  'gov_num_dead',  'gov_num_missing',  'gov_num_affected',  'gov_num_displaced',  'gov_num_assisted',
+                                                     'other_num_injured','other_num_dead','other_num_missing','other_num_affected','other_num_displaced','other_num_assisted', 'created_at', 'updated_at', 'report_date', 'id',)
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
