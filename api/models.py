@@ -575,6 +575,13 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True, blank=True)
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
+    other_num_injured = models.IntegerField(null=True, blank=True)
+    other_num_dead = models.IntegerField(null=True, blank=True)
+    other_num_missing = models.IntegerField(null=True, blank=True)
+    other_num_affected = models.IntegerField(null=True, blank=True)
+    other_num_displaced = models.IntegerField(null=True, blank=True)
+    other_num_assisted = models.IntegerField(null=True, blank=True)
+
     # actions taken
     actions_others = models.TextField(null=True, blank=True)
 
@@ -627,6 +634,9 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, default=0)
     eru_water_sanitation_20_units = models.IntegerField(null=True, blank=True)
 
+    # start_date is now what the user explicitly sets while filling the Field Report form.
+    start_date = models.DateTimeField(blank=True, null=True)
+
     # Created, updated at correspond to when the report entered this system.
     # Report date is when historical reports were created.
     # For reports that are not historical, it will be equal to created_at.
@@ -639,9 +649,11 @@ class FieldReport(models.Model):
         ordering = ('-created_at', '-updated_at',)
 
     def save(self, *args, **kwargs):
-        # On save, is report_date is not set, set it to now.
+        # On save, is report_date or start_date is not set, set it to now.
         if not self.id and not self.report_date:
             self.report_date = timezone.now()
+        if not self.id and not self.start_date:
+            self.start_date = timezone.now()
         return super(FieldReport, self).save(*args, **kwargs)
 
     def indexing(self):
