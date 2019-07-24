@@ -49,6 +49,8 @@ ON api_appeal FOR EACH ROW
        OR (OLD.amount_funded     IS DISTINCT FROM NEW.amount_funded))
     EXECUTE PROCEDURE appeal_real_data_update();
 
+DROP   TABLE if exists archived_not_sub;
+CREATE TABLE archived_not_sub as select * from notifications_subscription;
 BEGIN;
 UPDATE      notifications_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
 DELETE FROM notifications_subscription                       where rtype=0; -- EVENT    > EMERGENCY
