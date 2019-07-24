@@ -508,7 +508,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         event = Event.objects.create(
             name=report.summary,
             dtype=report.dtype,
-            disaster_start_date=report.created_at,
+            disaster_start_date=report.start_date,
             auto_generated=True,
             auto_generated_source=SOURCES['new_report'],
         )
