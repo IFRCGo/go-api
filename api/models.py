@@ -313,6 +313,7 @@ class EventContact(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
+    phone = models.CharField(max_length=100, blank=True, null=True)
     event = models.ForeignKey(Event, related_name='contacts', on_delete=models.CASCADE)
 
     def __str__(self):
