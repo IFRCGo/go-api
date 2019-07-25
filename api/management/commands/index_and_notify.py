@@ -20,7 +20,7 @@ time_interval = timedelta(minutes = 5)
 time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
 time_interva7 = timedelta(   days = 7) # for digest mode
 basetime      = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
-daily_retro   = int(0654) # hour - min for daily retropective email timing (5 minutes a day)
+daily_retro   = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
 short         = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
@@ -378,64 +378,73 @@ class Command(BaseCommand):
         cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
 
-        new_reports = FieldReport.objects.filter(cond1)
-        updated_reports = FieldReport.objects.filter(condU & cond2)
+        # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
+        if self.is_retro_mode():
+            condU = Q(updated_at__gte=t2)
+            cond2 = Q(previous_update__gte=t2) # not negated. We collect those, who had 2 changes in the last 1 day.
+            followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
+            users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
+            for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
+                eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
+                cond3 = Q(pk__in=eventlist) # getting their events as a condition
+                followed_events = Event.objects.filter(condU & cond2 & cond3)
+                if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
+                    self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+        else:
+            new_reports = FieldReport.objects.filter(cond1)
+            updated_reports = FieldReport.objects.filter(condU & cond2)
 
-        new_appeals = Appeal.objects.filter(cond1)
-        updated_appeals = Appeal.objects.filter(condR & cond2)
+            new_appeals = Appeal.objects.filter(cond1)
+            updated_appeals = Appeal.objects.filter(condR & cond2)
 
-        new_events = Event.objects.filter(cond1).exclude(condF)
-        updated_events = Event.objects.filter(condU & cond2)
+            new_events = Event.objects.filter(cond1).exclude(condF)
+            updated_events = Event.objects.filter(condU & cond2)
 
-        new_surgealerts = SurgeAlert.objects.filter(cond1)
+            new_surgealerts = SurgeAlert.objects.filter(cond1)
 
-        new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
-        # No need for indexing for personnel deployments
+            new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
+            # No need for indexing for personnel deployments
 
-        # Approaching End of Mission ? new_approanching_end = PersonnelDeployment.objects.filter(end-date is close?)
-        # No need for indexing for Approaching End of Mission
+            # Approaching End of Mission ? new_approanching_end = PersonnelDeployment.objects.filter(end-date is close?)
+            # No need for indexing for Approaching End of Mission
 
-        # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is close)
-        # No need for indexing for PER Due Dates
+            # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is close)
+            # No need for indexing for PER Due Dates
 
-        followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
-        ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
+            followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
+            ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
-        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-        #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+            self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+            #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
-        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-        #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+            self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+            #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
 
-        self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-        #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+            self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+            #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
-        self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
 
-        self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
-        #if is_retro_mode:
-        # Check if there was followed event modification in the last 24 hours (for which there was no duplicated email sent, but now will be one).
-            # collect subscribers and followed events which has updated_at and previous_update in the last 23:55 minutes.
+            users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
+            for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
+                eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
+                cond3 = Q(pk__in=eventlist) # getting their events as a condition
+                followed_events = Event.objects.filter(condU & cond2 & cond3)
+                if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
+                    self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
 
-        users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
-        for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
-            eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
-            cond3 = Q(pk__in=eventlist) # getting their events as a condition
-            followed_events = Event.objects.filter(condU & cond2 & cond3)
-            if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+            logger.info('Indexing %s updated field reports' % updated_reports.count())
+            self.index_updated_records(self.filter_just_created(updated_reports))
+            logger.info('Indexing %s updated appeals' % updated_appeals.count())
+            self.index_updated_records(self.filter_just_created(updated_appeals))
+            logger.info('Indexing %s updated events' % updated_events.count())
+            self.index_updated_records(self.filter_just_created(updated_events))
 
-        logger.info('Indexing %s updated field reports' % updated_reports.count())
-        self.index_updated_records(self.filter_just_created(updated_reports))
-        logger.info('Indexing %s updated appeals' % updated_appeals.count())
-        self.index_updated_records(self.filter_just_created(updated_appeals))
-        logger.info('Indexing %s updated events' % updated_events.count())
-        self.index_updated_records(self.filter_just_created(updated_events))
-
-        logger.info('Indexing %s new field reports' % new_reports.count())
-        self.index_new_records(new_reports)
-        logger.info('Indexing %s new appeals' % new_appeals.count())
-        self.index_new_records(new_appeals)
-        logger.info('Indexing %s new events' % new_events.count())
-        self.index_new_records(new_events)
+            logger.info('Indexing %s new field reports' % new_reports.count())
+            self.index_new_records(new_reports)
+            logger.info('Indexing %s new appeals' % new_appeals.count())
+            self.index_new_records(new_appeals)
+            logger.info('Indexing %s new events' % new_events.count())
+            self.index_new_records(new_events)
