@@ -36,7 +36,7 @@ class Command(BaseCommand):
     def is_retro_mode(self):
         today = datetime.utcnow().replace(tzinfo=timezone.utc)
         hourmin = int(today.strftime('%H%M'))
-        return basetime <= hourmin and hourmin < basetime + 5
+        return daily_retro <= hourmin and hourmin < daily_retro + 5
 
     def get_time_threshold(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
@@ -238,6 +238,8 @@ class Command(BaseCommand):
         )
         if self.is_digest_mode():
             subject += ' [weekly digest]'
+        elif self.is_retro_mode():
+            subject += ' [daily followup]'
         template_path = self.get_template()
         html = render_to_string(template_path, {
             'hello': get_hello(),
@@ -296,6 +298,8 @@ class Command(BaseCommand):
         )
         if self.is_digest_mode():
             subject += ' [weekly digest]'
+        elif self.is_retro_mode():
+            subject += ' [daily followup]'
         template_path = self.get_template()
         html = render_to_string(template_path, {
             'hello': get_hello(),
@@ -408,7 +412,7 @@ class Command(BaseCommand):
             # Approaching End of Mission ? new_approanching_end = PersonnelDeployment.objects.filter(end-date is close?)
             # No need for indexing for Approaching End of Mission
 
-            # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is close)
+            # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is in 1 week)
             # No need for indexing for PER Due Dates
 
             followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
