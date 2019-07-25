@@ -150,7 +150,7 @@ class SnippetSerializer(serializers.ModelSerializer):
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventContact
-        fields = ('ctype', 'name', 'title', 'email', 'event', 'id',)
+        fields = ('ctype', 'name', 'title', 'email', 'phone', 'event', 'id',)
 
 class FieldReportContactSerializer(serializers.ModelSerializer):
     class Meta:
