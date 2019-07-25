@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.159
+
+### Added
+ - Daily email about second changes, phone_nr to field reports
+
 ## 1.1.158
 
 ### Added
@@ -645,7 +650,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.158...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.159...HEAD
+[1.1.159]: https://github.com/IFRCGo/go-api/compare/1.1.158...1.1.159
 [1.1.158]: https://github.com/IFRCGo/go-api/compare/1.1.157...1.1.158
 [1.1.157]: https://github.com/IFRCGo/go-api/compare/1.1.156...1.1.157
 [1.1.156]: https://github.com/IFRCGo/go-api/compare/1.1.155...1.1.156
