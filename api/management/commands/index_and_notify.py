@@ -19,8 +19,9 @@ import html
 time_interval = timedelta(minutes = 5)
 time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
 time_interva7 = timedelta(   days = 7) # for digest mode
-basetime = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
-short = 280 # after this length (at the first space) we cut the sent content
+basetime      = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
+daily_retro   = int(0654) # hour - min for daily retropective email timing (5 minutes a day)
+short         = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 
 class Command(BaseCommand):
@@ -30,10 +31,12 @@ class Command(BaseCommand):
     def is_digest_mode(self):
         today = datetime.utcnow().replace(tzinfo=timezone.utc)
         weekdayhourmin = int(today.strftime('%w%H%M'))
-        if basetime <= weekdayhourmin and weekdayhourmin < basetime + 5:
-            return True
-        else:
-            return False
+        return basetime <= weekdayhourmin and weekdayhourmin < basetime + 5
+
+    def is_retro_mode(self):
+        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        hourmin = int(today.strftime('%H%M'))
+        return basetime <= hourmin and hourmin < basetime + 5
 
     def get_time_threshold(self):
         return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
@@ -410,6 +413,10 @@ class Command(BaseCommand):
         self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
 
         self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+
+        #if is_retro_mode:
+        # Check if there was followed event modification in the last 24 hours (for which there was no duplicated email sent, but now will be one).
+            # collect subscribers and followed events which has updated_at and previous_update in the last 23:55 minutes.
 
         users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
         for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
