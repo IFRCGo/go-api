@@ -26,12 +26,11 @@ A list of staff email domains, which the API will treat as single-validation, em
 
 ### Making new migrations
 
-     $ docker-compose run --rm migrate
-
-### Making new migrations
-
      $ docker-compose run --rm makemigrations
-    
+
+### Applying the last migration files to database
+
+     $ docker-compose run --rm migrate
 
 ### Accessing python shell 
 
