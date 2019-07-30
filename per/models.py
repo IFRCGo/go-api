@@ -117,7 +117,7 @@ class Form(models.Model):
 
 def question_details(question_id, code):
     q = code + question_id
-    # Do not edit it manually. It is generated from frontend files (PER/form_questions_to_python) via some shell scripts:
+    # Do not edit it manually. It is generated from frontend files (PER/form_inputIds and form_questions_to_python) via shell scripts:
     if q == 'a1c0q0' : return '1.1 NS establishes its auxiliary role to the public authorities through a clear mandate and roles set out in applicable legislation policies and plans.'
     elif q == 'a1c0q1' : return '1.2 NS mandate is aligned with RCRC Fundamental Principles.'
     elif q == 'a1c0q2' : return '1.3 NS mandate is reflected in policy strategy plans and procedures. The mandate is disseminated and understood by staff and volunteers.'
