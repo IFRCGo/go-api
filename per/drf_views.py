@@ -296,7 +296,7 @@ class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
             next_duedate = timezone.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
         queryset1 = Region.objects.all().annotate(Count('country')).values('id', 'country__count')
         queryset2 = Region.objects.filter(country__form__submitted_at__gt=last_duedate) \
-                    .values('id').annotate(forms_sent=Count('country'))
+                    .values('id').annotate(forms_sent=Count('country__form__code', distinct=True))
         # We merge the 2 lists (all and forms_sent), like {'id': 2, 'country__count': 37} and {'id': 2, 'forms_sent': 2} to
         #                                                 {'id': 2, 'country__count': 37, 'forms_sent': 2}, even with zeroes.
         result=[]
