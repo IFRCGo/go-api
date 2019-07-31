@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.162
+
+### Added
+ - Count engaged countries only (not form instances)
+
 ## 1.1.161
 
 ### Added
@@ -660,7 +665,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.161...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.162...HEAD
+[1.1.162]: https://github.com/IFRCGo/go-api/compare/1.1.161...1.1.162
 [1.1.161]: https://github.com/IFRCGo/go-api/compare/1.1.160...1.1.161
 [1.1.160]: https://github.com/IFRCGo/go-api/compare/1.1.159...1.1.160
 [1.1.159]: https://github.com/IFRCGo/go-api/compare/1.1.158...1.1.159
