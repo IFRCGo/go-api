@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.164
+
+### Added
+ - Email link to account notification settings
+
 ## 1.1.163
 
 ### Added
@@ -670,7 +675,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.163...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.164...HEAD
+[1.1.164]: https://github.com/IFRCGo/go-api/compare/1.1.163...1.1.164
 [1.1.163]: https://github.com/IFRCGo/go-api/compare/1.1.162...1.1.163
 [1.1.162]: https://github.com/IFRCGo/go-api/compare/1.1.161...1.1.162
 [1.1.161]: https://github.com/IFRCGo/go-api/compare/1.1.160...1.1.161
