@@ -125,19 +125,20 @@ class Command(BaseCommand):
     def get_resource_uri (self, record, rtype):
         # Determine the front-end URL
         resource_uri = frontend_url
-        if   rtype == RecordType.SURGE_ALERT:
-            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
+        if   rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
+            belonging_event = record.event.id if record.event is not None else 999 # Very rare
+            resource_uri = '%s/emergencies/%s#overview' % (frontend_url, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             resource_uri = '%s/%s' % (frontend_url, 'deployments')  # can be further sophisticated
         elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
-            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
+            resource_uri = '%s/emergencies/%s#overview' % (frontend_url, record.event.id)
         elif rtype != RecordType.APPEAL:
-            # Field reports and (one-by-one followed or globally subscribed) emergencies
+            # One-by-one followed or globally subscribed emergencies
             resource_uri = '%s/%s/%s' % (
                 frontend_url,
-                'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports',
+                'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports', # this else never occurs, see ¤
                 record.id
             )
         return resource_uri
