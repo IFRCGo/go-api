@@ -196,7 +196,7 @@ class Command(BaseCommand):
     def get_record_display(self, rtype, count):
         display = {
             RecordType.FIELD_REPORT: 'field report',
-            RecordType.APPEAL: 'appeal',
+            RecordType.APPEAL: 'IFRC operation',
             RecordType.EVENT: 'event',
             RecordType.FOLLOWED_EVENT: 'event',
             RecordType.SURGE_DEPLOYMENT_MESSAGES: 'surge deployment',
