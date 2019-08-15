@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.166
+
+### Added
+ - GO admin URL, change in notifications: appeal -> operation
+
 ## 1.1.165
 
 ### Added
@@ -680,7 +685,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.165...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.166...HEAD
+[1.1.166]: https://github.com/IFRCGo/go-api/compare/1.1.165...1.1.166
 [1.1.165]: https://github.com/IFRCGo/go-api/compare/1.1.164...1.1.165
 [1.1.164]: https://github.com/IFRCGo/go-api/compare/1.1.163...1.1.164
 [1.1.163]: https://github.com/IFRCGo/go-api/compare/1.1.162...1.1.163
