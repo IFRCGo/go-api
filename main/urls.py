@@ -101,7 +101,6 @@ admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/es_health/', EsPageHealth.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
@@ -131,5 +130,7 @@ urlpatterns = [
     url(r'^api/v2/', include(router.urls)),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
+    url(r'^admin/', RedirectView.as_view(url='/')),
+    url(r'^', admin.site.urls),
     url(r'^favicon\.ico$',RedirectView.as_view(url='/static/favicon.ico')),
 ]
