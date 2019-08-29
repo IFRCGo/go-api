@@ -250,7 +250,7 @@ class Command(BaseCommand):
             'subject': subject,
         })
         if record_count == 1:
-            subject += ' – ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
+            subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
         recipients = emails
 
         # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
