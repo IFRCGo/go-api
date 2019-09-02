@@ -6,11 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.172
 ## 1.1.171
 ## 1.1.170
 
 ### Added
- - Notification nicer (unsubs under text, subject with sense)
+ - Notification nicing (unsubs under text, cleaner subject with sense)
 
 ## 1.1.169
 
@@ -706,7 +707,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.171...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.172...HEAD
+[1.1.172]: https://github.com/IFRCGo/go-api/compare/1.1.171...1.1.172
 [1.1.171]: https://github.com/IFRCGo/go-api/compare/1.1.170...1.1.171
 [1.1.170]: https://github.com/IFRCGo/go-api/compare/1.1.169...1.1.170
 [1.1.169]: https://github.com/IFRCGo/go-api/compare/1.1.168...1.1.169
