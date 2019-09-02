@@ -232,7 +232,8 @@ class Command(BaseCommand):
 
         adj = 'new' if stype == SubscriptionType.NEW else 'modified'
         record_type = self.get_record_display(rtype, record_count)
-        subject = '%s %s %s in IFRC GO' % (
+#       subject = '%s %s %s in IFRC GO' % (
+        subject = '%s %s %s'            % (
             record_count,
             adj,
             record_type,
@@ -295,7 +296,8 @@ class Command(BaseCommand):
 
             is_staff = usr.values_list('is_staff', flat=True)[0]
         record_type = self.get_record_display(rtype, record_count)
-        subject = '%s followed %s modified in IFRC GO' % (
+#       subject = '%s followed %s modified in IFRC GO' % (
+        subject = '%s followed %s modified'            % (
             record_count,
             record_type,
         )
