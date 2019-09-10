@@ -1,4 +1,6 @@
 import os
+import csv
+import time
 from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
@@ -14,6 +16,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
+from django.http import HttpResponse
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -376,6 +379,33 @@ class UserProfileAdmin(admin.ModelAdmin):
         ('country__region', RelatedDropdownFilter),
         ('country', RelatedDropdownFilter),
     )
+    actions = ['export_selected_users',]
+
+    def export_selected_users(self, request, queryset):
+        meta = self.model._meta
+        prof_field_names = [field.name for field in meta.fields]
+        user_field_names = [field.name for field in models.User._meta.fields]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=Users_export_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        writer.writerow(prof_field_names + user_field_names)
+        for prof in queryset:
+            user_model = models.User.objects.get(id=prof.user_id)
+            row = writer.writerow([getattr(prof, field) for field in prof_field_names] + [
+                                  getattr(user_model, field) for field in user_field_names])
+
+        return response
+    export_selected_users.short_description = 'Export selected Users with their Profiles'
+
+    def get_actions(self, request):
+        actions = super(UserProfileAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['export_selected_users']
+        return actions
 
 
 class SituationReportAdmin(RegionRestrictedAdmin):
@@ -383,7 +413,7 @@ class SituationReportAdmin(RegionRestrictedAdmin):
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
 
-# Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist..
+# Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist.
 # Has a duplication at PER NiceDocuments
     def save_model(self, request, obj, form, change):
        if change:
