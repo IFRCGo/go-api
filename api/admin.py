@@ -384,7 +384,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     def export_selected_users(self, request, queryset):
         meta = self.model._meta
         prof_field_names = [field.name for field in meta.fields]
-        user_field_names = [field.name for field in models.User._meta.fields]
+        user_field_names = [field.name for field in models.User._meta.fields if field.name!="password"]
         timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
