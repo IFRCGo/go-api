@@ -392,12 +392,16 @@ class UserProfileAdmin(admin.ModelAdmin):
             timestr)
         writer = csv.writer(response)
 
-        writer.writerow(prof_field_names + user_field_names)
-        for prof in queryset:
-            user_model = models.User.objects.get(id=prof.user_id)
-            row = writer.writerow([getattr(prof, field) for field in prof_field_names] + [
-                                  getattr(user_model, field) for field in user_field_names])
+        writer.writerow(prof_field_names + user_field_names + ['groups'])
 
+        for prof in queryset:
+
+            user_model = models.User.objects.get(id=prof.user_id)
+            user_groups = list(user_model.groups.values_list('name',flat = True))
+            user_groups_string = ', '.join(user_groups) if user_groups else ''
+
+            row = writer.writerow([getattr(prof, field) for field in prof_field_names] + [
+                                  getattr(user_model, field) for field in user_field_names] + [user_groups_string] )
         return response
     export_selected_users.short_description = 'Export selected Users with their Profiles'
 
