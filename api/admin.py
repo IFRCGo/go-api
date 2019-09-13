@@ -381,7 +381,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
     actions = ['export_selected_users',]
 
-    def export_selected_users(self, request, queryset):
+    def export_selected_users(self, request, queryset):    
         meta = self.model._meta
         prof_field_names = [field.name for field in meta.fields]
         user_field_names = [field.name for field in models.User._meta.fields if field.name!="password"]
@@ -391,10 +391,14 @@ class UserProfileAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = 'attachment; filename=Users_export_{}.csv'.format(
             timestr)
         writer = csv.writer(response)
-
-        writer.writerow(prof_field_names + user_field_names)
+        
+        # TODO: check if ['groups'] work
+        writer.writerow(prof_field_names + user_field_names + ['groups'])
         for prof in queryset:
             user_model = models.User.objects.get(id=prof.user_id)
+
+            # TODO: get the names out of 'groups_of_user' and add to 'row' with some separation
+            groups_of_user = user_model.groups.all()
             row = writer.writerow([getattr(prof, field) for field in prof_field_names] + [
                                   getattr(user_model, field) for field in user_field_names])
 
