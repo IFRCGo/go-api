@@ -235,7 +235,7 @@ class FieldReportAdmin(RegionRestrictedAdmin):
     autocomplete_fields = ('event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at',)
     list_filter = [MembershipFilter,]
-    actions = ['create_events',]
+    actions = ['create_events', 'export_field_reports', ]
 
     def create_events(self, request, queryset):
         for report in queryset:
@@ -256,6 +256,29 @@ class FieldReportAdmin(RegionRestrictedAdmin):
             report.save()
         self.message_user(request, '%s emergency object(s) created' % queryset.count())
     create_events.short_description = 'Create emergencies from selected reports'
+
+    def export_field_reports(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=FieldReports_export_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        writer.writerow(field_names)
+
+        for fr in queryset:
+            row = writer.writerow([getattr(fr, field) for field in field_names])
+        return response
+    export_field_reports.short_description = 'Export selected Field Reports to CSV'
+
+    def get_actions(self, request):
+        actions = super(FieldReportAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['export_field_reports']
+        return actions
 
 
 class AppealDocumentInline(admin.TabularInline):
