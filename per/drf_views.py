@@ -394,10 +394,22 @@ class OverviewFilter(filters.FilterSet):
         }
 
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Work Plan Viewset"""
+    """ PER Overview Viewset"""
     queryset = Overview.objects.all()
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = OverviewFilter
     serializer_class = OverviewSerializer
 
+class OverviewStrictViewset(OverviewViewset):
+    """ PER Overview Viewset - strict"""
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OverviewSerializer
+
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+
+    def get_queryset(self):
+        queryset =  Overview.objects.all()
+        return self.get_filtered_queryset(self.request, queryset, 4)
