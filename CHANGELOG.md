@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.178
+
+### Added
+ - PER Overview form list has to be tailored to users real PER permissions
+
 ## 1.1.177
 
 ### Added
@@ -720,7 +725,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.177...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.178...HEAD
+[1.1.178]: https://github.com/IFRCGo/go-api/compare/1.1.177...1.1.178
 [1.1.177]: https://github.com/IFRCGo/go-api/compare/1.1.176...1.1.177
 [1.1.176]: https://github.com/IFRCGo/go-api/compare/1.1.175...1.1.176
 [1.1.175]: https://github.com/IFRCGo/go-api/compare/1.1.174...1.1.175
