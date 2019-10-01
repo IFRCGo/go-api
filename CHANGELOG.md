@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.179
+
+### Added
+ - Fix PER 3 numbering
+
 ## 1.1.178
 
 ### Added
@@ -725,7 +730,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.178...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.179...HEAD
+[1.1.179]: https://github.com/IFRCGo/go-api/compare/1.1.178...1.1.179
 [1.1.178]: https://github.com/IFRCGo/go-api/compare/1.1.177...1.1.178
 [1.1.177]: https://github.com/IFRCGo/go-api/compare/1.1.176...1.1.177
 [1.1.176]: https://github.com/IFRCGo/go-api/compare/1.1.175...1.1.176
