@@ -85,6 +85,7 @@ def is_valid_domain(email):
         'pmi.or.id',
         'prcs.org.pk',
         'pscentre.org',
+        'pck.pl',
         'qrcs.org.qa',
         'rcs.ir',
         'rcsbahrain.org',
