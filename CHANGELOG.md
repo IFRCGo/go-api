@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.180
+
+### Added
+ - pck.pl to domain names
+
 ## 1.1.179
 
 ### Added
@@ -730,7 +735,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.179...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.180...HEAD
+[1.1.180]: https://github.com/IFRCGo/go-api/compare/1.1.179...1.1.180
 [1.1.179]: https://github.com/IFRCGo/go-api/compare/1.1.178...1.1.179
 [1.1.178]: https://github.com/IFRCGo/go-api/compare/1.1.177...1.1.178
 [1.1.177]: https://github.com/IFRCGo/go-api/compare/1.1.176...1.1.177
