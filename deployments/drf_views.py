@@ -13,6 +13,7 @@ from .models import (
     PartnerSocietyDeployment,
     ProgrammeTypes,
     Sectors,
+    OperationTypes,
     Statuses,
     Project,
 )
@@ -158,12 +159,16 @@ class CreateProject(PublicJsonPostView):
         currentDT = datetime.datetime.now(pytz.timezone('UTC'))
         if 'programme_type' not in body:
             body['programme_type'] = ProgrammeTypes.MULTILATERAL
-        if 'sector' not in body:
-            body['sector'] = Sectors.WASH
+        if 'primary_sector' not in body:
+            body['primary_sector'] = Sectors.WASH
+        if 'secondary_sectors' not in body:
+            body['secondary_sectors'] = []
+        if 'operation_type' not in body:
+            body['operation_type'] = OperationTypes.LONG_TERM_OPERATION
         if 'start_date' not in body:
-            body['start_date']   = str(currentDT)
+            body['start_date'] = str(currentDT)
         if 'end_date' not in body:
-            body['end_date']   = str(currentDT)
+            body['end_date'] = str(currentDT)
         if 'budget_amount' not in body:
             body['budget_amount'] = 0
         if 'status' not in body:
@@ -173,7 +178,9 @@ class CreateProject(PublicJsonPostView):
                                          project_district_id = body['project_district'],
                                          name                = body['name'],
                                          programme_type      = body['programme_type'],
-                                         sector              = body['sector'],
+                                         primary_sector      = body['primary_sector'],
+                                         secondary_sectors   = body['secondary_sectors'],
+                                         operation_type      = body['operation_type'],
                                          start_date          = body['start_date'],
                                          end_date            = body['end_date'],
                                          budget_amount       = body['budget_amount'],

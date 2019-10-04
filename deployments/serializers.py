@@ -11,7 +11,7 @@ from .models import (
     RdrtPerson,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
-    Project
+    Project,
 )
 from api.serializers import (
     ListEventSerializer,

@@ -1,9 +1,12 @@
-from django.db import models
-from django.conf import settings
+from datetime import datetime
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+
+from django.db import models
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+
 from api.models import District, Country, Region, Event, DisasterType, Appeal
-from datetime import datetime, timezone, timedelta
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
@@ -128,9 +131,11 @@ class PartnerSocietyDeployment(DeployedPerson):
     def __str__(self):
         return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
 
+
 class ProgrammeTypes(IntEnum):
     BILATERAL = 0
     MULTILATERAL = 1
+
 
 class Sectors(IntEnum):
     WASH = 0
@@ -142,10 +147,17 @@ class Sectors(IntEnum):
     SHELTER = 6
     PREPAREDNESS = 7
 
+
 class Statuses(IntEnum):
     PLANNED = 0
     ONGOING = 1
     COMPLETED = 2
+
+
+class OperationTypes(IntEnum):
+    LONG_TERM_OPERATION = 0
+    EMERGENCY_OPERATION = 1
+
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
@@ -153,7 +165,12 @@ class Project(models.Model):
     project_district = models.ForeignKey(District, on_delete=models.CASCADE) # this is the district where the project is actually taking place
     name = models.TextField()
     programme_type = EnumIntegerField(ProgrammeTypes)
-    sector = EnumIntegerField(Sectors)
+    primary_sector = EnumIntegerField(Sectors)
+    secondary_sectors = ArrayField(
+        EnumIntegerField(Sectors),
+        default=list, blank=True,
+    )
+    operation_type = EnumIntegerField(OperationTypes)
     start_date = models.DateField()
     end_date = models.DateField()
     budget_amount = models.IntegerField()
