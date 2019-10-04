@@ -68,7 +68,11 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         model = PartnerSocietyDeployment
         fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'activity', 'id',)
 
+
 class ProjectSerializer(serializers.ModelSerializer):
+    project_district_detail = MiniDistrictSerializer(source='project_district')
+    reporting_ns_detail = MiniCountrySerializer(source='reporting_ns')
+
     class Meta:
         model = Project
         fields = '__all__'

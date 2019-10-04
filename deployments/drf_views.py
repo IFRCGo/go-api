@@ -115,23 +115,26 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PartnerDeploymentFilterset
 
 
-
-
 class ProjectFilter(filters.FilterSet):
     budget_amount = filters.NumberFilter(name='budget_amount', lookup_expr='exact')
     country = filters.CharFilter(name='country', method='filter_country')
 
     def filter_country(self, queryset, name, value):
         return queryset.filter(project_district__country__iso=value)
-        
+
     class Meta:
         model = Project
         fields = [
             'country',
             'budget_amount',
             'start_date',
-            'end_date'
+            'end_date',
+            'project_district__country',
+            'status',
+            'primary_sector',
+            'operation_type',
         ]
+
 
 class ProjectViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all()
