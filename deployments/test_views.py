@@ -31,7 +31,8 @@ class ProjectGetTest(APITestCase):
                     ,project_district = district1
                     ,name             = 'aaa'
                     ,programme_type   = 0
-                    ,sector           = 0
+                    ,primary_sector   = 0
+                    ,operation_type   = 0
                     ,start_date       = '2011-11-11'
                     ,end_date         = '2011-11-11'
                     ,budget_amount    = 6000
@@ -44,7 +45,9 @@ class ProjectGetTest(APITestCase):
                     ,project_district = district2
                     ,name             = 'bbb'
                     ,programme_type   = 1
-                    ,sector           = 1
+                    ,primary_sector   = 1
+                    ,secondary_sectors= [1, 2]
+                    ,operation_type   = 0
                     ,start_date       = '2012-12-12'
                     ,end_date         = '2013-01-01'
                     ,budget_amount    = 3000
@@ -86,7 +89,9 @@ class ProjectGetTest(APITestCase):
             'project_district' : district2.id,
             'name'             : 'CreateMePls',
             'programme_type'   : 0,
-            'sector'           : 0,
+            'primary_sector'   : 0,
+            'secondary_sectors': [0, 1],
+            'operation_type'   : 0,
             'start_date'       : '2012-11-12',
             'end_date'         : '2013-11-13',
             'budget_amount'    : 7000,

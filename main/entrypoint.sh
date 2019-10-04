@@ -1,4 +1,5 @@
 #!/bin/bash
+export PYTHONUNBUFFERED=1
 set -e
 cmd="$@"
 

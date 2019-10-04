@@ -2,6 +2,8 @@ from django.contrib import admin
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
 
+from .forms import ProjectForm
+
 
 class ERUInline(admin.TabularInline):
     model = models.ERU
@@ -47,8 +49,10 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
 
 
 class ProjectAdmin(admin.ModelAdmin):
+    form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
+    autocomplete_fields = ('user', 'reporting_ns', 'project_district',)
 
 
 class ERUReadinessAdmin(admin.ModelAdmin):
