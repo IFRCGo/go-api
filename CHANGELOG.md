@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.182
 
 ### Added
- - Missing phone from field report contacts
+ - Added phone field to FieldReportContact
 
 ## 1.1.181
 ## 1.1.180
