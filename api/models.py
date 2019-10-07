@@ -693,6 +693,7 @@ class FieldReportContact(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
+    phone = models.CharField(max_length=50, blank=True)
     field_report = models.ForeignKey(FieldReport, related_name='contacts', on_delete=models.CASCADE)
 
     def __str__(self):
