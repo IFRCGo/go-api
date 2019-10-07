@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.182
+
+### Added
+ - Added phone field to FieldReportContact
+
 ## 1.1.181
 ## 1.1.180
 
@@ -736,7 +741,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.181...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.182...HEAD
+[1.1.182]: https://github.com/IFRCGo/go-api/compare/1.1.181...1.1.182
 [1.1.181]: https://github.com/IFRCGo/go-api/compare/1.1.180...1.1.181
 [1.1.180]: https://github.com/IFRCGo/go-api/compare/1.1.179...1.1.180
 [1.1.179]: https://github.com/IFRCGo/go-api/compare/1.1.178...1.1.179
