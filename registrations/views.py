@@ -38,6 +38,7 @@ def is_valid_domain(email):
         'croix-rouge.lu',
         'croix-rouge.mc',
         'croixrouge.ht',
+        'croixrouge-mali.org',
         'croixrougesenegal.com',
         'crucearosie.ro',
         'cruzroja.cl',
