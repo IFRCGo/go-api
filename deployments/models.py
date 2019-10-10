@@ -160,6 +160,7 @@ class OperationTypes(IntEnum):
 
 
 class Project(models.Model):
+    modified_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
     reporting_ns = models.ForeignKey(Country, on_delete=models.CASCADE) # this is the national society that is reporting the project
     project_district = models.ForeignKey(District, on_delete=models.CASCADE) # this is the district where the project is actually taking place
