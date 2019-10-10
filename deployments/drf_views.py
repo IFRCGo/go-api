@@ -130,6 +130,8 @@ class ProjectFilter(filters.FilterSet):
             'start_date',
             'end_date',
             'project_district__country',
+            'reporting_ns',
+            'programme_type',
             'status',
             'primary_sector',
             'operation_type',
