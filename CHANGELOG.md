@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.184
+
+### Added
+ - Do not repeat (in-future date) surge alert notifications
+
 ## 1.1.183
 
 ### Added
@@ -746,7 +751,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.183...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.184...HEAD
+[1.1.184]: https://github.com/IFRCGo/go-api/compare/1.1.183...1.1.184
 [1.1.183]: https://github.com/IFRCGo/go-api/compare/1.1.182...1.1.183
 [1.1.182]: https://github.com/IFRCGo/go-api/compare/1.1.181...1.1.182
 [1.1.181]: https://github.com/IFRCGo/go-api/compare/1.1.180...1.1.181
