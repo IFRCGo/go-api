@@ -41,7 +41,7 @@ class SurgeAlert(models.Model):
 
     def save(self, *args, **kwargs):
         # On save, if `created` is not set, make it the current time
-        if not self.id and not self.created_at:
+        if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
         return super(SurgeAlert, self).save(*args, **kwargs)
 
