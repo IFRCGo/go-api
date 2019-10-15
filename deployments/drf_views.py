@@ -15,6 +15,7 @@ from .models import (
     Sectors,
     OperationTypes,
     Statuses,
+    RegionalProject,
     Project,
 )
 from api.models import Country
@@ -25,6 +26,7 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
+    RegionalProjectSerializer,
     ProjectSerializer,
 )
 from api.views import (
@@ -113,6 +115,12 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = PartnerSocietyDeployment.objects.all()
     serializer_class = PartnerDeploymentSerializer
     filter_class = PartnerDeploymentFilterset
+
+
+class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = RegionalProject.objects.all()
+    serializer_class = RegionalProjectSerializer
+    search_fields = ('name',)
 
 
 class ProjectFilter(filters.FilterSet):

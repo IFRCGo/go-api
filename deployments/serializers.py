@@ -11,6 +11,7 @@ from .models import (
     RdrtPerson,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
+    RegionalProject,
     Project,
 )
 from api.serializers import (
@@ -69,9 +70,16 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to', 'district_deployed_to', 'activity', 'id',)
 
 
+class RegionalProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegionalProject
+        fields = '__all__'
+
+
 class ProjectSerializer(serializers.ModelSerializer):
-    project_district_detail = MiniDistrictSerializer(source='project_district')
-    reporting_ns_detail = MiniCountrySerializer(source='reporting_ns')
+    project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
+    reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
 
     class Meta:
         model = Project

@@ -159,6 +159,15 @@ class OperationTypes(IntEnum):
     EMERGENCY_OPERATION = 1
 
 
+class RegionalProject(models.Model):
+    name = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Project(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL) # user who created this project
@@ -176,6 +185,10 @@ class Project(models.Model):
     end_date = models.DateField()
     budget_amount = models.IntegerField()
     status = EnumIntegerField(Statuses)
+
+    regional_project = models.ForeignKey(
+        RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         if self.reporting_ns is None:
