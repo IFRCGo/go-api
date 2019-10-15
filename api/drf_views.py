@@ -186,14 +186,17 @@ class DistrictFilter(filters.FilterSet):
         model = District
         fields = ('country',)
 
+
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.all()
     filter_class = DistrictFilter
+
     def get_serializer_class(self):
         if self.action == 'list':
             return MiniDistrictSerializer
         else:
             return DistrictSerializer
+
 
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')

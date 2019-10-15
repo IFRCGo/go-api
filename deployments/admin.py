@@ -48,11 +48,16 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
+class RegionalProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at', 'modified_at',)
+    search_fields = ('name',)
+
+
 class ProjectAdmin(admin.ModelAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
-    autocomplete_fields = ('user', 'reporting_ns', 'project_district',)
+    autocomplete_fields = ('user', 'reporting_ns', 'project_district', 'regional_project',)
 
 
 class ERUReadinessAdmin(admin.ModelAdmin):
@@ -65,4 +70,5 @@ admin.site.register(models.Personnel, PersonnelAdmin)
 admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)
 admin.site.register(models.PartnerSocietyActivities, PartnerSocietyActivityAdmin)
 admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.RegionalProject, RegionalProjectAdmin)
 admin.site.register(models.ERUReadiness, ERUReadinessAdmin)
