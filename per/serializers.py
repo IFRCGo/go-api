@@ -13,7 +13,7 @@ class ListDraftSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
     class Meta:
         model = Draft
-        fields = ('country', 'code', 'user', 'data',)
+        fields = ('country', 'code', 'user', 'data', 'id',)
 
 class FormStatSerializer(serializers.ModelSerializer):
     class Meta:

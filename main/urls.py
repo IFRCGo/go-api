@@ -45,6 +45,7 @@ from per.views import (
     OverviewSent,
     DelWorkPlan,
     DelOverview,
+    DelDraft,
 )
 
 # DRF routes
@@ -123,6 +124,7 @@ urlpatterns = [
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
     url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
     url(r'^api/v2/del_peroverview', DelOverview.as_view()),
+    url(r'^api/v2/del_perdraft', DelDraft.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),

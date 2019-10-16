@@ -429,6 +429,34 @@ class DelOverview(PublicJsonPostView):
 
         return JsonResponse({'status': 'ok'})
 
+def delete_draft(raw):
+    Draft.objects.filter(id=raw['id']).delete()
+    return
+
+class DelDraft(PublicJsonPostView):
+    def handle_post(self, request, *args, **kwargs):
+        u = None
+        richtokenstring = request.META.get('HTTP_AUTHORIZATION')
+        if richtokenstring:
+            try:
+                receivedtoken = Token.objects.get(key=richtokenstring[6:])
+            except:
+                return bad_request('User token is not correct.')
+            u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
+        else:
+            return bad_request('User token is not given.')
+        if not u:
+            return bad_request('User is not logged in or inactive.')
+        
+        body = json.loads(request.body.decode('utf-8'))
+
+        try:
+            workplan = delete_draft(body)
+        except:
+            return bad_request('Could not delete PER Draft.')
+        
+        return JsonResponse({'status': 'ok'})
+
 # *** Test script from bash (similar to test_views.py, but remains in db):
 # curl --header "Content-Type: application/json" \
 #  --request POST \
