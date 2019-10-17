@@ -168,6 +168,7 @@ def is_valid_domain(email):
         'k.roteskreuz.at',  # Kaernten (Carinthia)
         'n.roteskreuz.at',  # Niederoesterreich (lower Austria)
         'o.roteskreuz.at',  # Oberoesterreich (upper Austria)
+        'roteskreuz-innsbruck.at',
         'roteskreuz.li',
         'rwandaredcross.org',
         'sarc.sy',
