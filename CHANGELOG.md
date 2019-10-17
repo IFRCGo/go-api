@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.186
+
+### Added
+ - Implemented PER Draft deletion
+
 ## 1.1.185
 
 ### Added
@@ -756,7 +761,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.185...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.186...HEAD
+[1.1.186]: https://github.com/IFRCGo/go-api/compare/1.1.185...1.1.186
 [1.1.185]: https://github.com/IFRCGo/go-api/compare/1.1.184...1.1.185
 [1.1.184]: https://github.com/IFRCGo/go-api/compare/1.1.183...1.1.184
 [1.1.183]: https://github.com/IFRCGo/go-api/compare/1.1.182...1.1.183
