@@ -429,8 +429,9 @@ class DelOverview(PublicJsonPostView):
 
         return JsonResponse({'status': 'ok'})
 
-def delete_draft(raw):
-    Draft.objects.filter(id=raw['id']).delete()
+def delete_draft(draftId):
+    if draftId:
+        Draft.objects.filter(id=draftId).delete()
     return
 
 class DelDraft(PublicJsonPostView):
@@ -451,7 +452,7 @@ class DelDraft(PublicJsonPostView):
         body = json.loads(request.body.decode('utf-8'))
 
         try:
-            workplan = delete_draft(body)
+            workplan = delete_draft(body['id'])
         except:
             return bad_request('Could not delete PER Draft.')
         
