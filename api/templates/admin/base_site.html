@@ -16,7 +16,7 @@
 {% block extrastyle %}
     {{block.super}}
     <style type="text/css">
-        body { {% if PRODUCTION_URL != 'None' %}
+        body { {% if PRODUCTION_URL == 'dsgocdnapi.azureedge.net' %}
             background-color: #aaa;
                {% endif %} }
     </style>
