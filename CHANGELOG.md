@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.187
+
+### Added
+ - Staging admin with grey background and sending status with related appeals
+
 ## 1.1.186
 
 ### Added
@@ -761,7 +766,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.186...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.187...HEAD
+[1.1.187]: https://github.com/IFRCGo/go-api/compare/1.1.186...1.1.187
 [1.1.186]: https://github.com/IFRCGo/go-api/compare/1.1.185...1.1.186
 [1.1.185]: https://github.com/IFRCGo/go-api/compare/1.1.184...1.1.185
 [1.1.184]: https://github.com/IFRCGo/go-api/compare/1.1.183...1.1.184

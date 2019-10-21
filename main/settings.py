@@ -2,17 +2,19 @@ import os
 from datetime import datetime
 import pytz
 
-production_url = os.environ.get('API_FQDN')
+PRODUCTION_URL = os.environ.get('API_FQDN')
+# Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
+
 localhost = 'localhost'
-BASE_URL = production_url if production_url else '%s:8000' % localhost
+BASE_URL = PRODUCTION_URL if PRODUCTION_URL else '%s:8000' % localhost
 
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
-if production_url is not None:
-    ALLOWED_HOSTS.append(production_url)
+if PRODUCTION_URL is not None:
+    ALLOWED_HOSTS.append(PRODUCTION_URL)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-DEBUG = False if production_url is not None else True
+DEBUG = False if PRODUCTION_URL is not None else True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -96,6 +98,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.ifrc_go',
             ],
         },
     },
