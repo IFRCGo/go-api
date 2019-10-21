@@ -1,5 +1,9 @@
 import json, datetime, pytz
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (
+    TokenAuthentication,
+    BasicAuthentication,
+    SessionAuthentication,
+)
 from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
 from django.shortcuts import render
@@ -146,15 +150,22 @@ class ProjectFilter(filters.FilterSet):
         ]
 
 
-class ProjectViewset(viewsets.ReadOnlyModelViewSet):
+class ProjectViewset(viewsets.ModelViewSet):
     queryset = Project.objects.all()
-    authentication_classes = (TokenAuthentication,)
+    # XXX: Use this as default authentication classes
+    authentication_classes = (
+        TokenAuthentication,
+        BasicAuthentication,
+        SessionAuthentication,
+    )
+    # TODO: May require different permission for UNSAFE_METHODS
     permission_classes = (IsAuthenticated,)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
 
 
+# XXX: Replace CreateProject by ProjectViewset
 class CreateProject(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))

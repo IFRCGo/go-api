@@ -186,6 +186,16 @@ class Project(models.Model):
     budget_amount = models.IntegerField()
     status = EnumIntegerField(Statuses)
 
+    # Target Sections
+    target_male = models.IntegerField(null=True, blank=True)
+    target_female = models.IntegerField(null=True, blank=True)
+    target_children = models.IntegerField(null=True, blank=True)
+
+    # Reached Sections
+    reached_male = models.IntegerField(null=True, blank=True)
+    reached_female = models.IntegerField(null=True, blank=True)
+    reached_children = models.IntegerField(null=True, blank=True)
+
     regional_project = models.ForeignKey(
         RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
     )

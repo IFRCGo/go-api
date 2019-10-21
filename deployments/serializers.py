@@ -84,3 +84,9 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+        extra_kwargs = {
+            field: {
+                'allow_null': False, 'required': True,
+            } for field in ['user', 'reporting_ns', 'project_district', 'name']
+        }
+
