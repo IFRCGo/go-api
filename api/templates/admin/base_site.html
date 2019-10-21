@@ -11,3 +11,14 @@
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
+
+
+{% block extrastyle %}
+    {{block.super}}
+    <style type="text/css">
+        body { {% if PRODUCTION_URL != 'None' %}
+            background-color: #aaa;
+               {% endif %} }
+    </style>
+{# use PRODUCTION_URL to create logic //PRODUCTION_URL// #}
+{% endblock %}

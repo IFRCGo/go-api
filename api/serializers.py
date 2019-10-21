@@ -135,7 +135,7 @@ class CountryRelationSerializer(serializers.ModelSerializer):
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
-        fields = ('aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'id',)
+        fields = ('aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'start_date', 'id',)
 
 class KeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
