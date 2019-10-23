@@ -84,9 +84,15 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
+        read_only_fields = ('user',)
         extra_kwargs = {
             field: {
                 'allow_null': False, 'required': True,
             } for field in ['user', 'reporting_ns', 'project_district', 'name']
         }
 
+    def create(self, validated_data):
+        project = super().create(validated_data)
+        project.user = self.context['request'].user
+        project.save()
+        return project
