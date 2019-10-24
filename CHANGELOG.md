@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.190
+
+### Added
+ - Upgrading Pillow due to a vulnerability and some IS_STAGING code refactoring
+
 ## 1.1.189
 
 ### Added
@@ -776,7 +781,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.189...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.190...HEAD
+[1.1.190]: https://github.com/IFRCGo/go-api/compare/1.1.189...1.1.190
 [1.1.189]: https://github.com/IFRCGo/go-api/compare/1.1.188...1.1.189
 [1.1.188]: https://github.com/IFRCGo/go-api/compare/1.1.187...1.1.188
 [1.1.187]: https://github.com/IFRCGo/go-api/compare/1.1.186...1.1.187
