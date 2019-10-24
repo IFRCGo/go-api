@@ -13,9 +13,14 @@ from .models import (
     PartnerSocietyDeployment,
     RegionalProject,
     Project,
+
+    OperationTypes,
+    ProgrammeTypes,
+    Statuses,
 )
 from api.serializers import (
     ListEventSerializer,
+    MiniEventSerializer,
     MiniCountrySerializer,
     MiniDistrictSerializer,
 )
@@ -80,6 +85,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
+    event_detail = MiniEventSerializer(source='event', read_only=True)
 
     class Meta:
         model = Project
@@ -88,8 +94,27 @@ class ProjectSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             field: {
                 'allow_null': False, 'required': True,
-            } for field in ['user', 'reporting_ns', 'project_district', 'name']
+            } for field in (
+                'reporting_ns', 'project_district', 'name', 'programme_type', 'primary_sector', 'target_total',
+            )
         }
+
+    def validate(self, data):
+        if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
+            raise serializers.ValidationError('Reached total should be provided if status is completed')
+        elif data['operation_type'] == OperationTypes.LONG_TERM_OPERATION and data.get('dtype') is None:
+            raise serializers.ValidationError(
+                'Disaster Type should be provided if operation type is Long Term Operation'
+            )
+        elif (
+            data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
+            data['programme_type'] == ProgrammeTypes.MULTILATERAL and
+            data.get('event') is None
+        ):
+            raise serializers.ValidationError(
+                'Event should be provided if operation type is Emergency Operation and programme type is Multilateral'
+            )
+        return data
 
     def create(self, validated_data):
         project = super().create(validated_data)

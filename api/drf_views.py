@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
@@ -62,6 +63,7 @@ from .serializers import (
     MiniDistrictSerializer,
 
     SnippetSerializer,
+    MiniEventSerializer,
     ListEventSerializer,
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
@@ -211,15 +213,31 @@ class EventFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class EventViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.all()
+    ordering_fields = (
+        'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
+    )
+    filter_class = EventFilter
+
     def get_serializer_class(self):
         if self.action == 'list':
             return ListEventSerializer
         else:
             return DetailEventSerializer
-    ordering_fields = ('disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',)
-    filter_class = EventFilter
+
+    @action(methods=['get'], detail=False, url_path='mini')
+    def mini_events(self, request):
+        return self.get_paginated_response(
+            MiniEventSerializer(
+                self.paginate_queryset(
+                    Event.objects.values('id', 'name'),
+                ),
+                many=True,
+            ).data
+        )
+
 
 class EventSnippetFilter(filters.FilterSet):
     event = filters.NumberFilter(name='event', lookup_expr='exact')
