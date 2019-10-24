@@ -57,7 +57,10 @@ class ProjectAdmin(admin.ModelAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
-    autocomplete_fields = ('user', 'reporting_ns', 'project_district', 'regional_project',)
+    autocomplete_fields = (
+        'user', 'reporting_ns', 'project_district', 'regional_project',
+        'event', 'dtype',
+    )
 
 
 class ERUReadinessAdmin(admin.ModelAdmin):
