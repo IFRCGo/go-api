@@ -215,28 +215,27 @@ class EventFilter(filters.FilterSet):
 
 
 class EventViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Event.objects.all()
     ordering_fields = (
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filter_class = EventFilter
 
+    def get_queryset(self):
+        if self.action == 'mini_events':
+            return Event.objects.values('id', 'name')
+        return Event.objects.all()
+
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == 'mini_events':
+            return MiniEventSerializer
+        elif self.action == 'list':
             return ListEventSerializer
         else:
             return DetailEventSerializer
 
     @action(methods=['get'], detail=False, url_path='mini')
     def mini_events(self, request):
-        return self.get_paginated_response(
-            MiniEventSerializer(
-                self.paginate_queryset(
-                    Event.objects.values('id', 'name'),
-                ),
-                many=True,
-            ).data
-        )
+        return super().list(request)
 
 
 class EventSnippetFilter(filters.FilterSet):
