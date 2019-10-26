@@ -4,7 +4,13 @@ from rest_framework.test import APITestCase
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
 from api.models import Country, District
-from .models import Project
+from .models import (
+    Project,
+    ProgrammeTypes,
+    Sectors,
+    OperationTypes,
+    Statuses,
+)
 
 username = 'jo'
 password = '12345678'
@@ -31,7 +37,8 @@ class ProjectGetTest(APITestCase):
                     ,project_district = district1
                     ,name             = 'aaa'
                     ,programme_type   = 0
-                    ,sector           = 0
+                    ,primary_sector   = 0
+                    ,operation_type   = 0
                     ,start_date       = '2011-11-11'
                     ,end_date         = '2011-11-11'
                     ,budget_amount    = 6000
@@ -44,7 +51,9 @@ class ProjectGetTest(APITestCase):
                     ,project_district = district2
                     ,name             = 'bbb'
                     ,programme_type   = 1
-                    ,sector           = 1
+                    ,primary_sector   = 1
+                    ,secondary_sectors= [1, 2]
+                    ,operation_type   = 0
                     ,start_date       = '2012-12-12'
                     ,end_date         = '2013-01-01'
                     ,budget_amount    = 3000
@@ -81,22 +90,45 @@ class ProjectGetTest(APITestCase):
         token = response.get('token')
         self.assertIsNotNone(token)
         body = {
-            'user'             : user.id,
-            'reporting_ns'     : country2.id,
-            'project_district' : district2.id,
-            'name'             : 'CreateMePls',
-            'programme_type'   : 0,
-            'sector'           : 0,
-            'start_date'       : '2012-11-12',
-            'end_date'         : '2013-11-13',
-            'budget_amount'    : 7000,
-            'status'           : 0
+            'reporting_ns': country2.id,
+            'project_district': district2.id,
+            'name': 'CreateMePls',
+            'programme_type': ProgrammeTypes.BILATERAL,
+            'primary_sector': Sectors.WASH,
+            'secondary_sectors': [Sectors.CEA, Sectors.PGI],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION,
+            'start_date': '2012-11-12',
+            'end_date': '2013-11-13',
+            'budget_amount': 7000,
+            'target_total': 100,
+            'status': Statuses.PLANNED,
         }
-        self.client.credentials(HTTP_AUTHORIZATION = 'Token ' + token)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         self.client.force_authenticate(user=user, token=token)
-        resp = self.client.post('/api/v2/create_project/', body, format='json')
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(Project.objects.all()), 3) # we created 3 projects until now here
+        resp = self.client.post('/api/v2/project/', body)
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+        # Validation Tests
+        # Reached total should be provided if status is completed
+        body['status'] = Statuses.COMPLETED
+        body['reached_total'] = None
+        resp = self.client.post('/api/v2/project/', body)
+        self.assertEqual(resp.status_code, 400, resp.content)
+
+        # Disaster Type should be provided if operation type is Long Term Operation
+        body['operation_type'] = OperationTypes.LONG_TERM_OPERATION
+        body['dtype'] = None
+        resp = self.client.post('/api/v2/project/', body)
+        self.assertEqual(resp.status_code, 400, resp.content)
+
+        # Event should be provided if operation type is Emergency Operation and programme type is Multilateral
+        body['operation_type'] = OperationTypes.LONG_TERM_OPERATION
+        body['programme_type'] = ProgrammeTypes.MULTILATERAL
+        body['event'] = None
+        resp = self.client.post('/api/v2/project/', body)
+        self.assertEqual(resp.status_code, 400, resp.content)
+
+        self.assertEqual(len(Project.objects.all()), 3)  # we created 3 projects until now here
 
     def test_get_projects(self):
         user = User.objects.get(username=username)

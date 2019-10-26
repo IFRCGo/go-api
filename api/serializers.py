@@ -78,6 +78,7 @@ class MiniDistrictSerializer(serializers.ModelSerializer):
         model = District
         fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
 
+
 class RegionKeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegionKeyFigure

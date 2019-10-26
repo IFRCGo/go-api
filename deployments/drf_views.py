@@ -1,5 +1,9 @@
 import json, datetime, pytz
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (
+    TokenAuthentication,
+    BasicAuthentication,
+    SessionAuthentication,
+)
 from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
 from django.shortcuts import render
@@ -13,7 +17,9 @@ from .models import (
     PartnerSocietyDeployment,
     ProgrammeTypes,
     Sectors,
+    OperationTypes,
     Statuses,
+    RegionalProject,
     Project,
 )
 from api.models import Country
@@ -24,6 +30,7 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
+    RegionalProjectSerializer,
     ProjectSerializer,
 )
 from api.views import (
@@ -114,6 +121,10 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PartnerDeploymentFilterset
 
 
+class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = RegionalProject.objects.all()
+    serializer_class = RegionalProjectSerializer
+    search_fields = ('name',)
 
 
 class ProjectFilter(filters.FilterSet):
@@ -122,65 +133,33 @@ class ProjectFilter(filters.FilterSet):
 
     def filter_country(self, queryset, name, value):
         return queryset.filter(project_district__country__iso=value)
-        
+
     class Meta:
         model = Project
         fields = [
             'country',
             'budget_amount',
             'start_date',
-            'end_date'
+            'end_date',
+            'project_district__country',
+            'reporting_ns',
+            'programme_type',
+            'status',
+            'primary_sector',
+            'operation_type',
         ]
 
-class ProjectViewset(viewsets.ReadOnlyModelViewSet):
+
+class ProjectViewset(viewsets.ModelViewSet):
     queryset = Project.objects.all()
-    authentication_classes = (TokenAuthentication,)
+    # XXX: Use this as default authentication classes
+    authentication_classes = (
+        TokenAuthentication,
+        BasicAuthentication,
+        SessionAuthentication,
+    )
+    # TODO: May require different permission for UNSAFE_METHODS
     permission_classes = (IsAuthenticated,)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
-
-
-class CreateProject(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        # Recently it is not checked whether what user is this (same with the logged in or not).
-        required_fields = [
-            'user',
-            'reporting_ns',
-            'project_district',
-            'name',
-        ]
-        missing_fields = [field for field in required_fields if field not in body]
-        if len(missing_fields):
-            return bad_request('Could not complete request due to missing mandatory field. Please submit %s' % ', '.join(missing_fields))
-
-        currentDT = datetime.datetime.now(pytz.timezone('UTC'))
-        if 'programme_type' not in body:
-            body['programme_type'] = ProgrammeTypes.MULTILATERAL
-        if 'sector' not in body:
-            body['sector'] = Sectors.WASH
-        if 'start_date' not in body:
-            body['start_date']   = str(currentDT)
-        if 'end_date' not in body:
-            body['end_date']   = str(currentDT)
-        if 'budget_amount' not in body:
-            body['budget_amount'] = 0
-        if 'status' not in body:
-            body['status'] = Statuses.ONGOING
-        project = Project.objects.create(user_id             = body['user'],
-                                         reporting_ns_id     = body['reporting_ns'],
-                                         project_district_id = body['project_district'],
-                                         name                = body['name'],
-                                         programme_type      = body['programme_type'],
-                                         sector              = body['sector'],
-                                         start_date          = body['start_date'],
-                                         end_date            = body['end_date'],
-                                         budget_amount       = body['budget_amount'],
-                                         status              = body['status'],
-                                         )
-        try:
-            project.save()
-        except:
-            return bad_request('Could not create Project record.')
-        return JsonResponse({'status': 'ok'})
