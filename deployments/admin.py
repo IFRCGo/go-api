@@ -2,6 +2,8 @@ from django.contrib import admin
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
 
+from .forms import ProjectForm
+
 
 class ERUInline(admin.TabularInline):
     model = models.ERU
@@ -46,9 +48,19 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
+class RegionalProjectAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at', 'modified_at',)
+    search_fields = ('name',)
+
+
 class ProjectAdmin(admin.ModelAdmin):
+    form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
+    autocomplete_fields = (
+        'user', 'reporting_ns', 'project_district', 'regional_project',
+        'event', 'dtype',
+    )
 
 
 class ERUReadinessAdmin(admin.ModelAdmin):
@@ -61,4 +73,5 @@ admin.site.register(models.Personnel, PersonnelAdmin)
 admin.site.register(models.PartnerSocietyDeployment, PartnerSocietyDeploymentAdmin)
 admin.site.register(models.PartnerSocietyActivities, PartnerSocietyActivityAdmin)
 admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.RegionalProject, RegionalProjectAdmin)
 admin.site.register(models.ERUReadiness, ERUReadinessAdmin)

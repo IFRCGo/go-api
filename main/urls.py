@@ -65,7 +65,7 @@ router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, base_n
 router.register(r'region_snippet', api_views.RegionSnippetViewset, base_name='region_snippet')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, base_name='country_snippet')
 router.register(r'district', api_views.DistrictViewset)
-router.register(r'event', api_views.EventViewset)
+router.register(r'event', api_views.EventViewset, base_name='event')
 router.register(r'event_snippet', api_views.EventSnippetViewset, base_name='event_snippet')
 router.register(r'situation_report', api_views.SituationReportViewset, base_name='situation_report')
 router.register(r'situation_report_type', api_views.SituationReportTypeViewset)
@@ -97,6 +97,7 @@ router.register(r'per_country_duedate', per_views.CountryDuedateViewset)
 router.register(r'per_engaged_ns_percentage', per_views.EngagedNSPercentageViewset)
 router.register(r'per_global_preparedness', per_views.GlobalPreparednessViewset)
 router.register(r'per_ns_phase', per_views.NSPhaseViewset)
+router.register(r'regional-project', deployment_views.RegionalProjectViewset)
 router.register(r'project', deployment_views.ProjectViewset)
 
 admin.site.site_header = 'IFRC Go administration'
@@ -115,7 +116,6 @@ urlpatterns = [
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
-    url(r'^api/v2/create_project', deployment_views.CreateProject.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),

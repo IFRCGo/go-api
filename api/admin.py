@@ -5,6 +5,7 @@ from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
+# from django.db import models as dj_models # Not used
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
 from django_admin_listfilter_dropdown.filters import (
