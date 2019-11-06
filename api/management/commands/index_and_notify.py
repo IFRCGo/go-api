@@ -23,6 +23,12 @@ basetime      = int(10314) # weekday - hour - min for digest timing (5 minutes o
 daily_retro   = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
 short         = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
+template_types= {
+    'generic': 'design/generic_notification.html',
+    'newop': 'design/new_operation.html',
+    'opupd': 'design/operation_update.html',
+    'weeklydig': 'design/weekly_digest.html'
+}
 
 class Command(BaseCommand):
     help = 'Index and send notifications about new/changed records'
@@ -116,9 +122,10 @@ class Command(BaseCommand):
         return emails
 
 
-    def get_template(self):
+    def get_template(self, ttype='generic'):
         #old: return 'email/generic_notification.html'
-        return 'design/generic_notification.html'
+        #new-old: return 'design/generic_notification.html'
+        return template_types[ttype]
 
 
     # Get the front-end url of the resource
@@ -207,78 +214,23 @@ class Command(BaseCommand):
         return display
 
 
-    def notify(self, records, rtype, stype):
+    def notify(self, records, rtype, stype, uid=None):
         record_count = records.count()
         if not record_count:
+            return
+
+        # Decide if it is a personal notification or batch
+        if uid is None:
+            emails = self.gather_subscribers(records, rtype, stype)
+            if not len(emails):
                 return
-        emails = self.gather_subscribers(records, rtype, stype)
-        if not len(emails):
-            return
-
-        # Only serialize the first 10 records
-        entries = list(records) if record_count <= 10 else list(records[:10])
-        record_entries = []
-        for record in entries:
-            shortened = self.get_record_content(record, rtype)
-            if len(shortened) > short:
-                shortened = shortened[:short] + \
-                            shortened[short:].split(' ', 1)[0] + '...' # look for the first space
-            record_entries.append({
-                'resource_uri': self.get_resource_uri(record, rtype),
-                'admin_uri': self.get_admin_uri(record, rtype),
-                'title': self.get_record_title(record, rtype),
-                'content': shortened,
-            })
-
-        adj = 'new' if stype == SubscriptionType.NEW else 'modified'
-        record_type = self.get_record_display(rtype, record_count)
-#       subject = '%s %s %s in IFRC GO' % (
-        subject = '%s %s %s'            % (
-            record_count,
-            adj,
-            record_type,
-        )
-        if self.is_digest_mode():
-            subject += ' [weekly digest]'
-        elif self.is_retro_mode():
-            subject += ' [daily followup]'
-        template_path = self.get_template()
-        html = render_to_string(template_path, {
-            'hello': get_hello(),
-            'count': record_count,
-            'records': record_entries,
-            'is_staff': True, # TODO: fork the sending to "is_staff / not ~" groups
-            'subject': subject,
-        })
-        if record_count == 1:
-            subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
-        recipients = emails
-
-        # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
-        if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
-            for e in list(records.values('id'))[:10]:
-                i = e['id']
-                if i not in events_sent_to:
-                    events_sent_to[i] = []
-                email_list_to_add = list(set(events_sent_to[i] + recipients))
-                if email_list_to_add:
-                    events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
-
-        plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
-        logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-        send_notification(subject, recipients, html)
-
-    # Almost code duplication - run for 1 person (event can be more):
-    def notify_personal(self, records, rtype, stype, uid):
-        record_count = records.count()
-        if not record_count:
-            return
-        usr = User.objects.filter(pk=uid, is_active=True)
-        if not len(usr):
-            return
         else:
-            emails = list(usr.values_list('email', flat=True))  # Only one email in this case
-
+            usr = User.objects.filter(pk=uid, is_active=True)
+            if not len(usr):
+                return
+            else:
+                emails = list(usr.values_list('email', flat=True))  # Only one email in this case
+        
         # Only serialize the first 10 records
         entries = list(records) if record_count <= 10 else list(records[:10])
         record_entries = []
@@ -294,13 +246,25 @@ class Command(BaseCommand):
                 'content': shortened,
             })
 
+        if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
+        
         record_type = self.get_record_display(rtype, record_count)
-#       subject = '%s followed %s modified in IFRC GO' % (
-        subject = '%s followed %s modified'            % (
-            record_count,
-            record_type,
-        )
+        if uid is None:
+            adj = 'new' if stype == SubscriptionType.NEW else 'modified'
+            #subject = '%s %s %s in IFRC GO' % (
+            subject = '%s %s %s' % (
+                record_count,
+                adj,
+                record_type,
+            )
+        else:
+            #subject = '%s followed %s modified in IFRC GO' % (
+            subject = '%s followed %s modified' % (
+                record_count,
+                record_type,
+            )
+
         if self.is_digest_mode():
             subject += ' [weekly digest]'
         elif self.is_retro_mode():
@@ -310,21 +274,39 @@ class Command(BaseCommand):
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
-            'is_staff': is_staff,
+            'is_staff': True if uid is None else is_staff, # TODO: fork the sending to "is_staff / not ~" groups
             'subject': subject,
         })
         recipients = emails
 
-        if len(recipients):
-            # check if email is not in events_sent_to{event_id: recipients}
-            if not emails:
-                logger.info('Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid))
-            # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
-            elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
-                logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
-                send_notification(subject, recipients, html)
-            else:
-                logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
+        if uid is None:
+            if record_count == 1:
+                subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
+
+            # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
+            if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
+                for e in list(records.values('id'))[:10]:
+                    i = e['id']
+                    if i not in events_sent_to:
+                        events_sent_to[i] = []
+                    email_list_to_add = list(set(events_sent_to[i] + recipients))
+                    if email_list_to_add:
+                        events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
+
+            plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+            logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
+            send_notification(subject, recipients, html)
+        else:
+            if len(recipients):
+                # check if email is not in events_sent_to{event_id: recipients}
+                if not emails:
+                    logger.info('Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid))
+                # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
+                elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
+                    logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
+                    send_notification(subject, recipients, html)
+                else:
+                    logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
 
     def index_new_records(self, records):
@@ -398,7 +380,7 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
         else:
             new_reports = FieldReport.objects.filter(cond1)
             updated_reports = FieldReport.objects.filter(condU & cond2)
@@ -442,7 +424,7 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify_personal(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
 
             logger.info('Indexing %s updated field reports' % updated_reports.count())
             self.index_updated_records(self.filter_just_created(updated_reports))
