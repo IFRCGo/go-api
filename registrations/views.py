@@ -128,6 +128,7 @@ def is_valid_domain(email):
         'redcross.org.hk',
         'redcross.org.jm',
         'redcross.org.kh',
+        'redcross.org.mk',
         'redcross.org.lb',
         'redcross.org.mm',
         'redcross.org.mo',
