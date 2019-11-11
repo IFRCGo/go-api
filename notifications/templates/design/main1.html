@@ -7,11 +7,11 @@
                     <td class="td td-shell">
                       <table width="100%" border="0" cellspacing="0" cellpadding="0">
                         <tr>
-                          <td class="text-center td-global table-heading-main pb-25">{{ subject }}</td>
+                          <td class="text-center text-default table-heading-main pb-25">{{ subject }}</td>
                         </tr>
 {% if count > 10 %}
                         <tr>
-                          <td class="td-global td-global-font-style text-center text-italic pb-30"><p>We've detected {{ count }} records – only the first 10 will be shown here.</p>
+                          <td class="text-default td-global-font-style text-center text-italic pb-30"><p>We've detected {{ count }} records – only the first 10 will be shown here.</p>
                         </td>
 {% endif %}
                         </tr>
@@ -21,10 +21,10 @@
   {% for record in records %}
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" class="table-annce" style="background-image:none;background-repeat:repeat;background-position:top left;background-attachment:scroll;">
                               <tr>
-                                <td class="td-global table-heading-title pb-20 text-center">{{ record.title }}</td>
+                                <td class="text-default table-heading-title pb-20 text-center">{{ record.title }}</td>
                               </tr>
                               <tr>
-                                <td class="td-global td-global-font-style">
+                                <td class="text-default td-global-font-style">
     {% autoescape off %}
     {{ record.content }} <br/><a href="{{ record.resource_uri }}" class="link">Read&nbsp;more</a>{% if is_staff %} | <a href="{{ record.admin_uri }}" class="link">GO Admin</a>{% endif %}
     {% endautoescape %}
@@ -37,7 +37,7 @@
                           </td>
                         </tr>
                         <tr>
-                          <td class="td-global td-global-font-style text-center text-italic pb-30">
+                          <td class="text-default td-global-font-style text-center text-italic pb-30">
                             You are receiving this update based on your selected preferences.<br/><a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
                           </td>
                         </tr>

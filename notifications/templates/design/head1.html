@@ -26,39 +26,38 @@
 
     <style type="text/css" media="screen">
       body {
-        padding-top:0 !important;
-        padding-bottom:0 !important;
-        padding-right:0 !important;
-        padding-left:0 !important;
-        margin-top:0 !important;
-        margin-bottom:0 !important;
-        margin-right:0 !important;
-        margin-left:0 !important;
-        display:block !important;
-        min-width:100% !important;
-        width:100% !important;
-        background-color:#ffffff;
-        background-image:none;
-        background-repeat:repeat;
-        background-position:top left;
-        background-attachment:scroll;
-        font-size:18px;
-        color:#000;
-        font-weight:300;
-        -webkit-text-size-adjust:none;
-        line-height:1.4;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        display: block !important;
+        min-width: 100% !important;
+        width: 100% !important;
+        background-color: #ffffff;
+        background-image: none;
+        background-repeat: repeat;
+        background-position: top left;
+        background-attachment: scroll;
+        font-size: 18px;
+        color: #000;
+        font-weight: 300;
+        -webkit-text-size-adjust: none;
+        line-height: 1.4;
       }
       a {
-        text-decoration:underline;
-        color:#000;
+        text-decoration: underline;
+        color: #000;
       }
       p {
-        padding:0
-        !important;
-        margin:0 !important
+        padding: 0 !important;
+        margin: 0 !important;
       }
       img {
-        -ms-interpolation-mode:bicubic;
+        -ms-interpolation-mode: bicubic;
       }
       .mcnPreviewText {
         display:none !important;
@@ -66,73 +65,130 @@
       .p-10 {
         padding: 10px;
       }
+      .p-20 {
+        padding: 20px;
+      }
+      .p-30 {
+        padding: 30px;
+      }
+      .pl-10 {
+        padding-left: 10px;
+      }
+      .pl-20 {
+        padding-left: 20px;
+      }
+      .pr-10 {
+        padding-right: 10px;
+      }
+      .pr-20 {
+        padding-right: 20px;
+      }
       .pt-10 {
-        padding-top:10px;
+        padding-top: 10px;
       }
       .pt-25 {
-        padding-top:25px;
+        padding-top: 25px;
       }
       .pt-50 {
-        padding-top:50px;
+        padding-top: 50px;
       }
       .pt-20 {
-        padding-top:20px;
+        padding-top: 20px;
       }
       .pt-30 {
         padding-top: 30px;
       }
+      .pt-40 {
+        padding-top: 40px;
+      }
       .pb-10 {
-        padding-bottom:10px;
+        padding-bottom: 10px;
       }
       .pb-15 {
-        padding-bottom:15px;
+        padding-bottom: 15px;
       }
       .pb-20 {
-        padding-bottom:20px;
+        padding-bottom: 20px;
       }
       .pb-25 {
-        padding-bottom:25px;
+        padding-bottom: 25px;
       }
       .pb-30 {
-        padding-bottom:30px;
+        padding-bottom: 30px;
+      }
+      .pb-40 {
+        padding-bottom: 40px;
       }
       .pb-50 {
-        padding-bottom:50px;
+        padding-bottom: 50px;
+      }
+      .mb-10 {
+        margin-bottom: 10px;
+      }
+      .mb-15 {
+        margin-bottom: 15px;
+      }
+      .mb-20 {
+        margin-bottom: 20px;
+      }
+      .mb-25 {
+        margin-bottom: 25px;
+      }
+      .mb-30 {
+        margin-bottom: 30px;
+      }
+      .mb-50 {
+        margin-bottom: 50px;
+      }
+      .mt-10 {
+        margin-top: 10px;
+      }
+      .mt-25 {
+        margin-top: 25px;
+      }
+      .mt-50 {
+        margin-top: 50px;
+      }
+      .mt-20 {
+        margin-top: 20px;
+      }
+      .mt-30 {
+        margin-top: 30px;
       }
       .link {
         font-family: 'Lato', Arial, sand-serif;
-        text-decoration:underline;
+        text-decoration: underline;
         color: #000;
       }
       .text-uppercase {
-        text-transform:uppercase;
+        text-transform: uppercase;
       }
       .text-regular {
-        font-weight:400;
+        font-weight: 400;
       }
       .text-bold {
-        font-weight:700;
+        font-weight: 700;
       }
       .text-italic {
         font-style: italic;
       }
       .text-sm {
-        font-size:90%;
+        font-size: 90%;
       }
       .text-lg {
-        font-size:110%;
+        font-size: 110%;
       }
       .text-xl {
-        font-size:120%;
+        font-size: 120%;
       }
       .text-center {
-        text-align:center;
+        text-align: center;
       }
       .text-left {
-        text-align:left;
+        text-align: left;
       }
       .text-right {
-        text-align:right;
+        text-align: right;
       }
       .text-light {
         font-weight: 300;
@@ -141,34 +197,36 @@
         margin:0; padding:0;
       }
       .td-shell {
-        width:650px;
-        min-width:650px;
-        padding:0;
-        margin:0;
+        width: 650px;
+        min-width: 650px;
+        padding: 0;
+        margin: 0;
       }
-      .td-global {
+      .text-default {
         color: #000000;
         font-family:'Lato', Arial, sans-serif;
       }
       .td-global-font-style {
-        font-weight:300;
+        font-weight: 300;
         font-size: 18px;
       }
       .td-smaller-font-style {
-        font-weight:200;
         font-size: 16px;
       }
       .table-heading-main {
-        font-weight:bold;
-        font-size:24px;
+        font-weight: bold;
+        font-size: 24px;
+      }
+      .table-heading-sub {
+        font-size: 24px;
       }
       .table-heading-title {
-        text-transform:uppercase;
-        font-weight:bold;
+        text-transform: uppercase;
+        font-weight: bold;
       }
       .table-annce {
         background: #f8f8f8;
-        padding:40px 30px;
+        padding: 40px 30px;
       }
       .no-margin {
         margin: 0 !important;
@@ -176,64 +234,91 @@
       .no-padding {
         padding: 0 !important;
       }
+      .button {
+        font-size: 16px;
+        font-weight: 600;
+        padding: 4px 16px;
+        min-width: 10px;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        background: none;
+        text-decoration: none !important;
+        border: 1px solid #555;
+        border-radius: 20px;
+        background-color: #FFF;
+      }
+      .button-red {
+        background-color: #C02C2C;
+        border-color: #C02C2C;
+        color: #FFF;
+        font-weight: 400 !important;
+      }
+      .box-pointed {
+        border: 1px solid #888;
+        border-radius: 20px;
+        border-top-left-radius: 0 !important;
+        padding: 12px;
+      }
 
       @media only screen and (max-device-width:480px), only screen and (max-width:480px) {
         .mobile-shell {
-          width:100% !important;
-          min-width:100% !important;
+          width: 100% !important;
+          min-width: 100% !important;
         }
         .bg {
-          background-size:100% auto !important;
-          -webkit-background-size:100% auto !important;
+          background-size: 100% auto !important;
+          -webkit-background-size: 100% auto !important;
         }
         .text-header, .m-center {
-          text-align:center !important;
+          text-align: center !important;
         }
         .center {
-          margin:0 auto !important;
+          margin: 0 auto !important;
         }
         .container {
-          padding:20px 10px !important
+          padding: 20px 10px !important;
         }
         .td {
-          width:100% !important; min-width:100% !important;
+          width: 100% !important;
+          min-width: 100% !important;
         }
         .m-br-15 {
-          height:15px !important;
+          height: 15px !important;
         }
         .p30-15 {
-          padding:30px 15px !important;
+          padding: 30px 15px !important;
         }
         .p0-15-30 {
-          padding:0px 15px 30px 15px !important;
+          padding: 0px 15px 30px 15px !important;
         }
         .p0-15 {
-          padding:0px 15px !important;
+          padding: 0px 15px !important;
         }
         .pt0 {
-          padding-top:0px !important;
+          padding-top: 0px !important;
         }
         .mpb30 {
-          padding-bottom:30px !important;
+          padding-bottom: 30px !important;
         }
         .mpb15 {
-          padding-bottom:15px !important;
+          padding-bottom: 15px !important;
         }
         .m-td, .m-hide {
-          display:none !important;
-          width:0 !important;
-          height:0 !important;
-          font-size:0 !important;
-          line-height:0 !important;
-          min-height:0 !important;
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          font-size: 0 !important;
+          line-height: 0 !important;
+          min-height: 0 !important;
         }
         .m-block {
-          display:block !important;
+          display: block !important;
         }
         .fluid-img img {
-          width:100% !important;
-          max-width:100% !important;
-          height:auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
         }
         .column,
         .column-dir,
@@ -241,18 +326,18 @@
         .column-empty,
         .column-empty2,
         .column-dir-top {
-          float:left !important;
-          width:100% !important;
-          display:block !important;
+          float: left !important;
+          width: 100% !important;
+          display: block !important;
         }
         .column-empty {
-          padding-bottom:30px !important;
+          padding-bottom: 30px !important;
         }
         .column-empty2 {
-          padding-bottom:10px !important;
+          padding-bottom: 10px !important;
         }
         .content-spacing {
-          width:15px !important;
+          width: 15px !important;
         }
       }
     </style>
@@ -280,11 +365,11 @@
                               </tr>
                             </table>
                           </th>
-                          <th class="column no-margin no-padding">
+                          <th class="column">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
 {% for record in records|slice:":1" %}
-                                <td class="text-header td-global text-right">
+                                <td class="text-header text-default text-right">
                                   <a href="{{ record.resource_uri }}" target="_blank" class="link">Open in GO</a>
                                 </td>
 {% endfor %}
