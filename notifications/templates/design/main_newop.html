@@ -31,7 +31,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td class="td text-default box-pointed">
+                  <td class="td text-default box box-pointed">
                     <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pb-30">
                       <tr>
                         <td class="text-default table-heading-title pt-20 pb-10">
@@ -54,7 +54,7 @@
                 </tr>
 
 {% if records|length %}
-{% for record in records %}
+  {% for record in records %}
                 <tr>
                   <td class="td">
                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -70,7 +70,7 @@
                     </table>
                   </td>
                 </tr>
-{% endfor %}
+  {% endfor %}
 {% endif %}
 
               </table>
