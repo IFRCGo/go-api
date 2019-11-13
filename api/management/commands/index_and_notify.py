@@ -21,13 +21,13 @@ time_interva2 = timedelta(   days = 1) # to check: the change was not between ti
 time_interva7 = timedelta(   days = 7) # for digest mode
 basetime      = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
 daily_retro   = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-short         = 280 # after this length (at the first space) we cut the sent content
+max_length    = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 template_types= {
-    'generic': 'design/generic_notification.html',
-    'newop': 'design/new_operation.html',
-    'opupd': 'design/operation_update.html',
-    'weeklydig': 'design/weekly_digest.html'
+    "generic": "design/generic_notification.html",
+    "newop": "design/new_operation.html",
+    "opupd": "design/operation_update.html",
+    "weeklydig": "design/weekly_digest.html"
 }
 
 class Command(BaseCommand):
@@ -213,6 +213,31 @@ class Command(BaseCommand):
             display += 's'
         return display
 
+    # Based on the notification type this constructs the different type of objects needed for the different templates
+    def construct_template_record(self, rtype, record):
+        shortened = self.get_record_content(record, rtype)
+        if len(shortened) > max_length:
+            shortened = shortened[:max_length] + \
+                        shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
+
+        if rtype == RecordType.FIELD_REPORT:
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                'key_figures': self.get_fr_key_figures(record), # TODO: write this (maybe 'record' could be enough for this)
+                'actions_ns': self.get_fr_actions_ns(record), # TODO: write this (maybe 'record' could be enough for this)
+                'actions_ifrc': self.get_fr_actions_ifrc(record), # TODO: write this (maybe 'record' could be enough for this)
+                'assistances': self.get_fr_assistances(record), # TODO: write this (maybe 'record' could be enough for this)
+            }
+        else: # The default (old) template
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                'content': shortened,
+            }
+        return rec_obj
 
     def notify(self, records, rtype, stype, uid=None):
         record_count = records.count()
@@ -234,17 +259,9 @@ class Command(BaseCommand):
         # Only serialize the first 10 records
         entries = list(records) if record_count <= 10 else list(records[:10])
         record_entries = []
+
         for record in entries:
-            shortened = self.get_record_content(record, rtype)
-            if len(shortened) > short:
-                shortened = shortened[:short] + \
-                            shortened[short:].split(' ', 1)[0] + '...' # look for the first space
-            record_entries.append({
-                'resource_uri': self.get_resource_uri(record, rtype),
-                'admin_uri': self.get_admin_uri(record, rtype),
-                'title': self.get_record_title(record, rtype),
-                'content': shortened,
-            })
+            record_entries.append(construct_template_record(rtype, record))
 
         if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
@@ -269,7 +286,8 @@ class Command(BaseCommand):
             subject += ' [weekly digest]'
         elif self.is_retro_mode():
             subject += ' [daily followup]'
-        template_path = self.get_template()
+        template_path = self.get_template() # TODO: Pass the type of the notif to get the right template
+        # TODO: Rewrite this based on the template, maybe cut this out into a new function
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
