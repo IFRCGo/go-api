@@ -1,0 +1,75 @@
+  <!-- Main -->
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+    <tr>
+      <td align="center">
+        <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+          <tr>
+            <td class="td td-shell">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td class="text-center text-default pb-25">
+                    <span class="table-heading-main">{{ subject }}: </span>
+                    <span class="table-heading-sub">sub-header</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-center text-default pb-30">
+                    <a href="#" class="button button-red">Follow This Operation</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-default td-global-font-style text-italic pb-30">
+                    You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-default table-heading-title pt-10 pb-10">Description</td>
+                </tr>
+                <tr>
+                  <td class="text-default text-light pb-40">
+                    {{ description }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="td text-default box box-pointed">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="0" class="pb-30">
+                      <tr>
+                        <td class="text-default table-heading-title pt-20 pb-10">
+                          Key Figures
+                        </td>
+                      </tr>
+                      {% for x in y %}
+                        <tr>
+                          <td class="text-default text-light text-uppercase pl-20">asdasdasdasd</td>
+                          <td class="text-default text-bold pr-20">000000</td>
+                          <td class="text-default text-light text-uppercase">qweqweqweqwe</td>
+                          <td class="text-default text-bold pr-20">11111</td>
+                        </tr>
+                      {% endfor %}
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-default table-heading-title pt-40 pb-10">Request Assistance</td>
+                </tr>
+                <tr>
+                  <td class="text-default text-light pb-10">
+                    {{ request_assistance }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-default table-heading-title pt-20 pb-10">Actions Taken</td>
+                </tr>
+                <tr>
+                  <td class="text-default text-light pb-10">
+                    {{ actions_others }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <!-- END Main -->
