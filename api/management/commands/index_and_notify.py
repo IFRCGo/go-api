@@ -16,18 +16,19 @@ from deployments.models import PersonnelDeployment
 from main.frontend import frontend_url
 import html
 
-time_interval = timedelta(minutes = 5)
-time_interva2 = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
-time_interva7 = timedelta(   days = 7) # for digest mode
-basetime      = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
-daily_retro   = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length    = 280 # after this length (at the first space) we cut the sent content
+time_interval  = timedelta(minutes = 5)
+time_interva2  = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
+time_interva7  = timedelta(   days = 7) # for digest mode
+basetime       = int(10314) # weekday - hour - min for digest timing (5 minutes once a week)
+daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
+max_length     = 280 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
-template_types= {
-    "generic": "design/generic_notification.html",
-    "newop": "design/new_operation.html",
-    "opupd": "design/operation_update.html",
-    "weeklydig": "design/weekly_digest.html"
+template_types = {
+    99: 'design/generic_notification.html',
+    RecordType.FIELD_REPORT: 'design/field_report.html',
+    RecordType.NEW_OPERATIONS: 'design/new_operation.html',
+    98: 'design/operation_update.html', # TODO: Etiher Operation Update needs a number or it should be constructed from other types (ask someone)
+    RecordType.WEEKLY_DIGEST: 'design/weekly_digest.html',
 }
 
 class Command(BaseCommand):
@@ -122,17 +123,17 @@ class Command(BaseCommand):
         return emails
 
 
-    def get_template(self, ttype='generic'):
-        #old: return 'email/generic_notification.html'
-        #new-old: return 'design/generic_notification.html'
-        return template_types[ttype]
+    def get_template(self, rtype=99):
+        #older: return 'email/generic_notification.html'
+        #old: return 'design/generic_notification.html'
+        return template_types[rtype]
 
 
     # Get the front-end url of the resource
     def get_resource_uri (self, record, rtype):
         # Determine the front-end URL
         resource_uri = frontend_url
-        if   rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
+        if rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
             belonging_event = record.event.id if record.event is not None else 999 # Very rare
             resource_uri = '%s/emergencies/%s#overview' % (frontend_url, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
@@ -150,7 +151,6 @@ class Command(BaseCommand):
             )
         return resource_uri
 
-
     def get_admin_uri (self, record, rtype):
         admin_page = {
             RecordType.FIELD_REPORT: 'api/fieldreport',
@@ -165,7 +165,6 @@ class Command(BaseCommand):
             admin_page,
             record.id,
         )
-
 
     def get_record_title(self, record, rtype):
         if rtype == RecordType.FIELD_REPORT:
@@ -199,7 +198,6 @@ class Command(BaseCommand):
             sendMe = '?'
         return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
 
-
     def get_record_display(self, rtype, count):
         display = {
             RecordType.FIELD_REPORT: 'field report',
@@ -220,15 +218,26 @@ class Command(BaseCommand):
             shortened = shortened[:max_length] + \
                         shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
 
+        # TODO: Add other types
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'key_figures': self.get_fr_key_figures(record), # TODO: write this (maybe 'record' could be enough for this)
-                'actions_ns': self.get_fr_actions_ns(record), # TODO: write this (maybe 'record' could be enough for this)
-                'actions_ifrc': self.get_fr_actions_ifrc(record), # TODO: write this (maybe 'record' could be enough for this)
-                'assistances': self.get_fr_assistances(record), # TODO: write this (maybe 'record' could be enough for this)
+                'description': shortened,
+                'key_figures': {
+                    'affected': record.num_affected + record.gov_num_affected + record.other_num_affected,
+                    'injured': record.num_injured + record.gov_num_injured + record.other_num_injured,
+                    'dead': record.num_dead + record.gov_num_dead + record.other_num_dead,
+                    'missing': record.num_missing + record.gov_num_missing + record.other_num_missing,
+                    'displaced': record.num_displaced + record.gov_num_displaced + record.other_num_displaced,
+                    'assisted': record.num_assisted + record.gov_num_assisted + record.other_num_assisted,
+                    'local_staff': record.num_localstaff,
+                    'volunteers': record.num_volunteers,
+                    'expat_delegates': record.num_expat_delegates,
+                },
+                'actions_others': record.actions_others,
+                'assistance': 'Yes' if record.request_assistance else 'No',
             }
         else: # The default (old) template
             rec_obj = {
@@ -261,7 +270,7 @@ class Command(BaseCommand):
         record_entries = []
 
         for record in entries:
-            record_entries.append(construct_template_record(rtype, record))
+            record_entries.append(self.construct_template_record(rtype, record))
 
         if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
@@ -286,8 +295,12 @@ class Command(BaseCommand):
             subject += ' [weekly digest]'
         elif self.is_retro_mode():
             subject += ' [daily followup]'
-        template_path = self.get_template() # TODO: Pass the type of the notif to get the right template
-        # TODO: Rewrite this based on the template, maybe cut this out into a new function
+        
+        template_path = self.get_template()
+        if rtype == RecordType.FIELD_REPORT: # TODO: Temporary solution until the generic notification is not needed anymore
+            template_path = self.get_template(rtype)
+
+        # TODO: (mayyybe not needed) Rewrite this based on the template, maybe cut this out into a new function
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
