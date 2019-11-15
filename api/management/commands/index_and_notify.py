@@ -269,7 +269,14 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                # TODO: add the requested fields
+                'active_dref': '', # TODO: Check where these come from (home page)
+                'active_ea': '',
+                'funding_coverage': '',
+                'budget': '',
+                'population': '',
+                'highlighted_ops': [],
+                'latest_ops': [],
+                'latest_deployments': [],
             }
         else: # The default (old) template
             rec_obj = {
