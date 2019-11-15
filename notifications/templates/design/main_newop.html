@@ -82,25 +82,25 @@
                   <tr>
                     <td class="text-default table-heading-title pt-40 pb-10">Field Reports</td>
                   </tr>
-{% if record.field_reports|length %}
-  {% for fr in record.field_reports %}
-                  <tr>
-                    <td class="td">
-                      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                        <tr class="table-annce">
-                          <td class="text-default p-20">
-                            <p class="text-bold">Field Report: {{ fr.summary }}</p>
-                            <p>{{ fr.updated_at }}</p>
-                          </td>
-                          <td class="text-default text-right pr-20">
-                            <a href="https://go.ifrc.org/reports/{{ fr.id }}" target="_blank" class="button">View Full Report</a>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-  {% endfor %}
-{% endif %}
+                  {% if record.field_reports|length %}
+                    {% for fr in record.field_reports %}
+                      <tr>
+                        <td class="td">
+                          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                            <tr class="table-annce">
+                              <td class="text-default p-20">
+                                <p class="text-bold">Field Report: {{ fr.summary }}</p>
+                                <p>{{ fr.updated_at }}</p>
+                              </td>
+                              <td class="text-default text-right pr-20">
+                                <a href="https://go.ifrc.org/reports/{{ fr.id }}" target="_blank" class="button">View Full Report</a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                {% endif %}
                 </table>
               </td>
             </tr>
