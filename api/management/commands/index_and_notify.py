@@ -232,9 +232,6 @@ class Command(BaseCommand):
                     'missing': record.num_missing + record.gov_num_missing + record.other_num_missing,
                     'displaced': record.num_displaced + record.gov_num_displaced + record.other_num_displaced,
                     'assisted': record.num_assisted + record.gov_num_assisted + record.other_num_assisted,
-                    # 'houses_damaged': '',
-                    # 'people_iur': '',
-                    # 'displacement_sites': '',
                     'local_staff': record.num_localstaff,
                     'volunteers': record.num_volunteers,
                     'expat_delegates': record.num_expat_delegates,
@@ -249,32 +246,28 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
                 'key_figures': {
-                    'affected': '', # TODO: Waiting for Munu's input
-                    'injured': '',
-                    'dead': '',
-                    'missing': '',
-                    'displaced': '',
-                    'assisted': '',
-                    # 'houses_damaged': '',
-                    # 'people_iur': '',
-                    # 'displacement_sites': '',
+                    'people_targeted': '',
+                    'funding_req': '',
+                    'appeal_code': '',
+                    'start_date': '',
+                    'end_date': '',
                     'local_staff': record.num_localstaff,
                     'volunteers': record.num_volunteers,
                     'expat_delegates': record.num_expat_delegates,
                 },
-                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)), # TODO: May have to extract this into a function to fill 'key_figures' as well
+                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'active_dref': '', # TODO: Check where these come from (home page)
+                'active_dref': '', # TODO: Comes from: end_date__gt now, limit 1000. appeals list
                 'active_ea': '',
                 'funding_coverage': '',
                 'budget': '',
                 'population': '',
-                'highlighted_ops': [],
+                'highlighted_ops': [], # TODO: Check where these come from (home page)
                 'latest_ops': [],
                 'latest_deployments': [],
             }
