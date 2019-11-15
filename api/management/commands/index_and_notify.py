@@ -218,7 +218,7 @@ class Command(BaseCommand):
             shortened = shortened[:max_length] + \
                         shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
 
-        # TODO: Add other types
+        # TODO: Operation Update and Announcement types are missing
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -232,12 +232,44 @@ class Command(BaseCommand):
                     'missing': record.num_missing + record.gov_num_missing + record.other_num_missing,
                     'displaced': record.num_displaced + record.gov_num_displaced + record.other_num_displaced,
                     'assisted': record.num_assisted + record.gov_num_assisted + record.other_num_assisted,
+                    # 'houses_damaged': '',
+                    # 'people_iur': '',
+                    # 'displacement_sites': '',
                     'local_staff': record.num_localstaff,
                     'volunteers': record.num_volunteers,
                     'expat_delegates': record.num_expat_delegates,
                 },
-                'actions_others': record.actions_others,
+                'actions_others': record.actions_others, # TODO: check if this is enough or actions needed from other tables
                 'assistance': 'Yes' if record.request_assistance else 'No',
+            }
+        elif rtype == RecordType.NEW_OPERATIONS:
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
+                'key_figures': {
+                    'affected': '', # TODO: Waiting for Munu's input
+                    'injured': '',
+                    'dead': '',
+                    'missing': '',
+                    'displaced': '',
+                    'assisted': '',
+                    # 'houses_damaged': '',
+                    # 'people_iur': '',
+                    # 'displacement_sites': '',
+                    'local_staff': record.num_localstaff,
+                    'volunteers': record.num_volunteers,
+                    'expat_delegates': record.num_expat_delegates,
+                },
+                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)), # TODO: May have to extract this into a function to fill 'key_figures' as well
+            }
+        elif rtype == RecordType.WEEKLY_DIGEST:
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                # TODO: add the requested fields
             }
         else: # The default (old) template
             rec_obj = {
