@@ -272,11 +272,12 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
                 'key_figures': {
-                    'people_targeted': '',
-                    'funding_req': '',
-                    'appeal_code': '',
-                    'start_date': '',
-                    'end_date': '',
+                    #'people_targeted': Appeal.objects.filter(event_id=record.id).aggregate(Sum('num_beneficaries')), if the record is an emergency and not an appeal
+                    'people_targeted': record.num_beneficaries
+                    'funding_req': record.amount_requested,
+                    'appeal_code': record.code,
+                    'start_date': record.start_date,
+                    'end_date': record.end_date,
                     'local_staff': record.num_localstaff,
                     'volunteers': record.num_volunteers,
                     'expat_delegates': record.num_expat_delegates,
