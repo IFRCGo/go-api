@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -211,6 +211,32 @@ class Command(BaseCommand):
             display += 's'
         return display
 
+    def get_weekly_digest_data(self, field):
+        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        if field == 'dref':
+            return Appeal.objects.filter(end_date__gt=today, atype=0).count()
+        elif field == 'ea':
+            return Appeal.objects.filter(end_date__gt=today, atype=1).count()
+        elif field == 'fund':
+            amount_req = (
+                Appeal.objects
+                    .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
+                    .aggregate(Sum('amount_requested'))
+            )
+            amount_fund = (
+                Appeal.objects
+                    .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
+                    .aggregate(Sum('amount_funded'))
+            )
+            # Example: 0.53333 -> 53334 -> 53.34
+            percent = round(amount_fund / amount_req, 1)
+            return percent
+        elif field == 'budget':
+            amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))
+            return amount
+        elif field == 'pop':
+            return Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficaries'))
+
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
         shortened = self.get_record_content(record, rtype)
@@ -262,11 +288,11 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'active_dref': '', # TODO: Comes from: end_date__gt now, limit 1000. appeals list
-                'active_ea': '',
-                'funding_coverage': '',
-                'budget': '',
-                'population': '',
+                'active_dref': self.get_weekly_digest_data('dref'),
+                'active_ea': self.get_weekly_digest_data('ea'),
+                'funding_coverage': self.get_weekly_digest_data('fund'),
+                'budget': self.get_weekly_digest_data('budget'),
+                'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': [], # TODO: Check where these come from (home page)
                 'latest_ops': [],
                 'latest_deployments': [],
