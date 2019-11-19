@@ -242,6 +242,7 @@ class Command(BaseCommand):
         ret_ops = []
         for op in ops:
             op_to_add = {
+                'op_event_id': op.event_id,
                 'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id),
                 'op_name': op.name,
                 'op_modified_at': op.modified_at,
@@ -249,6 +250,25 @@ class Command(BaseCommand):
             }
             ret_ops.append(op_to_add)
         return ret_ops
+
+    def get_weekly_digest_highlights(self):
+        events = Event.objects.filter(is_featured=True).order_by('updated_at').desc()[:2]
+        ret_highlights = []
+        for ev in events:
+            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))
+            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))
+            data_to_add = {
+                'hl_id': ev.id,
+                'hl_name': ev.name,
+                'hl_last_update': ev.updated_at,
+                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficaries')),
+                'hl_funding': amount_requested,
+                'hl_deployed_eru': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
+                'hl_deployed_sp': '', # TODO: surge personnel, where this comes from
+                'hl_coverage': round(amount_funded / amount_requested, 1),
+            }
+            ret_highlights.append(data_to_add)
+        return ret_highlights
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
@@ -308,10 +328,10 @@ class Command(BaseCommand):
                 'funding_coverage': self.get_weekly_digest_data('fund'),
                 'budget': self.get_weekly_digest_data('budget'),
                 'population': self.get_weekly_digest_data('pop'),
-                'highlighted_ops': Event.objects.filter(is_featured=True).order_by('updated_at').desc(),
+                'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': [],
-                'field_reports': [],
+                'latest_deployments': list(SurgeAlert.objects.order_by('created_at').desc()[:5]),
+                'latest_field_reports': list(FieldReport.objects.order_by('updated_at').desc()[:5]),
             }
         else: # The default (old) template
             rec_obj = {
