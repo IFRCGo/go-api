@@ -27,7 +27,7 @@ template_types = {
     99: 'design/generic_notification.html',
     RecordType.FIELD_REPORT: 'design/field_report.html',
     RecordType.NEW_OPERATIONS: 'design/new_operation.html',
-    98: 'design/operation_update.html', # TODO: Etiher Operation Update needs a number or it should be constructed from other types (ask someone)
+    98: 'design/operation_update.html', # TODO: Either Operation Update needs a number or it should be constructed from other types (ask someone)
     RecordType.WEEKLY_DIGEST: 'design/weekly_digest.html',
 }
 
@@ -272,10 +272,11 @@ class Command(BaseCommand):
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
-        shortened = self.get_record_content(record, rtype)
-        if len(shortened) > max_length:
-            shortened = shortened[:max_length] + \
-                        shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
+        if rtype != RecordType.WEEKLY_DIGEST:
+            shortened = self.get_record_content(record, rtype)
+            if len(shortened) > max_length:
+                shortened = shortened[:max_length] + \
+                            shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
 
         # TODO: Operation Update and Announcement types are missing
         if rtype == RecordType.FIELD_REPORT:
@@ -305,7 +306,6 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
                 'key_figures': {
-                    #'people_targeted': Appeal.objects.filter(event_id=record.id).aggregate(Sum('num_beneficaries')), if the record is an emergency and not an appeal
                     'people_targeted': record.num_beneficaries,
                     'funding_req': record.amount_requested,
                     'appeal_code': record.code,
@@ -317,12 +317,11 @@ class Command(BaseCommand):
                 },
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
             }
-        # TODO: Add field reports too
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
-                'resource_uri': self.get_resource_uri(record, rtype),
-                'admin_uri': self.get_admin_uri(record, rtype),
-                'title': self.get_record_title(record, rtype),
+                # 'resource_uri': self.get_resource_uri(record, rtype),
+                # 'admin_uri': self.get_admin_uri(record, rtype),
+                # 'title': self.get_record_title(record, rtype),
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
                 'funding_coverage': self.get_weekly_digest_data('fund'),
@@ -344,7 +343,7 @@ class Command(BaseCommand):
 
     def notify(self, records, rtype, stype, uid=None):
         record_count = records.count()
-        if not record_count:
+        if not record_count and rtype != RecordType.WEEKLY_DIGEST:
             return
 
         # Decide if it is a personal notification or batch
@@ -359,12 +358,15 @@ class Command(BaseCommand):
             else:
                 emails = list(usr.values_list('email', flat=True))  # Only one email in this case
         
+        # TODO: maybe this needs to be adjusted based on the new functionality (at first only handling Weekly Digest)
         # Only serialize the first 10 records
-        entries = list(records) if record_count <= 10 else list(records[:10])
         record_entries = []
-
-        for record in entries:
-            record_entries.append(self.construct_template_record(rtype, record))
+        if rtype == RecordType.WEEKLY_DIGEST:
+            record_entries.append(self.construct_template_record(rtype, None))
+        else:
+            entries = list(records) if record_count <= 10 else list(records[:10])
+            for record in entries:
+                record_entries.append(self.construct_template_record(rtype, record))
 
         if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
@@ -391,7 +393,7 @@ class Command(BaseCommand):
             subject += ' [daily followup]'
         
         template_path = self.get_template()
-        if rtype == RecordType.FIELD_REPORT: # TODO: Temporary solution until the generic notification is not needed anymore
+        if rtype == RecordType.FIELD_REPORT or rtype == RecordType.NEW_OPERATIONS or rtype == RecordType.WEEKLY_DIGEST:
             template_path = self.get_template(rtype)
 
         # TODO: (mayyybe not needed) Rewrite this based on the template, maybe cut this out into a new function
@@ -530,18 +532,23 @@ class Command(BaseCommand):
             followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
             ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
-            self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-            #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+            # TODO: check how this really works
+            # Merge Weekly Digest into one mail instead of separate ones
+            if self.is_digest_mode():
+                self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
+            else:
+                self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+                #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
 
-            self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-            #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+                self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+                #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
 
-            self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-            #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+                self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+                #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
 
-            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+                self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
 
-            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+                self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
             users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
             for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
