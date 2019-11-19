@@ -236,6 +236,19 @@ class Command(BaseCommand):
             return amount
         elif field == 'pop':
             return Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficaries'))
+    
+    def get_weekly_digest_latest_ops(self):
+        ops = Appeal.objects.order_by('modified_at').desc()[:5]
+        ret_ops = []
+        for op in ops:
+            op_to_add = {
+                'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id),
+                'op_name': op.name,
+                'op_modified_at': op.modified_at,
+                'op_funding': op.amount_requested,
+            }
+            ret_ops.append(op_to_add)
+        return ret_ops
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
@@ -273,7 +286,7 @@ class Command(BaseCommand):
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
                 'key_figures': {
                     #'people_targeted': Appeal.objects.filter(event_id=record.id).aggregate(Sum('num_beneficaries')), if the record is an emergency and not an appeal
-                    'people_targeted': record.num_beneficaries
+                    'people_targeted': record.num_beneficaries,
                     'funding_req': record.amount_requested,
                     'appeal_code': record.code,
                     'start_date': record.start_date,
@@ -284,6 +297,7 @@ class Command(BaseCommand):
                 },
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
             }
+        # TODO: Add field reports too
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -294,9 +308,10 @@ class Command(BaseCommand):
                 'funding_coverage': self.get_weekly_digest_data('fund'),
                 'budget': self.get_weekly_digest_data('budget'),
                 'population': self.get_weekly_digest_data('pop'),
-                'highlighted_ops': [], # TODO: Check where these come from (home page)
-                'latest_ops': [],
+                'highlighted_ops': Event.objects.filter(is_featured=True).order_by('updated_at').desc(),
+                'latest_ops': self.get_weekly_digest_latest_ops(),
                 'latest_deployments': [],
+                'field_reports': [],
             }
         else: # The default (old) template
             rec_obj = {
