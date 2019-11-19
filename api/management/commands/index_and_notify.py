@@ -238,7 +238,7 @@ class Command(BaseCommand):
             return Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficaries'))
     
     def get_weekly_digest_latest_ops(self):
-        ops = Appeal.objects.order_by('modified_at').desc()[:5]
+        ops = Appeal.objects.filter(modified_at__gte=self.get_time_threshold_digest()).order_by('modified_at').desc()
         ret_ops = []
         for op in ops:
             op_to_add = {
@@ -252,7 +252,7 @@ class Command(BaseCommand):
         return ret_ops
 
     def get_weekly_digest_highlights(self):
-        events = Event.objects.filter(is_featured=True).order_by('updated_at').desc()[:2]
+        events = Event.objects.filter(is_featured=True, updated_at__gte=self.get_time_threshold_digest()).order_by('updated_at').desc()
         ret_highlights = []
         for ev in events:
             amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))
@@ -330,8 +330,8 @@ class Command(BaseCommand):
                 'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': list(SurgeAlert.objects.order_by('created_at').desc()[:5]),
-                'latest_field_reports': list(FieldReport.objects.order_by('updated_at').desc()[:5]),
+                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=self.get_time_threshold_digest()).order_by('created_at').desc()),
+                'latest_field_reports': list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('updated_at').desc()),
             }
         else: # The default (old) template
             rec_obj = {
