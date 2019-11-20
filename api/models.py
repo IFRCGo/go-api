@@ -718,7 +718,12 @@ class Action(models.Model):
         models.CharField(choices=ACTION_ORG_CHOICES, max_length=4),
         default=list, blank=True
     )
-    field_report_type = models.CharField(choices=ACTION_TYPE_CHOICES, blank=True, max_length=4)
+    field_report_type = models.CharField(
+        choices=ACTION_TYPE_CHOICES,
+        blank=True,
+        default='EVT',
+        max_length=4
+    )
 
     def __str__(self):
         return self.name
