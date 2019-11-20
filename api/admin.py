@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
+from .forms import ActionForm
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -281,6 +282,9 @@ class FieldReportAdmin(RegionRestrictedAdmin):
             del actions['export_field_reports']
         return actions
 
+class ActionAdmin(admin.ModelAdmin):
+    form = ActionForm
+
 
 class AppealDocumentInline(admin.TabularInline):
     model = models.AppealDocument
@@ -471,6 +475,7 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
+admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
 admin.site.register(models.SituationReportType, SituationReportTypeAdmin)

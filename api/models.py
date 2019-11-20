@@ -1,10 +1,11 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-from enumfields import IntEnum, EnumIntegerField
+from enumfields import IntEnum, EnumIntegerField, EnumField
 from .storage import AzureStorage
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator
+from django.contrib.postgres.fields import ArrayField
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -699,10 +700,25 @@ class FieldReportContact(models.Model):
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
+ACTION_ORG_CHOICES = (
+    ('NTLS', 'National Society'),
+    ('PNS', 'Foreign Society'),
+    ('FDRN', 'Federation'),    
+)
+
+ACTION_TYPE_CHOICES = (
+    ('EVT', 'Event'),
+    ('EW', 'Early Warning'),
+)
 
 class Action(models.Model):
     """ Action taken """
     name = models.CharField(max_length=100)
+    organizations = ArrayField(
+        models.CharField(choices=ACTION_ORG_CHOICES, max_length=4),
+        default=list, blank=True
+    )
+    field_report_type = models.CharField(choices=ACTION_TYPE_CHOICES, blank=True, max_length=4)
 
     def __str__(self):
         return self.name
@@ -712,11 +728,7 @@ class ActionsTaken(models.Model):
     """ All the actions taken by an organization """
 
     organization = models.CharField(
-        choices=(
-            ('NTLS', 'National Society'),
-            ('PNS', 'Foreign Society'),
-            ('FDRN', 'Federation'),
-        ),
+        choices=ACTION_ORG_CHOICES,
         max_length=4,
     )
     actions = models.ManyToManyField(Action)
