@@ -221,24 +221,26 @@ class Command(BaseCommand):
             amount_req = (
                 Appeal.objects
                     .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
-                    .aggregate(Sum('amount_requested'))
+                    .aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
             )
             amount_fund = (
                 Appeal.objects
                     .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
-                    .aggregate(Sum('amount_funded'))
+                    .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
             )
-            # Example: 0.53333 -> 53334 -> 53.34
-            percent = round(amount_fund / amount_req, 1)
+            percent = round(amount_fund / amount_req, 3) * 100
             return percent
         elif field == 'budget':
-            amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))
-            return amount
+            amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
+            rounded_amount = round(amount / 1000000, 2)
+            return rounded_amount
         elif field == 'pop':
-            return Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficaries'))
+            people = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0
+            rounded_people = round(people / 1000000, 2)
+            return rounded_people
     
     def get_weekly_digest_latest_ops(self):
-        ops = Appeal.objects.filter(modified_at__gte=self.get_time_threshold_digest()).order_by('modified_at').desc()
+        ops = Appeal.objects.filter(modified_at__gte=self.get_time_threshold_digest()).order_by('-modified_at')
         ret_ops = []
         for op in ops:
             op_to_add = {
@@ -252,16 +254,16 @@ class Command(BaseCommand):
         return ret_ops
 
     def get_weekly_digest_highlights(self):
-        events = Event.objects.filter(is_featured=True, updated_at__gte=self.get_time_threshold_digest()).order_by('updated_at').desc()
+        events = Event.objects.filter(is_featured=True, updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
-            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))
-            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))
+            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
+            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
             data_to_add = {
                 'hl_id': ev.id,
                 'hl_name': ev.name,
                 'hl_last_update': ev.updated_at,
-                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficaries')),
+                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries'] or 0,
                 'hl_funding': amount_requested,
                 'hl_deployed_eru': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
                 'hl_deployed_sp': '', # TODO: surge personnel, where this comes from
@@ -319,9 +321,6 @@ class Command(BaseCommand):
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
-                # 'resource_uri': self.get_resource_uri(record, rtype),
-                # 'admin_uri': self.get_admin_uri(record, rtype),
-                # 'title': self.get_record_title(record, rtype),
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
                 'funding_coverage': self.get_weekly_digest_data('fund'),
@@ -329,8 +328,8 @@ class Command(BaseCommand):
                 'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=self.get_time_threshold_digest()).order_by('created_at').desc()),
-                'latest_field_reports': list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('updated_at').desc()),
+                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=self.get_time_threshold_digest()).order_by('-created_at')),
+                'latest_field_reports': list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at')),
             }
         else: # The default (old) template
             rec_obj = {
@@ -342,7 +341,9 @@ class Command(BaseCommand):
         return rec_obj
 
     def notify(self, records, rtype, stype, uid=None):
-        record_count = records.count()
+        record_count = 0
+        if records:
+            record_count = records.count()
         if not record_count and rtype != RecordType.WEEKLY_DIGEST:
             return
 
@@ -371,15 +372,24 @@ class Command(BaseCommand):
         if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
         
-        record_type = self.get_record_display(rtype, record_count)
+        if rtype == RecordType.WEEKLY_DIGEST:
+            record_type = 'weekly digest'
+        else:
+            record_type = self.get_record_display(rtype, record_count)
         if uid is None:
             adj = 'new' if stype == SubscriptionType.NEW else 'modified'
             #subject = '%s %s %s in IFRC GO' % (
-            subject = '%s %s %s' % (
-                record_count,
-                adj,
-                record_type,
-            )
+            if rtype == RecordType.WEEKLY_DIGEST:
+                subject = '%s %s' % (
+                    adj,
+                    record_type,
+                )
+            else:
+                subject = '%s %s %s' % (
+                    record_count,
+                    adj,
+                    record_type,
+                )
         else:
             #subject = '%s followed %s modified in IFRC GO' % (
             subject = '%s followed %s modified' % (
@@ -387,9 +397,7 @@ class Command(BaseCommand):
                 record_type,
             )
 
-        if self.is_digest_mode():
-            subject += ' [weekly digest]'
-        elif self.is_retro_mode():
+        if self.is_retro_mode():
             subject += ' [daily followup]'
         
         template_path = self.get_template()
