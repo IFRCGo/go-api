@@ -261,7 +261,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Action
-        fields = ('name', 'id',)
+        fields = ('name', 'id', 'organizations', 'field_report_type',)
 
 class ActionsTakenSerializer(serializers.ModelSerializer):
     actions = ActionSerializer(many=True)

@@ -179,3 +179,30 @@ class VisibilityTest(APITestCase):
         self.assertEqual(response['count'], 2)
 
         self.client.force_authenticate(user=None)
+
+
+class ActionTestCase(APITestCase):
+
+    def test_action_api(self):
+        action1 = models.Action.objects.create(
+            name='Test1',
+            field_report_type='EVT',
+            organizations=[
+                'NTLS',
+                'PNS'
+            ]
+        )
+        action2 = models.Action.objects.create(
+            name='Test2',
+            field_report_type='EW',
+            organizations=[]
+        )
+        response = self.client.get('/api/v2/action/')
+        response = json.loads(response.content)
+        self.assertEqual(response['count'], 2)
+        res1 = response['results'][0]
+        self.assertEqual(res1['name'], 'Test1')
+        self.assertEqual(res1['field_report_type'], 'EVT')
+        self.assertEqual(res1['organizations'], ['NTLS', 'PNS'])
+        res2 = response['results'][1]
+        self.assertEqual(res2['organizations'], [])
