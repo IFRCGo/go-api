@@ -404,7 +404,6 @@ class Command(BaseCommand):
         if rtype == RecordType.FIELD_REPORT or rtype == RecordType.NEW_OPERATIONS or rtype == RecordType.WEEKLY_DIGEST:
             template_path = self.get_template(rtype)
 
-        # TODO: (mayyybe not needed) Rewrite this based on the template, maybe cut this out into a new function
         html = render_to_string(template_path, {
             'hello': get_hello(),
             'count': record_count,
@@ -540,7 +539,6 @@ class Command(BaseCommand):
             followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
             ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
 
-            # TODO: check how this really works
             # Merge Weekly Digest into one mail instead of separate ones
             if self.is_digest_mode():
                 self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
