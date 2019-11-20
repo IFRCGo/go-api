@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - Adds an API endpoint to fetch all actions
+
 ## 1.1.191
 
 ### Added
