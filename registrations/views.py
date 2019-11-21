@@ -129,6 +129,7 @@ def is_valid_domain(email):
         'redcross.org.jm',
         'redcross.org.kh',
         'redcross.org.lb',
+        'redcross.org.mk',
         'redcross.org.mm',
         'redcross.org.mo',
         'redcross.org.mt',
