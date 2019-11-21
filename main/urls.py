@@ -57,6 +57,7 @@ from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 
 router = routers.DefaultRouter()
+router.register(r'action', api_views.ActionViewset)
 router.register(r'disaster_type', api_views.DisasterTypeViewset)
 router.register(r'region', api_views.RegionViewset)
 router.register(r'country', api_views.CountryViewset)

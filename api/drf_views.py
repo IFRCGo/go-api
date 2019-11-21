@@ -38,6 +38,7 @@ from .models import (
     Profile,
     FieldReport,
     FieldReportContact,
+    Action,
     ActionsTaken,
     Source,
     SourceType,
@@ -47,6 +48,7 @@ from .models import (
 )
 
 from .serializers import (
+    ActionSerializer,
     DisasterTypeSerializer,
 
     RegionSerializer,
@@ -372,6 +374,10 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
 
     ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
     filter_class = FieldReportFilter
+
+class ActionViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Action.objects.all()
+    serializer_class = ActionSerializer
 
 class GenericFieldReportView(GenericAPIView):
     authentication_classes = (TokenAuthentication,)
