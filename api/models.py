@@ -700,28 +700,38 @@ class FieldReportContact(models.Model):
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
-ACTION_ORG_CHOICES = (
-    ('NTLS', 'National Society'),
-    ('PNS', 'Foreign Society'),
-    ('FDRN', 'Federation'),    
-)
+class ActionOrg:
+    NATIONAL_SOCIETY = 'NTLS'
+    FOREIGN_SOCIETY = 'PNS'
+    FEDERATION = 'FDRN'
 
-ACTION_TYPE_CHOICES = (
-    ('EVT', 'Event'),
-    ('EW', 'Early Warning'),
-)
+    CHOICES = (
+        (NATIONAL_SOCIETY, 'National Society'),
+        (FOREIGN_SOCIETY, 'Foreign Society'),
+        (FEDERATION, 'Federation'),
+    )
+
+
+class ActionType:
+    EVENT = 'EVT'
+    EARLY_WARNING = 'EW'
+
+    CHOICES = (
+        (EVENT, 'Event'),
+        (EARLY_WARNING, 'Early Warning'),
+    )
 
 class Action(models.Model):
     """ Action taken """
     name = models.CharField(max_length=100)
     organizations = ArrayField(
-        models.CharField(choices=ACTION_ORG_CHOICES, max_length=4),
+        models.CharField(choices=ActionOrg.CHOICES, max_length=4),
         default=list, blank=True
     )
     field_report_type = models.CharField(
-        choices=ACTION_TYPE_CHOICES,
+        choices=ActionType.CHOICES,
         blank=True,
-        default='EVT',
+        default=ActionType.EVENT,
         max_length=4
     )
 
@@ -733,7 +743,7 @@ class ActionsTaken(models.Model):
     """ All the actions taken by an organization """
 
     organization = models.CharField(
-        choices=ACTION_ORG_CHOICES,
+        choices=ActionOrg.CHOICES,
         max_length=4,
     )
     actions = models.ManyToManyField(Action)
