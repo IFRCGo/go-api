@@ -26,7 +26,7 @@ events_sent_to = {} # to document sent events before re-sending them via specifi
 template_types = {
     99: 'design/generic_notification.html',
     RecordType.FIELD_REPORT: 'design/field_report.html',
-    RecordType.NEW_OPERATIONS: 'design/new_operation.html',
+    RecordType.APPEAL: 'design/new_operation.html',
     98: 'design/operation_update.html', # TODO: Either Operation Update needs a number or it should be constructed from other types (ask someone)
     RecordType.WEEKLY_DIGEST: 'design/weekly_digest.html',
 }
@@ -294,28 +294,31 @@ class Command(BaseCommand):
                     'missing': (record.num_missing or 0) + (record.gov_num_missing or 0) + (record.other_num_missing or 0),
                     'displaced': (record.num_displaced or 0) + (record.gov_num_displaced or 0) + (record.other_num_displaced or 0),
                     'assisted': (record.num_assisted or 0) + (record.gov_num_assisted or 0) + (record.other_num_assisted or 0),
-                    'local_staff': record.num_localstaff,
-                    'volunteers': record.num_volunteers,
-                    'expat_delegates': record.num_expats_delegates,
+                    'local_staff': record.num_localstaff or 0,
+                    'volunteers': record.num_volunteers or 0,
+                    'expat_delegates': record.num_expats_delegates or 0,
                 },
                 'actions_others': record.actions_others, # TODO: check if this is enough or actions needed from other tables
                 'assistance': 'Yes' if record.request_assistance else 'No',
             }
-        elif rtype == RecordType.NEW_OPERATIONS:
+        elif rtype == RecordType.APPEAL:
+            localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
+            volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
+            expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
                 'key_figures': {
-                    'people_targeted': record.num_beneficaries,
-                    'funding_req': record.amount_requested,
+                    'people_targeted': record.num_beneficiaries or 0,
+                    'funding_req': record.amount_requested or 0,
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
-                    'local_staff': record.num_localstaff,
-                    'volunteers': record.num_volunteers,
-                    'expat_delegates': record.num_expats_delegates,
+                    'local_staff': localstaff[0] if localstaff else 0,
+                    'volunteers': volunteers[0] if volunteers else 0,
+                    'expat_delegates': expats[0] if expats else 0,
                 },
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
             }
@@ -401,7 +404,7 @@ class Command(BaseCommand):
             subject += ' [daily followup]'
         
         template_path = self.get_template()
-        if rtype == RecordType.FIELD_REPORT or rtype == RecordType.NEW_OPERATIONS or rtype == RecordType.WEEKLY_DIGEST:
+        if rtype == RecordType.FIELD_REPORT or rtype == RecordType.APPEAL or rtype == RecordType.WEEKLY_DIGEST:
             template_path = self.get_template(rtype)
 
         html = render_to_string(template_path, {
