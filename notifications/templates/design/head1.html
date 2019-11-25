@@ -25,114 +25,396 @@
     <![endif]-->
 
     <style type="text/css" media="screen">
-      
-      .body { padding:0 !important; margin:0 !important; display:block !important; min-width:100% !important; width:100% !important; background:#ffffff; font-size:18px; color:#000; font-weight:300; -webkit-text-size-adjust:none; line-height:1.4; }
-      a { text-decoration:underline; color:#000; }
-      p { padding:0 !important; margin:0 !important } 
-      img { -ms-interpolation-mode:bicubic;  }
-      .mcnPreviewText { display:none !important; }
+      body {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        display: block !important;
+        min-width: 100% !important;
+        width: 100% !important;
+        background-color: #ffffff;
+        background-image: none;
+        background-repeat: repeat;
+        background-position: top left;
+        background-attachment: scroll;
+        font-size: 18px;
+        color: #000;
+        font-weight: 300;
+        -webkit-text-size-adjust: none;
+        line-height: 1.4;
+      }
+      a {
+        text-decoration: underline;
+        color: #000;
+      }
+      p {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+      }
+      .mcnPreviewText {
+        display:none !important;
+      }
+      .p-10 {
+        padding: 10px;
+      }
+      .p-20 {
+        padding: 20px;
+      }
+      .p-30 {
+        padding: 30px;
+      }
+      .pl-10 {
+        padding-left: 10px;
+      }
+      .pl-20 {
+        padding-left: 20px;
+      }
+      .pr-10 {
+        padding-right: 10px;
+      }
+      .pr-20 {
+        padding-right: 20px;
+      }
+      .pt-10 {
+        padding-top: 10px;
+      }
+      .pt-25 {
+        padding-top: 25px;
+      }
+      .pt-50 {
+        padding-top: 50px;
+      }
+      .pt-20 {
+        padding-top: 20px;
+      }
+      .pt-30 {
+        padding-top: 30px;
+      }
+      .pt-40 {
+        padding-top: 40px;
+      }
+      .pb-10 {
+        padding-bottom: 10px;
+      }
+      .pb-15 {
+        padding-bottom: 15px;
+      }
+      .pb-20 {
+        padding-bottom: 20px;
+      }
+      .pb-25 {
+        padding-bottom: 25px;
+      }
+      .pb-30 {
+        padding-bottom: 30px;
+      }
+      .pb-40 {
+        padding-bottom: 40px;
+      }
+      .pb-50 {
+        padding-bottom: 50px;
+      }
+      .mb-10 {
+        margin-bottom: 10px;
+      }
+      .mb-15 {
+        margin-bottom: 15px;
+      }
+      .mb-20 {
+        margin-bottom: 20px;
+      }
+      .mb-25 {
+        margin-bottom: 25px;
+      }
+      .mb-30 {
+        margin-bottom: 30px;
+      }
+      .mb-50 {
+        margin-bottom: 50px;
+      }
+      .mt-10 {
+        margin-top: 10px;
+      }
+      .mt-25 {
+        margin-top: 25px;
+      }
+      .mt-50 {
+        margin-top: 50px;
+      }
+      .mt-20 {
+        margin-top: 20px;
+      }
+      .mt-30 {
+        margin-top: 30px;
+      }
+      .link {
+        font-family: 'Lato', Arial, sand-serif;
+        text-decoration: underline;
+        color: #000;
+      }
+      .text-uppercase {
+        text-transform: uppercase;
+      }
+      .text-regular {
+        font-weight: 400;
+      }
+      .text-bold {
+        font-weight: 700;
+      }
+      .text-italic {
+        font-style: italic;
+      }
+      .text-sm {
+        font-size: 90%;
+      }
+      .text-lg {
+        font-size: 110%;
+      }
+      .text-xl {
+        font-size: 120%;
+      }
+      .text-center {
+        text-align: center;
+      }
+      .text-left {
+        text-align: left;
+      }
+      .text-right {
+        text-align: right;
+      }
+      .text-light {
+        font-weight: 300;
+      }
+      .column {
+        margin:0; padding:0;
+      }
+      .td-shell {
+        width: 650px;
+        min-width: 650px;
+        padding: 0;
+        margin: 0;
+      }
+      .text-default {
+        color: #000000;
+        font-family:'Lato', Arial, sans-serif;
+      }
+      .text-red {
+        color: #C02C2C !important;
+      }
+      .td-global-font-style {
+        font-weight: 300;
+        font-size: 18px;
+      }
+      .td-smaller-font-style {
+        font-size: 16px;
+      }
+      .table-heading-main {
+        font-weight: bold;
+        font-size: 24px;
+      }
+      .table-heading-sub {
+        font-size: 24px;
+      }
+      .table-heading-title {
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+      .table-annce {
+        background: #f8f8f8;
+        padding: 40px 30px;
+      }
+      .no-margin {
+        margin: 0 !important;
+      }
+      .no-padding {
+        padding: 0 !important;
+      }
+      .button {
+        font-size: 16px;
+        font-weight: 600;
+        padding: 4px 16px;
+        min-width: 10px;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        background: none;
+        text-decoration: none !important;
+        border: 1px solid #555;
+        border-radius: 20px;
+        background-color: #FFF;
+      }
+      .button-red {
+        background-color: #C02C2C;
+        border-color: #C02C2C;
+        color: #FFF;
+        font-weight: 400 !important;
+      }
+      .box {
+        border: 1px solid #888;
+        padding: 12px;
+      }
+      .box-bordered {
+        border-bottom: 16px solid #555;
+      }
+      .box-rounded {
+        border-radius: 20px;
+      }
+      .box-pointed {
+        border-radius: 20px;
+        border-top-left-radius: 0 !important;
+      }
+      .tr-box > td {
+        border: 1px solid #888;
+        border-radius: 20px;
+        padding: 12px;
+      }
+      .svg-red {
+        filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+      }
+      .img-icon {
+        width: 45px;
+        height: 45px;
+        background-position: center;
+        background-position-x: center;
+        background-position-y: center;
+        background-repeat: no-repeat;
+        margin: auto !important;
+      }
+      .img-dref {
+        background-image: url("./images/rc.svg");
+      }
+      .img-appeal {
+        background-image: url("./images/rc-appeals.svg");
+      }
+      .img-cash-bag {
+        background-image: url("./images/cash-bag.svg");
+      }
+      .img-cash-notes {
+        background-image: url("./images/cash-notes.svg");
+      }
+      .img-people {
+        background-image: url("./images/people-arrows.svg");
+      }
 
-      
-      .p-10 { padding: 10px; }
-      .pt-10 { padding-top:10px; }
-      .pt-25 { padding-top:25px; }
-      .pt-30 { padding-top: 30px; }
-      .pt-50 { padding-top:50px; }
-      .pt-20 { padding-top:20px; }
-      .pb-10 { padding-bottom:10px; }
-      .pb-15 { padding-bottom:15px; }
-      .pb-20 { padding-bottom:20px; }
-      .pb-25 { padding-bottom:25px; }
-      .pb-30 { padding-bottom:30px; }
-      .pb-50 { padding-bottom:50px; }
-      .link { font-family: 'Lato', Arial, sand-serif; text-decoration:underline; color: #000; }
-      .text-uppercase { text-transform:uppercase; }
-      .text-regular { font-weight:400; }
-      .text-bold { font-weight:700; }
-      .text-italic { font-style: italic; }
-      .text-sm { font-size:90%; }
-      .text-lg { font-size:110%; }
-      .text-xl { font-size:120%; }
-      .text-center { text-align:center; }
-      .text-left { text-align:left; }
-      .text-right { text-align:right; }
-      .text-light { font-weight: 300; }
-      .column { margin:0; padding:0; }
-      .td-shell { width:650px; min-width:650px; padding:0; margin:0; }
-      .td-global { color: #000000; font-family:'Lato', Arial, sans-serif; }
-      .td-global-font-style { font-weight:300; font-size: 18px; }
-      .table-heading-main { font-weight:bold; font-size:24px; }
-      .table-heading-title { text-transform:uppercase; font-weight:bold; }
-      .table-annce { background: #f8f8f8; padding:40px 30px; }
-          
-      
       @media only screen and (max-device-width:480px), only screen and (max-width:480px) {
-        .mobile-shell { width:100% !important; min-width:100% !important; }
-        .bg { background-size:100% auto !important; -webkit-background-size:100% auto !important; }
-        
-        .text-header,
-        .m-center { text-align:center !important; }
-        
-        .center { margin:0 auto !important; }
-        .container { padding:20px 10px !important }
-        
-        .td { width:100% !important; min-width:100% !important; }
-
-        .m-br-15 { height:15px !important; }
-        .p30-15 { padding:30px 15px !important; }
-        .p0-15-30 { padding:0px 15px 30px 15px !important; }
-        .p0-15 { padding:0px 15px !important; }
-        .pt0 { padding-top:0px !important; }
-        .mpb30 { padding-bottom:30px !important; }
-        .mpb15 { padding-bottom:15px !important; }
-
-        .m-td,
-        .m-hide { display:none !important; width:0 !important; height:0 !important; font-size:0 !important; line-height:0 !important; min-height:0 !important; }
-
-        .m-block { display:block !important; }
-
-        .fluid-img img { width:100% !important; max-width:100% !important; height:auto !important; }
-
+        .mobile-shell {
+          width: 100% !important;
+          min-width: 100% !important;
+        }
+        .bg {
+          background-size: 100% auto !important;
+          -webkit-background-size: 100% auto !important;
+        }
+        .text-header, .m-center {
+          text-align: center !important;
+        }
+        .center {
+          margin: 0 auto !important;
+        }
+        .container {
+          padding: 20px 10px !important;
+        }
+        .td {
+          width: 100% !important;
+          min-width: 100% !important;
+        }
+        .m-br-15 {
+          height: 15px !important;
+        }
+        .p30-15 {
+          padding: 30px 15px !important;
+        }
+        .p0-15-30 {
+          padding: 0px 15px 30px 15px !important;
+        }
+        .p0-15 {
+          padding: 0px 15px !important;
+        }
+        .pt0 {
+          padding-top: 0px !important;
+        }
+        .mpb30 {
+          padding-bottom: 30px !important;
+        }
+        .mpb15 {
+          padding-bottom: 15px !important;
+        }
+        .m-td, .m-hide {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
+          font-size: 0 !important;
+          line-height: 0 !important;
+          min-height: 0 !important;
+        }
+        .m-block {
+          display: block !important;
+        }
+        .fluid-img img {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: auto !important;
+        }
         .column,
         .column-dir,
         .column-top,
         .column-empty,
         .column-empty2,
-        .column-dir-top { float:left !important; width:100% !important; display:block !important; }
-
-        .column-empty { padding-bottom:30px !important; }
-        .column-empty2 { padding-bottom:10px !important; }
-
-        .content-spacing { width:15px !important; }
+        .column-dir-top {
+          float: left !important;
+          width: 100% !important;
+          display: block !important;
+        }
+        .column-empty {
+          padding-bottom: 30px !important;
+        }
+        .column-empty2 {
+          padding-bottom: 10px !important;
+        }
+        .content-spacing {
+          width: 15px !important;
+        }
       }
     </style>
   </head>
-  <body class="body" style="padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !important;padding-left:0 !important;margin-top:0 !important;margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !important;display:block !important;min-width:100% !important;width:100% !important;background-color:#ffffff;background-image:none;background-repeat:repeat;background-position:top left;background-attachment:scroll;font-size:18px;color:#000;font-weight:300;-webkit-text-size-adjust:none;line-height:1.4;" >
+  <body>
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
       <tr>
         <td align="center" valign="top">
           <!-- Header -->
           <table width="100%" border="0" cellspacing="0" cellpadding="0">
             <tr>
-              <td align="center" class="pt-30 pb-30" style="padding-top:30px;padding-bottom:30px;" >
+              <td align="center" class="pt-30 pb-30">
                 <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
                   <tr>
-                    <td class="td td-shell" style="width:650px;min-width:650px;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;" >
+                    <td class="td td-shell no-margin no-padding">
                       <!-- Header -->
                       <table width="100%" border="0" cellspacing="0" cellpadding="0">
                         <tr>
-                          <th class="column" width="145" style="margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;" >
+                          <th class="column" width="145">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
-                                <td class="img text-left" style="text-align:left;" ><img src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/logo400.png" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" /></td>
+                                <td class="img text-left">
+                                  <img src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/logo400.png" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" />
+                                </td>
                               </tr>
                             </table>
                           </th>
-                          <th class="column" style="margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;" >
+                          <th class="column">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
 {% for record in records|slice:":1" %}
-                                <td class="text-header td-global text-right" style="text-align:right;color:#000000;font-family:'Lato', Arial, sans-serif;" ><a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family:'Lato', Arial, sand-serif;text-decoration:underline;color:#000;" >Open in GO</a></td>
+                                <td class="text-header text-default text-right">
+                                  <a href="{{ record.resource_uri }}" target="_blank" class="link">Open in GO</a>
+                                </td>
 {% endfor %}
                               </tr>
                             </table>
