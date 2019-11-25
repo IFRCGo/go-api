@@ -1,9 +1,9 @@
 from django import forms
 
-from .models import Action, ACTION_ORG_CHOICES
+from .models import Action, ActionOrg
 
 class ActionForm(forms.ModelForm):
-    organizations = forms.MultipleChoiceField(choices=ACTION_ORG_CHOICES)
+    organizations = forms.MultipleChoiceField(choices=ActionOrg.CHOICES)
 
     class Meta:
         model = Action
