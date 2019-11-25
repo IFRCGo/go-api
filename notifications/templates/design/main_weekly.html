@@ -1,0 +1,185 @@
+  <!-- Main -->
+{% if records|length %}
+  {% for rec in records %}
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+      <tr>
+        <td align="center">
+          <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+            <tr>
+              <td class="td td-shell">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td class="text-center text-default pb-25" colspan="2">
+                      <span class="table-heading-main">Weekly Digest: </span>
+                      <span class="table-heading-sub">Operations Overview</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default td-global-font-style text-italic pb-30" colspan="2">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-lg text-light" colspan="2">
+                      Below are the latest updates in GO over the past 7 days.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="td" colspan="2">
+                      <table width="100%" border="0" cellspacing="10" cellpadding="0" class="pb-30">
+                        <tr class="text-default text-center text-uppercase tr-box">
+                          <td>
+                            <p class="img-icon img-dref"></p>
+                            <p class="text-bold text-xl">{{ rec.active_dref }}</p>
+                            <p>Active DREF Operations</p>
+                          </td>
+                          <td>
+                            <p class="img-icon img-appeal"></p>
+                            <p class="text-bold text-xl">{{ rec.active_ea }}</p>
+                            <p>Active Emergency Appeals</p>
+                          </td>
+                          <td>
+                            <p class="img-icon img-cash-bag svg-red"></p>
+                            <p class="text-bold text-xl">{{ rec.funding_coverage }}%</p>
+                            <p>Emergency Appeals Funded</p>
+                          </td>
+                          <td>
+                            <p class="img-icon img-cash-notes svg-red"></p>
+                            <p class="text-bold text-xl">{{ rec.budget }}M</p>
+                            <p>Budget for DREFs and Appeals (CHF)</p>
+                          </td>
+                          <td>
+                            <p class="img-icon img-people svg-red"></p>
+                            <p class="text-bold text-xl">{{ rec.population }}M</p>
+                            <p>People targeted</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title pt-10 pb-10" colspan="2">Highlighted Operations ({{ rec.highlighted_ops|length }})</td>
+                  </tr>
+                  {% if rec.highlighted_ops|length %}
+                    {% for op in rec.highlighted_ops %}
+                      <tr>
+                        <td class="td text-default box box-bordered" style="padding: 0;">
+                          <table width="100%" border="0" cellspacing="0" cellpadding="12">
+                            <tr>
+                              <td class="text-default pt-20 pb-10">
+                                <p class="text-bold">{{ op.hl_name }}</p>
+                                <br />
+                                <p class="text-light">Last update: {{ op.hl_last_update }}</p>
+                              </td>
+                              <td class="text-default text-right" style="vertical-align: top;">
+                                <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red">Follow</a>
+                              </td>
+                            </tr>
+                            <tr class="text-uppercase">
+                              <td class="text-default text-light td-light-border">
+                                <p class="text-bold text-xl">{{ op.hl_people }}</p>
+                                <p>People Targeted</p>
+                              </td>
+                              <td class="text-default text-light td-light-border">
+                                <p class="text-bold text-xl">{{ op.hl_deployed_eru }}</p>
+                                <p>Deployed Emergency Response Units</p>
+                              </td>
+                            </tr>
+                            <tr class="text-uppercase">
+                              <td class="text-default text-light td-light-border">
+                                <p class="text-bold text-xl">{{ op.hl_funding }}</p>
+                                <p>Funding Requirements</p>
+                              </td>
+                              <td class="text-default text-light td-light-border">
+                                <p class="text-bold text-xl">{{ op.hl_deployed_sp }}</p>
+                                <p>Deployed Surge Personnel</p>
+                              </td>
+                            </tr>
+                            <tr class="text-uppercase">
+                              <td class="text-light">
+                                Funding Coverage
+                              </td>
+                              <td class="text-right text-bold text-lg">
+                                {{ op.hl_coverage }}%
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% endif %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest IFRC Operations ({{ rec.latest_ops|length }})</td>
+                  </tr>
+                  <tr>
+                    <td class="td" colspan="2">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                        <tr class="text-default text-left">
+                          <th>Operation Name</th>
+                          <th>Last Update</th>
+                          <th>Funding Requirement (CHF)</th>
+                        </tr>
+                        {% if rec.latest_ops|length %}
+                          {% for lo in rec.latest_ops %}
+                            <tr class="table-annce pb-10" >
+                              <td class="text-default td-white-border">
+                                <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link">{{ lo.op_country }}: {{ lo.op_name }}</a>
+                              </td>
+                              <td class="text-default td-white-border">
+                                {{ lo.op_modified_at }}
+                              </td>
+                              <td class="text-default td-white-border">
+                                {{ lo.op_funding }}
+                              </td>
+                            </tr>
+                        {% endfor %}
+                      {% endif %}
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest Deployments ({{ rec.latest_deployments|length }})</td>
+                  </tr>
+                  <tr>
+                    <td class="td" colspan="2">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                      {% if rec.latest_deployments|length %}
+                        {% for ld in rec.latest_deployments %}
+                          <tr class="table-annce pb-10" >
+                            <td class="text-default td-white-border">
+                              {{ ld.operation }}
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      {% endif %}
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest Field Reports ({{ rec.latest_field_reports|length }})</td>
+                  </tr>
+                  <tr>
+                    <td class="td" colspan="2">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                      {% if rec.latest_field_reports|length %}
+                        {% for lfr in rec.latest_field_reports %}
+                          <tr class="table-annce pb-10" >
+                            <td class="text-default td-white-border">
+                              <a href="https://go.ifrc.org/reports/{{ lfr.id }}">{{ lfr.summary }}</a>
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      {% endif %}
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  {% endfor %}
+{% endif %}
+  <!-- END Main -->
