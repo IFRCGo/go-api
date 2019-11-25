@@ -570,6 +570,11 @@ class FieldReport(models.Model):
     num_volunteers = models.IntegerField(null=True, blank=True)
     num_expats_delegates = models.IntegerField(null=True, blank=True)
 
+    #Early Warning fields
+    num_potentially_affected = models.IntegerField(null=True, blank=True)
+    num_highest_risk = models.IntegerField(null=True, blank=True)
+    affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
     gov_num_injured = models.IntegerField(null=True, blank=True)
     gov_num_dead = models.IntegerField(null=True, blank=True)
     gov_num_missing = models.IntegerField(null=True, blank=True)
@@ -577,12 +582,22 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True, blank=True)
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
+    #Early Warning fields
+    gov_potentially_affected = models.IntegerField(null=True, blank=True)
+    gov_num_highest_risk = models.IntegerField(null=True, blank=True)
+    gov_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
     other_num_injured = models.IntegerField(null=True, blank=True)
     other_num_dead = models.IntegerField(null=True, blank=True)
     other_num_missing = models.IntegerField(null=True, blank=True)
     other_num_affected = models.IntegerField(null=True, blank=True)
     other_num_displaced = models.IntegerField(null=True, blank=True)
     other_num_assisted = models.IntegerField(null=True, blank=True)
+
+    #Early Warning fields
+    other_potentially_affected = models.IntegerField(null=True, blank=True)
+    other_num_highest_risk = models.IntegerField(null=True, blank=True)
+    other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
 
     # actions taken
     actions_others = models.TextField(null=True, blank=True)
