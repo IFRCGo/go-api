@@ -611,6 +611,10 @@ class FieldReport(models.Model):
     dref_amount = models.IntegerField(null=True, blank=True)
     appeal = EnumIntegerField(RequestChoices, default=0)
     appeal_amount = models.IntegerField(null=True, blank=True)
+    imminent_dref = EnumIntegerField(RequestChoices, default=0) #only EW
+    imminent_dref_amount = models.IntegerField(null=True, blank=True) #only EW
+    forecast_based_action = EnumIntegerField(RequestChoices, default=0) #only EW
+    forecast_based_action_amount = models.IntegerField(null=True, blank=True) #only EW
 
     # disaster response
     rdrt = EnumIntegerField(RequestChoices, default=0)
