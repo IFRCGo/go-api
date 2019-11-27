@@ -284,6 +284,7 @@ class FieldReportAdmin(RegionRestrictedAdmin):
 
 class ActionAdmin(admin.ModelAdmin):
     form = ActionForm
+    list_display = ('__str__', 'field_report_types', 'organizations',)
 
 
 class AppealDocumentInline(admin.TabularInline):
