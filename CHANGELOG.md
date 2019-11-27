@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.195
+
+### Added
+ - Allow Actions to belong to both Event and Early Warning types
+
 ## 1.1.194
 
 ### Added
@@ -802,7 +807,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.194...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.195...HEAD
+[1.1.195]: https://github.com/IFRCGo/go-api/compare/1.1.194...1.1.195
 [1.1.194]: https://github.com/IFRCGo/go-api/compare/1.1.193...1.1.194
 [1.1.193]: https://github.com/IFRCGo/go-api/compare/1.1.192...1.1.193
 [1.1.192]: https://github.com/IFRCGo/go-api/compare/1.1.191...1.1.192
