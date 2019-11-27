@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.194
+
+### Added
+ - Add a boolean for Event to be featured on the region page
+
 ## 1.1.193
 
 ### Added
@@ -797,7 +802,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.193...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.194...HEAD
+[1.1.194]: https://github.com/IFRCGo/go-api/compare/1.1.193...1.1.194
 [1.1.193]: https://github.com/IFRCGo/go-api/compare/1.1.192...1.1.193
 [1.1.192]: https://github.com/IFRCGo/go-api/compare/1.1.191...1.1.192
 [1.1.191]: https://github.com/IFRCGo/go-api/compare/1.1.190...1.1.191
