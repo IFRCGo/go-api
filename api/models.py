@@ -599,6 +599,9 @@ class FieldReport(models.Model):
     other_num_highest_risk = models.IntegerField(null=True, blank=True)
     other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
 
+    # Text field for users to specify sources for where they have marked 'Other' as source. 
+    other_sources = models.TextField(blank=True, default='')
+
     # actions taken
     actions_others = models.TextField(null=True, blank=True)
 
