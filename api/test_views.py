@@ -186,7 +186,7 @@ class ActionTestCase(APITestCase):
     def test_action_api(self):
         action1 = models.Action.objects.create(
             name='Test1',
-            field_report_type='EVT',
+            field_report_types=['EVT', 'EW'],
             organizations=[
                 'NTLS',
                 'PNS'
@@ -194,7 +194,7 @@ class ActionTestCase(APITestCase):
         )
         action2 = models.Action.objects.create(
             name='Test2',
-            field_report_type='EW',
+            field_report_types=['EW'],
             organizations=[]
         )
         response = self.client.get('/api/v2/action/')
@@ -202,7 +202,8 @@ class ActionTestCase(APITestCase):
         self.assertEqual(response['count'], 2)
         res1 = response['results'][0]
         self.assertEqual(res1['name'], 'Test1')
-        self.assertEqual(res1['field_report_type'], 'EVT')
+        self.assertEqual(res1['field_report_types'], ['EVT', 'EW'])
         self.assertEqual(res1['organizations'], ['NTLS', 'PNS'])
         res2 = response['results'][1]
         self.assertEqual(res2['organizations'], [])
+        self.assertEqual(res2['field_report_types'], ['EW'])
