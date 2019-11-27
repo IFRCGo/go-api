@@ -255,7 +255,11 @@ class Event(models.Model):
     auto_generated_source = models.CharField(max_length=50, null=True, blank=True, editable=False)
 
     # Meant to give the organization a way of highlighting certain, important events.
-    is_featured = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False, verbose_name='Is Featured on Home Page')
+
+    # Allows admins to feature the Event on the region page.
+    is_featured_region = models.BooleanField(default=False, verbose_name='Is Featured on Region Page')
+
     hide_attached_field_reports = models.BooleanField(default=False)
 
     class Meta:

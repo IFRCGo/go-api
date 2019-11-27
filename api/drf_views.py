@@ -205,6 +205,7 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
     is_featured = filters.BooleanFilter(name='is_featured')
+    is_featured_region = filters.BooleanFilter(name='is_featured_region')
     countries__in = ListFilter(name='countries__id')
     regions__in = ListFilter(name='regions__id')
     id = filters.NumberFilter(name='id', lookup_expr='exact')
