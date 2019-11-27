@@ -570,6 +570,11 @@ class FieldReport(models.Model):
     num_volunteers = models.IntegerField(null=True, blank=True)
     num_expats_delegates = models.IntegerField(null=True, blank=True)
 
+    #Early Warning fields
+    num_potentially_affected = models.IntegerField(null=True, blank=True)
+    num_highest_risk = models.IntegerField(null=True, blank=True)
+    affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
     gov_num_injured = models.IntegerField(null=True, blank=True)
     gov_num_dead = models.IntegerField(null=True, blank=True)
     gov_num_missing = models.IntegerField(null=True, blank=True)
@@ -577,12 +582,25 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True, blank=True)
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
+    #Early Warning fields
+    gov_potentially_affected = models.IntegerField(null=True, blank=True)
+    gov_num_highest_risk = models.IntegerField(null=True, blank=True)
+    gov_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
     other_num_injured = models.IntegerField(null=True, blank=True)
     other_num_dead = models.IntegerField(null=True, blank=True)
     other_num_missing = models.IntegerField(null=True, blank=True)
     other_num_affected = models.IntegerField(null=True, blank=True)
     other_num_displaced = models.IntegerField(null=True, blank=True)
     other_num_assisted = models.IntegerField(null=True, blank=True)
+
+    #Early Warning fields
+    other_potentially_affected = models.IntegerField(null=True, blank=True)
+    other_num_highest_risk = models.IntegerField(null=True, blank=True)
+    other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
+    # Text field for users to specify sources for where they have marked 'Other' as source. 
+    other_sources = models.TextField(blank=True, default='')
 
     # actions taken
     actions_others = models.TextField(null=True, blank=True)
@@ -596,6 +614,10 @@ class FieldReport(models.Model):
     dref_amount = models.IntegerField(null=True, blank=True)
     appeal = EnumIntegerField(RequestChoices, default=0)
     appeal_amount = models.IntegerField(null=True, blank=True)
+    imminent_dref = EnumIntegerField(RequestChoices, default=0) #only EW
+    imminent_dref_amount = models.IntegerField(null=True, blank=True) #only EW
+    forecast_based_action = EnumIntegerField(RequestChoices, default=0) #only EW
+    forecast_based_action_amount = models.IntegerField(null=True, blank=True) #only EW
 
     # disaster response
     rdrt = EnumIntegerField(RequestChoices, default=0)
