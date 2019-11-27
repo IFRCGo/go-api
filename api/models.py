@@ -754,11 +754,12 @@ class Action(models.Model):
         models.CharField(choices=ActionOrg.CHOICES, max_length=4),
         default=list, blank=True
     )
-    field_report_type = models.CharField(
-        choices=ActionType.CHOICES,
-        blank=True,
-        default=ActionType.EVENT,
-        max_length=4
+    field_report_types = ArrayField(
+        models.CharField(
+            choices=ActionType.CHOICES,
+            max_length=4
+        ),
+        default=[ActionType.EVENT]
     )
 
     def __str__(self):
