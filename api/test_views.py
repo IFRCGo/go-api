@@ -184,17 +184,22 @@ class VisibilityTest(APITestCase):
 class ActionTestCase(APITestCase):
 
     def test_action_api(self):
+        EVENT = models.ActionType.EVENT
+        EARLY_WARNING = models.ActionType.EARLY_WARNING
+        NTLS = models.ActionOrg.NATIONAL_SOCIETY
+        PNS = models.ActionOrg.FOREIGN_SOCIETY
+
         action1 = models.Action.objects.create(
             name='Test1',
-            field_report_types=['EVT', 'EW'],
+            field_report_types=[EVENT, EARLY_WARNING],
             organizations=[
-                'NTLS',
-                'PNS'
+                NTLS,
+                PNS
             ]
         )
         action2 = models.Action.objects.create(
             name='Test2',
-            field_report_types=['EW'],
+            field_report_types=[EARLY_WARNING],
             organizations=[]
         )
         response = self.client.get('/api/v2/action/')
@@ -202,8 +207,8 @@ class ActionTestCase(APITestCase):
         self.assertEqual(response['count'], 2)
         res1 = response['results'][0]
         self.assertEqual(res1['name'], 'Test1')
-        self.assertEqual(res1['field_report_types'], ['EVT', 'EW'])
-        self.assertEqual(res1['organizations'], ['NTLS', 'PNS'])
+        self.assertEqual(res1['field_report_types'], [EVENT, EARLY_WARNING])
+        self.assertEqual(res1['organizations'], [NTLS, PNS])
         res2 = response['results'][1]
         self.assertEqual(res2['organizations'], [])
-        self.assertEqual(res2['field_report_types'], ['EW'])
+        self.assertEqual(res2['field_report_types'], [EARLY_WARNING])
