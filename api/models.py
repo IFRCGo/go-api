@@ -563,6 +563,7 @@ class FieldReport(models.Model):
     regions = models.ManyToManyField(Region, blank=True)
     status = models.IntegerField(default=0)
     request_assistance = models.BooleanField(default=False)
+    ns_request_assistance = models.BooleanField(default=False)
 
     num_injured = models.IntegerField(null=True, blank=True)
     num_dead = models.IntegerField(null=True, blank=True)
