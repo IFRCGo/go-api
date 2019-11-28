@@ -587,7 +587,7 @@ class FieldReport(models.Model):
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
     #Early Warning fields
-    gov_potentially_affected = models.IntegerField(null=True, blank=True)
+    gov_num_potentially_affected = models.IntegerField(null=True, blank=True)
     gov_num_highest_risk = models.IntegerField(null=True, blank=True)
     gov_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
 
@@ -599,7 +599,7 @@ class FieldReport(models.Model):
     other_num_assisted = models.IntegerField(null=True, blank=True)
 
     #Early Warning fields
-    other_potentially_affected = models.IntegerField(null=True, blank=True)
+    other_num_potentially_affected = models.IntegerField(null=True, blank=True)
     other_num_highest_risk = models.IntegerField(null=True, blank=True)
     other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
 
