@@ -1,3 +1,6 @@
+import base64
+
+
 def pretty_request(request):
     headers = ''
     for header, value in request.META.items():
@@ -19,3 +22,9 @@ def pretty_request(request):
         headers=headers,
         body=request.body,
     )
+
+
+def base64_encode(string):
+    return base64.urlsafe_b64encode(
+        string.encode('UTF-8')
+    ).decode('ascii')

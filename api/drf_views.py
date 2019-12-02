@@ -5,6 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
@@ -47,6 +48,7 @@ from .models import (
     RequestChoices,
 )
 
+from databank.serializers import CountryOverviewSerializer
 from .serializers import (
     ActionSerializer,
     DisasterTypeSerializer,
@@ -136,6 +138,21 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return CountrySerializer
         return CountryRelationSerializer
+
+    @action(
+        detail=True,
+        url_path='databank',
+        # Only for Documentation
+        serializer_class=CountryOverviewSerializer,
+    )
+    def get_databank(self, request, pk):
+        country = self.get_object()
+        if hasattr(country, 'countryoverview'):
+            return Response(
+                CountryOverviewSerializer(country.countryoverview).data
+            )
+        raise Http404
+
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(name='region', lookup_expr='exact')

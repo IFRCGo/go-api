@@ -10,6 +10,8 @@ services:
       DJANGO_DB_USER: test
       DJANGO_DB_PASS: test
       FRONTEND_URL: $FRONTEND_URL
+      FDRS_CREDENTIAL: $FDRS_CREDENTIAL
+      HPC_CREDENTIAL: $HPC_CREDENTIAL
     volumes:
       - '.:/home/ifrc/go-api'
     depends_on:
@@ -38,6 +40,10 @@ services:
   loaddata:
     <<: *base_django_setup
     command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
+
+  ingest_databank:
+    <<: *base_django_setup
+    command: python manage.py ingest_databank
 
   collectstatic:
     <<: *base_django_setup
