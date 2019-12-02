@@ -15,11 +15,6 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default td-global-font-style text-italic pb-30">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
-                    </td>
-                  </tr>
-                  <tr>
                     <td class="text-default table-heading-title pt-10 pb-10">Description</td>
                   </tr>
                   <tr>
@@ -38,44 +33,44 @@
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Affected</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.affected }}</td>
-                          <td class="text-default text-light text-uppercase">Local Staff</td>
-                          <td class="text-default text-bold pr-20">{{ fr.key_figures.local_staff }}</td>
+                          <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
+                          <td class="text-default text-bold pr-20">{{ fr.key_figures.local_staff }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Injured</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.injured }}</td>
-                          <td class="text-default text-light text-uppercase">Volunteers</td>
-                          <td class="text-default text-bold pr-20">{{ fr.key_figures.volunteers }}</td>
+                          <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
+                          <td class="text-default text-bold pr-20">{{ fr.key_figures.volunteers }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Dead</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.dead }}</td>
-                          <td class="text-default text-light text-uppercase">Expat Delegates</td>
-                          <td class="text-default text-bold pr-20">{{ fr.key_figures.expat_delegates }}</td>
+                          <!-- <td class="text-default text-light text-uppercase">Expat Delegates</td>
+                          <td class="text-default text-bold pr-20">{{ fr.key_figures.expat_delegates }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Missing</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.missing }}</td>
-                          <td></td>
-                          <td></td>
+                          <!-- <td></td>
+                          <td></td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Displaced</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.displaced }}</td>
-                          <td></td>
-                          <td></td>
+                          <!-- <td></td>
+                          <td></td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Assisted</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.assisted }}</td>
-                          <td></td>
-                          <td></td>
+                          <!-- <td></td>
+                          <td></td> -->
                         </tr>
                       </table>
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10">Request Assistance</td>
+                    <td class="text-default table-heading-title pt-40 pb-10">International Assistance Requested</td>
                   </tr>
                   <tr>
                     <td class="text-default text-light pb-10">
@@ -83,11 +78,55 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-20 pb-10">Actions Taken</td>
+                    <td class="text-default table-heading-title pt-20 pb-10">Actions Taken by National Society</td>
+                  </tr>
+                  {% for at in fr.actions_taken.NTLS %}
+                    {% for act in at.actions %}
+                      <tr>
+                        <td>{{ act.name }}</td>
+                      </tr>
+                    {% endfor %}
+                    <tr>
+                      <td class="pt-10 pb-10">Summary: {{ at.action_summary }}</td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10">Actions Taken by IFRC</td>
+                  </tr>
+                  {% for at in fr.actions_taken.FDRN %}
+                    {% for act in at.actions %}
+                      <tr>
+                        <td>{{ act.name }}</td>
+                      </tr>
+                    {% endfor %}
+                    <tr>
+                      <td class="pt-10 pb-10">Summary: {{ at.action_summary }}</td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10">Actions Taken by any other RCRC Movement actors</td>
+                  </tr>
+                  {% for at in fr.actions_taken.PNS %}
+                    {% for act in at.actions %}
+                      <tr>
+                        <td>{{ act.name }}</td>
+                      </tr>
+                    {% endfor %}
+                    <tr>
+                      <td class="pt-10 pb-10">Summary: {{ at.action_summary }}</td>
+                    </tr>
+                  {% endfor %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10">Actions Taken by Others</td>
                   </tr>
                   <tr>
                     <td class="text-default text-light pb-10">
                       {{ fr.actions_others }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default td-global-font-style text-italic pb-30">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
                     </td>
                   </tr>
                 </table>
