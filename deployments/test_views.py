@@ -116,13 +116,13 @@ class ProjectGetTest(APITestCase):
         self.assertEqual(resp.status_code, 400, resp.content)
 
         # Disaster Type should be provided if operation type is Long Term Operation
-        body['operation_type'] = OperationTypes.LONG_TERM_OPERATION
+        body['operation_type'] = OperationTypes.PROGRAMME
         body['dtype'] = None
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
         # Event should be provided if operation type is Emergency Operation and programme type is Multilateral
-        body['operation_type'] = OperationTypes.LONG_TERM_OPERATION
+        body['operation_type'] = OperationTypes.PROGRAMME
         body['programme_type'] = ProgrammeTypes.MULTILATERAL
         body['event'] = None
         resp = self.client.post('/api/v2/project/', body)
