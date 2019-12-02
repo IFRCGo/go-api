@@ -145,7 +145,24 @@ class Sectors(IntEnum):
     HEALTH = 4
     DRR = 5
     SHELTER = 6
-    PREPAREDNESS = 7
+    NS_STRENGTHENING = 7
+    EDUCATION = 8
+    LIVELIHOODS_AND_BASIC_NEEDS = 9
+
+
+class SectorTags(IntEnum):
+    WASH = 0
+    PGI = 1
+    CEA = 2
+    MIGRATION = 3
+    HEALTH = 4
+    DRR = 5
+    SHELTER = 6
+    NS_STRENGTHENING = 7
+    EDUCATION = 8
+    LIVELIHOODS_AND_BASIC_NEEDS = 9
+    RECOVERY = 10
+    INTERNAL_DISPLACEMENT = 11
 
 
 class Statuses(IntEnum):
@@ -155,7 +172,7 @@ class Statuses(IntEnum):
 
 
 class OperationTypes(IntEnum):
-    LONG_TERM_OPERATION = 0
+    PROGRAMME = 0
     EMERGENCY_OPERATION = 1
 
 
@@ -187,7 +204,7 @@ class Project(models.Model):
     programme_type = EnumIntegerField(ProgrammeTypes)
     primary_sector = EnumIntegerField(Sectors)
     secondary_sectors = ArrayField(
-        EnumIntegerField(Sectors),
+        EnumIntegerField(SectorTags),
         default=list, blank=True,
     )
     operation_type = EnumIntegerField(OperationTypes)
