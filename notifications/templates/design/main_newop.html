@@ -20,11 +20,6 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default td-global-font-style text-italic pb-30">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
-                    </td>
-                  </tr>
-                  <tr>
                     <td class="text-default table-heading-title pt-10 pb-10">Situation Overview</td>
                   </tr>
                   <tr>
@@ -43,32 +38,32 @@
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">People Targeted</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.people_targeted }}</td>
-                          <td class="text-default text-light text-uppercase">Local Staff</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.local_staff }}</td>
+                          <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.local_staff }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Funding Requested</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.funding_req }}</td>
-                          <td class="text-default text-light text-uppercase">Volunteers</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.volunteers }}</td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.funding_req }} (CHF)</td>
+                          <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.volunteers }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Appeal Code</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.appeal_code }}</td>
-                          <td class="text-default text-light text-uppercase">Expat Delegates</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.expat_delegates }}</td>
+                          <!-- <td class="text-default text-light text-uppercase">Expat Delegates</td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.expat_delegates }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">Start Date</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.start_date }}</td>
-                          <td></td>
-                          <td></td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
+                          <!-- <td></td>
+                          <td></td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20">End Date</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.end_date }}</td>
-                          <td></td>
-                          <td></td>
+                          <td class="text-default text-bold pr-20">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
+                          <!-- <td></td>
+                          <td></td> -->
                         </tr>
                       </table>
                     </td>
@@ -84,7 +79,7 @@
                             <tr class="table-annce">
                               <td class="text-default p-20">
                                 <p class="text-bold">Field Report: {{ fr.summary }}</p>
-                                <p>{{ fr.updated_at }}</p>
+                                <p>{{ fr.updated_at|date:'d-m-Y' }}</p>
                               </td>
                               <td class="text-default text-right pr-20">
                                 <a href="https://go.ifrc.org/reports/{{ fr.id }}" target="_blank" class="button">View Full Report</a>
@@ -93,8 +88,13 @@
                           </table>
                         </td>
                       </tr>
-                  {% endfor %}
-                {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                  <tr>
+                    <td class="text-default td-global-font-style text-italic pb-30">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
+                    </td>
+                  </tr>
                 </table>
               </td>
             </tr>
