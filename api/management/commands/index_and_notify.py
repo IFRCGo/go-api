@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from elasticsearch.helpers import bulk
 from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
-from api.models import Country, Appeal, Event, FieldReport
+from api.models import Country, Appeal, Event, FieldReport, ActionsTaken
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
@@ -263,7 +263,7 @@ class Command(BaseCommand):
                 'hl_id': ev.id,
                 'hl_name': ev.name,
                 'hl_last_update': ev.updated_at,
-                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries'] or 0,
+                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0,
                 'hl_funding': amount_requested,
                 'hl_deployed_eru': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
                 'hl_deployed_sp': '', # TODO: surge personnel, where this comes from
@@ -271,6 +271,42 @@ class Command(BaseCommand):
             }
             ret_highlights.append(data_to_add)
         return ret_highlights
+
+    def get_actions_taken(self, frid):
+        ret_actions_taken = {
+            'NTLS': [],
+            'PNS': [],
+            'FDRN': [],
+        }
+        actions_taken = ActionsTaken.objects.filter(field_report_id=frid)
+        for at in actions_taken:
+            action_to_add = {
+                'action_summary': at.summary,
+                'actions': [],
+            }
+            if at.actions.all():
+                for act in at.actions.all():
+                    action_to_add['actions'].append(act)
+            if at.organization == 'NTLS':
+                ret_actions_taken['NTLS'].append(action_to_add)
+            elif at.organization == 'PNS':
+                ret_actions_taken['PNS'].append(action_to_add)
+            elif at.organization == 'FDRN':
+                ret_actions_taken['FDRN'].append(action_to_add)
+        return ret_actions_taken
+
+    def get_weekly_latest_frs(self):
+        ret_fr_list = []
+        fr_list = list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at'))
+        for fr in fr_list:
+            fr_data = {
+                'id': fr.id,
+                'country': fr.countries.all()[0].name if fr.countries else None,
+                'summary': fr.summary,
+                'updated_at': fr.updated_at,
+            }
+            ret_fr_list.append(fr_data)
+        return ret_fr_list
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
@@ -298,7 +334,8 @@ class Command(BaseCommand):
                     'volunteers': record.num_volunteers or 0,
                     'expat_delegates': record.num_expats_delegates or 0,
                 },
-                'actions_others': record.actions_others, # TODO: check if this is enough or actions needed from other tables
+                'actions_taken': self.get_actions_taken(record.id),
+                'actions_others': record.actions_others,
                 'assistance': 'Yes' if record.request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
@@ -332,7 +369,7 @@ class Command(BaseCommand):
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
                 'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=self.get_time_threshold_digest()).order_by('-created_at')),
-                'latest_field_reports': list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at')),
+                'latest_field_reports': self.get_weekly_latest_frs(),
             }
         else: # The default (old) template
             rec_obj = {

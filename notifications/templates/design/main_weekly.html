@@ -15,11 +15,6 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default td-global-font-style text-italic pb-30" colspan="2">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
-                    </td>
-                  </tr>
-                  <tr>
                     <td class="text-default text-lg text-light" colspan="2">
                       Below are the latest updates in GO over the past 7 days.
                     </td>
@@ -39,14 +34,14 @@
                             <p>Active Emergency Appeals</p>
                           </td>
                           <td>
-                            <p class="img-icon img-cash-bag svg-red"></p>
-                            <p class="text-bold text-xl">{{ rec.funding_coverage }}%</p>
-                            <p>Emergency Appeals Funded</p>
-                          </td>
-                          <td>
                             <p class="img-icon img-cash-notes svg-red"></p>
                             <p class="text-bold text-xl">{{ rec.budget }}M</p>
-                            <p>Budget for DREFs and Appeals (CHF)</p>
+                            <p>Total Funding Requirements (CHF)</p>
+                          </td>
+                          <td>
+                            <p class="img-icon img-cash-bag svg-red"></p>
+                            <p class="text-bold text-xl">{{ rec.funding_coverage }}%</p>
+                            <p>Total Appeal Coverage</p>
                           </td>
                           <td>
                             <p class="img-icon img-people svg-red"></p>
@@ -69,7 +64,7 @@
                               <td class="text-default pt-20 pb-10">
                                 <p class="text-bold">{{ op.hl_name }}</p>
                                 <br />
-                                <p class="text-light">Last update: {{ op.hl_last_update }}</p>
+                                <p class="text-light">Last update: {{ op.hl_last_update|date:'d-m-Y' }}</p>
                               </td>
                               <td class="text-default text-right" style="vertical-align: top;">
                                 <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red">Follow</a>
@@ -109,7 +104,7 @@
                     {% endfor %}
                   {% endif %}
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest IFRC Operations ({{ rec.latest_ops|length }})</td>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">IFRC Operations in the past 7 days ({{ rec.latest_ops|length }})</td>
                   </tr>
                   <tr>
                     <td class="td" colspan="2">
@@ -126,7 +121,7 @@
                                 <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link">{{ lo.op_country }}: {{ lo.op_name }}</a>
                               </td>
                               <td class="text-default td-white-border">
-                                {{ lo.op_modified_at }}
+                                {{ lo.op_modified_at|date:'d-m-Y' }}
                               </td>
                               <td class="text-default td-white-border">
                                 {{ lo.op_funding }}
@@ -138,7 +133,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest Deployments ({{ rec.latest_deployments|length }})</td>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
                   </tr>
                   <tr>
                     <td class="td" colspan="2">
@@ -156,7 +151,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Latest Field Reports ({{ rec.latest_field_reports|length }})</td>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Field Reports in the past 7 days ({{ rec.latest_field_reports|length }})</td>
                   </tr>
                   <tr>
                     <td class="td" colspan="2">
@@ -165,12 +160,25 @@
                         {% for lfr in rec.latest_field_reports %}
                           <tr class="table-annce pb-10" >
                             <td class="text-default td-white-border">
-                              <a href="https://go.ifrc.org/reports/{{ lfr.id }}">{{ lfr.summary }}</a>
+                              <p>
+                                <a href="https://go.ifrc.org/reports/{{ lfr.id }}">
+                                  {% if lfr.country %}
+                                    {{ lfr.country }}: 
+                                  {% endif %}
+                                  {{ lfr.summary }}
+                                </a>
+                              </p>
+                              <p>{{ lfr.updated_at|date:'d-m-Y' }}</p>
                             </td>
                           </tr>
                         {% endfor %}
                       {% endif %}
                       </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default td-global-font-style text-italic pb-30" colspan="2">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
                     </td>
                   </tr>
                 </table>
