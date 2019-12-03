@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.198
+
+### Added
+ - Minor fixes of Weekly Digest notification fields
+
 ## 1.1.197
 
 ### Added
@@ -817,7 +822,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.197...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.198...HEAD
+[1.1.198]: https://github.com/IFRCGo/go-api/compare/1.1.197...1.1.198
 [1.1.197]: https://github.com/IFRCGo/go-api/compare/1.1.196...1.1.197
 [1.1.196]: https://github.com/IFRCGo/go-api/compare/1.1.195...1.1.196
 [1.1.195]: https://github.com/IFRCGo/go-api/compare/1.1.194...1.1.195
