@@ -403,7 +403,7 @@ class GenericFieldReportView(GenericAPIView):
             'rdrt',
             'fact',
             'ifrc_staff',
-            'imminent_drf',
+            'imminent_dref',
             'forecast_based_action',
             'eru_base_camp',
             'eru_basic_health_care',

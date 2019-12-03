@@ -151,7 +151,9 @@ class ProjectFilter(filters.FilterSet):
 
 
 class ProjectViewset(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
+    queryset = Project.objects.prefetch_related(
+        'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
+    ).all()
     # XXX: Use this as default authentication classes
     authentication_classes = (
         TokenAuthentication,
