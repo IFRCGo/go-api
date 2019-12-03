@@ -12,7 +12,7 @@ from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
 from notifications.notification import send_notification
-from deployments.models import PersonnelDeployment
+from deployments.models import PersonnelDeployment, ERU
 from main.frontend import frontend_url
 import html
 
@@ -240,7 +240,8 @@ class Command(BaseCommand):
             return rounded_people
     
     def get_weekly_digest_latest_ops(self):
-        ops = Appeal.objects.filter(modified_at__gte=self.get_time_threshold_digest()).order_by('-modified_at')
+        dig_time = self.get_time_threshold_digest()
+        ops = Appeal.objects.filter(modified_at__gte=dig_time).order_by('-modified_at')
         ret_ops = []
         for op in ops:
             op_to_add = {
@@ -254,7 +255,8 @@ class Command(BaseCommand):
         return ret_ops
 
     def get_weekly_digest_highlights(self):
-        events = Event.objects.filter(is_featured=True, updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at')
+        dig_time = self.get_time_threshold_digest()
+        events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
             amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
@@ -265,8 +267,8 @@ class Command(BaseCommand):
                 'hl_last_update': ev.updated_at,
                 'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0,
                 'hl_funding': amount_requested,
-                'hl_deployed_eru': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
-                'hl_deployed_sp': '', # TODO: surge personnel, where this comes from
+                'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or 0,
+                'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
                 'hl_coverage': round(amount_funded / amount_requested, 1),
             }
             ret_highlights.append(data_to_add)
@@ -296,8 +298,9 @@ class Command(BaseCommand):
         return ret_actions_taken
 
     def get_weekly_latest_frs(self):
+        dig_time = self.get_time_threshold_digest()
         ret_fr_list = []
-        fr_list = list(FieldReport.objects.filter(updated_at__gte=self.get_time_threshold_digest()).order_by('-updated_at'))
+        fr_list = list(FieldReport.objects.filter(updated_at__gte=dig_time).order_by('-updated_at'))
         for fr in fr_list:
             fr_data = {
                 'id': fr.id,
@@ -360,6 +363,7 @@ class Command(BaseCommand):
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
+            dig_time = self.get_time_threshold_digest()
             rec_obj = {
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
@@ -368,7 +372,7 @@ class Command(BaseCommand):
                 'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=self.get_time_threshold_digest()).order_by('-created_at')),
+                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at')),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
         else: # The default (old) template
