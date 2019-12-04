@@ -70,10 +70,12 @@
                       </table>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" style="padding-top: 40px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Field Reports</td>
-                  </tr>
+
                   {% if record.field_reports|length %}
+                    <tr>
+                      <td class="text-default table-heading-title pt-40 pb-10" style="padding-top: 40px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Field Reports</td>
+                    </tr>
+
                     {% for fr in record.field_reports %}
                       <tr>
                         <td class="td">

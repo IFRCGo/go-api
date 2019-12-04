@@ -133,7 +133,7 @@
                     </td>
                   </tr>
                   {% endif %}
-                  
+
                   {% if rec.latest_deployments|length %}
                     <tr>
                       <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Alerts/Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
@@ -141,15 +141,13 @@
                     <tr>
                       <td class="td" colspan="2">
                         <table width="100%" border="0" cellspacing="0" cellpadding="10">
-                        
                           {% for ld in rec.latest_deployments %}
-                            <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
-                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;">
+                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;">
                                 {{ ld.operation }}
                               </td>
                             </tr>
                           {% endfor %}
-                        
                         </table>
                       </td>
                     </tr>
@@ -167,21 +165,25 @@
                             <th style="text-align: left;">Summary</th>
                             <th style="text-align: left;">Updated Date</th>
                           </tr>
-                          
                             {% for lfr in rec.latest_field_reports %}
                               <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
                                 <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                                   {% if lfr.country %}
-                                    {{ lfr.country }}: 
+                                    {{ lfr.country }}
                                   {% endif %}
                                 </td>
                                 <td>
-                                  <a href="https://go.ifrc.org/reports/{{ lfr.id }}">{{ lfr.summary }}</a>
+                                  <a href="https://go.ifrc.org/reports/{{ lfr.id }}">
+                                    {% if lfr.summary|length > 24 %}
+                                      {{ lfr.summary|slice:"0:24" }}...
+                                    {% else %}
+                                      {{ lfr.summary }}
+                                    {% endif %}
+                                  </a>
                                 </td>
                                 <td>{{ lfr.updated_at|date:'d-m-Y' }}</td>
                               </tr>
                             {% endfor %}
-                          
                         </table>
                       </td>
                     </tr>
