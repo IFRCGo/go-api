@@ -119,10 +119,6 @@ class ProjectSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
             raise serializers.ValidationError('Reached total should be provided if status is completed')
-        elif data['operation_type'] == OperationTypes.PROGRAMME and data.get('dtype') is None:
-            raise serializers.ValidationError(
-                'Disaster Type should be provided if operation type is Programme'
-            )
         elif (
             data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
             data['programme_type'] == ProgrammeTypes.MULTILATERAL and
