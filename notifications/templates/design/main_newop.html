@@ -6,62 +6,64 @@
         <td align="center">
           <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
             <tr>
-              <td class="td td-shell">
+              <td class="td td-shell" style="width: 650px;min-width: 650px;padding: 0;margin: 0;">
                 <table width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td class="text-center text-default pb-25">
-                      <span class="table-heading-main">New Operation: </span>
-                      <span class="table-heading-sub">{{ op.title }}</span>
+                    <td class="text-center text-default pb-25" style="padding-bottom: 25px;text-align: center;">
+                      <span class="table-heading-main" style="font-weight: bold;font-size: 24px;">New Operation: </span>
+                      <span class="table-heading-sub" style="font-size: 24px;">{{ op.title }}</span>
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-center text-default pb-30">
-                      <a href="#" class="button button-red">Follow This Operation</a>
+                    <td class="text-center text-default pb-30" style="padding-bottom: 30px;text-align: center;">
+                      <a href="#" class="button button-red" style="font-size: 16px;padding: 4px 16px;min-width: 10px;text-align: center;white-space: nowrap;vertical-align: middle;background: none;text-decoration: none !important;border: 1px solid #C02C2C;border-radius: 20px;background-color: #C02C2C;color: #FFF;font-weight: 400;">
+                        Follow This Operation
+                      </a>
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-10 pb-10">Situation Overview</td>
+                    <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Situation Overview</td>
                   </tr>
                   <tr>
-                    <td class="text-default text-light pb-40">
+                    <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
                       {{ op.sutiation_overview }}
                     </td>
                   </tr>
                   <tr>
-                    <td class="td text-default box box-pointed">
-                      <table width="100%" border="0" cellspacing="0" cellpadding="10" class="pb-30">
+                    <td class="td text-default box box-pointed" style="border: 1px solid #888;padding: 12px;border-radius: 20px;border-top-left-radius: 0 !important;">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="10" class="pb-30" style="padding-bottom: 30px;">
                         <tr>
-                          <td class="text-default table-heading-title pt-10 pb-20">
+                          <td class="text-default table-heading-title pt-10 pb-20" style="padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold;">
                             Key Figures
                           </td>
                         </tr>
                         <tr>
-                          <td class="text-default text-light text-uppercase pl-20">People Targeted</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.people_targeted }}</td>
+                          <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">People Targeted</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.people_targeted }}</td>
                           <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.local_staff }}</td> -->
                         </tr>
                         <tr>
-                          <td class="text-default text-light text-uppercase pl-20">Funding Requested</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.funding_req }} (CHF)</td>
+                          <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">Funding Requested</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.funding_req }} (CHF)</td>
                           <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.volunteers }}</td> -->
                         </tr>
                         <tr>
-                          <td class="text-default text-light text-uppercase pl-20">Appeal Code</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.appeal_code }}</td>
+                          <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">Appeal Code</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.appeal_code }}</td>
                           <!-- <td class="text-default text-light text-uppercase">Expat Delegates</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.expat_delegates }}</td> -->
                         </tr>
                         <tr>
-                          <td class="text-default text-light text-uppercase pl-20">Start Date</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
+                          <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">Start Date</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
                           <!-- <td></td>
                           <td></td> -->
                         </tr>
                         <tr>
-                          <td class="text-default text-light text-uppercase pl-20">End Date</td>
-                          <td class="text-default text-bold pr-20">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
+                          <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">End Date</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
                           <!-- <td></td>
                           <td></td> -->
                         </tr>
@@ -69,19 +71,19 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10">Field Reports</td>
+                    <td class="text-default table-heading-title pt-40 pb-10" style="padding-top: 40px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Field Reports</td>
                   </tr>
                   {% if record.field_reports|length %}
                     {% for fr in record.field_reports %}
                       <tr>
                         <td class="td">
                           <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                            <tr class="table-annce">
-                              <td class="text-default p-20">
-                                <p class="text-bold">Field Report: {{ fr.summary }}</p>
-                                <p>{{ fr.updated_at|date:'d-m-Y' }}</p>
+                            <tr class="table-annce" style="background: #f8f8f8;padding: 40px 30px;">
+                              <td class="text-default p-20" style="padding: 20px;">
+                                <p class="text-bold" style="padding: 0;margin: 0;font-weight: 700;">Field Report: {{ fr.summary }}</p>
+                                <p style="padding: 0;margin: 0;">{{ fr.updated_at|date:'d-m-Y' }}</p>
                               </td>
-                              <td class="text-default text-right pr-20">
+                              <td class="text-default text-right pr-20" style="padding-right: 20px;text-align: right;">
                                 <a href="https://go.ifrc.org/reports/{{ fr.id }}" target="_blank" class="button">View Full Report</a>
                               </td>
                             </tr>
@@ -91,8 +93,10 @@
                     {% endfor %}
                   {% endif %}
                   <tr>
-                    <td class="text-default td-global-font-style text-italic pt-20 pb-10">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
+                    <td class="text-default td-global-font-style text-italic pt-20 pb-10" style="padding-top: 20px;padding-bottom: 10px;font-style: italic;font-weight: 300;font-size: 18px;">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                        Update your preferences
+                      </a>
                     </td>
                   </tr>
                 </table>
