@@ -115,8 +115,8 @@
                         </tr>
                         
                           {% for lo in rec.latest_ops %}
-                            <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
-                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <tr class="table-annce" style="background: #f8f8f8;">
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
                                   {{ lo.op_country }}: {{ lo.op_name }}
                                 </a>
@@ -142,8 +142,8 @@
                       <td class="td" colspan="2">
                         <table width="100%" border="0" cellspacing="0" cellpadding="10">
                           {% for ld in rec.latest_deployments %}
-                            <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;">
-                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;">
+                            <tr class="table-annce" style="background: #f8f8f8;">
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.operation }}
                               </td>
                             </tr>
@@ -166,8 +166,8 @@
                             <th style="text-align: left;">Updated Date</th>
                           </tr>
                             {% for lfr in rec.latest_field_reports %}
-                              <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
-                                <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
+                              <tr class="table-annce" style="background: #f8f8f8;">
+                                <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                   {% if lfr.country %}
                                     {{ lfr.country }}
                                   {% endif %}
