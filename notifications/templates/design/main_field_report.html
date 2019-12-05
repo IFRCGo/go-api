@@ -19,7 +19,9 @@
                   </tr>
                   <tr>
                     <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
-                      {{ fr.description }}
+                      {% autoescape off %}
+                        {{ fr.description }}
+                      {% endautoescape %}
                     </td>
                   </tr>
                   <tr>
