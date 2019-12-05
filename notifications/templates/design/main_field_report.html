@@ -82,12 +82,12 @@
                   </tr>
                   {% for at in fr.actions_taken.NTLS %}
                     {% for act in at.actions %}
-                      <tr>
+                      <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
                         <td>{{ act.name }}</td>
                       </tr>
                     {% endfor %}
                     <tr>
-                      <td class="pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;">Summary: {{ at.action_summary }}</td>
+                      <td class="pt-10 pb-10 text-italic" style="padding-top: 10px;padding-bottom: 10px;font-style: italic;">{{ at.action_summary }}</td>
                     </tr>
                   {% endfor %}
                   <tr>
@@ -95,12 +95,12 @@
                   </tr>
                   {% for at in fr.actions_taken.FDRN %}
                     {% for act in at.actions %}
-                      <tr>
+                      <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
                         <td>{{ act.name }}</td>
                       </tr>
                     {% endfor %}
                     <tr>
-                      <td class="pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;">Summary: {{ at.action_summary }}</td>
+                      <td class="pt-10 pb-10 text-italic" style="padding-top: 10px;padding-bottom: 10px;font-style: italic;">{{ at.action_summary }}</td>
                     </tr>
                   {% endfor %}
                   <tr>
@@ -108,12 +108,12 @@
                   </tr>
                   {% for at in fr.actions_taken.PNS %}
                     {% for act in at.actions %}
-                      <tr>
+                      <tr class="table-annce pb-10" style="background: #f8f8f8;padding: 40px 30px;padding-bottom: 10px;">
                         <td>{{ act.name }}</td>
                       </tr>
                     {% endfor %}
                     <tr>
-                      <td class="pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;">Summary: {{ at.action_summary }}</td>
+                      <td class="pt-10 pb-10 text-italic" style="padding-top: 10px;padding-bottom: 10px;font-style: italic;">{{ at.action_summary }}</td>
                     </tr>
                   {% endfor %}
                   <tr>
