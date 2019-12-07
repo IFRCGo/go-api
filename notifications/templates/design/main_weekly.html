@@ -6,95 +6,92 @@
         <td align="center">
           <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
             <tr>
-              <td class="td td-shell">
+              <td class="td td-shell" style="width: 650px;min-width: 650px;padding: 0;margin: 0;">
                 <table width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td class="text-center text-default pb-25" colspan="2">
-                      <span class="table-heading-main">Weekly Digest: </span>
-                      <span class="table-heading-sub">Operations Overview</span>
+                    <td class="text-center text-default pb-25" colspan="2" style="padding-bottom: 25px;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                      <span class="table-heading-main" style="font-weight: bold;font-size: 24px;">Weekly Digest: </span>
+                      <span class="table-heading-sub" style="font-size: 24px;">Operations Overview</span>
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default text-lg text-light" colspan="2">
-                      Below are the latest updates in GO over the past 7 days.
+                    <td class="text-default text-lg text-light" colspan="2" style="font-size: 110%;font-weight: 300;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                      Active IFRC Operations.
                     </td>
                   </tr>
                   <tr>
                     <td class="td" colspan="2">
-                      <table width="100%" border="0" cellspacing="10" cellpadding="0" class="pb-30">
+                      <table width="100%" border="0" cellspacing="10" cellpadding="0" class="pb-30" style="padding-bottom: 30px;">
                         <tr class="text-default text-center text-uppercase tr-box">
-                          <td>
-                            <p class="img-icon img-dref"></p>
-                            <p class="text-bold text-xl">{{ rec.active_dref }}</p>
-                            <p>Active DREF Operations</p>
+                          <td style="border: 1px solid #888;border-radius: 20px;padding: 12px;text-transform: uppercase;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ rec.active_dref }}</p>
+                            <p style="padding: 0;margin: 0;">Active DREF Operations</p>
                           </td>
-                          <td>
-                            <p class="img-icon img-appeal"></p>
-                            <p class="text-bold text-xl">{{ rec.active_ea }}</p>
-                            <p>Active Emergency Appeals</p>
+                          <td style="border: 1px solid #888;border-radius: 20px;padding: 12px;text-transform: uppercase;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ rec.active_ea }}</p>
+                            <p style="padding: 0;margin: 0;">Active Emergency Appeals</p>
                           </td>
-                          <td>
-                            <p class="img-icon img-cash-notes svg-red"></p>
-                            <p class="text-bold text-xl">{{ rec.budget }}M</p>
-                            <p>Total Funding Requirements (CHF)</p>
+                          <td style="border: 1px solid #888;border-radius: 20px;padding: 12px;text-transform: uppercase;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ rec.budget }}M</p>
+                            <p style="padding: 0;margin: 0;">Total Funding Requirements (CHF)</p>
                           </td>
-                          <td>
-                            <p class="img-icon img-cash-bag svg-red"></p>
-                            <p class="text-bold text-xl">{{ rec.funding_coverage }}%</p>
-                            <p>Total Appeal Coverage</p>
+                          <td style="border: 1px solid #888;border-radius: 20px;padding: 12px;text-transform: uppercase;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ rec.funding_coverage }}%</p>
+                            <p style="padding: 0;margin: 0;">Total Appeal Coverage</p>
                           </td>
-                          <td>
-                            <p class="img-icon img-people svg-red"></p>
-                            <p class="text-bold text-xl">{{ rec.population }}M</p>
-                            <p>People targeted</p>
+                          <td style="border: 1px solid #888;border-radius: 20px;padding: 12px;text-transform: uppercase;text-align: center;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ rec.population }}M</p>
+                            <p style="padding: 0;margin: 0;">People targeted</p>
                           </td>
                         </tr>
                       </table>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-default table-heading-title pt-10 pb-10" colspan="2">Highlighted Operations ({{ rec.highlighted_ops|length }})</td>
+                  <!-- <tr>
+                    <td class="text-default table-heading-title pt-10 pb-10" colspan="2" style="padding-top: 10px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Highlighted Operations ({{ rec.highlighted_ops|length }})</td>
                   </tr>
                   {% if rec.highlighted_ops|length %}
                     {% for op in rec.highlighted_ops %}
                       <tr>
-                        <td class="td text-default box box-bordered" style="padding: 0;">
+                        <td class="td text-default box box-bordered" style="padding: 0;border: 1px solid #888;padding: 12px;border-bottom: 16px solid #555;color: #000000;font-family:'Lato', Arial, sans-serif;">
                           <table width="100%" border="0" cellspacing="0" cellpadding="12">
                             <tr>
-                              <td class="text-default pt-20 pb-10">
-                                <p class="text-bold">{{ op.hl_name }}</p>
+                              <td class="text-default pt-20 pb-10" style="padding-top: 20px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <p class="text-bold" style="padding: 0;margin: 0;font-weight: 700;">{{ op.hl_name }}</p>
                                 <br />
-                                <p class="text-light">Last update: {{ op.hl_last_update|date:'d-m-Y' }}</p>
+                                <p class="text-light" style="padding: 0;margin: 0;font-weight: 300;">Last update: {{ op.hl_last_update|date:'d-m-Y' }}</p>
                               </td>
-                              <td class="text-default text-right" style="vertical-align: top;">
-                                <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red">Follow</a>
-                              </td>
-                            </tr>
-                            <tr class="text-uppercase">
-                              <td class="text-default text-light td-light-border">
-                                <p class="text-bold text-xl">{{ op.hl_people }}</p>
-                                <p>People Targeted</p>
-                              </td>
-                              <td class="text-default text-light td-light-border">
-                                <p class="text-bold text-xl">{{ op.hl_deployed_eru }}</p>
-                                <p>Deployed Emergency Response Units</p>
+                              <td class="text-default text-right" style="vertical-align: top;text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #C02C2C;">
+                                  Follow
+                                </a>
                               </td>
                             </tr>
                             <tr class="text-uppercase">
-                              <td class="text-default text-light td-light-border">
-                                <p class="text-bold text-xl">{{ op.hl_funding }}</p>
-                                <p>Funding Requirements</p>
+                              <td class="text-default text-light td-light-border" style="text-transform: uppercase;font-weight: 300;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ op.hl_people }}</p>
+                                <p style="padding: 0;margin: 0;">People Targeted</p>
                               </td>
-                              <td class="text-default text-light td-light-border">
-                                <p class="text-bold text-xl">{{ op.hl_deployed_sp }}</p>
-                                <p>Deployed Surge Personnel</p>
+                              <td class="text-default text-light td-light-border" style="text-transform: uppercase;font-weight: 300;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ op.hl_deployed_eru }}</p>
+                                <p style="padding: 0;margin: 0;">Deployed Emergency Response Units</p>
                               </td>
                             </tr>
                             <tr class="text-uppercase">
-                              <td class="text-light">
+                              <td class="text-default text-light td-light-border" style="text-transform: uppercase;font-weight: 300;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ op.hl_funding }}</p>
+                                <p style="padding: 0;margin: 0;">Funding Requirements</p>
+                              </td>
+                              <td class="text-default text-light td-light-border" style="text-transform: uppercase;font-weight: 300;color: #000000;font-family:'Lato', Arial, sans-serif;">
+                                <p class="text-bold text-xl" style="padding: 0;margin: 0;font-weight: 700;font-size: 120%;">{{ op.hl_deployed_sp }}</p>
+                                <p style="padding: 0;margin: 0;">Deployed Surge Personnel</p>
+                              </td>
+                            </tr>
+                            <tr class="text-uppercase">
+                              <td class="text-light" style="text-transform: uppercase;font-weight: 300;">
                                 Funding Coverage
                               </td>
-                              <td class="text-right text-bold text-lg">
+                              <td class="text-right text-bold text-xl" style="text-transform: uppercase;font-weight: 700;font-size: 120%;text-align: right;">
                                 {{ op.hl_coverage }}%
                               </td>
                             </tr>
@@ -102,83 +99,100 @@
                         </td>
                       </tr>
                     {% endfor %}
-                  {% endif %}
+                  {% endif %} -->
+
+                  {% if rec.latest_ops|length %}
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">IFRC Operations in the past 7 days ({{ rec.latest_ops|length }})</td>
+                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">IFRC Operations in the past 7 days ({{ rec.latest_ops|length }})</td>
                   </tr>
                   <tr>
                     <td class="td" colspan="2">
                       <table width="100%" border="0" cellspacing="0" cellpadding="10">
-                        <tr class="text-default text-left">
-                          <th>Operation Name</th>
-                          <th>Last Update</th>
-                          <th>Funding Requirement (CHF)</th>
+                        <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
+                          <th style="text-align: left;">Operation Name</th>
+                          <th style="text-align: left;">Last Update</th>
+                          <th style="text-align: left;">Funding Requirement (CHF)</th>
                         </tr>
-                        {% if rec.latest_ops|length %}
+                        
                           {% for lo in rec.latest_ops %}
-                            <tr class="table-annce pb-10" >
-                              <td class="text-default td-white-border">
-                                <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link">{{ lo.op_country }}: {{ lo.op_name }}</a>
+                            <tr class="table-annce" style="background: #f8f8f8;">
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                                  {{ lo.op_country }}: {{ lo.op_name }}
+                                </a>
                               </td>
-                              <td class="text-default td-white-border">
+                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                                 {{ lo.op_modified_at|date:'d-m-Y' }}
                               </td>
-                              <td class="text-default td-white-border">
+                              <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                                 {{ lo.op_funding }}
                               </td>
                             </tr>
                         {% endfor %}
-                      {% endif %}
                       </table>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
-                  </tr>
-                  <tr>
-                    <td class="td" colspan="2">
-                      <table width="100%" border="0" cellspacing="0" cellpadding="10">
-                      {% if rec.latest_deployments|length %}
-                        {% for ld in rec.latest_deployments %}
-                          <tr class="table-annce pb-10" >
-                            <td class="text-default td-white-border">
-                              {{ ld.operation }}
-                            </td>
+                  {% endif %}
+
+                  {% if rec.latest_deployments|length %}
+                    <tr>
+                      <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Alerts/Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
+                    </tr>
+                    <tr>
+                      <td class="td" colspan="2">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                          {% for ld in rec.latest_deployments %}
+                            <tr class="table-annce" style="background: #f8f8f8;">
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                {{ ld.operation }}
+                              </td>
+                            </tr>
+                          {% endfor %}
+                        </table>
+                      </td>
+                    </tr>
+                  {% endif %}
+
+                  {% if rec.latest_field_reports|length %}
+                    <tr>
+                      <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Field Reports in the past 7 days ({{ rec.latest_field_reports|length }})</td>
+                    </tr>
+                    <tr>
+                      <td class="td" colspan="2">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="10">
+                          <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
+                            <th style="text-align: left;">Country</th>
+                            <th style="text-align: left;">Summary</th>
+                            <th style="text-align: left;">Updated Date</th>
                           </tr>
-                        {% endfor %}
-                      {% endif %}
-                      </table>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" colspan="2">Field Reports in the past 7 days ({{ rec.latest_field_reports|length }})</td>
-                  </tr>
-                  <tr>
-                    <td class="td" colspan="2">
-                      <table width="100%" border="0" cellspacing="0" cellpadding="10">
-                      {% if rec.latest_field_reports|length %}
-                        {% for lfr in rec.latest_field_reports %}
-                          <tr class="table-annce pb-10" >
-                            <td class="text-default td-white-border">
-                              <p>
-                                <a href="https://go.ifrc.org/reports/{{ lfr.id }}">
+                            {% for lfr in rec.latest_field_reports %}
+                              <tr class="table-annce" style="background: #f8f8f8;">
+                                <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                   {% if lfr.country %}
-                                    {{ lfr.country }}: 
+                                    {{ lfr.country }}
                                   {% endif %}
-                                  {{ lfr.summary }}
-                                </a>
-                              </p>
-                              <p>{{ lfr.updated_at|date:'d-m-Y' }}</p>
-                            </td>
-                          </tr>
-                        {% endfor %}
-                      {% endif %}
-                      </table>
-                    </td>
-                  </tr>
+                                </td>
+                                <td>
+                                  <a href="https://go.ifrc.org/reports/{{ lfr.id }}">
+                                    {% if lfr.summary|length > 24 %}
+                                      {{ lfr.summary|slice:"0:24" }}...
+                                    {% else %}
+                                      {{ lfr.summary }}
+                                    {% endif %}
+                                  </a>
+                                </td>
+                                <td>{{ lfr.updated_at|date:'d-m-Y' }}</td>
+                              </tr>
+                            {% endfor %}
+                        </table>
+                      </td>
+                    </tr>
+                  {% endif %}
                   <tr>
-                    <td class="text-default td-global-font-style text-italic pt-20 pb-10" colspan="2">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link">Update your preferences</a>
+                    <td class="text-default td-global-font-style text-italic pt-20 pb-10" colspan="2" style="padding-top: 20px;padding-bottom: 10px;font-style: italic;color: #000000;font-family:'Lato', Arial, sans-serif; font-weight: 300;font-size: 18px;">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                        Update your preferences
+                      </a>
                     </td>
                   </tr>
                 </table>
