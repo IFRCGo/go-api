@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.199
+
+### Added
+ - Add the style tag to most elements to show up  correctly in the desktop Outlook client
+
 ## 1.1.198
 
 ### Added
@@ -822,7 +827,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.198...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.199...HEAD
+[1.1.199]: https://github.com/IFRCGo/go-api/compare/1.1.198...1.1.199
 [1.1.198]: https://github.com/IFRCGo/go-api/compare/1.1.197...1.1.198
 [1.1.197]: https://github.com/IFRCGo/go-api/compare/1.1.196...1.1.197
 [1.1.196]: https://github.com/IFRCGo/go-api/compare/1.1.195...1.1.196
