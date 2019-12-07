@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.200
+
+### Added
+ - Remove dtype validation for Project
+
 ## 1.1.199
 
 ### Added
@@ -827,7 +832,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.199...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.200...HEAD
+[1.1.200]: https://github.com/IFRCGo/go-api/compare/1.1.199...1.1.200
 [1.1.199]: https://github.com/IFRCGo/go-api/compare/1.1.198...1.1.199
 [1.1.198]: https://github.com/IFRCGo/go-api/compare/1.1.197...1.1.198
 [1.1.197]: https://github.com/IFRCGo/go-api/compare/1.1.196...1.1.197
