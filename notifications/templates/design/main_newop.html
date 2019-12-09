@@ -21,14 +21,16 @@
                       </a>
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Situation Overview</td>
-                  </tr>
-                  <tr>
-                    <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
-                      {{ op.sutiation_overview }}
-                    </td>
-                  </tr>
+                  {% if op.situation_overview %}
+                    <tr>
+                      <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Situation Overview</td>
+                    </tr>
+                    <tr>
+                      <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
+                        {{ op.situation_overview }}
+                      </td>
+                    </tr>
+                  {% endif %}
                   <tr>
                     <td class="td text-default box box-pointed" style="border: 1px solid #888;padding: 12px;border-radius: 20px;border-top-left-radius: 0 !important;">
                       <table width="100%" border="0" cellspacing="0" cellpadding="10" class="pb-30" style="padding-bottom: 30px;">
