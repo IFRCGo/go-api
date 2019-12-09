@@ -339,7 +339,8 @@ class Command(BaseCommand):
                 },
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
-                'assistance': 'Yes' if record.request_assistance else 'No',
+                'gov_assistance': 'Yes' if record.request_assistance else 'No',
+                'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
             localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
