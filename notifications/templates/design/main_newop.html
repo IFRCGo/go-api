@@ -27,7 +27,9 @@
                     </tr>
                     <tr>
                       <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
-                        {{ op.situation_overview }}
+                        {% autoescape off %}
+                          {{ op.situation_overview }}
+                        {% endautoescape %}
                       </td>
                     </tr>
                   {% endif %}
@@ -72,13 +74,12 @@
                       </table>
                     </td>
                   </tr>
-
-                  {% if record.field_reports|length %}
+                  {% if op.field_reports|length %}
                     <tr>
                       <td class="text-default table-heading-title pt-40 pb-10" style="padding-top: 40px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Field Reports</td>
                     </tr>
 
-                    {% for fr in record.field_reports %}
+                    {% for fr in op.field_reports %}
                       <tr>
                         <td class="td">
                           <table width="100%" border="0" cellspacing="0" cellpadding="0">
