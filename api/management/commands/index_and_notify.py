@@ -350,7 +350,7 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id),
+                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
                 'key_figures': {
                     'people_targeted': record.num_beneficiaries or 0,
                     'funding_req': record.amount_requested or 0,
