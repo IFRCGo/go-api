@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.205
+
+### Added
+ - Add new fields to MiniFieldReportSerializer needed for emergency page
+
 ## 1.1.204
 
 ### Added
@@ -852,7 +857,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.204...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.205...HEAD
+[1.1.205]: https://github.com/IFRCGo/go-api/compare/1.1.204...1.1.205
 [1.1.204]: https://github.com/IFRCGo/go-api/compare/1.1.203...1.1.204
 [1.1.203]: https://github.com/IFRCGo/go-api/compare/1.1.202...1.1.203
 [1.1.202]: https://github.com/IFRCGo/go-api/compare/1.1.201...1.1.202
