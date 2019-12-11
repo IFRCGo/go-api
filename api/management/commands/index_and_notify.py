@@ -269,7 +269,7 @@ class Command(BaseCommand):
                 'hl_funding': amount_requested,
                 'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or 0,
                 'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
-                'hl_coverage': round(amount_funded / amount_requested, 1),
+                'hl_coverage': round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0,
             }
             ret_highlights.append(data_to_add)
         return ret_highlights
