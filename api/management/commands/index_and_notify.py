@@ -343,9 +343,9 @@ class Command(BaseCommand):
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
-            localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
-            volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
-            expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
+            # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
+            # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
+            # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
@@ -357,11 +357,11 @@ class Command(BaseCommand):
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
-                    'local_staff': localstaff[0] if localstaff else 0,
-                    'volunteers': volunteers[0] if volunteers else 0,
-                    'expat_delegates': expats[0] if expats else 0,
+                    # 'local_staff': localstaff[0] if localstaff else 0,
+                    # 'volunteers': volunteers[0] if volunteers else 0,
+                    # 'expat_delegates': expats[0] if expats else 0,
                 },
-                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)),
+                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             dig_time = self.get_time_threshold_digest()

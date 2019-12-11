@@ -8,11 +8,18 @@ from email.mime.text import MIMEText
 from api.logger import logger
 
 
-username = os.environ.get('EMAIL_USER')
-password = os.environ.get('EMAIL_PASS')
-emailhost = os.environ.get('EMAIL_HOST')
-emailport = os.environ.get('EMAIL_PORT')
-prod = os.environ.get('PRODUCTION')
+# username = os.environ.get('EMAIL_USER')
+# password = os.environ.get('EMAIL_PASS')
+# emailhost = os.environ.get('EMAIL_HOST')
+# emailport = os.environ.get('EMAIL_PORT')
+# prod = os.environ.get('PRODUCTION')
+
+username = 'go@ifrc.org'
+password = 'pj1bOu4!'
+emailhost = 'smtp.office365.com'
+emailport = '587'
+prod = 423423
+
 
 testEmails=os.environ.get('TEST_EMAILS')
 if testEmails:
@@ -29,10 +36,10 @@ class SendMail(threading.Thread):
             self.recipients = recipients
         else:
             logger.info('Using test email addresses...')
-            self.recipients = []
-            for eml in testEmails:
-                if eml and (eml in recipients):
-                    self.recipients.append(eml)
+            # for eml in testEmails:
+            #     if eml and (eml in recipients):
+            #         self.recipients.append(eml)
+            self.recipients = ['gergely.horvath@ifrc.org']
 
         self.msg = msg
         super(SendMail, self).__init__(**kwargs)
@@ -59,7 +66,7 @@ def send_notification (subject, recipients, html):
         logger.warn('No EMAIL_USER and/or EMAIL_PASS set as environment variables')
         logger.warn('Cannot send notification')
         return
-
+    recipients = ['gergely.horvath@ifrc.org']
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = '[IFRCGO] %s' % subject
