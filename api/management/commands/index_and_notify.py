@@ -246,7 +246,7 @@ class Command(BaseCommand):
         for op in ops:
             op_to_add = {
                 'op_event_id': op.event_id,
-                'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id),
+                'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id) if op.country_id else '',
                 'op_name': op.name,
                 'op_modified_at': op.modified_at,
                 'op_funding': op.amount_requested,
