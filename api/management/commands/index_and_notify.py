@@ -343,6 +343,7 @@ class Command(BaseCommand):
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
+            # Maybe we need these in the future
             # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
             # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
             # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
