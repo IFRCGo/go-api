@@ -18,6 +18,7 @@ from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
 from .forms import ActionForm
+from api.management.commands.index_and_notify import Command as Notify
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -259,20 +260,22 @@ class FieldReportAdmin(RegionRestrictedAdmin):
     create_events.short_description = 'Create emergencies from selected reports'
 
     def export_field_reports(self, request, queryset):
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
+        Notify().notify(None, 1, 0)
+        return
+        # meta = self.model._meta
+        # field_names = [field.name for field in meta.fields]
+        # timestr = time.strftime("%Y%m%d-%H%M%S")
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=FieldReports_export_{}.csv'.format(
-            timestr)
-        writer = csv.writer(response)
+        # response = HttpResponse(content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename=FieldReports_export_{}.csv'.format(
+        #     timestr)
+        # writer = csv.writer(response)
 
-        writer.writerow(field_names)
+        # writer.writerow(field_names)
 
-        for fr in queryset:
-            row = writer.writerow([getattr(fr, field) for field in field_names])
-        return response
+        # for fr in queryset:
+        #     row = writer.writerow([getattr(fr, field) for field in field_names])
+        # return response
     export_field_reports.short_description = 'Export selected Field Reports to CSV'
 
     def get_actions(self, request):
