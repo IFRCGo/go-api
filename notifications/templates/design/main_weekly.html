@@ -110,7 +110,7 @@
                       <table width="100%" border="0" cellspacing="0" cellpadding="10">
                         <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                           <th style="text-align: left;">Operation Name</th>
-                          <th style="text-align: left;">Last Update</th>
+                          <th style="text-align: left;">Created Date</th>
                           <th style="text-align: left;">Funding Requirement (CHF)</th>
                         </tr>
                         
@@ -122,7 +122,7 @@
                                 </a>
                               </td>
                               <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                {{ lo.op_modified_at|date:'d-m-Y' }}
+                                {{ lo.op_created_at|date:'d-m-Y' }}
                               </td>
                               <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                                 {{ lo.op_funding }}
@@ -163,7 +163,7 @@
                           <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                             <th style="text-align: left;">Country</th>
                             <th style="text-align: left;">Summary</th>
-                            <th style="text-align: left;">Updated Date</th>
+                            <th style="text-align: left;">Created Date</th>
                           </tr>
                             {% for lfr in rec.latest_field_reports %}
                               <tr class="table-annce" style="background: #f8f8f8;">
@@ -181,7 +181,7 @@
                                     {% endif %}
                                   </a>
                                 </td>
-                                <td>{{ lfr.updated_at|date:'d-m-Y' }}</td>
+                                <td>{{ lfr.created_at|date:'d-m-Y' }}</td>
                               </tr>
                             {% endfor %}
                         </table>
