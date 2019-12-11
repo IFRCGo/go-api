@@ -241,14 +241,14 @@ class Command(BaseCommand):
     
     def get_weekly_digest_latest_ops(self):
         dig_time = self.get_time_threshold_digest()
-        ops = Appeal.objects.filter(modified_at__gte=dig_time).order_by('-modified_at')
+        ops = Appeal.objects.filter(created_at__gte=dig_time).order_by('-created_at')
         ret_ops = []
         for op in ops:
             op_to_add = {
                 'op_event_id': op.event_id,
                 'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id) if op.country_id else '',
                 'op_name': op.name,
-                'op_modified_at': op.modified_at,
+                'op_created_at': op.created_at,
                 'op_funding': op.amount_requested,
             }
             ret_ops.append(op_to_add)
@@ -300,13 +300,13 @@ class Command(BaseCommand):
     def get_weekly_latest_frs(self):
         dig_time = self.get_time_threshold_digest()
         ret_fr_list = []
-        fr_list = list(FieldReport.objects.filter(updated_at__gte=dig_time).order_by('-updated_at'))
+        fr_list = list(FieldReport.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
         for fr in fr_list:
             fr_data = {
                 'id': fr.id,
                 'country': fr.countries.all()[0].name if fr.countries else None,
                 'summary': fr.summary,
-                'updated_at': fr.updated_at,
+                'created_at': fr.created_at,
             }
             ret_fr_list.append(fr_data)
         return ret_fr_list
