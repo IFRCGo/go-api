@@ -840,4 +840,16 @@ class Profile(models.Model):
         return self.user.username
 
 
+class EmergencyOperationsDataset(models.Model):
+    is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    # Raw data from the scraper
+    raw_file_name = models.TextField(null=True, blank=True)
+    raw_file_url = models.TextField(null=True, blank=True)
+    raw_appeal_launch_date = models.TextField(null=True, blank=True)
+    raw_appeal_number  = models.TextField(null=True, blank=True)
+
+
 from .triggers import *
