@@ -390,6 +390,7 @@ class Command(BaseCommand):
             # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
+                'follow_url': '{}/account#notifications'.format(frontend_url),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
