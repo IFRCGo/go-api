@@ -12,7 +12,7 @@ from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
 from notifications.notification import send_notification
-from deployments.models import PersonnelDeployment, ERU
+from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
 
@@ -254,6 +254,44 @@ class Command(BaseCommand):
             ret_ops.append(op_to_add)
         return ret_ops
 
+    def get_weekly_digest_latest_deployments(self):
+        dig_time = self.get_time_threshold_digest()
+        surge_list = list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
+        ret_data = []
+        if surge_list:
+            for alert in surge_list:
+                event = Event.objects.get(id=alert.event_id) if alert.event_id != None else None
+                alert_to_add = {
+                    'type': 'Alert',
+                    'operation': alert.operation,
+                    'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+                    'country_from': '',
+                    'country_to': '',
+                    'name': '',
+                    'role': '',
+                }
+                ret_data.append(alert_to_add)
+        dep_list = list(PersonnelDeployment.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
+        if dep_list:
+            for dep in dep_list:
+                event = Event.objects.get(id=dep.event_deployed_to_id) if dep.event_deployed_to_id != None else None
+                personnel = Personnel.objects.filter(deployment_id=dep.id)
+                for pers in personnel:    
+                    country_from = Country.ojbects.get(id=pers.country_from_id) if pers.country_from_id != None else None
+                    country_to = Country.objects.get(id=dep.country_deployed_to_id) if dep.country_deployed_to_id != None else None
+                    dep_to_add = {
+                        'type': 'Deployment',
+                        'operation': dep.operation,
+                        'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+                        'country_from': country_from.name if country_from else '',
+                        'country_to': country_to.name if country_to else '',
+                        'name': pers.name,
+                        'role': pers.role,
+                    }
+                    ret_data.append(dep_to_add)
+        return ret_data
+
+
     def get_weekly_digest_highlights(self):
         dig_time = self.get_time_threshold_digest()
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
@@ -374,7 +412,7 @@ class Command(BaseCommand):
                 'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at')),
+                'latest_deployments': self.get_weekly_digest_latest_deployments(),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
         else: # The default (old) template
