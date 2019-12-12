@@ -143,22 +143,23 @@
                         <table width="100%" border="0" cellspacing="0" cellpadding="10">
                           <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                             <th style="text-align: left;">Type</th>
-                            <th style="text-align: left;">Operation</th>
-                            <th style="text-align: left;">Name</th>
+                            <th style="text-align: left;">Title</th>
+                            <th style="text-align: left;">Deploying Person</th>
                             <th style="text-align: left;">Role</th>
-                            <th style="text-align: left;">Country from</th>
+                            <th style="text-align: left;">Society from</th>
                             <th style="text-align: left;">Deployment</th>
+                            <th style="text-align: left;">Appeal</th>
                           </tr>
 
                           {% for ld in rec.latest_deployments %}
                             <tr class="table-annce" style="background: #f8f8f8;">
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                {{ ld.type }}
+                                  <a class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                                    {{ ld.type }}
+                                  </a>
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                <a class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
                                   {{ ld.operation }}
-                                </a>
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.name }}
@@ -167,10 +168,13 @@
                                 {{ ld.role }}
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                {{ ld.country_from }}
+                                {{ ld.society_from }}
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                {{ ld.country_to }}
+                                {{ ld.deployed_to }}
+                              </td>
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                {{ ld.appeal }}
                               </td>
                             </tr>
                           {% endfor %}

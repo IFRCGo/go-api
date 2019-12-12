@@ -265,10 +265,11 @@ class Command(BaseCommand):
                     'type': 'Alert',
                     'operation': alert.operation,
                     'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
-                    'country_from': '',
-                    'country_to': '',
+                    'society_from': '',
+                    'deployed_to': '',
                     'name': '',
                     'role': '',
+                    'appeal': '',
                 }
                 ret_data.append(alert_to_add)
         dep_list = list(PersonnelDeployment.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
@@ -277,16 +278,18 @@ class Command(BaseCommand):
                 event = Event.objects.get(id=dep.event_deployed_to_id) if dep.event_deployed_to_id != None else None
                 personnel = Personnel.objects.filter(deployment_id=dep.id)
                 for pers in personnel:    
-                    country_from = Country.ojbects.get(id=pers.country_from_id) if pers.country_from_id != None else None
+                    country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
                     country_to = Country.objects.get(id=dep.country_deployed_to_id) if dep.country_deployed_to_id != None else None
+                    appeal = Appeal.objects.get(id=dep.appeal_deployed_to_id) if dep.appeal_deployed_to_id != None else None
                     dep_to_add = {
                         'type': 'Deployment',
-                        'operation': dep.operation,
+                        'operation': event.name if event else '',
                         'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
-                        'country_from': country_from.name if country_from else '',
-                        'country_to': country_to.name if country_to else '',
+                        'society_from': country_from.society_name if country_from else '',
+                        'deployed_to': country_to.name if country_to else '',
                         'name': pers.name,
                         'role': pers.role,
+                        'appeal': appeal.code if appeal else '',
                     }
                     ret_data.append(dep_to_add)
         return ret_data
