@@ -154,7 +154,7 @@
                           {% for ld in rec.latest_deployments %}
                             <tr class="table-annce" style="background: #f8f8f8;">
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                  <a class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                                  <a href="{{ ld.event_url }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
                                     {{ ld.type }}
                                   </a>
                               </td>
