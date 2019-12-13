@@ -136,30 +136,32 @@
 
                   {% if rec.latest_deployments|length %}
                     <tr>
-                      <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Alerts/Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
+                      <td class="text-default table-heading-title pt-40 pb-10" colspan="2" style="padding-top: 40px;padding-bottom: 10px;color: #000000;font-family:'Lato', Arial, sans-serif;text-transform: uppercase;font-weight: bold;">Deployments in the past 7 days ({{ rec.latest_deployments|length }})</td>
                     </tr>
                     <tr>
                       <td class="td" colspan="2">
                         <table width="100%" border="0" cellspacing="0" cellpadding="10">
                           <tr class="text-default text-left" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
-                            <th style="text-align: left;">Type</th>
-                            <th style="text-align: left;">Title</th>
-                            <th style="text-align: left;">Deploying Person</th>
+                            <!-- <th style="text-align: left;">Type</th> -->
+                            <th style="text-align: left;">Emergency</th>
+                            <th style="text-align: left;">Name</th>
                             <th style="text-align: left;">Role</th>
-                            <th style="text-align: left;">Society from</th>
-                            <th style="text-align: left;">Deployment</th>
-                            <th style="text-align: left;">Appeal</th>
+                            <th style="text-align: left;">Deployed by</th>
+                            <!-- <th style="text-align: left;">Deployment</th>
+                            <th style="text-align: left;">Appeal</th> -->
+                            <th style="text-align: left;">Start date</th>
+                            <th style="text-align: left;">End date</th>
                           </tr>
 
                           {% for ld in rec.latest_deployments %}
                             <tr class="table-annce" style="background: #f8f8f8;">
+                              <!-- <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                {{ ld.type }}
+                              </td> -->
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                  <a href="{{ ld.event_url }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
-                                    {{ ld.type }}
-                                  </a>
-                              </td>
-                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                <a href="{{ ld.event_url }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
                                   {{ ld.operation }}
+                                </a>
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.name }}
@@ -170,11 +172,17 @@
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.society_from }}
                               </td>
-                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                              <!-- <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.deployed_to }}
                               </td>
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 {{ ld.appeal }}
+                              </td> -->
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                {{ ld.start_date|date:'d-m-Y' }}
+                              </td>
+                              <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
+                                {{ ld.end_date|date:'d-m-Y' }}
                               </td>
                             </tr>
                           {% endfor %}

@@ -256,22 +256,26 @@ class Command(BaseCommand):
 
     def get_weekly_digest_latest_deployments(self):
         dig_time = self.get_time_threshold_digest()
-        surge_list = list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
         ret_data = []
-        if surge_list:
-            for alert in surge_list:
-                event = Event.objects.get(id=alert.event_id) if alert.event_id != None else None
-                alert_to_add = {
-                    'type': 'Alert',
-                    'operation': alert.operation,
-                    'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
-                    'society_from': '',
-                    'deployed_to': '',
-                    'name': '',
-                    'role': '',
-                    'appeal': '',
-                }
-                ret_data.append(alert_to_add)
+
+        # Surge Alerts
+        # surge_list = list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
+        # if surge_list:
+        #     for alert in surge_list:
+        #         event = Event.objects.get(id=alert.event_id) if alert.event_id != None else None
+        #         alert_to_add = {
+        #             'type': 'Alert',
+        #             'operation': alert.operation,
+        #             'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+        #             'society_from': '',
+        #             'deployed_to': '',
+        #             'name': '',
+        #             'role': '',
+        #             'appeal': '',
+        #         }
+        #         ret_data.append(alert_to_add)
+
+        # Surge Deployments
         dep_list = list(PersonnelDeployment.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
         if dep_list:
             for dep in dep_list:
@@ -279,17 +283,19 @@ class Command(BaseCommand):
                 personnel = Personnel.objects.filter(deployment_id=dep.id)
                 for pers in personnel:    
                     country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
-                    country_to = Country.objects.get(id=dep.country_deployed_to_id) if dep.country_deployed_to_id != None else None
-                    appeal = Appeal.objects.get(id=dep.appeal_deployed_to_id) if dep.appeal_deployed_to_id != None else None
+                    # country_to = Country.objects.get(id=dep.country_deployed_to_id) if dep.country_deployed_to_id != None else None
+                    # appeal = Appeal.objects.get(id=dep.appeal_deployed_to_id) if dep.appeal_deployed_to_id != None else None
                     dep_to_add = {
-                        'type': 'Deployment',
+                        # 'type': 'Deployment',
                         'operation': event.name if event else '',
                         'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
                         'society_from': country_from.society_name if country_from else '',
-                        'deployed_to': country_to.name if country_to else '',
+                        # 'deployed_to': country_to.name if country_to else '',
                         'name': pers.name,
                         'role': pers.role,
-                        'appeal': appeal.code if appeal else '',
+                        # 'appeal': appeal.code if appeal else '',
+                        'start_date': dep.start_date,
+                        'end_date': dep.end_date,
                     }
                     ret_data.append(dep_to_add)
         return ret_data
@@ -384,7 +390,6 @@ class Command(BaseCommand):
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
-            # Maybe we need these in the future
             # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
             # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
             # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
