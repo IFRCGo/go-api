@@ -523,6 +523,13 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         'raw_education_people_targeted',
         'raw_education_requirements',
     )
+    actions = ['scrape_data',]
+
+    def scrape_data(self, request, queryset):
+        epoa_list = models.EmergencyOperationsDataset.objects.all()
+        start_extraction(epoa_list)
+        return
+    scrape_data.short_description = 'Starts the scraping from the PDFs'
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
