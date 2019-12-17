@@ -228,7 +228,7 @@ class Command(BaseCommand):
                     .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
                     .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
             )
-            percent = round(amount_fund / amount_req, 3) * 100
+            percent = round(amount_fund / amount_req, 3) * 100 if amount_req != 0 else 0
             return percent
         elif field == 'budget':
             amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
@@ -306,15 +306,15 @@ class Command(BaseCommand):
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
-            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
-            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
+            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
+            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or '--'
             data_to_add = {
                 'hl_id': ev.id,
                 'hl_name': ev.name,
                 'hl_last_update': ev.updated_at,
-                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0,
+                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or '--',
                 'hl_funding': amount_requested,
-                'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or 0,
+                'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or '--',
                 'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
                 'hl_coverage': round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0,
             }
@@ -358,6 +358,13 @@ class Command(BaseCommand):
             ret_fr_list.append(fr_data)
         return ret_fr_list
 
+    def get_fieldreport_keyfigures(self, num_list):
+        is_none = all(num == None for num in num_list)
+        if is_none:
+            return '--'
+        
+        return sum(filter(None, num_list))
+
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
         if rtype != RecordType.WEEKLY_DIGEST:
@@ -374,15 +381,15 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'description': shortened,
                 'key_figures': {
-                    'affected': (record.num_affected or 0) + (record.gov_num_affected or 0) + (record.other_num_affected or 0),
-                    'injured': (record.num_injured or 0) + (record.gov_num_injured or 0) + (record.other_num_injured or 0),
-                    'dead': (record.num_dead or 0) + (record.gov_num_dead or 0) + (record.other_num_dead or 0),
-                    'missing': (record.num_missing or 0) + (record.gov_num_missing or 0) + (record.other_num_missing or 0),
-                    'displaced': (record.num_displaced or 0) + (record.gov_num_displaced or 0) + (record.other_num_displaced or 0),
-                    'assisted': (record.num_assisted or 0) + (record.gov_num_assisted or 0) + (record.other_num_assisted or 0),
-                    'local_staff': record.num_localstaff or 0,
-                    'volunteers': record.num_volunteers or 0,
-                    'expat_delegates': record.num_expats_delegates or 0,
+                    'affected': self.get_fieldreport_keyfigures((record.num_affected, record.gov_num_affected, record.other_num_affected)),
+                    'injured': self.get_fieldreport_keyfigures((record.num_injured, record.gov_num_injured, record.other_num_injured)),
+                    'dead': self.get_fieldreport_keyfigures((record.num_dead, record.gov_num_dead, record.other_num_dead)),
+                    'missing': self.get_fieldreport_keyfigures((record.num_missing, record.gov_num_missing, record.other_num_missing)),
+                    'displaced': self.get_fieldreport_keyfigures((record.num_displaced, record.gov_num_displaced, record.other_num_displaced)),
+                    'assisted': self.get_fieldreport_keyfigures((record.num_assisted, record.gov_num_assisted, record.other_num_assisted)),
+                    'local_staff': record.num_localstaff or '--',
+                    'volunteers': record.num_volunteers or '--',
+                    'expat_delegates': record.num_expats_delegates or '--',
                 },
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
@@ -400,8 +407,8 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
                 'key_figures': {
-                    'people_targeted': record.num_beneficiaries or 0,
-                    'funding_req': record.amount_requested or 0,
+                    'people_targeted': record.num_beneficiaries or '--',
+                    'funding_req': record.amount_requested or '--',
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
