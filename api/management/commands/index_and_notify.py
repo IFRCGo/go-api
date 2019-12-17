@@ -276,28 +276,22 @@ class Command(BaseCommand):
         #         ret_data.append(alert_to_add)
 
         # Surge Deployments
-        dep_list = list(PersonnelDeployment.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
-        if dep_list:
-            for dep in dep_list:
-                event = Event.objects.get(id=dep.event_deployed_to_id) if dep.event_deployed_to_id != None else None
-                personnel = Personnel.objects.filter(deployment_id=dep.id)
-                for pers in personnel:    
-                    country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
-                    # country_to = Country.objects.get(id=dep.country_deployed_to_id) if dep.country_deployed_to_id != None else None
-                    # appeal = Appeal.objects.get(id=dep.appeal_deployed_to_id) if dep.appeal_deployed_to_id != None else None
-                    dep_to_add = {
-                        # 'type': 'Deployment',
-                        'operation': event.name if event else '',
-                        'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
-                        'society_from': country_from.society_name if country_from else '',
-                        # 'deployed_to': country_to.name if country_to else '',
-                        'name': pers.name,
-                        'role': pers.role,
-                        # 'appeal': appeal.code if appeal else '',
-                        'start_date': dep.start_date,
-                        'end_date': dep.end_date,
-                    }
-                    ret_data.append(dep_to_add)
+        personnel_list = Personnel.objects.filter(start_date__gte=dig_time).order_by('start_date')
+        for pers in personnel_list:
+            deployment = PersonnelDeployment.objects.get(id=pers.deployment_id)
+            event = Event.objects.get(id=deployment.event_deployed_to_id) if deployment.event_deployed_to_id != None else None
+            country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
+            dep_to_add = {
+                'operation': event.name if event else '',
+                'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+                'society_from': country_from.society_name if country_from else '',
+                'name': pers.name,
+                'role': pers.role,
+                'start_date': pers.start_date,
+                'end_date': pers.end_date,
+            }
+            ret_data.append(dep_to_add)
+
         return ret_data
 
 
@@ -362,7 +356,7 @@ class Command(BaseCommand):
         is_none = all(num == None for num in num_list)
         if is_none:
             return '--'
-        
+
         return sum(filter(None, num_list))
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
