@@ -407,8 +407,8 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
                 'key_figures': {
-                    'people_targeted': record.num_beneficiaries or '--',
-                    'funding_req': record.amount_requested or '--',
+                    'people_targeted': record.num_beneficiaries,
+                    'funding_req': record.amount_requested,
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
