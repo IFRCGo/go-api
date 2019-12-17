@@ -387,9 +387,9 @@ class Command(BaseCommand):
                     'missing': self.get_fieldreport_keyfigures((record.num_missing, record.gov_num_missing, record.other_num_missing)),
                     'displaced': self.get_fieldreport_keyfigures((record.num_displaced, record.gov_num_displaced, record.other_num_displaced)),
                     'assisted': self.get_fieldreport_keyfigures((record.num_assisted, record.gov_num_assisted, record.other_num_assisted)),
-                    'local_staff': record.num_localstaff or '--',
-                    'volunteers': record.num_volunteers or '--',
-                    'expat_delegates': record.num_expats_delegates or '--',
+                    # 'local_staff': record.num_localstaff or '--',
+                    # 'volunteers': record.num_volunteers or '--',
+                    # 'expat_delegates': record.num_expats_delegates or '--',
                 },
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
@@ -480,10 +480,13 @@ class Command(BaseCommand):
             adj = 'new' if stype == SubscriptionType.NEW else 'modified'
             #subject = '%s %s %s in IFRC GO' % (
             if rtype == RecordType.WEEKLY_DIGEST:
-                subject = '%s %s' % (
-                    adj,
+                subject = '%s' % (
                     record_type,
                 )
+                # subject = '%s %s' % (
+                #     adj,
+                #     record_type,
+                # )
             else:
                 subject = '%s %s %s' % (
                     record_count,
