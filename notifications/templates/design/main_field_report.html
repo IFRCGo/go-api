@@ -1,4 +1,6 @@
   <!-- Main -->
+{% load humanize %}
+
 {% if records|length %}
   {% for fr in records %}
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -34,37 +36,73 @@
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Affected</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.affected }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.affected != '--' %}
+                              {{ fr.key_figures.affected|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.affected }}
+                            {% endif %}
+                          </td>
                           <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.local_staff }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Injured</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.injured }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.injured != '--' %}
+                              {{ fr.key_figures.injured|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.injured }}
+                            {% endif %}
+                          </td>
                           <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.volunteers }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.dead }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.dead != '--' %}
+                              {{ fr.key_figures.dead|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.dead }}
+                            {% endif %}
+                          </td>
                           <!-- <td class="text-default text-light text-uppercase">Expat Delegates</td>
                           <td class="text-default text-bold pr-20">{{ fr.key_figures.expat_delegates }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Missing</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.missing }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.missing != '--' %}
+                              {{ fr.key_figures.missing|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.missing }}
+                            {% endif %}
+                          </td>
                           <!-- <td></td>
                           <td></td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Displaced</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.displaced }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.displaced != '--' %}
+                              {{ fr.key_figures.displaced|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.displaced }}
+                            {% endif %}
+                          </td>
                           <!-- <td></td>
                           <td></td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Assisted</td>
-                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">{{ fr.key_figures.assisted }}</td>
+                          <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                            {% if fr.key_figures.assisted != '--' %}
+                              {{ fr.key_figures.assisted|floatformat|intcomma }}
+                            {% else %}
+                              {{ fr.key_figures.assisted }}
+                            {% endif %}
+                          </td>
                           <!-- <td></td>
                           <td></td> -->
                         </tr>

@@ -1,4 +1,6 @@
   <!-- Main -->
+{% load humanize %}
+
 {% if records|length %}
   {% for op in records %}
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -43,13 +45,13 @@
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">People Targeted</td>
-                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.people_targeted }}</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.people_targeted|floatformat|intcomma }}</td>
                           <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.local_staff }}</td> -->
                         </tr>
                         <tr>
                           <td class="text-default text-light text-uppercase pl-20" style="padding-left: 20px;text-transform: uppercase;font-weight: 300;">Funding Requested</td>
-                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.funding_req }} (CHF)</td>
+                          <td class="text-default text-bold pr-20" style="padding-right: 20px;font-weight: 700;">{{ op.key_figures.funding_req|floatformat|intcomma }} (CHF)</td>
                           <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
                           <td class="text-default text-bold pr-20">{{ op.key_figures.volunteers }}</td> -->
                         </tr>
