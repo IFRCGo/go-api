@@ -20,7 +20,7 @@ from pdfminer.pdfpage import PDFPage
 from tidylib import tidy_document
 
 from api.scrapers.extractor import MetaFieldExtractor, SectorFieldExtractor
-from config import (
+from api.scrapers.config import (
     _mfd,
     _s,
     _sfd,
