@@ -142,7 +142,7 @@ def convert_pdf_to_html(pdf_data):
 
 
 def convert_pdf_to_text_blocks(pdf_data):
-    html = convert_pdf_to_html(pdf_data)    
+    html = convert_pdf_to_html(pdf_data)
     soup = bsoup(html, 'html.parser')
     texts = []
     for div in soup.find_all('div'):

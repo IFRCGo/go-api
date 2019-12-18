@@ -529,8 +529,69 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
     def scrape_data(self, request, queryset):
         epoa_list = models.EmergencyOperationsDataset.objects.all().values_list('raw_file_url', flat=True)
         scraped_data = scraper.start_extraction(epoa_list)
-        #TODO: save the data into DB
-        #TODO: try to clean the data as much as possible
+
+        to_create = []
+        for data in scraped_data:
+            new_epoa = models.EmergencyOperationsDataset(
+                # TODO: look for a way to check if key exists effectively...
+                raw_file_name=data['filename'],
+                raw_file_url=data['url'],
+                raw_appeal_launch_date=data['meta']['appealLaunchDate'],
+                raw_appeal_number=data['meta']['appealNumber'],
+                raw_category_allocated=data['meta']['categoryAllocated'],
+                raw_date_of_issue=data['meta']['dateOfIssue'],
+                raw_dref_allocated=data['meta']['drefAllocated'],
+                raw_expected_end_date=data['meta']['expectedEndDate'],
+                raw_expected_time_frame=data['meta']['expectedTimeFrame'],
+                raw_glide_number=data['meta']['glideNumber'],
+                raw_num_of_people_affected=data['meta']['numOfPeopleAffected'],
+                raw_num_of_people_to_be_assisted=data['meta']['numOfPeopleToBeAssisted'],
+                raw_disaster_risk_reduction_female=data['sector']['disasterRiskReduction']['female'],
+                raw_disaster_risk_reduction_male=data['sector']['disasterRiskReduction']['male'],
+                raw_disaster_risk_reduction_people_reached=data['sector']['disasterRiskReduction']['peopleReached'],
+                raw_disaster_risk_reduction_people_targeted=data['sector']['disasterRiskReduction']['peopleTargeted'],
+                raw_disaster_risk_reduction_requirements=data['sector']['disasterRiskReduction']['requirements'],
+                raw_health_female=data['sector']['health']['female'],
+                raw_health_male=data['sector']['health']['male'],
+                raw_health_people_reached=data['sector']['health']['peopleReached'],
+                raw_health_people_targeted=data['sector']['health']['peopleTargeted'],
+                raw_health_requirements=data['sector']['health']['requirements'],
+                raw_livelihoods_and_basic_needs_female=data['sector']['livelihoodsAndBasicNeeds']['female'],
+                raw_livelihoods_and_basic_needs_male=data['sector']['livelihoodsAndBasicNeeds']['male'],
+                raw_livelihoods_and_basic_needs_people_reached=data['sector']['livelihoodsAndBasicNeeds']['peopleReached'],
+                raw_livelihoods_and_basic_needs_people_targeted=data['sector']['livelihoodsAndBasicNeeds']['peopleTargeted'],
+                raw_livelihoods_and_basic_needs_requirements=data['sector']['livelihoodsAndBasicNeeds']['requirements'],
+                raw_migration_female=data['sector']['migration']['female'],
+                raw_migration_male=data['sector']['migration']['male'],
+                raw_migration_people_reached=data['sector']['migration']['peopleReached'],
+                raw_migration_people_targeted=data['sector']['migration']['peopleTargeted'],
+                raw_migration_requirements=data['sector']['migration']['requirements'],
+                raw_protection_gender_and_inclusion_female=data['sector']['protectionGenderAndInclusion']['female'],
+                raw_protection_gender_and_inclusion_male=data['sector']['protectionGenderAndInclusion']['male'],
+                raw_protection_gender_and_inclusion_people_reached=data['sector']['protectionGenderAndInclusion']['peopleReached'],
+                raw_protection_gender_and_inclusion_people_targeted=data['sector']['protectionGenderAndInclusion']['peopleTargeted'],
+                raw_protection_gender_and_inclusion_requirements=data['sector']['protectionGenderAndInclusion']['requirements'],
+                raw_shelter_female=data['sector']['shelter']['female'],
+                raw_shelter_male=data['sector']['shelter']['male'],
+                raw_shelter_people_reached=data['sector']['shelter']['peopleReached'],
+                raw_shelter_people_targeted=data['sector']['shelter']['peopleTargeted'],
+                raw_shelter_requirements=data['sector']['shelter']['requirements'],
+                raw_water_sanitation_and_hygiene_female=data['sector']['waterSanitationAndHygiene']['female'],
+                raw_water_sanitation_and_hygiene_male=data['sector']['waterSanitationAndHygiene']['male'],
+                raw_water_sanitation_and_hygiene_people_reached=data['sector']['waterSanitationAndHygiene']['peopleReached'],
+                raw_water_sanitation_and_hygiene_people_targeted=data['sector']['waterSanitationAndHygiene']['peopleTargeted'],
+                raw_water_sanitation_and_hygiene_requirements=data['sector']['waterSanitationAndHygiene']['requirements'],
+                raw_education_female=data['sector']['education']['female'],
+                raw_education_male=data['sector']['education']['male'],
+                raw_education_people_reached=data['sector']['education']['peopleReached'],
+                raw_education_people_targeted=data['sector']['education']['peopleTargeted'],
+                raw_education_requirements=data['sector']['education']['requirements'],
+
+                #TODO: add cleaned data
+            )
+            to_create.append(new_epoa)
+        models.EmergencyOperationsDataset.objects.bulk_create(to_create)
+
         return
     scrape_data.short_description = 'Starts the scraping from the PDFs'
 
