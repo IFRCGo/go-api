@@ -19,7 +19,7 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from tidylib import tidy_document
 
-from extractor import MetaFieldExtractor, SectorFieldExtractor
+from api.scrapers.extractor import MetaFieldExtractor, SectorFieldExtractor
 from config import (
     _mfd,
     _s,
