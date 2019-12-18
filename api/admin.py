@@ -11,6 +11,7 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, ChoiceDropdownFilter, RelatedDropdownFilter
 )
 import api.models as models
+import api.scrapers.scrape as scraper
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -526,8 +527,10 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
     actions = ['scrape_data',]
 
     def scrape_data(self, request, queryset):
-        epoa_list = models.EmergencyOperationsDataset.objects.all()
-        start_extraction(epoa_list)
+        epoa_list = models.EmergencyOperationsDataset.objects.all().values_list('raw_file_url', flat=True)
+        scraped_data = scraper.start_extraction(epoa_list)
+        #TODO: save the data into DB
+        #TODO: try to clean the data as much as possible
         return
     scrape_data.short_description = 'Starts the scraping from the PDFs'
 
