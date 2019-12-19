@@ -1,6 +1,6 @@
 import re
 from fuzzywuzzy import fuzz
-from config import (
+from api.scrapers.config import (
     M_KEYS,
     M_EXTRACTORS,
     get_meta_misc_keys,

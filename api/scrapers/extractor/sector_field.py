@@ -1,7 +1,7 @@
 import re
 from fuzzywuzzy import fuzz
 # from common import json_preety
-from config import (
+from api.scrapers.config import (
     S_KEYS,
     SF_KEYS,
     # M_EXTRACTORS,
