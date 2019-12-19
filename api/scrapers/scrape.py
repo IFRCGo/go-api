@@ -162,7 +162,6 @@ def read_pdf_into_memory(url):
     return pdf_data
 
 
-# TODO: pass the queryset from the DB to this
 def start_extraction(epoa_list_in_db):
     processed_data = []
     errored_data = []
