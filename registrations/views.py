@@ -123,6 +123,7 @@ def is_valid_domain(email):
         'redcross.or.th',
         'redcross.org',
         'redcross.org.au',
+        'redcross.org.ck',
         'redcross.org.cn',
         'redcross.org.cy',
         'redcross.org.hk',
@@ -177,7 +178,10 @@ def is_valid_domain(email):
         'sierraleoneredcross.org',
         'srcs.sd',
         'standcom.ch',
+        'tongaredcross.to',
         'trcs.or.tz',
+        'vanuaturedcross.org',
+        'redcrossvanuatu.com',
         'voroskereszt.hu' # no comma
     ]
     if domain in allowed_list:
