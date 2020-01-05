@@ -47,6 +47,7 @@ from per.views import (
     DelOverview,
     DelDraft,
 )
+from databank.views import CountryOverviewViewSet
 
 # DRF routes
 from rest_framework import routers
@@ -100,6 +101,8 @@ router.register(r'per_global_preparedness', per_views.GlobalPreparednessViewset)
 router.register(r'per_ns_phase', per_views.NSPhaseViewset)
 router.register(r'regional-project', deployment_views.RegionalProjectViewset)
 router.register(r'project', deployment_views.ProjectViewset)
+router.register(r'data-bank/country-overview', CountryOverviewViewSet)
+
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

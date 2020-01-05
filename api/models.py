@@ -95,16 +95,22 @@ class Country(models.Model):
     name = models.CharField(max_length=100)
     record_type = EnumIntegerField(CountryType, default=1, help_text='Type of entity')
     iso = models.CharField(max_length=2, null=True)
+    iso3 = models.CharField(max_length=3, null=True)
     society_name = models.TextField(blank=True)
     society_url = models.URLField(blank=True)
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
     overview = models.TextField(blank=True, null=True)
     key_priorities = models.TextField(blank=True, null=True)
     inform_score = models.DecimalField(blank=True, null=True, decimal_places=2, max_digits=3)
-    #logo = models.FileField(blank=True, null=True, upload_to='documents/', # for local tests
-    logo = models.FileField(blank=True, null=True, upload_to=logo_document_path,
-        storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png','jpg','gif'])])
+    # logo = models.FileField(blank=True, null=True, upload_to='documents/', # for local tests
+    logo = models.FileField(
+        blank=True, null=True, upload_to=logo_document_path,
+        storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
+    )
 
+    # Population Data From WB API
+    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text='Population data from WB API')
+    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text='Population data year from WB API')
 
     def indexing(self):
         return {
@@ -140,6 +146,10 @@ class District(models.Model):
     country_iso = models.CharField(max_length=3, null=True)
     country_name = models.CharField(max_length=100)
     is_enclave = models.BooleanField(default=False, help_text='Is it an enclave away from parent country?') # used to mark if the district is far away from the country
+
+    # Population Data From WB API
+    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text='Population data from WB API')
+    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text='Population data year from WB API')
 
     class Meta:
         ordering = ('code',)
