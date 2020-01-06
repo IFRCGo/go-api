@@ -17,6 +17,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False if PRODUCTION_URL is not None else True
 
 INSTALLED_APPS = [
+    # Django Apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -32,11 +33,16 @@ INSTALLED_APPS = [
     'guardian',
     'django_filters',
     'graphene_django',
+
+    # GO Apps
     'api',
     'per',
     'notifications',
     'registrations',
     'deployments',
+    'databank',
+
+    # Utils Apps
     'tinymce',
 ]
 
@@ -192,3 +198,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000    # default 1000, was not enough for Mozam
 timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE=timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE=timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
+
+FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
+HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
