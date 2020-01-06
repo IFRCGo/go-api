@@ -394,6 +394,11 @@ class Command(BaseCommand):
             # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
             # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
             # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
+            optypes = {
+                0: 'DREF',
+                1: 'Emergency Appeal',
+                2: 'International Appeal',
+            }
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'follow_url': '{}/account#notifications'.format(frontend_url),
@@ -410,6 +415,7 @@ class Command(BaseCommand):
                     # 'volunteers': volunteers[0] if volunteers else 0,
                     # 'expat_delegates': expats[0] if expats else 0,
                 },
+                'operation_type': optypes[record.atype],
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
