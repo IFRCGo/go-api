@@ -16,11 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
  - Databank
 
-## 1.1.210
-
-### Added
- - Databank
-
 ## 1.1.209
 
 ### Added
@@ -894,7 +889,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 [Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.211...HEAD
 [1.1.211]: https://github.com/IFRCGo/go-api/compare/1.1.210...1.1.211
-[1.1.210]: https://github.com/IFRCGo/go-api/compare/1.1.210...1.1.210
 [1.1.210]: https://github.com/IFRCGo/go-api/compare/1.1.209...1.1.210
 [1.1.209]: https://github.com/IFRCGo/go-api/compare/1.1.208...1.1.209
 [1.1.208]: https://github.com/IFRCGo/go-api/compare/1.1.207...1.1.208
