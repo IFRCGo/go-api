@@ -82,9 +82,9 @@ ea_fields = [
 
 pdf_types = (
     ('epoa', epoa_fields),
-    ('ou', ou_fields),
-    ('fr', fr_fields),
-    ('ea', ea_fields),
+    # ('ou', ou_fields),
+    # ('fr', fr_fields),
+    # ('ea', ea_fields),
 )
 
 HEADERS = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:63.0) Gecko/20100101 Firefox/63.0'}
@@ -166,7 +166,6 @@ def start_extraction(epoa_list_in_db):
     processed_data = []
     errored_data = []
 
-    import pdb; pdb.set_trace()
     # Loop through the data types (epoa, ou, etc)
     for directory, fields in pdf_types:
         urls_with_filenames = get_documents(epoa_list_in_db)
@@ -192,7 +191,5 @@ def start_extraction(epoa_list_in_db):
                 errored_data.append({
                     'error': str(e)
                 })
-            else:
-                print('')
 
     return processed_data
