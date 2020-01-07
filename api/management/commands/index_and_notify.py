@@ -21,7 +21,7 @@ time_interva2  = timedelta(   days = 1) # to check: the change was not between t
 time_interva7  = timedelta(   days = 7) # for digest mode
 basetime       = int(20314) # weekday - hour - min for digest timing (5 minutes once a week)
 daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length     = 280 # after this length (at the first space) we cut the sent content
+max_length     = 860 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
