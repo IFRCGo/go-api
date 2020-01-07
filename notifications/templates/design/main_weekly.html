@@ -1,4 +1,6 @@
   <!-- Main -->
+{% load humanize %}
+
 {% if records|length %}
   {% for rec in records %}
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
@@ -118,14 +120,15 @@
                             <tr class="table-annce" style="background: #f8f8f8;">
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
                                 <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
-                                  {{ lo.op_country }}: {{ lo.op_name }}
+                                  <!-- {{ lo.op_country }}: -->
+                                  {{ lo.op_name }}
                                 </a>
                               </td>
                               <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
                                 {{ lo.op_created_at|date:'d-m-Y' }}
                               </td>
                               <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                {{ lo.op_funding }}
+                                {{ lo.op_funding|floatformat:"0"|intcomma }}
                               </td>
                             </tr>
                         {% endfor %}
