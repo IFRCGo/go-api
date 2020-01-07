@@ -104,7 +104,7 @@ def get_documents(epoa_list_in_db):
         link_with_filenames = []
         for item in items:
             # TODO: this looks through all types, either change this part or make every one of them a separate function
-            if item.get('link') and item.get('link') in epoa_list_in_db:
+            if item.get('link') and item.get('link') not in epoa_list_in_db:
                 title = item.get('title')
                 link = item.get('link')
                 filename = '{}.pdf'.format(title)
@@ -166,6 +166,7 @@ def start_extraction(epoa_list_in_db):
     processed_data = []
     errored_data = []
 
+    import pdb; pdb.set_trace()
     # Loop through the data types (epoa, ou, etc)
     for directory, fields in pdf_types:
         urls_with_filenames = get_documents(epoa_list_in_db)
