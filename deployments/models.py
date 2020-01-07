@@ -216,13 +216,13 @@ class Project(models.Model):
     # Target Metric
     target_male = models.IntegerField(null=True, blank=True)
     target_female = models.IntegerField(null=True, blank=True)
-    target_children = models.IntegerField(null=True, blank=True)
+    target_other = models.IntegerField(null=True, blank=True)
     target_total = models.IntegerField(null=True, blank=True)
 
     # Reached Metric
     reached_male = models.IntegerField(null=True, blank=True)
     reached_female = models.IntegerField(null=True, blank=True)
-    reached_children = models.IntegerField(null=True, blank=True)
+    reached_other = models.IntegerField(null=True, blank=True)
     reached_total = models.IntegerField(null=True, blank=True)
 
     regional_project = models.ForeignKey(
