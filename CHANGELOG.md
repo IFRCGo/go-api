@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.214
+
+### Added
+ - User permission for 3W
+
 ## 1.1.213
 
 ### Added
@@ -897,7 +902,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.213...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.214...HEAD
+[1.1.214]: https://github.com/IFRCGo/go-api/compare/1.1.213...1.1.214
 [1.1.213]: https://github.com/IFRCGo/go-api/compare/1.1.212...1.1.213
 [1.1.212]: https://github.com/IFRCGo/go-api/compare/1.1.211...1.1.212
 [1.1.211]: https://github.com/IFRCGo/go-api/compare/1.1.210...1.1.211

@@ -262,6 +262,28 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class UserMeSerializer(UserSerializer):
+    is_admin_for_countries = serializers.SerializerMethodField()
+    is_admin_for_regions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + ('is_admin_for_countries', 'is_admin_for_regions')
+
+    def get_is_admin_for_countries(self, user):
+        return set([
+            int(permission[18:]) for permission in user.get_all_permissions()
+            if ('api.country_admin_' in permission and permission[18:].isdigit())
+        ])
+
+    def get_is_admin_for_regions(self, user):
+        return set([
+            int(permission[17:]) for permission in user.get_all_permissions()
+            if ('api.region_admin_' in permission and permission[17:].isdigit())
+        ])
+
+
 class ActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Action
