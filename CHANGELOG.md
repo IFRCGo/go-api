@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.213
+
+### Added
+ - Integers to float for thousand sep. in notifs
+
 ## 1.1.211
 
 ### Added
@@ -887,7 +892,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.211...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.213...HEAD
+[1.1.213]: https://github.com/IFRCGo/go-api/compare/1.1.211...1.1.213
 [1.1.211]: https://github.com/IFRCGo/go-api/compare/1.1.210...1.1.211
 [1.1.210]: https://github.com/IFRCGo/go-api/compare/1.1.209...1.1.210
 [1.1.209]: https://github.com/IFRCGo/go-api/compare/1.1.208...1.1.209
