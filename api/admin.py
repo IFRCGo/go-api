@@ -593,7 +593,7 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
                 appeal_number=cleaners.clean_appeal_code(data['meta'].get('appealNumber')),
                 category_allocated=data['meta'].get('categoryAllocated'),
                 date_of_issue=cleaners.clean_date(data['meta'].get('dateOfIssue')),
-                dref_allocated=data['meta'].get('drefAllocated'),
+                dref_allocated=cleaners.clean_number(data['meta'].get('drefAllocated')),
                 expected_end_date=cleaners.clean_date(data['meta'].get('expectedEndDate')),
                 expected_time_frame=cleaners.clean_number(data['meta'].get('expectedTimeFrame')),
                 glide_number=data['meta'].get('glideNumber'),
