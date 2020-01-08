@@ -228,7 +228,7 @@ class Command(BaseCommand):
                     .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
                     .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
             )
-            percent = round(amount_fund / amount_req, 3) * 100 if amount_req != 0 else 0
+            percent = float(round(amount_fund / amount_req, 3) * 100) if amount_req != 0 else 0
             return percent
         elif field == 'budget':
             amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
@@ -249,7 +249,7 @@ class Command(BaseCommand):
                 'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id) if op.country_id else '',
                 'op_name': op.name,
                 'op_created_at': op.created_at,
-                'op_funding': op.amount_requested,
+                'op_funding': float(op.amount_requested),
             }
             ret_ops.append(op_to_add)
         return ret_ops
@@ -357,7 +357,7 @@ class Command(BaseCommand):
         if is_none:
             return '--'
 
-        return sum(filter(None, num_list))
+        return float(sum(filter(None, num_list)))
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
@@ -406,8 +406,8 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
                 'key_figures': {
-                    'people_targeted': record.num_beneficiaries,
-                    'funding_req': record.amount_requested,
+                    'people_targeted': float(record.num_beneficiaries),
+                    'funding_req': float(record.amount_requested),
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
