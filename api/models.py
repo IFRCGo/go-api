@@ -1037,7 +1037,6 @@ class EmergencyOperationsPeopleReached(models.Model):
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
     
 
-#TODO: Rename this before making any migrations
 class EmergencyOperationsEA(models.Model):
     is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1133,8 +1132,11 @@ class EmergencyOperationsEA(models.Model):
     water_sanitation_and_hygiene_people_targeted = models.IntegerField(null=True, blank=True)
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Emergency Operations Emergency Appeal'
+        verbose_name_plural = 'Emergency Operations Emergency Appeals'
 
-#TODO: Rename this before making any migrations
+
 class EmergencyOperationsFR(models.Model):
     is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1237,6 +1239,10 @@ class EmergencyOperationsFR(models.Model):
     water_sanitation_and_hygiene_people_reached = models.IntegerField(null=True, blank=True)
     water_sanitation_and_hygiene_people_targeted = models.IntegerField(null=True, blank=True)
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Emergency Operations Final Report'
+        verbose_name_plural = 'Emergency Operations Final Reports'
 
 
 from .triggers import *
