@@ -11,8 +11,6 @@ from django_admin_listfilter_dropdown.filters import (
     DropdownFilter, ChoiceDropdownFilter, RelatedDropdownFilter
 )
 import api.models as models
-import api.scrapers.scrape as scraper
-import api.scrapers.cleaners as cleaners
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -525,126 +523,6 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         'raw_education_people_targeted',
         'raw_education_requirements',
     )
-    actions = ['scrape_data',]
-
-    def scrape_data(self, request, queryset):
-        epoa_list = models.EmergencyOperationsDataset.objects.all().values_list('raw_file_url', flat=True)
-        scraped_data = scraper.start_extraction(epoa_list)
-
-        to_create = []
-        for data in scraped_data:
-            new_epoa = models.EmergencyOperationsDataset(
-                raw_file_name=data['filename'],
-                raw_file_url=data['url'],
-                raw_appeal_launch_date=data['meta'].get('appealLaunchDate'),
-                raw_appeal_number=data['meta'].get('appealNumber'),
-                raw_category_allocated=data['meta'].get('categoryAllocated'),
-                raw_date_of_issue=data['meta'].get('dateOfIssue'),
-                raw_dref_allocated=data['meta'].get('drefAllocated'),
-                raw_expected_end_date=data['meta'].get('expectedEndDate'),
-                raw_expected_time_frame=data['meta'].get('expectedTimeFrame'),
-                raw_glide_number=data['meta'].get('glideNumber'),
-                raw_num_of_people_affected=data['meta'].get('numOfPeopleAffected'),
-                raw_num_of_people_to_be_assisted=data['meta'].get('numOfPeopleToBeAssisted'),
-                raw_disaster_risk_reduction_female=data['sector'].get('disasterRiskReduction', {}).get('female'),
-                raw_disaster_risk_reduction_male=data['sector'].get('disasterRiskReduction', {}).get('male'),
-                raw_disaster_risk_reduction_people_reached=data['sector'].get('disasterRiskReduction', {}).get('peopleReached'),
-                raw_disaster_risk_reduction_people_targeted=data['sector'].get('disasterRiskReduction', {}).get('peopleTargeted'),
-                raw_disaster_risk_reduction_requirements=data['sector'].get('disasterRiskReduction', {}).get('requirements'),
-                raw_health_female=data['sector'].get('health', {}).get('female'),
-                raw_health_male=data['sector'].get('health', {}).get('male'),
-                raw_health_people_reached=data['sector'].get('health', {}).get('peopleReached'),
-                raw_health_people_targeted=data['sector'].get('health', {}).get('peopleTargeted'),
-                raw_health_requirements=data['sector'].get('health', {}).get('requirements'),
-                raw_livelihoods_and_basic_needs_female=data['sector'].get('livelihoodsAndBasicNeeds', {}).get('female'),
-                raw_livelihoods_and_basic_needs_male=data['sector'].get('livelihoodsAndBasicNeeds', {}).get('male'),
-                raw_livelihoods_and_basic_needs_people_reached=data['sector'].get('livelihoodsAndBasicNeeds', {}).get('peopleReached'),
-                raw_livelihoods_and_basic_needs_people_targeted=data['sector'].get('livelihoodsAndBasicNeeds', {}).get('peopleTargeted'),
-                raw_livelihoods_and_basic_needs_requirements=data['sector'].get('livelihoodsAndBasicNeeds', {}).get('requirements'),
-                raw_migration_female=data['sector'].get('migration', {}).get('female'),
-                raw_migration_male=data['sector'].get('migration', {}).get('male'),
-                raw_migration_people_reached=data['sector'].get('migration', {}).get('peopleReached'),
-                raw_migration_people_targeted=data['sector'].get('migration', {}).get('peopleTargeted'),
-                raw_migration_requirements=data['sector'].get('migration', {}).get('requirements'),
-                raw_protection_gender_and_inclusion_female=data['sector'].get('protectionGenderAndInclusion', {}).get('female'),
-                raw_protection_gender_and_inclusion_male=data['sector'].get('protectionGenderAndInclusion', {}).get('male'),
-                raw_protection_gender_and_inclusion_people_reached=data['sector'].get('protectionGenderAndInclusion', {}).get('peopleReached'),
-                raw_protection_gender_and_inclusion_people_targeted=data['sector'].get('protectionGenderAndInclusion', {}).get('peopleTargeted'),
-                raw_protection_gender_and_inclusion_requirements=data['sector'].get('protectionGenderAndInclusion', {}).get('requirements'),
-                raw_shelter_female=data['sector'].get('shelter', {}).get('female'),
-                raw_shelter_male=data['sector'].get('shelter', {}).get('male'),
-                raw_shelter_people_reached=data['sector'].get('shelter', {}).get('peopleReached'),
-                raw_shelter_people_targeted=data['sector'].get('shelter', {}).get('peopleTargeted'),
-                raw_shelter_requirements=data['sector'].get('shelter', {}).get('requirements'),
-                raw_water_sanitation_and_hygiene_female=data['sector'].get('waterSanitationAndHygiene', {}).get('female'),
-                raw_water_sanitation_and_hygiene_male=data['sector'].get('waterSanitationAndHygiene', {}).get('male'),
-                raw_water_sanitation_and_hygiene_people_reached=data['sector'].get('waterSanitationAndHygiene', {}).get('peopleReached'),
-                raw_water_sanitation_and_hygiene_people_targeted=data['sector'].get('waterSanitationAndHygiene', {}).get('peopleTargeted'),
-                raw_water_sanitation_and_hygiene_requirements=data['sector'].get('waterSanitationAndHygiene', {}).get('requirements'),
-                raw_education_female=data['sector'].get('education', {}).get('female'),
-                raw_education_male=data['sector'].get('education', {}).get('male'),
-                raw_education_people_reached=data['sector'].get('education', {}).get('peopleReached'),
-                raw_education_people_targeted=data['sector'].get('education', {}).get('peopleTargeted'),
-                raw_education_requirements=data['sector'].get('education', {}).get('requirements'),
-
-                #TODO: add cleaned data
-                file_name=data['filename'],
-                appeal_launch_date=cleaners.clean_date(data['meta'].get('appealLaunchDate')),
-                appeal_number=cleaners.clean_appeal_code(data['meta'].get('appealNumber')),
-                category_allocated=data['meta'].get('categoryAllocated'),
-                date_of_issue=cleaners.clean_date(data['meta'].get('dateOfIssue')),
-                dref_allocated=cleaners.clean_number(data['meta'].get('drefAllocated')),
-                expected_end_date=cleaners.clean_date(data['meta'].get('expectedEndDate')),
-                expected_time_frame=cleaners.clean_number(data['meta'].get('expectedTimeFrame')),
-                glide_number=data['meta'].get('glideNumber'),
-                num_of_people_affected=cleaners.clean_number(data['meta'].get('numOfPeopleAffected')),
-                num_of_people_to_be_assisted=cleaners.clean_number(data['meta'].get('numOfPeopleToBeAssisted')),
-                disaster_risk_reduction_female=cleaners.clean_number(data['sector'].get('disasterRiskReduction', {}).get('female')),
-                disaster_risk_reduction_male=cleaners.clean_number(data['sector'].get('disasterRiskReduction', {}).get('male')),
-                disaster_risk_reduction_people_reached=cleaners.clean_number(data['sector'].get('disasterRiskReduction', {}).get('peopleReached')),
-                disaster_risk_reduction_people_targeted=cleaners.clean_number(data['sector'].get('disasterRiskReduction', {}).get('peopleTargeted')),
-                disaster_risk_reduction_requirements=cleaners.clean_number(data['sector'].get('disasterRiskReduction', {}).get('requirements')),
-                health_female=cleaners.clean_number(data['sector'].get('health', {}).get('female')),
-                health_male=cleaners.clean_number(data['sector'].get('health', {}).get('male')),
-                health_people_reached=cleaners.clean_number(data['sector'].get('health', {}).get('peopleReached')),
-                health_people_targeted=cleaners.clean_number(data['sector'].get('health', {}).get('peopleTargeted')),
-                health_requirements=cleaners.clean_number(data['sector'].get('health', {}).get('requirements')),
-                livelihoods_and_basic_needs_female=cleaners.clean_number(data['sector'].get('livelihoodsAndBasicNeeds', {}).get('female')),
-                livelihoods_and_basic_needs_male=cleaners.clean_number(data['sector'].get('livelihoodsAndBasicNeeds', {}).get('male')),
-                livelihoods_and_basic_needs_people_reached=cleaners.clean_number(data['sector'].get('livelihoodsAndBasicNeeds', {}).get('peopleReached')),
-                livelihoods_and_basic_needs_people_targeted=cleaners.clean_number(data['sector'].get('livelihoodsAndBasicNeeds', {}).get('peopleTargeted')),
-                livelihoods_and_basic_needs_requirements=cleaners.clean_number(data['sector'].get('livelihoodsAndBasicNeeds', {}).get('requirements')),
-                migration_female=cleaners.clean_number(data['sector'].get('migration', {}).get('female')),
-                migration_male=cleaners.clean_number(data['sector'].get('migration', {}).get('male')),
-                migration_people_reached=cleaners.clean_number(data['sector'].get('migration', {}).get('peopleReached')),
-                migration_people_targeted=cleaners.clean_number(data['sector'].get('migration', {}).get('peopleTargeted')),
-                migration_requirements=cleaners.clean_number(data['sector'].get('migration', {}).get('requirements')),
-                protection_gender_and_inclusion_female=cleaners.clean_number(data['sector'].get('protectionGenderAndInclusion', {}).get('female')),
-                protection_gender_and_inclusion_male=cleaners.clean_number(data['sector'].get('protectionGenderAndInclusion', {}).get('male')),
-                protection_gender_and_inclusion_people_reached=cleaners.clean_number(data['sector'].get('protectionGenderAndInclusion', {}).get('peopleReached')),
-                protection_gender_and_inclusion_people_targeted=cleaners.clean_number(data['sector'].get('protectionGenderAndInclusion', {}).get('peopleTargeted')),
-                protection_gender_and_inclusion_requirements=cleaners.clean_number(data['sector'].get('protectionGenderAndInclusion', {}).get('requirements')),
-                shelter_female=cleaners.clean_number(data['sector'].get('shelter', {}).get('female')),
-                shelter_male=cleaners.clean_number(data['sector'].get('shelter', {}).get('male')),
-                shelter_people_reached=cleaners.clean_number(data['sector'].get('shelter', {}).get('peopleReached')),
-                shelter_people_targeted=cleaners.clean_number(data['sector'].get('shelter', {}).get('peopleTargeted')),
-                shelter_requirements=cleaners.clean_number(data['sector'].get('shelter', {}).get('requirements')),
-                water_sanitation_and_hygiene_female=cleaners.clean_number(data['sector'].get('waterSanitationAndHygiene', {}).get('female')),
-                water_sanitation_and_hygiene_male=cleaners.clean_number(data['sector'].get('waterSanitationAndHygiene', {}).get('male')),
-                water_sanitation_and_hygiene_people_reached=cleaners.clean_number(data['sector'].get('waterSanitationAndHygiene', {}).get('peopleReached')),
-                water_sanitation_and_hygiene_people_targeted=cleaners.clean_number(data['sector'].get('waterSanitationAndHygiene', {}).get('peopleTargeted')),
-                water_sanitation_and_hygiene_requirements=cleaners.clean_number(data['sector'].get('waterSanitationAndHygiene', {}).get('requirements')),
-                education_female=cleaners.clean_number(data['sector'].get('education', {}).get('female')),
-                education_male=cleaners.clean_number(data['sector'].get('education', {}).get('male')),
-                education_people_reached=cleaners.clean_number(data['sector'].get('education', {}).get('peopleReached')),
-                education_people_targeted=cleaners.clean_number(data['sector'].get('education', {}).get('peopleTargeted')),
-                education_requirements=cleaners.clean_number(data['sector'].get('education', {}).get('requirements')),
-            )
-            to_create.append(new_epoa)
-        models.EmergencyOperationsDataset.objects.bulk_create(to_create)
-
-        return
-    scrape_data.short_description = 'Starts the scraping from the PDFs'
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)

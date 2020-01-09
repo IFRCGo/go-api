@@ -67,6 +67,7 @@ echo "export TEST_EMAILS=\"$TEST_EMAILS\"" >> $HOME/.env
 (crontab -l 2>/dev/null; echo '*/20 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_gdacs >> /home/ifrc/logs/ingest_gdacs.log 2>&1') | crontab -
 #(crontab -l 2>/dev/null; echo '0 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_who >> /home/ifrc/logs/ingest_who.log 2>&1') | crontab -
 (crontab -l 2>/dev/null; echo '*/5 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py index_and_notify >> /home/ifrc/logs/index_and_notify.log 2>&1') | crontab -
+(crontab -l 2>/dev/null; echo '10 3 * * 1,3,5,7 . /home/ifrc/.env; python /home/ifrc/go-api/manage.py scrape_pdfs >> /home/ifrc/logs/scrape_pdfs.log 2>&1') | crontab -
 service cron start
 
 tail -n 0 -f $HOME/logs/*.log &
