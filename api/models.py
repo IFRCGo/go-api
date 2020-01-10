@@ -900,14 +900,14 @@ class EmergencyOperationsDataset(models.Model):
     raw_education_requirements = models.TextField(null=True, blank=True)
 
     # Fields for the cleaned data
-    file_name = models.TextField(null=True, blank=True)
+    file_name = models.CharField(max_length=200, null=True, blank=True)
     appeal_launch_date = models.DateField(null=True, blank=True)
     appeal_number = models.CharField(max_length=20, null=True, blank=True)
-    category_allocated = models.TextField(null=True, blank=True)
+    category_allocated = models.CharField(max_length=100, null=True, blank=True)
     date_of_issue = models.DateField(null=True, blank=True)
     dref_allocated = models.IntegerField(null=True, blank=True)
     expected_end_date = models.DateField(null=True, blank=True)
-    expected_time_frame = models.TextField(null=True, blank=True)
+    expected_time_frame = models.IntegerField(null=True, blank=True)
     glide_number = models.CharField(max_length=18, null=True, blank=True)
     num_of_people_affected = models.IntegerField(null=True, blank=True)
     num_of_people_to_be_assisted = models.IntegerField(null=True, blank=True)
@@ -1002,15 +1002,15 @@ class EmergencyOperationsPeopleReached(models.Model):
     raw_water_sanitation_and_hygiene_requirements = models.TextField(null=True, blank=True)
 
     # Fields for the cleaned data
-    file_name = models.TextField(null=True, blank=True)
+    file_name = models.CharField(max_length=200, null=True, blank=True)
     appeal_number = models.CharField(max_length=20, null=True, blank=True)
     date_of_issue = models.DateField(null=True, blank=True)
     dref_allocated = models.IntegerField(null=True, blank=True)
     epoa_update_num = models.IntegerField(null=True, blank=True)
     glide_number = models.CharField(max_length=18, null=True, blank=True)
     operation_start_date = models.DateField(null=True, blank=True)
-    operation_timeframe = models.TextField(null=True, blank=True)
-    time_frame_covered_by_update = models.TextField(null=True, blank=True)
+    operation_timeframe = models.CharField(max_length=200, null=True, blank=True)
+    time_frame_covered_by_update = models.CharField(max_length=200, null=True, blank=True)
     disaster_risk_reduction_female = models.IntegerField(null=True, blank=True)
     disaster_risk_reduction_male = models.IntegerField(null=True, blank=True)
     disaster_risk_reduction_people_reached = models.IntegerField(null=True, blank=True)
@@ -1096,7 +1096,7 @@ class EmergencyOperationsEA(models.Model):
     raw_water_sanitation_and_hygiene_requirements = models.TextField(null=True, blank=True)
 
     # Fields for the cleaned data
-    file_name = models.TextField(null=True, blank=True)
+    file_name = models.CharField(max_length=200, null=True, blank=True)
     appeal_ends = models.DateField(null=True, blank=True)
     appeal_launch_date = models.DateField(null=True, blank=True)
     appeal_number = models.CharField(max_length=20, null=True, blank=True)
@@ -1200,7 +1200,7 @@ class EmergencyOperationsFR(models.Model):
     raw_water_sanitation_and_hygiene_requirements = models.TextField(null=True, blank=True)
 
     # Fields for the cleaned data
-    file_name = models.TextField(null=True, blank=True)
+    file_name = models.CharField(max_length=200, null=True, blank=True)
     appeal_number = models.CharField(max_length=20, null=True, blank=True)
     date_of_disaster = models.DateField(null=True, blank=True)
     date_of_issue = models.DateField(null=True, blank=True)
