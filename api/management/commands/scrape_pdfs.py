@@ -109,7 +109,7 @@ class Command(BaseCommand):
             response = requests.get(url)
             items = xmltodict.parse(response.content)['rss']['channel']['item']
             link_with_filenames = []
-            items = [items[0]]
+
             for item in items:
                 if item.get('link') and item.get('link') not in db_set:
                     title = item.get('title')
@@ -118,7 +118,6 @@ class Command(BaseCommand):
 
                     link_with_filenames.append([link, filename, d_type])
             
-            logger.info('Count of new {d_type} documents: {length}'.format(d_type=d_type, length=len(link_with_filenames)))
             return link_with_filenames
 
         url_with_filenames = []
@@ -298,7 +297,7 @@ class Command(BaseCommand):
                     raw_file_name=data['filename'],
                     raw_file_url=data['url'],
                     raw_appeal_number=data['meta'].get(_mfd.appeal_number),
-                    raw_date_of_issue=data['meta'].get(_mfd.date_of_issuee),
+                    raw_date_of_issue=data['meta'].get(_mfd.date_of_issue),
                     raw_epoa_update_num=data['meta'].get(_mfd.epoa_update_num),
                     raw_glide_number=data['meta'].get(_mfd.glide_number),
                     raw_operation_start_date=data['meta'].get(_mfd.operation_start_date),
@@ -378,7 +377,7 @@ class Command(BaseCommand):
                     raw_file_url=data['url'],
                     raw_appeal_number=data['meta'].get(_mfd.appeal_number),
                     raw_date_of_disaster=data['meta'].get(_mfd.date_of_disaster),
-                    raw_date_of_issue=data['meta'].get(_mfd.date_of_issuee),
+                    raw_date_of_issue=data['meta'].get(_mfd.date_of_issue),
                     raw_glide_number=data['meta'].get(_mfd.glide_number),
                     raw_num_of_other_partner_involved=data['meta'].get(_mfd.num_of_other_partner_involved),
                     raw_num_of_partner_ns_involved=data['meta'].get(_mfd.num_of_partner_ns_involved),
@@ -606,7 +605,7 @@ class Command(BaseCommand):
                 except Exception as e:
                     errored_data.append(str(e))
         
-        if len(len(errored_data) > 0):
+        if len(errored_data) > 0:
             logger.error(errored_data)
         logger.info('Processing PDFs finished.')
 
