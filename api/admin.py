@@ -523,6 +523,56 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         'raw_education_people_targeted',
         'raw_education_requirements',
     )
+    actions = ['export_all_epoa', 'export_selected_epoa']
+
+    def export_selected_epoa(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=epoa_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_epoa.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_epoa(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=epoa.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_epoa.short_description = 'Export all documents to CSV (select one before for it to work)'
+
 
 class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
@@ -566,6 +616,55 @@ class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
         'raw_water_sanitation_and_hygiene_people_reached',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    actions = ['export_all_ou', 'export_selected_ou']
+
+    def export_selected_ou(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ou_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_ou.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_ou(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ou.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_ou.short_description = 'Export all documents to CSV (select one before for it to work)'
 
 class EmergencyOperationsFRAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
@@ -620,6 +719,55 @@ class EmergencyOperationsFRAdmin(admin.ModelAdmin):
         #'raw_water_sanitation_and_hygiene_people_targeted',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    actions = ['export_all_fr', 'export_selected_fr']
+
+    def export_selected_fr(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=fr_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_fr.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_fr(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=fr.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_fr.short_description = 'Export all documents to CSV (select one before for it to work)'
 
 class EmergencyOperationsEAAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
@@ -670,6 +818,55 @@ class EmergencyOperationsEAAdmin(admin.ModelAdmin):
         'raw_water_sanitation_and_hygiene_people_targeted',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    actions = ['export_all_ea', 'export_selected_ea']
+
+    def export_selected_ea(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ea_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_ea.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_ea(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ea.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_ea.short_description = 'Export all documents to CSV (select one before for it to work)'
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
