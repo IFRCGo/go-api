@@ -523,6 +523,9 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         'raw_education_people_targeted',
         'raw_education_requirements',
     )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
     actions = ['export_all_epoa', 'export_selected_epoa']
 
     def export_selected_epoa(self, request, queryset):
@@ -616,6 +619,9 @@ class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
         'raw_water_sanitation_and_hygiene_people_reached',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
     actions = ['export_all_ou', 'export_selected_ou']
 
     def export_selected_ou(self, request, queryset):
@@ -719,6 +725,9 @@ class EmergencyOperationsFRAdmin(admin.ModelAdmin):
         #'raw_water_sanitation_and_hygiene_people_targeted',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
     actions = ['export_all_fr', 'export_selected_fr']
 
     def export_selected_fr(self, request, queryset):
@@ -818,6 +827,9 @@ class EmergencyOperationsEAAdmin(admin.ModelAdmin):
         'raw_water_sanitation_and_hygiene_people_targeted',
         'raw_water_sanitation_and_hygiene_requirements',
     )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
     actions = ['export_all_ea', 'export_selected_ea']
 
     def export_selected_ea(self, request, queryset):
