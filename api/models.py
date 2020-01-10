@@ -952,6 +952,10 @@ class EmergencyOperationsDataset(models.Model):
     education_people_targeted = models.IntegerField(null=True, blank=True)
     education_requirements = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Emergency Operations Dataset'
+        verbose_name_plural = 'Emergency Operations Datasets'
+
 
 class EmergencyOperationsPeopleReached(models.Model):
     is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
@@ -1035,6 +1039,10 @@ class EmergencyOperationsPeopleReached(models.Model):
     water_sanitation_and_hygiene_male = models.IntegerField(null=True, blank=True)
     water_sanitation_and_hygiene_people_targeted = models.IntegerField(null=True, blank=True)
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Emergency Operations People Reached'
+        verbose_name_plural = 'Emergency Operations People Reached'
     
 
 class EmergencyOperationsEA(models.Model):

@@ -524,6 +524,153 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         'raw_education_requirements',
     )
 
+class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_number',
+        'raw_date_of_issue',
+        'raw_epoa_update_num',
+        'raw_glide_number',
+        'raw_operation_start_date',
+        'raw_operation_timeframe',
+        'raw_time_frame_covered_by_update',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+
+class EmergencyOperationsFRAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_number',
+        'raw_date_of_disaster',
+        'raw_date_of_issue',
+        'raw_glide_number',
+        'raw_num_of_other_partner_involved',
+        'raw_num_of_partner_ns_involved',
+        'raw_num_of_people_affected',
+        'raw_num_of_people_to_be_assisted',
+        'raw_operation_end_date',
+        'raw_operation_start_date',
+        'raw_overall_operation_budget',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+
+class EmergencyOperationsEAAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_ends',
+        'raw_appeal_launch_date',
+        'raw_appeal_number',
+        'raw_current_operation_budget',
+        'raw_dref_allocated',
+        'raw_glide_number',
+        'raw_num_of_people_to_be_assisted',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
@@ -539,5 +686,8 @@ admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
 admin.site.register(models.SituationReportType, SituationReportTypeAdmin)
 admin.site.register(models.EmergencyOperationsDataset, EmergencyOperationsDatasetAdmin)
+admin.site.register(models.EmergencyOperationsPeopleReached, EmergencyOperationsPeopleReachedAdmin)
+admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
+admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
