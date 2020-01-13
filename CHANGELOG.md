@@ -6,6 +6,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.214
+
+### Added
+ - User permission for 3W
+
+## 1.1.213
+
+### Added
+ - Integers to float for thousand sep. in notifs
+
+## 1.1.212
+
+### Added
+ - Notification email changes
+
+## 1.1.211
+
+### Added
+ - handover FDRS credential
+
+## 1.1.210
+
+### Added
+ - Databank
+
+## 1.1.209
+
+### Added
+ - Last (or latest) notification e-mail fixes
+
 ## 1.1.208
 
 ### Added
@@ -872,7 +902,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.208...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.214...HEAD
+[1.1.214]: https://github.com/IFRCGo/go-api/compare/1.1.213...1.1.214
+[1.1.213]: https://github.com/IFRCGo/go-api/compare/1.1.212...1.1.213
+[1.1.212]: https://github.com/IFRCGo/go-api/compare/1.1.211...1.1.212
+[1.1.211]: https://github.com/IFRCGo/go-api/compare/1.1.210...1.1.211
+[1.1.210]: https://github.com/IFRCGo/go-api/compare/1.1.209...1.1.210
+[1.1.209]: https://github.com/IFRCGo/go-api/compare/1.1.208...1.1.209
 [1.1.208]: https://github.com/IFRCGo/go-api/compare/1.1.207...1.1.208
 [1.1.207]: https://github.com/IFRCGo/go-api/compare/1.1.206...1.1.207
 [1.1.206]: https://github.com/IFRCGo/go-api/compare/1.1.205...1.1.206

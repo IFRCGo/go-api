@@ -12,7 +12,7 @@ from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
 from notifications.notification import send_notification
-from deployments.models import PersonnelDeployment, ERU
+from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
 
@@ -21,7 +21,7 @@ time_interva2  = timedelta(   days = 1) # to check: the change was not between t
 time_interva7  = timedelta(   days = 7) # for digest mode
 basetime       = int(20314) # weekday - hour - min for digest timing (5 minutes once a week)
 daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length     = 280 # after this length (at the first space) we cut the sent content
+max_length     = 860 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
@@ -228,7 +228,7 @@ class Command(BaseCommand):
                     .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
                     .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
             )
-            percent = round(amount_fund / amount_req, 3) * 100
+            percent = float(round(amount_fund / amount_req, 3) * 100) if amount_req != 0 else 0
             return percent
         elif field == 'budget':
             amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
@@ -249,25 +249,66 @@ class Command(BaseCommand):
                 'op_country': Country.objects.values_list('name', flat=True).get(id=op.country_id) if op.country_id else '',
                 'op_name': op.name,
                 'op_created_at': op.created_at,
-                'op_funding': op.amount_requested,
+                'op_funding': float(op.amount_requested),
             }
             ret_ops.append(op_to_add)
         return ret_ops
+
+    def get_weekly_digest_latest_deployments(self):
+        dig_time = self.get_time_threshold_digest()
+        ret_data = []
+
+        # Surge Alerts
+        # surge_list = list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
+        # if surge_list:
+        #     for alert in surge_list:
+        #         event = Event.objects.get(id=alert.event_id) if alert.event_id != None else None
+        #         alert_to_add = {
+        #             'type': 'Alert',
+        #             'operation': alert.operation,
+        #             'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+        #             'society_from': '',
+        #             'deployed_to': '',
+        #             'name': '',
+        #             'role': '',
+        #             'appeal': '',
+        #         }
+        #         ret_data.append(alert_to_add)
+
+        # Surge Deployments
+        personnel_list = Personnel.objects.filter(start_date__gte=dig_time).order_by('start_date')
+        for pers in personnel_list:
+            deployment = PersonnelDeployment.objects.get(id=pers.deployment_id)
+            event = Event.objects.get(id=deployment.event_deployed_to_id) if deployment.event_deployed_to_id != None else None
+            country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
+            dep_to_add = {
+                'operation': event.name if event else '',
+                'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+                'society_from': country_from.society_name if country_from else '',
+                'name': pers.name,
+                'role': pers.role,
+                'start_date': pers.start_date,
+                'end_date': pers.end_date,
+            }
+            ret_data.append(dep_to_add)
+
+        return ret_data
+
 
     def get_weekly_digest_highlights(self):
         dig_time = self.get_time_threshold_digest()
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
-            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
-            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
+            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
+            amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or '--'
             data_to_add = {
                 'hl_id': ev.id,
                 'hl_name': ev.name,
                 'hl_last_update': ev.updated_at,
-                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0,
+                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or '--',
                 'hl_funding': amount_requested,
-                'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or 0,
+                'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or '--',
                 'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
                 'hl_coverage': round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0,
             }
@@ -311,6 +352,13 @@ class Command(BaseCommand):
             ret_fr_list.append(fr_data)
         return ret_fr_list
 
+    def get_fieldreport_keyfigures(self, num_list):
+        is_none = all(num == None for num in num_list)
+        if is_none:
+            return '--'
+
+        return float(sum(filter(None, num_list)))
+
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
         if rtype != RecordType.WEEKLY_DIGEST:
@@ -327,15 +375,15 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'description': shortened,
                 'key_figures': {
-                    'affected': (record.num_affected or 0) + (record.gov_num_affected or 0) + (record.other_num_affected or 0),
-                    'injured': (record.num_injured or 0) + (record.gov_num_injured or 0) + (record.other_num_injured or 0),
-                    'dead': (record.num_dead or 0) + (record.gov_num_dead or 0) + (record.other_num_dead or 0),
-                    'missing': (record.num_missing or 0) + (record.gov_num_missing or 0) + (record.other_num_missing or 0),
-                    'displaced': (record.num_displaced or 0) + (record.gov_num_displaced or 0) + (record.other_num_displaced or 0),
-                    'assisted': (record.num_assisted or 0) + (record.gov_num_assisted or 0) + (record.other_num_assisted or 0),
-                    'local_staff': record.num_localstaff or 0,
-                    'volunteers': record.num_volunteers or 0,
-                    'expat_delegates': record.num_expats_delegates or 0,
+                    'affected': self.get_fieldreport_keyfigures([record.num_affected, record.gov_num_affected, record.other_num_affected]),
+                    'injured': self.get_fieldreport_keyfigures([record.num_injured, record.gov_num_injured, record.other_num_injured]),
+                    'dead': self.get_fieldreport_keyfigures([record.num_dead, record.gov_num_dead, record.other_num_dead]),
+                    'missing': self.get_fieldreport_keyfigures([record.num_missing, record.gov_num_missing, record.other_num_missing]),
+                    'displaced': self.get_fieldreport_keyfigures([record.num_displaced, record.gov_num_displaced, record.other_num_displaced]),
+                    'assisted': self.get_fieldreport_keyfigures([record.num_assisted, record.gov_num_assisted, record.other_num_assisted]),
+                    # 'local_staff': record.num_localstaff or '--',
+                    # 'volunteers': record.num_volunteers or '--',
+                    # 'expat_delegates': record.num_expats_delegates or '--',
                 },
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
@@ -343,18 +391,23 @@ class Command(BaseCommand):
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
             }
         elif rtype == RecordType.APPEAL:
-            # Maybe we need these in the future
             # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
             # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
             # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
+            optypes = {
+                0: 'DREF',
+                1: 'Emergency Appeal',
+                2: 'International Appeal',
+            }
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
+                'follow_url': '{}/account#notifications'.format(frontend_url),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
                 'key_figures': {
-                    'people_targeted': record.num_beneficiaries or 0,
-                    'funding_req': record.amount_requested or 0,
+                    'people_targeted': float(record.num_beneficiaries),
+                    'funding_req': float(record.amount_requested),
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
@@ -362,6 +415,7 @@ class Command(BaseCommand):
                     # 'volunteers': volunteers[0] if volunteers else 0,
                     # 'expat_delegates': expats[0] if expats else 0,
                 },
+                'operation_type': optypes[record.atype],
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
@@ -374,7 +428,7 @@ class Command(BaseCommand):
                 'population': self.get_weekly_digest_data('pop'),
                 'highlighted_ops': self.get_weekly_digest_highlights(),
                 'latest_ops': self.get_weekly_digest_latest_ops(),
-                'latest_deployments': list(SurgeAlert.objects.filter(created_at__gte=dig_time).order_by('-created_at')),
+                'latest_deployments': self.get_weekly_digest_latest_deployments(),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
         else: # The default (old) template
@@ -426,10 +480,13 @@ class Command(BaseCommand):
             adj = 'new' if stype == SubscriptionType.NEW else 'modified'
             #subject = '%s %s %s in IFRC GO' % (
             if rtype == RecordType.WEEKLY_DIGEST:
-                subject = '%s %s' % (
-                    adj,
+                subject = '%s' % (
                     record_type,
                 )
+                # subject = '%s %s' % (
+                #     adj,
+                #     record_type,
+                # )
             else:
                 subject = '%s %s %s' % (
                     record_count,
