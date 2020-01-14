@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.215
+
+### Added
+ - PDF scrapers implementation
+
 ## 1.1.214
 
 ### Added
@@ -902,7 +907,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.214...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.215...HEAD
+[1.1.215]: https://github.com/IFRCGo/go-api/compare/1.1.214...1.1.215
 [1.1.214]: https://github.com/IFRCGo/go-api/compare/1.1.213...1.1.214
 [1.1.213]: https://github.com/IFRCGo/go-api/compare/1.1.212...1.1.213
 [1.1.212]: https://github.com/IFRCGo/go-api/compare/1.1.211...1.1.212
