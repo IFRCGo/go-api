@@ -466,6 +466,421 @@ class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
 
 
+class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_launch_date',
+        'raw_appeal_number',
+        'raw_category_allocated',
+        'raw_date_of_issue',
+        'raw_dref_allocated',
+        'raw_expected_end_date',
+        'raw_expected_time_frame',
+        'raw_glide_number',
+        'raw_num_of_people_affected',
+        'raw_num_of_people_to_be_assisted',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+        'raw_education_female',
+        'raw_education_male',
+        'raw_education_people_reached',
+        'raw_education_people_targeted',
+        'raw_education_requirements',
+    )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
+    actions = ['export_all_epoa', 'export_selected_epoa']
+
+    def export_selected_epoa(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=epoa_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_epoa.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_epoa(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=epoa.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_epoa.short_description = 'Export all documents to CSV (select one before for it to work)'
+
+
+class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_number',
+        'raw_date_of_issue',
+        'raw_epoa_update_num',
+        'raw_glide_number',
+        'raw_operation_start_date',
+        'raw_operation_timeframe',
+        'raw_time_frame_covered_by_update',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
+    actions = ['export_all_ou', 'export_selected_ou']
+
+    def export_selected_ou(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ou_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_ou.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_ou(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ou.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_ou.short_description = 'Export all documents to CSV (select one before for it to work)'
+
+class EmergencyOperationsFRAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_number',
+        'raw_date_of_disaster',
+        'raw_date_of_issue',
+        'raw_glide_number',
+        'raw_num_of_other_partner_involved',
+        'raw_num_of_partner_ns_involved',
+        'raw_num_of_people_affected',
+        'raw_num_of_people_to_be_assisted',
+        'raw_operation_end_date',
+        'raw_operation_start_date',
+        'raw_overall_operation_budget',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        #'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        #'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        #'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        #'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        #'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        #'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        #'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
+    actions = ['export_all_fr', 'export_selected_fr']
+
+    def export_selected_fr(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=fr_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_fr.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_fr(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=fr.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_fr.short_description = 'Export all documents to CSV (select one before for it to work)'
+
+class EmergencyOperationsEAAdmin(admin.ModelAdmin):
+    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
+    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
+    readonly_fields = (
+        'raw_file_name',
+        'raw_file_url',
+        'raw_appeal_ends',
+        'raw_appeal_launch_date',
+        'raw_appeal_number',
+        'raw_current_operation_budget',
+        'raw_dref_allocated',
+        'raw_glide_number',
+        'raw_num_of_people_to_be_assisted',
+        'raw_disaster_risk_reduction_female',
+        'raw_disaster_risk_reduction_male',
+        'raw_disaster_risk_reduction_people_reached',
+        'raw_disaster_risk_reduction_people_targeted',
+        'raw_disaster_risk_reduction_requirements',
+        'raw_health_female',
+        'raw_health_male',
+        'raw_health_people_reached',
+        'raw_health_people_targeted',
+        'raw_health_requirements',
+        'raw_livelihoods_and_basic_needs_female',
+        'raw_livelihoods_and_basic_needs_male',
+        'raw_livelihoods_and_basic_needs_people_reached',
+        'raw_livelihoods_and_basic_needs_people_targeted',
+        'raw_livelihoods_and_basic_needs_requirements',
+        'raw_migration_female',
+        'raw_migration_male',
+        'raw_migration_people_reached',
+        'raw_migration_people_targeted',
+        'raw_migration_requirements',
+        'raw_protection_gender_and_inclusion_female',
+        'raw_protection_gender_and_inclusion_male',
+        'raw_protection_gender_and_inclusion_people_reached',
+        'raw_protection_gender_and_inclusion_people_targeted',
+        'raw_protection_gender_and_inclusion_requirements',
+        'raw_shelter_female',
+        'raw_shelter_male',
+        'raw_shelter_people_reached',
+        'raw_shelter_people_targeted',
+        'raw_shelter_requirements',
+        'raw_water_sanitation_and_hygiene_female',
+        'raw_water_sanitation_and_hygiene_male',
+        'raw_water_sanitation_and_hygiene_people_reached',
+        'raw_water_sanitation_and_hygiene_people_targeted',
+        'raw_water_sanitation_and_hygiene_requirements',
+    )
+    fields_for_edit = ['is_validated', 'raw_file_url']
+    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
+    fields = fields_for_edit
+    actions = ['export_all_ea', 'export_selected_ea']
+
+    def export_selected_ea(self, request, queryset):
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ea_selected_list_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in queryset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_selected_ea.short_description = 'Export selected document(s) to CSV'
+
+    def export_all_ea(self, request, queryset):
+        qset = models.EmergencyOperationsDataset.objects.all()
+        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
+        field_names_without_raw = [name[4:] for name in field_names]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=ea.csv'.format(
+            timestr)
+        writer = csv.writer(response)
+
+        first_row = ['']
+        first_row.extend(field_names_without_raw)
+        writer.writerow(first_row)
+
+        counter = 0
+        for fr in qset:
+            new_row = [counter]
+            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
+            writer.writerow(new_row)
+            counter += 1
+        return response
+    export_all_ea.short_description = 'Export all documents to CSV (select one before for it to work)'
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
@@ -479,5 +894,9 @@ admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
 admin.site.register(models.SituationReportType, SituationReportTypeAdmin)
+admin.site.register(models.EmergencyOperationsDataset, EmergencyOperationsDatasetAdmin)
+admin.site.register(models.EmergencyOperationsPeopleReached, EmergencyOperationsPeopleReachedAdmin)
+admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
+admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
