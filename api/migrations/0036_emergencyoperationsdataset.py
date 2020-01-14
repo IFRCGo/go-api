@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0035_fieldreport_ns_request_assistance'),
+        ('api', '0036_auto_20191215_0615'),
     ]
 
     operations = [
