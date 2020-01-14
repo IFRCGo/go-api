@@ -109,7 +109,6 @@ class Command(BaseCommand):
             response = requests.get(url)
             items = xmltodict.parse(response.content)['rss']['channel']['item']
             link_with_filenames = []
-            items = [items[0]]
             for item in items:
                 if item.get('link') and item.get('link') not in db_set:
                     title = item.get('title')
