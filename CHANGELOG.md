@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.215
 
 ### Added
- - PDF scrapers implementation
+ - PDF scrapers implementation (EPoA, OU, EA, FR)
 
 ## 1.1.214
 
