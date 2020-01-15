@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.218
+
+### Added
+ - Fix tag to 218
+
 ## 1.1.217
 
 ### Added
- - Workaround for thousand seps. for notif. mails
+ - Workaround for thousand seps. for notif mails
 
 ## 1.1.216
 
@@ -917,7 +922,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.217...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.218...HEAD
+[1.1.218]: https://github.com/IFRCGo/go-api/compare/1.1.217...1.1.218
 [1.1.217]: https://github.com/IFRCGo/go-api/compare/1.1.216...1.1.217
 [1.1.216]: https://github.com/IFRCGo/go-api/compare/1.1.215...1.1.216
 [1.1.215]: https://github.com/IFRCGo/go-api/compare/1.1.214...1.1.215
