@@ -128,7 +128,7 @@
                                 {{ lo.op_created_at|date:'d-m-Y' }}
                               </td>
                               <td class="text-default td-white-border" style="color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                {{ lo.op_funding|floatformat:"0"|intcomma }}
+                                {{ lo.op_funding|floatformat:"1"|intcomma|slice:":-2" }}
                               </td>
                             </tr>
                         {% endfor %}
