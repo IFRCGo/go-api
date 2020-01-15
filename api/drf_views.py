@@ -76,6 +76,7 @@ from .serializers import (
     AppealSerializer,
     AppealDocumentSerializer,
     UserSerializer,
+    UserMeSerializer,
     ProfileSerializer,
     ListFieldReportSerializer,
     DetailFieldReportSerializer,
@@ -361,12 +362,25 @@ class ProfileViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
 
+
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return User.objects.filter(pk=self.request.user.pk)
+
+    @action(
+        detail=False,
+        url_path='me',
+        serializer_class=UserMeSerializer,
+    )
+    def get_authenticated_user_info(self, request, *args, **kwargs):
+        return Response(
+            self.get_serializer_class()(request.user).data
+        )
+
 
 class FieldReportFilter(filters.FilterSet):
     dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')

@@ -160,7 +160,7 @@ class ProjectViewset(viewsets.ModelViewSet):
         BasicAuthentication,
         SessionAuthentication,
     )
-    # TODO: May require different permission for UNSAFE_METHODS
+    # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
     permission_classes = (IsAuthenticated,)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
