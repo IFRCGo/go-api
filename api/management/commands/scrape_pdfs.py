@@ -246,7 +246,7 @@ class Command(BaseCommand):
                     dref_allocated=cleaners.clean_number(data['meta'].get(_mfd.dref_allocated)),
                     expected_end_date=cleaners.clean_date(data['meta'].get(_mfd.expected_end_date)),
                     expected_time_frame=cleaners.clean_number(data['meta'].get(_mfd.expected_time_frame)),
-                    glide_number=data['meta'].get(_mfd.glide_number),
+                    glide_number=data['meta'].get(_mfd.glide_number)[18:],
                     num_of_people_affected=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_affected)),
                     num_of_people_to_be_assisted=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_to_be_assisted)),
                     disaster_risk_reduction_female=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)),
@@ -336,7 +336,7 @@ class Command(BaseCommand):
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
                     date_of_issue=cleaners.clean_date(data['meta'].get(_mfd.date_of_issue)),
                     epoa_update_num=cleaners.clean_number(data['meta'].get(_mfd.epoa_update_num)),
-                    glide_number=data['meta'].get(_mfd.glide_number),
+                    glide_number=data['meta'].get(_mfd.glide_number)[18:],
                     operation_start_date=cleaners.clean_date(data['meta'].get(_mfd.operation_start_date)),
                     operation_timeframe=data['meta'].get(_mfd.operation_timeframe),
                     time_frame_covered_by_update=data['meta'].get(_mfd.time_frame_covered_by_update),
@@ -425,7 +425,7 @@ class Command(BaseCommand):
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
                     date_of_disaster=cleaners.clean_date(data['meta'].get(_mfd.date_of_disaster)),
                     date_of_issue=cleaners.clean_date(data['meta'].get(_mfd.date_of_issue)),
-                    glide_number=data['meta'].get(_mfd.glide_number),
+                    glide_number=data['meta'].get(_mfd.glide_number)[18:],
                     num_of_other_partner_involved=data['meta'].get(_mfd.num_of_other_partner_involved),
                     num_of_partner_ns_involved=data['meta'].get(_mfd.num_of_partner_ns_involved),
                     num_of_people_affected=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_affected)),
@@ -523,7 +523,7 @@ class Command(BaseCommand):
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
                     current_operation_budget=cleaners.clean_number(data['meta'].get(_mfd.current_operation_budget)),
                     dref_allocated=cleaners.clean_number(data['meta'].get(_mfd.dref_allocated)),
-                    glide_number=data['meta'].get(_mfd.glide_number),
+                    glide_number=data['meta'].get(_mfd.glide_number)[18:],
                     num_of_people_to_be_assisted=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_to_be_assisted)),
                     disaster_risk_reduction_female=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)),
                     disaster_risk_reduction_male=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.male)),
@@ -563,14 +563,40 @@ class Command(BaseCommand):
                 )
                 ea_to_add.append(new_ea)
 
+        ## None of the records get inserted if any of them fails, but it would be faster this way
+        # logger.info('Adding new EPoA records to DB (count: {})'.format(len(epoa_to_add)))
+        # EmergencyOperationsDataset.objects.bulk_create(epoa_to_add)
+        # logger.info('Adding new OU records to DB (count: {})'.format(len(ou_to_add)))
+        # EmergencyOperationsPeopleReached.objects.bulk_create(ou_to_add)
+        # logger.info('Adding new FR records to DB (count: {})'.format(len(fr_to_add)))
+        # EmergencyOperationsFR.objects.bulk_create(fr_to_add)
+        # logger.info('Adding new EA records to DB (count: {})'.format(len(ea_to_add)))
+        # EmergencyOperationsEA.objects.bulk_create(ea_to_add)
+
         logger.info('Adding new EPoA records to DB (count: {})'.format(len(epoa_to_add)))
-        EmergencyOperationsDataset.objects.bulk_create(epoa_to_add)
+        for epoa_rec in epoa_to_add:
+            try:
+                epoa_rec.save()
+            except:
+                logger.error('Couldn\'t add EPoA: {fn} ({fu})'.format(fn=epoa_rec.raw_file_name, fu=epoa_rec.raw_file_url))
         logger.info('Adding new OU records to DB (count: {})'.format(len(ou_to_add)))
-        EmergencyOperationsPeopleReached.objects.bulk_create(ou_to_add)
+        for ou_rec in ou_to_add:
+            try:
+                ou_rec.save()
+            except:
+                logger.error('Couldn\'t add OU: {fn} ({fu})'.format(fn=ou_rec.raw_file_name, fu=ou_rec.raw_file_url))
         logger.info('Adding new FR records to DB (count: {})'.format(len(fr_to_add)))
-        EmergencyOperationsFR.objects.bulk_create(fr_to_add)
+        for fr_rec in fr_to_add:
+            try:
+                fr_rec.save()
+            except:
+                logger.error('Couldn\'t add FR: {fn} ({fu})'.format(fn=fr_rec.raw_file_name, fu=fr_rec.raw_file_url))
         logger.info('Adding new EA records to DB (count: {})'.format(len(ea_to_add)))
-        EmergencyOperationsEA.objects.bulk_create(ea_to_add)
+        for ea_rec in ea_to_add:
+            try:
+                ea_rec.save()
+            except:
+                logger.error('Couldn\'t add EA: {fn} ({fu})'.format(fn=ea_rec.raw_file_name, fu=ea_rec.raw_file_url))
 
 
     def handle(self, *args, **options):
