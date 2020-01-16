@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.221
+
+### Added
+ - Changed scrapers save to loop from bulk_create
+
 ## 1.1.220
 
 ### Added
@@ -932,7 +937,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.220...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.221...HEAD
+[1.1.221]: https://github.com/IFRCGo/go-api/compare/1.1.220...1.1.221
 [1.1.220]: https://github.com/IFRCGo/go-api/compare/1.1.219...1.1.220
 [1.1.219]: https://github.com/IFRCGo/go-api/compare/1.1.218...1.1.219
 [1.1.218]: https://github.com/IFRCGo/go-api/compare/1.1.217...1.1.218
