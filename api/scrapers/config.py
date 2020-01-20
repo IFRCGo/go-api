@@ -1,7 +1,8 @@
 
 
 def return_all(text):
-    return text.split(':')[0]
+#   return text.split(':')[0] # really the full text
+    return text
 
 # META
 
