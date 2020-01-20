@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.223
+
+### Added
+ - Washing the scraped raw appeal id from surplus spaces
+
 ## 1.1.222
 
 ### Added
@@ -942,7 +947,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.222...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.223...HEAD
+[1.1.223]: https://github.com/IFRCGo/go-api/compare/1.1.222...1.1.223
 [1.1.222]: https://github.com/IFRCGo/go-api/compare/1.1.221...1.1.222
 [1.1.221]: https://github.com/IFRCGo/go-api/compare/1.1.220...1.1.221
 [1.1.220]: https://github.com/IFRCGo/go-api/compare/1.1.219...1.1.220
