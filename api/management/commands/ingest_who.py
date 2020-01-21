@@ -84,7 +84,7 @@ class Command(BaseCommand):
 #                if created:
 #                    added += 1
 #                    for c in data['country_text'].split(','):
-#                        country = Country.objects.filter(name=c.strip())
+#                        country = Country.objects.filter(field_name=c.strip())
 #                        if country.count() == 1:
 #                            gdacsevent.countries.add(country[0])
 #
@@ -133,12 +133,12 @@ class Command(BaseCommand):
             added += 1
 
             # add country
-            country_found = Country.objects.filter(name=country.strip())
+            country_found = Country.objects.filter(field_name=country.strip())
             if country_found.count() >= 1:
                 event.countries.add(country_found[0])
             else:
                 country_word_list = country.split()  # list of country words
-                country_found = Country.objects.filter(name=country_word_list[-1].strip()) # Search only the last word, like "Republic of Panama" > "Panama"
+                country_found = Country.objects.filter(field_name=country_word_list[-1].strip()) # Search only the last word, like "Republic of Panama" > "Panama"
                 if country_found.count() >= 1:
                     event.countries.add(country_found[0])
 

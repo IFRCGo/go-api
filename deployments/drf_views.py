@@ -50,10 +50,10 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
 
 class ERUFilter(filters.FilterSet):
     deployed_to__isnull = filters.BooleanFilter(field_name='deployed_to', lookup_expr='isnull')
-    deployed_to__in = ListFilter(name='deployed_to__id')
+    deployed_to__in = ListFilter(field_name='deployed_to__id')
     type = filters.NumberFilter(field_name='type', lookup_expr='exact')
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
-    event__in = ListFilter(name='event')
+    event__in = ListFilter(field_name='event')
     class Meta:
         model = ERU
         fields = ('available',)
@@ -105,9 +105,9 @@ class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')
     country_deployed_to = filters.NumberFilter(field_name='country_deployed_to', lookup_expr='exact')
     district_deployed_to = filters.NumberFilter(field_name='district_deployed_to', lookup_expr='exact')
-    parent_society__in = ListFilter(name='parent_society__id')
-    country_deployed_to__in = ListFilter(name='country_deployed_to__id')
-    district_deployed_to__in = ListFilter(name='district_deployed_to__id')
+    parent_society__in = ListFilter(field_name='parent_society__id')
+    country_deployed_to__in = ListFilter(field_name='country_deployed_to__id')
+    district_deployed_to__in = ListFilter(field_name='district_deployed_to__id')
     class Meta:
         model = PartnerSocietyDeployment
         fields = {

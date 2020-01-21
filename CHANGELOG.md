@@ -6,14 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.229
 ## 1.1.228
 ## 1.1.227
 ## 1.1.226
 ## 1.1.225
 
 ### Added
- - django-filters, field_name instead of name (also in view_filters.py, ListFilter)
  - https://stackoverflow.com/questions/51850985/django-filter-typeerror-at-goods-init-got-an-unexpected-keyword-argumen
+ - django-filters, field_name instead of name (also in view_filters.py, ListFilter)
+ - PartnerDeploymentFilterset also to be field_name-ing
  - Some fixes in deployments/test_views.py, None is not allowed to be sent via POST
  - Empty value to split
  - Small migration of a warned default
@@ -964,7 +966,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.228...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.229...HEAD
+[1.1.229]: https://github.com/IFRCGo/go-api/compare/1.1.228...1.1.229
 [1.1.228]: https://github.com/IFRCGo/go-api/compare/1.1.227...1.1.228
 [1.1.227]: https://github.com/IFRCGo/go-api/compare/1.1.226...1.1.227
 [1.1.226]: https://github.com/IFRCGo/go-api/compare/1.1.225...1.1.226
