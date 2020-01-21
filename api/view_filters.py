@@ -11,7 +11,7 @@ class ListFilter(Filter):
         return [v for v in value_list if v != u'']
 
     def filter(self, qs, value):
-        values = value.split(u",")
+        values = value.split(u",") if value is not None else []
         values = self.sanitize(values)
         values = map(self.filter_value_fn, values)
         f = Q()
