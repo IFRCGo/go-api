@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.227
 ## 1.1.226
 ## 1.1.225
 
@@ -13,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - django-filters, field_name instead of name (also in view_filters.py, ListFilter)
  - https://stackoverflow.com/questions/51850985/django-filter-typeerror-at-goods-init-got-an-unexpected-keyword-argumen
  - Some fixes in deployments/test_views.py, None is not allowed to be sent via POST
+ - Empty value to split
 
 ## 1.1.224
 
@@ -960,7 +962,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.226...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.227...HEAD
+[1.1.227]: https://github.com/IFRCGo/go-api/compare/1.1.226...1.1.227
 [1.1.226]: https://github.com/IFRCGo/go-api/compare/1.1.225...1.1.226
 [1.1.225]: https://github.com/IFRCGo/go-api/compare/1.1.224...1.1.225
 [1.1.224]: https://github.com/IFRCGo/go-api/compare/1.1.223...1.1.224
