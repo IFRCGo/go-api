@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 if created:
                     added += 1
                     for c in data['country_text'].split(','):
-                        country = Country.objects.filter(name=c.strip())
+                        country = Country.objects.filter(field_name=c.strip())
                         if country.count() == 1:
                             gdacsevent.countries.add(country[0])
 

@@ -137,7 +137,7 @@ class Command(BaseCommand):
         if len(iso_code) == 2:
             country = Country.objects.filter(iso=iso_code.lower())
         else:
-            country = Country.objects.filter(name=country_name)
+            country = Country.objects.filter(field_name=country_name)
 
         if country.count() == 0:
             country = None
