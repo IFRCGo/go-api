@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.225
+
+### Added
+ - django-ilters, field_name instead of name
+ - https://stackoverflow.com/questions/51850985/django-filter-typeerror-at-goods-init-got-an-unexpected-keyword-argumen
+ - Some fixes in deployments/test_views.py, None is not allowed to be sent via POST
+
+## 1.1.224
+
+### Added
+ - Bump Django up to 2.2.9 - and some dependencies also
+
 ## 1.1.223
 
 ### Added
@@ -947,7 +959,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.223...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.225...HEAD
+[1.1.225]: https://github.com/IFRCGo/go-api/compare/1.1.224...1.1.225
+[1.1.224]: https://github.com/IFRCGo/go-api/compare/1.1.223...1.1.224
 [1.1.223]: https://github.com/IFRCGo/go-api/compare/1.1.222...1.1.223
 [1.1.222]: https://github.com/IFRCGo/go-api/compare/1.1.221...1.1.222
 [1.1.221]: https://github.com/IFRCGo/go-api/compare/1.1.220...1.1.221

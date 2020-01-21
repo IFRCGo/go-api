@@ -49,10 +49,10 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('created_at', 'updated_at',)
 
 class ERUFilter(filters.FilterSet):
-    deployed_to__isnull = filters.BooleanFilter(name='deployed_to', lookup_expr='isnull')
+    deployed_to__isnull = filters.BooleanFilter(field_name='deployed_to', lookup_expr='isnull')
     deployed_to__in = ListFilter(name='deployed_to__id')
-    type = filters.NumberFilter(name='type', lookup_expr='exact')
-    event = filters.NumberFilter(name='event', lookup_expr='exact')
+    type = filters.NumberFilter(field_name='type', lookup_expr='exact')
+    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     event__in = ListFilter(name='event')
     class Meta:
         model = ERU
@@ -67,9 +67,9 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available',)
 
 class PersonnelDeploymentFilter(filters.FilterSet):
-    country_deployed_to = filters.NumberFilter(name='country_deployed_to', lookup_expr='exact')
-    region_deployed_to = filters.NumberFilter(name='region_deployed_to', lookup_expr='exact')
-    event_deployed_to = filters.NumberFilter(name='event_deployed_to', lookup_expr='exact')
+    country_deployed_to = filters.NumberFilter(field_name='country_deployed_to', lookup_expr='exact')
+    region_deployed_to = filters.NumberFilter(field_name='region_deployed_to', lookup_expr='exact')
+    event_deployed_to = filters.NumberFilter(field_name='event_deployed_to', lookup_expr='exact')
     class Meta:
         model = PersonnelDeployment
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
@@ -83,9 +83,9 @@ class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
 
 class PersonnelFilter(filters.FilterSet):
-    country_from = filters.NumberFilter(name='country_from', lookup_expr='exact')
-    type = filters.CharFilter(name='type', lookup_expr='exact')
-    event_deployed_to = filters.NumberFilter(name='deployment__event_deployed_to', lookup_expr='exact')
+    country_from = filters.NumberFilter(field_name='country_from', lookup_expr='exact')
+    type = filters.CharFilter(field_name='type', lookup_expr='exact')
+    event_deployed_to = filters.NumberFilter(field_name='deployment__event_deployed_to', lookup_expr='exact')
     class Meta:
         model = Personnel
         fields = {
@@ -102,9 +102,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
 class PartnerDeploymentFilterset(filters.FilterSet):
-    parent_society = filters.NumberFilter(name='parent_society', lookup_expr='exact')
-    country_deployed_to = filters.NumberFilter(name='country_deployed_to', lookup_expr='exact')
-    district_deployed_to = filters.NumberFilter(name='district_deployed_to', lookup_expr='exact')
+    parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')
+    country_deployed_to = filters.NumberFilter(field_name='country_deployed_to', lookup_expr='exact')
+    district_deployed_to = filters.NumberFilter(field_name='district_deployed_to', lookup_expr='exact')
     parent_society__in = ListFilter(name='parent_society__id')
     country_deployed_to__in = ListFilter(name='country_deployed_to__id')
     district_deployed_to__in = ListFilter(name='district_deployed_to__id')
@@ -128,8 +128,8 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class ProjectFilter(filters.FilterSet):
-    budget_amount = filters.NumberFilter(name='budget_amount', lookup_expr='exact')
-    country = filters.CharFilter(name='country', method='filter_country')
+    budget_amount = filters.NumberFilter(field_name='budget_amount', lookup_expr='exact')
+    country = filters.CharFilter(field_name='country', method='filter_country')
 
     def filter_country(self, queryset, name, value):
         return queryset.filter(project_district__country__iso=value)
