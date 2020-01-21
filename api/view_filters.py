@@ -16,6 +16,6 @@ class ListFilter(Filter):
         values = map(self.filter_value_fn, values)
         f = Q()
         for v in values:
-            kwargs = {self.name: v}
+            kwargs = {self.field_name: v}
             f = f|Q(**kwargs)
         return qs.filter(f)
