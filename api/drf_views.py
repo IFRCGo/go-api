@@ -224,8 +224,8 @@ class EventFilter(filters.FilterSet):
     dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
     is_featured = filters.BooleanFilter(field_name='is_featured')
     is_featured_region = filters.BooleanFilter(field_name='is_featured_region')
-    countries__in = ListFilter(name='countries__id')
-    regions__in = ListFilter(name='regions__id')
+    countries__in = ListFilter(field_name='countries__id')
+    regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = Event
@@ -341,7 +341,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
-    appeal__in = ListFilter(name='appeal__id')
+    appeal__in = ListFilter(field_name='appeal__id')
     class Meta:
         model = AppealDocument
         fields = {
@@ -385,8 +385,8 @@ class UserViewset(viewsets.ModelViewSet):
 class FieldReportFilter(filters.FilterSet):
     dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
     user = filters.NumberFilter(field_name='user', lookup_expr='exact')
-    countries__in = ListFilter(name='countries__id')
-    regions__in = ListFilter(name='regions__id')
+    countries__in = ListFilter(field_name='countries__id')
+    regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = FieldReport
