@@ -770,7 +770,7 @@ class Action(models.Model):
             choices=ActionType.CHOICES,
             max_length=4
         ),
-        default=[ActionType.EVENT]
+        default=list
     )
 
     def __str__(self):
