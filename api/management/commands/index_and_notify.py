@@ -19,7 +19,7 @@ import html
 time_interval  = timedelta(minutes = 5)
 time_interva2  = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
 time_interva7  = timedelta(   days = 7) # for digest mode
-basetime       = int(20314) # weekday - hour - min for digest timing (5 minutes once a week)
+basetime       = int(10314) # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
 daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
 max_length     = 860 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
