@@ -111,7 +111,7 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
         return RegionRelationSerializer
 
 class CountryFilter(filters.FilterSet):
-    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
     class Meta:
         model = Country
         fields = ('region',)
@@ -156,7 +156,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class RegionKeyFigureFilter(filters.FilterSet):
-    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
     class Meta:
         model = RegionKeyFigure
         fields = ('region',)
@@ -168,7 +168,7 @@ class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = RegionKeyFigure
 
 class CountryKeyFigureFilter(filters.FilterSet):
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
     class Meta:
         model = CountryKeyFigure
         fields = ('country',)
@@ -180,7 +180,7 @@ class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = CountryKeyFigure
 
 class RegionSnippetFilter(filters.FilterSet):
-    region = filters.NumberFilter(name='region', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
     class Meta:
         model = RegionSnippet
         fields = ('region',)
@@ -192,7 +192,7 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = RegionSnippet
 
 class CountrySnippetFilter(filters.FilterSet):
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
     class Meta:
         model = CountrySnippet
         fields = ('country',)
@@ -221,12 +221,12 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class EventFilter(filters.FilterSet):
-    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
-    is_featured = filters.BooleanFilter(name='is_featured')
-    is_featured_region = filters.BooleanFilter(name='is_featured_region')
+    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
+    is_featured = filters.BooleanFilter(field_name='is_featured')
+    is_featured_region = filters.BooleanFilter(field_name='is_featured_region')
     countries__in = ListFilter(name='countries__id')
     regions__in = ListFilter(name='regions__id')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = Event
         fields = {
@@ -260,7 +260,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class EventSnippetFilter(filters.FilterSet):
-    event = filters.NumberFilter(name='event', lookup_expr='exact')
+    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     class Meta:
         model = Snippet
         fields = ('event',)
@@ -277,8 +277,8 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('type',)
 
 class SituationReportFilter(filters.FilterSet):
-    event = filters.NumberFilter(name='event', lookup_expr='exact')
-    type = filters.NumberFilter(name='type', lookup_expr='exact')
+    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+    type = filters.NumberFilter(field_name='type', lookup_expr='exact')
     class Meta:
         model = SituationReport
         fields = {
@@ -294,13 +294,13 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = SituationReport
 
 class AppealFilter(filters.FilterSet):
-    atype = filters.NumberFilter(name='atype', lookup_expr='exact')
-    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
-    region = filters.NumberFilter(name='region', lookup_expr='exact')
-    code = filters.CharFilter(name='code', lookup_expr='exact')
-    status = filters.NumberFilter(name='status', lookup_expr='exact')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
+    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    code = filters.CharFilter(field_name='code', lookup_expr='exact')
+    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = Appeal
         fields = {
@@ -340,7 +340,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         return Response(self.remove_unconfirmed_event(serializer.data))
 
 class AppealDocumentFilter(filters.FilterSet):
-    appeal = filters.NumberFilter(name='appeal', lookup_expr='exact')
+    appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
     appeal__in = ListFilter(name='appeal__id')
     class Meta:
         model = AppealDocument
@@ -383,11 +383,11 @@ class UserViewset(viewsets.ModelViewSet):
 
 
 class FieldReportFilter(filters.FilterSet):
-    dtype = filters.NumberFilter(name='dtype', lookup_expr='exact')
-    user = filters.NumberFilter(name='user', lookup_expr='exact')
+    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
+    user = filters.NumberFilter(field_name='user', lookup_expr='exact')
     countries__in = ListFilter(name='countries__id')
     regions__in = ListFilter(name='regions__id')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = FieldReport
         fields = {

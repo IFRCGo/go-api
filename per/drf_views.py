@@ -42,10 +42,10 @@ from .serializers import (
 )
 
 class DraftFilter(filters.FilterSet):
-    user = filters.NumberFilter(name='user', lookup_expr='exact')
-    code = filters.CharFilter(name='code', lookup_expr='exact')
-    country = filters.CharFilter(name='country', lookup_expr='exact')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    user = filters.NumberFilter(field_name='user', lookup_expr='exact')
+    code = filters.CharFilter(field_name='code', lookup_expr='exact')
+    country = filters.CharFilter(field_name='country', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = Draft
         fields = {
@@ -87,8 +87,8 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
         ordering_fields = ('name',)
 
 class FormDataFilter(filters.FilterSet):
-    form = filters.NumberFilter(name='form', lookup_expr='exact')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    form = filters.NumberFilter(field_name='form', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = FormData
         fields = {
@@ -146,7 +146,7 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
         return self.get_filtered_queryset(self.request, queryset, 3)
 
 class PERDocsFilter(filters.FilterSet):
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     class Meta:
         model = NiceDocument
         fields = {
@@ -337,9 +337,9 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
         return result
 
 class NSPhaseFilter(filters.FilterSet):
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
-    phase = filters.NumberFilter(name='phase', lookup_expr='exact')
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    phase = filters.NumberFilter(field_name='phase', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
 
     class Meta:
         model = NSPhase
@@ -368,8 +368,8 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 class WorkPlanFilter(filters.FilterSet):
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
     class Meta:
         model = WorkPlan
         fields = {
@@ -385,8 +385,8 @@ class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = WorkPlanSerializer
 
 class OverviewFilter(filters.FilterSet):
-    id = filters.NumberFilter(name='id', lookup_expr='exact')
-    country = filters.NumberFilter(name='country', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
     class Meta:
         model = Overview
         fields = {

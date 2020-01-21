@@ -10,9 +10,9 @@ from .serializers import (
 )
 
 class SurgeAlertFilter(filters.FilterSet):
-    atype = filters.NumberFilter(name='atype', lookup_expr='exact')
-    category = filters.NumberFilter(name='category', lookup_expr='exact')
-    event = filters.NumberFilter(name='event', lookup_expr='exact')
+    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
+    category = filters.NumberFilter(field_name='category', lookup_expr='exact')
+    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     class Meta:
         model = SurgeAlert
         fields = {
