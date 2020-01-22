@@ -13,6 +13,7 @@ class SurgeAlertType(IntEnum):
     DHEOPS = 3
     HEOPS = 4
     SURGE = 5
+    RAPID_RESPONSE = 6
 
 
 class SurgeAlertCategory(IntEnum):
