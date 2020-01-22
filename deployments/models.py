@@ -103,6 +103,7 @@ class Personnel(DeployedPerson):
             ('rdrt', 'RDRT'),
             ('ifrc', 'IFRC'),
             ('eru', 'ERU HR'),
+            ('rr', 'Rapid Response'),
         ),
         max_length=4,
     )

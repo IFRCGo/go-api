@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.230
+
+### Added
+ - Rapid Response to personnel deployments
+
 ## 1.1.229
 ## 1.1.228
 ## 1.1.227
@@ -966,7 +971,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.229...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.230...HEAD
+[1.1.230]: https://github.com/IFRCGo/go-api/compare/1.1.229...1.1.230
 [1.1.229]: https://github.com/IFRCGo/go-api/compare/1.1.228...1.1.229
 [1.1.228]: https://github.com/IFRCGo/go-api/compare/1.1.227...1.1.228
 [1.1.227]: https://github.com/IFRCGo/go-api/compare/1.1.226...1.1.227
