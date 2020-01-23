@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.232
+
+### Added
+ - Ingest WHO with double URL-s
+
 ## 1.1.231
 ## 1.1.230
 
@@ -973,7 +978,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.231...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.232...HEAD
+[1.1.232]: https://github.com/IFRCGo/go-api/compare/1.1.231...1.1.232
 [1.1.231]: https://github.com/IFRCGo/go-api/compare/1.1.230...1.1.231
 [1.1.230]: https://github.com/IFRCGo/go-api/compare/1.1.229...1.1.230
 [1.1.229]: https://github.com/IFRCGo/go-api/compare/1.1.228...1.1.229
