@@ -22,7 +22,7 @@ from django.template.loader import render_to_string
 from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .esconnection import ES_CLIENT
-from .models import Appeal, Event, FieldReport
+from .models import Appeal, Event, FieldReport, CronJob
 from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
@@ -421,3 +421,28 @@ class ShowUsername(PublicJsonPostView):
                           render_to_string('email/show_username.html', email_context))
 
         return JsonResponse({'status': 'ok'})
+
+#class UpdateCronJob(APIView):
+#    authentication_classes = (authentication.TokenAuthentication,)
+#    permissions_classes = (permissions.IsAuthenticated,)
+#    def post(self, request):
+#        errors, created = CronJob.sync_cron(request.data)
+#        if len(errors):
+#            return Response({
+#                'status': 400,
+#                'data': 'Could not create one or more CronJob(s), aborting'
+#            })
+#        return Response({ 'data': 'Success' })
+
+
+class AddCronJobLog(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+    def post(self, request):
+        errors, created = CronJob.sync_cron(request.data)
+        if len(errors):
+            return Response({
+                'status': 400,
+                'data': 'Could not add CronJob, aborting'
+            })
+        return Response({ 'data': 'Success' })

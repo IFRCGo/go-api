@@ -31,6 +31,7 @@ from api.views import (
     DelSubscription,
     UpdateSubscriptionPreferences,
     AreaAggregate,
+    AddCronJobLog,
 )
 from registrations.views import (
     NewRegistration,
@@ -120,6 +121,7 @@ urlpatterns = [
     url(r'^api/v2/update_subscriptions/', UpdateSubscriptionPreferences.as_view()),
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
+    url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
