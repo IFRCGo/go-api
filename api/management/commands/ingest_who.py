@@ -193,7 +193,17 @@ class Command(BaseCommand):
 
             logger.info('%s WHO messages added' % added)
 
-# delete from api_event_countries where event_id in (select id from api_event where auto_generated_source like 'www.who.int%'); delete from api_event where auto_generated_source like 'www.who.int%';
+            # Database logging
+            api_url='http://localhost:8000'
+            headers = {'CONTENT_TYPE': 'application/json'}
+            body = { "name": "ingest WHO", "message": "%s WHO messages added" % added, "status": 0 }
+            resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers=headers)
+
+# Testing / db refreshment – hints
+# delete from api_event_countries where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
+# delete from api_event_regions where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
+# delete from api_event where auto_generated_source like 'www.who.int%';
+# --
 # select * from api_event_countries a join api_country b on (a.country_id=b.id) where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
 # select name from api_event a left join api_event_countries b on (a.id=b.event_id) where b.event_id is null and auto_generated_source like 'www.who.int%';  -- what country is not found
 

@@ -87,7 +87,7 @@ class CountryType(IntEnum):
     # select name, society_name, record_type from api_country where name like '%ffice%'; -- no result
     # update api_country set record_type=2 where name like '%luster%';
     # update api_country set record_type=3 where name like '%egion%';
-    
+
 
 class Country(models.Model):
     """ A country """
@@ -614,7 +614,7 @@ class FieldReport(models.Model):
     other_num_highest_risk = models.IntegerField(null=True, blank=True)
     other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
 
-    # Text field for users to specify sources for where they have marked 'Other' as source. 
+    # Text field for users to specify sources for where they have marked 'Other' as source.
     other_sources = models.TextField(blank=True, default='')
 
     # actions taken
@@ -1054,7 +1054,7 @@ class EmergencyOperationsPeopleReached(models.Model):
     class Meta:
         verbose_name = 'Emergency Operations People Reached'
         verbose_name_plural = 'Emergency Operations People Reached'
-    
+
 
 class EmergencyOperationsEA(models.Model):
     is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
@@ -1262,6 +1262,51 @@ class EmergencyOperationsFR(models.Model):
     class Meta:
         verbose_name = 'Emergency Operations Final Report'
         verbose_name_plural = 'Emergency Operations Final Reports'
+
+
+class CronJobStatus(IntEnum):
+    NEVER_RUN = -1
+    SUCCESSFUL = 0
+    WARNED = 1
+    ERRONEOUS = 2
+
+class CronJob(models.Model):
+    """ CronJob log row about jobs results """
+    name = models.TextField(null=True, blank=True)
+    status = EnumIntegerField(CronJobStatus, default=-1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Cronjob log'
+        verbose_name_plural = 'Cronjob logs'
+
+    # Given a request containing new CronJob log row, validate and add the CronJob log row.
+    def sync_cron(body):
+        new = []
+        errors = []
+        fields = { 'name': body['name'], 'message': body['message'] }
+        error = None
+
+        status = int(body['status'])
+        if status in [CronJobStatus.SUCCESSFUL, CronJobStatus.WARNED, CronJobStatus.ERRONEOUS]:
+            fields['status'] = status
+
+        else:
+            error = 'Status is not valid',
+
+        if error is not None:
+            errors.append({
+                'error': error,
+                'record': body,
+            })
+        else:
+            new.append(CronJob(**fields))
+
+        if not len(errors):
+            CronJob.objects.bulk_create(new)
+
+        return errors, new
 
 
 from .triggers import *
