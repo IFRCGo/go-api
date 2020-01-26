@@ -3,7 +3,7 @@ import datetime as dt
 from encoder import XML2Dict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Region, Event, GDACSEvent
+from api.models import Country, Region, Event, GDACSEvent, CronJob, CronJobStatus
 from api.event_sources import SOURCES
 from api.logger import logger
 
@@ -190,14 +190,18 @@ class Command(BaseCommand):
                 if region is not None:
                     event.regions.add(region)
 
-
-            logger.info('%s WHO messages added' % added)
+            text_to_log = "{} WHO messages added, URL-{}".format(added, index + 1)
+            logger.info(text_to_log)
 
             # Database logging
-            api_url='http://localhost:8000'
-            headers = {'CONTENT_TYPE': 'application/json'}
-            body = { "name": "ingest WHO", "message": "%s WHO messages added" % added, "status": 0 }
-            resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers=headers)
+            body = { "name": "ingest WHO", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
+
+            #... via API - not using from here, but from front-end it can be useful:
+            #api_url=...
+            #resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers={'CONTENT_TYPE': 'application/json'})
+            
+            # ... direct write-in
+            CronJob.sync_cron(body)
 
 # Testing / db refreshment – hints
 # delete from api_event_countries where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
