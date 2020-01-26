@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='CronJob',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.TextField(blank=True, null=True)),
+                ('name', models.CharField(default='', max_length=100)),
                 ('status', enumfields.fields.EnumIntegerField(default=-1, enum=api.models.CronJobStatus)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('message', models.TextField(blank=True, null=True)),

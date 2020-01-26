@@ -6,6 +6,8 @@ from .storage import AzureStorage
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator
 from django.contrib.postgres.fields import ArrayField
+from datetime import datetime, timedelta
+import pytz
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -1272,7 +1274,7 @@ class CronJobStatus(IntEnum):
 
 class CronJob(models.Model):
     """ CronJob log row about jobs results """
-    name = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=100, default = '')
     status = EnumIntegerField(CronJobStatus, default=-1)
     created_at = models.DateTimeField(auto_now_add=True)
     message = models.TextField(null=True, blank=True)
@@ -1280,6 +1282,9 @@ class CronJob(models.Model):
     class Meta:
         verbose_name = 'Cronjob log'
         verbose_name_plural = 'Cronjob logs'
+
+    def __str__(self):
+        return '%s: %s' % (self.name, str(self.created_at)[:16])
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
     def sync_cron(body):
@@ -1304,6 +1309,7 @@ class CronJob(models.Model):
             new.append(CronJob(**fields))
 
         if not len(errors):
+            CronJob.objects.filter(name=body['name'], created_at__lt=datetime.now(pytz.timezone('UTC'))-timedelta(days=2)).delete() # Delete old ones, "log-rotate"
             CronJob.objects.bulk_create(new)
 
         return errors, new

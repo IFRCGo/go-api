@@ -465,6 +465,8 @@ class SituationReportAdmin(RegionRestrictedAdmin):
 class SituationReportTypeAdmin(admin.ModelAdmin):
     search_fields = ('type',)
 
+class CronJobAdmin(admin.ModelAdmin):
+    search_fields = ('name', 'created_at',)
 
 class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
@@ -898,5 +900,6 @@ admin.site.register(models.EmergencyOperationsDataset, EmergencyOperationsDatase
 admin.site.register(models.EmergencyOperationsPeopleReached, EmergencyOperationsPeopleReachedAdmin)
 admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
 admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
+admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
