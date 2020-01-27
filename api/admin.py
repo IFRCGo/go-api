@@ -467,6 +467,9 @@ class SituationReportTypeAdmin(admin.ModelAdmin):
 
 class CronJobAdmin(admin.ModelAdmin):
     search_fields = ('name', 'created_at',)
+    readonly_fields = ('created_at',)
+    list_filter = ('status', 'name')
+
 
 class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)

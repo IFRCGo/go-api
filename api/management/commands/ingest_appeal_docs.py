@@ -125,8 +125,8 @@ class Command(BaseCommand):
 
         for t in text_to_log:
             logger.info(t)
-            body = { "name": "ingest_appeal_docs", "message": t, "status": CronJobStatus.SUCCESSFUL }
-            CronJob.sync_cron(body)
+            # body = { "name": "ingest_appeal_docs", "message": t, "status": CronJobStatus.SUCCESSFUL }
+            # CronJob.sync_cron(body)
 
         if len(not_found):
             t = '%s documents without appeals in system' % len(not_found)
