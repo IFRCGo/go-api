@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.237
 ## 1.1.236
 ## 1.1.235
 ## 1.1.234
 
 ### Added
+ - Admin inter-face-lift, filters
  - Updating logging feature of different recurring jobs in api/manag... and databank/manag...
  - CronJobs result logging, admin page, log-rotate
 
@@ -991,7 +993,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.236...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.237...HEAD
+[1.1.237]: https://github.com/IFRCGo/go-api/compare/1.1.236...1.1.237
 [1.1.236]: https://github.com/IFRCGo/go-api/compare/1.1.235...1.1.236
 [1.1.235]: https://github.com/IFRCGo/go-api/compare/1.1.234...1.1.235
 [1.1.234]: https://github.com/IFRCGo/go-api/compare/1.1.233...1.1.234
