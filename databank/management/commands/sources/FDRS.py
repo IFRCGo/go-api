@@ -3,6 +3,7 @@ import requests
 from django.conf import settings
 
 from api.utils import base64_encode
+from api.models import CronJob, CronJobStatus
 from databank.models import CountryOverview as CO
 from .utils import catch_error
 
@@ -42,12 +43,21 @@ FDRS_DATA_API_ENDPOINT = 'https://data-api.ifrc.org/api/Data?indicator=' + ','.j
 
 @catch_error('Error occured while fetching from FDRS API, Please make sure valid FDRS_CREDENTIAL is provided')
 def prefetch():
-    fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT, headers=FDRS_HEADERS).json()
+    fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT, headers=FDRS_HEADERS)
+
+    if fdrs_entities.status_code != 200:
+        body = { "name": "FDRS", "message": "Error querying FDRS NS API feed at " + FDRS_NS_API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+        CronJob.sync_cron(body)
+    fdrs_entities = fdrs_entities.json()
+
     ns_iso_map = {
         # ISO3 are missing for some in FDRS & IFRC-GO only have ISO2 for countries
         ns['KPI_DON_code']: ns['iso_2']
         for ns in fdrs_entities
     }
+
+    body = { "name": "FDRS", "message": "Done querying FDRS NS API feed at " + FDRS_NS_API_ENDPOINT, "status": CronJobStatus.SUCCESSFUL }
+    CronJob.sync_cron(body)
 
     return {
         # KEY <ISO2>-<Indicator_ID>: {year: '', value: ''}

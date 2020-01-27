@@ -2,7 +2,7 @@ import requests
 import datetime
 import logging
 
-from api.models import District
+from api.models import District, CronJob, CronJobStatus
 
 from .utils import catch_error, get_country_by_iso3
 
@@ -26,7 +26,11 @@ def prefetch():
             'source': 50,
             'per_page': 5000 - 1,  # WD throws error on 5000
             'page': page,
-        }).json()
+        })
+        if rs.status_code != 200:
+            body = { "name": "WB", "message": "Error querying WorldBank feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+            CronJob.sync_cron(body)
+        rs = rs.json()
 
         for pop_data in rs[1]:
             geo_code = pop_data['country']['id']
@@ -53,6 +57,8 @@ def prefetch():
         if page >= rs[0]['pages']:
             break
         page += 1
+    body = { "name": "WB", "message": "Done querying WorldBank feed at " + url, "status": CronJobStatus.SUCCESSFUL }
+    CronJob.sync_cron(body)
     return data
 
 

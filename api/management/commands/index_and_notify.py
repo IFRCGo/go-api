@@ -680,3 +680,4 @@ class Command(BaseCommand):
             self.index_new_records(new_appeals)
             logger.info('Indexing %s new events' % new_events.count())
             self.index_new_records(new_events)
+            # CronJob feedback via notifications/notification.py

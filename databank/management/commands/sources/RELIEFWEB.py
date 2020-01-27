@@ -4,6 +4,7 @@ import json
 import requests
 
 from databank.models import PastCrisesEvent, PastEpidemic, Month
+from api.models import CronJob, CronJobStatus
 from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,11 @@ def _crises_event_prefetch():
     url = DISASTER_API
     data = {}
     while True:
-        response = requests.post(url, data=query_params).json()
+        response = requests.post(url, data=query_params)
+        if response.status_code != 200:
+            body = { "name": "RELIEFWEB", "message": "Error querying ReliefWeb crisis event feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+            CronJob.sync_cron(body)
+        response = response.json()
         for disaster in response['data']:
             disaster = disaster['fields']
             iso3 = disaster['primary_country']['iso3'].upper()
@@ -85,6 +90,9 @@ def _epidemics_prefetch():
     data = {}
     while True:
         response = requests.post(url, data=query_params).json()
+        if response.status_code != 200:
+            body = { "name": "RELIEFWEB", "message": "Error querying ReliefWeb epicemics feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+            CronJob.sync_cron(body)
         for epidemic in response['data']:
             epidemic = epidemic['fields']
             iso3 = epidemic['primary_country']['iso3'].upper()
@@ -117,6 +125,8 @@ def _epidemics_prefetch():
         if 'next' not in response['links']:
             break
         url = response['links']['next']
+    body = { "name": "RELIEFWEB", "message": "Done querying all ReliefWeb feeds at " + url, "status": CronJobStatus.SUCCESSFUL }
+    CronJob.sync_cron(body)
     return data
 
 

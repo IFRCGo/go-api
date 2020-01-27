@@ -3,6 +3,8 @@ import datetime
 import requests
 import csv
 
+from api.models import CronJob, CronJobStatus
+
 from .utils import catch_error, get_country_by_name
 
 
@@ -30,7 +32,12 @@ def parse_alert_date(date):
 @catch_error()
 def prefetch():
     data = {}
-    for row in csv.DictReader(requests.get(API_ENDPOINT).text.splitlines()):
+    rs = requests.get(API_ENDPOINT)
+    if rs.status_code != 200:
+        body = { "name": "START_NETWORK", "message": "Error querying StartNetwork feed at " + API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+        CronJob.sync_cron(body)
+    rs = rs.text.splitlines()
+    for row in csv.DictReader(rs):
         # Some value are like `Congo [DRC]`
         country = get_country_by_name(row['Country'].split('[')[0].strip())
         date = parse_alert_date(row['Alert date'])
@@ -49,6 +56,8 @@ def prefetch():
             data[iso2] = [alert_data]
         else:
             data[iso2].append(alert_data)
+    body = { "name": "START_NETWORK", "message": "Done querying StartNetwork feed at " + API_ENDPOINT, "status": CronJobStatus.SUCCESSFUL }
+    CronJob.sync_cron(body)
     return data
 
 
