@@ -1,4 +1,3 @@
-import requests
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from urllib.request import urlopen
@@ -6,7 +5,7 @@ import json
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
-from api.models import Appeal, AppealDocument
+from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 from api.logger import logger
 
 
@@ -44,6 +43,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Starting appeal document ingest')
 
+        # v smoke test
+        baseurl = 'https://www.ifrc.org/en/publications-and-reports/appeals/'
+        smoke_response = urlopen(baseurl)
+        if smoke_response.code == 200:
+            body = { "name": "ingest_appeal_docs", "message": 'Done ingesting appeals_docs on url ' + baseurl, "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(body)
+        else:
+            body = { "name": "ingest_appeal_docs", "message": 'Error ingesting appeals_docs on url '
+                + baseurl + ', error_code: ' + smoke_response.code, "status": CronJobStatus.ERRONEOUS }
+            CronJob.sync_cron(body)
+        # ^ smoke test
+
         if options['fullscan']:
             # If the `--fullscan` option is passed, check ALL appeals
             print('Doing a full scan of all Appeals')
@@ -63,7 +74,7 @@ class Command(BaseCommand):
         page_not_found = []
         for code in appeal_codes:
             code = code.replace(' ', '')
-            docs_url = 'http://www.ifrc.org/en/publications-and-reports/appeals/?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            docs_url = baseurl + '?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
             try:
                 response = urlopen(docs_url)
             except: # if we get an error fetching page for an appeal, we ignore it
@@ -107,7 +118,18 @@ class Command(BaseCommand):
                         appeal=appeal,
                     )
                     created.append(doc[0])
-        logger.info('%s appeal documents created' % len(created))
-        logger.info('%s existing appeal documents' % len(existing))
-        logger.info('%s pages not found for appeal' % len(page_not_found))
-        logger.warn('%s documents without appeals in system' % len(not_found))
+        text_to_log=[]
+        text_to_log.append('%s appeal documents created' % len(created))
+        text_to_log.append('%s existing appeal documents' % len(existing))
+        text_to_log.append('%s pages not found for appeal' % len(page_not_found))
+
+        for t in text_to_log:
+            logger.info(t)
+            body = { "name": "ingest_appeal_docs", "message": t, "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(body)
+
+        if len(not_found):
+            t = '%s documents without appeals in system' % len(not_found)
+            logger.warn(t)
+            body = { "name": "ingest_appeal_docs", "message": t, "status": CronJobStatus.WARNED }
+            CronJob.sync_cron(body)

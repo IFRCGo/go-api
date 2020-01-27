@@ -3,7 +3,7 @@ import datetime as dt
 from encoder import XML2Dict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Event, GDACSEvent
+from api.models import Country, Event, GDACSEvent, CronJob, CronJobStatus
 from api.event_sources import SOURCES
 from api.logger import logger
 
@@ -16,11 +16,13 @@ class Command(BaseCommand):
         # get latest
         nspace = '{http://www.gdacs.org}'
         url = 'http://www.gdacs.org/xml/rss_7d.xml'
-
         response = requests.get(url)
         if response.status_code != 200:
-            logger.error('Error querying GDACS xml feed at http://www.gdacs.org/xml/rss_7d.xml')
+            text_to_log = 'Error querying GDACS xml feed at ' + url
+            logger.error(text_to_log)
             logger.error(response.content)
+            body = { "name": "ingest_dgacs", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+            CronJob.sync_cron(body)
             raise Exception('Error querying GDACS')
 
         # get as XML
@@ -90,4 +92,7 @@ class Command(BaseCommand):
                     # add countries
                     [event.countries.add(c) for c in gdacsevent.countries.all()]
 
-        logger.info('%s GDACs events added' % added)
+        text_to_log = '%s GDACs events added' % added
+        logger.info(text_to_log)
+        body = { "name": "ingest_gdacs", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
+        CronJob.sync_cron(body)

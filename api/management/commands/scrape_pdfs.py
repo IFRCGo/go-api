@@ -20,7 +20,7 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from tidylib import tidy_document
 
-from api.models import EmergencyOperationsDataset, EmergencyOperationsPeopleReached, EmergencyOperationsEA, EmergencyOperationsFR
+from api.models import EmergencyOperationsDataset, EmergencyOperationsPeopleReached, EmergencyOperationsEA, EmergencyOperationsFR, CronJob, CronJobStatus
 from api.logger import logger
 from django.core.management.base import BaseCommand
 from api.scrapers.extractor import MetaFieldExtractor, SectorFieldExtractor
@@ -107,6 +107,9 @@ class Command(BaseCommand):
     def get_documents(self, pdf_type):
         def get_documents_for(url, d_type, db_set):
             response = requests.get(url)
+            if response.status_code != 200:
+                body = { "name": "scrape_pdfs", "message": 'Error scraping ' + pdf_type + ' PDF-s from ' + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+                CronJob.sync_cron(body)
             items = xmltodict.parse(response.content)['rss']['channel']['item']
             link_with_filenames = []
             for item in items:
@@ -130,6 +133,9 @@ class Command(BaseCommand):
             db_set = EmergencyOperationsFR.objects.all().values_list('raw_file_url', flat=True)
         elif pdf_type == 'ea':
             db_set = EmergencyOperationsEA.objects.all().values_list('raw_file_url', flat=True)
+
+        body = { "name": "scrape_pdfs", "message": 'Done scraping ' + pdf_type + ' PDF-s from ' + url, "status": CronJobStatus.SUCCESSFUL }
+        CronJob.sync_cron(body)
 
         return get_documents_for(TYPE_URLS[pdf_type], pdf_type, db_set)
 

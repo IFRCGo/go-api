@@ -6,6 +6,7 @@ from django.utils.html import strip_tags
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from api.logger import logger
+from api.models import CronJob, CronJobStatus
 
 
 username = os.environ.get('EMAIL_USER')
@@ -44,7 +45,11 @@ class SendMail(threading.Thread):
             server.ehlo()
             server.starttls()
             server.ehlo()
-            server.login(username, password)
+            succ = server.login(username, password)
+            if 'successful' not in str(succ[1]):
+                body = { "name": "notification", "message": 'Error contacting ' + emailhost + ' smtp server for notifications', "status": CronJobStatus.ERRONEOUS }
+                CronJob.sync_cron(body)
+                # ^ Mainly for index_and_notify.py cronjob log
             if len(self.recipients) > 0:
                 server.sendmail(username, self.recipients, self.msg.as_string())
             server.quit()

@@ -3,7 +3,7 @@ import datetime as dt
 from encoder import XML2Dict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Region, Event, GDACSEvent, CronJob, CronJobStatus
+from api.models import Country, Region, Event, CronJob, CronJobStatus
 from api.event_sources import SOURCES
 from api.logger import logger
 
@@ -25,8 +25,11 @@ class Command(BaseCommand):
         for index, url in enumerate(ur2):
             response = requests.get(url)
             if response.status_code != 200:
-                logger.error('Error querying WHO xml feed at ' + url)
+                text_to_log = 'Error querying WHO xml feed at ' + url
+                logger.error(text_to_log)
                 logger.error(response.content)
+                body = { "name": "ingest_who", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+                CronJob.sync_cron(body)
                 raise Exception('Error querying WHO')
 
             # get as XML
@@ -193,14 +196,13 @@ class Command(BaseCommand):
             text_to_log = "{} WHO messages added, URL-{}".format(added, index + 1)
             logger.info(text_to_log)
 
-            # Database logging
-            body = { "name": "ingest WHO", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
+            # Database CronJob logging
+            body = { "name": "ingest_who", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
 
-            #... via API - not using from here, but from front-end it can be useful:
-            #api_url=...
+            #... via API - not using frosm here, but from front-end it can be useful:
             #resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers={'CONTENT_TYPE': 'application/json'})
             
-            # ... direct write-in
+            # ... via a direct write-in:
             CronJob.sync_cron(body)
 
 # Testing / db refreshment – hints

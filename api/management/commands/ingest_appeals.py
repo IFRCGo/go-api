@@ -4,7 +4,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
-from api.models import AppealType, AppealStatus, Appeal, Region, Country, DisasterType, Event
+from api.models import AppealType, AppealStatus, Appeal, Region, Country, DisasterType, Event, CronJob, CronJobStatus
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 from api.logger import logger
 
@@ -74,8 +74,13 @@ class Command(BaseCommand):
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
             response = requests.get(url, auth=auth)
             if response.status_code != 200:
-                logger.error('Error querying AppealBilaterals API')
-                raise Exception('Error querying AppealBilaterals API')
+                text_to_log = 'Error querying AppealBilaterals API at ' + url
+                logger.error(text_to_log)
+                logger.error(response.content)
+                body = { "name": "ingest_appeals", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+                CronJob.sync_cron(body)
+                raise Exception(text_to_log)
+
             records = response.json()
 
             # write the current record file to local disk
@@ -262,7 +267,13 @@ class Command(BaseCommand):
                 continue
             num_updated = num_updated + 1
 
-        logger.info('%s appeals created' % num_created)
-        logger.info('%s appeals updated' % num_updated)
-        logger.info('%s total appeals' % Appeal.objects.all().count())
-        logger.info('Appeals ingest completed')
+        text_to_log=[]
+        text_to_log.append('%s appeals created' % num_created)
+        text_to_log.append('%s appeals updated' % num_updated)
+        text_to_log.append('%s total appeals' % Appeal.objects.all().count())
+        text_to_log.append('Appeals ingest completed')
+        
+        for t in text_to_log:
+            logger.info(t)
+            body = { "name": "ingest_appeals", "message": t, "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(body)
