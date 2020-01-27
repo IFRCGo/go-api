@@ -1284,7 +1284,7 @@ class CronJob(models.Model):
         verbose_name_plural = 'Cronjob logs'
 
     def __str__(self):
-        return '%s: %s' % (self.name, str(self.created_at)[:16])
+        return '%s | %s | %s' % (self.name, str(self.status), str(self.created_at)[5:16])
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
     def sync_cron(body):
