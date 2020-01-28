@@ -20,7 +20,7 @@ def prefetch():
     if response_d.status_code != 200:
         body = { "name": "INFORM", "message": "Error querying Inform feed at " + INFORM_API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
-        inform_data
+        return inform_data
     response_d = response_d.json()
 
     for index, i_data in enumerate(response_d):
