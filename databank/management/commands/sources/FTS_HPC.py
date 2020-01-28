@@ -52,6 +52,7 @@ def load(country, overview, _):
                     c_data[year][fund_area] = totalFunding
 
     # numActivations
+    CronJobSum = 0
     for v in emg_data['data']:
         try:
             year = datetime.datetime.strptime(
@@ -64,6 +65,7 @@ def load(country, overview, _):
             c_data[year] = {'numActivations': 1}
         else:
             c_data[year]['numActivations'] = c_data[year].get('numActivations', 0) + 1
+        CronJobSum += c_data[year]['numActivations']
 
     overview.fts_data = [
         {
@@ -74,6 +76,6 @@ def load(country, overview, _):
     ]
     overview.save()
 
-    body = { "name": "FTS_HPC", "message": "Done querying all HPC data feeds at " + FTS_URL + " and " + EMERGENCY_URL, "status": CronJobStatus.SUCCESSFUL }
+    body = { "name": "FTS_HPC", "message": "Done querying all HPC data feeds at " + FTS_URL + " and " + EMERGENCY_URL, "num_result": CronJobSum, "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
 

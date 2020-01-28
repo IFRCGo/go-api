@@ -125,7 +125,7 @@ def _epidemics_prefetch():
         if 'next' not in response['links']:
             break
         url = response['links']['next']
-    body = { "name": "RELIEFWEB", "message": "Done querying all ReliefWeb feeds at " + url, "status": CronJobStatus.SUCCESSFUL }
+    body = { "name": "RELIEFWEB", "message": "Done querying all ReliefWeb feeds at " + url, "num_result": len(data), "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
     return data
 

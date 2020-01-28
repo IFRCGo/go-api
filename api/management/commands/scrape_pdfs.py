@@ -134,7 +134,7 @@ class Command(BaseCommand):
         elif pdf_type == 'ea':
             db_set = EmergencyOperationsEA.objects.all().values_list('raw_file_url', flat=True)
 
-        body = { "name": "scrape_pdfs", "message": 'Done scraping ' + pdf_type + ' PDF-s from ' + url, "status": CronJobStatus.SUCCESSFUL }
+        body = { "name": "scrape_pdfs", "message": 'Done scraping ' + pdf_type + ' PDF-s from ' + url, "num_result": len(db_set), "status": CronJobStatus.SUCCESSFUL }
         CronJob.sync_cron(body)
 
         return get_documents_for(TYPE_URLS[pdf_type], pdf_type, db_set)

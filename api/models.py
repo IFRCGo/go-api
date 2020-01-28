@@ -1278,13 +1278,19 @@ class CronJob(models.Model):
     status = EnumIntegerField(CronJobStatus, default=-1)
     created_at = models.DateTimeField(auto_now_add=True)
     message = models.TextField(null=True, blank=True)
+    num_result = models.IntegerField(default=0)
+    storing_days = models.IntegerField(default=3)
+    backend_side = models.BooleanField(default=True) # We could keep backend/frontend ingest results here also
 
     class Meta:
         verbose_name = 'Cronjob log'
         verbose_name_plural = 'Cronjob logs'
 
     def __str__(self):
-        return '%s | %s | %s' % (self.name, str(self.status), str(self.created_at)[5:16])
+        if self.num_result:
+            return '%s | %s : %s | %s' % (self.name, str(self.status), str(self.num_result), str(self.created_at)[5:16])
+        else:
+            return '%s | %s | %s'      % (self.name, str(self.status),                       str(self.created_at)[5:16]) # omit irrelevant 0
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
     def sync_cron(body):
@@ -1296,9 +1302,26 @@ class CronJob(models.Model):
         status = int(body['status'])
         if status in [CronJobStatus.SUCCESSFUL, CronJobStatus.WARNED, CronJobStatus.ERRONEOUS]:
             fields['status'] = status
-
         else:
             error = 'Status is not valid',
+
+        if 'num_result' in body:
+            if body['num_result'] >= 0:
+                fields['num_result'] = body['num_result']
+            else:
+                error = 'Num_result is not valid',
+
+        if 'storing_days' in body:
+            if body['storing_days'] > 0:
+                fields['storing_days'] = body['storing_days']
+                store_me = body['storing_days']
+            else:
+                error = 'Storing_days is not valid',
+        else:
+            store_me = 3 # default storing days
+
+        if 'backend_side' in body:
+            fields['backend_side'] = True if body['backend_side'] else False
 
         if error is not None:
             errors.append({
@@ -1309,10 +1332,11 @@ class CronJob(models.Model):
             new.append(CronJob(**fields))
 
         if not len(errors):
-            CronJob.objects.filter(name=body['name'], created_at__lt=datetime.now(pytz.timezone('UTC'))-timedelta(days=2)).delete() # Delete old ones, "log-rotate"
+            CronJob.objects.filter(name=body['name'], created_at__lt=datetime.now(pytz.timezone('UTC'))-timedelta(days=store_me)).delete() # Delete old ones, "log-rotate"
             CronJob.objects.bulk_create(new)
 
         return errors, new
 
+# To find related scripts from go-api root dir: grep -rl CronJob --exclude-dir=__pycache__ --exclude-dir=main --exclude-dir=migrations --exclude=CHANGELOG.md *
 
 from .triggers import *

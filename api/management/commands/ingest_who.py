@@ -197,7 +197,7 @@ class Command(BaseCommand):
             logger.info(text_to_log)
 
             # Database CronJob logging
-            body = { "name": "ingest_who", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
+            body = { "name": "ingest_who", "message": text_to_log, "num_result": added, "storing_days": 6, "status": CronJobStatus.SUCCESSFUL }
 
             #... via API - not using frosm here, but from front-end it can be useful:
             #resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers={'CONTENT_TYPE': 'application/json'})

@@ -56,7 +56,7 @@ def prefetch():
         for ns in fdrs_entities
     }
 
-    body = { "name": "FDRS", "message": "Done querying FDRS NS API feed at " + FDRS_NS_API_ENDPOINT, "status": CronJobStatus.SUCCESSFUL }
+    body = { "name": "FDRS", "message": "Done querying FDRS NS API feed at " + FDRS_NS_API_ENDPOINT, "num_result": len(ns_iso_map), "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
 
     return {

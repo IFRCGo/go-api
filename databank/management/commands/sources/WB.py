@@ -57,7 +57,7 @@ def prefetch():
         if page >= rs[0]['pages']:
             break
         page += 1
-    body = { "name": "WB", "message": "Done querying WorldBank feed at " + url, "status": CronJobStatus.SUCCESSFUL }
+    body = { "name": "WB", "message": "Done querying WorldBank feed at " + url, "num_result": len(data), "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
     return data
 
