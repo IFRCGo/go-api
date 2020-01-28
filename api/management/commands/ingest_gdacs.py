@@ -94,5 +94,5 @@ class Command(BaseCommand):
 
         text_to_log = '%s GDACs events added' % added
         logger.info(text_to_log)
-        body = { "name": "ingest_gdacs", "message": text_to_log, "status": CronJobStatus.SUCCESSFUL }
+        body = { "name": "ingest_gdacs", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL }
         CronJob.sync_cron(body)

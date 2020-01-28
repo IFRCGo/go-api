@@ -45,7 +45,7 @@ def prefetch():
         else:
             inform_data[pcountry.alpha_2].append(entry)
 
-    body = { "name": "INFORM", "message": "Done querying Inform feed at " + INFORM_API_ENDPOINT, "status": CronJobStatus.SUCCESSFUL }
+    body = { "name": "INFORM", "message": "Done querying Inform feed at " + INFORM_API_ENDPOINT, "num_result": len(inform_data), "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
     return inform_data
 

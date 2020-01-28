@@ -46,9 +46,9 @@ class Command(BaseCommand):
         # v smoke test
         baseurl = 'https://www.ifrc.org/en/publications-and-reports/appeals/'
         smoke_response = urlopen(baseurl)
+        joy_to_the_world = False
         if smoke_response.code == 200:
-            body = { "name": "ingest_appeal_docs", "message": 'Done ingesting appeals_docs on url ' + baseurl, "status": CronJobStatus.SUCCESSFUL }
-            CronJob.sync_cron(body)
+            joy_to_the_world = True # We log the success later, when we know the numeric results.
         else:
             body = { "name": "ingest_appeal_docs", "message": 'Error ingesting appeals_docs on url '
                 + baseurl + ', error_code: ' + smoke_response.code, "status": CronJobStatus.ERRONEOUS }
@@ -131,5 +131,11 @@ class Command(BaseCommand):
         if len(not_found):
             t = '%s documents without appeals in system' % len(not_found)
             logger.warn(t)
-            body = { "name": "ingest_appeal_docs", "message": t, "status": CronJobStatus.WARNED }
+            body = { "name": "ingest_appeal_docs", "message": t, "num_result": len(not_found), "status": CronJobStatus.WARNED }
+            CronJob.sync_cron(body)
+
+        if (joy_to_the_world):
+            body = { "name": "ingest_appeal_docs", "message": 'Done ingesting appeals_docs on url ' + baseurl +
+             ', %s appeal document(s) were created, %s already exist, %s not found' % (len(created), len(existing), len(page_not_found)),
+              "num_result": len(created), "status": CronJobStatus.SUCCESSFUL }
             CronJob.sync_cron(body)

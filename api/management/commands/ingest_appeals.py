@@ -267,13 +267,12 @@ class Command(BaseCommand):
                 continue
             num_updated = num_updated + 1
 
-        text_to_log=[]
-        text_to_log.append('%s appeals created' % num_created)
-        text_to_log.append('%s appeals updated' % num_updated)
-        text_to_log.append('%s total appeals' % Appeal.objects.all().count())
-        text_to_log.append('Appeals ingest completed')
+        CronJobSum = Appeal.objects.all().count()
+        logger.info('%s appeals created' % num_created)
+        logger.info('%s appeals updated' % num_updated)
+        logger.info('%s total appeals' % CronJobSum)
+        logger.info('Appeals ingest completed')
         
-        for t in text_to_log:
-            logger.info(t)
-            body = { "name": "ingest_appeals", "message": t, "status": CronJobStatus.SUCCESSFUL }
-            CronJob.sync_cron(body)
+        body = { "name": "ingest_appeals", "message": 'Appeals ingest completed, %s total appeals (%s new, %s existing).' 
+            % (CronJobSum, num_created, num_updated), "num_result": CronJobSum, "status": CronJobStatus.SUCCESSFUL }
+        CronJob.sync_cron(body)

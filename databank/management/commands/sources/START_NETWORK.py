@@ -37,6 +37,7 @@ def prefetch():
         body = { "name": "START_NETWORK", "message": "Error querying StartNetwork feed at " + API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
     rs = rs.text.splitlines()
+    CronJobSum = 0
     for row in csv.DictReader(rs):
         # Some value are like `Congo [DRC]`
         country = get_country_by_name(row['Country'].split('[')[0].strip())
@@ -56,7 +57,8 @@ def prefetch():
             data[iso2] = [alert_data]
         else:
             data[iso2].append(alert_data)
-    body = { "name": "START_NETWORK", "message": "Done querying StartNetwork feed at " + API_ENDPOINT, "status": CronJobStatus.SUCCESSFUL }
+        CronJobSum += 1
+    body = { "name": "START_NETWORK", "message": "Done querying StartNetwork feed at " + API_ENDPOINT, "num_result": CronJobSum, "status": CronJobStatus.SUCCESSFUL }
     CronJob.sync_cron(body)
     return data
 

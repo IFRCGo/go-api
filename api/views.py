@@ -402,6 +402,7 @@ class RecoverPassword(PublicJsonPostView):
 
         return JsonResponse({'status': 'ok'})
 
+
 class ShowUsername(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
@@ -421,18 +422,6 @@ class ShowUsername(PublicJsonPostView):
                           render_to_string('email/show_username.html', email_context))
 
         return JsonResponse({'status': 'ok'})
-
-#class UpdateCronJob(APIView):
-#    authentication_classes = (authentication.TokenAuthentication,)
-#    permissions_classes = (permissions.IsAuthenticated,)
-#    def post(self, request):
-#        errors, created = CronJob.sync_cron(request.data)
-#        if len(errors):
-#            return Response({
-#                'status': 400,
-#                'data': 'Could not create one or more CronJob(s), aborting'
-#            })
-#        return Response({ 'data': 'Success' })
 
 
 class AddCronJobLog(APIView):
