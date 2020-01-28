@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from elasticsearch.helpers import bulk
 from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
-from api.models import Country, Appeal, Event, FieldReport, ActionsTaken
+from api.models import Country, Appeal, Event, FieldReport, ActionsTaken, CronJob, CronJobStatus
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
@@ -593,6 +593,17 @@ class Command(BaseCommand):
                 record.updated_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
 
 
+    def check_ingest_issues(self):
+        having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
+        ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
+        ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
+        if len(having_ingest_issue) > 0:
+            # Change to im@ifrc.org when tested:
+            send_notification('API monitor – ingest issues!', ['szabozoltan969@gmail.com'], 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: ' + 
+                settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.')
+            logger.info('Ingest issue occured, e.g. by ' + ingestor_name + ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
+
+
     def handle(self, *args, **options):
         if self.is_digest_mode():
             t = self.get_time_threshold_digest() # in digest mode (1ce a week, for new_entities only) we use a bigger interval
@@ -680,4 +691,7 @@ class Command(BaseCommand):
             self.index_new_records(new_appeals)
             logger.info('Indexing %s new events' % new_events.count())
             self.index_new_records(new_events)
-            # CronJob feedback via notifications/notification.py
+
+            # CronJob feedback of smtp server working is in: notifications/notification.py
+            self.check_ingest_issues()
+            logger.info('API monitoring. Ingest issues are checked.')

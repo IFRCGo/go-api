@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.242
+## 1.1.241
+
+### Added
+ - Notification sending in case of erroneous ingestion
+
 ## 1.1.240
 ## 1.1.239
 
@@ -1002,7 +1008,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.240...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.242...HEAD
+[1.1.242]: https://github.com/IFRCGo/go-api/compare/1.1.241...1.1.242
+[1.1.241]: https://github.com/IFRCGo/go-api/compare/1.1.240...1.1.241
 [1.1.240]: https://github.com/IFRCGo/go-api/compare/1.1.239...1.1.240
 [1.1.239]: https://github.com/IFRCGo/go-api/compare/1.1.238...1.1.239
 [1.1.238]: https://github.com/IFRCGo/go-api/compare/1.1.237...1.1.238
