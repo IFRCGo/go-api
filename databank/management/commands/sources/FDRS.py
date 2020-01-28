@@ -48,6 +48,7 @@ def prefetch():
     if fdrs_entities.status_code != 200:
         body = { "name": "FDRS", "message": "Error querying FDRS NS API feed at " + FDRS_NS_API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
+        return {}
     fdrs_entities = fdrs_entities.json()
 
     ns_iso_map = {

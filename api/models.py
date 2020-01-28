@@ -1283,8 +1283,8 @@ class CronJob(models.Model):
     backend_side = models.BooleanField(default=True) # We could keep backend/frontend ingest results here also
 
     class Meta:
-        verbose_name = 'Cronjob log'
-        verbose_name_plural = 'Cronjob logs'
+        verbose_name = 'Cronjob log record'
+        verbose_name_plural = 'Cronjob log records'
 
     def __str__(self):
         if self.num_result:

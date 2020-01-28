@@ -93,6 +93,7 @@ def _epidemics_prefetch():
         if response.status_code != 200:
             body = { "name": "RELIEFWEB", "message": "Error querying ReliefWeb epicemics feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
             CronJob.sync_cron(body)
+            return data
         for epidemic in response['data']:
             epidemic = epidemic['fields']
             iso3 = epidemic['primary_country']['iso3'].upper()

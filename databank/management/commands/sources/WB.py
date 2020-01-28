@@ -30,6 +30,7 @@ def prefetch():
         if rs.status_code != 200:
             body = { "name": "WB", "message": "Error querying WorldBank feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
             CronJob.sync_cron(body)
+            return data
         rs = rs.json()
 
         for pop_data in rs[1]:

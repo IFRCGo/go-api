@@ -7,6 +7,10 @@
     <a href="{% url 'admin:index' %}">
         <img src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/logo300.png">
     </a>
+{% if HAVING_INGEST_ISSUE %}
+<span title="Ingest issue – please check erroneous api/CronJob item">
+    &nbsp;&nbsp;&nbsp;<a href="/api/cronjob/{{ INGEST_ISSUE_ID }}" style="color: red; font-size: larger">&#9888;</a></span>
+{% endif %}
 </h1>
 {% endblock %}
 

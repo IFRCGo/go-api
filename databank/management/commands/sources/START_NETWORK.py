@@ -36,6 +36,7 @@ def prefetch():
     if rs.status_code != 200:
         body = { "name": "START_NETWORK", "message": "Error querying StartNetwork feed at " + API_ENDPOINT, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
+        return data
     rs = rs.text.splitlines()
     CronJobSum = 0
     for row in csv.DictReader(rs):

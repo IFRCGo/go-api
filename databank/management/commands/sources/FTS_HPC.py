@@ -28,9 +28,11 @@ def load(country, overview, _):
     if fts_data.status_code != 200:
         body = { "name": "FTS_HPC", "message": "Error querying HPC fts data feed at " + FTS_URL, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
+        return {}
     if emg_data.status_code != 200:
         body = { "name": "FTS_HPC", "message": "Error querying HPC emergency data feed at " + EMERGENCY_URL, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
+        return {}
     fts_data = fts_data.json()
     emg_data = emg_data.json()
 
