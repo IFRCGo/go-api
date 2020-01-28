@@ -596,7 +596,7 @@ class Command(BaseCommand):
     def check_ingest_issues(self):
         having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
-        ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else -1
+        ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
             # Change to im@ifrc.org when tested:
             send_notification('API monitor – ingest issues!', ['szabozoltan969@gmail.com'], 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: ' + 
