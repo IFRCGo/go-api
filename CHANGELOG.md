@@ -6,9 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.240
 ## 1.1.239
 
 ### Added
+ - Making cleaner logging for FTS_HPC (databank ingest source)
  - Put a warning sign in case of ingest issue to the admin interface
 
 ## 1.1.238
@@ -1000,7 +1002,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.239...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.240...HEAD
+[1.1.240]: https://github.com/IFRCGo/go-api/compare/1.1.239...1.1.240
 [1.1.239]: https://github.com/IFRCGo/go-api/compare/1.1.238...1.1.239
 [1.1.238]: https://github.com/IFRCGo/go-api/compare/1.1.237...1.1.238
 [1.1.237]: https://github.com/IFRCGo/go-api/compare/1.1.236...1.1.237
