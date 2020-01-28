@@ -22,8 +22,8 @@ class Migration(migrations.Migration):
                 ('message', models.TextField(blank=True, null=True)),
             ],
             options={
-                'verbose_name': 'Cronjob log',
-                'verbose_name_plural': 'Cronjob logs',
+                'verbose_name': 'Cronjob log record',
+                'verbose_name_plural': 'Cronjob log records',
             },
         ),
     ]
