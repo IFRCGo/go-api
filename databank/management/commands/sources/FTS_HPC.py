@@ -78,6 +78,4 @@ def load(country, overview, _):
     ]
     overview.save()
 
-    body = { "name": "FTS_HPC", "message": "Done querying all HPC data feeds at " + FTS_URL + " and " + EMERGENCY_URL, "num_result": CronJobSum, "status": CronJobStatus.SUCCESSFUL }
-    CronJob.sync_cron(body)
-
+    # Instead of here the CronJob success logging was placed to ingest_databank.py, because here it is in a loop

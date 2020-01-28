@@ -3,7 +3,7 @@ import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from api.models import Country
+from api.models import Country, CronJob, CronJobStatus
 from databank.models import CountryOverview
 
 from .sources import (
@@ -73,6 +73,9 @@ class Command(BaseCommand):
                     print(f' [{datetime.datetime.now() - start}]')
             overview.save()
             index += 1
+        if name == 'FTS_HPC':
+            body = { "name": name, "message": "Done querying " + name + " data feeds", "num_result": len(overview), "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(body)
 
     def handle(self, *args, **kwargs):
         start = datetime.datetime.now()
