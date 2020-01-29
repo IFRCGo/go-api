@@ -593,12 +593,12 @@ class Command(BaseCommand):
                 record.updated_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
 
 
-    def check_ingest_issues(self):
-        having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
+    def check_ingest_issues(self, having_ingest_issue):
+        # having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
-            # Change to im@ifrc.org when tested:
+            #                                         Change to 'im@ifrc.org' when in production:
             send_notification('API monitor – ingest issues!', ['szabozoltan969@gmail.com'], 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: ' + 
                 settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name + ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
@@ -616,6 +616,7 @@ class Command(BaseCommand):
         condR = Q(real_data_update__gte=t) # instead of modified at
         cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
+        condE = Q(status=CronJobStatus.ERRONEOUS)
 
         # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
         if self.is_retro_mode():
@@ -693,5 +694,6 @@ class Command(BaseCommand):
             self.index_new_records(new_events)
 
             # CronJob feedback of smtp server working is in: notifications/notification.py
-            self.check_ingest_issues()
+            having_ingest_issue = CronJob.objects.filter(cond1 & condE)
+            self.check_ingest_issues(having_ingest_issue)
             logger.info('API monitoring. Ingest issues are checked.')

@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.243
 ## 1.1.242
 ## 1.1.241
 
 ### Added
+ - Timing of notification alerts on service break
  - Notification sending in case of erroneous ingestion
 
 ## 1.1.240
@@ -1008,7 +1010,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.242...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.243...HEAD
+[1.1.243]: https://github.com/IFRCGo/go-api/compare/1.1.242...1.1.243
 [1.1.242]: https://github.com/IFRCGo/go-api/compare/1.1.241...1.1.242
 [1.1.241]: https://github.com/IFRCGo/go-api/compare/1.1.240...1.1.241
 [1.1.240]: https://github.com/IFRCGo/go-api/compare/1.1.239...1.1.240
