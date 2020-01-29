@@ -17,7 +17,7 @@ INFORM_API_ENDPOINT = (
 def prefetch():
     inform_data = {}
     response_d = requests.get(INFORM_API_ENDPOINT)
-    if response_d.status_code != 200: # TODO! Temporary set to WARNED, but shoulc be ERRONEOUS:
+    if response_d.status_code != 200: # Because it is too often, it is set to WARNED, but should be ERRONEOUS:
         body = { "name": "INFORM", "message": "Error querying Inform feed at " + INFORM_API_ENDPOINT, "status": CronJobStatus.WARNED } # not every case is catched here, e.g. if the base URL is wrong...
         CronJob.sync_cron(body)
         return inform_data

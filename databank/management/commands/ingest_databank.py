@@ -71,11 +71,11 @@ class Command(BaseCommand):
                     start = datetime.datetime.now()
                     source.load(country, overview, source_data)
                     print(f' [{datetime.datetime.now() - start}]')
-                if name == 'FTS_HPC': # This source can not be checked/logged via prefetch, that is why we do it here, after the "load".
-                    body = { "name": name, "message": "Done querying " + name + " data feeds", "num_result": len(overview), "status": CronJobStatus.SUCCESSFUL }
-                    CronJob.sync_cron(body)
             overview.save()
             index += 1
+        if name == 'FTS_HPC': # This source can not be checked/logged via prefetch, that is why we do it here, after the "load".
+            body = { "name": name, "message": "Done querying " + name + " data feeds", "num_result": index, "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(body)
 
     def handle(self, *args, **kwargs):
         start = datetime.datetime.now()
