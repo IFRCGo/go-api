@@ -358,13 +358,17 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
-        # Giving a default value when queryset is empty, with the given country_id (if exists)
-        if not queryset and Country.objects.filter(pk = self.request.query_params.get('country', None)):
-            j = {'id': -1}
-            j.update({'country': Country.objects.get(pk = self.request.query_params.get('country', None))})
-            j.update({'updated_at': pytz.timezone("Europe/Zurich").localize(datetime(2011, 11, 11, 1, 1, 1, 0))})
-            j.update({'phase': 0})
-            return [j]
+        #|  # If this feature is not needed in the future (2020.01.30), this section can be deleted:
+        #|
+        #|  # Giving a default value when queryset is empty, with the given country_id (if exists)
+        #| if not queryset:
+        #|     j = {'id': -1}
+        #|     country_param = self.request.query_params.get('country', None) if self.request.query_params.get('country', None) !='' else None
+        #|     if country_param and Country.objects.filter(pk = country_param):
+        #|             j.update({'country': Country.objects.get(pk = country_param)})
+        #|     j.update({'updated_at': pytz.timezone("Europe/Zurich").localize(datetime(2011, 11, 11, 1, 1, 1, 0))})
+        #|     j.update({'phase': 0})
+        #|     return [j]
         return queryset
 
 class WorkPlanFilter(filters.FilterSet):
