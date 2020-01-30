@@ -6,11 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.244
 ## 1.1.243
 ## 1.1.242
 ## 1.1.241
 
 ### Added
+ - Putting "!" alert into comment on top banner. Maybe used later
  - Timing of notification alerts on service break
  - Notification sending in case of erroneous ingestion
 
@@ -1010,7 +1012,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.243...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.244...HEAD
+[1.1.244]: https://github.com/IFRCGo/go-api/compare/1.1.243...1.1.244
 [1.1.243]: https://github.com/IFRCGo/go-api/compare/1.1.242...1.1.243
 [1.1.242]: https://github.com/IFRCGo/go-api/compare/1.1.241...1.1.242
 [1.1.241]: https://github.com/IFRCGo/go-api/compare/1.1.240...1.1.241
