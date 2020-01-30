@@ -598,7 +598,7 @@ class Command(BaseCommand):
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
-            #                                         Change to 'im@ifrc.org' when in production:
+            #                                Would be better in ENV variable:
             send_notification('API monitor – ingest issues!', ['im@ifrc.org'], 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
                 settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name + ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
