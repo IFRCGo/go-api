@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.247
+
+### Added
+ - Changing hardcoded ugly URL-s in notifications (except logo)
+
 ## 1.1.246
 
 ### Added
@@ -1019,7 +1024,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.246...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.247...HEAD
+[1.1.247]: https://github.com/IFRCGo/go-api/compare/1.1.246...1.1.247
 [1.1.246]: https://github.com/IFRCGo/go-api/compare/1.1.245...1.1.246
 [1.1.245]: https://github.com/IFRCGo/go-api/compare/1.1.244...1.1.245
 [1.1.244]: https://github.com/IFRCGo/go-api/compare/1.1.243...1.1.244
