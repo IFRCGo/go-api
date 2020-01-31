@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.247
 
 ### Added
- - Changing hardcoded ugly URL-s in notifications (except logo)
+ - Changing hardcoded dsgo... URL-s in notifications (except logo)
 
 ## 1.1.246
 
