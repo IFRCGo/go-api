@@ -392,7 +392,7 @@ class RecoverPassword(PublicJsonPostView):
         recovery = Recovery.objects.create(user=user,
                                            token=token)
         email_context = {
-            'base_url': frontend_url,
+            'frontend_url': frontend_url,
             'username': user.username,
             'token': token
         }
