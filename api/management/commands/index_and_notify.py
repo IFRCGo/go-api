@@ -134,7 +134,7 @@ class Command(BaseCommand):
         # Determine the front-end URL
         resource_uri = frontend_url
         if rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
-            belonging_event = record.event.id if record.event is not None else 999 # Very rare
+            belonging_event = record.event.id if record.event is not None else 57 # Very rare – giving a non-existent
             resource_uri = '%s/emergencies/%s#overview' % (frontend_url, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             resource_uri = '%s/%s' % (frontend_url, 'deployments')  # can be further sophisticated
