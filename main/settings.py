@@ -10,7 +10,7 @@ BASE_URL = PRODUCTION_URL if PRODUCTION_URL else '%s:8000' % localhost
 
 # Backend URL nicing:
 if BASE_URL == 'prddsgocdnapi.azureedge.net':
-    BASE_URL = 'goadmin.ifrc.go'
+    BASE_URL = 'goadmin.ifrc.org'
 # The frontend_url nicing is in frontend.py
 
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
