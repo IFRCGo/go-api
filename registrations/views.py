@@ -279,7 +279,7 @@ class NewRegistration(PublicJsonPostView):
 
         email_context = {
             'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-                frontend_url,
+                settings.BASE_URL, # on PROD it should point to goadmin...
                 pending.token,
                 body['username'],
             )
@@ -336,7 +336,7 @@ class VerifyEmail(PublicJsonRequestView):
                 token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
-                        frontend_url,
+                        settings.BASE_URL, # on PROD it should point to goadmin...
                         token,
                         user,
                     ),
