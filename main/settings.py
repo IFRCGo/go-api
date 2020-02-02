@@ -8,6 +8,11 @@ PRODUCTION_URL = os.environ.get('API_FQDN')
 localhost = 'localhost'
 BASE_URL = PRODUCTION_URL if PRODUCTION_URL else '%s:8000' % localhost
 
+# Backend URL nicing:
+if BASE_URL == 'prddsgocdnapi.azureedge.net':
+    BASE_URL = 'goadmin.ifrc.go'
+# The frontend_url nicing is in frontend.py
+
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
     ALLOWED_HOSTS.append(PRODUCTION_URL)
