@@ -279,7 +279,7 @@ class NewRegistration(PublicJsonPostView):
 
         email_context = {
             'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-                settings.BASE_URL,
+                frontend_url,
                 pending.token,
                 body['username'],
             )
@@ -326,14 +326,17 @@ class VerifyEmail(PublicJsonRequestView):
             pending_user.user.is_active = True
             pending_user.user.save()
             pending_user.delete()
-            return HttpResponse(render_to_string('registration/success.html'))
+            email_context = {
+                'frontend_url': frontend_url
+            }
+            return HttpResponse(render_to_string('registration/success.html', email_context))
         else:
             admins = [pending_user.admin_contact_1, pending_user.admin_contact_2]
             for idx, admin in enumerate(admins):
                 token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
-                        settings.BASE_URL,
+                        frontent_url,
                         token,
                         user,
                     ),
