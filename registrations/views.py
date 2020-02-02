@@ -336,7 +336,7 @@ class VerifyEmail(PublicJsonRequestView):
                 token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
-                        frontent_url,
+                        frontend_url,
                         token,
                         user,
                     ),
