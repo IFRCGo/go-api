@@ -49,6 +49,10 @@ INSTALLED_APPS = [
 
     # Utils Apps
     'tinymce',
+
+    # Logging
+    'reversion',
+    'reversion_compare',
 ]
 
 REST_FRAMEWORK = {
