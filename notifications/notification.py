@@ -54,10 +54,10 @@ class SendMail(threading.Thread):
                 server.sendmail(username, self.recipients, self.msg.as_string())
             server.quit()
             logger.info('Notifications sent!')
-        except SMTPAuthenticationError:
+        except smtplib.SMTPAuthenticationError:
             logger.error('SMTPAuthenticationError')
             logger.error('Cannot send notification')
-            logger.error(str(SMTPAuthenticationError)[:100])
+            logger.error(str(smtplib.SMTPAuthenticationError)[:100])
 
 
 def send_notification (subject, recipients, html):

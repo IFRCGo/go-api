@@ -302,6 +302,11 @@ class Command(BaseCommand):
         for ev in events:
             amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
             amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or '--'
+            coverage = '--'
+            
+            if amount_funded != '--' and amount_requested != '--':
+                coverage = round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0
+            
             data_to_add = {
                 'hl_id': ev.id,
                 'hl_name': ev.name,
@@ -310,7 +315,7 @@ class Command(BaseCommand):
                 'hl_funding': amount_requested,
                 'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or '--',
                 'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
-                'hl_coverage': round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0,
+                'hl_coverage': coverage,
             }
             ret_highlights.append(data_to_add)
         return ret_highlights
