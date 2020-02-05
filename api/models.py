@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField, EnumField
 from .storage import AzureStorage
@@ -1338,5 +1340,35 @@ class CronJob(models.Model):
         return errors, new
 
 # To find related scripts from go-api root dir: grep -rl CronJob --exclude-dir=__pycache__ --exclude-dir=main --exclude-dir=migrations --exclude=CHANGELOG.md *
+
+
+class AuthLog(models.Model):
+    action = models.CharField(max_length=64)
+    username = models.CharField(max_length=256, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    #ip = models.GenericIPAddressField(null=True)
+
+    def __unicode__(self):
+        return '{0} - {1}'.format(self.action, self.username)
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.action, self.username)
+
+@receiver(user_logged_in)
+def user_logged_in_callback(sender, request, user, **kwargs):  
+    #ip = request.META.get('REMOTE_ADDR')
+    AuthLog.objects.create(action='user_logged_in', username=user.username)
+
+
+@receiver(user_logged_out)
+def user_logged_out_callback(sender, request, user, **kwargs):  
+    #ip = request.META.get('REMOTE_ADDR')
+    AuthLog.objects.create(action='user_logged_out', username=user.username)
+
+
+@receiver(user_login_failed)
+def user_login_failed_callback(sender, credentials, **kwargs):
+    AuthLog.objects.create(action='user_login_failed', username=credentials.get('username', None))
+
 
 from .triggers import *

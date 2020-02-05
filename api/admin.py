@@ -889,6 +889,16 @@ class EmergencyOperationsEAAdmin(CompareVersionAdmin):
 #     list_display_links = None
 
 
+class AuthLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'action', 'username',]
+    list_filter = ['action']
+    search_fields = ['action', 'username']
+    list_display_links = None
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
@@ -907,6 +917,7 @@ admin.site.register(models.EmergencyOperationsPeopleReached, EmergencyOperations
 admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
 admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.register(models.CronJob, CronJobAdmin)
+admin.site.register(models.AuthLog, AuthLogAdmin)
 #admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
