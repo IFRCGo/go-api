@@ -1357,13 +1357,15 @@ class AuthLog(models.Model):
 @receiver(user_logged_in)
 def user_logged_in_callback(sender, request, user, **kwargs):  
     #ip = request.META.get('REMOTE_ADDR')
-    AuthLog.objects.create(action='user_logged_in', username=user.username)
+    if user:
+        AuthLog.objects.create(action='user_logged_in', username=user.username)
 
 
 @receiver(user_logged_out)
 def user_logged_out_callback(sender, request, user, **kwargs):  
     #ip = request.META.get('REMOTE_ADDR')
-    AuthLog.objects.create(action='user_logged_out', username=user.username)
+    if user:
+        AuthLog.objects.create(action='user_logged_out', username=user.username)
 
 
 @receiver(user_login_failed)
