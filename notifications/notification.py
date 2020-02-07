@@ -83,5 +83,4 @@ def send_notification(subject, recipients, html):
     msg.attach(text_body)
     msg.attach(html_body)
 
-    for _ in range(3):
-        SendMail(['no-reply@ifrc.org'] + recipients, msg).start()
+    SendMail(['no-reply@ifrc.org'] + recipients, msg).start()
