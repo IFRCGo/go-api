@@ -1354,6 +1354,30 @@ class AuthLog(models.Model):
     def __str__(self):
         return '{0} - {1}'.format(self.action, self.username)
 
+
+class ReversionDifferenceLog(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    action = models.CharField(max_length=64) # Added, Changed, etc
+    username = models.CharField(max_length=256, null=True)
+    object_id = models.CharField(max_length=191, blank=True)
+    object_name = models.CharField(max_length=200, null=True, blank=True) # the name of the record
+    object_type = models.CharField(max_length=50, blank=True) # Emergency, Appeal, etc
+    changed_from = ArrayField(
+        models.TextField(null=True, blank=True),
+        default=list, null=True, blank=True
+    )
+    changed_to = ArrayField(
+        models.TextField(null=True, blank=True),
+        default=list, null=True, blank=True
+    )
+
+    def __unicode__(self):
+        return '{0} - {1} - {2} - {3}'.format(self.username, self.action, self.object_type, self.object_id)
+
+    def __str__(self):
+        return '{0} - {1} - {2} - {3}'.format(self.username, self.action, self.object_type, self.object_id)
+
+
 @receiver(user_logged_in)
 def user_logged_in_callback(sender, request, user, **kwargs):  
     #ip = request.META.get('REMOTE_ADDR')

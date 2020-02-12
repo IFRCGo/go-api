@@ -14,7 +14,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('operation', 'message', 'event__name',)
 
 
-class SubscriptionAdmin(admin.ModelAdmin):
+class SubscriptionAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'rtype')
     list_filter   = (('rtype', ChoiceDropdownFilter),)
 

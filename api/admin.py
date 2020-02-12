@@ -19,7 +19,7 @@ from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
 from .forms import ActionForm
 from reversion.admin import VersionAdmin
-from reversion.models import Revision
+from reversion.models import Revision, Version
 from reversion_compare.admin import CompareVersionAdmin
 
 class GoUserAdmin(UserAdmin):
@@ -905,6 +905,22 @@ class AuthLogAdmin(admin.ModelAdmin):
         return actions
 
 
+class ReversionDifferenceLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'username', 'action', 'object_type', 'object_name', 'object_id', 'changed_from', 'changed_to')
+    list_filter = ('action', 'object_type')
+    search_fields = ('username', 'object_name', 'object_type', 'changed_from', 'changed_to')
+    list_display_links = None
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
@@ -924,6 +940,7 @@ admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
 admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.register(models.AuthLog, AuthLogAdmin)
+admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
 #admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
