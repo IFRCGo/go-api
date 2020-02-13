@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.254
+
+### Added
+ - Limited threads for notif. emails and fixes
+
 ## 1.1.253
 ## 1.1.252
 ## 1.1.251
@@ -1033,7 +1038,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.253...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.254...HEAD
+[1.1.254]: https://github.com/IFRCGo/go-api/compare/1.1.253...1.1.254
 [1.1.253]: https://github.com/IFRCGo/go-api/compare/1.1.252...1.1.253
 [1.1.252]: https://github.com/IFRCGo/go-api/compare/1.1.251...1.1.252
 [1.1.251]: https://github.com/IFRCGo/go-api/compare/1.1.250...1.1.251
