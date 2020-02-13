@@ -23,10 +23,11 @@ else:
     testEmails=[]
     testEmails.append('zoltan.szabo@ifrc.org')
 
+# O365 only allows 3 threads connected at the same time for sending e-mails
+threadLimiter = threading.BoundedSemaphore(3)
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
-
         if int(prod) == 1:
             self.recipients = recipients
         else:
@@ -40,6 +41,8 @@ class SendMail(threading.Thread):
         super(SendMail, self).__init__(**kwargs)
 
     def run(self):
+        threadLimiter.acquire()
+
         try:
             server = smtplib.SMTP(emailhost, emailport)
             server.ehlo()
@@ -54,13 +57,15 @@ class SendMail(threading.Thread):
                 server.sendmail(username, self.recipients, self.msg.as_string())
             server.quit()
             logger.info('Notifications sent!')
-        except SMTPAuthenticationError:
+        except smtplib.SMTPAuthenticationError:
             logger.error('SMTPAuthenticationError')
             logger.error('Cannot send notification')
-            logger.error(str(SMTPAuthenticationError)[:100])
+            logger.error(str(smtplib.SMTPAuthenticationError)[:100])
+        finally:
+            threadLimiter.release()
 
 
-def send_notification (subject, recipients, html):
+def send_notification(subject, recipients, html):
     if not username or not password:
         logger.warn('No EMAIL_USER and/or EMAIL_PASS set as environment variables')
         logger.warn('Cannot send notification')
