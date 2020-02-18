@@ -1,29 +1,13 @@
 import json
 from django.db import transaction
+from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from reversion.models import Revision, Version
 from reversion.signals import post_revision_commit
 from api.models import ReversionDifferenceLog, User, Country, Event
 from deployments.models import DeployedPerson
 from per.models import Form
-#from notifications.models import RecordType
-
-# Copied from Stackoverflow
-# def clear_versions(versions, revision):
-#     count = 0
-#     for version in versions:
-#         previous_version = Version.objects.filter(
-#             object_id=version.object_id,
-#             content_type_id=version.content_type_id,
-#             id__lt=version.id,
-#         ).first()
-#         if not previous_version:
-#             continue
-#         if previous_version._local_field_dict == version._local_field_dict:
-#             version.delete()
-#             count += 1
-#         if len(versions_ids) == count:
-#             revision.delete()
+from middlewares.middlewares import get_username
 
 
 MODEL_TYPES = {
@@ -65,67 +49,110 @@ MODEL_TYPES = {
 
 
 def get_object_name(otype, obj):
-    oname = ''
+    obj_name = ''
     if (
         otype == 'api.emergencyoperationsdataset' or
         otype == 'api.emergencyoperationsea' or
         otype == 'api.emergencyoperationsfr' or
-        otype == 'api.emergencyoperationspeoplereached'
+        otype == 'api.emergencyoperationspeoplereached' or
+        otype == 'emergencyoperationsdataset' or
+        otype == 'emergencyoperationsea' or
+        otype == 'emergencyoperationsfr' or
+        otype == 'emergencyoperationspeoplereached'
     ):
-        oname = obj['raw_file_name']
-    elif otype == 'api.fieldreport':
-        oname = obj['summary']
-    elif otype == 'api.gdacsevent':
-        oname = obj['title']
-    elif otype == 'api.situationreporttype':
-        oname = obj['type']
-    elif otype == 'api.profile':
+        obj_name = obj['raw_file_name']
+    elif (
+        otype == 'api.fieldreport' or
+        otype == 'fieldreport'
+    ):
+        obj_name = obj['summary']
+    elif (
+        otype == 'api.gdacsevent' or
+        otype == 'gdacsevent'
+    ):
+        obj_name = obj['title']
+    elif (
+        otype == 'api.situationreporttype' or
+        otype == 'situationreporttype'
+    ):
+        obj_name = obj['type']
+    elif (
+        otype == 'api.profile' or
+        otype == 'profile'
+    ):
         usr = User.objects.get(pk=obj['user_id'])
-        oname = usr.username if usr else obj['user_id']
+        obj_name = usr.username if usr else obj['user_id']
     elif (
         otype == 'deployments.eruowner' or
-        otype == 'deployments.erureadiness'
+        otype == 'deployments.erureadiness' or
+        otype == 'eruowner' or
+        otype == 'erureadiness'
     ):
         ns_country = Country.objects.get(pk=obj['national_society_country_id'])
-        oname = '{} ({})'.format(ns_country.society_name,
+        obj_name = '{} ({})'.format(ns_country.society_name,
                                  ns_country.name) if ns_country else obj['national_society_country_id']
-    elif otype == 'deployments.partnersocietyactivities':
-        oname = obj['activity']
+    elif (
+        otype == 'deployments.partnersocietyactivities' or
+        otype == 'partnersocietyactivities'
+    ):
+        obj_name = obj['activity']
     elif (
         otype == 'deployments.partnersocietydeployment' or
-        otype == 'deployments.personnel'
+        otype == 'deployments.personnel' or
+        otype == 'partnersocietydeployment' or
+        otype == 'personnel'
     ):
         dep_person = DeployedPerson.objects.get(pk=obj['deployedperson_ptr_id'])
-        oname = dep_person.name if dep_person else obj['deployedperson_ptr_id']
-    elif otype == 'deployments.personneldeployment':
+        obj_name = dep_person.name if dep_person else obj['deployedperson_ptr_id']
+    elif (
+        otype == 'deployments.personneldeployment' or
+        otype == 'personneldeployment'
+    ):
         country = Country.objects.get(pk=obj['country_deployed_to_id'])
         event = Event.objects.get(pk=obj['event_deployed_to_id'])
-        oname = '{} - {}'.format(country.name, event.name) if country and event else country.name
-    elif otype == 'notifications.subscription':
+        obj_name = '{} - {}'.format(country.name, event.name) if country and event else country.name
+    elif (
+        otype == 'notifications.subscription' or
+        otype == 'subscription'
+    ):
         usr = User.objects.get(pk=obj['user_id'])
         # TODO: add sub-type (RecordType) later if needed
-        oname = usr.username
-    elif otype == 'notifications.surgealert':
-        oname = obj['operation']
-    elif otype == 'per.formdata':
-        form = Form.objects.get(pk=obj['form_id'])
-        oname = form.name if form else None
-    elif otype == 'per.nsphase':
-        country = Country.objects.get(pk=obj['country_id'])
-        oname = country.name if country else obj['country_id']
+        obj_name = usr.username
     elif (
-        otype == 'per.overview' or
-        otype == 'per.workplan'
+        otype == 'notifications.surgealert' or
+        otype == 'surgealert'
+    ):
+        obj_name = obj['operation']
+    elif (
+        otype == 'per.formdata' or
+        otype == 'formdata'
+    ):
+        form = Form.objects.get(pk=obj['form_id'])
+        obj_name = form.name if form else None
+    elif (
+        otype == 'per.nsphase' or
+        otype == 'nsphase'
     ):
         country = Country.objects.get(pk=obj['country_id'])
-        oname = country.society_name if country else None
-    elif otype == 'registrations.pending':
+        obj_name = country.name if country else obj['country_id']
+    elif (
+        otype == 'per.overview' or
+        otype == 'per.workplan' or
+        otype == 'overview' or
+        otype == 'workplan'
+    ):
+        country = Country.objects.get(pk=obj['country_id'])
+        obj_name = country.society_name if country else None
+    elif (
+        otype == 'registrations.pending' or
+        otype == 'pending'
+    ):
         usr = User.objects.get(pk=obj['user_id'])
-        oname = usr.username
+        obj_name = usr.username
     else:
-        oname = obj['name']
+        obj_name = obj['name']
 
-    return oname
+    return obj_name
 
 
 def create_global_reversion_log(versions, revision):
@@ -159,8 +186,6 @@ def create_global_reversion_log(versions, revision):
                 changed_to=revision.comment.replace('Changed ', '').replace('.', '').split(' and ')
             )
         elif previous_version._local_field_dict != version._local_field_dict:
-            import pdb
-            pdb.set_trace()
             changes_from = []
             changes_to = []
             for key, value in version._local_field_dict.items():
@@ -181,5 +206,25 @@ def create_global_reversion_log(versions, revision):
 
 @receiver(post_revision_commit)
 def post_revision_commit_receiver(sender, revision, versions, **kwargs):
-    # transaction.on_commit(lambda: clear_versions(versions, revision))
     transaction.on_commit(lambda: create_global_reversion_log(versions, revision))
+
+
+@receiver(pre_delete)
+def log_deletion(sender, instance, using, **kwargs):
+    model_name = None
+    instance_type = instance.__class__.__name__
+
+    # Gets the username from the request with a middleware helper
+    usr = get_username()
+
+    for key, value in MODEL_TYPES.items():
+        if value == instance_type:
+            model_name = key
+
+    ReversionDifferenceLog.objects.create(
+        action='Deleted',
+        username=usr,
+        object_id=instance.pk,
+        object_name=get_object_name(model_name, instance.__dict__) if model_name else get_object_name(instance._meta.model_name, instance.__dict__),
+        object_type=MODEL_TYPES[model_name] if model_name else instance_type
+    )
