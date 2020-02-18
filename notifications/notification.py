@@ -62,16 +62,6 @@ class SendMail(threading.Thread):
 class SendFollowedEventMails(threading.Thread):
     def __init__(self, messagelist, **kwargs):
         self.messagelist = messagelist
-        # if int(prod) == 1:
-        #     self.recipients = recipients
-        # else:
-        #     logger.info('Using test email addresses...')
-        #     self.recipients = []
-        #     for eml in testEmails:
-        #         if eml and (eml in recipients):
-        #             self.recipients.append(eml)
-
-        # self.msg = msg
         super(SendFollowedEventMails, self).__init__(**kwargs)
 
     def run(self):
