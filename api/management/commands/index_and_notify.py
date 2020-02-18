@@ -11,7 +11,7 @@ from api.models import Country, Appeal, Event, FieldReport, ActionsTaken, CronJo
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
-from notifications.notification import send_notification
+from notifications.notification import send_notification, send_followedevent_notifications
 from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
@@ -445,6 +445,58 @@ class Command(BaseCommand):
             }
         return rec_obj
 
+
+    def get_followed_event_notifications(self, records, rtype, stype, uid):
+        record_count = 0
+        if records:
+            record_count = records.count()
+        if not record_count and rtype != RecordType.WEEKLY_DIGEST:
+            return
+
+        usr = User.objects.filter(pk=uid, is_active=True)
+        if not len(usr):
+            return
+        else:
+            emails = list(usr.values_list('email', flat=True))  # Only one email in this case
+
+        record_entries = []
+        entries = list(records) if record_count <= 10 else list(records[:10])
+        for record in entries:
+            record_entries.append(self.construct_template_record(rtype, record))
+
+        is_staff = usr.values_list('is_staff', flat=True)[0]
+        record_type = self.get_record_display(rtype, record_count)
+
+        #subject = '%s followed %s modified in IFRC GO' % (
+        subject = '%s followed %s modified' % (
+            record_count,
+            record_type,
+        )
+
+        if self.is_retro_mode():
+            subject += ' [daily followup]'
+        template_path = self.get_template()
+        html = render_to_string(template_path, {
+            'hello': get_hello(),
+            'count': record_count,
+            'records': record_entries,
+            'is_staff': is_staff,
+            'subject': subject,
+        })
+        recipients = emails
+
+        if len(recipients):
+            # check if email is not in events_sent_to{event_id: recipients}
+            if not emails:
+                logger.info('Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid))
+            # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
+            elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
+                logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
+                return (subject, recipients, html)
+            else:
+                logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
+
+
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
         if records:
@@ -634,7 +686,10 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+            
+            if mailcontents_of_fe:
+                send_followedevent_notifications(mailcontents_of_fe)
         else:
             new_reports = FieldReport.objects.filter(cond1)
             updated_reports = FieldReport.objects.filter(condU & cond2)
@@ -677,12 +732,16 @@ class Command(BaseCommand):
                 self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
             users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
+            mailcontents_of_fe = []
             for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
                 eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+            
+            if mailcontents_of_fe:
+                send_followedevent_notifications(mailcontents_of_fe)
 
             logger.info('Indexing %s updated field reports' % updated_reports.count())
             self.index_updated_records(self.filter_just_created(updated_reports))

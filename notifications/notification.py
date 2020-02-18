@@ -23,8 +23,6 @@ else:
     testEmails=[]
     testEmails.append('zoltan.szabo@ifrc.org')
 
-# O365 only allows 3 threads connected at the same time for sending e-mails
-threadLimiter = threading.BoundedSemaphore(3)
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
@@ -41,8 +39,6 @@ class SendMail(threading.Thread):
         super(SendMail, self).__init__(**kwargs)
 
     def run(self):
-        threadLimiter.acquire()
-
         try:
             server = smtplib.SMTP(emailhost, emailport)
             server.ehlo()
@@ -61,8 +57,43 @@ class SendMail(threading.Thread):
             logger.error('SMTPAuthenticationError')
             logger.error('Cannot send notification')
             logger.error(str(smtplib.SMTPAuthenticationError)[:100])
-        finally:
-            threadLimiter.release()
+
+
+class SendFollowedEventMails(threading.Thread):
+    def __init__(self, messagelist, **kwargs):
+        self.messagelist = messagelist
+        # if int(prod) == 1:
+        #     self.recipients = recipients
+        # else:
+        #     logger.info('Using test email addresses...')
+        #     self.recipients = []
+        #     for eml in testEmails:
+        #         if eml and (eml in recipients):
+        #             self.recipients.append(eml)
+
+        # self.msg = msg
+        super(SendFollowedEventMails, self).__init__(**kwargs)
+
+    def run(self):
+        try:
+            server = smtplib.SMTP(emailhost, emailport)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            succ = server.login(username, password)
+            if 'successful' not in str(succ[1]):
+                body = { "name": "notification", "message": 'Error contacting ' + emailhost + ' smtp server for notifications', "status": CronJobStatus.ERRONEOUS }
+                CronJob.sync_cron(body)
+                # ^ Mainly for index_and_notify.py cronjob log
+            if len(self.messagelist) > 0:
+                for message in self.messagelist:
+                    server.sendmail(username, message[0], message[1].as_string())
+            server.quit()
+            logger.info('Notifications sent!')
+        except smtplib.SMTPAuthenticationError:
+            logger.error('SMTPAuthenticationError')
+            logger.error('Cannot send notification')
+            logger.error(str(smtplib.SMTPAuthenticationError)[:100])
 
 
 def send_notification(subject, recipients, html):
@@ -84,3 +115,23 @@ def send_notification(subject, recipients, html):
     msg.attach(html_body)
 
     SendMail(['no-reply@ifrc.org'] + recipients, msg).start()
+
+
+def send_followedevent_notifications(mailcontents):
+    mails = []
+    for mc in mailcontents:
+        msg = MIMEMultipart('alternative')
+
+        msg['Subject'] = '[IFRCGO] %s' % mc[0]
+        msg['From'] = username.upper()
+        msg['To'] = 'no-reply@ifrc.org'
+
+        text_body = MIMEText(strip_tags(mc[2]), 'plain')
+        html_body = MIMEText(mc[2], 'html')
+
+        msg.attach(text_body)
+        msg.attach(html_body)
+
+        mails.append((mc[1], msg)) #(recipients + message) as a tuples
+    
+    SendFollowedEventMails(mails).start()
