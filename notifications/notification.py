@@ -77,6 +77,8 @@ class SendFollowedEventMails(threading.Thread):
                 # ^ Mainly for index_and_notify.py cronjob log
             if len(self.messagelist) > 0:
                 for message in self.messagelist:
+                    logger.info('Recipients: {}'.format(message[0]))
+                    logger.info('Subject: {}'.format(message[1]['Subject']))
                     server.sendmail(username, message[0], message[1].as_string())
             server.quit()
             logger.info('Notifications sent!')

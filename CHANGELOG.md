@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.257
+
+### Added
+ - Added logging to each Followed Event mail sent
+
 ## 1.1.256
 
 ### Added
@@ -1048,7 +1053,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.256...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.257...HEAD
+[1.1.257]: https://github.com/IFRCGo/go-api/compare/1.1.256...1.1.257
 [1.1.256]: https://github.com/IFRCGo/go-api/compare/1.1.255...1.1.256
 [1.1.255]: https://github.com/IFRCGo/go-api/compare/1.1.254...1.1.255
 [1.1.254]: https://github.com/IFRCGo/go-api/compare/1.1.253...1.1.254
