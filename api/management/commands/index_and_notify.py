@@ -674,6 +674,7 @@ class Command(BaseCommand):
         cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
+        mailcontents_of_fe = [] # for recipients and messages of followed-events
 
         # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
         if self.is_retro_mode():
@@ -732,7 +733,6 @@ class Command(BaseCommand):
                 self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
             users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
-            mailcontents_of_fe = []
             for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
                 eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
