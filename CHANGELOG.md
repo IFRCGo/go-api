@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.258
+
+### Added
+ - Fixed Nonetype error for Followed Event notifs
+
+## 1.1.257
+
+### Added
+ - Added logging to each Followed Event mail sent
+
+## 1.1.256
+
+### Added
+ - Fix for Followed Events notif.
+
 ## 1.1.255
 
 ### Added
@@ -1043,7 +1058,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.255...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.258...HEAD
+[1.1.258]: https://github.com/IFRCGo/go-api/compare/1.1.257...1.1.258
+[1.1.257]: https://github.com/IFRCGo/go-api/compare/1.1.256...1.1.257
+[1.1.256]: https://github.com/IFRCGo/go-api/compare/1.1.255...1.1.256
 [1.1.255]: https://github.com/IFRCGo/go-api/compare/1.1.254...1.1.255
 [1.1.254]: https://github.com/IFRCGo/go-api/compare/1.1.253...1.1.254
 [1.1.253]: https://github.com/IFRCGo/go-api/compare/1.1.252...1.1.253

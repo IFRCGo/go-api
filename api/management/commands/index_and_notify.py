@@ -674,6 +674,7 @@ class Command(BaseCommand):
         cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
+        mailcontents_of_fe = [] # for recipients and messages of followed-events
 
         # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
         if self.is_retro_mode():
@@ -686,7 +687,9 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+                    contents = self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    if contents:
+                        mailcontents_of_fe.append(contents)
             
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
@@ -732,13 +735,14 @@ class Command(BaseCommand):
                 self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
             users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
-            mailcontents_of_fe = []
             for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
                 eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+                    contents = self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    if contents:
+                        mailcontents_of_fe.append(contents)
             
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
