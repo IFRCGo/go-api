@@ -687,7 +687,9 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+                    contents = self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    if contents:
+                        mailcontents_of_fe.append(contents)
             
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
@@ -738,7 +740,9 @@ class Command(BaseCommand):
                 cond3 = Q(pk__in=eventlist) # getting their events as a condition
                 followed_events = Event.objects.filter(condU & cond2 & cond3)
                 if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    mailcontents_of_fe.append(self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr))
+                    contents = self.get_followed_event_notifications(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
+                    if contents:
+                        mailcontents_of_fe.append(contents)
             
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
