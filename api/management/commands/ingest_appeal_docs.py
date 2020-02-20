@@ -63,7 +63,9 @@ class Command(BaseCommand):
             # By default, only check appeals for the past 3 months where Appeal Documents is 0
             now = datetime.now()
             three_months_ago = now - relativedelta(months=3)
-            qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
+            # This was the original qset, but it wouldn't get newer docs for the same Appeals
+            #qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
+            qset = Appeal.objects.filter(end_date__gt=three_months_ago)
 
         # First get all Appeal Codes
         appeal_codes = [a.code for a in qset]
