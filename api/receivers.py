@@ -156,7 +156,7 @@ def get_object_name(otype, obj):
         usr = User.objects.get(pk=obj['user_id'])
         obj_name = usr.username
     else:
-        obj_name = obj['name']
+        obj_name = obj.get('name', '')
 
     return obj_name
 
