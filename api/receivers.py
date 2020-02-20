@@ -50,7 +50,13 @@ MODEL_TYPES = {
 
 def get_object_name(otype, obj):
     obj_name = ''
+
     if (
+        otype == 'api.countrysnippet' or
+        otype == 'countrysnippet'
+    ):
+        obj_name = obj['snippet']
+    elif (
         otype == 'api.emergencyoperationsdataset' or
         otype == 'api.emergencyoperationsea' or
         otype == 'api.emergencyoperationsfr' or
