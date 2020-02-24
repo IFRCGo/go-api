@@ -177,7 +177,7 @@ def create_global_reversion_log(versions, revision):
         if not previous_version and action_happened == 'Added':
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username,
+                username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
                 object_name=get_object_name(model_name, version._local_field_dict),
                 object_type=MODEL_TYPES[model_name]
@@ -185,7 +185,7 @@ def create_global_reversion_log(versions, revision):
         elif not previous_version:
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username,
+                username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
                 object_name=get_object_name(model_name, version._local_field_dict),
                 object_type=MODEL_TYPES[model_name],
@@ -201,7 +201,7 @@ def create_global_reversion_log(versions, revision):
 
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
-                username=revision.user.username,
+                username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
                 object_name=get_object_name(model_name, version._local_field_dict),
                 object_type=MODEL_TYPES[model_name],
