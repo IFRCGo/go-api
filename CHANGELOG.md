@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.261
+
+### Added
+ - Added phone to FRContact serializer
+
 ## 1.1.260
 
 ### Added
@@ -1068,7 +1073,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.260...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.261...HEAD
+[1.1.261]: https://github.com/IFRCGo/go-api/compare/1.1.260...1.1.261
 [1.1.260]: https://github.com/IFRCGo/go-api/compare/1.1.259...1.1.260
 [1.1.259]: https://github.com/IFRCGo/go-api/compare/1.1.258...1.1.259
 [1.1.258]: https://github.com/IFRCGo/go-api/compare/1.1.257...1.1.258

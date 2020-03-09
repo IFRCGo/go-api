@@ -156,7 +156,7 @@ class EventContactSerializer(serializers.ModelSerializer):
 class FieldReportContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReportContact
-        fields = ('ctype', 'name', 'title', 'email', 'id',)
+        fields = ('ctype', 'name', 'title', 'email', 'phone', 'id',)
 
 class MiniFieldReportSerializer(serializers.ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
