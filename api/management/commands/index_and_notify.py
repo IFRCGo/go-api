@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from django.db.models import Q, Sum
+from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -695,13 +695,19 @@ class Command(BaseCommand):
                 send_followedevent_notifications(mailcontents_of_fe)
         else:
             new_reports = FieldReport.objects.filter(cond1)
-            updated_reports = FieldReport.objects.filter(condU & cond2)
+            updated_reports = FieldReport.objects.annotate(
+                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_appeals = Appeal.objects.filter(cond1)
-            updated_appeals = Appeal.objects.filter(condR & cond2)
+            updated_appeals = Appeal.objects.annotate(
+                diff = ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
+            ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_events = Event.objects.filter(cond1).exclude(condF)
-            updated_events = Event.objects.filter(condU & cond2)
+            updated_events = Event.objects.annotate(
+                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_surgealerts = SurgeAlert.objects.filter(cond1)
 
