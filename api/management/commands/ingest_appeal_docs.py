@@ -104,6 +104,7 @@ class Command(BaseCommand):
             existing_docs = list(appeal.appealdocument_set.all())
             docs = [a for a in output if a[2] == code]
             for doc in docs:
+                doc[0] = 'https://www.ifrc.org' + doc[0] if doc[0].startswith('/docs') else doc[0] # href only contains relative path to the document if it's available at the ifrc.org site
                 exists = len([a for a in existing_docs if a.document_url == doc[0]]) > 0
                 if exists:
                     existing.append(doc[0])
