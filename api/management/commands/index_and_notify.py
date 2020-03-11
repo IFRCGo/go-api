@@ -694,6 +694,7 @@ class Command(BaseCommand):
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
         else:
+            # ".annotate(diff...)" - To check if a record was newly created, we check if `created_at` and `updated_at` are within one minute of each other, since those values can be off by some miliseconds upon insertion.
             new_reports = FieldReport.objects.filter(cond1)
             updated_reports = FieldReport.objects.annotate(
                 diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
