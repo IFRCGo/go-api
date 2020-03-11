@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from django.db.models import Q, Sum
+from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -372,7 +372,6 @@ class Command(BaseCommand):
                 shortened = shortened[:max_length] + \
                             shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
 
-        # TODO: Operation Update and Announcement types are missing
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -516,7 +515,6 @@ class Command(BaseCommand):
             else:
                 emails = list(usr.values_list('email', flat=True))  # Only one email in this case
         
-        # TODO: maybe this needs to be adjusted based on the new functionality (at first only handling Weekly Digest)
         # Only serialize the first 10 records
         record_entries = []
         if rtype == RecordType.WEEKLY_DIGEST:
@@ -694,14 +692,21 @@ class Command(BaseCommand):
             if mailcontents_of_fe:
                 send_followedevent_notifications(mailcontents_of_fe)
         else:
+            # ".annotate(diff...)" - To check if a record was newly created, we check if `created_at` and `updated_at` are within one minute of each other, since those values can be off by some miliseconds upon insertion.
             new_reports = FieldReport.objects.filter(cond1)
-            updated_reports = FieldReport.objects.filter(condU & cond2)
+            updated_reports = FieldReport.objects.annotate(
+                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_appeals = Appeal.objects.filter(cond1)
-            updated_appeals = Appeal.objects.filter(condR & cond2)
+            updated_appeals = Appeal.objects.annotate(
+                diff = ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
+            ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_events = Event.objects.filter(cond1).exclude(condF)
-            updated_events = Event.objects.filter(condU & cond2)
+            updated_events = Event.objects.annotate(
+                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
             new_surgealerts = SurgeAlert.objects.filter(cond1)
 
