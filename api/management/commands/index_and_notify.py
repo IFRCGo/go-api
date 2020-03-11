@@ -372,7 +372,6 @@ class Command(BaseCommand):
                 shortened = shortened[:max_length] + \
                             shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
 
-        # TODO: Operation Update and Announcement types are missing
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -516,7 +515,6 @@ class Command(BaseCommand):
             else:
                 emails = list(usr.values_list('email', flat=True))  # Only one email in this case
         
-        # TODO: maybe this needs to be adjusted based on the new functionality (at first only handling Weekly Digest)
         # Only serialize the first 10 records
         record_entries = []
         if rtype == RecordType.WEEKLY_DIGEST:
