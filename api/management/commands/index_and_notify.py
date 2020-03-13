@@ -11,7 +11,7 @@ from api.models import Country, Appeal, Event, FieldReport, ActionsTaken, CronJo
 from api.logger import logger
 from notifications.models import RecordType, SubscriptionType, Subscription, SurgeAlert
 from notifications.hello import get_hello
-from notifications.notification import send_notification, send_followedevent_notifications
+from notifications.notification import send_notification
 from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
