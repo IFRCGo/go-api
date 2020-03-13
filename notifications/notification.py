@@ -17,14 +17,12 @@ EMAIL_USER = os.environ.get('EMAIL_USER')
 # EMAIL_PORT = os.environ.get('EMAIL_PORT')
 IS_PROD = os.environ.get('PRODUCTION')
 EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
-TEST_EMAILS = os.environ.get('TEST_EMAILS')
 
-
-if TEST_EMAILS:
-    TEST_EMAILS = TEST_EMAILS.split(',')
+test_emails = os.environ.get('TEST_EMAILS')
+if test_emails:
+    test_emails = test_emails.split(',')
 else:
-    TEST_EMAILS = []
-    TEST_EMAILS.append('gergely.horvath@ifrc.org')
+    test_emails = ['gergely.horvath@ifrc.org']
 
 
 def send_notification(subject, recipients, html, is_followed_event=False):
@@ -33,7 +31,7 @@ def send_notification(subject, recipients, html, is_followed_event=False):
     if int(IS_PROD) != 1:
         logger.info('Using test email addresses...')
         to_addresses = []
-        for eml in TEST_EMAILS:
+        for eml in test_emails:
             if eml and (eml in recipients):
                 to_addresses.append(eml)
 
