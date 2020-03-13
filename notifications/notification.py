@@ -26,6 +26,11 @@ else:
 
 
 def send_notification(subject, recipients, html, is_followed_event=False):
+    if not EMAIL_USER or not EMAIL_API_ENDPOINT:
+        logger.warn('Cannot send notifications.')
+        logger.warn('No username and/or API endpoint set as environment variables.')
+        return
+
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
     to_addresses = recipients
     if int(IS_PROD) != 1:
@@ -102,7 +107,7 @@ def send_notification(subject, recipients, html, is_followed_event=False):
 
 # def send_notification(subject, recipients, html):
 #     if not username or not password:
-#         logger.warn('No EMAIL_USER and/or EMAIL_PASS set as environment variables')
+#         logger.warn('No username and/or password set as environment variables')
 #         logger.warn('Cannot send notification')
 #         return
 
