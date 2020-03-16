@@ -29,9 +29,9 @@ jobs:
                 else
                   LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
                   echo $LATEST_GIT_TAG
+                  git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
                 fi
 
-                git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
                 docker-compose build
                 docker login -u $DOCKER_USER -p $DOCKER_PASS
                 docker tag ifrcgo/go-api:latest ifrcgo/go-api:$LATEST_GIT_TAG
