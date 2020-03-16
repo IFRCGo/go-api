@@ -61,8 +61,8 @@ def send_notification(subject, recipients, html, is_followed_event=False):
 
     if res.status_code == 200:
         logger.info('E-mails were sent successfully.')
-    elif res.status_code == 401:
-        logger.info('Authorization failed to the e-mail sender API.')
+    elif res.status_code == 401 or res.status_code == 403:
+        logger.info('Authorization/authentication failed ({}) failed to the e-mail sender API.'.format(res.status_code))
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
 
