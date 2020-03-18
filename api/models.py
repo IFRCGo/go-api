@@ -180,11 +180,14 @@ class AdminKeyFigure(models.Model):
     def __str__(self):
         return self.source
 
+
 class RegionKeyFigure(AdminKeyFigure):
     region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
 
+
 class CountryKeyFigure(AdminKeyFigure):
     country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
+
 
 class PositionType(IntEnum):
     TOP = 1
@@ -193,14 +196,20 @@ class PositionType(IntEnum):
     LOW = 4
     BOTTOM = 5
 
+
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
     snippet = models.TextField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
+
     class Meta:
         ordering = ('position', 'id',)
+
+    def __str__(self):
+        return self.snippet
+
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, related_name='snippets', on_delete=models.CASCADE)
@@ -208,8 +217,13 @@ class CountrySnippet(models.Model):
     image = models.ImageField(null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
+
     class Meta:
         ordering = ('position', 'id',)
+
+    def __str__(self):
+        return self.snippet
+
 
 class AdminLink(models.Model):
     title = models.CharField(max_length=100)
@@ -227,6 +241,10 @@ class AdminContact(models.Model):
     name = models.CharField(max_length=100)
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
+
+    def __str__(self):
+        return self.name
+
 
 class RegionContact(AdminContact):
     region = models.ForeignKey(Region, related_name='contacts', on_delete=models.CASCADE)
@@ -359,19 +377,24 @@ class Snippet(models.Model):
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
+
     class Meta:
         ordering = ('position', 'id',)
+
+    def __str__(self):
+        return self.snippet
+
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
+
     def __str__(self):
         return self.type
 
 
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
-
 
 class SituationReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -529,7 +552,6 @@ class Appeal(models.Model):
 
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
-
 
 class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
@@ -741,6 +763,7 @@ class FieldReportContact(models.Model):
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
+
 class ActionOrg:
     NATIONAL_SOCIETY = 'NTLS'
     FOREIGN_SOCIETY = 'PNS'
@@ -761,6 +784,7 @@ class ActionType:
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
     )
+
 
 class Action(models.Model):
     """ Action taken """
@@ -971,6 +995,9 @@ class EmergencyOperationsDataset(models.Model):
         verbose_name = 'Emergency Operations Dataset'
         verbose_name_plural = 'Emergency Operations Datasets'
 
+    def __str__(self):
+        return self.raw_file_name
+
 
 class EmergencyOperationsPeopleReached(models.Model):
     is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
@@ -1058,6 +1085,9 @@ class EmergencyOperationsPeopleReached(models.Model):
     class Meta:
         verbose_name = 'Emergency Operations People Reached'
         verbose_name_plural = 'Emergency Operations People Reached'
+
+    def __str__(self):
+        return self.raw_file_name
 
 
 class EmergencyOperationsEA(models.Model):
@@ -1158,6 +1188,9 @@ class EmergencyOperationsEA(models.Model):
     class Meta:
         verbose_name = 'Emergency Operations Emergency Appeal'
         verbose_name_plural = 'Emergency Operations Emergency Appeals'
+
+    def __str__(self):
+        return self.raw_file_name
 
 
 class EmergencyOperationsFR(models.Model):
@@ -1266,6 +1299,9 @@ class EmergencyOperationsFR(models.Model):
     class Meta:
         verbose_name = 'Emergency Operations Final Report'
         verbose_name_plural = 'Emergency Operations Final Reports'
+
+    def __str__(self):
+        return self.raw_file_name
 
 
 class CronJobStatus(IntEnum):
@@ -1379,14 +1415,14 @@ class ReversionDifferenceLog(models.Model):
 
 
 @receiver(user_logged_in)
-def user_logged_in_callback(sender, request, user, **kwargs):  
+def user_logged_in_callback(sender, request, user, **kwargs):
     #ip = request.META.get('REMOTE_ADDR')
     if user:
         AuthLog.objects.create(action='user_logged_in', username=user.username)
 
 
 @receiver(user_logged_out)
-def user_logged_out_callback(sender, request, user, **kwargs):  
+def user_logged_out_callback(sender, request, user, **kwargs):
     #ip = request.META.get('REMOTE_ADDR')
     if user:
         AuthLog.objects.create(action='user_logged_out', username=user.username)

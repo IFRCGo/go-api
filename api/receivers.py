@@ -48,123 +48,11 @@ MODEL_TYPES = {
 }
 
 
-def get_object_name(otype, obj):
-    obj_name = ''
-
-    if (
-        otype == 'api.countrysnippet' or
-        otype == 'countrysnippet'
-    ):
-        obj_name = obj['snippet']
-    elif (
-        otype == 'api.emergencyoperationsdataset' or
-        otype == 'api.emergencyoperationsea' or
-        otype == 'api.emergencyoperationsfr' or
-        otype == 'api.emergencyoperationspeoplereached' or
-        otype == 'emergencyoperationsdataset' or
-        otype == 'emergencyoperationsea' or
-        otype == 'emergencyoperationsfr' or
-        otype == 'emergencyoperationspeoplereached'
-    ):
-        obj_name = obj['raw_file_name']
-    elif (
-        otype == 'api.fieldreport' or
-        otype == 'fieldreport'
-    ):
-        obj_name = obj['summary']
-    elif (
-        otype == 'api.gdacsevent' or
-        otype == 'gdacsevent'
-    ):
-        obj_name = obj['title']
-    elif (
-        otype == 'api.situationreporttype' or
-        otype == 'situationreporttype'
-    ):
-        obj_name = obj['type']
-    elif (
-        otype == 'api.profile' or
-        otype == 'profile'
-    ):
-        usr = User.objects.get(pk=obj['user_id'])
-        obj_name = usr.username if usr else obj['user_id']
-    elif (
-        otype == 'deployments.eruowner' or
-        otype == 'deployments.erureadiness' or
-        otype == 'eruowner' or
-        otype == 'erureadiness'
-    ):
-        ns_country = Country.objects.get(pk=obj['national_society_country_id'])
-        obj_name = '{} ({})'.format(ns_country.society_name,
-                                 ns_country.name) if ns_country else obj['national_society_country_id']
-    elif (
-        otype == 'deployments.partnersocietyactivities' or
-        otype == 'partnersocietyactivities'
-    ):
-        obj_name = obj['activity']
-    elif (
-        otype == 'deployments.partnersocietydeployment' or
-        otype == 'deployments.personnel' or
-        otype == 'partnersocietydeployment' or
-        otype == 'personnel'
-    ):
-        dep_person = DeployedPerson.objects.get(pk=obj['deployedperson_ptr_id'])
-        obj_name = dep_person.name if dep_person else obj['deployedperson_ptr_id']
-    elif (
-        otype == 'deployments.personneldeployment' or
-        otype == 'personneldeployment'
-    ):
-        country = Country.objects.get(pk=obj['country_deployed_to_id'])
-        event = Event.objects.get(pk=obj['event_deployed_to_id'])
-        obj_name = '{} - {}'.format(country.name, event.name) if country and event else country.name
-    elif (
-        otype == 'notifications.subscription' or
-        otype == 'subscription'
-    ):
-        usr = User.objects.get(pk=obj['user_id'])
-        # TODO: add sub-type (RecordType) later if needed
-        obj_name = usr.username
-    elif (
-        otype == 'notifications.surgealert' or
-        otype == 'surgealert'
-    ):
-        obj_name = obj['operation']
-    elif (
-        otype == 'per.formdata' or
-        otype == 'formdata'
-    ):
-        form = Form.objects.get(pk=obj['form_id'])
-        obj_name = form.name if form else None
-    elif (
-        otype == 'per.nsphase' or
-        otype == 'nsphase'
-    ):
-        country = Country.objects.get(pk=obj['country_id'])
-        obj_name = country.name if country else obj['country_id']
-    elif (
-        otype == 'per.overview' or
-        otype == 'per.workplan' or
-        otype == 'overview' or
-        otype == 'workplan'
-    ):
-        country = Country.objects.get(pk=obj['country_id'])
-        obj_name = country.society_name if country else None
-    elif (
-        otype == 'registrations.pending' or
-        otype == 'pending'
-    ):
-        usr = User.objects.get(pk=obj['user_id'])
-        obj_name = usr.username
-    else:
-        obj_name = obj.get('name', '')
-
-    return obj_name
-
-
 def create_global_reversion_log(versions, revision):
     for version in versions:
         ver_data = json.loads(version.serialized_data)
-        model_name = ver_data[0]['model']
+        # try to map model name coming from Reversion to more readable model names (dict above)
+        model_name = MODEL_TYPES.get(ver_data[0]['model'], ver_data[0]['model'])
         action_happened = 'Added' if 'Added' in revision.comment else 'Changed'
 
         previous_version = Version.objects.filter(
@@ -179,16 +67,16 @@ def create_global_reversion_log(versions, revision):
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=get_object_name(model_name, version._local_field_dict),
-                object_type=MODEL_TYPES[model_name]
+                object_name=str(version),
+                object_type=model_name
             )
         elif not previous_version:
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=get_object_name(model_name, version._local_field_dict),
-                object_type=MODEL_TYPES[model_name],
+                object_name=str(version),
+                object_type=model_name,
                 changed_to=revision.comment.replace('Changed ', '').replace('.', '').split(' and ')
             )
         elif previous_version._local_field_dict != version._local_field_dict:
@@ -203,8 +91,8 @@ def create_global_reversion_log(versions, revision):
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=get_object_name(model_name, version._local_field_dict),
-                object_type=MODEL_TYPES[model_name],
+                object_name=str(version),
+                object_type=model_name,
                 changed_from=changes_from,
                 changed_to=changes_to
             )
@@ -231,6 +119,6 @@ def log_deletion(sender, instance, using, **kwargs):
         action='Deleted',
         username=usr,
         object_id=instance.pk,
-        object_name=get_object_name(model_name, instance.__dict__) if model_name else get_object_name(instance._meta.model_name, instance.__dict__),
-        object_type=MODEL_TYPES[model_name] if model_name else instance_type
+        object_name=str(instance),
+        object_type=MODEL_TYPES.get(model_name, instance_type) if model_name else instance_type
     )
