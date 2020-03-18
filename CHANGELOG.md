@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.262
+
+### Added
+ - Appeal Documents ingestion URL fix
+
+## 1.1.261
+
+### Added
+ - Added phone to FRContact serializer
+
+## 1.1.260
+
+### Added
+ - Bhutan and Marshall Isl. to whitelist
+
+## 1.1.259
+
+### Added
+ - Fallback Country queryset
+
 ## 1.1.258
 
 ### Added
@@ -1058,7 +1078,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.258...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.262...HEAD
+[1.1.262]: https://github.com/IFRCGo/go-api/compare/1.1.261...1.1.262
+[1.1.261]: https://github.com/IFRCGo/go-api/compare/1.1.260...1.1.261
+[1.1.260]: https://github.com/IFRCGo/go-api/compare/1.1.259...1.1.260
+[1.1.259]: https://github.com/IFRCGo/go-api/compare/1.1.258...1.1.259
 [1.1.258]: https://github.com/IFRCGo/go-api/compare/1.1.257...1.1.258
 [1.1.257]: https://github.com/IFRCGo/go-api/compare/1.1.256...1.1.257
 [1.1.256]: https://github.com/IFRCGo/go-api/compare/1.1.255...1.1.256
