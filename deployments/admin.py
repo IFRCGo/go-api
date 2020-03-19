@@ -61,7 +61,7 @@ class ProjectAdmin(CompareVersionAdmin):
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
     autocomplete_fields = (
-        'user', 'reporting_ns', 'project_district', 'regional_project',
+        'user', 'reporting_ns', 'project_country', 'project_district', 'regional_project',
         'event', 'dtype',
     )
 

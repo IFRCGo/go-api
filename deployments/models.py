@@ -198,9 +198,17 @@ class Project(models.Model):
     )  # user who created this project
     reporting_ns = models.ForeignKey(
         Country, on_delete=models.CASCADE,
+        related_name='ns_projects',
     )  # this is the national society that is reporting the project
+    project_country = models.ForeignKey(
+        Country, on_delete=models.CASCADE,
+        null=True,  # NOTE: Added due to migrations issue
+        related_name='projects',
+    )  # this is the country where the project is actually taking place
     project_district = models.ForeignKey(
         District, on_delete=models.CASCADE,
+        null=True, blank=True,
+        help_text='No selection will indicate all districts.',
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
         Event, null=True, blank=True, on_delete=models.SET_NULL,

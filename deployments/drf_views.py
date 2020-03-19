@@ -7,6 +7,7 @@ from rest_framework.authentication import (
 from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
 from django.shortcuts import render
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import viewsets
 from .models import (
@@ -132,7 +133,14 @@ class ProjectFilter(filters.FilterSet):
     country = filters.CharFilter(field_name='country', method='filter_country')
 
     def filter_country(self, queryset, name, value):
-        return queryset.filter(project_district__country__iso=value)
+        return queryset.filter(
+            # ISO2
+            Q(project_country__iso__iexact=value) |
+            Q(project_district__country__iso__iexact=value) |
+            # ISO3
+            Q(project_country__iso3__iexact=value) |
+            Q(project_district__country__iso3__iexact=value)
+        )
 
     class Meta:
         model = Project
@@ -141,7 +149,7 @@ class ProjectFilter(filters.FilterSet):
             'budget_amount',
             'start_date',
             'end_date',
-            'project_district__country',
+            'project_district',
             'reporting_ns',
             'programme_type',
             'status',

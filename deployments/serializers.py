@@ -99,6 +99,7 @@ class RegionalProjectSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
@@ -112,11 +113,14 @@ class ProjectSerializer(serializers.ModelSerializer):
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'project_district', 'name', 'programme_type', 'primary_sector', 'target_total',
+                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
             )
         }
 
     def validate(self, data):
+        # Override country with district's country
+        if data['project_district'] is not None:
+            data['project_country'] = data['project_district'].country
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
             raise serializers.ValidationError('Reached total should be provided if status is completed')
         elif (

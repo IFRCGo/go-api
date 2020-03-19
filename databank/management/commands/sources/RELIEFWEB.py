@@ -4,7 +4,6 @@ import json
 import requests
 
 from databank.models import PastCrisesEvent, PastEpidemic, Month
-from api.models import CronJob, CronJobStatus
 from .utils import catch_error, get_country_by_iso3
 
 logger = logging.getLogger(__name__)
@@ -41,10 +40,9 @@ def _crises_event_prefetch():
     data = {}
     while True:
         response = requests.post(url, data=query_params)
-        if response.status_code != 200:
-            body = { "name": "RELIEFWEB", "message": "Error querying ReliefWeb crisis event feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
-            CronJob.sync_cron(body)
+        response.raise_for_status()
         response = response.json()
+
         for disaster in response['data']:
             disaster = disaster['fields']
             iso3 = disaster['primary_country']['iso3'].upper()
@@ -90,11 +88,9 @@ def _epidemics_prefetch():
     data = {}
     while True:
         response = requests.post(url, data=query_params)
-        if response.status_code != 200:
-            body = { "name": "RELIEFWEB", "message": "Error querying ReliefWeb epicemics feed at " + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
-            CronJob.sync_cron(body)
-            return data
+        response.raise_for_status()
         response = response.json()
+
         for epidemic in response['data']:
             epidemic = epidemic['fields']
             iso3 = epidemic['primary_country']['iso3'].upper()
@@ -127,17 +123,18 @@ def _epidemics_prefetch():
         if 'next' not in response['links']:
             break
         url = response['links']['next']
-    body = { "name": "RELIEFWEB", "message": "Done querying all ReliefWeb feeds at " + url, "num_result": len(data), "status": CronJobStatus.SUCCESSFUL }
-    CronJob.sync_cron(body)
     return data
 
 
 @catch_error()
 def prefetch():
+    crises_event = _crises_event_prefetch()
+    epidemics = _epidemics_prefetch()
+
     return {
-        'crises_event': _crises_event_prefetch(),
-        'epidemics': _epidemics_prefetch(),
-    }
+        'crises_event': crises_event,
+        'epidemics': epidemics,
+    }, len(crises_event) + len(epidemics), DISASTER_API
 
 
 @catch_error()

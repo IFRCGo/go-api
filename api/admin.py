@@ -486,9 +486,25 @@ class SituationReportTypeAdmin(CompareVersionAdmin):
     search_fields = ('type',)
 
 class CronJobAdmin(CompareVersionAdmin):
+    list_display = ('name', 'created_at', 'num_result', 'status')
     search_fields = ('name', 'created_at',)
     readonly_fields = ('created_at',)
     list_filter = ('status', 'name')
+    readonly_fields = ('message_display',)
+
+    def message_display(self, obj):
+        style_class = {
+            models.CronJobStatus.WARNED: 'warning',
+            models.CronJobStatus.ERRONEOUS: 'error',
+        }.get(obj.status, 'success')
+        if obj.message:
+            return mark_safe(
+                f'''
+                <ul class="messagelist" style="margin-left: 0px;">
+                    <li class="{style_class}"><pre>{obj.message}</pre></li>
+                </ul>
+                '''
+            )
 
 
 class EmergencyOperationsDatasetAdmin(CompareVersionAdmin):
