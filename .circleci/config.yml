@@ -21,12 +21,17 @@ jobs:
       - run:
           name: Push image to Docker Hub
           command: |
-            if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
+            if [ "${CIRCLE_BRANCH}" == "master" ] || [ "${CIRCLE_BRANCH}" == "develop" ]; then
               {
-                LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
-                echo $LATEST_GIT_TAG
+                if [ "${CIRCLE_BRANCH}" == "develop" ]; then
+                  LATEST_GIT_TAG=develop &&
+                  echo $LATEST_GIT_TAG
+                else
+                  LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
+                  echo $LATEST_GIT_TAG
+                  git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
+                fi
 
-                git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
                 docker-compose build
                 docker login -u $DOCKER_USER -p $DOCKER_PASS
                 docker tag ifrcgo/go-api:latest ifrcgo/go-api:$LATEST_GIT_TAG
