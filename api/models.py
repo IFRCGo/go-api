@@ -364,6 +364,8 @@ class Snippet(models.Model):
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
+    is_primary = models.BooleanField(default=True, help_text='Ensure this type gets precedence over others that are empty')
+
     def __str__(self):
         return self.type
 
@@ -381,6 +383,7 @@ class SituationReport(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
     visibility = EnumIntegerField(VisibilityChoices, default=VisibilityChoices.MEMBERSHIP)
+    is_pinned = models.BooleanField(default=False, help_text='Pin this report at the top')
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)
