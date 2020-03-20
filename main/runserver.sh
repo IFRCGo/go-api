@@ -52,6 +52,7 @@ echo "export EMAIL_HOST=\"$EMAIL_HOST\"" >> $HOME/.env
 echo "export EMAIL_PORT=\"$EMAIL_PORT\"" >> $HOME/.env
 echo "export EMAIL_USER=\"$EMAIL_USER\"" >> $HOME/.env
 echo "export EMAIL_PASS=\"$EMAIL_PASS\"" >> $HOME/.env
+echo "export EMAIL_API_ENDPOINT=\"$EMAIL_API_ENDPOINT\"" >> $HOME/.env
 echo "export AZURE_STORAGE_ACCOUNT=\"$AZURE_STORAGE_ACCOUNT\"" >> $HOME/.env
 echo "export AZURE_STORAGE_KEY=\"$AZURE_STORAGE_KEY\"" >> $HOME/.env
 echo "export API_FQDN=\"$API_FQDN\"" >> $HOME/.env
