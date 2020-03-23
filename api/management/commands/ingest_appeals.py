@@ -142,7 +142,7 @@ class Command(BaseCommand):
         if len(iso_code) == 2:
             country = Country.objects.filter(iso=iso_code.lower())
         else:
-            country = Country.objects.filter(field_name=country_name)
+            country = Country.objects.filter(name=country_name)
 
         if country.count() == 0:
             country = None
@@ -272,7 +272,7 @@ class Command(BaseCommand):
         logger.info('%s appeals updated' % num_updated)
         logger.info('%s total appeals' % CronJobSum)
         logger.info('Appeals ingest completed')
-        
-        body = { "name": "ingest_appeals", "message": 'Appeals ingest completed, %s total appeals (%s new, %s existing).' 
+
+        body = { "name": "ingest_appeals", "message": 'Appeals ingest completed, %s total appeals (%s new, %s existing).'
             % (CronJobSum, num_created, num_updated), "num_result": CronJobSum, "status": CronJobStatus.SUCCESSFUL }
         CronJob.sync_cron(body)
