@@ -21,7 +21,7 @@ class Command(BaseCommand):
             text_to_log = 'Error querying GDACS xml feed at ' + url
             logger.error(text_to_log)
             logger.error(response.content)
-            body = { "name": "ingest_dgacs", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+            body = { "name": "ingest_dgacs", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong....
             CronJob.sync_cron(body)
             raise Exception('Error querying GDACS')
 
