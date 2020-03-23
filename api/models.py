@@ -4,7 +4,7 @@ from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField, EnumField
 from .storage import AzureStorage
 from tinymce import HTMLField
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, validate_slug
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
@@ -243,7 +243,7 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    slug = models.CharField(max_length=50, default=None, unique=True, null=True, blank=True)
+    slug = models.CharField(max_length=50, default=None, unique=True, null=True, blank=True, validators=[validate_slug], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. Recommend using hyphens over underscores. Special characters like # is not allowed.')
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
@@ -315,9 +315,15 @@ class Event(models.Model):
         return to_dict(self)
 
     def save(self, *args, **kwargs):
+
+        # Make the slug lowercase
+        if self.slug:
+            self.slug = self.slug.lower()
+
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
+
         return super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
