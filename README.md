@@ -28,7 +28,7 @@ A list of staff email domains, which the API will treat as single-validation, em
 
      $ docker-compose run --rm makemigrations
 
-## If there are conflicting migrations (only works if the migrations don't modify the same models)
+### If there are conflicting migrations (only works if the migrations don't modify the same models)
 
      $ docker-compose run --rm makemigrations_merge
 
