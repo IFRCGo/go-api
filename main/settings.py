@@ -49,6 +49,10 @@ INSTALLED_APPS = [
 
     # Utils Apps
     'tinymce',
+
+    # Logging
+    'reversion',
+    'reversion_compare',
 ]
 
 REST_FRAMEWORK = {
@@ -86,6 +90,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middlewares.middlewares.RequestMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (

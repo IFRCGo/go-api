@@ -1,6 +1,9 @@
 from django.contrib import admin
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
+from reversion.admin import VersionAdmin
+from reversion.models import Revision
+from reversion_compare.admin import CompareVersionAdmin
 
 from .forms import ProjectForm
 
@@ -10,7 +13,7 @@ class ERUInline(admin.TabularInline):
     autocomplete_fields = ('deployed_to', 'event',)
 
 
-class ERUOwnerAdmin(RegionRestrictedAdmin):
+class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'national_society_country__in'
     region_in = 'national_society_country__region__in'
     inlines = [ERUInline]
@@ -18,7 +21,7 @@ class ERUOwnerAdmin(RegionRestrictedAdmin):
     search_fields = ('national_society_country__name',)
 
 
-class PersonnelAdmin(admin.ModelAdmin):
+class PersonnelAdmin(CompareVersionAdmin):
     country_in = 'country_from__in'
     region_in = 'country_from__region__in'
     search_fields = ('name', 'role', 'type',)
@@ -29,18 +32,18 @@ class PersonnelInline(admin.TabularInline):
     model = models.Personnel
 
 
-class PersonnelDeploymentAdmin(admin.ModelAdmin):
+class PersonnelDeploymentAdmin(CompareVersionAdmin):
     search_fields = ('country_deployed_to', 'region_deployed_to',)
     autocomplete_fields = ('event_deployed_to',)
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
 
-class PartnerSocietyActivityAdmin(admin.ModelAdmin):
+class PartnerSocietyActivityAdmin(CompareVersionAdmin):
     search_fields = ('activity',)
 
 
-class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
+class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'parent_society__in'
     region_in = 'parent_society__region__in'
     autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)
@@ -48,12 +51,12 @@ class PartnerSocietyDeploymentAdmin(RegionRestrictedAdmin):
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
-class RegionalProjectAdmin(admin.ModelAdmin):
+class RegionalProjectAdmin(CompareVersionAdmin):
     list_display = ('name', 'created_at', 'modified_at',)
     search_fields = ('name',)
 
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(CompareVersionAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
@@ -63,7 +66,7 @@ class ProjectAdmin(admin.ModelAdmin):
     )
 
 
-class ERUReadinessAdmin(admin.ModelAdmin):
+class ERUReadinessAdmin(CompareVersionAdmin):
     search_fields = ('national_society',)
 
 

@@ -1,34 +1,38 @@
 from django.contrib import admin
 import per.models as models
 from per.admin_classes import RegionRestrictedAdmin
+from reversion.admin import VersionAdmin
+from reversion.models import Revision
+from reversion_compare.admin import CompareVersionAdmin
+
 
 class FormDataInline(admin.TabularInline):
     model = models.FormData
     readonly_fields = ('question_id', 'selected_option', 'notes',)
     can_delete = False
 
-class FormAdmin(RegionRestrictedAdmin):
+class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region_id__in'
     inlines = [FormDataInline]
     exclude = ("ip_address", )
     search_fields = ('code', 'name', 'country', )
 
-class FormDataAdmin(RegionRestrictedAdmin):
+class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'form__country__pk__in'
     region_in = 'form__country__region_id__in'
     search_fields = ('question_id', 'form__name', 'form__code', )
 
-class NSPhaseAdmin(RegionRestrictedAdmin):
+class NSPhaseAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('phase',)
 
-class WorkPlanAdmin(RegionRestrictedAdmin):
+class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('prioritization',)
 
-class OverviewAdmin(RegionRestrictedAdmin):
+class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('country',)
 
-class NiceDocumentAdmin(RegionRestrictedAdmin):
+class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__in'
 #   Duplicated from situation reports
     def save_model(self, request, obj, form, change):
