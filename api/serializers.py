@@ -50,7 +50,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -131,7 +131,7 @@ class CountryRelationSerializer(serializers.ModelSerializer):
     contacts = CountryContactSerializer(many=True, read_only=True)
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -175,7 +175,7 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
 class MiniEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'id',)
+        fields = ('name', 'dtype', 'id', 'slug',)
 
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
@@ -184,7 +184,7 @@ class ListEventSerializer(serializers.ModelSerializer):
     dtype = DisasterTypeSerializer()
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug',)
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -201,18 +201,19 @@ class DetailEventSerializer(serializers.ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id',)
+        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug',)
+        lookup_field = 'slug'
 
 class SituationReportTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SituationReportType
-        fields = ('type', 'id', )
+        fields = ('type', 'id', 'is_primary',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', )
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',)
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()

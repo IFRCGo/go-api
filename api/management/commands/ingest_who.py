@@ -90,7 +90,7 @@ class Command(BaseCommand):
 #                    if created:
 #                        added += 1
 #                        for c in data['country_text'].split(','):
-#                            country = Country.objects.filter(field_name=c.strip())
+#                            country = Country.objects.filter(name=c.strip())
 #                            if country.count() == 1:
 #                                gdacsevent.countries.add(country[0])
 #
@@ -173,6 +173,7 @@ class Command(BaseCommand):
                     'auto_generated_source': data['guid'].decode("utf-8"),
                     'ifrc_severity_level': alert_level,
                 }
+                # TODO: fields['name'] sometimes exceeds 100 maxlength, so will need some altering if this will be used
                 event = Event.objects.create(**fields)
                 added += 1
 
@@ -201,7 +202,7 @@ class Command(BaseCommand):
 
             #... via API - not using frosm here, but from front-end it can be useful:
             #resp = requests.post(api_url + '/api/v2/add_cronjob_log/', body, headers={'CONTENT_TYPE': 'application/json'})
-            
+
             # ... via a direct write-in:
             CronJob.sync_cron(body)
 
@@ -212,5 +213,3 @@ class Command(BaseCommand):
 # --
 # select * from api_event_countries a join api_country b on (a.country_id=b.id) where event_id in (select id from api_event where auto_generated_source like 'www.who.int%');
 # select name from api_event a left join api_event_countries b on (a.id=b.event_id) where b.event_id is null and auto_generated_source like 'www.who.int%';  -- what country is not found
-
-

@@ -6,10 +6,11 @@ from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField, EnumField
 from .storage import AzureStorage
 from tinymce import HTMLField
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, validate_slug
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
+from .utils import validate_slug_number
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -101,7 +102,8 @@ class Country(models.Model):
     iso = models.CharField(max_length=2, null=True)
     iso3 = models.CharField(max_length=3, null=True)
     society_name = models.TextField(blank=True)
-    society_url = models.URLField(blank=True)
+    society_url = models.URLField(blank=True, verbose_name="URL - Society")
+    url_ifrc = models.URLField(blank=True, verbose_name="URL - IFRC")
     region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
     overview = models.TextField(blank=True, null=True)
     key_priorities = models.TextField(blank=True, null=True)
@@ -263,6 +265,7 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
+    slug = models.CharField(max_length=50, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
@@ -334,9 +337,15 @@ class Event(models.Model):
         return to_dict(self)
 
     def save(self, *args, **kwargs):
+
+        # Make the slug lowercase
+        if self.slug:
+            self.slug = self.slug.lower()
+
         # On save, if `disaster_start_date` is not set, make it the current time
         if not self.id and not self.disaster_start_date:
             self.disaster_start_date = timezone.now()
+
         return super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -388,6 +397,7 @@ class Snippet(models.Model):
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
+    is_primary = models.BooleanField(default=True, help_text='Ensure this type gets precedence over others that are empty')
 
     def __str__(self):
         return self.type
@@ -405,6 +415,7 @@ class SituationReport(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
     visibility = EnumIntegerField(VisibilityChoices, default=VisibilityChoices.MEMBERSHIP)
+    is_pinned = models.BooleanField(default=False, help_text='Pin this report at the top')
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)

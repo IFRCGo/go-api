@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.266
+
+### Added
+ - Vanity URLs, ingestion fixes, Email API to production
+
+## 1.1.265
+
+### Added
+ - Vanity URLs for Emergencies
+
+## 1.1.264
+
+### Added
+ - Updated runserver.sh with ENV var
+
+## 1.1.263
+
+### Added
+ - Email API instead of smtplib
+
 ## 1.1.262
 
 ### Added
@@ -1078,7 +1098,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.262...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.266...HEAD
+[1.1.266]: https://github.com/IFRCGo/go-api/compare/1.1.265...1.1.266
+[1.1.265]: https://github.com/IFRCGo/go-api/compare/1.1.264...1.1.265
+[1.1.264]: https://github.com/IFRCGo/go-api/compare/1.1.263...1.1.264
+[1.1.263]: https://github.com/IFRCGo/go-api/compare/1.1.262...1.1.263
 [1.1.262]: https://github.com/IFRCGo/go-api/compare/1.1.261...1.1.262
 [1.1.261]: https://github.com/IFRCGo/go-api/compare/1.1.260...1.1.261
 [1.1.260]: https://github.com/IFRCGo/go-api/compare/1.1.259...1.1.260

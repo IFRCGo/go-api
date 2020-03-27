@@ -1,5 +1,5 @@
 import base64
-
+from django.core.exceptions import ValidationError
 
 def pretty_request(request):
     headers = ''
@@ -28,3 +28,7 @@ def base64_encode(string):
     return base64.urlsafe_b64encode(
         string.encode('UTF-8')
     ).decode('ascii')
+
+def validate_slug_number(value):
+    if value[0].isdigit():
+        raise ValidationError('slug should not start with a number')
