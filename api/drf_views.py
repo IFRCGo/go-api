@@ -244,7 +244,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'mini_events':
             return Event.objects.values('id', 'name')
-        return Event.objects.all()
+        return Event.objects.filter(parent_event__isnull=True)
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
