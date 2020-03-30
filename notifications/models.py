@@ -218,7 +218,6 @@ class Subscription(models.Model):
 
         return errors, new
 
-
     def del_user_subscriptions(user, body):
         req = body[0]
         errors = []
@@ -246,7 +245,6 @@ class Subscription(models.Model):
             })
 
         return errors
-
 
     def __str__(self):
         return '%s %s (%s)' % (self.user.username, self.rtype, self.user.email)
