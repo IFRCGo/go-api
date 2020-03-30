@@ -2,8 +2,9 @@ import os
 import csv
 import time
 from django.contrib import admin, messages
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.utils.html import format_html_join
+from django.utils.html import format_html_join, format_html
 from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
@@ -444,9 +445,16 @@ class UserProfileAdmin(CompareVersionAdmin):
 
 
 class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+    search_fields = ('name', 'event__name',)
+    list_display = ('name', 'link_to_event', 'type', 'visibility',)
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
+    
+    def link_to_event(self, obj):
+        link=reverse("admin:api_event_change", args=[obj.event.id]) #model name has to be lowercase
+        return format_html('<a href="{}" style="font-weight: 600;">{}</a>', link, obj.event.name)
+    link_to_event.allow_tags=True
 
     # Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist.
     # Has a duplication at PER NiceDocuments
