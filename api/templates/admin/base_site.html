@@ -3,6 +3,7 @@
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block branding %}
+
 <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
         <img src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/logo300.png">
@@ -18,11 +19,7 @@
 
 
 {% block extrastyle %}
-    {{block.super}}
-    <style type="text/css">
-        body { {% if IS_STAGING %}
-            background-color: #aaa;
-               {% endif %} }
-    </style>
+  {{block.super}}
+  {# Didn't dare to remove this part, not sure if it does anything as it is right now #}
 {# use PRODUCTION_URL to create logic //PRODUCTION_URL// #}
 {% endblock %}
