@@ -50,7 +50,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -131,7 +131,7 @@ class CountryRelationSerializer(serializers.ModelSerializer):
     contacts = CountryContactSerializer(many=True, read_only=True)
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -207,13 +207,13 @@ class DetailEventSerializer(serializers.ModelSerializer):
 class SituationReportTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SituationReportType
-        fields = ('type', 'id', )
+        fields = ('type', 'id', 'is_primary',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', )
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',)
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
