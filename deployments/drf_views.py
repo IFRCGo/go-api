@@ -5,6 +5,7 @@ from rest_framework.authentication import (
     SessionAuthentication,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.shortcuts import render
 from django.db.models import Q
@@ -158,7 +159,7 @@ class ProjectFilter(filters.FilterSet):
         ]
 
 
-class ProjectViewset(viewsets.ModelViewSet):
+class ProjectViewMixin():
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
     ).all()
@@ -169,7 +170,15 @@ class ProjectViewset(viewsets.ModelViewSet):
         SessionAuthentication,
     )
     # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
-    permission_classes = (IsAuthenticated,)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
+
+
+class ProjectViewset(ProjectViewMixin, viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+
+
+class PublicProjectViewset(ProjectViewMixin, viewsets.ReadOnlyModelViewSet):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_private=False)

@@ -242,6 +242,10 @@ class Project(models.Model):
     regional_project = models.ForeignKey(
         RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
     )
+    is_private = models.BooleanField(
+        default=False,
+        help_text='Private projects are only visible to authenticated users.'
+    )
 
     def __str__(self):
         if self.reporting_ns is None:
