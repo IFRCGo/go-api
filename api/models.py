@@ -303,9 +303,9 @@ class Event(models.Model):
     hide_attached_field_reports = models.BooleanField(default=False)
 
     # Tabs. Events can have upto 3 tabs to organize snippets.
-    tab_one_title = models.CharField(max_length=50, null=False, default='Additional Information')
-    tab_two_title = models.CharField(max_length=50, null=True)
-    tab_three_title = models.CharField(max_length=50, null=True)
+    tab_one_title = models.CharField(max_length=50, null=False, blank=True, default='Additional Information')
+    tab_two_title = models.CharField(max_length=50, null=True, blank=True)
+    tab_three_title = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         ordering = ('-disaster_start_date',)
