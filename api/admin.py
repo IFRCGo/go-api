@@ -171,7 +171,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
     search_fields = ('name', 'countries__name', 'dtype__name',)
     readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
-    autocomplete_fields = ('countries', 'districts',)
+    autocomplete_fields = ('countries', 'districts', 'parent_event',)
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
             return format_html_join(

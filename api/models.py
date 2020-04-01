@@ -270,6 +270,7 @@ class Event(models.Model):
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
+    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL)
     summary = HTMLField(blank=True, default='')
 
     num_injured = models.IntegerField(null=True, blank=True)
