@@ -30,3 +30,6 @@ db.sqlite3-journal
 # Generated json file
 appeals.json
 .tmp
+
+# Personal / IDE / Editor stuff
+.vscode

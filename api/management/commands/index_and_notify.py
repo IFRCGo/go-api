@@ -16,9 +16,9 @@ from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
 
-time_interval  = timedelta(minutes = 5)
-time_interva2  = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
-time_interva7  = timedelta(   days = 7) # for digest mode
+time_5_minutes  = timedelta(minutes = 5)
+time_1_day  = timedelta(days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
+time_1_week  = timedelta(days = 7) # for digest mode
 basetime       = int(10314) # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
 daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
 max_length     = 860 # after this length (at the first space) we cut the sent content
@@ -45,14 +45,14 @@ class Command(BaseCommand):
         hourmin = int(today.strftime('%H%M'))
         return daily_retro <= hourmin and hourmin < daily_retro + 5
 
-    def get_time_threshold(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
+    def diff_5_minutes(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_5_minutes
 
-    def get_time_threshold2(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva2
+    def diff_1_day(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_day
 
-    def get_time_threshold_digest(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva7
+    def diff_1_week(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_week
 
     def gather_country_and_region(self, records):
         # Appeals only, since these have a single country/region
@@ -240,7 +240,7 @@ class Command(BaseCommand):
             return rounded_people
     
     def get_weekly_digest_latest_ops(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ops = Appeal.objects.filter(created_at__gte=dig_time).order_by('-created_at')
         ret_ops = []
         for op in ops:
@@ -255,7 +255,7 @@ class Command(BaseCommand):
         return ret_ops
 
     def get_weekly_digest_latest_deployments(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ret_data = []
 
         # Surge Alerts
@@ -296,7 +296,7 @@ class Command(BaseCommand):
 
 
     def get_weekly_digest_highlights(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
@@ -344,7 +344,7 @@ class Command(BaseCommand):
         return ret_actions_taken
 
     def get_weekly_latest_frs(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ret_fr_list = []
         fr_list = list(FieldReport.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
         for fr in fr_list:
@@ -423,7 +423,7 @@ class Command(BaseCommand):
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
-            dig_time = self.get_time_threshold_digest()
+            dig_time = self.diff_1_week()
             rec_obj = {
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
@@ -610,22 +610,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if self.is_digest_mode():
-            t = self.get_time_threshold_digest() # in digest mode (1ce a week, for new_entities only) we use a bigger interval
+            time_diff = self.diff_1_week() # in digest mode (once a week, for new_entities only) we use a bigger interval
         else:
-            t = self.get_time_threshold()
-        t2 = self.get_time_threshold2()
+            time_diff = self.diff_5_minutes()
+        time_diff_1_day = self.diff_1_day()
 
-        cond1 = Q(created_at__gte=t)
-        condU = Q(updated_at__gte=t)
-        condR = Q(real_data_update__gte=t) # instead of modified at
-        cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
+        cond1 = Q(created_at__gte=time_diff)
+        condU = Q(updated_at__gte=time_diff)
+        condR = Q(real_data_update__gte=time_diff) # instead of modified at
+        cond2 = ~Q(previous_update__gte=time_diff_1_day) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 
         # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
         if self.is_retro_mode():
-            condU = Q(updated_at__gte=t2)
-            cond2 = Q(previous_update__gte=t2) # not negated. We collect those, who had 2 changes in the last 1 day.
+            condU = Q(updated_at__gte=time_diff_1_day)
+            cond2 = Q(previous_update__gte=time_diff_1_day) # not negated. We collect those, who had 2 changes in the last 1 day.
             followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
             users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
             for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
@@ -663,7 +663,7 @@ class Command(BaseCommand):
             # No need for indexing for PER Due Dates
 
             followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
-            ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
+            ## followed_events = Event.objects.filter(updated_at__gte=time_diff, pk__in=[x.event_id for x in followed_eventparams])
 
             # Merge Weekly Digest into one mail instead of separate ones
             if self.is_digest_mode():
