@@ -103,5 +103,134 @@
     "fields": {
       "name": "CTP/Basic needs"
     }
+  },
+// sudo code of checklist values for epi field report - some of these may be duplicate
+  {
+    "model": "api.Action",
+    "pk": "42",
+    "fields": {
+      "type": "Health",
+      "name": "Community Case Managment (CCM)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "43",
+    "fields": {
+      "type": "Health",
+      "name": "Clinical Case Management (affected by epidemic disease)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "44",
+    "fields": {
+      "type": "Health",
+      "name": "Clinical Case Management (non-affected by epidemic disease)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "45",
+    "fields": {
+      "type": "Health",
+      "name": "Paramedical"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "46",
+    "fields": {
+      "type": "Health",
+      "name": "Infectious Prevention & Control (IPC)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "47",
+    "fields": {
+      "type": "Health",
+      "name": "Community-based Surveillance (CBS)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "48",
+    "fields": {
+      "type": "Health",
+      "name": "Safe & Dignified Burials (SDB)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "49",
+    "fields": {
+      "type": "Health",
+      "name": "Risk Communications / Community Engagement & Accountability (RCCE CEA)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "50",
+    "fields": {
+      "type": "Health",
+      "name": "Institutional Readiness"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "51",
+    "fields": {
+      "type": "General",
+      "name": "Cash and Voucher Assistance (CVA) / basic needs"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "52",
+    "fields": {
+      "type": "General",
+      "name": "Psychological Support Services (PSS)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "53",
+    "fields": {
+      "type": "General",
+      "name": "Food Aid"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "54",
+    "fields": {
+      "type": "General",
+      "name": "Relief / Supply Distribution"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "55",
+    "fields": {
+      "type": "General",
+      "name": "Needs Assessment"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "56",
+    "fields": {
+      "type": "General",
+      "name": "Water & Sanitation (WASH)"
+    }
+  },
+  {
+    "model": "api.Action",
+    "pk": "57",
+    "fields": {
+      "type": "General",
+      "name": "Other"
+    }
   }
 ]
