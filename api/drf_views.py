@@ -586,8 +586,12 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             fieldreport = FieldReport.objects.create(**data)
-        except:
-            raise BadRequest('Could not create field report')
+        except Exception as e:
+            try:
+                err_msg = str(e)
+                raise BadRequest('Could not create field report. Error: {}'.format(err_msg))
+            except:
+                raise BadRequest('Could not create field report')
 
         ### Creating relations ###
         # These are *not* handled in a transaction block.
