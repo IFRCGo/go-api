@@ -578,7 +578,6 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
     def create(self, request):
         serializer = self.serialize(request.data)
-        import pdb; pdb.set_trace()
         if not serializer.is_valid():
             try:
                 logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
