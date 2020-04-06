@@ -10,7 +10,7 @@ def get_by_type(actions, typ):
 class Command(BaseCommand):
     help = 'Fixes mismatched actions in db'
     def handle(self, *args, **options):
-        actions_file_path = 'data/actions_snapshot.json'
+        actions_file_path = 'data/actions_snapshot_staging.json'
         actions_data = json.load(open(actions_file_path))
         actions = actions_data['results']
         ORGANIZATIONS = ['NTLS', 'PNS', 'FDRN']
