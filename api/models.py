@@ -822,10 +822,12 @@ class ActionOrg:
 class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
+    EPIDEMIC = 'EPI'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
+        (EPIDEMIC, 'Epidemic')
     )
 
 
