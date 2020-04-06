@@ -41,7 +41,7 @@ Jinja2==2.10.1
 jsmin==2.2.2
 Markdown==2.6.11
 MarkupSafe==1.0
-Pillow==6.2.0
+Pillow==6.2.2
 pip==19.3.1
 promise==2.1
 psycopg2==2.7.3.2
