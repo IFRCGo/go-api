@@ -398,7 +398,7 @@ class Snippet(models.Model):
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
-    is_primary = models.BooleanField(default=True, help_text='Ensure this type gets precedence over others that are empty')
+    is_primary = models.BooleanField(default=False, help_text='Ensure this type gets precedence over others that are empty', editable=False)
 
     def __str__(self):
         return self.type
