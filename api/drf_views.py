@@ -256,7 +256,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None):
-        instance = self.get_object()
+        instance = Event.objects.get(pk=pk)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
