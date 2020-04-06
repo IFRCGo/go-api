@@ -243,7 +243,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.values('id', 'name')
+            return Event.objects.filter(parent_event__isnull=True).values('id', 'name')
         return Event.objects.filter(parent_event__isnull=True)
 
     def get_serializer_class(self):
@@ -253,6 +253,12 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
+
+    # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
+    def retrieve(self, request, pk=None):
+        instance = Event.objects.get(pk=pk)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(methods=['get'], detail=False, url_path='mini')
     def mini_events(self, request):
