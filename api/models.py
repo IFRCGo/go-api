@@ -635,6 +635,27 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True, blank=True)
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
+    #Epidemic fields
+    health_min_cases = models.IntegerField(null=True, blank=True)
+    health_min_suspected_cases = models.IntegerField(null=True, blank=True)
+    health_min_probable_cases = models.IntegerField(null=True, blank=True)
+    health_min_confirmed_cases = models.IntegerField(null=True, blank=True)
+    health_min_num_dead = models.IntegerField(null=True, blank=True)
+
+    who_cases = models.IntegerField(null=True, blank=True)
+    who_suspected_cases = models.IntegerField(null=True, blank=True)
+    who_probable_cases = models.IntegerField(null=True, blank=True)
+    who_confirmed_cases = models.IntegerField(null=True, blank=True)
+    who_num_dead = models.IntegerField(null=True, blank=True)
+
+    other_cases = models.IntegerField(null=True, blank=True)
+    other_suspected_cases = models.IntegerField(null=True, blank=True)
+    other_probable_cases = models.IntegerField(null=True, blank=True)
+    other_confirmed_cases = models.IntegerField(null=True, blank=True)
+
+    who_num_assisted = models.IntegerField(null=True, blank=True)
+    health_min_num_assisted = models.IntegerField(null=True, blank=True)
+
     #Early Warning fields
     gov_num_potentially_affected = models.IntegerField(null=True, blank=True)
     gov_num_highest_risk = models.IntegerField(null=True, blank=True)
@@ -651,6 +672,16 @@ class FieldReport(models.Model):
     other_num_potentially_affected = models.IntegerField(null=True, blank=True)
     other_num_highest_risk = models.IntegerField(null=True, blank=True)
     other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
+    #Epidemic fields
+    cases = models.IntegerField(null=True, blank=True)
+    suspected_cases = models.IntegerField(null=True, blank=True)
+    probable_cases = models.IntegerField(null=True, blank=True)
+    confirmed_cases = models.IntegerField(null=True, blank=True)
+
+    # Date of data for situation fields
+
+    sit_fields_date = models.DateTimeField(blank=True, null=True)
 
     # Text field for users to specify sources for where they have marked 'Other' as source.
     other_sources = models.TextField(blank=True, default='')
@@ -791,10 +822,12 @@ class ActionOrg:
 class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
+    EPIDEMIC = 'EPI'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
+        (EPIDEMIC, 'Epidemic')
     )
 
 
