@@ -77,6 +77,10 @@ services:
     <<: *base_django_setup
     command: python manage.py makemigrations
 
+  makemigrations_merge:
+    <<: *base_django_setup
+    command: python manage.py makemigrations --merge
+
   make_permissions:
     <<: *base_django_setup
     command: python manage.py make_permissions

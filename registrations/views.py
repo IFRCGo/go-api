@@ -381,6 +381,7 @@ class ValidateUser(PublicJsonRequestView):
                                     'You have already confirmed this user.')
         else:
             setattr(pending_user, 'admin_%s_validated' % admin, True)
+            setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
             pending_user.save()
 
         if pending_user.admin_1_validated and pending_user.admin_2_validated:
