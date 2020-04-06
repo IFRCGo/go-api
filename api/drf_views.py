@@ -584,10 +584,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         data = self.map_foreign_key_relations(request.data)
         data, locations, meta = self.map_many_to_many_relations(data)
 
-        try:
-            fieldreport = FieldReport.objects.create(**data)
-        except:
-            raise BadRequest('Could not create field report')
+        
+        fieldreport = FieldReport.objects.create(**data)
+        
+            # raise BadRequest('Could not create field report')
 
         ### Creating relations ###
         # These are *not* handled in a transaction block.
