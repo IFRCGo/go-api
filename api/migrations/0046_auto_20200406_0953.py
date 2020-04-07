@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL("UPDATE api_situationreporttype SET is_primary=True where id in (1, 2, 3, 5, 6, 7);"),
         migrations.AlterField(
             model_name='situationreporttype',
             name='is_primary',
