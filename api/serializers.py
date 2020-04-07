@@ -306,9 +306,10 @@ class ListFieldReportSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
+    actions_taken = ActionsTakenSerializer(many=True)
     class Meta:
         model = FieldReport
-        fields = ('created_at', 'updated_at', 'report_date', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
+        fields = '__all__'
 
 class DetailFieldReportSerializer(serializers.ModelSerializer):
     user = UserSerializer()
