@@ -65,6 +65,7 @@ def is_valid_domain(email):
         'drk.dk',
         'egyptianrc.org',
         'fijiredcross.org',
+        'germanredcross.de',
         'grsproadsafety.org',
         'guatemala.cruzroja.org',
         'hck.hr',
