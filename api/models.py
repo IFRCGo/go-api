@@ -830,6 +830,14 @@ class ActionType:
         (EPIDEMIC, 'Epidemic')
     )
 
+class ActionCategory:
+    GENERAL = 'General'
+    HEALTH = 'Health'
+    CHOICES = (
+        (GENERAL, 'General'),
+        (HEALTH, 'Health')
+    )
+
 
 class Action(models.Model):
     """ Action taken """
@@ -846,6 +854,7 @@ class Action(models.Model):
         #default=[ActionType.EVENT]
         default=list
     )
+    category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
 
     def __str__(self):
         return self.name
