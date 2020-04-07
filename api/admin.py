@@ -295,7 +295,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 class ActionAdmin(CompareVersionAdmin):
     form = ActionForm
-    list_display = ('__str__', 'field_report_types', 'organizations',)
+    list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
 
 
 class AppealDocumentInline(admin.TabularInline):
