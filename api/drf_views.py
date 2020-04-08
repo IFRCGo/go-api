@@ -255,8 +255,15 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return DetailEventSerializer
 
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
-    def retrieve(self, request, pk=None):
-        instance = Event.objects.get(pk=pk)
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        if pk:
+            instance = Event.objects.get(pk=pk)
+        elif kwargs['slug']:
+            instance = Event.objects.filter(slug=kwargs['slug']).first()
+
+        if instance is None:
+            raise BadRequest('Could not find Emergency via ID nor Slug')
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
