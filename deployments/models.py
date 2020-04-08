@@ -278,6 +278,9 @@ class ProjectImport(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
     file = models.FileField(upload_to='project-imports/')
 
+    def __str__(self):
+        return f'Project Import {self.status}:{self.created_at}'
+
 
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """

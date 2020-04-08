@@ -4,6 +4,9 @@ from django.utils.safestring import mark_safe
 from django.urls import path
 from django.contrib.admin import helpers
 from django.shortcuts import redirect, render
+
+from reversion_compare.admin import CompareVersionAdmin
+
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
 from reversion.admin import VersionAdmin

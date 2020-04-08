@@ -11,6 +11,8 @@ from django.shortcuts import render
 from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import viewsets
+from reversion.views import RevisionMixin
+
 from .models import (
     ERUOwner,
     ERU,
@@ -175,7 +177,7 @@ class ProjectViewMixin():
     ordering_fields = ('name',)
 
 
-class ProjectViewset(ProjectViewMixin, viewsets.ModelViewSet):
+class ProjectViewset(ProjectViewMixin, RevisionMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
 
