@@ -256,6 +256,29 @@ class Project(models.Model):
         return '%s (%s)' % (self.name, postfix)
 
 
+class ProjectImport(models.Model):
+    """
+    Track Project Imports (For Django Admin Panel)
+    """
+    PENDING = 'pending'
+    SUCCESS = 'success'
+    FAILURE = 'failure'
+    STATUS_CHOICES = (
+        (PENDING, 'Pending'),
+        (SUCCESS, 'Success'),
+        (FAILURE, 'Failure'),
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+    )  # user who created this project import
+    created_at = models.DateTimeField(auto_now_add=True)
+    projects_created = models.ManyToManyField(Project)
+    message = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    file = models.FileField(upload_to='project-imports/')
+
+
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """
     national_society = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
