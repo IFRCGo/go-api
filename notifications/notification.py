@@ -41,7 +41,6 @@ def send_notification(subject, recipients, html, is_followed_event=False):
                 to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
-
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     payload = {
         "FromAsBase64":str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
@@ -54,11 +53,14 @@ def send_notification(subject, recipients, html, is_followed_event=False):
         "TemplateName":"",
         "TemplateLanguage":""
     }
-    
+
     # The response contains the GUID (res.text) which could be used for future requests if something is wrong
     # TODO: It would be best to store the GUIDs and relevant mail parameters in some way, somewhere
     res = requests.post(EMAIL_API_ENDPOINT, json=payload)
 
+    guid = res.text.replace('"', '')
+    logger.info('GUID: ' + guid)
+    logger.info('Subject: ' + subject + ', Recipients: ' + recipients_as_string)
     if res.status_code == 200:
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:

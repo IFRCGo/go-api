@@ -585,6 +585,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
     def create(self, request):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
+            try:
+                logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
+            except:
+                logger.error('Could not log create Field Report serializer errors')
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
@@ -592,8 +596,13 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             fieldreport = FieldReport.objects.create(**data)
-        except:
-            raise BadRequest('Could not create field report')
+        except Exception as e:
+            try:
+                err_msg = str(e)
+                logger.error('Could not create Field Report. Error: {}'.format(err_msg))
+                raise BadRequest('Could not create Field Report. Error: {}'.format(err_msg))
+            except:
+                raise BadRequest('Could not create Field Report')
 
         ### Creating relations ###
         # These are *not* handled in a transaction block.

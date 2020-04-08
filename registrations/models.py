@@ -20,6 +20,8 @@ class Pending(models.Model):
     admin_token_2 = models.CharField(max_length=32, null=True, editable=False)
     admin_1_validated = models.BooleanField(default=False, editable=False)
     admin_2_validated = models.BooleanField(default=False, editable=False)
+    admin_1_validated_date = models.DateTimeField(null=True, blank=True, editable=False)
+    admin_2_validated_date = models.DateTimeField(null=True, blank=True, editable=False)
 
     email_verified = models.BooleanField(default=False, editable=False)
 

@@ -2,8 +2,9 @@ import os
 import csv
 import time
 from django.contrib import admin, messages
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.utils.html import format_html_join
+from django.utils.html import format_html_join, format_html
 from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
@@ -18,6 +19,9 @@ from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse
 from .forms import ActionForm
+from reversion.admin import VersionAdmin
+from reversion.models import Revision, Version
+from reversion_compare.admin import CompareVersionAdmin
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -158,7 +162,7 @@ class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
 
-class EventAdmin(RegionRestrictedAdmin):
+class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
@@ -215,7 +219,7 @@ class EventAdmin(RegionRestrictedAdmin):
 #           formset.save()
 
 
-class GdacsAdmin(RegionRestrictedAdmin):
+class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'countries__pk__in'
     region_in = None
     search_fields = ('title',)
@@ -233,7 +237,7 @@ class FieldReportContactInline(admin.TabularInline):
     model = models.FieldReportContact
 
 
-class FieldReportAdmin(RegionRestrictedAdmin):
+class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
@@ -289,16 +293,16 @@ class FieldReportAdmin(RegionRestrictedAdmin):
             del actions['export_field_reports']
         return actions
 
-class ActionAdmin(admin.ModelAdmin):
+class ActionAdmin(CompareVersionAdmin):
     form = ActionForm
-    list_display = ('__str__', 'field_report_types', 'organizations',)
+    list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
 
 
 class AppealDocumentInline(admin.TabularInline):
     model = models.AppealDocument
 
 
-class AppealAdmin(RegionRestrictedAdmin):
+class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'region__pk__in'
     inlines = [AppealDocumentInline]
@@ -348,7 +352,7 @@ class AppealAdmin(RegionRestrictedAdmin):
         super().save_model(request, obj, form, change)
 
 
-class AppealDocumentAdmin(RegionRestrictedAdmin):
+class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'appeal__country__in'
     region_in = 'appeal__region__in'
     search_fields = ('name', 'appeal__code', 'appeal__name')
@@ -386,13 +390,13 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(RegionRestrictedAdmin):
+class DistrictAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
 
 
-class CountryAdmin(RegionRestrictedAdmin):
+class CountryAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'pk__in'
     list_display = ('__str__', 'record_type')
     region_in = 'region__pk__in'
@@ -402,14 +406,14 @@ class CountryAdmin(RegionRestrictedAdmin):
     exclude = ('key_priorities',)
 
 
-class RegionAdmin(RegionRestrictedAdmin):
+class RegionAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = None
     region_in = 'pk__in'
     inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
     search_fields = ('name',)
 
 
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'user__email', 'country__name',)
     list_filter = (
         ('country__region', RelatedDropdownFilter),
@@ -436,7 +440,7 @@ class UserProfileAdmin(admin.ModelAdmin):
             user_groups = list(user_model.groups.values_list('name',flat = True))
             user_groups_string = ', '.join(user_groups) if user_groups else ''
 
-            row = writer.writerow([getattr(prof, field) for field in prof_field_names] + [
+            writer.writerow([getattr(prof, field) for field in prof_field_names] + [
                                   getattr(user_model, field) for field in user_field_names] + [user_groups_string] )
         return response
     export_selected_users.short_description = 'Export selected Users with their Profiles'
@@ -448,13 +452,20 @@ class UserProfileAdmin(admin.ModelAdmin):
         return actions
 
 
-class SituationReportAdmin(RegionRestrictedAdmin):
+class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+    search_fields = ('name', 'event__name',)
+    list_display = ('name', 'link_to_event', 'type', 'visibility',)
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
+    
+    def link_to_event(self, obj):
+        link=reverse("admin:api_event_change", args=[obj.event.id]) #model name has to be lowercase
+        return format_html('<a href="{}" style="font-weight: 600;">{}</a>', link, obj.event.name)
+    link_to_event.allow_tags=True
 
-# Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist.
-# Has a duplication at PER NiceDocuments
+    # Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist.
+    # Has a duplication at PER NiceDocuments
     def save_model(self, request, obj, form, change):
        if change:
            obj.save()
@@ -470,16 +481,16 @@ class SituationReportAdmin(RegionRestrictedAdmin):
                        visibility  =obj.visibility,
                        )
 
-class SituationReportTypeAdmin(admin.ModelAdmin):
+class SituationReportTypeAdmin(CompareVersionAdmin):
     search_fields = ('type',)
 
-class CronJobAdmin(admin.ModelAdmin):
+class CronJobAdmin(CompareVersionAdmin):
     search_fields = ('name', 'created_at',)
     readonly_fields = ('created_at',)
     list_filter = ('status', 'name')
 
 
-class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
+class EmergencyOperationsDatasetAdmin(CompareVersionAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
     list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
     readonly_fields = (
@@ -569,11 +580,9 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
         qset = models.EmergencyOperationsDataset.objects.all()
         field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=epoa.csv'.format(
-            timestr)
+        response['Content-Disposition'] = 'attachment; filename=epoa.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -590,7 +599,7 @@ class EmergencyOperationsDatasetAdmin(admin.ModelAdmin):
     export_all_epoa.short_description = 'Export all documents to CSV (select one before for it to work)'
 
 
-class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
+class EmergencyOperationsPeopleReachedAdmin(CompareVersionAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
     list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
     readonly_fields = (
@@ -665,11 +674,9 @@ class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
         qset = models.EmergencyOperationsDataset.objects.all()
         field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ou.csv'.format(
-            timestr)
+        response['Content-Disposition'] = 'attachment; filename=ou.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -685,7 +692,7 @@ class EmergencyOperationsPeopleReachedAdmin(admin.ModelAdmin):
         return response
     export_all_ou.short_description = 'Export all documents to CSV (select one before for it to work)'
 
-class EmergencyOperationsFRAdmin(admin.ModelAdmin):
+class EmergencyOperationsFRAdmin(CompareVersionAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
     list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
     readonly_fields = (
@@ -771,11 +778,9 @@ class EmergencyOperationsFRAdmin(admin.ModelAdmin):
         qset = models.EmergencyOperationsDataset.objects.all()
         field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=fr.csv'.format(
-            timestr)
+        response['Content-Disposition'] = 'attachment; filename=fr.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -791,7 +796,7 @@ class EmergencyOperationsFRAdmin(admin.ModelAdmin):
         return response
     export_all_fr.short_description = 'Export all documents to CSV (select one before for it to work)'
 
-class EmergencyOperationsEAAdmin(admin.ModelAdmin):
+class EmergencyOperationsEAAdmin(CompareVersionAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
     list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
     readonly_fields = (
@@ -873,11 +878,9 @@ class EmergencyOperationsEAAdmin(admin.ModelAdmin):
         qset = models.EmergencyOperationsDataset.objects.all()
         field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ea.csv'.format(
-            timestr)
+        response['Content-Disposition'] = 'attachment; filename=ea.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -892,6 +895,46 @@ class EmergencyOperationsEAAdmin(admin.ModelAdmin):
             counter += 1
         return response
     export_all_ea.short_description = 'Export all documents to CSV (select one before for it to work)'
+
+
+# Global view of Revisions, not that informational, maybe needed in the future
+# class RevisionAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'comment', 'date_created')
+#     search_fields = ('user__username', 'comment')
+#     date_hierarchy = ('date_created')
+#     list_display_links = None
+
+
+class AuthLogAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'action', 'username',]
+    list_filter = ['action']
+    search_fields = ['action', 'username']
+    list_display_links = None
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
+class ReversionDifferenceLogAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'username', 'action', 'object_type', 'object_name', 'object_id', 'changed_from', 'changed_to')
+    list_filter = ('action', 'object_type')
+    search_fields = ('username', 'object_name', 'object_type', 'changed_from', 'changed_to')
+    list_display_links = None
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
@@ -912,5 +955,8 @@ admin.site.register(models.EmergencyOperationsPeopleReached, EmergencyOperations
 admin.site.register(models.EmergencyOperationsFR, EmergencyOperationsFRAdmin)
 admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.register(models.CronJob, CronJobAdmin)
+admin.site.register(models.AuthLog, AuthLogAdmin)
+admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
+#admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
