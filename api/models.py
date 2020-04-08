@@ -274,7 +274,7 @@ class Event(models.Model):
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
-    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL)
+    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL, help_text='If needed, you have to change the connected Appeals\', Field Reports\', etc to point to the parent Emergency manually.')
     summary = HTMLField(blank=True, default='')
 
     num_injured = models.IntegerField(null=True, blank=True)
@@ -1392,10 +1392,10 @@ class CronJob(models.Model):
         if self.num_result:
             return '%s | %s : %s | %s' % (self.name, str(self.status), str(self.num_result), str(self.created_at)[5:16])
         else:
-            return '%s | %s | %s'      % (self.name, str(self.status),                       str(self.created_at)[5:16]) # omit irrelevant 0
+            return '%s | %s | %s' % (self.name, str(self.status), str(self.created_at)[5:16]) # omit irrelevant 0
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
-    def sync_cron(body):
+    def sync_cron(self, body):
         new = []
         errors = []
         fields = { 'name': body['name'], 'message': body['message'] }
