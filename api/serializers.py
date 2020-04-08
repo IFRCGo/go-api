@@ -181,6 +181,14 @@ class MiniEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name', 'dtype', 'id', 'slug', 'parent_event',)
 
+
+class ListMiniEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        # NOTE: Only use fields which are valid in Event.objects.values(<HERE>)
+        fields = ('id', 'name', 'slug', 'auto_generated_source')
+
+
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)

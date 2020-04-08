@@ -67,7 +67,7 @@ from .serializers import (
     MiniDistrictSerializer,
 
     SnippetSerializer,
-    MiniEventSerializer,
+    ListMiniEventSerializer,
     ListEventSerializer,
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
@@ -228,6 +228,9 @@ class EventFilter(filters.FilterSet):
     countries__in = ListFilter(field_name='countries__id')
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    auto_generated_source = filters.ChoiceFilter(
+        label='Auto generated source choices', choices=[(v, v) for v in SOURCES.values()],
+    )
     class Meta:
         model = Event
         fields = {
@@ -249,7 +252,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
-            return MiniEventSerializer
+            return ListMiniEventSerializer
         elif self.action == 'list':
             return ListEventSerializer
         else:

@@ -141,6 +141,7 @@ class PartnerSocietyDeployment(DeployedPerson):
 class ProgrammeTypes(IntEnum):
     BILATERAL = 0
     MULTILATERAL = 1
+    DOMESTIC = 2
 
 
 class Sectors(IntEnum):
