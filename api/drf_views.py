@@ -262,9 +262,8 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             except Exception:
                 raise Http404
         elif kwargs['slug']:
-            try:
-                instance = Event.objects.filter(slug=kwargs['slug']).first()
-            except Exception:
+            instance = Event.objects.filter(slug=kwargs['slug']).first()
+            if not instance:
                 raise Http404
         else:
             raise BadRequest('Emergency ID or Slug parameters are missing')
