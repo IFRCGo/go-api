@@ -161,7 +161,7 @@ class ProjectFilter(filters.FilterSet):
         ]
 
 
-class ProjectViewMixin():
+class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
     ).all()
@@ -176,11 +176,18 @@ class ProjectViewMixin():
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
 
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = []
+        else:
+            # Only unsafe method requires authentication
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
 
-class ProjectViewset(ProjectViewMixin, RevisionMixin, viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-
-
-class PublicProjectViewset(ProjectViewMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
-        return super().get_queryset().filter(is_private=False)
+        # Public Project are viewable to unauthenticated or non-ifrc users
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_authenticated and user.email and user.email.endswith('@ifrc.org'):
+            return qs
+        return qs.filter(is_private=False)
