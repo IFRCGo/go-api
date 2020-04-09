@@ -193,6 +193,16 @@ class RegionalProject(models.Model):
 
 
 class Project(models.Model):
+    PUBLIC = 'public'
+    LOGGED_IN_USER = 'logged_in_user'
+    IFRC_ONLY = 'ifrc_only'
+
+    VISIBILITY = (
+        (PUBLIC, 'Public'),
+        (LOGGED_IN_USER, 'Logged in user'),
+        (IFRC_ONLY, 'IFRC only'),
+    )
+
     modified_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
@@ -243,10 +253,7 @@ class Project(models.Model):
     regional_project = models.ForeignKey(
         RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
     )
-    is_private = models.BooleanField(
-        default=False,
-        help_text='Private projects are only visible to authenticated users.'
-    )
+    visibility = models.CharField(max_length=32, choices=VISIBILITY, default=PUBLIC)
 
     def __str__(self):
         if self.reporting_ns is None:

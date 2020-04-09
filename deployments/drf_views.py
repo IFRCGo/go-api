@@ -177,10 +177,10 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     ordering_fields = ('name',)
 
     def get_permissions(self):
+        # Require authentication for unsafe methods only
         if self.action in ['list', 'retrieve']:
             permission_classes = []
         else:
-            # Only unsafe method requires authentication
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -188,6 +188,8 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
         # Public Project are viewable to unauthenticated or non-ifrc users
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_authenticated and user.email and user.email.endswith('@ifrc.org'):
-            return qs
-        return qs.filter(is_private=False)
+        if user.is_authenticated:
+            if user.email and user.email.endswith('@ifrc.org'):
+                return qs
+            return qs.exclude(visibility=Project.IFRC_ONLY)
+        return qs.filter(visibility=Project.PUBLIC)
