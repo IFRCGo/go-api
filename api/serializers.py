@@ -183,10 +183,11 @@ class MiniEventSerializer(serializers.ModelSerializer):
 
 
 class ListMiniEventSerializer(serializers.ModelSerializer):
+    dtype = DisasterTypeSerializer(read_only=True)
+
     class Meta:
         model = Event
-        # NOTE: Only use fields which are valid in Event.objects.values(<HERE>)
-        fields = ('id', 'name', 'slug', 'auto_generated_source')
+        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
 
 
 class ListEventSerializer(serializers.ModelSerializer):
