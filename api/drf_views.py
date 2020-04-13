@@ -79,6 +79,7 @@ from .serializers import (
     UserMeSerializer,
     ProfileSerializer,
     ListFieldReportSerializer,
+    ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
 )
@@ -417,7 +418,11 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = FieldReport
     def get_serializer_class(self):
         if self.action == 'list':
-            return ListFieldReportSerializer
+            request_format_type = self.request.GET.get('format', 'json')
+            if request_format_type == 'csv':
+                return ListFieldReportCsvSerializer
+            else:
+                return ListFieldReportSerializer
         else:
             return DetailFieldReportSerializer
 

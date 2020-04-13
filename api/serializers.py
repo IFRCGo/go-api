@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
@@ -307,6 +308,30 @@ class ListFieldReportSerializer(serializers.ModelSerializer):
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     actions_taken = ActionsTakenSerializer(many=True)
+    class Meta:
+        model = FieldReport
+        fields = '__all__'
+
+class ListFieldReportCsvSerializer(serializers.ModelSerializer):
+    countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
+    event = MiniEventSerializer()
+    # actions_taken = ActionsTakenSerializer(many=True)
+    actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
+
+    def get_actions_taken_for_organization(self, obj):
+        actions_data = {}
+        actions_taken = ActionsTaken.objects.filter(field_report=obj.id)
+        for action in actions_taken:
+            if action.organization not in actions_data:
+                actions_data[action.organization] = []
+            this_action = {
+                'actions_name': [a.name for a in action.actions.all()],
+                'actions_id': [a.id for a in action.actions.all()]
+            }
+            actions_data[action.organization] = json.dumps(this_action)
+        return actions_data
+
     class Meta:
         model = FieldReport
         fields = '__all__'
