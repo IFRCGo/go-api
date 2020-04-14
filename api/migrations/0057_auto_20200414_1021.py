@@ -9,7 +9,7 @@ import re
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0056_auto_20200413_1010'),
+        ('api', '0055_merge_20200407_1236'),
     ]
 
     operations = [
