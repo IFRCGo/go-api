@@ -329,7 +329,10 @@ class ListFieldReportCsvSerializer(serializers.ModelSerializer):
                 'actions_name': [a.name for a in action.actions.all()],
                 'actions_id': [a.id for a in action.actions.all()]
             }
-            actions_data[action.organization] = json.dumps(this_action)
+            actions_data[action.organization] = {
+                'action': json.dumps(this_action),
+                'summary': action.summary
+            }
         return actions_data
 
     class Meta:
