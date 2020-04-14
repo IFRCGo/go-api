@@ -269,7 +269,8 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    slug = models.CharField(max_length=50, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
+    # FIXME slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
+    slug = models.CharField(max_length=50, editable=False, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
