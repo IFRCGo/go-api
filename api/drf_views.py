@@ -79,6 +79,7 @@ from .serializers import (
     UserMeSerializer,
     ProfileSerializer,
     ListFieldReportSerializer,
+    ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
 )
@@ -243,7 +244,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.values('id', 'name')
+            return Event.objects.filter(parent_event__isnull=True).values('id', 'name')
         return Event.objects.filter(parent_event__isnull=True)
 
     def get_serializer_class(self):
@@ -253,6 +254,23 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListEventSerializer
         else:
             return DetailEventSerializer
+
+    # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        if pk:
+            try:
+                instance = Event.objects.get(pk=pk)
+            except Exception:
+                raise Http404
+        elif kwargs['slug']:
+            instance = Event.objects.filter(slug=kwargs['slug']).first()
+            if not instance:
+                raise Http404
+        else:
+            raise BadRequest('Emergency ID or Slug parameters are missing')
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @action(methods=['get'], detail=False, url_path='mini')
     def mini_events(self, request):
@@ -400,7 +418,11 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = FieldReport
     def get_serializer_class(self):
         if self.action == 'list':
-            return ListFieldReportSerializer
+            request_format_type = self.request.GET.get('format', 'json')
+            if request_format_type == 'csv':
+                return ListFieldReportCsvSerializer
+            else:
+                return ListFieldReportSerializer
         else:
             return DetailFieldReportSerializer
 
@@ -579,6 +601,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
     def create(self, request):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
+            try:
+                logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
+            except:
+                logger.error('Could not log create Field Report serializer errors')
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
@@ -586,8 +612,13 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             fieldreport = FieldReport.objects.create(**data)
-        except:
-            raise BadRequest('Could not create field report')
+        except Exception as e:
+            try:
+                err_msg = str(e)
+                logger.error('Could not create Field Report. Error: {}'.format(err_msg))
+                raise BadRequest('Could not create Field Report. Error: {}'.format(err_msg))
+            except:
+                raise BadRequest('Could not create Field Report')
 
         ### Creating relations ###
         # These are *not* handled in a transaction block.

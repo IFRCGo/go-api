@@ -198,6 +198,10 @@ class PositionType(IntEnum):
     LOW = 4
     BOTTOM = 5
 
+class TabNumber(IntEnum):
+    TAB_1 = 1
+    TAB_2 = 2
+    TAB_3 = 3
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
@@ -265,12 +269,13 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(max_length=100)
-    slug = models.CharField(max_length=50, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
+    # FIXME slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
+    slug = models.CharField(max_length=50, editable=False, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
-    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL)
+    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL, help_text='If needed, you have to change the connected Appeals\', Field Reports\', etc to point to the parent Emergency manually.')
     summary = HTMLField(blank=True, default='')
 
     num_injured = models.IntegerField(null=True, blank=True)
@@ -297,6 +302,11 @@ class Event(models.Model):
     is_featured_region = models.BooleanField(default=False, verbose_name='Is Featured on Region Page')
 
     hide_attached_field_reports = models.BooleanField(default=False)
+
+    # Tabs. Events can have upto 3 tabs to organize snippets.
+    tab_one_title = models.CharField(max_length=50, null=False, blank=True, default='Additional Information')
+    tab_two_title = models.CharField(max_length=50, null=True, blank=True)
+    tab_three_title = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         ordering = ('-disaster_start_date',)
@@ -387,6 +397,7 @@ class Snippet(models.Model):
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
+    tab = EnumIntegerField(TabNumber, default=1)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -398,7 +409,7 @@ class Snippet(models.Model):
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
-    is_primary = models.BooleanField(default=True, help_text='Ensure this type gets precedence over others that are empty')
+    is_primary = models.BooleanField(default=False, help_text='Ensure this type gets precedence over others that are empty', editable=False)
 
     def __str__(self):
         return self.type
@@ -635,6 +646,27 @@ class FieldReport(models.Model):
     gov_num_displaced = models.IntegerField(null=True, blank=True)
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
+    #Epidemic fields
+    health_min_cases = models.IntegerField(null=True, blank=True)
+    health_min_suspected_cases = models.IntegerField(null=True, blank=True)
+    health_min_probable_cases = models.IntegerField(null=True, blank=True)
+    health_min_confirmed_cases = models.IntegerField(null=True, blank=True)
+    health_min_num_dead = models.IntegerField(null=True, blank=True)
+
+    who_cases = models.IntegerField(null=True, blank=True)
+    who_suspected_cases = models.IntegerField(null=True, blank=True)
+    who_probable_cases = models.IntegerField(null=True, blank=True)
+    who_confirmed_cases = models.IntegerField(null=True, blank=True)
+    who_num_dead = models.IntegerField(null=True, blank=True)
+
+    other_cases = models.IntegerField(null=True, blank=True)
+    other_suspected_cases = models.IntegerField(null=True, blank=True)
+    other_probable_cases = models.IntegerField(null=True, blank=True)
+    other_confirmed_cases = models.IntegerField(null=True, blank=True)
+
+    who_num_assisted = models.IntegerField(null=True, blank=True)
+    health_min_num_assisted = models.IntegerField(null=True, blank=True)
+
     #Early Warning fields
     gov_num_potentially_affected = models.IntegerField(null=True, blank=True)
     gov_num_highest_risk = models.IntegerField(null=True, blank=True)
@@ -651,6 +683,16 @@ class FieldReport(models.Model):
     other_num_potentially_affected = models.IntegerField(null=True, blank=True)
     other_num_highest_risk = models.IntegerField(null=True, blank=True)
     other_affected_pop_centres = models.CharField(max_length=512, blank=True, null=True)
+
+    #Epidemic fields
+    cases = models.IntegerField(null=True, blank=True)
+    suspected_cases = models.IntegerField(null=True, blank=True)
+    probable_cases = models.IntegerField(null=True, blank=True)
+    confirmed_cases = models.IntegerField(null=True, blank=True)
+
+    # Date of data for situation fields
+
+    sit_fields_date = models.DateTimeField(blank=True, null=True)
 
     # Text field for users to specify sources for where they have marked 'Other' as source.
     other_sources = models.TextField(blank=True, default='')
@@ -791,10 +833,20 @@ class ActionOrg:
 class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
+    EPIDEMIC = 'EPI'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
+        (EPIDEMIC, 'Epidemic')
+    )
+
+class ActionCategory:
+    GENERAL = 'General'
+    HEALTH = 'Health'
+    CHOICES = (
+        (GENERAL, 'General'),
+        (HEALTH, 'Health')
     )
 
 
@@ -813,6 +865,7 @@ class Action(models.Model):
         #default=[ActionType.EVENT]
         default=list
     )
+    category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
 
     def __str__(self):
         return self.name
@@ -1340,10 +1393,10 @@ class CronJob(models.Model):
         if self.num_result:
             return '%s | %s : %s | %s' % (self.name, str(self.status), str(self.num_result), str(self.created_at)[5:16])
         else:
-            return '%s | %s | %s'      % (self.name, str(self.status),                       str(self.created_at)[5:16]) # omit irrelevant 0
+            return '%s | %s | %s' % (self.name, str(self.status), str(self.created_at)[5:16]) # omit irrelevant 0
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
-    def sync_cron(body):
+    def sync_cron(self, body):
         new = []
         errors = []
         fields = { 'name': body['name'], 'message': body['message'] }

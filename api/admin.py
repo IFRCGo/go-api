@@ -182,6 +182,14 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return mark_safe('<span class="errors">No related appeals</span>')
     appeals.short_description = 'Appeals'
 
+    # Overwriting readonly fields for Edit mode
+    def changeform_view(self, request, *args, **kwargs):
+        self.readonly_fields = list(self.readonly_fields)
+        if not request.user.is_superuser: 
+            self.readonly_fields.append('parent_event')
+
+        return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
+
     def field_reports(self, instance):
         if getattr(instance, 'field_reports').exists():
             return format_html_join(
@@ -287,7 +295,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 class ActionAdmin(CompareVersionAdmin):
     form = ActionForm
-    list_display = ('__str__', 'field_report_types', 'organizations',)
+    list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
 
 
 class AppealDocumentInline(admin.TabularInline):
