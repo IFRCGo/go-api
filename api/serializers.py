@@ -1,3 +1,4 @@
+import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
@@ -50,7 +51,7 @@ class RegionSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -131,7 +132,7 @@ class CountryRelationSerializer(serializers.ModelSerializer):
     contacts = CountryContactSerializer(many=True, read_only=True)
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id',)
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -146,7 +147,7 @@ class KeyFigureSerializer(serializers.ModelSerializer):
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = ('event', 'snippet', 'image', 'visibility', 'position', 'id',)
+        fields = ('event', 'snippet', 'image', 'visibility', 'position', 'tab', 'id',)
 
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -162,20 +163,20 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
     class Meta:
         model = FieldReport
-        fields = ('summary', 'status', 'description', 'contacts',    'num_injured',      'num_dead',      'num_missing',      'num_affected',      'num_displaced',      'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
-                                                       'gov_num_injured',  'gov_num_dead',  'gov_num_missing',  'gov_num_affected',  'gov_num_displaced',  'gov_num_assisted',
-                                                     'other_num_injured','other_num_dead','other_num_missing','other_num_affected','other_num_displaced','other_num_assisted', 'created_at', 'updated_at', 'report_date', 'id',
-                                                     'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected',
-                                                     'num_highest_risk', 'gov_num_highest_risk', 'other_num_highest_risk',
-                                                     'affected_pop_centres', 'gov_affected_pop_centres', 'other_affected_pop_centres',
-                                                     )
+        fields = (
+            'summary', 'status', 'description', 'contacts', 'created_at', 'updated_at', 'report_date', 'id',
+            'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
+            'gov_num_injured', 'gov_num_dead', 'gov_num_missing', 'gov_num_affected', 'gov_num_displaced',  'gov_num_assisted',
+            'other_num_injured', 'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
+            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk', 'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres', 'other_affected_pop_centres',
+        )
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'id', 'slug',)
+        fields = ('name', 'dtype', 'id', 'slug', 'parent_event',)
 
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
@@ -184,7 +185,7 @@ class ListEventSerializer(serializers.ModelSerializer):
     dtype = DisasterTypeSerializer()
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug', 'parent_event',)
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -201,19 +202,19 @@ class DetailEventSerializer(serializers.ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug',)
+        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
         lookup_field = 'slug'
 
 class SituationReportTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SituationReportType
-        fields = ('type', 'id', )
+        fields = ('type', 'id', 'is_primary',)
 
 class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', )
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',)
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
@@ -288,7 +289,7 @@ class UserMeSerializer(UserSerializer):
 class ActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Action
-        fields = ('name', 'id', 'organizations', 'field_report_types',)
+        fields = ('name', 'id', 'organizations', 'field_report_types', 'category',)
 
 class ActionsTakenSerializer(serializers.ModelSerializer):
     actions = ActionSerializer(many=True)
@@ -306,9 +307,37 @@ class ListFieldReportSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
+    actions_taken = ActionsTakenSerializer(many=True)
     class Meta:
         model = FieldReport
-        fields = ('created_at', 'updated_at', 'report_date', 'summary', 'event', 'dtype', 'countries', 'visibility', 'id',)
+        fields = '__all__'
+
+class ListFieldReportCsvSerializer(serializers.ModelSerializer):
+    countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
+    event = MiniEventSerializer()
+    # actions_taken = ActionsTakenSerializer(many=True)
+    actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
+
+    def get_actions_taken_for_organization(self, obj):
+        actions_data = {}
+        actions_taken = ActionsTaken.objects.filter(field_report=obj.id)
+        for action in actions_taken:
+            if action.organization not in actions_data:
+                actions_data[action.organization] = []
+            this_action = {
+                'actions_name': [a.name for a in action.actions.all()],
+                'actions_id': [a.id for a in action.actions.all()]
+            }
+            actions_data[action.organization] = {
+                'action': json.dumps(this_action),
+                'summary': action.summary
+            }
+        return actions_data
+
+    class Meta:
+        model = FieldReport
+        fields = '__all__'
 
 class DetailFieldReportSerializer(serializers.ModelSerializer):
     user = UserSerializer()
