@@ -17,7 +17,7 @@ def get_signal_request():
 
 def get_username():
     req = get_signal_request()
-    if req.user:
+    if req and req.user:
         return req.user.username
     else:
         return None
