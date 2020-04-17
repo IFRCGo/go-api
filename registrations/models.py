@@ -33,6 +33,14 @@ class Pending(models.Model):
         return self.user.email
 
 
+class DomainWhitelist(models.Model):
+    """ Whitelisted domains """
+    domain_name = models.CharField(max_length=200)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.domain_name
+
 class Recovery(models.Model):
     """ Password recovery"""
 
