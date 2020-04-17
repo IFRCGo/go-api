@@ -1396,7 +1396,7 @@ class CronJob(models.Model):
             return '%s | %s | %s' % (self.name, str(self.status), str(self.created_at)[5:16]) # omit irrelevant 0
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
-    def sync_cron(self, body):
+    def sync_cron(body):
         new = []
         errors = []
         fields = { 'name': body['name'], 'message': body['message'] }
