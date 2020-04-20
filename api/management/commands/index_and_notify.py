@@ -389,10 +389,28 @@ class Command(BaseCommand):
                     # 'volunteers': record.num_volunteers or '--',
                     # 'expat_delegates': record.num_expats_delegates or '--',
                 },
+                'epi_key_figures': {
+                    'who_cases': record.who_cases or '--',
+                    'who_suspected': record.who_suspected_cases or '--',
+                    'who_probable': record.who_probable_cases or '--',
+                    'who_confirmed': record.who_confirmed_cases or '--',
+                    'who_dead': record.who_num_dead or '--',
+                    'health_cases': record.health_min_cases or '--',
+                    'health_suspected': record.health_min_suspected_cases or '--',
+                    'health_probable': record.health_min_probable_cases or '--',
+                    'health_confirmed': record.health_min_confirmed_cases or '--',
+                    'health_dead': record.health_min_num_dead or '--',
+                    'other_cases': record.other_cases or '--',
+                    'other_suspected': record.other_suspected_cases or '--',
+                    'other_probable': record.other_probable_cases or '--',
+                    'other_confirmed': record.other_confirmed_cases or '--',
+                    'other_dead': record.other_num_dead or '--', # not sure but couldn't find other related field
+                },
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
                 'gov_assistance': 'Yes' if record.request_assistance else 'No',
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
+                'dtype_id': record.dtype_id,
             }
         elif rtype == RecordType.APPEAL:
             # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
