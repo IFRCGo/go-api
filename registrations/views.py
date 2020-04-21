@@ -31,6 +31,7 @@ def is_valid_domain(email):
         'brcs.bt',
         'cck-cr.cz',
         'ckcg.me',
+        'ckrm.org.mk',
         'climatecentre.org',
         'creuroja.ad',
         'cri.it',
@@ -77,6 +78,8 @@ def is_valid_domain(email):
         'jrc.or.jp',
         'kenyaredcross.org',
         'kizilay.org.tr',
+        'kksh.org.al', # Albania
+        'krc.kg',
         'krcs.org.kw',
         'laoredcross.org.la',
         'livelihoodscentre.org',
@@ -84,6 +87,7 @@ def is_valid_domain(email):
         'mdais.org',
         'mda.org.il',
         'nrcs.org',
+        'palauredcross.org', # Palau
         'palestinercs.org',
         'pck.org.pl',
         'pck.pl',
@@ -93,6 +97,7 @@ def is_valid_domain(email):
         'qrcs.org.qa',
         'rcs.ir',
         'rcsbahrain.org',
+        'rcsbh.org',
         'rcuae.ae',
         'redcrescent.az',
         'redcrescent.kz',
@@ -107,6 +112,7 @@ def is_valid_domain(email):
         'redcross.by',
         'redcross.ca',
         'redcross.ch',
+        'redcross.com.fj', # Fiji
         'redcross.ee',
         'redcross.fi',
         'redcross.ge',
@@ -139,8 +145,10 @@ def is_valid_domain(email):
         'redcross.org.mz',
         'redcross.org.na',
         'redcross.org.nz',
+        'redcross.org.pg', # Papua New Guinea
         'redcross.org.ph',
         'redcross.org.rs',
+        'redcross.org.sb', # Solomon Islands
         'redcross.org.sg',
         'redcross.org.ua',
         'redcross.org.uk',
@@ -155,6 +163,7 @@ def is_valid_domain(email):
         'redcrosseth.org',
         'redcrossmuseum.ch',
         'redcrossug.org',
+        'redcrossvanuatu.com',
         'redcrosszim.org.zw',
         'rks.si',
         'rmiredcross.org',
@@ -181,10 +190,10 @@ def is_valid_domain(email):
         'sierraleoneredcross.org',
         'srcs.sd',
         'standcom.ch',
+        'tgymj.gov.tm',
         'tongaredcross.to',
         'trcs.or.tz',
         'vanuaturedcross.org',
-        'redcrossvanuatu.com',
         'voroskereszt.hu' # no comma
     ]
     if domain in allowed_list:
