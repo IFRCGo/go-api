@@ -1,4 +1,5 @@
 import json, datetime, pytz
+from collections import defaultdict
 from rest_framework.authentication import (
     TokenAuthentication,
     BasicAuthentication,
@@ -6,10 +7,14 @@ from rest_framework.authentication import (
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from django.shortcuts import render
-from django.db.models import Q
+from django.contrib.postgres.aggregates.general import ArrayAgg
+from django.db.models import Q, Sum, Count, F, Subquery, OuterRef, IntegerField
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
 
@@ -26,7 +31,7 @@ from .models import (
     RegionalProject,
     Project,
 )
-from api.models import Country
+from api.models import Country, Region
 from api.view_filters import ListFilter
 from .serializers import (
     ERUOwnerSerializer,
@@ -193,3 +198,93 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
                 return qs
             return qs.exclude(visibility=Project.IFRC_ONLY)
         return qs.filter(visibility=Project.PUBLIC)
+
+
+class RegionProjectViewset(viewsets.ViewSet):
+    def get_region(self):
+        if not hasattr(self, '_region'):
+            self._region = get_object_or_404(Region, pk=self.kwargs['pk'])
+        return self._region
+
+    def get_projects(self):
+        region = self.get_region()
+        # TODO: Filters
+        qs = Project.objects.filter(
+            Q(project_country__region=region) |
+            Q(project_district__country__region=region)
+        ).distinct()
+        return ProjectFilter(self.request.data, queryset=qs).qs
+
+    @action(detail=True, url_path='overview', methods=('get',))
+    def overview(self, request, pk=None):
+        projects = self.get_projects()
+        aggregate_data = projects.aggregate(
+            total_budget=Sum('budget_amount'),
+            target_total=Sum('target_total'),
+            reached_total=Sum('reached_total'),
+        )
+        return Response({
+            'total_projects': projects.count(),
+            'ns_with_ongoing_activities': projects.filter(
+                status=Statuses.ONGOING).order_by('reporting_ns').values('reporting_ns').distinct().count(),
+            'total_budget': aggregate_data['total_budget'],
+            'target_total': aggregate_data['target_total'],
+            'reached_total': aggregate_data['reached_total'],
+            'projects_by_status': projects.order_by().values('status').annotate(count=Count('id')).values('status', 'count')
+        })
+
+    @action(detail=True, url_path='movement-activities', methods=('get',))
+    def movement_activities(self, request, pk=None):
+        def _get_country_ns_sector_count():
+            agg = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
+            fields = ('project_country', 'reporting_ns', 'primary_sector')
+            qs = projects.order_by().values(*fields).annotate(count=Count('id')).values_list(
+                *fields, 'project_country__name', 'reporting_ns__name', 'count')
+            for country, ns, sector, country_name, ns_name, count in qs:
+                agg[country][ns][sector] = count
+                agg[country]['name'] = country_name
+                agg[country][ns]['name'] = ns_name
+            return [
+                {
+                    'id': cid,
+                    'name': country.pop('name'),
+                    'reporting_national_societies': [
+                        {
+                            'id': nsid,
+                            'name': ns.pop('name'),
+                            'sectors': [
+                                {
+                                    'id': sector,
+                                    'sector': Sectors(sector).label,
+                                    'count': count,
+                                } for sector, count in ns.items()
+                            ],
+                        }
+                        for nsid, ns in country.items()
+                    ],
+                }
+                for cid, country in agg.items()
+            ]
+
+        region = self.get_region()
+        projects = self.get_projects()
+        country_projects = projects.filter(project_country=OuterRef('pk'))
+        countries = Country.objects.filter(region=region)
+        country_annotate = {
+            f'{status_label.lower()}_projects_count': Coalesce(Subquery(
+                country_projects.filter(status=status).values('project_country').annotate(
+                    count=Count('id')).values('count')[:1],
+                output_field=IntegerField(),
+            ), 0) for status, status_label in Statuses.choices()
+        }
+
+        return Response({
+            'total_projects': projects.count(),
+            'countries_count': countries.annotate(
+                projects_count=Count('projects'),
+                **country_annotate,
+            ).values('id', 'name', 'projects_count', *country_annotate.keys()),
+            'country_ns_sector_count': _get_country_ns_sector_count(),
+            'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id')).values(
+                'count', id=F('reporting_ns'), name=F('reporting_ns__name')),
+        })
