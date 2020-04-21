@@ -80,7 +80,7 @@ def is_valid_domain(email):
         'jrc.or.jp',
         'kenyaredcross.org',
         'kizilay.org.tr',
-        'kksh.org.al',
+        'kksh.org.al', # Albania
         'krc.kg',
         'krcs.org.kw',
         'laoredcross.org.la',
@@ -89,7 +89,7 @@ def is_valid_domain(email):
         'mdais.org',
         'mda.org.il',
         'nrcs.org',
-        'palauredcross.org',
+        'palauredcross.org', # Palau
         'palestinercs.org',
         'pck.org.pl',
         'pck.pl',
@@ -149,10 +149,11 @@ def is_valid_domain(email):
         'redcross.org.mz',
         'redcross.org.na',
         'redcross.org.nz',
+        'redcross.org.pg', # Papua New Guinea
         'redcross.org.ph',
         'redcross.org.pg',
         'redcross.org.rs',
-        'redcross.org.sb',
+        'redcross.org.sb', # Solomon Islands
         'redcross.org.sg',
         'redcross.org.ua',
         'redcross.org.uk',
@@ -167,6 +168,7 @@ def is_valid_domain(email):
         'redcrosseth.org',
         'redcrossmuseum.ch',
         'redcrossug.org',
+        'redcrossvanuatu.com',
         'redcrosszim.org.zw',
         'rks.si',
         'rmiredcross.org',
@@ -198,7 +200,6 @@ def is_valid_domain(email):
         'trcs.or.tz',
         'ttrcs.org',
         'vanuaturedcross.org',
-        'redcrossvanuatu.com',
         'voroskereszt.hu' # no comma
     ]
     if domain in allowed_list:
