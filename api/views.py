@@ -435,3 +435,8 @@ class AddCronJobLog(APIView):
                 'data': 'Could not add CronJob, aborting'
             })
         return Response({ 'data': 'Success' })
+
+
+class HttpStatusError(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse(status=500)
