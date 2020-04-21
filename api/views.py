@@ -437,6 +437,11 @@ class AddCronJobLog(APIView):
         return Response({ 'data': 'Success' })
 
 
-class HttpStatusError(View):
+class DummyHttpStatusError(View):
     def get(self, request, *args, **kwargs):
         return HttpResponse(status=500)
+
+
+class DummyExceptionError(View):
+    def get(self, request, *args, **kwargs):
+        raise Exception('Dev raised exception!')

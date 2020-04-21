@@ -32,7 +32,8 @@ from api.views import (
     UpdateSubscriptionPreferences,
     AreaAggregate,
     AddCronJobLog,
-    HttpStatusError
+    DummyHttpStatusError,
+    DummyExceptionError
 )
 from registrations.views import (
     NewRegistration,
@@ -145,5 +146,6 @@ urlpatterns = [
     url(r'^admin/', RedirectView.as_view(url='/')),
     url(r'^', admin.site.urls),
     url(r'^favicon\.ico$',RedirectView.as_view(url='/static/favicon.ico')),
-    url(r'^server-error-for-devs', HttpStatusError.as_view())
+    url(r'^server-error-for-devs', DummyHttpStatusError.as_view()),
+    url(r'^exception-error-for-devs', DummyExceptionError.as_view())
 ]
