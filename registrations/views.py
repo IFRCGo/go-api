@@ -49,10 +49,12 @@ def is_valid_domain(email):
         'cruzroja.or.cr',
         'cruzroja.org',
         'cruzroja.org.ar',
+        'cruzroja.org.ec',
         'cruzroja.org.hn',
         'cruzroja.org.pa',
         'cruzroja.org.pe',
         'cruzroja.org.py',
+        'cruzroja.org.uy',
         'cruzrojaboliviana.org',
         'cruzrojacolombiana.org',
         'cruzrojamexicana.org.mx',
@@ -100,6 +102,7 @@ def is_valid_domain(email):
         'rcsbh.org',
         'rcuae.ae',
         'redcrescent.az',
+        'redcrescent.kg',
         'redcrescent.kz',
         'redcrescent.org.mv',
         'redcrescent.org.my',
@@ -112,7 +115,8 @@ def is_valid_domain(email):
         'redcross.by',
         'redcross.ca',
         'redcross.ch',
-        'redcross.com.fj', # Fiji
+        'redcross.com.fj'
+        'redcross.dm',
         'redcross.ee',
         'redcross.fi',
         'redcross.ge',
@@ -147,6 +151,7 @@ def is_valid_domain(email):
         'redcross.org.nz',
         'redcross.org.pg', # Papua New Guinea
         'redcross.org.ph',
+        'redcross.org.pg',
         'redcross.org.rs',
         'redcross.org.sb', # Solomon Islands
         'redcross.org.sg',
@@ -193,6 +198,7 @@ def is_valid_domain(email):
         'tgymj.gov.tm',
         'tongaredcross.to',
         'trcs.or.tz',
+        'ttrcs.org',
         'vanuaturedcross.org',
         'voroskereszt.hu' # no comma
     ]
