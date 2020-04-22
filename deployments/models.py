@@ -149,12 +149,13 @@ class Sectors(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
-    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
+    HEALTH_PUBLIC = 4
+    HEALTH_CLINICAL = 10
 
 
 class SectorTags(IntEnum):
@@ -162,7 +163,6 @@ class SectorTags(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
-    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
@@ -170,6 +170,8 @@ class SectorTags(IntEnum):
     LIVELIHOODS_AND_BASIC_NEEDS = 9
     RECOVERY = 10
     INTERNAL_DISPLACEMENT = 11
+    HEALTH_PUBLIC = 4
+    HEALTH_CLINICAL = 12
 
 
 class Statuses(IntEnum):
