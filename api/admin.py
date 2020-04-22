@@ -186,7 +186,8 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     def changeform_view(self, request, *args, **kwargs):
         self.readonly_fields = list(self.readonly_fields)
         if not request.user.is_superuser: 
-            self.readonly_fields.append('parent_event')
+            if 'parent_event' not in self.readonly_fields:
+                self.readonly_fields.append('parent_event')
 
         return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
 
