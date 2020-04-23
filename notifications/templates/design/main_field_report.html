@@ -29,7 +29,7 @@
                   <tr>
                     <td class="td text-default box box-pointed" style="color: #000000;font-family:'Lato', Arial, sans-serif;border: 1px solid #888;padding: 12px;border-radius: 20px;border-top-left-radius: 0;">
                       <table width="100%" border="0" cellspacing="0" cellpadding="10" class="pb-30" style="padding-bottom: 30px;">
-                        <!-- if NOT EPI type Field Report -->
+                        <!-- if NOT EPI () type Field Report -->
                         {% if fr.dtype_id != 1 %}
                           <tr>
                             <td class="text-default table-heading-title pt-10 pb-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold;">
@@ -111,19 +111,22 @@
                           </tr>
                         {% else %}
                           <tr>
-                            <td class="text-default table-heading-title pt-10 pb-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold; border-bottom: 1px solid #ddd;">
-                              WHO
+                            <td class="text-default table-heading-title pt-10 pb-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold;">
+                              Key Figures
                             </td>
-                            <td style="border-bottom: 1px solid #ddd;"></td>
                           </tr>
 
                           <tr>
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
                             <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                               {% if fr.epi_key_figures.who_cases != '--' %}
-                                {{ fr.epi_key_figures.who_cases|floatformat:"1"|intcomma|slice:":-2" }}
+                                {{ fr.epi_key_figures.who_cases|floatformat:"1"|intcomma|slice:":-2" }} (WHO)
+                              {% elif fr.epi_key_figures.health_cases != '--' %}
+                                {{ fr.epi_key_figures.health_cases|floatformat:"1"|intcomma|slice:":-2" }} (Ministry of Health)
+                              {% elif fr.epi_key_figures.other_cases != '--' %}
+                                {{ fr.epi_key_figures.other_cases|floatformat:"1"|intcomma|slice:":-2" }} (Other)
                               {% else %}
-                                {{ fr.epi_key_figures.who_cases }}
+                                --
                               {% endif %}
                             </td>
                           </tr>
@@ -131,9 +134,13 @@
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Suspected:</td>
                             <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                               {% if fr.epi_key_figures.who_suspected != '--' %}
-                                {{ fr.epi_key_figures.who_suspected|floatformat:"1"|intcomma|slice:":-2" }}
+                                {{ fr.epi_key_figures.who_suspected|floatformat:"1"|intcomma|slice:":-2" }} (WHO)
+                              {% elif fr.epi_key_figures.health_suspected != '--' %}
+                                {{ fr.epi_key_figures.health_suspected|floatformat:"1"|intcomma|slice:":-2" }} (Ministry of Health)
+                              {% elif fr.epi_key_figures.other_suspected != '--' %}
+                                {{ fr.epi_key_figures.other_suspected|floatformat:"1"|intcomma|slice:":-2" }} (Other)
                               {% else %}
-                                {{ fr.epi_key_figures.who_suspected }}
+                                --
                               {% endif %}
                             </td>
                           </tr>
@@ -141,9 +148,13 @@
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Probable:</td>
                             <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                               {% if fr.epi_key_figures.who_probable != '--' %}
-                                {{ fr.epi_key_figures.who_probable|floatformat:"1"|intcomma|slice:":-2" }}
+                                {{ fr.epi_key_figures.who_probable|floatformat:"1"|intcomma|slice:":-2" }} (WHO)
+                              {% elif fr.epi_key_figures.health_probable != '--' %}
+                                {{ fr.epi_key_figures.health_probable|floatformat:"1"|intcomma|slice:":-2" }} (Ministry of Health)
+                              {% elif fr.epi_key_figures.other_confirmed != '--' %}
+                                {{ fr.epi_key_figures.other_confirmed|floatformat:"1"|intcomma|slice:":-2" }} (Other)
                               {% else %}
-                                {{ fr.epi_key_figures.who_probable }}
+                                --
                               {% endif %}
                             </td>
                           </tr>
@@ -151,9 +162,13 @@
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Confirmed:</td>
                             <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                               {% if fr.epi_key_figures.who_confirmed != '--' %}
-                                {{ fr.epi_key_figures.who_confirmed|floatformat:"1"|intcomma|slice:":-2" }}
+                                {{ fr.epi_key_figures.who_confirmed|floatformat:"1"|intcomma|slice:":-2" }} (WHO)
+                              {% elif fr.epi_key_figures.health_confirmed != '--' %}
+                               {{ fr.epi_key_figures.health_confirmed|floatformat:"1"|intcomma|slice:":-2" }} (Ministry of Health)
+                              {% elif fr.epi_key_figures.other_confirmed != '--' %}
+                               {{ fr.epi_key_figures.other_confirmed|floatformat:"1"|intcomma|slice:":-2" }} (Other)
                               {% else %}
-                                {{ fr.epi_key_figures.who_confirmed }}
+                                --
                               {% endif %}
                             </td>
                           </tr>
@@ -161,125 +176,13 @@
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead:</td>
                             <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                               {% if fr.epi_key_figures.who_dead != '--' %}
-                                {{ fr.epi_key_figures.who_dead|floatformat:"1"|intcomma|slice:":-2" }}
+                                {{ fr.epi_key_figures.who_dead|floatformat:"1"|intcomma|slice:":-2" }} (WHO)
+                              {% elif fr.epi_key_figures.health_dead != '--' %}
+                                {{ fr.epi_key_figures.health_dead|floatformat:"1"|intcomma|slice:":-2" }} (Ministry of Health)
+                              {% elif fr.epi_key_figures.other_dead != '--' %}
+                                {{ fr.epi_key_figures.other_dead|floatformat:"1"|intcomma|slice:":-2" }} (Other)
                               {% else %}
-                                {{ fr.epi_key_figures.who_dead }}
-                              {% endif %}
-                            </td>
-                          </tr>
-
-                          <tr>
-                            <td class="text-default table-heading-title pt-10 pb-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold; border-bottom: 1px solid #ddd;">
-                              Ministry of Health
-                            </td>
-                            <td style="border-bottom: 1px solid #ddd;"></td>
-                          </tr>
-
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.health_cases != '--' %}
-                                {{ fr.epi_key_figures.health_cases|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.health_cases }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Suspected:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.health_suspected != '--' %}
-                                {{ fr.epi_key_figures.health_suspected|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.health_suspected }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Probable:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.health_probable != '--' %}
-                                {{ fr.epi_key_figures.health_probable|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.health_probable }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Confirmed:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.health_confirmed != '--' %}
-                                {{ fr.epi_key_figures.health_confirmed|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.health_confirmed }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.health_dead != '--' %}
-                                {{ fr.epi_key_figures.health_dead|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.health_dead }}
-                              {% endif %}
-                            </td>
-                          </tr>
-
-                          <tr>
-                            <td class="text-default table-heading-title pt-10 pb-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 20px;text-transform: uppercase;font-weight: bold; border-bottom: 1px solid #ddd;">
-                              Other
-                            </td>
-                            <td style="border-bottom: 1px solid #ddd;"></td>
-                          </tr>
-
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.other_cases != '--' %}
-                                {{ fr.epi_key_figures.other_cases|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.other_cases }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Suspected:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.other_suspected != '--' %}
-                                {{ fr.epi_key_figures.other_suspected|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.other_suspected }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Probable:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.other_probable != '--' %}
-                                {{ fr.epi_key_figures.other_probable|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.other_probable }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Confirmed:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.other_confirmed != '--' %}
-                                {{ fr.epi_key_figures.other_confirmed|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.other_confirmed }}
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.other_dead != '--' %}
-                                {{ fr.epi_key_figures.other_dead|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.epi_key_figures.other_dead }}
+                                --
                               {% endif %}
                             </td>
                           </tr>
