@@ -13,6 +13,8 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
     BASE_URL = 'goadmin.ifrc.org'
 # The frontend_url nicing is in frontend.py
 
+INTERNAL_IPS = ['127.0.0.1']
+
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
     ALLOWED_HOSTS.append(PRODUCTION_URL)
@@ -53,6 +55,9 @@ INSTALLED_APPS = [
     # Logging
     'reversion',
     'reversion_compare',
+
+    #Debug
+    'debug_toolbar',
 ]
 
 REST_FRAMEWORK = {
@@ -82,6 +87,7 @@ AZURE_STORAGE = {
 }
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
