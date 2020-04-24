@@ -406,6 +406,7 @@ class Command(BaseCommand):
                     'other_confirmed': record.other_confirmed_cases or '--',
                     'other_dead': record.other_num_dead or '--', # not sure but couldn't find other related field
                 },
+                'sit_fields_date': record.sit_fields_date,
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
                 'gov_assistance': 'Yes' if record.request_assistance else 'No',
