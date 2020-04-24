@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from enumfields.drf.serializers import EnumSupportSerializerMixin
+
 from .models import (
     ERUOwner,
     ERU,
@@ -98,7 +100,7 @@ class RegionalProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)

@@ -138,17 +138,36 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
 
 class ProjectFilter(filters.FilterSet):
     budget_amount = filters.NumberFilter(field_name='budget_amount', lookup_expr='exact')
-    country = filters.CharFilter(field_name='country', method='filter_country')
+    country = filters.CharFilter(label='Country ISO/ISO3', field_name='country', method='filter_country')
+    region = filters.ModelChoiceFilter(label='Region', queryset=Region.objects.all(), method='filter_region')
+    operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices())
+    programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices())
+    primary_sector = filters.MultipleChoiceFilter(choices=Sectors.choices())
+    status = filters.MultipleChoiceFilter(choices=Statuses.choices())
 
     def filter_country(self, queryset, name, value):
-        return queryset.filter(
-            # ISO2
-            Q(project_country__iso__iexact=value) |
-            Q(project_district__country__iso__iexact=value) |
-            # ISO3
-            Q(project_country__iso3__iexact=value) |
-            Q(project_district__country__iso3__iexact=value)
-        )
+        if name:
+            return queryset.filter(
+                # ISO2
+                Q(project_country__iso__iexact=value) |
+                Q(project_district__country__iso__iexact=value) |
+                # ISO3
+                Q(project_country__iso3__iexact=value) |
+                Q(project_district__country__iso3__iexact=value)
+            )
+        return queryset
+
+    def filter_region(self, queryset, name, region):
+        if region:
+            return queryset.filter(
+                # ISO2
+                Q(project_country__region=region) |
+                Q(project_district__country__region=region) |
+                # ISO3
+                Q(project_country__region=region) |
+                Q(project_district__country__region=region)
+            )
+        return queryset
 
     class Meta:
         model = Project
@@ -208,12 +227,11 @@ class RegionProjectViewset(viewsets.ViewSet):
 
     def get_projects(self):
         region = self.get_region()
-        # TODO: Filters
         qs = Project.objects.filter(
             Q(project_country__region=region) |
             Q(project_district__country__region=region)
         ).distinct()
-        return ProjectFilter(self.request.data, queryset=qs).qs
+        return ProjectFilter(self.request.query_params, queryset=qs).qs
 
     @action(detail=True, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
@@ -281,10 +299,93 @@ class RegionProjectViewset(viewsets.ViewSet):
         return Response({
             'total_projects': projects.count(),
             'countries_count': countries.annotate(
-                projects_count=Count('projects'),
+                projects_count=Coalesce(Subquery(
+                    projects.filter(project_country=OuterRef('pk')).values('project_country').annotate(
+                        count=Count('*')).values('count')[:1],
+                    output_field=IntegerField(),
+                ), 0),
                 **country_annotate,
-            ).values('id', 'name', 'projects_count', *country_annotate.keys()),
+            ).values('id', 'name', 'iso', 'iso3', 'projects_count', *country_annotate.keys()),
             'country_ns_sector_count': _get_country_ns_sector_count(),
             'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id')).values(
                 'count', id=F('reporting_ns'), name=F('reporting_ns__name')),
         })
+
+    @action(detail=True, url_path='national-society-activities', methods=('get',))
+    def national_society_activities(self, request, pk=None):
+        projects = self.get_projects()
+
+        def _get_distinct(field, *args, **kwargs):
+            return list(
+                projects.order_by().values(field).annotate(count=Count('*')).values(field, *args, **kwargs).distinct()
+            )
+
+        def _get_count(*fields):
+            return list(
+                projects.order_by().values(*fields).annotate(count=Count('*')).values_list(*fields, 'count')
+            )
+
+        # Raw nodes
+        supporting_ns_list = _get_distinct(
+            'reporting_ns',
+            iso3=F('reporting_ns__iso3'),
+            iso=F('reporting_ns__iso'),
+            name=F('reporting_ns__society_name')
+        )
+        receiving_ns_list = _get_distinct(
+            'project_country',
+            iso3=F('project_country__iso3'),
+            iso=F('project_country__iso'),
+            name=F('project_country__name')
+        )
+        sector_list = _get_distinct('primary_sector')
+
+        # Raw links
+        supporting_ns_and_sector_group = _get_count('reporting_ns', 'primary_sector')
+        sector_and_receiving_ns_group = _get_count('primary_sector', 'project_country')
+
+        # Node Types
+        SUPPORTING_NS = 'supporting_ns'
+        RECEIVING_NS = 'receiving_ns'
+        SECTOR = 'sector'
+
+        nodes = [
+            {
+                'id': node[id_selector],
+                'type': gtype,
+                **(
+                    {
+                        'name': node['name'],
+                        'iso': node['iso'],
+                        'iso3': node['iso3'],
+                    } if gtype != SECTOR else {
+                        'name': Sectors(node[id_selector]).label,
+                    }
+                )
+            }
+            for group, gtype, id_selector in [
+                (supporting_ns_list, SUPPORTING_NS, 'reporting_ns'),
+                (sector_list, SECTOR, 'primary_sector'),
+                (receiving_ns_list, RECEIVING_NS, 'project_country'),
+            ]
+            for node in group
+        ]
+
+        node_id_map = {
+            f"{node['type']}-{node['id']}": index
+            for index, node in enumerate(nodes)
+        }
+
+        links = [
+            {
+                'source': node_id_map[f"{source_type}-{source}"],
+                'target': node_id_map[f"{target_type}-{target}"],
+                'value': value,
+            }
+            for group, source_type, target_type in [
+                (supporting_ns_and_sector_group, SUPPORTING_NS, SECTOR),
+                (sector_and_receiving_ns_group, SECTOR, RECEIVING_NS),
+            ]
+            for source, target, value in group
+        ]
+        return Response({'nodes': nodes, 'links': links})
