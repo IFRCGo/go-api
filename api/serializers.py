@@ -321,7 +321,7 @@ class ListFieldReportCsvSerializer(serializers.ModelSerializer):
 
     def get_actions_taken_for_organization(self, obj):
         actions_data = {}
-        actions_taken = ActionsTaken.objects.filter(field_report=obj.id)
+        actions_taken = obj.actions_taken.all()
         for action in actions_taken:
             if action.organization not in actions_data:
                 actions_data[action.organization] = []
