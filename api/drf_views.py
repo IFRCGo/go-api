@@ -416,6 +416,12 @@ class FieldReportFilter(filters.FilterSet):
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
+
+    def get_queryset(self, *args, **kwargs):
+        qset = super().get_queryset(*args, **kwargs)
+        return qset.prefetch_related('actions_taken', 'districts', 'countries', 'actions_taken__actions', 'regions', 'dtype', 'event')
+
+
     def get_serializer_class(self):
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
