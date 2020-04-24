@@ -225,7 +225,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '../logs/server_errors.log',
+            'filename': '../server_errors.log',
             'formatter': 'timestamp',
         },
     },
