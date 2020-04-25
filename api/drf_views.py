@@ -419,7 +419,9 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
 
     def get_queryset(self, *args, **kwargs):
         qset = super().get_queryset(*args, **kwargs)
-        return qset.prefetch_related('actions_taken', 'districts', 'countries', 'actions_taken__actions', 'regions', 'dtype', 'event')
+        qset = qset.select_related('dtype', 'event')
+        return qset.prefetch_related('actions_taken', 'actions_taken__actions',
+                                     'countries', 'districts', 'regions')
 
 
     def get_serializer_class(self):
