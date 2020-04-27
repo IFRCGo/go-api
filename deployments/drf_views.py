@@ -211,12 +211,7 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         # Public Project are viewable to unauthenticated or non-ifrc users
         qs = super().get_queryset()
-        user = self.request.user
-        if user.is_authenticated:
-            if user.email and user.email.endswith('@ifrc.org'):
-                return qs
-            return qs.exclude(visibility=Project.IFRC_ONLY)
-        return qs.filter(visibility=Project.PUBLIC)
+        return Project.get_for(self.request.user, qs)
 
 
 class RegionProjectViewset(viewsets.ViewSet):
@@ -227,11 +222,15 @@ class RegionProjectViewset(viewsets.ViewSet):
 
     def get_projects(self):
         region = self.get_region()
+        # Filter by region
         qs = Project.objects.filter(
             Q(project_country__region=region) |
             Q(project_district__country__region=region)
         ).distinct()
-        return ProjectFilter(self.request.query_params, queryset=qs).qs
+        # Filter by GET params
+        qs = ProjectFilter(self.request.query_params, queryset=qs).qs
+        # Filter by visibility
+        return Project.get_for(self.request.user, qs)
 
     @action(detail=True, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):

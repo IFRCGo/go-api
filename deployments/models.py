@@ -264,6 +264,15 @@ class Project(models.Model):
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
 
+    @classmethod
+    def get_for(cls, user, queryset=None):
+        qs = queryset or cls.objects.all()
+        if user.is_authenticated:
+            if user.email and user.email.endswith('@ifrc.org'):
+                return qs
+            return qs.exclude(visibility=Project.IFRC_ONLY)
+        return qs.filter(visibility=Project.PUBLIC)
+
 
 class ProjectImport(models.Model):
     """
