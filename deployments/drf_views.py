@@ -18,15 +18,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
 
+from .filters import ProjectFilter
 from .models import (
     ERUOwner,
     ERU,
     PersonnelDeployment,
     Personnel,
     PartnerSocietyDeployment,
-    ProgrammeTypes,
     Sectors,
-    OperationTypes,
     Statuses,
     RegionalProject,
     Project,
@@ -136,54 +135,6 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class ProjectFilter(filters.FilterSet):
-    budget_amount = filters.NumberFilter(field_name='budget_amount', lookup_expr='exact')
-    country = filters.CharFilter(label='Country ISO/ISO3', field_name='country', method='filter_country')
-    region = filters.ModelChoiceFilter(label='Region', queryset=Region.objects.all(), method='filter_region')
-    operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices())
-    programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices())
-    primary_sector = filters.MultipleChoiceFilter(choices=Sectors.choices())
-    status = filters.MultipleChoiceFilter(choices=Statuses.choices())
-
-    def filter_country(self, queryset, name, value):
-        if name:
-            return queryset.filter(
-                # ISO2
-                Q(project_country__iso__iexact=value) |
-                Q(project_district__country__iso__iexact=value) |
-                # ISO3
-                Q(project_country__iso3__iexact=value) |
-                Q(project_district__country__iso3__iexact=value)
-            )
-        return queryset
-
-    def filter_region(self, queryset, name, region):
-        if region:
-            return queryset.filter(
-                # ISO2
-                Q(project_country__region=region) |
-                Q(project_district__country__region=region) |
-                # ISO3
-                Q(project_country__region=region) |
-                Q(project_district__country__region=region)
-            )
-        return queryset
-
-    class Meta:
-        model = Project
-        fields = [
-            'country',
-            'budget_amount',
-            'start_date',
-            'end_date',
-            'project_district',
-            'reporting_ns',
-            'programme_type',
-            'status',
-            'primary_sector',
-            'operation_type',
-        ]
-
 
 class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
@@ -211,7 +162,7 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         # Public Project are viewable to unauthenticated or non-ifrc users
         qs = super().get_queryset()
-        return Project.get_for(self.request.user, qs)
+        return Project.get_for(self.request.user, queryset=qs)
 
 
 class RegionProjectViewset(viewsets.ViewSet):
@@ -230,7 +181,7 @@ class RegionProjectViewset(viewsets.ViewSet):
         # Filter by GET params
         qs = ProjectFilter(self.request.query_params, queryset=qs).qs
         # Filter by visibility
-        return Project.get_for(self.request.user, qs)
+        return Project.get_for(self.request.user, queryset=qs)
 
     @action(detail=True, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
@@ -252,6 +203,8 @@ class RegionProjectViewset(viewsets.ViewSet):
 
     @action(detail=True, url_path='movement-activities', methods=('get',))
     def movement_activities(self, request, pk=None):
+        projects = self.get_projects()
+
         def _get_country_ns_sector_count():
             agg = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
             fields = ('project_country', 'reporting_ns', 'primary_sector')
@@ -284,7 +237,6 @@ class RegionProjectViewset(viewsets.ViewSet):
             ]
 
         region = self.get_region()
-        projects = self.get_projects()
         country_projects = projects.filter(project_country=OuterRef('pk'))
         countries = Country.objects.filter(region=region)
         country_annotate = {

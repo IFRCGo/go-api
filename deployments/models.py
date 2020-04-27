@@ -266,7 +266,7 @@ class Project(models.Model):
 
     @classmethod
     def get_for(cls, user, queryset=None):
-        qs = queryset or cls.objects.all()
+        qs = cls.objects.all() if queryset is None else queryset
         if user.is_authenticated:
             if user.email and user.email.endswith('@ifrc.org'):
                 return qs

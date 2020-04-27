@@ -94,15 +94,15 @@ class ProjectGetTest(APITestCase):
             'project_country': district2.country.id,
             'project_district': district2.id,
             'name': 'CreateMePls',
-            'programme_type': ProgrammeTypes.BILATERAL,
-            'primary_sector': Sectors.WASH,
-            'secondary_sectors': [Sectors.CEA, Sectors.PGI],
-            'operation_type': OperationTypes.EMERGENCY_OPERATION,
+            'programme_type': ProgrammeTypes.BILATERAL.value,
+            'primary_sector': Sectors.WASH.value,
+            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
             'start_date': '2012-11-12',
             'end_date': '2013-11-13',
             'budget_amount': 7000,
             'target_total': 100,
-            'status': Statuses.PLANNED,
+            'status': Statuses.PLANNED.value,
         }
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + token)
         self.client.force_authenticate(user=user, token=token)
@@ -111,20 +111,20 @@ class ProjectGetTest(APITestCase):
 
         # Validation Tests
         # Reached total should be provided if status is completed
-        body['status'] = Statuses.COMPLETED
+        body['status'] = Statuses.COMPLETED.value
         body['reached_total'] = '' # The new framework does not allow None to be sent.
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
         # Disaster Type should be provided if operation type is Long Term Operation
-        body['operation_type'] = OperationTypes.PROGRAMME
+        body['operation_type'] = OperationTypes.PROGRAMME.value
         body['dtype'] = ''
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
         # Event should be provided if operation type is Emergency Operation and programme type is Multilateral
-        body['operation_type'] = OperationTypes.PROGRAMME
-        body['programme_type'] = ProgrammeTypes.MULTILATERAL
+        body['operation_type'] = OperationTypes.PROGRAMME.value
+        body['programme_type'] = ProgrammeTypes.MULTILATERAL.value
         body['event'] = ''
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
