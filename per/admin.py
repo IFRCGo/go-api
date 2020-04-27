@@ -16,7 +16,7 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     region_in = 'country__region_id__in'
     inlines = [FormDataInline]
     exclude = ("ip_address", )
-    search_fields = ('code', 'name', 'country', )
+    search_fields = ('code', 'name', 'country__name', )
 
 class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'form__country__pk__in'

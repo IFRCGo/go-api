@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.272
+
+### Added
+ - PER form search fix
+
 ## 1.1.271
 
 ### Added
@@ -1118,7 +1123,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.271...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.272...HEAD
+[1.1.272]: https://github.com/IFRCGo/go-api/compare/1.1.271...1.1.272
 [1.1.271]: https://github.com/IFRCGo/go-api/compare/1.1.269...1.1.271
 [1.1.269]: https://github.com/IFRCGo/go-api/compare/1.1.268...1.1.269
 [1.1.268]: https://github.com/IFRCGo/go-api/compare/1.1.267...1.1.268
