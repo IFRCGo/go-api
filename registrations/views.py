@@ -167,6 +167,7 @@ def is_valid_domain(email):
         'redcrossghana.org',
         'redcrosseth.org',
         'redcrossmuseum.ch',
+        'redcrossseychelles.sc',
         'redcrossug.org',
         'redcrossvanuatu.com',
         'redcrosszim.org.zw',
