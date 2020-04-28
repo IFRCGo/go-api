@@ -17,7 +17,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .forms import ActionForm
 from reversion.admin import VersionAdmin
 from reversion.models import Revision, Version
@@ -182,6 +182,8 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return mark_safe('<span class="errors">No related appeals</span>')
     appeals.short_description = 'Appeals'
 
+    # To add the 'Notify subscribers now' button
+    change_form_template = "admin/emergency_changeform.html"
     # Overwriting readonly fields for Edit mode
     def changeform_view(self, request, *args, **kwargs):
         self.readonly_fields = list(self.readonly_fields)
@@ -190,6 +192,14 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
                 self.readonly_fields.append('parent_event')
 
         return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
+
+    # Evaluate if the regular 'Save' or 'Notify subscribers now' button was pushed
+    def response_change(self, request, obj):
+        if "_notify-subscribers" in request.POST:
+            #TODO: notification logic
+            self.message_user(request, "Successfully notified subscribers.")
+            return HttpResponseRedirect(".")
+        return super().response_change(request, obj)
 
     def field_reports(self, instance):
         if getattr(instance, 'field_reports').exists():

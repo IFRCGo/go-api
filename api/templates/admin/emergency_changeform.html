@@ -1,0 +1,8 @@
+{% extends 'admin/change_form.html' %}
+
+{% block form_top %}
+    <div class="submit-row">
+        <input type="submit" value="Notify subscribers now" name="_notify-subscribers">
+    </div>
+    {{ block.super }}
+{% endblock %}
