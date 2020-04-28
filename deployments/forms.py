@@ -67,6 +67,19 @@ class ProjectImportForm(forms.Form):
         sector_tags = {label.lower(): value for value, label in SectorTags.choices()}
         statuses = {label.lower(): value for value, label in Statuses.choices()}
 
+        # Handle Custom Sectors/Tags for Health (Keys all lower)
+        sectors.update({
+            'health': Sectors.HEALTH_PUBLIC,
+            'health (public)': Sectors.HEALTH_PUBLIC,
+            'health (clinical)': Sectors.HEALTH_CLINICAL,
+        })
+        sector_tags.update({
+            'health': SectorTags.HEALTH_PUBLIC,
+            'health (public)': SectorTags.HEALTH_PUBLIC,
+            'health (clinical)': SectorTags.HEALTH_CLINICAL,
+        })
+
+        # Extract from import csv file
         for row in reader:
             # TODO: Try to do this in a single query
             district_name = row['Region'].strip()
