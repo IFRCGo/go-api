@@ -5,10 +5,14 @@ from rest_framework.authentication import (
     SessionAuthentication,
 )
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.shortcuts import render
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework import viewsets
+from reversion.views import RevisionMixin
+
 from .models import (
     ERUOwner,
     ERU,
@@ -132,7 +136,14 @@ class ProjectFilter(filters.FilterSet):
     country = filters.CharFilter(field_name='country', method='filter_country')
 
     def filter_country(self, queryset, name, value):
-        return queryset.filter(project_district__country__iso=value)
+        return queryset.filter(
+            # ISO2
+            Q(project_country__iso__iexact=value) |
+            Q(project_district__country__iso__iexact=value) |
+            # ISO3
+            Q(project_country__iso3__iexact=value) |
+            Q(project_district__country__iso3__iexact=value)
+        )
 
     class Meta:
         model = Project
@@ -141,7 +152,7 @@ class ProjectFilter(filters.FilterSet):
             'budget_amount',
             'start_date',
             'end_date',
-            'project_district__country',
+            'project_district',
             'reporting_ns',
             'programme_type',
             'status',
@@ -150,7 +161,7 @@ class ProjectFilter(filters.FilterSet):
         ]
 
 
-class ProjectViewset(viewsets.ModelViewSet):
+class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
     ).all()
@@ -161,7 +172,24 @@ class ProjectViewset(viewsets.ModelViewSet):
         SessionAuthentication,
     )
     # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
-    permission_classes = (IsAuthenticated,)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
+
+    def get_permissions(self):
+        # Require authentication for unsafe methods only
+        if self.action in ['list', 'retrieve']:
+            permission_classes = []
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        # Public Project are viewable to unauthenticated or non-ifrc users
+        qs = super().get_queryset()
+        user = self.request.user
+        if user.is_authenticated:
+            if user.email and user.email.endswith('@ifrc.org'):
+                return qs
+            return qs.exclude(visibility=Project.IFRC_ONLY)
+        return qs.filter(visibility=Project.PUBLIC)

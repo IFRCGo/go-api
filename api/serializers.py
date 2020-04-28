@@ -181,6 +181,15 @@ class MiniEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name', 'dtype', 'id', 'slug', 'parent_event',)
 
+
+class ListMiniEventSerializer(serializers.ModelSerializer):
+    dtype = DisasterTypeSerializer(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
+
+
 class ListEventSerializer(serializers.ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)

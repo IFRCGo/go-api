@@ -1,6 +1,9 @@
-from api.models import Country
 import pycountry
 import logging
+import traceback
+
+from api.models import Country
+from api.models import CronJob, CronJobStatus
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
@@ -18,7 +21,17 @@ def catch_error(error_message=None):
             try:
                 with transaction.atomic():
                     return func(*args, **kwargs)
-            except Exception:
+            except Exception as e:
+                # Log error to cronjob
+                CronJob.sync_cron({
+                    'name': source_name,
+                    'message': (
+                        f'Error querying {source_name}.' +
+                        (f' For Country: {country}.' if country else '') +
+                        f'\n\n' + traceback.format_exc()
+                    ),
+                    'status': CronJobStatus.ERRONEOUS,
+                })
                 logger.error(
                     f"Failed to load <{source_name}:{func.__name__}>" + (
                         f'For Country: {country}' if country else ''

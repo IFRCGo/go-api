@@ -91,6 +91,7 @@ class ProjectGetTest(APITestCase):
         self.assertIsNotNone(token)
         body = {
             'reporting_ns': country2.id,
+            'project_country': district2.country.id,
             'project_district': district2.id,
             'name': 'CreateMePls',
             'programme_type': ProgrammeTypes.BILATERAL,
