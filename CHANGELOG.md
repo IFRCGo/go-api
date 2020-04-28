@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.272
+
+### Added
+ - PER form search fix
+
+## 1.1.271
+
+### Added
+ - Release 4.2.3
+
+## 1.1.269
+
+### Added
+ - Error handlings
+
+## 1.1.268
+
+### Added
+ - Max length of object_name set to 2000
+
+## 1.1.267
+
+### Added
+ - 4.2.0 release
+
 ## 1.1.266
 
 ### Added
@@ -1098,7 +1123,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.266...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.272...HEAD
+[1.1.272]: https://github.com/IFRCGo/go-api/compare/1.1.271...1.1.272
+[1.1.271]: https://github.com/IFRCGo/go-api/compare/1.1.269...1.1.271
+[1.1.269]: https://github.com/IFRCGo/go-api/compare/1.1.268...1.1.269
+[1.1.268]: https://github.com/IFRCGo/go-api/compare/1.1.267...1.1.268
+[1.1.267]: https://github.com/IFRCGo/go-api/compare/1.1.266...1.1.267
 [1.1.266]: https://github.com/IFRCGo/go-api/compare/1.1.265...1.1.266
 [1.1.265]: https://github.com/IFRCGo/go-api/compare/1.1.264...1.1.265
 [1.1.264]: https://github.com/IFRCGo/go-api/compare/1.1.263...1.1.264
