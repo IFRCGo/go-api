@@ -106,6 +106,11 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
+    primary_sector_display = serializers.CharField(source='get_primary_sector_display', read_only=True)
+    programme_type_display = serializers.CharField(source='get_programme_type_display', read_only=True)
+    operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
 
     class Meta:
         model = Project

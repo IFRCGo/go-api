@@ -4,6 +4,8 @@ from enumfields import IntEnum
 
 from django.db import models
 from django.conf import settings
+from django.utils.hashable import make_hashable
+from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
 
 from api.models import District, Country, Region, Event, DisasterType, Appeal
@@ -157,6 +159,19 @@ class Sectors(IntEnum):
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 10
 
+    class Labels:
+        WASH = 'WASH'
+        PGI = 'PGI'
+        CEA = 'CEA'
+        MIGRATION = 'Migration'
+        DRR = 'DRR'
+        SHELTER = 'Shelter'
+        NS_STRENGTHENING = 'NS Strengthening'
+        EDUCATION = 'Education'
+        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
+        HEALTH_PUBLIC = 'Health (public)'
+        HEALTH_CLINICAL = 'Health (clinical)'
+
 
 class SectorTags(IntEnum):
     WASH = 0
@@ -172,7 +187,23 @@ class SectorTags(IntEnum):
     INTERNAL_DISPLACEMENT = 11
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
-    COVID = 13
+    COVID_19 = 13
+
+    class Labels:
+        WASH = 'WASH'
+        PGI = 'PGI'
+        CEA = 'CEA'
+        MIGRATION = 'Migration'
+        DRR = 'DRR'
+        SHELTER = 'Shelter'
+        NS_STRENGTHENING = 'NS Strengthening'
+        EDUCATION = 'Education'
+        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
+        RECOVERY = 'Recovery'
+        INTERNAL_DISPLACEMENT = 'Internal displacement'
+        HEALTH_PUBLIC = 'Health (public)'
+        HEALTH_CLINICAL = 'Health (clinical)'
+        COVID_19 = 'COVID-19'
 
 
 class Statuses(IntEnum):
@@ -264,6 +295,19 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
+
+    def save(self, *args, **kwargs):
+        # Make sure project_country is populated for given project_district
+        if self.project_country is None and self.project_district is not None:
+            self.project_country = self.project_district.country
+        return super().save(*args, **kwargs)
+
+    def get_secondary_sectors_display(self):
+        choices_dict = dict(make_hashable(SectorTags.choices()))
+        return [
+            force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
+            for value in self.secondary_sectors or []
+        ]
 
     @classmethod
     def get_for(cls, user, queryset=None):

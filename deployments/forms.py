@@ -34,7 +34,7 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['secondary_sectors'].widget = EnumArrayWidget(
-            choices=Sectors.choices(),
+            choices=SectorTags.choices(),
         )
 
 
@@ -66,18 +66,6 @@ class ProjectImportForm(forms.Form):
         sectors = {label.lower(): value for value, label in Sectors.choices()}
         sector_tags = {label.lower(): value for value, label in SectorTags.choices()}
         statuses = {label.lower(): value for value, label in Statuses.choices()}
-
-        # Handle Custom Sectors/Tags for Health (Keys all lower)
-        sectors.update({
-            'health': Sectors.HEALTH_PUBLIC,
-            'health (public)': Sectors.HEALTH_PUBLIC,
-            'health (clinical)': Sectors.HEALTH_CLINICAL,
-        })
-        sector_tags.update({
-            'health': SectorTags.HEALTH_PUBLIC,
-            'health (public)': SectorTags.HEALTH_PUBLIC,
-            'health (clinical)': SectorTags.HEALTH_CLINICAL,
-        })
 
         # Extract from import csv file
         for row in reader:

@@ -135,17 +135,10 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-
 class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
     ).all()
-    # XXX: Use this as default authentication classes
-    authentication_classes = (
-        TokenAuthentication,
-        BasicAuthentication,
-        SessionAuthentication,
-    )
     # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
