@@ -172,6 +172,7 @@ class SectorTags(IntEnum):
     INTERNAL_DISPLACEMENT = 11
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
+    COVID = 13
 
 
 class Statuses(IntEnum):
@@ -263,6 +264,15 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
+
+    @classmethod
+    def get_for(cls, user, queryset=None):
+        qs = cls.objects.all() if queryset is None else queryset
+        if user.is_authenticated:
+            if user.email and user.email.endswith('@ifrc.org'):
+                return qs
+            return qs.exclude(visibility=Project.IFRC_ONLY)
+        return qs.filter(visibility=Project.PUBLIC)
 
 
 class ProjectImport(models.Model):
