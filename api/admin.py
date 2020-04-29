@@ -23,6 +23,9 @@ from reversion.admin import VersionAdmin
 from reversion.models import Revision, Version
 from reversion_compare.admin import CompareVersionAdmin
 
+from api.management.commands.index_and_notify import Command as Notify
+from notifications.models import RecordType, SubscriptionType
+
 class GoUserAdmin(UserAdmin):
     list_filter = (
         ('profile__country__region', RelatedDropdownFilter),
@@ -195,9 +198,13 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
     # Evaluate if the regular 'Save' or 'Notify subscribers now' button was pushed
     def response_change(self, request, obj):
-        if "_notify-subscribers" in request.POST:
-            #TODO: notification logic
-            self.message_user(request, "Successfully notified subscribers.")
+        if "_notify-subscribers" in request.POST and request.user.is_superuser:
+            notif_class = Notify()
+            try:
+                notif_class.notify(records=[obj], rtype=RecordType.FOLLOWED_EVENT, stype=SubscriptionType.NEW, uid=request.user.id)
+                self.message_user(request, "Successfully notified subscribers.")
+            except:
+                self.message_user(request, "Could not notify subscribers.", level=messages.ERROR)
             return HttpResponseRedirect(".")
         return super().response_change(request, obj)
 

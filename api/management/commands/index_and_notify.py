@@ -467,7 +467,10 @@ class Command(BaseCommand):
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
         if records:
-            record_count = records.count()
+            try:
+                record_count = records.count()
+            except:
+                record_count = len(records)
         if not record_count and rtype != RecordType.WEEKLY_DIGEST:
             return
 
