@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
+from django.db.models.query import QuerySet
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -467,9 +468,9 @@ class Command(BaseCommand):
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
         if records:
-            try:
+            if isinstance(records, QuerySet):
                 record_count = records.count()
-            except:
+            elif isinstance(records, list):
                 record_count = len(records)
         if not record_count and rtype != RecordType.WEEKLY_DIGEST:
             return
