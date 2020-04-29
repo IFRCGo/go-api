@@ -172,6 +172,7 @@ class SectorTags(IntEnum):
     INTERNAL_DISPLACEMENT = 11
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
+    COVID = 13
 
 
 class Statuses(IntEnum):
