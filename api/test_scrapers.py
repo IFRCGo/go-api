@@ -36,7 +36,7 @@ class FieldReportNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
+            FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
             SubscriptionType.NEW,
         )
@@ -54,7 +54,7 @@ class FieldReportNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
+            FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.FIELD_REPORT,
             SubscriptionType.NEW,
         )
@@ -72,7 +72,7 @@ class FieldReportNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
+            FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.FIELD_REPORT,
             SubscriptionType.NEW,
         )
@@ -90,7 +90,7 @@ class FieldReportNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
+            FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.FIELD_REPORT,
             SubscriptionType.NEW,
         )
@@ -127,7 +127,7 @@ class FieldReportNotificationTest(TestCase):
 
         notify = Notify()
         emails = notify.gather_subscribers(
-            FieldReport.objects.filter(created_at__gte=notify.get_time_threshold()),
+            FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.FIELD_REPORT,
             SubscriptionType.NEW,
         )
@@ -172,7 +172,7 @@ class AppealNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            Appeal.objects.filter(created_at__gte=notify.get_time_threshold()),
+            Appeal.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.APPEAL,
             SubscriptionType.NEW,
         )
@@ -196,7 +196,7 @@ class AppealNotificationTest(TestCase):
         )
         notify = Notify()
         emails = notify.gather_subscribers(
-            Appeal.objects.filter(created_at__gte=notify.get_time_threshold()),
+            Appeal.objects.filter(created_at__gte=notify.diff_5_minutes()),
             RecordType.APPEAL,
             SubscriptionType.NEW,
         )
@@ -215,6 +215,6 @@ class FilterJustCreatedTest(TestCase):
 
     def test_filter_just_created(self):
         notify = Notify()
-        filtered = notify.filter_just_created(Appeal.objects.filter(created_at__gte=notify.get_time_threshold()))
+        filtered = notify.filter_just_created(Appeal.objects.filter(created_at__gte=notify.diff_5_minutes()))
         self.assertEqual(len(filtered), 1)
         self.assertEqual(filtered[0].aid, 'test2')
