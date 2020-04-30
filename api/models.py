@@ -1461,7 +1461,7 @@ class ReversionDifferenceLog(models.Model):
     action = models.CharField(max_length=64) # Added, Changed, etc
     username = models.CharField(max_length=256, null=True)
     object_id = models.CharField(max_length=191, blank=True)
-    object_name = models.CharField(max_length=2000, null=True, blank=True) # the name of the record
+    object_name = models.TextField(null=True, blank=True) # the name of the record
     object_type = models.CharField(max_length=50, blank=True) # Emergency, Appeal, etc
     changed_from = ArrayField(
         models.TextField(null=True, blank=True),
