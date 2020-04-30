@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from enumfields.drf.serializers import EnumSupportSerializerMixin
+
 from .models import (
     ERUOwner,
     ERU,
@@ -98,11 +100,17 @@ class RegionalProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
+    primary_sector_display = serializers.CharField(source='get_primary_sector_display', read_only=True)
+    programme_type_display = serializers.CharField(source='get_programme_type_display', read_only=True)
+    operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
 
     class Meta:
         model = Project
@@ -112,11 +120,14 @@ class ProjectSerializer(serializers.ModelSerializer):
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'project_district', 'name', 'programme_type', 'primary_sector', 'target_total',
+                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
             )
         }
 
     def validate(self, data):
+        # Override country with district's country
+        if data['project_district'] is not None:
+            data['project_country'] = data['project_district'].country
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
             raise serializers.ValidationError('Reached total should be provided if status is completed')
         elif (

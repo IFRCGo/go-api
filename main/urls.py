@@ -105,6 +105,7 @@ router.register(r'per_ns_phase', per_views.NSPhaseViewset)
 router.register(r'regional-project', deployment_views.RegionalProjectViewset)
 router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
+router.register(r'region-project', deployment_views.RegionProjectViewset, base_name='region-project')
 
 
 admin.site.site_header = 'IFRC Go administration'
@@ -124,8 +125,6 @@ urlpatterns = [
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
-    url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
-    url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
@@ -141,6 +140,8 @@ urlpatterns = [
     url(r'^recover_password', RecoverPassword.as_view()),
     url(r'^show_username', ShowUsername.as_view()),
     url(r'^api/v2/', include(router.urls)),
+    url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
+    url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
