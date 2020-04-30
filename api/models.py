@@ -611,6 +611,9 @@ class FieldReport(models.Model):
                              blank=True,
                              on_delete=models.SET_NULL)
 
+    is_covid_report = models.BooleanField(default=False,
+                                          help_text='Is this a Field Report specific to the COVID-19 emergency?')
+
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(blank=True)
@@ -844,9 +847,13 @@ class ActionType:
 class ActionCategory:
     GENERAL = 'General'
     HEALTH = 'Health'
+    NS_INSTITUTIONAL_STRENGTHENING = 'NS Institutional Strengthening'
+    SOCIO_ECONOMIC_IMPACTS = 'Socio-economic Impacts'
     CHOICES = (
         (GENERAL, 'General'),
-        (HEALTH, 'Health')
+        (HEALTH, 'Health'),
+        (NS_INSTITUTIONAL_STRENGTHENING, 'NS Institutional Strengthening'),
+        (SOCIO_ECONOMIC_IMPACTS, 'Socio-economic Impacts')
     )
 
 
