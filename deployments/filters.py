@@ -6,6 +6,7 @@ from .models import (
     OperationTypes,
     ProgrammeTypes,
     Sectors,
+    SectorTags,
     Statuses,
     Project,
 )
@@ -18,11 +19,19 @@ class ProjectFilter(filters.FilterSet):
     operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices(), widget=filters.widgets.CSVWidget)
     programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices(), widget=filters.widgets.CSVWidget)
     primary_sector = filters.MultipleChoiceFilter(choices=Sectors.choices(), widget=filters.widgets.CSVWidget)
+    secondary_sectors = filters.MultipleChoiceFilter(
+        choices=SectorTags.choices(), widget=filters.widgets.CSVWidget, method='filter_secondary_sectors',
+    )
     status = filters.MultipleChoiceFilter(choices=Statuses.choices(), widget=filters.widgets.CSVWidget)
 
     # Supporting/Receiving NS Filters (Multiselect)
     project_country = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
     reporting_ns = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
+
+    def filter_secondary_sectors(self, queryset, name, value):
+        if len(value):
+            return queryset.filter(secondary_sectors__overlap=value)
+        return queryset
 
     def filter_country(self, queryset, name, value):
         if value:
