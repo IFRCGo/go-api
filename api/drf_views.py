@@ -441,7 +441,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     filter_class = FieldReportFilter
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Action.objects.all()
+    queryset = Action.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
 
 class GenericFieldReportView(GenericAPIView):
