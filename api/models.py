@@ -837,11 +837,13 @@ class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
     EPIDEMIC = 'EPI'
+    COVID = 'COVID'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
-        (EPIDEMIC, 'Epidemic')
+        (EPIDEMIC, 'Epidemic'),
+        (COVID, 'COVID-19')
     )
 
 class ActionCategory:
