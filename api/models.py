@@ -873,6 +873,7 @@ class Action(models.Model):
         default=list
     )
     category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    is_disabled = models.BooleanField(default=False, help_text='Disable in form')
 
     def __str__(self):
         return self.name
