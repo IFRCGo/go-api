@@ -869,12 +869,12 @@ class Action(models.Model):
     field_report_types = ArrayField(
         models.CharField(
             choices=ActionType.CHOICES,
-            max_length=4
+            max_length=16
         ),
         #default=[ActionType.EVENT]
         default=list
     )
-    category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    category = models.CharField(max_length=255, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
     is_disabled = models.BooleanField(default=False, help_text='Disable in form')
 
     def __str__(self):
@@ -886,7 +886,7 @@ class ActionsTaken(models.Model):
 
     organization = models.CharField(
         choices=ActionOrg.CHOICES,
-        max_length=4,
+        max_length=16,
     )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
