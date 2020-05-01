@@ -67,7 +67,7 @@ def create_global_reversion_log(versions, revision):
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=str(version),
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
                 object_type=model_name
             )
         elif not previous_version:
@@ -75,7 +75,7 @@ def create_global_reversion_log(versions, revision):
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=str(version),
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
                 object_type=model_name,
                 changed_to=revision.comment.replace('Changed ', '').replace('.', '').split(' and ')
             )
@@ -91,7 +91,7 @@ def create_global_reversion_log(versions, revision):
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
                 object_id=version.object_id,
-                object_name=str(version),
+                object_name=str(version) if len(str(version)) <= 200 else str(version)[:200] + '...',
                 object_type=model_name,
                 changed_from=changes_from,
                 changed_to=changes_to
@@ -119,6 +119,6 @@ def log_deletion(sender, instance, using, **kwargs):
         action='Deleted',
         username=usr,
         object_id=instance.pk,
-        object_name=str(instance),
+        object_name=str(instance) if len(str(instance)) <= 200 else str(instance)[:200] + '...',
         object_type=MODEL_TYPES.get(model_name, instance_type) if model_name else instance_type
     )
