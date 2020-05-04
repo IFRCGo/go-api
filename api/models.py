@@ -602,6 +602,12 @@ class RequestChoices(IntEnum):
     COMPLETE = 3
 
 
+class EPISourceChoices(IntEnum):
+    MINISTRY_OF_HEALTH = 0
+    WHO = 1
+    OTHER = 2
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -655,6 +661,7 @@ class FieldReport(models.Model):
     epi_probable_cases = models.IntegerField(null=True, blank=True)
     epi_confirmed_cases = models.IntegerField(null=True, blank=True)
     epi_num_dead = models.IntegerField(null=True, blank=True)
+    epi_figures_source = EnumIntegerField(EPISourceChoices, null=True, blank=True)
 
     health_min_cases = models.IntegerField(null=True, blank=True)
     health_min_suspected_cases = models.IntegerField(null=True, blank=True)
