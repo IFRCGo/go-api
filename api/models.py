@@ -850,12 +850,12 @@ class ActionCategory:
     GENERAL = 'General'
     HEALTH = 'Health'
     NS_INSTITUTIONAL_STRENGTHENING = 'NS Institutional Strengthening'
-    SOCIO_ECONOMIC_IMPACTS = 'Socio-economic Impacts'
+    SOCIO_ECONOMIC_IMPACTS = 'Socioeconomic Interventions'
     CHOICES = (
         (GENERAL, 'General'),
         (HEALTH, 'Health'),
         (NS_INSTITUTIONAL_STRENGTHENING, 'NS Institutional Strengthening'),
-        (SOCIO_ECONOMIC_IMPACTS, 'Socio-economic Impacts')
+        (SOCIO_ECONOMIC_IMPACTS, 'Socioeconomic Interventions')
     )
 
 
