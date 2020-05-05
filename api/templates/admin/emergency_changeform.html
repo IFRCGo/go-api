@@ -1,10 +1,10 @@
 {% extends 'admin/change_form.html' %}
 
 {% block form_top %}
-    {% if request.user.is_superuser %}
+    <!-- {% if request.user.is_superuser %}
         <div class="submit-row">
             <input type="submit" value="Notify subscribers now" name="_notify-subscribers">
         </div>
-    {% endif %}
+    {% endif %} -->
     {{ block.super }}
 {% endblock %}
