@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
+from django.db.models.query import QuerySet
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -16,12 +17,12 @@ from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
 
-time_interval  = timedelta(minutes = 5)
-time_interva2  = timedelta(   days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
-time_interva7  = timedelta(   days = 7) # for digest mode
-basetime       = int(10314) # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
-daily_retro    = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length     = 860 # after this length (at the first space) we cut the sent content
+time_5_minutes = timedelta(minutes = 5)
+time_1_day = timedelta(days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
+time_1_week = timedelta(days = 7) # for digest mode
+digest_time = int(10314) # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
+daily_retro = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
+max_length = 860 # after this length (at the first space) we cut the sent content
 events_sent_to = {} # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
@@ -38,21 +39,21 @@ class Command(BaseCommand):
     def is_digest_mode(self):
         today = datetime.utcnow().replace(tzinfo=timezone.utc)
         weekdayhourmin = int(today.strftime('%w%H%M'))
-        return basetime <= weekdayhourmin and weekdayhourmin < basetime + 5
+        return digest_time <= weekdayhourmin and weekdayhourmin < digest_time + 5
 
-    def is_retro_mode(self):
+    def is_daily_checkup_time(self):
         today = datetime.utcnow().replace(tzinfo=timezone.utc)
         hourmin = int(today.strftime('%H%M'))
         return daily_retro <= hourmin and hourmin < daily_retro + 5
 
-    def get_time_threshold(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interval
+    def diff_5_minutes(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_5_minutes
 
-    def get_time_threshold2(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva2
+    def diff_1_day(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_day
 
-    def get_time_threshold_digest(self):
-        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_interva7
+    def diff_1_week(self):
+        return datetime.utcnow().replace(tzinfo=timezone.utc) - time_1_week
 
     def gather_country_and_region(self, records):
         # Appeals only, since these have a single country/region
@@ -96,7 +97,7 @@ class Command(BaseCommand):
         # Gather the email addresses of users who should be notified
         if self.is_digest_mode():
             subscribers = User.objects.filter(subscription__rtype=RecordType.WEEKLY_DIGEST, \
-                                          is_active=True).values('email')
+                is_active=True).values('email')
             # In digest mode we do not care about other circumstances, just get every subscriber's email.
             emails = [subscriber['email'] for subscriber in subscribers]
             return emails
@@ -240,7 +241,7 @@ class Command(BaseCommand):
             return rounded_people
     
     def get_weekly_digest_latest_ops(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ops = Appeal.objects.filter(created_at__gte=dig_time).order_by('-created_at')
         ret_ops = []
         for op in ops:
@@ -255,7 +256,7 @@ class Command(BaseCommand):
         return ret_ops
 
     def get_weekly_digest_latest_deployments(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ret_data = []
 
         # Surge Alerts
@@ -296,7 +297,7 @@ class Command(BaseCommand):
 
 
     def get_weekly_digest_highlights(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
@@ -344,7 +345,7 @@ class Command(BaseCommand):
         return ret_actions_taken
 
     def get_weekly_latest_frs(self):
-        dig_time = self.get_time_threshold_digest()
+        dig_time = self.diff_1_week()
         ret_fr_list = []
         fr_list = list(FieldReport.objects.filter(created_at__gte=dig_time).order_by('-created_at'))
         for fr in fr_list:
@@ -442,7 +443,7 @@ class Command(BaseCommand):
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
-            dig_time = self.get_time_threshold_digest()
+            dig_time = self.diff_1_week()
             rec_obj = {
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
@@ -467,7 +468,10 @@ class Command(BaseCommand):
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
         if records:
-            record_count = records.count()
+            if isinstance(records, QuerySet):
+                record_count = records.count()
+            elif isinstance(records, list):
+                record_count = len(records)
         if not record_count and rtype != RecordType.WEEKLY_DIGEST:
             return
 
@@ -523,7 +527,7 @@ class Command(BaseCommand):
                 record_type,
             )
 
-        if self.is_retro_mode():
+        if self.is_daily_checkup_time():
             subject += ' [daily followup]'
         
         template_path = self.get_template()
@@ -568,13 +572,9 @@ class Command(BaseCommand):
                 else:
                     logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
-
-    def index_new_records(self, records):
-        self.bulk([self.convert_for_bulk(record, create=True) for record in list(records)])
-
-
-    def index_updated_records(self, records):
-        self.bulk([self.convert_for_bulk(record, create=False) for record in list(records)])
+    
+    def index_records(self, records, to_create=True):
+        self.bulk([self.convert_for_bulk(record, create=to_create) for record in list(records)])
 
 
     def convert_for_bulk(self, record, create):
@@ -629,101 +629,83 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if self.is_digest_mode():
-            t = self.get_time_threshold_digest() # in digest mode (1ce a week, for new_entities only) we use a bigger interval
+            time_diff = self.diff_1_week() # in digest mode (once a week, for new_entities only) we use a bigger interval
         else:
-            t = self.get_time_threshold()
-        t2 = self.get_time_threshold2()
+            time_diff = self.diff_5_minutes()
+        time_diff_1_day = self.diff_1_day()
 
-        cond1 = Q(created_at__gte=t)
-        condU = Q(updated_at__gte=t)
-        condR = Q(real_data_update__gte=t) # instead of modified at
-        cond2 = ~Q(previous_update__gte=t2) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
+        cond1 = Q(created_at__gte=time_diff)
+        condU = Q(updated_at__gte=time_diff)
+        condR = Q(real_data_update__gte=time_diff) # instead of modified at
+        cond2 = ~Q(previous_update__gte=time_diff_1_day) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
         condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 
-        # In this section we check if there was 2 FOLLOWED_EVENT modifications in the last 24 hours (for which there was no duplicated email sent, but now will be one).
-        if self.is_retro_mode():
-            condU = Q(updated_at__gte=t2)
-            cond2 = Q(previous_update__gte=t2) # not negated. We collect those, who had 2 changes in the last 1 day.
-            followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
-            users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
-            for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
-                eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
-                cond3 = Q(pk__in=eventlist) # getting their events as a condition
-                followed_events = Event.objects.filter(condU & cond2 & cond3)
-                if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
-        else:
-            # ".annotate(diff...)" - To check if a record was newly created, we check if `created_at` and `updated_at` are within one minute of each other, since those values can be off by some miliseconds upon insertion.
-            new_reports = FieldReport.objects.filter(cond1)
-            updated_reports = FieldReport.objects.annotate(
-                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
-            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
+        # ".annotate(diff...)" - To check if a record was newly created, we check if
+        # `created_at` and `updated_at` are within one minute of each other, since those values
+        # can be off by some miliseconds upon insertion. (could be seconds too perhaps)
+        new_reports = FieldReport.objects.filter(cond1)
+        updated_reports = FieldReport.objects.annotate(
+            diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+        ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-            new_appeals = Appeal.objects.filter(cond1)
-            updated_appeals = Appeal.objects.annotate(
-                diff = ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
-            ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
+        new_appeals = Appeal.objects.filter(cond1)
+        updated_appeals = Appeal.objects.annotate(
+            diff = ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
+        ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-            new_events = Event.objects.filter(cond1).exclude(condF)
-            updated_events = Event.objects.annotate(
-                diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
-            ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
+        new_events = Event.objects.filter(cond1).exclude(condF)
+        updated_events = Event.objects.annotate(
+            diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+        ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-            new_surgealerts = SurgeAlert.objects.filter(cond1)
+        new_surgealerts = SurgeAlert.objects.filter(cond1)
+        new_pers_deployments = PersonnelDeployment.objects.filter(cond1)
 
-            new_pers_deployments = PersonnelDeployment.objects.filter(cond1) # CHECK: Best instantiation of Deployment Messages? Frontend appearance?!?
-            # No need for indexing for personnel deployments
+        # Merge Weekly Digest into one mail instead of separate ones
+        if self.is_digest_mode():
+            self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
+        
+        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+        #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+        #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+        self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+        #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+        self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+        self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
-            # Approaching End of Mission ? new_approanching_end = PersonnelDeployment.objects.filter(end-date is close?)
-            # No need for indexing for Approaching End of Mission
+        # Followed Events
+        if self.is_daily_checkup_time():
+            condU = Q(updated_at__gte=time_diff_1_day)
+            cond2 = Q(previous_update__gte=time_diff_1_day) # not negated, we collect those, who had 2 changes in the last 1 day
 
-            # PER Due Dates ? new_per_due_date_warnings = User.objects.filter(PER admins of countries/regions, for whom the setting/per_due_date is in 1 week)
-            # No need for indexing for PER Due Dates
+        fe_subs = Subscription.objects.filter(event_id__isnull=False) # subscriptions of FEs
+        subscribers = fe_subs.values_list('user_id', flat=True).distinct()
+        for usr in subscribers: # looping in user_ids of specific FOLLOWED_EVENT subscriptions
+            eventlist = fe_subs.filter(user_id=usr).values_list('event_id', flat=True).distinct()
+            cond3 = Q(pk__in=eventlist)
+            followed_events = Event.objects.filter(condU & cond2 & cond3)
+            if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
+                self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
 
-            followed_eventparams = Subscription.objects.filter(event_id__isnull=False)
-            ## followed_events = Event.objects.filter(updated_at__gte=t, pk__in=[x.event_id for x in followed_eventparams])
+        # Indexing
+        logger.info('Indexing %s new field reports' % new_reports.count())
+        self.index_records(new_reports)
+        logger.info('Indexing %s new appeals' % new_appeals.count())
+        self.index_records(new_appeals)
+        logger.info('Indexing %s new events' % new_events.count())
+        self.index_records(new_events)
 
-            # Merge Weekly Digest into one mail instead of separate ones
-            if self.is_digest_mode():
-                self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
-            else:
-                self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-                #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+        logger.info('Indexing %s updated field reports' % updated_reports.count())
+        self.index_records(updated_reports, to_create=False)
+        logger.info('Indexing %s updated appeals' % updated_appeals.count())
+        self.index_records(updated_appeals, to_create=False)
+        logger.info('Indexing %s updated events' % updated_events.count())
+        self.index_records(updated_events, to_create=False)
+        
 
-                self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-                #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
-
-                self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-                #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-
-                self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
-
-                self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
-
-            users_of_followed_events = followed_eventparams.values_list('user_id', flat=True).distinct()
-            for usr in users_of_followed_events: # looping in user_ids of specific FOLLOWED_EVENT subscriptions (8)
-                eventlist = followed_eventparams.filter(user_id=usr).values_list('event_id', flat=True).distinct()
-                cond3 = Q(pk__in=eventlist) # getting their events as a condition
-                followed_events = Event.objects.filter(condU & cond2 & cond3)
-                if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
-                    self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
-
-            logger.info('Indexing %s updated field reports' % updated_reports.count())
-            self.index_updated_records(self.filter_just_created(updated_reports))
-            logger.info('Indexing %s updated appeals' % updated_appeals.count())
-            self.index_updated_records(self.filter_just_created(updated_appeals))
-            logger.info('Indexing %s updated events' % updated_events.count())
-            self.index_updated_records(self.filter_just_created(updated_events))
-
-            logger.info('Indexing %s new field reports' % new_reports.count())
-            self.index_new_records(new_reports)
-            logger.info('Indexing %s new appeals' % new_appeals.count())
-            self.index_new_records(new_appeals)
-            logger.info('Indexing %s new events' % new_events.count())
-            self.index_new_records(new_events)
-
-            # CronJob feedback of smtp server working is in: notifications/notification.py
-            having_ingest_issue = CronJob.objects.filter(cond1 & condE)
-            self.check_ingest_issues(having_ingest_issue)
-            logger.info('API monitoring. Ingest issues are checked.')
+        # CronJob feedback of smtp server working is in: notifications/notification.py
+        having_ingest_issue = CronJob.objects.filter(cond1 & condE)
+        self.check_ingest_issues(having_ingest_issue)
+        logger.info('API monitoring. Ingest issues are checked.')

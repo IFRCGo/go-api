@@ -611,6 +611,9 @@ class FieldReport(models.Model):
                              blank=True,
                              on_delete=models.SET_NULL)
 
+    is_covid_report = models.BooleanField(default=False,
+                                          help_text='Is this a Field Report specific to the COVID-19 emergency?')
+
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
     summary = models.TextField(blank=True)
@@ -834,19 +837,25 @@ class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
     EPIDEMIC = 'EPI'
+    COVID = 'COVID'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
-        (EPIDEMIC, 'Epidemic')
+        (EPIDEMIC, 'Epidemic'),
+        (COVID, 'COVID-19')
     )
 
 class ActionCategory:
     GENERAL = 'General'
     HEALTH = 'Health'
+    NS_INSTITUTIONAL_STRENGTHENING = 'NS Institutional Strengthening'
+    SOCIO_ECONOMIC_IMPACTS = 'Socioeconomic Interventions'
     CHOICES = (
         (GENERAL, 'General'),
-        (HEALTH, 'Health')
+        (HEALTH, 'Health'),
+        (NS_INSTITUTIONAL_STRENGTHENING, 'NS Institutional Strengthening'),
+        (SOCIO_ECONOMIC_IMPACTS, 'Socioeconomic Interventions')
     )
 
 
@@ -860,12 +869,13 @@ class Action(models.Model):
     field_report_types = ArrayField(
         models.CharField(
             choices=ActionType.CHOICES,
-            max_length=4
+            max_length=16
         ),
         #default=[ActionType.EVENT]
         default=list
     )
-    category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    category = models.CharField(max_length=255, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    is_disabled = models.BooleanField(default=False, help_text='Disable in form')
 
     def __str__(self):
         return self.name
@@ -876,7 +886,7 @@ class ActionsTaken(models.Model):
 
     organization = models.CharField(
         choices=ActionOrg.CHOICES,
-        max_length=4,
+        max_length=16,
     )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
