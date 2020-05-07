@@ -390,7 +390,7 @@ class Command(BaseCommand):
                     # 'volunteers': record.num_volunteers or '--',
                     # 'expat_delegates': record.num_expats_delegates or '--',
                 },
-                'epi_key_figures': {
+                'epi_key_figures': { #TODO: rework this too
                     'who_cases': record.who_cases or '--',
                     'who_suspected': record.who_suspected_cases or '--',
                     'who_probable': record.who_probable_cases or '--',

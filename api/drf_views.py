@@ -46,6 +46,7 @@ from .models import (
 
     VisibilityChoices,
     RequestChoices,
+    EPISourceChoices,
 )
 
 from databank.serializers import CountryOverviewSerializer
@@ -459,6 +460,19 @@ class GenericFieldReportView(GenericAPIView):
             data['visibility'] = VisibilityChoices.PUBLIC
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
+
+        # Handle EPI Figures' Source dropdown saving
+        if 'epi_figures_source' in data:
+            if data['epi_figures_source'] == 0 or data['epi_figures_source'] == '0':
+                data['epi_figures_source'] = EPISourceChoices.MINISTRY_OF_HEALTH
+            elif data['epi_figures_source'] == 1 or data['epi_figures_source'] == '1':
+                data['epi_figures_source'] = EPISourceChoices.WHO
+            elif data['epi_figures_source'] == 2 or data['epi_figures_source'] == '2':
+                data['epi_figures_source'] = EPISourceChoices.OTHER
+            else:
+                data['epi_figures_source'] = None
+        else:
+            data['epi_figures_source'] = None
 
         request_choices = [
             'bulletin',
