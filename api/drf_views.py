@@ -46,6 +46,7 @@ from .models import (
 
     VisibilityChoices,
     RequestChoices,
+    EPISourceChoices,
 )
 
 from databank.serializers import CountryOverviewSerializer
@@ -67,7 +68,7 @@ from .serializers import (
     MiniDistrictSerializer,
 
     SnippetSerializer,
-    MiniEventSerializer,
+    ListMiniEventSerializer,
     ListEventSerializer,
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
@@ -228,6 +229,9 @@ class EventFilter(filters.FilterSet):
     countries__in = ListFilter(field_name='countries__id')
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    auto_generated_source = filters.ChoiceFilter(
+        label='Auto generated source choices', choices=[(v, v) for v in SOURCES.values()],
+    )
     class Meta:
         model = Event
         fields = {
@@ -244,12 +248,12 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).values('id', 'name')
+            return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
         return Event.objects.filter(parent_event__isnull=True)
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
-            return MiniEventSerializer
+            return ListMiniEventSerializer
         elif self.action == 'list':
             return ListEventSerializer
         else:
@@ -438,7 +442,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     filter_class = FieldReportFilter
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Action.objects.all()
+    queryset = Action.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
 
 class GenericFieldReportView(GenericAPIView):
@@ -456,6 +460,19 @@ class GenericFieldReportView(GenericAPIView):
             data['visibility'] = VisibilityChoices.PUBLIC
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
+
+        # Handle EPI Figures' Source dropdown saving
+        if 'epi_figures_source' in data:
+            if data['epi_figures_source'] == 0 or data['epi_figures_source'] == '0':
+                data['epi_figures_source'] = EPISourceChoices.MINISTRY_OF_HEALTH
+            elif data['epi_figures_source'] == 1 or data['epi_figures_source'] == '1':
+                data['epi_figures_source'] = EPISourceChoices.WHO
+            elif data['epi_figures_source'] == 2 or data['epi_figures_source'] == '2':
+                data['epi_figures_source'] = EPISourceChoices.OTHER
+            else:
+                data['epi_figures_source'] = None
+        else:
+            data['epi_figures_source'] = None
 
         request_choices = [
             'bulletin',

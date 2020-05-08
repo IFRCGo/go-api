@@ -602,6 +602,12 @@ class RequestChoices(IntEnum):
     COMPLETE = 3
 
 
+class EPISourceChoices(IntEnum):
+    MINISTRY_OF_HEALTH = 0
+    WHO = 1
+    OTHER = 2
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -610,6 +616,9 @@ class FieldReport(models.Model):
                              null=True,
                              blank=True,
                              on_delete=models.SET_NULL)
+
+    is_covid_report = models.BooleanField(default=False,
+                                          help_text='Is this a Field Report specific to the COVID-19 emergency?')
 
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
@@ -647,6 +656,13 @@ class FieldReport(models.Model):
     gov_num_assisted = models.IntegerField(null=True, blank=True)
 
     #Epidemic fields
+    epi_cases = models.IntegerField(null=True, blank=True)
+    epi_suspected_cases = models.IntegerField(null=True, blank=True)
+    epi_probable_cases = models.IntegerField(null=True, blank=True)
+    epi_confirmed_cases = models.IntegerField(null=True, blank=True)
+    epi_num_dead = models.IntegerField(null=True, blank=True)
+    epi_figures_source = EnumIntegerField(EPISourceChoices, null=True, blank=True)
+
     health_min_cases = models.IntegerField(null=True, blank=True)
     health_min_suspected_cases = models.IntegerField(null=True, blank=True)
     health_min_probable_cases = models.IntegerField(null=True, blank=True)
@@ -834,19 +850,25 @@ class ActionType:
     EVENT = 'EVT'
     EARLY_WARNING = 'EW'
     EPIDEMIC = 'EPI'
+    COVID = 'COVID'
 
     CHOICES = (
         (EVENT, 'Event'),
         (EARLY_WARNING, 'Early Warning'),
-        (EPIDEMIC, 'Epidemic')
+        (EPIDEMIC, 'Epidemic'),
+        (COVID, 'COVID-19')
     )
 
 class ActionCategory:
     GENERAL = 'General'
     HEALTH = 'Health'
+    NS_INSTITUTIONAL_STRENGTHENING = 'NS Institutional Strengthening'
+    SOCIO_ECONOMIC_IMPACTS = 'Socioeconomic Interventions'
     CHOICES = (
         (GENERAL, 'General'),
-        (HEALTH, 'Health')
+        (HEALTH, 'Health'),
+        (NS_INSTITUTIONAL_STRENGTHENING, 'NS Institutional Strengthening'),
+        (SOCIO_ECONOMIC_IMPACTS, 'Socioeconomic Interventions')
     )
 
 
@@ -860,12 +882,13 @@ class Action(models.Model):
     field_report_types = ArrayField(
         models.CharField(
             choices=ActionType.CHOICES,
-            max_length=4
+            max_length=16
         ),
         #default=[ActionType.EVENT]
         default=list
     )
-    category = models.CharField(max_length=12, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    category = models.CharField(max_length=255, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
+    is_disabled = models.BooleanField(default=False, help_text='Disable in form')
 
     def __str__(self):
         return self.name
@@ -876,7 +899,7 @@ class ActionsTaken(models.Model):
 
     organization = models.CharField(
         choices=ActionOrg.CHOICES,
-        max_length=4,
+        max_length=16,
     )
     actions = models.ManyToManyField(Action)
     summary = models.TextField(blank=True)
@@ -1461,7 +1484,7 @@ class ReversionDifferenceLog(models.Model):
     action = models.CharField(max_length=64) # Added, Changed, etc
     username = models.CharField(max_length=256, null=True)
     object_id = models.CharField(max_length=191, blank=True)
-    object_name = models.CharField(max_length=2000, null=True, blank=True) # the name of the record
+    object_name = models.TextField(null=True, blank=True) # the name of the record
     object_type = models.CharField(max_length=50, blank=True) # Emergency, Appeal, etc
     changed_from = ArrayField(
         models.TextField(null=True, blank=True),

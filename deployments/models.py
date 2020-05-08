@@ -4,6 +4,8 @@ from enumfields import IntEnum
 
 from django.db import models
 from django.conf import settings
+from django.utils.hashable import make_hashable
+from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
 
 from api.models import District, Country, Region, Event, DisasterType, Appeal
@@ -141,6 +143,7 @@ class PartnerSocietyDeployment(DeployedPerson):
 class ProgrammeTypes(IntEnum):
     BILATERAL = 0
     MULTILATERAL = 1
+    DOMESTIC = 2
 
 
 class Sectors(IntEnum):
@@ -148,12 +151,26 @@ class Sectors(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
-    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
+    HEALTH_PUBLIC = 4
+    HEALTH_CLINICAL = 10
+
+    class Labels:
+        WASH = 'WASH'
+        PGI = 'PGI'
+        CEA = 'CEA'
+        MIGRATION = 'Migration'
+        DRR = 'DRR'
+        SHELTER = 'Shelter'
+        NS_STRENGTHENING = 'NS Strengthening'
+        EDUCATION = 'Education'
+        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
+        HEALTH_PUBLIC = 'Health (public)'
+        HEALTH_CLINICAL = 'Health (clinical)'
 
 
 class SectorTags(IntEnum):
@@ -161,7 +178,6 @@ class SectorTags(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
-    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
@@ -169,6 +185,25 @@ class SectorTags(IntEnum):
     LIVELIHOODS_AND_BASIC_NEEDS = 9
     RECOVERY = 10
     INTERNAL_DISPLACEMENT = 11
+    HEALTH_PUBLIC = 4
+    HEALTH_CLINICAL = 12
+    COVID_19 = 13
+
+    class Labels:
+        WASH = 'WASH'
+        PGI = 'PGI'
+        CEA = 'CEA'
+        MIGRATION = 'Migration'
+        DRR = 'DRR'
+        SHELTER = 'Shelter'
+        NS_STRENGTHENING = 'NS Strengthening'
+        EDUCATION = 'Education'
+        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
+        RECOVERY = 'Recovery'
+        INTERNAL_DISPLACEMENT = 'Internal displacement'
+        HEALTH_PUBLIC = 'Health (public)'
+        HEALTH_CLINICAL = 'Health (clinical)'
+        COVID_19 = 'COVID-19'
 
 
 class Statuses(IntEnum):
@@ -192,15 +227,33 @@ class RegionalProject(models.Model):
 
 
 class Project(models.Model):
+    PUBLIC = 'public'
+    LOGGED_IN_USER = 'logged_in_user'
+    IFRC_ONLY = 'ifrc_only'
+
+    VISIBILITY = (
+        (PUBLIC, 'Public'),
+        (LOGGED_IN_USER, 'Logged in user'),
+        (IFRC_ONLY, 'IFRC only'),
+    )
+
     modified_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project
     reporting_ns = models.ForeignKey(
         Country, on_delete=models.CASCADE,
+        related_name='ns_projects',
     )  # this is the national society that is reporting the project
+    project_country = models.ForeignKey(
+        Country, on_delete=models.CASCADE,
+        null=True,  # NOTE: Added due to migrations issue
+        related_name='projects',
+    )  # this is the country where the project is actually taking place
     project_district = models.ForeignKey(
         District, on_delete=models.CASCADE,
+        null=True, blank=True,
+        help_text='No selection will indicate all districts.',
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
         Event, null=True, blank=True, on_delete=models.SET_NULL,
@@ -234,6 +287,7 @@ class Project(models.Model):
     regional_project = models.ForeignKey(
         RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
     )
+    visibility = models.CharField(max_length=32, choices=VISIBILITY, default=PUBLIC)
 
     def __str__(self):
         if self.reporting_ns is None:
@@ -241,6 +295,54 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
+
+    def save(self, *args, **kwargs):
+        # Make sure project_country is populated for given project_district
+        if self.project_country is None and self.project_district is not None:
+            self.project_country = self.project_district.country
+        return super().save(*args, **kwargs)
+
+    def get_secondary_sectors_display(self):
+        choices_dict = dict(make_hashable(SectorTags.choices()))
+        return [
+            force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
+            for value in self.secondary_sectors or []
+        ]
+
+    @classmethod
+    def get_for(cls, user, queryset=None):
+        qs = cls.objects.all() if queryset is None else queryset
+        if user.is_authenticated:
+            if user.email and user.email.endswith('@ifrc.org'):
+                return qs
+            return qs.exclude(visibility=Project.IFRC_ONLY)
+        return qs.filter(visibility=Project.PUBLIC)
+
+
+class ProjectImport(models.Model):
+    """
+    Track Project Imports (For Django Admin Panel)
+    """
+    PENDING = 'pending'
+    SUCCESS = 'success'
+    FAILURE = 'failure'
+    STATUS_CHOICES = (
+        (PENDING, 'Pending'),
+        (SUCCESS, 'Success'),
+        (FAILURE, 'Failure'),
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+    )  # user who created this project import
+    created_at = models.DateTimeField(auto_now_add=True)
+    projects_created = models.ManyToManyField(Project)
+    message = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    file = models.FileField(upload_to='project-imports/')
+
+    def __str__(self):
+        return f'Project Import {self.status}:{self.created_at}'
 
 
 class ERUReadiness(models.Model):

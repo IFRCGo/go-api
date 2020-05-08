@@ -6,6 +6,46 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.275
+
+### Added
+ - Domain whitelist
+
+## 1.1.274
+
+### Added
+ - Release 2.3.1
+
+## 1.1.273
+
+### Added
+ - Release 4.3.0
+
+## 1.2.0
+
+### Added
+ - Fetch FTS HPC Data using google sheet.
+ - Add visibility support for project. (Public, Login required, IFRC Only)
+ - New Programme Type `Domestic`
+ - Add Bulk Project Import in Admin Panel.
+ - Enable history for Project changes.
+ - Add Sector/SectorTag `Health (private)` and `COVID-19`.
+ - Add API for Project for region.
+ - Add Multiselect filters for Project API enumfields.
+
+### Changed
+ - Change Sector/SectorTag `Health` to `Health (public)`.
+
+## 1.1.272
+
+### Added
+ - PER form search fix
+
+## 1.1.271
+
+### Added
+ - Release 4.2.3
+
 ## 1.1.269
 
 ### Added
@@ -1113,7 +1153,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.269...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.275...HEAD
+[1.2.275]: https://github.com/IFRCGo/go-api/compare/1.2.274...1.1.275
+[1.2.274]: https://github.com/IFRCGo/go-api/compare/1.2.274...1.1.274
+[1.2.274]: https://github.com/IFRCGo/go-api/compare/1.2.273...1.1.274
+[1.2.273]: https://github.com/IFRCGo/go-api/compare/1.2.272...1.1.273
+[1.1.272]: https://github.com/IFRCGo/go-api/compare/1.1.271...1.1.272
+[1.1.271]: https://github.com/IFRCGo/go-api/compare/1.1.269...1.1.271
 [1.1.269]: https://github.com/IFRCGo/go-api/compare/1.1.268...1.1.269
 [1.1.268]: https://github.com/IFRCGo/go-api/compare/1.1.267...1.1.268
 [1.1.267]: https://github.com/IFRCGo/go-api/compare/1.1.266...1.1.267

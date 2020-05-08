@@ -33,3 +33,6 @@ appeals.json
 
 # Personal / IDE / Editor stuff
 .vscode
+
+# media
+project-imports/

@@ -1,7 +1,6 @@
 import requests
 
 from databank.models import InformIndicator
-from api.models import District, CronJob, CronJobStatus
 
 from .utils import catch_error, get_country_by_iso3
 
@@ -17,10 +16,7 @@ INFORM_API_ENDPOINT = (
 def prefetch():
     inform_data = {}
     response_d = requests.get(INFORM_API_ENDPOINT)
-    if response_d.status_code != 200: # Because it is too often, it is set to WARNED, but should be ERRONEOUS:
-        body = { "name": "INFORM", "message": "Error querying Inform feed at " + INFORM_API_ENDPOINT, "status": CronJobStatus.WARNED } # not every case is catched here, e.g. if the base URL is wrong...
-        CronJob.sync_cron(body)
-        return inform_data
+    response_d.raise_for_status()
     response_d = response_d.json()
 
     for index, i_data in enumerate(response_d):
@@ -47,9 +43,7 @@ def prefetch():
         else:
             inform_data[pcountry.alpha_2].append(entry)
 
-    body = { "name": "INFORM", "message": "Done querying Inform feed at " + INFORM_API_ENDPOINT, "num_result": len(inform_data), "status": CronJobStatus.SUCCESSFUL }
-    CronJob.sync_cron(body)
-    return inform_data
+    return inform_data, len(inform_data), INFORM_API_ENDPOINT
 
 
 @catch_error()

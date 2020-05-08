@@ -106,6 +106,7 @@ router.register(r'per_ns_phase', per_views.NSPhaseViewset)
 router.register(r'regional-project', deployment_views.RegionalProjectViewset)
 router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
+router.register(r'region-project', deployment_views.RegionProjectViewset, base_name='region-project')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)
 
 
