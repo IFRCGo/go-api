@@ -365,6 +365,16 @@ class Command(BaseCommand):
 
         return float(sum(filter(None, num_list)))
 
+    def get_epi_figures_source_name(self, source_id):
+        if source_id == 0:
+            return 'Ministry of Health'
+        elif source_id == 1:
+            return 'World Health Organization'
+        elif source_id == 2:
+            return 'Other'
+        else:
+            return '--'
+
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
         if rtype != RecordType.WEEKLY_DIGEST:
@@ -390,23 +400,14 @@ class Command(BaseCommand):
                     # 'volunteers': record.num_volunteers or '--',
                     # 'expat_delegates': record.num_expats_delegates or '--',
                 },
-                'epi_key_figures': {
-                    'who_cases': record.who_cases or '--',
-                    'who_suspected': record.who_suspected_cases or '--',
-                    'who_probable': record.who_probable_cases or '--',
-                    'who_confirmed': record.who_confirmed_cases or '--',
-                    'who_dead': record.who_num_dead or '--',
-                    'health_cases': record.health_min_cases or '--',
-                    'health_suspected': record.health_min_suspected_cases or '--',
-                    'health_probable': record.health_min_probable_cases or '--',
-                    'health_confirmed': record.health_min_confirmed_cases or '--',
-                    'health_dead': record.health_min_num_dead or '--',
-                    'other_cases': record.other_cases or '--',
-                    'other_suspected': record.other_suspected_cases or '--',
-                    'other_probable': record.other_probable_cases or '--',
-                    'other_confirmed': record.other_confirmed_cases or '--',
-                    'other_dead': record.other_num_dead or '--', # not sure but couldn't find other related field
+                'epi_key_figures': { #TODO: rework this too
+                    'epi_cases': record.epi_cases or '--',
+                    'epi_suspected': record.epi_suspected_cases or '--',
+                    'epi_probable': record.epi_probable_cases or '--',
+                    'epi_confirmed': record.epi_confirmed_cases or '--',
+                    'epi_dead': record.epi_num_dead or '--',
                 },
+                'epi_figures_source': self.get_epi_figures_source_name(record.epi_figures_source),
                 'sit_fields_date': record.sit_fields_date,
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
