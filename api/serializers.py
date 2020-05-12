@@ -169,7 +169,7 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
             'gov_num_injured', 'gov_num_dead', 'gov_num_missing', 'gov_num_affected', 'gov_num_displaced',  'gov_num_assisted',
             'other_num_injured', 'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
             'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk', 'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres', 'other_affected_pop_centres',
-            'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases', 'epi_figures_source',
+            'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases', 'epi_num_dead', 'epi_figures_source',
         )
 
 # The list serializer can include a smaller subset of the to-many fields.
