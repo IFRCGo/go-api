@@ -26,6 +26,7 @@ class Command(BaseCommand):
                 or fr.other_probable_cases
                 or fr.other_confirmed_cases
                 or fr.other_num_dead)
+            are_gov_figures = bool(fr.gov_num_affected or fr.gov_num_dead)
 
             # If there are mixed figures we set the source based on the plain 'cases' figure
             # making it dummy-proof if none of the plain 'cases' have a value then it picks the one which has values at all
@@ -45,13 +46,21 @@ class Command(BaseCommand):
                 multi_source_fr_count += 1
                 logger.info(f'{multi_source_fr_count}: {fr.id} - {fr.summary}')
             else:
-                fr.epi_figures_source = 0 if are_health_figures else (1 if are_who_figures else 2)
+                # EPI Source is an ENUM, deciding here which one
+                if fr.is_covid_report == False:
+                    fr.epi_figures_source = 0 if are_gov_figures else 2
+                else:
+                    fr.epi_figures_source = 0 if are_health_figures else (1 if are_who_figures else 2)
 
-            fr.epi_cases = fr.health_min_cases or fr.who_cases or fr.other_cases
-            fr.epi_suspected_cases = fr.health_min_suspected_cases or fr.who_suspected_cases or fr.other_suspected_cases
-            fr.epi_probable_cases = fr.health_min_probable_cases or fr.who_probable_cases or fr.other_probable_cases
-            fr.epi_confirmed_cases = fr.health_min_confirmed_cases or fr.who_confirmed_cases or fr.other_confirmed_cases
-            fr.epi_num_dead = fr.health_min_num_dead or fr.who_num_dead or fr.other_num_dead
+            if fr.is_covid_report == False:
+                fr.epi_cases = fr.num_affected or fr.gov_num_affected or fr.other_num_affected
+                fr.epi_num_dead = fr.num_dead or fr.gov_num_dead or fr.other_num_dead
+            else:
+                fr.epi_cases = fr.health_min_cases or fr.who_cases or fr.other_cases
+                fr.epi_suspected_cases = fr.health_min_suspected_cases or fr.who_suspected_cases or fr.other_suspected_cases
+                fr.epi_probable_cases = fr.health_min_probable_cases or fr.who_probable_cases or fr.other_probable_cases
+                fr.epi_confirmed_cases = fr.health_min_confirmed_cases or fr.who_confirmed_cases or fr.other_confirmed_cases
+                fr.epi_num_dead = fr.health_min_num_dead or fr.who_num_dead or fr.other_num_dead
             fr.save()
 
         if multi_source_fr_count == 0:
