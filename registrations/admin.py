@@ -14,7 +14,7 @@ class PendingAdmin(CompareVersionAdmin):
 
 
 class DomainWhitelistAdmin(CompareVersionAdmin):
-    list_display = ('domain_name', 'description')
+    list_display = ('domain_name', 'description', 'is_active')
     search_fields = ('domain_name',)
 
 
