@@ -23,25 +23,15 @@ from main.frontend import frontend_url
 
 def is_valid_domain(email):
     domain = email.lower().split('@')[1]
-    allowed_list = [dom for dom in 
-        (
-            DomainWhitelist.objects
-                .filter(is_active=True)
-                .values_list('domain_name', flat=True)
-                .annotate(domain_name_lower=Lower('domain_name'))
-        )
-    ]
-    
-    # Adding ifrc.org as a trusted domain always
-    if not allowed_list or 'ifrc.org' not in allowed_list:
-        allowed_list.append('ifrc.org')
-    # These 2 are needed for test_views.py
-    if 'arcs.org.af' not in allowed_list:
-        allowed_list.append('arcs.org.af')
-    if 'voroskereszt.hu' not in allowed_list:
-        allowed_list.append('voroskereszt.hu')
+    is_allowed = (
+        DomainWhitelist.objects
+            .filter(is_active=True)
+            .annotate(domain_name_lower=Lower('domain_name'))
+            .filter(domain_name_lower=domain)
+            .exists()
+    )
 
-    if domain in allowed_list:
+    if is_allowed or domain == 'ifrc.org' or domain == 'arcs.org.af' or domain == 'voroskereszt.hu':
         return True
     return False
 
