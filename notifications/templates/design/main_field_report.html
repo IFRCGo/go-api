@@ -36,136 +36,101 @@
                         </tr>
 
                         <!-- if NOT EPI () type Field Report -->
-                        {% if fr.dtype_id != 1 %}                        
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Affected</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.affected != '--' %}
+                        {% if fr.dtype_id != 1 %}
+                          {% if fr.key_figures.affected %}            
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Affected</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.affected|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.affected }}
-                              {% endif %}
-                            </td>
-                            <!-- <td class="text-default text-light text-uppercase">Local Staff</td>
-                            <td class="text-default text-bold pr-20">{{ fr.key_figures.local_staff }}</td> -->
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Injured</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.injured != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.key_figures.injured %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Injured</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.injured|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.injured }}
-                              {% endif %}
-                            </td>
-                            <!-- <td class="text-default text-light text-uppercase">Volunteers</td>
-                            <td class="text-default text-bold pr-20">{{ fr.key_figures.volunteers }}</td> -->
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.dead != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.key_figures.dead %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.dead|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.dead }}
-                              {% endif %}
-                            </td>
-                            <!-- <td class="text-default text-light text-uppercase">Expat Delegates</td>
-                            <td class="text-default text-bold pr-20">{{ fr.key_figures.expat_delegates }}</td> -->
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Missing</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.missing != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.key_figures.missing %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Missing</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;"> 
                                 {{ fr.key_figures.missing|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.missing }}
-                              {% endif %}
-                            </td>
-                            <!-- <td></td>
-                            <td></td> -->
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Displaced</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.displaced != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.key_figures.displaced %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Displaced</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.displaced|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.displaced }}
-                              {% endif %}
-                            </td>
-                            <!-- <td></td>
-                            <td></td> -->
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Assisted</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.key_figures.assisted != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.key_figures.assisted %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Assisted</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.assisted|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                {{ fr.key_figures.assisted }}
-                              {% endif %}
-                            </td>
-                            <!-- <td></td>
-                            <td></td> -->
-                          </tr>
+                              </td>
+                            </tr>
+                          {% endif %}
                         {% else %} <!-- if EPI Field Report -->
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.epi_cases != '--' %}
+                          {% if fr.epi_key_figures.epi_cases %}
+                            <tr>  
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_cases|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                --
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Suspected:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.epi_suspected != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.epi_key_figures.epi_suspected %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Suspected:</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_suspected|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                --
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Probable:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.epi_probable != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.epi_key_figures.epi_probable %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Probable:</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_probable|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                --
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Confirmed:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.epi_confirmed != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.epi_key_figures.epi_confirmed %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Confirmed:</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_confirmed|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                --
-                              {% endif %}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead:</td>
-                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
-                              {% if fr.epi_key_figures.epi_dead != '--' %}
+                              </td>
+                            </tr>
+                          {% endif %}
+                          {% if fr.epi_key_figures.epi_dead %}
+                            <tr>
+                              <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Dead:</td>
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_dead|floatformat:"1"|intcomma|slice:":-2" }}
-                              {% else %}
-                                --
-                              {% endif %}
-                            </td>
-                          </tr>
+                              </td>
+                            </tr>
+                          {% endif %}
                           <tr>
-                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">
+                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;font-size:15px;">
                               Source: 
                               <span class="font-weight: 800;">{{ fr.epi_figures_source }}</span>
                             </td>
-
                           </tr>
                         {% endif %}
                       </table>
