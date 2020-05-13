@@ -38,10 +38,10 @@ class ProjectFilter(filters.FilterSet):
             return queryset.filter(
                 # ISO2
                 Q(project_country__iso__iexact=value) |
-                Q(project_district__country__iso__iexact=value) |
+                Q(project_districts__country__iso__iexact=value) |
                 # ISO3
                 Q(project_country__iso3__iexact=value) |
-                Q(project_district__country__iso3__iexact=value)
+                Q(project_districts__country__iso3__iexact=value)
             )
         return queryset
 
@@ -50,10 +50,10 @@ class ProjectFilter(filters.FilterSet):
             return queryset.filter(
                 # ISO2
                 Q(project_country__region=region) |
-                Q(project_district__country__region=region) |
+                Q(project_districts__country__region=region) |
                 # ISO3
                 Q(project_country__region=region) |
-                Q(project_district__country__region=region)
+                Q(project_districts__country__region=region)
             )
         return queryset
 
@@ -64,7 +64,7 @@ class ProjectFilter(filters.FilterSet):
             'budget_amount',
             'start_date',
             'end_date',
-            'project_district',
+            'project_districts',
             'reporting_ns',
             'programme_type',
             'status',

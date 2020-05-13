@@ -250,9 +250,8 @@ class Project(models.Model):
         null=True,  # NOTE: Added due to migrations issue
         related_name='projects',
     )  # this is the country where the project is actually taking place
-    project_district = models.ForeignKey(
-        District, on_delete=models.CASCADE,
-        null=True, blank=True,
+    project_districts = models.ManyToManyField(
+        District, blank=True,
         help_text='No selection will indicate all districts.',
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(

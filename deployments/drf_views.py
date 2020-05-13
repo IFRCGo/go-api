@@ -137,7 +137,7 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
 
 class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
-        'user', 'reporting_ns', 'project_district', 'event', 'dtype', 'regional_project',
+        'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
     ).all()
     # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
     filter_class = ProjectFilter
@@ -169,7 +169,7 @@ class RegionProjectViewset(viewsets.ViewSet):
         # Filter by region
         qs = Project.objects.filter(
             Q(project_country__region=region) |
-            Q(project_district__country__region=region)
+            Q(project_districts__country__region=region)
         ).distinct()
         # Filter by GET params
         qs = ProjectFilter(self.request.query_params, queryset=qs).qs

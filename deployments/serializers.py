@@ -102,7 +102,7 @@ class RegionalProjectSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
-    project_district_detail = MiniDistrictSerializer(source='project_district', read_only=True)
+    project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
@@ -126,6 +126,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
 
     def validate(self, data):
         # Override country with district's country
+        # TODO: FIX THIS for project_districts
         if data['project_district'] is not None:
             data['project_country'] = data['project_district'].country
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
