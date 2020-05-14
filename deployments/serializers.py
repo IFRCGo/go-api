@@ -126,9 +126,11 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
 
     def validate(self, data):
         # Override country with district's country
-        # TODO: FIX THIS for project_districts
-        if data['project_district'] is not None:
-            data['project_country'] = data['project_district'].country
+        if data['project_districts'] is not None and len(data['project_districts']):
+            data['project_country'] = data['project_districts'][0].country
+            for project in data['project_districts'][1:]:
+                if project.country != data['project_country']:
+                    raise serializers.ValidationError('Different country found for given districts')
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
             raise serializers.ValidationError('Reached total should be provided if status is completed')
         elif (

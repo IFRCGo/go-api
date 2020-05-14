@@ -1,12 +1,15 @@
+import csv
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.urls import path
 from django.contrib.admin import helpers
 from django.shortcuts import redirect, render
+from django.http import StreamingHttpResponse
 
 from reversion_compare.admin import CompareVersionAdmin
 
+from api.utils import Echo
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
 from reversion.admin import VersionAdmin
@@ -87,6 +90,9 @@ class ProjectAdmin(CompareVersionAdmin):
         }, {
             'namespace': f'admin:{pi_meta.app_label}_{pi_meta.model_name}_changelist',
             'label': 'Recent Imports',
+        }, {
+            'namespace': self.get_url_namespace('bulk_import_template'),
+            'label': 'Import Template',
         }]
         return super().changelist_view(request, extra_context=extra_context)
 
@@ -96,7 +102,19 @@ class ProjectAdmin(CompareVersionAdmin):
                 'import/', self.admin_site.admin_view(self.bulk_import),
                 name=self.get_url_namespace('bulk_import', False)
             ),
+            path(
+                'import-template/', self.admin_site.admin_view(self.bulk_import_template),
+                name=self.get_url_namespace('bulk_import_template', False)
+            ),
         ] + super().get_urls()
+
+    def bulk_import_template(self, request):
+        rows = ProjectImportForm.generate_template()
+        pseudo_buffer = Echo()
+        writer = csv.writer(pseudo_buffer)
+        response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename="project-import-template.csv"'
+        return response
 
     def bulk_import(self, request):
         if request.method == 'POST':

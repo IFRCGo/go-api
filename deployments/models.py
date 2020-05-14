@@ -188,6 +188,7 @@ class SectorTags(IntEnum):
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
     COVID_19 = 13
+    RCCE = 14
 
     class Labels:
         WASH = 'WASH'
@@ -204,6 +205,7 @@ class SectorTags(IntEnum):
         HEALTH_PUBLIC = 'Health (public)'
         HEALTH_CLINICAL = 'Health (clinical)'
         COVID_19 = 'COVID-19'
+        RCCE = 'RCCE'
 
 
 class Statuses(IntEnum):
@@ -294,12 +296,6 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
-
-    def save(self, *args, **kwargs):
-        # Make sure project_country is populated for given project_district
-        if self.project_country is None and self.project_district is not None:
-            self.project_country = self.project_district.country
-        return super().save(*args, **kwargs)
 
     def get_secondary_sectors_display(self):
         choices_dict = dict(make_hashable(SectorTags.choices()))

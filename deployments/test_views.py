@@ -1,13 +1,11 @@
 import json
-from django.test import TestCase
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, Permission
 from api.models import Country, District, Region
 from main.test_case import APITestCase
 from .models import (
     Project,
     ProgrammeTypes,
     Sectors,
+    SectorTags,
     OperationTypes,
     Statuses,
 )
@@ -16,6 +14,7 @@ from .models import (
 class ProjectGetTest(APITestCase):
     def setUp(self):
         super().setUp()
+        self.maxDiff = None
         self.country1 = Country.objects.create(name='country1', iso='XX')
         self.country2 = Country.objects.create(name='country2', iso='YY')
 
@@ -23,34 +22,33 @@ class ProjectGetTest(APITestCase):
         self.district2 = District.objects.create(name='district2', country=self.country2)
 
         first = Project.objects.create(
-                     user             = self.user
-                    ,reporting_ns     = self.country1
-                    ,name             = 'aaa'
-                    ,programme_type   = 0
-                    ,primary_sector   = 0
-                    ,operation_type   = 0
-                    ,start_date       = '2011-11-11'
-                    ,end_date         = '2011-11-11'
-                    ,budget_amount    = 6000
-                    ,status           = 0)
-        first.save()
+            user=self.user,
+            reporting_ns=self.country1,
+            name='aaa',
+            programme_type=ProgrammeTypes.BILATERAL.value,
+            primary_sector=Sectors.WASH.value,
+            operation_type=OperationTypes.EMERGENCY_OPERATION.value,
+            start_date='2011-11-11',
+            end_date='2011-11-11',
+            budget_amount=6000,
+            status=Statuses.COMPLETED.value,
+        )
         first.project_districts.set([self.district1])
 
         second = Project.objects.create(
-                     user             = self.user
-                    ,reporting_ns     = self.country1
-                    ,name             = 'bbb'
-                    ,programme_type   = 1
-                    ,primary_sector   = 1
-                    ,secondary_sectors= [1, 2]
-                    ,operation_type   = 0
-                    ,start_date       = '2012-12-12'
-                    ,end_date         = '2013-01-01'
-                    ,budget_amount    = 3000
-                    ,status           = 1)
-
-        second.save()
-        first.project_districts.set([self.district2])
+            user=self.user,
+            reporting_ns=self.country1,
+            name='bbb',
+            programme_type=ProgrammeTypes.MULTILATERAL.value,
+            primary_sector=Sectors.SHELTER.value,
+            secondary_sectors=[SectorTags.WASH.value, SectorTags.RCCE.value],
+            operation_type=OperationTypes.PROGRAMME.value,
+            start_date='2012-12-12',
+            end_date='2013-01-01',
+            budget_amount=3000,
+            status=Statuses.ONGOING.value,
+        )
+        second.project_districts.set([self.district2])
 
     def create_project(self, **kwargs):
         project = Project.objects.create(
@@ -59,10 +57,10 @@ class ProjectGetTest(APITestCase):
             start_date='2011-11-11',
             end_date='2011-11-11',
             reporting_ns=self.country1,
-            programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sectors.WASH,
-            operation_type=OperationTypes.PROGRAMME,
-            status=Statuses.PLANNED,
+            programme_type=ProgrammeTypes.BILATERAL.value,
+            primary_sector=Sectors.WASH.value,
+            operation_type=OperationTypes.PROGRAMME.value,
+            status=Statuses.PLANNED.value,
             budget_amount=1000,
             target_total=8000,
             reached_total=1000,
@@ -101,7 +99,7 @@ class ProjectGetTest(APITestCase):
         # Validation Tests
         # Reached total should be provided if status is completed
         body['status'] = Statuses.COMPLETED.value
-        body['reached_total'] = '' # The new framework does not allow None to be sent.
+        body['reached_total'] = ''  # The new framework does not allow None to be sent.
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
@@ -221,6 +219,7 @@ class ProjectGetTest(APITestCase):
                 start_date='2011-11-11',
                 end_date='2011-11-11',
                 # Dynamic values
+                project_country=pdata[1][0].country,
                 reporting_ns=pdata[0],
                 programme_type=pdata[2],
                 primary_sector=pdata[3],

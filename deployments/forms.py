@@ -2,12 +2,15 @@ import io
 import dateutil.parser
 import traceback
 import csv
+from functools import reduce
+from itertools import zip_longest
 
 from django import forms
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from django.db.models.functions import Coalesce
 
 from api.models import Country, District
 
@@ -45,6 +48,85 @@ class ProjectImportForm(forms.Form):
     field_delimiter = forms.CharField(initial=';')
     string_delimiter = forms.CharField(initial='"')
 
+    class Columns:
+        # COLUMNS
+        COUNTRY_COL = 'Country'
+        DISTRICT_COL = 'Regions'
+        REPORTING_NS_COL = 'Supporting NS'
+        OPERATION_TYPE_COL = 'Operation type'
+        PROGRAMME_TYPE_COL = 'Programme Type'
+        PRIMARY_SECTOR_COL = 'Primary Sector'
+        TAGS_COL = 'Tags'
+        STATUS_COL = 'Status'
+        PROJECT_NAME_COL = 'Project Name'
+        START_DATE_COL = 'Start Date'
+        END_DATE_COL = 'End Date'
+        BUDGET_COL = 'Budget(CHF)'
+        TARGETED_MALES_COL = 'Targeted Males'
+        TARGETED_FEMALES_COL = 'Targeted Females'
+        TARGETED_OTHER_COL = 'Targeted Others'
+        TARGETED_TOTAL_COL = 'Targeted Total'
+        REACHED_MALES_COL = 'Reached Males'
+        REACHED_FEMALES_COL = 'Reached Females'
+        REACHED_OTHERS_COL = 'Reached Others'
+        REACHED_TOTAL = 'Reached Total'
+
+    @classmethod
+    def generate_template(cls):
+        country_districts = list(
+            District.objects
+            .annotate(a_country_name=Coalesce('country__name', 'country_name'))
+            .values_list('a_country_name', 'name')
+            .order_by('a_country_name', 'name')
+        )
+        countries = Country.objects.values_list('name', flat=True)
+        operation_types = {label for _, label in OperationTypes.choices()}
+        programme_types = {label for _, label in ProgrammeTypes.choices()}
+        sectors = {label for _, label in Sectors.choices()}
+        sector_tags = {label for _, label in SectorTags.choices()}
+        statuses = {label for _, label in Statuses.choices()}
+
+        # Headers
+        c = cls.Columns
+        headers = [
+            c.COUNTRY_COL,
+            c.DISTRICT_COL,
+            c.REPORTING_NS_COL,
+            c.OPERATION_TYPE_COL,
+            c.PROGRAMME_TYPE_COL,
+            c.PRIMARY_SECTOR_COL,
+            c.TAGS_COL,
+            c.STATUS_COL,
+            c.PROJECT_NAME_COL,
+            c.START_DATE_COL,
+            c.END_DATE_COL,
+            c.BUDGET_COL,
+            c.TARGETED_MALES_COL,
+            c.TARGETED_FEMALES_COL,
+            c.TARGETED_OTHER_COL,
+            c.TARGETED_TOTAL_COL,
+            c.REACHED_MALES_COL,
+            c.REACHED_FEMALES_COL,
+            c.REACHED_OTHERS_COL,
+            c.REACHED_TOTAL,
+        ]
+
+        rows = [
+            headers,
+            # Valid values
+            *zip_longest(
+                [c[0] for c in country_districts],  # Countries
+                [c[1] for c in country_districts],  # Regions/Districts
+                countries,
+                operation_types,
+                programme_types,
+                sectors,
+                sector_tags,
+                statuses,
+            )
+        ]
+        return rows
+
     def _handle_bulk_upload(self, user, file, delimiter, quotechar):
         def key_clean(string):
             return string.lower().strip()
@@ -78,89 +160,82 @@ class ProjectImportForm(forms.Form):
         sector_tags = {label.lower(): value for value, label in SectorTags.choices()}
         statuses = {label.lower(): value for value, label in Statuses.choices()}
 
-        # COLUMNS
-        COUNTRY_COL = 'Country'
-        DISTRICT_COL = 'Region'
-        REPORTING_NS_COL = 'Supporting NS'
-        OPERATION_TYPE_COL = 'Operation type'
-        PROGRAMME_TYPE_COL = 'Programme Type'
-        PRIMARY_SECTOR_COL = 'Primary Sector'
-        TAGS_COL = 'Tags'
-        STATUS_COL = 'Status'
-        PROJECT_NAME_COL = 'Project Name'
-        START_DATE_COL = 'Start Date'
-        END_DATE_COL = 'End Date'
-        BUDGET_COL = 'Budget(CHF)'
-        TARGETED_MALES_COL = 'Targeted Males'
-        TARGETED_FEMALES_COL = 'Targeted Females'
-        TARGETED_OTHER_COL = 'Targeted Others'
-        TARGETED_TOTAL_COL = 'Targeted Total'
-        REACHED_MALES_COL = 'Reached Males'
-        REACHED_FEMALES_COL = 'Reached Females'
-        REACHED_OTHERS_COL = 'Reached Others'
-        REACHED_TOTAL = 'Reached Total'
-
+        c = self.Columns
         # Extract from import csv file
         for row_number, row in enumerate(reader):
-            # TODO: Try to do this in a single query
-            district_name = row[DISTRICT_COL].strip()
-            reporting_ns_name = row[REPORTING_NS_COL].strip()
-            country_name = row[COUNTRY_COL].strip()
+            district_names = [
+                d for d in row[c.DISTRICT_COL].strip().split(';')
+                if d.lower() not in ['countrywide', '']
+            ]
+            reporting_ns_name = row[c.REPORTING_NS_COL].strip()
+            country_name = row[c.COUNTRY_COL].strip()
 
             reporting_ns = Country.objects.filter(
                 Q(name__iexact=reporting_ns_name) | Q(society_name__iexact=reporting_ns_name)
             ).first()
 
             row_errors = {}
-            if district_name is None or district_name.lower() in ['countrywide', '']:
+            if reporting_ns is None:
+                row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
+
+            if len(district_names) == 0:
                 project_country = Country.objects.filter(name__iexact=country_name).first()
-                project_district = None
+                project_districts = []
                 if project_country is None:
                     row_errors['project_country'] = [f'Given country "{country_name}" is not available.']
             else:
-                project_district = District.objects.filter(
-                    (Q(country_name__iexact=country_name) | Q(country__name__iexact=country_name)),
-                    name__iexact=district_name,
-                ).first()
-                if project_district is not None:
-                    project_country = project_district.country
+                project_districts = list(District.objects.filter(
+                    reduce(
+                        lambda acc, item: acc | item,
+                        [
+                            (
+                                Q(country_name__iexact=country_name) |
+                                Q(country__name__iexact=country_name)
+                            ) & Q(name__iexact=district_name)
+                            for district_name in district_names
+                        ],
+                    )
+                ).all())
+                # Check if all district_names is avaliable in db
+                if len(project_districts) == len(district_names):
+                    project_country = project_districts[0].country
                 else:
                     # A validation error will be raised. This is just a custom message
-                    row_errors['project_country'] = ['Given district/region is not available.']
+                    row_errors['project_country'] = ['Given districts/regions are not available.']
 
             project = Project(
                 user=user,
                 reporting_ns=reporting_ns,
-                project_district=project_district,
                 project_country=project_country,
+                # project_districts is M2M field so it will be added later
 
                 # Enum fields
-                operation_type=operation_types.get(key_clean(row[OPERATION_TYPE_COL])),
-                programme_type=programme_types.get(key_clean(row[PROGRAMME_TYPE_COL])),
-                primary_sector=sectors.get(key_clean(row[PRIMARY_SECTOR_COL])),
+                operation_type=operation_types.get(key_clean(row[c.OPERATION_TYPE_COL])),
+                programme_type=programme_types.get(key_clean(row[c.PROGRAMME_TYPE_COL])),
+                primary_sector=sectors.get(key_clean(row[c.PRIMARY_SECTOR_COL])),
                 secondary_sectors=[
-                    sector_tags.get(key_clean(tag)) for tag in row[TAGS_COL].split(',') if key_clean(tag) in sector_tags
+                    sector_tags.get(key_clean(tag)) for tag in row[c.TAGS_COL].split(',') if key_clean(tag) in sector_tags
                 ],
-                status=statuses.get(key_clean(row[STATUS_COL])),
+                status=statuses.get(key_clean(row[c.STATUS_COL])),
 
-                name=row[PROJECT_NAME_COL],
-                start_date=parse_date(row[START_DATE_COL]),
-                end_date=parse_date(row[END_DATE_COL]),
-                budget_amount=parse_integer(row[BUDGET_COL]),
+                name=row[c.PROJECT_NAME_COL],
+                start_date=parse_date(row[c.START_DATE_COL]),
+                end_date=parse_date(row[c.END_DATE_COL]),
+                budget_amount=parse_integer(row[c.BUDGET_COL]),
 
                 # Optional fields
-                target_male=parse_integer(row[TARGETED_MALES_COL]),
-                target_female=parse_integer(row[TARGETED_FEMALES_COL]),
-                target_other=parse_integer(row[TARGETED_OTHER_COL]),
-                target_total=parse_integer(row[TARGETED_TOTAL_COL]),
-                reached_male=parse_integer(row[REACHED_MALES_COL]),
-                reached_female=parse_integer(row[REACHED_FEMALES_COL]),
-                reached_other=parse_integer(row[REACHED_OTHERS_COL]),
-                reached_total=parse_integer(row[REACHED_TOTAL]),
+                target_male=parse_integer(row[c.TARGETED_MALES_COL]),
+                target_female=parse_integer(row[c.TARGETED_FEMALES_COL]),
+                target_other=parse_integer(row[c.TARGETED_OTHER_COL]),
+                target_total=parse_integer(row[c.TARGETED_TOTAL_COL]),
+                reached_male=parse_integer(row[c.REACHED_MALES_COL]),
+                reached_female=parse_integer(row[c.REACHED_FEMALES_COL]),
+                reached_other=parse_integer(row[c.REACHED_OTHERS_COL]),
+                reached_total=parse_integer(row[c.REACHED_TOTAL]),
             )
             try:
                 project.full_clean()
-                projects.append(project)
+                projects.append([project, project_districts])
             except ValidationError as e:
                 messages = ', '.join([
                     f"{field}: {', '.join(row_errors.get(field, error_message))}"
@@ -171,7 +246,13 @@ class ProjectImportForm(forms.Form):
         if len(errors) != 0:
             errors_str = '\n'.join(errors)
             raise Exception(f"Error detected:\n{errors_str}")
-        return Project.objects.bulk_create(projects)
+
+        Project.objects.bulk_create([p[0] for p in projects])
+        # Set M2M Now
+        for project, project_districts in projects:
+            project.project_districts.set(project_districts)
+        # Return projects for ProjectImport
+        return [p[0] for p in projects]
 
     def handle_bulk_upload(self, request):
         file = self.cleaned_data['file']
