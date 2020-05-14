@@ -31,7 +31,7 @@ def is_valid_domain(email):
             .exists()
     )
 
-    if is_allowed or domain == 'ifrc.org' or domain == 'arcs.org.af' or domain == 'voroskereszt.hu':
+    if is_allowed or domain in ['ifrc.org', 'arcs.org.af', 'voroskereszt.hu']:
         return True
     return False
 
