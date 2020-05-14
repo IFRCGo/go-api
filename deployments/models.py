@@ -151,26 +151,24 @@ class Sectors(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
+    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
-    HEALTH_PUBLIC = 4
-    HEALTH_CLINICAL = 10
 
     class Labels:
         WASH = 'WASH'
         PGI = 'PGI'
         CEA = 'CEA'
         MIGRATION = 'Migration'
+        HEALTH = 'Health'
         DRR = 'DRR'
         SHELTER = 'Shelter'
         NS_STRENGTHENING = 'NS Strengthening'
         EDUCATION = 'Education'
         LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
-        HEALTH_PUBLIC = 'Health (public)'
-        HEALTH_CLINICAL = 'Health (clinical)'
 
 
 class SectorTags(IntEnum):

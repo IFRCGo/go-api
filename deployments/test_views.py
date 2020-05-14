@@ -194,7 +194,7 @@ class ProjectGetTest(APITestCase):
                 4000, 3000, 1000),
             (
                 rcountry1, [district2],
-                ProgrammeTypes.BILATERAL, Sectors.HEALTH_PUBLIC, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
+                ProgrammeTypes.BILATERAL, Sectors.HEALTH, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
                 6000, 9000, 1000),
             (
                 rcountry2, [district1],
@@ -301,7 +301,7 @@ class ProjectGetTest(APITestCase):
                                 'name': 'rcountry1',
                                 'sectors': [
                                     {'id': 2, 'sector': Sectors.CEA.label, 'count': 1},
-                                    {'id': 4, 'sector': Sectors.HEALTH_PUBLIC.label, 'count': 1}
+                                    {'id': 4, 'sector': Sectors.HEALTH.label, 'count': 1}
                                 ]
                             }, {
                                 'id': rcountry2.id,
@@ -329,7 +329,7 @@ class ProjectGetTest(APITestCase):
                     {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
                     {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
                     {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
-                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH_PUBLIC.label},
+                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
                     {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
                     {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
                     {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
