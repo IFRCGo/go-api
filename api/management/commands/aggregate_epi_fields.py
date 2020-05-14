@@ -1,13 +1,18 @@
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 from api.models import FieldReport
 from api.logger import logger
+from datetime import datetime
 
 class Command(BaseCommand):
     help = 'Copies all EPI Field Report figures from health_min, who, other fields into the epi fields'
     def handle(self, *args, **options):
-        logger.info('%s EPI Field Reports' % FieldReport.objects.filter(dtype=1).count())
+        logger.info('%s EPI Field Reports created after 2020-04-15 16:40' % FieldReport.objects.filter(dtype=1).count())
 
-        epi_field_reports = list(FieldReport.objects.filter(dtype=1))
+        st_date = datetime(2020, 4, 15, 16, 40)
+        type_condition = Q(dtype=1)
+        date_condition = Q(created_at__gte=st_date)
+        epi_field_reports = list(FieldReport.objects.filter(type_condition & date_condition))
         multi_source_fr_count = 0
 
         for fr in epi_field_reports:
