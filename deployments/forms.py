@@ -12,7 +12,11 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Coalesce
 
-from api.models import Country, District
+from api.models import (
+    Country,
+    District,
+    DisasterType,
+)
 
 from .widgets import EnumArrayWidget
 from .models import (
@@ -50,25 +54,26 @@ class ProjectImportForm(forms.Form):
 
     class Columns:
         # COLUMNS
-        COUNTRY_COL = 'Country'
-        DISTRICT_COL = 'Regions'
-        REPORTING_NS_COL = 'Supporting NS'
-        OPERATION_TYPE_COL = 'Operation type'
-        PROGRAMME_TYPE_COL = 'Programme Type'
-        PRIMARY_SECTOR_COL = 'Primary Sector'
-        TAGS_COL = 'Tags'
-        STATUS_COL = 'Status'
-        PROJECT_NAME_COL = 'Project Name'
-        START_DATE_COL = 'Start Date'
-        END_DATE_COL = 'End Date'
-        BUDGET_COL = 'Budget(CHF)'
-        TARGETED_MALES_COL = 'Targeted Males'
-        TARGETED_FEMALES_COL = 'Targeted Females'
-        TARGETED_OTHER_COL = 'Targeted Others'
-        TARGETED_TOTAL_COL = 'Targeted Total'
-        REACHED_MALES_COL = 'Reached Males'
-        REACHED_FEMALES_COL = 'Reached Females'
-        REACHED_OTHERS_COL = 'Reached Others'
+        COUNTRY = 'Country'
+        DISTRICT = 'Regions'
+        REPORTING_NS = 'Supporting NS - Reporting NS'
+        DISASTER_TYPE = 'Disaster Type'
+        OPERATION_TYPE = 'Operation Type'
+        PROGRAMME_TYPE = 'Programme Type'
+        PRIMARY_SECTOR = 'Primary Sector'
+        TAGS = 'Tags'
+        STATUS = 'Status'
+        PROJECT_NAME = 'Project Name'
+        START_DATE = 'Start Date'
+        END_DATE = 'End Date'
+        BUDGET = 'Budget(CHF)'
+        TARGETED_MALES = 'Targeted Males'
+        TARGETED_FEMALES = 'Targeted Females'
+        TARGETED_OTHER = 'Targeted Others'
+        TARGETED_TOTAL = 'Targeted Total'
+        REACHED_MALES = 'Reached Males'
+        REACHED_FEMALES = 'Reached Females'
+        REACHED_OTHERS = 'Reached Others'
         REACHED_TOTAL = 'Reached Total'
 
     @classmethod
@@ -80,6 +85,7 @@ class ProjectImportForm(forms.Form):
             .order_by('a_country_name', 'name')
         )
         countries = Country.objects.values_list('name', flat=True)
+        disaster_types = DisasterType.objects.values_list('name', flat=True)
         operation_types = {label for _, label in OperationTypes.choices()}
         programme_types = {label for _, label in ProgrammeTypes.choices()}
         sectors = {label for _, label in Sectors.choices()}
@@ -89,25 +95,26 @@ class ProjectImportForm(forms.Form):
         # Headers
         c = cls.Columns
         headers = [
-            c.COUNTRY_COL,
-            c.DISTRICT_COL,
-            c.REPORTING_NS_COL,
-            c.OPERATION_TYPE_COL,
-            c.PROGRAMME_TYPE_COL,
-            c.PRIMARY_SECTOR_COL,
-            c.TAGS_COL,
-            c.STATUS_COL,
-            c.PROJECT_NAME_COL,
-            c.START_DATE_COL,
-            c.END_DATE_COL,
-            c.BUDGET_COL,
-            c.TARGETED_MALES_COL,
-            c.TARGETED_FEMALES_COL,
-            c.TARGETED_OTHER_COL,
-            c.TARGETED_TOTAL_COL,
-            c.REACHED_MALES_COL,
-            c.REACHED_FEMALES_COL,
-            c.REACHED_OTHERS_COL,
+            c.COUNTRY,
+            c.DISTRICT,
+            c.REPORTING_NS,
+            c.DISASTER_TYPE,
+            c.OPERATION_TYPE,
+            c.PROGRAMME_TYPE,
+            c.PRIMARY_SECTOR,
+            c.TAGS,
+            c.STATUS,
+            c.PROJECT_NAME,
+            c.START_DATE,
+            c.END_DATE,
+            c.BUDGET,
+            c.TARGETED_MALES,
+            c.TARGETED_FEMALES,
+            c.TARGETED_OTHER,
+            c.TARGETED_TOTAL,
+            c.REACHED_MALES,
+            c.REACHED_FEMALES,
+            c.REACHED_OTHERS,
             c.REACHED_TOTAL,
         ]
 
@@ -118,6 +125,7 @@ class ProjectImportForm(forms.Form):
                 [c[0] for c in country_districts],  # Countries
                 [c[1] for c in country_districts],  # Regions/Districts
                 countries,
+                disaster_types,
                 operation_types,
                 programme_types,
                 sectors,
@@ -164,19 +172,23 @@ class ProjectImportForm(forms.Form):
         # Extract from import csv file
         for row_number, row in enumerate(reader):
             district_names = [
-                d for d in row[c.DISTRICT_COL].strip().split(';')
+                d for d in row[c.DISTRICT].strip().split(';')
                 if d.lower() not in ['countrywide', '']
             ]
-            reporting_ns_name = row[c.REPORTING_NS_COL].strip()
-            country_name = row[c.COUNTRY_COL].strip()
+            reporting_ns_name = row[c.REPORTING_NS].strip()
+            country_name = row[c.COUNTRY].strip()
+            disaster_type_name = row[c.DISASTER_TYPE].strip()
 
             reporting_ns = Country.objects.filter(
                 Q(name__iexact=reporting_ns_name) | Q(society_name__iexact=reporting_ns_name)
             ).first()
+            disaster_type = DisasterType.objects.filter(name__iexact=disaster_type_name).first()
 
             row_errors = {}
             if reporting_ns is None:
                 row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
+            if disaster_type is None:
+                row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
 
             if len(district_names) == 0:
                 project_country = Country.objects.filter(name__iexact=country_name).first()
@@ -208,29 +220,30 @@ class ProjectImportForm(forms.Form):
                 reporting_ns=reporting_ns,
                 project_country=project_country,
                 # project_districts is M2M field so it will be added later
+                dtype=disaster_type,
 
                 # Enum fields
-                operation_type=operation_types.get(key_clean(row[c.OPERATION_TYPE_COL])),
-                programme_type=programme_types.get(key_clean(row[c.PROGRAMME_TYPE_COL])),
-                primary_sector=sectors.get(key_clean(row[c.PRIMARY_SECTOR_COL])),
+                operation_type=operation_types.get(key_clean(row[c.OPERATION_TYPE])),
+                programme_type=programme_types.get(key_clean(row[c.PROGRAMME_TYPE])),
+                primary_sector=sectors.get(key_clean(row[c.PRIMARY_SECTOR])),
                 secondary_sectors=[
-                    sector_tags.get(key_clean(tag)) for tag in row[c.TAGS_COL].split(',') if key_clean(tag) in sector_tags
+                    sector_tags.get(key_clean(tag)) for tag in row[c.TAGS].split(',') if key_clean(tag) in sector_tags
                 ],
-                status=statuses.get(key_clean(row[c.STATUS_COL])),
+                status=statuses.get(key_clean(row[c.STATUS])),
 
-                name=row[c.PROJECT_NAME_COL],
-                start_date=parse_date(row[c.START_DATE_COL]),
-                end_date=parse_date(row[c.END_DATE_COL]),
-                budget_amount=parse_integer(row[c.BUDGET_COL]),
+                name=row[c.PROJECT_NAME],
+                start_date=parse_date(row[c.START_DATE]),
+                end_date=parse_date(row[c.END_DATE]),
+                budget_amount=parse_integer(row[c.BUDGET]),
 
                 # Optional fields
-                target_male=parse_integer(row[c.TARGETED_MALES_COL]),
-                target_female=parse_integer(row[c.TARGETED_FEMALES_COL]),
-                target_other=parse_integer(row[c.TARGETED_OTHER_COL]),
-                target_total=parse_integer(row[c.TARGETED_TOTAL_COL]),
-                reached_male=parse_integer(row[c.REACHED_MALES_COL]),
-                reached_female=parse_integer(row[c.REACHED_FEMALES_COL]),
-                reached_other=parse_integer(row[c.REACHED_OTHERS_COL]),
+                target_male=parse_integer(row[c.TARGETED_MALES]),
+                target_female=parse_integer(row[c.TARGETED_FEMALES]),
+                target_other=parse_integer(row[c.TARGETED_OTHER]),
+                target_total=parse_integer(row[c.TARGETED_TOTAL]),
+                reached_male=parse_integer(row[c.REACHED_MALES]),
+                reached_female=parse_integer(row[c.REACHED_FEMALES]),
+                reached_other=parse_integer(row[c.REACHED_OTHERS]),
                 reached_total=parse_integer(row[c.REACHED_TOTAL]),
             )
             try:
