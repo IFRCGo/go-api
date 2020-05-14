@@ -361,7 +361,7 @@ class Command(BaseCommand):
     def get_fieldreport_keyfigures(self, num_list):
         is_none = all(num == None for num in num_list)
         if is_none:
-            return '--'
+            return None
 
         return float(sum(filter(None, num_list)))
 
@@ -396,16 +396,13 @@ class Command(BaseCommand):
                     'missing': self.get_fieldreport_keyfigures([record.num_missing, record.gov_num_missing, record.other_num_missing]),
                     'displaced': self.get_fieldreport_keyfigures([record.num_displaced, record.gov_num_displaced, record.other_num_displaced]),
                     'assisted': self.get_fieldreport_keyfigures([record.num_assisted, record.gov_num_assisted, record.other_num_assisted]),
-                    # 'local_staff': record.num_localstaff or '--',
-                    # 'volunteers': record.num_volunteers or '--',
-                    # 'expat_delegates': record.num_expats_delegates or '--',
                 },
-                'epi_key_figures': { #TODO: rework this too
-                    'epi_cases': record.epi_cases or '--',
-                    'epi_suspected': record.epi_suspected_cases or '--',
-                    'epi_probable': record.epi_probable_cases or '--',
-                    'epi_confirmed': record.epi_confirmed_cases or '--',
-                    'epi_dead': record.epi_num_dead or '--',
+                'epi_key_figures': {
+                    'epi_cases': record.epi_cases,
+                    'epi_suspected': record.epi_suspected_cases,
+                    'epi_probable': record.epi_probable_cases,
+                    'epi_confirmed': record.epi_confirmed_cases,
+                    'epi_dead': record.epi_num_dead,
                 },
                 'epi_figures_source': self.get_epi_figures_source_name(record.epi_figures_source),
                 'sit_fields_date': record.sit_fields_date,
@@ -416,9 +413,6 @@ class Command(BaseCommand):
                 'dtype_id': record.dtype_id,
             }
         elif rtype == RecordType.APPEAL:
-            # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
-            # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
-            # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
             optypes = {
                 0: 'DREF',
                 1: 'Emergency Appeal',
@@ -436,9 +430,6 @@ class Command(BaseCommand):
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
-                    # 'local_staff': localstaff[0] if localstaff else 0,
-                    # 'volunteers': volunteers[0] if volunteers else 0,
-                    # 'expat_delegates': expats[0] if expats else 0,
                 },
                 'operation_type': optypes[record.atype],
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
