@@ -123,11 +123,12 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
                 'allow_null': False, 'required': True,
             } for field in (
                 'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
+                'project_districts',
             )
         }
 
     def validate(self, data):
-        d_project_districts = data.get('project_districts')
+        d_project_districts = data['project_districts']
         # Override country with district's country
         if isinstance(d_project_districts, list) and len(d_project_districts):
             data['project_country'] = data['project_districts'][0].country

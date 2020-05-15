@@ -136,6 +136,16 @@ class ProjectImportForm(forms.Form):
         return rows
 
     def _handle_bulk_upload(self, user, file, delimiter, quotechar):
+        def get_error_message(row, custom_errors, validation_erorrs=None):
+            messages = ', '.join([
+                f"{field}: {', '.join(error_message)}"
+                for field, error_message in {
+                    **(validation_erorrs or {}),
+                    **custom_errors,
+                }.items()
+            ])
+            return f'ROW {row}: {str(messages)}'
+
         def key_clean(string):
             return string.lower().strip()
 
@@ -170,7 +180,7 @@ class ProjectImportForm(forms.Form):
 
         c = self.Columns
         # Extract from import csv file
-        for row_number, row in enumerate(reader):
+        for row_number, row in enumerate(reader, start=2):
             district_names = [
                 d for d in row[c.DISTRICT].strip().split(';')
                 if d.lower() not in ['countrywide', '']
@@ -185,16 +195,16 @@ class ProjectImportForm(forms.Form):
             disaster_type = DisasterType.objects.filter(name__iexact=disaster_type_name).first()
 
             row_errors = {}
-            if reporting_ns is None:
-                row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
-            if disaster_type is None:
-                row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
-
+            project_districts = []
             if len(district_names) == 0:
                 project_country = Country.objects.filter(name__iexact=country_name).first()
-                project_districts = []
                 if project_country is None:
                     row_errors['project_country'] = [f'Given country "{country_name}" is not available.']
+                else:
+                    project_districts = list(project_country.district_set.all())
+
+                if len(project_districts) == 0:
+                    row_errors['project_districts'] = [f'There is no district for given country "{country_name}" in database.']
             else:
                 project_districts = list(District.objects.filter(
                     reduce(
@@ -213,7 +223,12 @@ class ProjectImportForm(forms.Form):
                     project_country = project_districts[0].country
                 else:
                     # A validation error will be raised. This is just a custom message
-                    row_errors['project_country'] = ['Given districts/regions are not available.']
+                    row_errors['project_districts'] = ['Given districts/regions are not available.']
+
+            if reporting_ns is None:
+                row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
+            if disaster_type is None:
+                row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
 
             project = Project(
                 user=user,
@@ -248,13 +263,12 @@ class ProjectImportForm(forms.Form):
             )
             try:
                 project.full_clean()
-                projects.append([project, project_districts])
+                if len(row_errors) == 0:
+                    projects.append([project, project_districts])
+                else:
+                    errors.append(get_error_message(row_number, row_errors))
             except ValidationError as e:
-                messages = ', '.join([
-                    f"{field}: {', '.join(row_errors.get(field, error_message))}"
-                    for field, error_message in e.message_dict.items()
-                ])
-                errors.append(f'ROW {row_number+2}: {str(messages)}')
+                errors.append(get_error_message(row_number, row_errors, e.message_dict))
 
         if len(errors) != 0:
             errors_str = '\n'.join(errors)

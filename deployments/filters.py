@@ -42,7 +42,7 @@ class ProjectFilter(filters.FilterSet):
                 # ISO3
                 Q(project_country__iso3__iexact=value) |
                 Q(project_districts__country__iso3__iexact=value)
-            )
+            ).distinct()
         return queryset
 
     def filter_region(self, queryset, name, region):

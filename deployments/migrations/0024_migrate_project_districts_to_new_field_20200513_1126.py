@@ -13,6 +13,10 @@ def make_many_districts(apps, schema_editor):
     for project in Project.objects.all():
         if project.project_district:
             project.project_districts.add(project.project_district)
+        elif project.project_country:
+            project.project_districts.set(
+                project.project_country.district_set.all()
+            )
 
 
 class Migration(migrations.Migration):

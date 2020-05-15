@@ -251,8 +251,7 @@ class Project(models.Model):
         related_name='projects',
     )  # this is the country where the project is actually taking place
     project_districts = models.ManyToManyField(
-        District, blank=True,
-        help_text='No selection will indicate all districts.',
+        District,
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
         Event, null=True, blank=True, on_delete=models.SET_NULL,
