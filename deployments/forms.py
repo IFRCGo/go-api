@@ -56,7 +56,7 @@ class ProjectImportForm(forms.Form):
         # COLUMNS
         COUNTRY = 'Country'
         DISTRICT = 'Regions'
-        REPORTING_NS = 'Supporting NS - Reporting NS'
+        REPORTING_NS = 'Reporting NS'
         DISASTER_TYPE = 'Disaster Type'
         OPERATION_TYPE = 'Operation Type'
         PROGRAMME_TYPE = 'Programme Type'

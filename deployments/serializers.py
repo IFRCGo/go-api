@@ -21,6 +21,7 @@ from .models import (
     Statuses,
 )
 from api.serializers import (
+    DisasterTypeSerializer,
     ListEventSerializer,
     MiniEventSerializer,
     MiniCountrySerializer,
@@ -104,6 +105,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
     primary_sector_display = serializers.CharField(source='get_primary_sector_display', read_only=True)
@@ -125,8 +127,9 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
         }
 
     def validate(self, data):
+        d_project_districts = data.get('project_districts')
         # Override country with district's country
-        if data['project_districts'] is not None and len(data['project_districts']):
+        if isinstance(d_project_districts, list) and len(d_project_districts):
             data['project_country'] = data['project_districts'][0].country
             for project in data['project_districts'][1:]:
                 if project.country != data['project_country']:
