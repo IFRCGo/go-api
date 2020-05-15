@@ -191,7 +191,8 @@ class RegionProjectViewset(viewsets.ViewSet):
             'total_budget': aggregate_data['total_budget'],
             'target_total': aggregate_data['target_total'],
             'reached_total': aggregate_data['reached_total'],
-            'projects_by_status': projects.order_by().values('status').annotate(count=Count('id')).values('status', 'count')
+            'projects_by_status': projects.order_by().values('status').annotate(
+                count=Count('id', distinct=True)).values('status', 'count'),
         })
 
     @action(detail=True, url_path='movement-activities', methods=('get',))
@@ -201,7 +202,7 @@ class RegionProjectViewset(viewsets.ViewSet):
         def _get_country_ns_sector_count():
             agg = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
             fields = ('project_country', 'reporting_ns', 'primary_sector')
-            qs = projects.order_by().values(*fields).annotate(count=Count('id')).values_list(
+            qs = projects.order_by().values(*fields).annotate(count=Count('id', distinct=True)).values_list(
                 *fields, 'project_country__name', 'reporting_ns__name', 'count')
             for country, ns, sector, country_name, ns_name, count in qs:
                 agg[country][ns][sector] = count
@@ -235,7 +236,7 @@ class RegionProjectViewset(viewsets.ViewSet):
         country_annotate = {
             f'{status_label.lower()}_projects_count': Coalesce(Subquery(
                 country_projects.filter(status=status).values('project_country').annotate(
-                    count=Count('id')).values('count')[:1],
+                    count=Count('id', distinct=True)).values('count')[:1],
                 output_field=IntegerField(),
             ), 0) for status, status_label in Statuses.choices()
         }
@@ -245,13 +246,13 @@ class RegionProjectViewset(viewsets.ViewSet):
             'countries_count': countries.annotate(
                 projects_count=Coalesce(Subquery(
                     projects.filter(project_country=OuterRef('pk')).values('project_country').annotate(
-                        count=Count('*')).values('count')[:1],
+                        count=Count('id', distinct=True)).values('count')[:1],
                     output_field=IntegerField(),
                 ), 0),
                 **country_annotate,
             ).values('id', 'name', 'iso', 'iso3', 'projects_count', *country_annotate.keys()),
             'country_ns_sector_count': _get_country_ns_sector_count(),
-            'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id')).values(
+            'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id', distinct=True)).values(
                 'count', id=F('reporting_ns'), name=F('reporting_ns__name')),
         })
 
@@ -261,12 +262,14 @@ class RegionProjectViewset(viewsets.ViewSet):
 
         def _get_distinct(field, *args, **kwargs):
             return list(
-                projects.order_by().values(field).annotate(count=Count('*')).values(field, *args, **kwargs).distinct()
+                projects.order_by().values(field).annotate(
+                    count=Count('id', distinct=True)).values(field, *args, **kwargs).distinct()
             )
 
         def _get_count(*fields):
             return list(
-                projects.order_by().values(*fields).annotate(count=Count('*')).values_list(*fields, 'count')
+                projects.order_by().values(*fields).annotate(
+                    count=Count('id', distinct=True)).values_list(*fields, 'count')
             )
 
         # Raw nodes

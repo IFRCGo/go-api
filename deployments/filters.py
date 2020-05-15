@@ -54,7 +54,7 @@ class ProjectFilter(filters.FilterSet):
                 # ISO3
                 Q(project_country__region=region) |
                 Q(project_districts__country__region=region)
-            )
+            ).distinct()
         return queryset
 
     class Meta:

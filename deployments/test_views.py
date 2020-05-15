@@ -177,11 +177,13 @@ class ProjectGetTest(APITestCase):
         country2 = Country.objects.create(name='country2', iso='XX', region=region)
         # Create districts
         district1 = District.objects.create(name='district1', country=country1)
+        district1a = District.objects.create(name='district1aa', country=country1)
         district2 = District.objects.create(name='district2', country=country2)
+        district2a = District.objects.create(name='district2a', country=country2)
         # Create new Projects
         for i, pdata in enumerate([
             (
-                rcountry1, [district1],
+                rcountry1, [district1, district1a],
                 ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 6000, 1000, 2),
             (
@@ -189,7 +191,7 @@ class ProjectGetTest(APITestCase):
                 ProgrammeTypes.MULTILATERAL, Sectors.WASH, OperationTypes.EMERGENCY_OPERATION, Statuses.ONGOING,
                 1000, 2000, 2),
             (
-                rcountry1, [district2],
+                rcountry1, [district2, district2a],
                 ProgrammeTypes.DOMESTIC, Sectors.CEA, OperationTypes.PROGRAMME, Statuses.ONGOING,
                 4000, 3000, 1000),
             (
@@ -197,7 +199,7 @@ class ProjectGetTest(APITestCase):
                 ProgrammeTypes.BILATERAL, Sectors.HEALTH, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
                 6000, 9000, 1000),
             (
-                rcountry2, [district1],
+                rcountry2, [district1, district1a],
                 ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 86000, 6000, 3000),
             (
@@ -205,7 +207,7 @@ class ProjectGetTest(APITestCase):
                 ProgrammeTypes.MULTILATERAL, Sectors.EDUCATION, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
                 6000, 5000, 2000),
             (
-                rcountry2, [district2],
+                rcountry2, [district2, district2a],
                 ProgrammeTypes.DOMESTIC, Sectors.DRR, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 100, 4000, 2000),
             (
