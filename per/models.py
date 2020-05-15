@@ -118,10 +118,7 @@ class Form(models.Model):
 
 def question_details(question_id, code):
     q = code + question_id
-    if q in questions:
-        return questions[q]
-    else:
-        return ''
+    return questions.get(q, '')
 
 class FormData(models.Model):
     """ PER form data """
