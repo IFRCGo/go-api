@@ -173,7 +173,6 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_display = ('name', 'ifrc_severity_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter,]
     search_fields = ('name', 'countries__name', 'dtype__name',)
-    readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
     autocomplete_fields = ('countries', 'districts', 'parent_event',)
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
@@ -189,10 +188,10 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     change_form_template = "admin/emergency_changeform.html"
     # Overwriting readonly fields for Edit mode
     def changeform_view(self, request, *args, **kwargs):
-        self.readonly_fields = list(self.readonly_fields)
-        if not request.user.is_superuser: 
-            if 'parent_event' not in self.readonly_fields:
-                self.readonly_fields.append('parent_event')
+        if not request.user.is_superuser:
+            self.readonly_fields = ('appeals', 'field_reports', 'auto_generated_source', 'parent_event',)
+        else:
+            self.readonly_fields = ('appeals', 'field_reports', 'auto_generated_source',)
 
         return super(EventAdmin, self).changeform_view(request, *args, **kwargs)
 
