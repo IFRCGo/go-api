@@ -224,7 +224,7 @@ class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',)
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
 
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
