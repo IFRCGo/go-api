@@ -4,5 +4,5 @@ from .serializers import DomainWhitelistSerializer
 
 
 class DomainWhitelistViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = DomainWhitelist.objects.all()
+    queryset = DomainWhitelist.objects.filter(is_active=True)
     serializer_class = DomainWhitelistSerializer
