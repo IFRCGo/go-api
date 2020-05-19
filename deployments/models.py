@@ -151,26 +151,24 @@ class Sectors(IntEnum):
     PGI = 1
     CEA = 2
     MIGRATION = 3
+    HEALTH = 4
     DRR = 5
     SHELTER = 6
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
-    HEALTH_PUBLIC = 4
-    HEALTH_CLINICAL = 10
 
     class Labels:
         WASH = 'WASH'
         PGI = 'PGI'
         CEA = 'CEA'
         MIGRATION = 'Migration'
+        HEALTH = 'Health'
         DRR = 'DRR'
         SHELTER = 'Shelter'
         NS_STRENGTHENING = 'NS Strengthening'
         EDUCATION = 'Education'
         LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
-        HEALTH_PUBLIC = 'Health (public)'
-        HEALTH_CLINICAL = 'Health (clinical)'
 
 
 class SectorTags(IntEnum):
@@ -205,6 +203,7 @@ class SectorTags(IntEnum):
         HEALTH_PUBLIC = 'Health (public)'
         HEALTH_CLINICAL = 'Health (clinical)'
         COVID_19 = 'COVID-19'
+        RCCE = 'RCCE'
 
 
 class Statuses(IntEnum):
@@ -251,10 +250,8 @@ class Project(models.Model):
         null=True,  # NOTE: Added due to migrations issue
         related_name='projects',
     )  # this is the country where the project is actually taking place
-    project_district = models.ForeignKey(
-        District, on_delete=models.CASCADE,
-        null=True, blank=True,
-        help_text='No selection will indicate all districts.',
+    project_districts = models.ManyToManyField(
+        District,
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
         Event, null=True, blank=True, on_delete=models.SET_NULL,
@@ -296,12 +293,6 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
-
-    def save(self, *args, **kwargs):
-        # Make sure project_country is populated for given project_district
-        if self.project_country is None and self.project_district is not None:
-            self.project_country = self.project_district.country
-        return super().save(*args, **kwargs)
 
     def get_secondary_sectors_display(self):
         choices_dict = dict(make_hashable(SectorTags.choices()))

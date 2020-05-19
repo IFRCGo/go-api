@@ -361,9 +361,19 @@ class Command(BaseCommand):
     def get_fieldreport_keyfigures(self, num_list):
         is_none = all(num == None for num in num_list)
         if is_none:
-            return '--'
+            return None
 
         return float(sum(filter(None, num_list)))
+
+    def get_epi_figures_source_name(self, source_id):
+        if source_id == 0:
+            return 'Ministry of Health'
+        elif source_id == 1:
+            return 'World Health Organization'
+        elif source_id == 2:
+            return 'Other'
+        else:
+            return '--'
 
     # Based on the notification type this constructs the different type of objects needed for the different templates
     def construct_template_record(self, rtype, record):
@@ -386,27 +396,15 @@ class Command(BaseCommand):
                     'missing': self.get_fieldreport_keyfigures([record.num_missing, record.gov_num_missing, record.other_num_missing]),
                     'displaced': self.get_fieldreport_keyfigures([record.num_displaced, record.gov_num_displaced, record.other_num_displaced]),
                     'assisted': self.get_fieldreport_keyfigures([record.num_assisted, record.gov_num_assisted, record.other_num_assisted]),
-                    # 'local_staff': record.num_localstaff or '--',
-                    # 'volunteers': record.num_volunteers or '--',
-                    # 'expat_delegates': record.num_expats_delegates or '--',
                 },
                 'epi_key_figures': {
-                    'who_cases': record.who_cases or '--',
-                    'who_suspected': record.who_suspected_cases or '--',
-                    'who_probable': record.who_probable_cases or '--',
-                    'who_confirmed': record.who_confirmed_cases or '--',
-                    'who_dead': record.who_num_dead or '--',
-                    'health_cases': record.health_min_cases or '--',
-                    'health_suspected': record.health_min_suspected_cases or '--',
-                    'health_probable': record.health_min_probable_cases or '--',
-                    'health_confirmed': record.health_min_confirmed_cases or '--',
-                    'health_dead': record.health_min_num_dead or '--',
-                    'other_cases': record.other_cases or '--',
-                    'other_suspected': record.other_suspected_cases or '--',
-                    'other_probable': record.other_probable_cases or '--',
-                    'other_confirmed': record.other_confirmed_cases or '--',
-                    'other_dead': record.other_num_dead or '--', # not sure but couldn't find other related field
+                    'epi_cases': record.epi_cases,
+                    'epi_suspected': record.epi_suspected_cases,
+                    'epi_probable': record.epi_probable_cases,
+                    'epi_confirmed': record.epi_confirmed_cases,
+                    'epi_dead': record.epi_num_dead,
                 },
+                'epi_figures_source': self.get_epi_figures_source_name(record.epi_figures_source),
                 'sit_fields_date': record.sit_fields_date,
                 'actions_taken': self.get_actions_taken(record.id),
                 'actions_others': record.actions_others,
@@ -415,9 +413,6 @@ class Command(BaseCommand):
                 'dtype_id': record.dtype_id,
             }
         elif rtype == RecordType.APPEAL:
-            # localstaff = FieldReport.objects.filter(event_id=record.event_id).values_list('num_localstaff', flat=True)
-            # volunteers = FieldReport.objects.filter(event_id=record.event_id).values_list('num_volunteers', flat=True)
-            # expats = FieldReport.objects.filter(event_id=record.event_id).values_list('num_expats_delegates', flat=True)
             optypes = {
                 0: 'DREF',
                 1: 'Emergency Appeal',
@@ -435,9 +430,6 @@ class Command(BaseCommand):
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
-                    # 'local_staff': localstaff[0] if localstaff else 0,
-                    # 'volunteers': volunteers[0] if volunteers else 0,
-                    # 'expat_delegates': expats[0] if expats else 0,
                 },
                 'operation_type': optypes[record.atype],
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,

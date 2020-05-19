@@ -1,13 +1,11 @@
 import json
-from django.test import TestCase
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, Permission
 from api.models import Country, District, Region
 from main.test_case import APITestCase
 from .models import (
     Project,
     ProgrammeTypes,
     Sectors,
+    SectorTags,
     OperationTypes,
     Statuses,
 )
@@ -16,6 +14,7 @@ from .models import (
 class ProjectGetTest(APITestCase):
     def setUp(self):
         super().setUp()
+        self.maxDiff = None
         self.country1 = Country.objects.create(name='country1', iso='XX')
         self.country2 = Country.objects.create(name='country2', iso='YY')
 
@@ -23,52 +22,52 @@ class ProjectGetTest(APITestCase):
         self.district2 = District.objects.create(name='district2', country=self.country2)
 
         first = Project.objects.create(
-                     user             = self.user
-                    ,reporting_ns     = self.country1
-                    ,project_district = self.district1
-                    ,name             = 'aaa'
-                    ,programme_type   = 0
-                    ,primary_sector   = 0
-                    ,operation_type   = 0
-                    ,start_date       = '2011-11-11'
-                    ,end_date         = '2011-11-11'
-                    ,budget_amount    = 6000
-                    ,status           = 0)
-        first.save()
+            user=self.user,
+            reporting_ns=self.country1,
+            name='aaa',
+            programme_type=ProgrammeTypes.BILATERAL.value,
+            primary_sector=Sectors.WASH.value,
+            operation_type=OperationTypes.EMERGENCY_OPERATION.value,
+            start_date='2011-11-11',
+            end_date='2011-11-11',
+            budget_amount=6000,
+            status=Statuses.COMPLETED.value,
+        )
+        first.project_districts.set([self.district1])
 
         second = Project.objects.create(
-                     user             = self.user
-                    ,reporting_ns     = self.country1
-                    ,project_district = self.district2
-                    ,name             = 'bbb'
-                    ,programme_type   = 1
-                    ,primary_sector   = 1
-                    ,secondary_sectors= [1, 2]
-                    ,operation_type   = 0
-                    ,start_date       = '2012-12-12'
-                    ,end_date         = '2013-01-01'
-                    ,budget_amount    = 3000
-                    ,status           = 1)
-
-        second.save()
+            user=self.user,
+            reporting_ns=self.country1,
+            name='bbb',
+            programme_type=ProgrammeTypes.MULTILATERAL.value,
+            primary_sector=Sectors.SHELTER.value,
+            secondary_sectors=[SectorTags.WASH.value, SectorTags.RCCE.value],
+            operation_type=OperationTypes.PROGRAMME.value,
+            start_date='2012-12-12',
+            end_date='2013-01-01',
+            budget_amount=3000,
+            status=Statuses.ONGOING.value,
+        )
+        second.project_districts.set([self.district2])
 
     def create_project(self, **kwargs):
-        return Project.objects.create(
+        project = Project.objects.create(
             user=self.user,
             name='Project Name',
             start_date='2011-11-11',
             end_date='2011-11-11',
             reporting_ns=self.country1,
-            project_district=self.district1,
-            programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sectors.WASH,
-            operation_type=OperationTypes.PROGRAMME,
-            status=Statuses.PLANNED,
+            programme_type=ProgrammeTypes.BILATERAL.value,
+            primary_sector=Sectors.WASH.value,
+            operation_type=OperationTypes.PROGRAMME.value,
+            status=Statuses.PLANNED.value,
             budget_amount=1000,
             target_total=8000,
             reached_total=1000,
             **kwargs,
         )
+        project.project_districts.set(kwargs.pop('project_districts', [self.district1]))
+        return project
 
     def test_1(self):
         self.authenticate(self.user)
@@ -82,7 +81,7 @@ class ProjectGetTest(APITestCase):
         body = {
             'reporting_ns': country2.id,
             'project_country': district2.country.id,
-            'project_district': district2.id,
+            'project_districts': [district2.id],
             'name': 'CreateMePls',
             'programme_type': ProgrammeTypes.BILATERAL.value,
             'primary_sector': Sectors.WASH.value,
@@ -100,7 +99,7 @@ class ProjectGetTest(APITestCase):
         # Validation Tests
         # Reached total should be provided if status is completed
         body['status'] = Statuses.COMPLETED.value
-        body['reached_total'] = '' # The new framework does not allow None to be sent.
+        body['reached_total'] = ''  # The new framework does not allow None to be sent.
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
@@ -178,50 +177,52 @@ class ProjectGetTest(APITestCase):
         country2 = Country.objects.create(name='country2', iso='XX', region=region)
         # Create districts
         district1 = District.objects.create(name='district1', country=country1)
+        district1a = District.objects.create(name='district1aa', country=country1)
         district2 = District.objects.create(name='district2', country=country2)
+        district2a = District.objects.create(name='district2a', country=country2)
         # Create new Projects
         for i, pdata in enumerate([
             (
-                rcountry1, district1,
+                rcountry1, [district1, district1a],
                 ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 6000, 1000, 2),
             (
-                rcountry1, district1,
+                rcountry1, [district1],
                 ProgrammeTypes.MULTILATERAL, Sectors.WASH, OperationTypes.EMERGENCY_OPERATION, Statuses.ONGOING,
                 1000, 2000, 2),
             (
-                rcountry1, district2,
+                rcountry1, [district2, district2a],
                 ProgrammeTypes.DOMESTIC, Sectors.CEA, OperationTypes.PROGRAMME, Statuses.ONGOING,
                 4000, 3000, 1000),
             (
-                rcountry1, district2,
-                ProgrammeTypes.BILATERAL, Sectors.HEALTH_PUBLIC, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
+                rcountry1, [district2],
+                ProgrammeTypes.BILATERAL, Sectors.HEALTH, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
                 6000, 9000, 1000),
             (
-                rcountry2, district1,
+                rcountry2, [district1, district1a],
                 ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 86000, 6000, 3000),
             (
-                rcountry2, district1,
+                rcountry2, [district1],
                 ProgrammeTypes.MULTILATERAL, Sectors.EDUCATION, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
                 6000, 5000, 2000),
             (
-                rcountry2, district2,
+                rcountry2, [district2, district2a],
                 ProgrammeTypes.DOMESTIC, Sectors.DRR, OperationTypes.PROGRAMME, Statuses.PLANNED,
                 100, 4000, 2000),
             (
-                rcountry2, district2,
+                rcountry2, [district2],
                 ProgrammeTypes.BILATERAL, Sectors.MIGRATION, OperationTypes.PROGRAMME, Statuses.COMPLETED,
                 2, 1000, 50),
         ]):
-            Project.objects.create(
+            p = Project.objects.create(
                 user=self.user,
                 name=f'Project {i}',
                 start_date='2011-11-11',
                 end_date='2011-11-11',
                 # Dynamic values
+                project_country=pdata[1][0].country,
                 reporting_ns=pdata[0],
-                project_district=pdata[1],
                 programme_type=pdata[2],
                 primary_sector=pdata[3],
                 operation_type=pdata[4],
@@ -230,6 +231,7 @@ class ProjectGetTest(APITestCase):
                 target_total=pdata[7],
                 reached_total=pdata[8],
             )
+            p.project_districts.set(pdata[1])
         resp = self.client.get(f'/api/v2/region-project/{region.pk}/overview/', format='json')
         self.assertEqual(
             resp.json(), {
@@ -301,7 +303,7 @@ class ProjectGetTest(APITestCase):
                                 'name': 'rcountry1',
                                 'sectors': [
                                     {'id': 2, 'sector': Sectors.CEA.label, 'count': 1},
-                                    {'id': 4, 'sector': Sectors.HEALTH_PUBLIC.label, 'count': 1}
+                                    {'id': 4, 'sector': Sectors.HEALTH.label, 'count': 1}
                                 ]
                             }, {
                                 'id': rcountry2.id,
@@ -329,7 +331,7 @@ class ProjectGetTest(APITestCase):
                     {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
                     {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
                     {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
-                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH_PUBLIC.label},
+                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
                     {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
                     {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
                     {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},

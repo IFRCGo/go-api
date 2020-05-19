@@ -13,4 +13,11 @@ class PendingAdmin(CompareVersionAdmin):
         return obj.user.username + ' - ' + obj.user.email
 
 
+class DomainWhitelistAdmin(CompareVersionAdmin):
+    list_display = ('domain_name', 'description', 'is_active')
+    search_fields = ('domain_name',)
+    ordering = ('domain_name',)
+
+
 admin.site.register(models.Pending, PendingAdmin)
+admin.site.register(models.DomainWhitelist, DomainWhitelistAdmin)
