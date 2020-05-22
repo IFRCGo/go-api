@@ -39,7 +39,7 @@ def is_valid_domain(email):
 def get_valid_admins(contacts):
     if not type(contacts) is list:
         return False
-    emails = [admin['email'] for admin in contacts if admin['email'] is not None]
+    emails = [admin.get('email', None) for admin in contacts]
     if len(emails) < 1:
         return False
     admin_users = User.objects.filter(email__in=emails)
