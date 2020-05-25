@@ -901,7 +901,7 @@ class ActionsTaken(models.Model):
         choices=ActionOrg.CHOICES,
         max_length=16,
     )
-    actions = models.ManyToManyField(Action)
+    actions = models.ManyToManyField(Action, blank=True)
     summary = models.TextField(blank=True)
     field_report = models.ForeignKey(FieldReport, related_name='actions_taken', on_delete=models.CASCADE)
 
