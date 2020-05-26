@@ -61,6 +61,7 @@ from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
+from lang import views as lang_views
 
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset)
@@ -109,6 +110,7 @@ router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'region-project', deployment_views.RegionProjectViewset, base_name='region-project')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)
+router.register(r'language', lang_views.LanguageViewSet, base_name='language')
 
 
 admin.site.site_header = 'IFRC Go administration'

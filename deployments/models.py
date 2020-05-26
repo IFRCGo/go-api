@@ -157,7 +157,6 @@ class Sectors(IntEnum):
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
-    HEALTH_CLINICAL = 10
 
     class Labels:
         WASH = 'WASH'

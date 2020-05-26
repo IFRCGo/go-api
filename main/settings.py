@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'registrations',
     'deployments',
     'databank',
+    'lang',
 
     # Utils Apps
     'tinymce',
