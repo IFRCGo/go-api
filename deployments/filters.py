@@ -1,6 +1,6 @@
 from functools import reduce
 import django_filters as filters
-from django.db.models import Q
+from django.db.models import Q, F
 
 from api.models import Region, Country
 from .models import (
@@ -27,8 +27,17 @@ class ProjectFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(choices=Statuses.choices(), widget=filters.widgets.CSVWidget)
 
     # Supporting/Receiving NS Filters (Multiselect)
-    project_country = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
     reporting_ns = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
+    exclude_within = filters.BooleanFilter(
+        label='Exclude projects with same country and Reporting NS', field_name='exclude_within', method='filter_exclude_within')
+
+    def filter_exclude_within(self, queryset, name, value):
+        """
+        Exclude projects which have same country and Reporting NS
+        """
+        if value:
+            return queryset.exclude(reporting_ns=F('project_country'))
+        return queryset
 
     def filter_secondary_sectors(self, queryset, name, value):
         if len(value):
@@ -77,4 +86,5 @@ class ProjectFilter(filters.FilterSet):
             'status',
             'primary_sector',
             'operation_type',
+            'exclude_within',
         ]
