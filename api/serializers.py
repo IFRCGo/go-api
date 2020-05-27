@@ -209,7 +209,16 @@ class DetailEventSerializer(serializers.ModelSerializer):
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     districts = MiniDistrictSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
-    field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+    #field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+    field_reports = serializers.SerializerMethodField(read_only=True)
+    
+    def get_field_reports(self, event):
+        if self.context['request'].user.is_anonymous:
+            reports = FieldReport.objects.filter(event_id=event.id, visibility=3)
+        else:
+            reports = FieldReport.objects.filter(event_id=event.id)
+        return MiniFieldReportSerializer(reports, many=True, read_only=True).data
+
     class Meta:
         model = Event
         fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
