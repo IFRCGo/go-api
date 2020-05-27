@@ -209,15 +209,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     districts = MiniDistrictSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
-    #field_reports = MiniFieldReportSerializer(many=True, read_only=True)
-    field_reports = serializers.SerializerMethodField(read_only=True)
-    
-    def get_field_reports(self, event):
-        if self.context['request'].user.is_anonymous:
-            reports = FieldReport.objects.filter(event_id=event.id, visibility=3)
-        else:
-            reports = FieldReport.objects.filter(event_id=event.id)
-        return MiniFieldReportSerializer(reports, many=True, read_only=True).data
+    field_reports = MiniFieldReportSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
