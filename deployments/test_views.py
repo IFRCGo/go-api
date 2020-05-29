@@ -322,35 +322,38 @@ class ProjectGetTest(APITestCase):
                 ]
             })
 
+        nation_society_activities_resp = {
+            'nodes': [
+                {'id': rcountry1.id, 'type': 'supporting_ns', 'name': 'country1_sn', 'iso': 'XX', 'iso3': None},
+                {'id': rcountry2.id, 'type': 'supporting_ns', 'name': 'country2_sn', 'iso': 'XX', 'iso3': None},
+                {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
+                {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
+                {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
+                {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
+                {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
+                {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
+                {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
+                {'id': country2.id, 'type': 'receiving_ns', 'name': 'country2', 'iso': 'XX', 'iso3': None}
+            ],
+            'links': [
+                {'source': 0, 'target': 2, 'value': 2},
+                {'source': 0, 'target': 3, 'value': 1},
+                {'source': 0, 'target': 5, 'value': 1},
+                {'source': 1, 'target': 2, 'value': 1},
+                {'source': 1, 'target': 4, 'value': 1},
+                {'source': 1, 'target': 6, 'value': 1},
+                {'source': 1, 'target': 7, 'value': 1},
+                {'source': 2, 'target': 8, 'value': 3},
+                {'source': 3, 'target': 9, 'value': 1},
+                {'source': 4, 'target': 9, 'value': 1},
+                {'source': 5, 'target': 9, 'value': 1},
+                {'source': 6, 'target': 9, 'value': 1},
+                {'source': 7, 'target': 8, 'value': 1}
+            ]
+        }
+
         resp = self.client.get(f'/api/v2/region-project/{region.pk}/national-society-activities/', format='json')
-        self.assertEqual(
-            resp.json(), {
-                'nodes': [
-                    {'id': rcountry1.id, 'type': 'supporting_ns', 'name': 'country1_sn', 'iso': 'XX', 'iso3': None},
-                    {'id': rcountry2.id, 'type': 'supporting_ns', 'name': 'country2_sn', 'iso': 'XX', 'iso3': None},
-                    {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
-                    {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
-                    {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
-                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
-                    {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
-                    {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
-                    {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
-                    {'id': country2.id, 'type': 'receiving_ns', 'name': 'country2', 'iso': 'XX', 'iso3': None}
-                ],
-                'links': [
-                    {'source': 0, 'target': 2, 'value': 2},
-                    {'source': 0, 'target': 3, 'value': 1},
-                    {'source': 0, 'target': 5, 'value': 1},
-                    {'source': 1, 'target': 2, 'value': 1},
-                    {'source': 1, 'target': 4, 'value': 1},
-                    {'source': 1, 'target': 6, 'value': 1},
-                    {'source': 1, 'target': 7, 'value': 1},
-                    {'source': 2, 'target': 8, 'value': 3},
-                    {'source': 3, 'target': 9, 'value': 1},
-                    {'source': 4, 'target': 9, 'value': 1},
-                    {'source': 5, 'target': 9, 'value': 1},
-                    {'source': 6, 'target': 9, 'value': 1},
-                    {'source': 7, 'target': 8, 'value': 1}
-                ]
-            }
-        )
+        self.assertEqual(resp.json(), nation_society_activities_resp)
+
+        resp = self.client.get(f'/api/v2/region-project/national-society-activities/?region={region.pk}', format='json')
+        self.assertEqual(resp.json(), nation_society_activities_resp)

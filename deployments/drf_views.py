@@ -165,12 +165,16 @@ class RegionProjectViewset(viewsets.ViewSet):
         return self._region
 
     def get_projects(self):
-        region = self.get_region()
-        # Filter by region
-        qs = Project.objects.filter(
-            Q(project_country__region=region) |
-            Q(project_districts__country__region=region)
-        ).distinct()
+        if self.action == 'global_national_society_activities':
+            # Region Filter will be applied using ProjectFilter if provided
+            qs = Project.objects.all()
+        else:
+            region = self.get_region()
+            # Filter by region (From URL Params)
+            qs = Project.objects.filter(
+                Q(project_country__region=region) |
+                Q(project_districts__country__region=region)
+            ).distinct()
         # Filter by GET params
         qs = ProjectFilter(self.request.query_params, queryset=qs).qs
         # Filter by visibility
@@ -336,3 +340,7 @@ class RegionProjectViewset(viewsets.ViewSet):
             for source, target, value in group
         ]
         return Response({'nodes': nodes, 'links': links})
+
+    @action(detail=False, url_path='national-society-activities', methods=('get',))
+    def global_national_society_activities(self, request, pk=None):
+        return self.national_society_activities(request, pk)

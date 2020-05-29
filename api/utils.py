@@ -1,5 +1,6 @@
 import base64
 from django.core.exceptions import ValidationError
+# from .models import VisibilityChoices
 
 def pretty_request(request):
     headers = ''
@@ -32,6 +33,21 @@ def base64_encode(string):
 def validate_slug_number(value):
     if value[0].isdigit():
         raise ValidationError('slug should not start with a number')
+
+def is_user_ifrc(user):
+    """ Checks if the user has IFRC Admin or superuser permissions """
+    if user.has_perm('api.ifrc_admin') or user.is_superuser:
+        return True
+    return False
+
+# FIXME: not usable because of circular dependency
+# def filter_visibility_by_auth(user, visibility_model_class):
+#     if user.is_authenticated:
+#         if is_user_ifrc(user):
+#             return visibility_model_class.objects.all()
+#         else:
+#             return visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC)
+#     return visibility_model_class.objects.filter(visibility=VisibilityChoices.PUBLIC)
 
 
 class Echo:

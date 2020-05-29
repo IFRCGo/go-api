@@ -486,23 +486,6 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return format_html('<a href="{}" style="font-weight: 600;">{}</a>', link, obj.event.name)
     link_to_event.allow_tags=True
 
-    # Works, but gives azure storageclient ERROR - Client-Request-ID=... Retry policy did not allow for a retry: ... HTTP status code=404, Exception=The specified blob does not exist.
-    # Has a duplication at PER NiceDocuments
-    def save_model(self, request, obj, form, change):
-       if change:
-           obj.save()
-       else:
-           for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
-               if i<30: # not letting tons of documents to be attached
-                   models.SituationReport.objects.create(
-                       name        =obj.name if i == 0 else obj.name + '-' + str(i),
-                       document    =one_document,
-                       document_url=obj.document_url,
-                       event       =obj.event,
-                       type        =obj.type,
-                       visibility  =obj.visibility,
-                       )
-
 class SituationReportTypeAdmin(CompareVersionAdmin):
     search_fields = ('type',)
 

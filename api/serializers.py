@@ -210,6 +210,7 @@ class DetailEventSerializer(serializers.ModelSerializer):
     districts = MiniDistrictSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+
     class Meta:
         model = Event
         fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)

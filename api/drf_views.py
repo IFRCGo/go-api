@@ -9,9 +9,11 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
+from .utils import is_user_ifrc
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
@@ -249,7 +251,8 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'mini_events':
             return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
-        return Event.objects.filter(parent_event__isnull=True)
+
+        return Event.get_for(self.request.user).filter(parent_event__isnull=True)
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
@@ -261,13 +264,14 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None, *args, **kwargs):
+        filters
         if pk:
             try:
-                instance = Event.objects.get(pk=pk)
+                instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
         elif kwargs['slug']:
-            instance = Event.objects.filter(slug=kwargs['slug']).first()
+            instance = Event.get_for(request.user).filter(slug=kwargs['slug']).first()
             if not instance:
                 raise Http404
         else:

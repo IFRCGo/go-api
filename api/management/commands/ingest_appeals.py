@@ -74,7 +74,7 @@ class Command(BaseCommand):
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
             response = requests.get(url, auth=auth)
             if response.status_code != 200:
-                text_to_log = 'Error querying AppealBilaterals API at ' + url
+                text_to_log = 'Error querying AppealBilaterals API at ' + url + ' - status code: ' + str(response.status_code)
                 logger.error(text_to_log)
                 logger.error(response.content)
                 body = { "name": "ingest_appeals", "message": text_to_log, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
@@ -101,8 +101,8 @@ class Command(BaseCommand):
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
             response = requests.get(url, auth=auth)
             if response.status_code != 200:
-                logger.error('Error querying Appeals API')
-                raise Exception('Error querying Appeals API')
+                logger.error('Error querying Appeals API - status code: ' + str(response.status_code))
+                raise Exception('Error querying Appeals API - status code: ' + str(response.status_code))
             records = response.json()
 
             # write the current record file to local disk
