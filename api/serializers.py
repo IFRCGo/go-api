@@ -256,7 +256,7 @@ class UserSerializer(serializers.ModelSerializer):
     subscription = MiniSubscriptionSerializer(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',)
 
     def update(self, instance, validated_data):
         if 'profile' in validated_data:
