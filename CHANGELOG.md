@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.282
+
+### Added
+ - Minor backend fixes for 4.3.5
+
 ## 1.1.281
 
 ### Added
@@ -1183,7 +1188,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.281...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.282...HEAD
+[1.2.282]: https://github.com/IFRCGo/go-api/compare/1.2.281...1.1.282
 [1.2.281]: https://github.com/IFRCGo/go-api/compare/1.2.280...1.1.281
 [1.2.280]: https://github.com/IFRCGo/go-api/compare/1.2.279...1.1.280
 [1.2.279]: https://github.com/IFRCGo/go-api/compare/1.2.278...1.1.279
