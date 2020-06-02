@@ -206,7 +206,7 @@ class TabNumber(IntEnum):
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(null=True, blank=True)
+    snippet = HTMLField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
@@ -220,7 +220,7 @@ class RegionSnippet(models.Model):
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(null=True, blank=True)
+    snippet = HTMLField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage())
     visibility = EnumIntegerField(VisibilityChoices, default=3)
     position = EnumIntegerField(PositionType, default=3)
@@ -398,7 +398,7 @@ def snippet_image_path(instance, filename):
 
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.TextField(null=True, blank=True)
+    snippet = HTMLField(null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage())
     event = models.ForeignKey(Event, related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
