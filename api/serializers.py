@@ -164,7 +164,7 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = (
-            'summary', 'status', 'description', 'contacts', 'created_at', 'updated_at', 'report_date', 'id', 'is_covid_report',
+            'summary', 'status', 'description', 'contacts', 'created_at', 'updated_at', 'report_date', 'id', 'is_covid_report', 'visibility',
             'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
             'gov_num_injured', 'gov_num_dead', 'gov_num_missing', 'gov_num_affected', 'gov_num_displaced',  'gov_num_assisted',
             'other_num_injured', 'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
@@ -256,7 +256,7 @@ class UserSerializer(serializers.ModelSerializer):
     subscription = MiniSubscriptionSerializer(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',)
 
     def update(self, instance, validated_data):
         if 'profile' in validated_data:

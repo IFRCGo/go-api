@@ -314,10 +314,10 @@ class Event(models.Model):
         verbose_name = 'Emergency'
         verbose_name_plural = 'Emergencies'
 
-    @staticmethod
-    def get_for(user):
-        field_report_pretech = Prefetch('field_reports', queryset=FieldReport.get_for(user))
-        return Event.objects.prefetch_related(field_report_pretech)
+    # @staticmethod
+    # def get_for(user):
+    #     field_report_pretech = Prefetch('field_reports', queryset=FieldReport.get_for(user))
+    #     return Event.objects.prefetch_related(field_report_pretech)
 
     def start_date(self):
         """ Get start date of first appeal """
@@ -789,14 +789,14 @@ class FieldReport(models.Model):
     class Meta:
         ordering = ('-created_at', '-updated_at',)
 
-    @staticmethod
-    def get_for(user):
-        filters = models.Q(visibility=VisibilityChoices.PUBLIC)
-        if user.is_authenticated:
-            filters = models.Q(visibility__in=[VisibilityChoices.MEMBERSHIP, VisibilityChoices.PUBLIC])
-            if is_user_ifrc(user):
-                filters = models.Q()
-        return FieldReport.objects.filter(filters)
+    # @staticmethod
+    # def get_for(user):
+    #     filters = models.Q(visibility=VisibilityChoices.PUBLIC)
+    #     if user.is_authenticated:
+    #         filters = models.Q(visibility__in=[VisibilityChoices.MEMBERSHIP, VisibilityChoices.PUBLIC])
+    #         if is_user_ifrc(user):
+    #             filters = models.Q()
+    #     return FieldReport.objects.filter(filters)
 
     def save(self, *args, **kwargs):
         # On save, is report_date or start_date is not set, set it to now.
