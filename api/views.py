@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views import View
-from django.db.models.functions import TruncMonth, TruncYear
+from django.db.models.functions import Lower, TruncMonth, TruncYear
 from django.db.models import Count, Sum
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
@@ -383,7 +383,8 @@ class RecoverPassword(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            user = User.objects.get(email=body['email'])
+            req_email = body['email'].lower()
+            user = User.objects.annotate(email_lower=Lower('email')).get(email_lower=req_email)
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
