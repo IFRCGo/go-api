@@ -383,8 +383,7 @@ class RecoverPassword(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            req_email = body['email'].lower()
-            user = User.objects.annotate(email_lower=Lower('email')).get(email_lower=req_email)
+            user = User.objects.get(email__iexact=body['email'])
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
