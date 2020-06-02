@@ -185,7 +185,7 @@ class ListMiniEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
+        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source', 'created_at',)
 
 
 class ListEventSerializer(serializers.ModelSerializer):
