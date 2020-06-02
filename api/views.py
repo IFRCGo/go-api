@@ -383,7 +383,7 @@ class RecoverPassword(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            user = User.objects.get(email=body['email'])
+            user = User.objects.get(email__iexact=body['email'])
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
@@ -410,7 +410,7 @@ class ShowUsername(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            user = User.objects.get(email=body['email'])
+            user = User.objects.get(email__iexact=body['email'])
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
