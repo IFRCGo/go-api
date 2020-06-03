@@ -1,0 +1,579 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: api/admin.py:50
+msgid "related emergency"
+msgstr "الطوارئ ذات الصلة"
+
+#: api/admin.py:54
+msgid "Exists"
+msgstr "موجود"
+
+#: api/admin.py:55
+msgid "Needs confirmation"
+msgstr "يحتاج إلى تأكيد"
+
+#: api/admin.py:56
+msgid "None"
+msgstr "لا شيء"
+
+#: api/admin.py:68
+msgid "membership"
+msgstr "العضوية"
+
+#: api/admin.py:72
+msgid "Membership"
+msgstr "العضوية"
+
+#: api/admin.py:73
+msgid "IFRC"
+msgstr "IFRC"
+
+#: api/admin.py:74
+msgid "Public"
+msgstr "عامة"
+
+#: api/admin.py:86
+msgid "appeal type"
+msgstr "نوع الاستئناف"
+
+#: api/admin.py:90
+msgid "DREF"
+msgstr "دريف"
+
+#: api/admin.py:91
+msgid "Appeal"
+msgstr "استئناف"
+
+#: api/admin.py:92
+msgid "Intl appeal"
+msgstr "الاستئناف الدولي"
+
+#: api/admin.py:104
+msgid "featured"
+msgstr "مميزة"
+
+#: api/admin.py:108
+msgid "Featured"
+msgstr "مميزة"
+
+#: api/admin.py:109
+msgid "Not Featured"
+msgstr "غير مميزة"
+
+#: api/admin.py:119 api/models.py:1052
+msgid "source"
+msgstr "مصدر"
+
+#: api/admin.py:123
+msgid "Manual input"
+msgstr "الإدخال اليدوي"
+
+#: api/admin.py:124
+msgid "GDACs scraper"
+msgstr "GDACs مكشطة"
+
+#: api/admin.py:125
+msgid "WHO scraper"
+msgstr "مكشطة منظمة الصحة العالمية"
+
+#: api/admin.py:126
+msgid "Field report ingest"
+msgstr "التقرير الميداني"
+
+#: api/admin.py:127
+msgid "Field report admin"
+msgstr "مسؤول التقرير الميداني"
+
+#: api/admin.py:128
+msgid "Appeals admin"
+msgstr "الطعون الإدارية"
+
+#: api/admin.py:129
+msgid "Unknown automated"
+msgstr "غير معروف الآلي"
+
+#: api/apps.py:6
+msgid "api"
+msgstr "api"
+
+#: api/models.py:40
+msgid "disaster type"
+msgstr "نوع الكارثة"
+
+#: api/models.py:41
+msgid "disaster types"
+msgstr "أنواع الكوارث"
+
+#: api/models.py:75
+msgid "region"
+msgstr "منطقة"
+
+#: api/models.py:76
+msgid "regions"
+msgstr "المناطق"
+
+#: api/models.py:110
+msgid "Type of entity"
+msgstr "نوع الكيان"
+
+#: api/models.py:127 api/models.py:167
+msgid "Population data from WB API"
+msgstr "البيانات السكانية من API البنك الدولي"
+
+#: api/models.py:128 api/models.py:168
+msgid "Population data year from WB API"
+msgstr "سنة البيانات السكانية من API البنك الدولي"
+
+#: api/models.py:149
+msgid "country"
+msgstr "بلد"
+
+#: api/models.py:150
+msgid "countries"
+msgstr "البلدان"
+
+#: api/models.py:164
+msgid "Is it an enclave away from parent country?"
+msgstr "هل هو جيب بعيد عن البلد الأم؟"
+
+#: api/models.py:172
+msgid "district"
+msgstr "منطقة"
+
+#: api/models.py:173
+msgid "districts"
+msgstr "المناطق"
+
+#: api/models.py:195
+msgid "admin key figure"
+msgstr "شخصية مفتاح المشرف"
+
+#: api/models.py:196
+msgid "admin key figures"
+msgstr "أرقام مفاتيح المشرف"
+
+#: api/models.py:207
+msgid "region key figure"
+msgstr "الرقم الرئيسي للمنطقة"
+
+#: api/models.py:208
+msgid "region key figures"
+msgstr "الأرقام الرئيسية للمنطقة"
+
+#: api/models.py:216
+msgid "country key figure"
+msgstr "الرقم الرئيسي للبلد"
+
+#: api/models.py:217
+msgid "country key figures"
+msgstr "الأرقام الرئيسية القطرية"
+
+#: api/models.py:243
+msgid "region snippet"
+msgstr "مقتطف المنطقة"
+
+#: api/models.py:244
+msgid "region snippets"
+msgstr "مقتطفات المنطقة"
+
+#: api/models.py:259
+msgid "country snippet"
+msgstr "مقتطف البلد"
+
+#: api/models.py:260
+msgid "country snippets"
+msgstr "مقتطفات البلد"
+
+#: api/models.py:271
+msgid "admin link"
+msgstr "رابط المشرف"
+
+#: api/models.py:272
+msgid "admin links"
+msgstr "روابط المشرف"
+
+#: api/models.py:279
+msgid "region link"
+msgstr "رابط المنطقة"
+
+#: api/models.py:280
+msgid "region links"
+msgstr "روابط المنطقة"
+
+#: api/models.py:287
+msgid "country link"
+msgstr "رابط البلد"
+
+#: api/models.py:288
+msgid "country links"
+msgstr "روابط البلد"
+
+#: api/models.py:298
+msgid "admin contact"
+msgstr "جهة اتصال المشرف"
+
+#: api/models.py:299
+msgid "admin contacts"
+msgstr "جهات اتصال المشرف"
+
+#: api/models.py:309
+msgid "region contact"
+msgstr "الاتصال بالمنطقة"
+
+#: api/models.py:310
+msgid "region contacts"
+msgstr "جهات الاتصال في المنطقة"
+
+#: api/models.py:317
+msgid "country contact"
+msgstr "بلد الاتصال"
+
+#: api/models.py:318
+msgid "country contacts"
+msgstr "جهات الاتصال القطرية"
+
+#: api/models.py:332
+msgid ""
+"Optional string for a clean URL. For example, "
+"go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with"
+" a number and is forced to be lowercase. Recommend using hyphens over "
+"underscores. Special characters like # is not allowed."
+msgstr ""
+"سلسلة اختيارية لعنوان URL نظيف. على سبيل المثال، اذهب.ifrc.org/الطوارئ/إعصار"
+" كاترينا 2019. لا يمكن أن تبدأ السلسلة برقم ويتم إجبارها على أن تكون صغيرة. "
+"يوصي باستخدام الواصلات فوق الشرطات السفلية. الأحرف الخاصة مثل # غير مسموح "
+"بها."
+
+#: api/models.py:337
+msgid ""
+"If needed, you have to change the connected Appeals', Field Reports', etc to"
+" point to the parent Emergency manually."
+msgstr ""
+"إذا لزم الأمر، يجب عليك تغيير النداءات المتصلة، والتقارير الميدانية، وما إلى"
+" ذلك للإشارة إلى حالة الطوارئ الأصلية يدويًا."
+
+#: api/models.py:372
+msgid "emergency"
+msgstr "طوارئ"
+
+#: api/models.py:373
+msgid "emergencies"
+msgstr "حالات الطوارئ"
+
+#: api/models.py:441
+msgid "event contact"
+msgstr "جهة اتصال الحدث"
+
+#: api/models.py:442
+msgid "event contacts"
+msgstr "جهات اتصال الحدث"
+
+#: api/models.py:458
+msgid "key figure"
+msgstr "الرقم الرئيسي"
+
+#: api/models.py:459
+msgid "key figures"
+msgstr "الأرقام الرئيسية"
+
+#: api/models.py:477
+msgid "snippet"
+msgstr "مقتطف"
+
+#: api/models.py:478
+msgid "snippets"
+msgstr "مقتطفات"
+
+#: api/models.py:488
+msgid "Ensure this type gets precedence over others that are empty"
+msgstr "تأكد من أن هذا النوع يحصل على الأسبقية على الآخرين الفارغين"
+
+#: api/models.py:491
+msgid "situation report type"
+msgstr "نوع تقرير الحالة"
+
+#: api/models.py:492
+msgid "situation report types"
+msgstr "أنواع تقارير الحالة"
+
+#: api/models.py:511
+msgid "Pin this report at the top"
+msgstr "تثبيت هذا التقرير في الجزء العلوي"
+
+#: api/models.py:514
+msgid "situation report"
+msgstr "تقرير الحالة"
+
+#: api/models.py:515
+msgid "situation reports"
+msgstr "تقارير الحالة"
+
+#: api/models.py:546
+msgid "gdacs event"
+msgstr "حدث gdacs"
+
+#: api/models.py:547
+msgid "gdacs events"
+msgstr "أحداث gdacs"
+
+#: api/models.py:634
+msgid "appeal"
+msgstr "استئناف"
+
+#: api/models.py:635
+msgid "appeals"
+msgstr "النداءات"
+
+#: api/models.py:681
+msgid "appeal document"
+msgstr "وثيقة الاستئناف"
+
+#: api/models.py:682
+msgid "appeal documents"
+msgstr "وثائق الاستئناف"
+
+#: api/models.py:718
+msgid "Is this a Field Report specific to the COVID-19 emergency?"
+msgstr "هل هذا تقرير ميداني خاص بحالة الطوارئ في COVID-19؟"
+
+#: api/models.py:882
+msgid "field report"
+msgstr "تقرير ميداني"
+
+#: api/models.py:883
+msgid "field reports"
+msgstr "التقارير الميدانية"
+
+#: api/models.py:942
+msgid "field report contanct"
+msgstr "تقرير ميداني"
+
+#: api/models.py:943
+msgid "field report contancts"
+msgstr "تقارير ميدانية"
+
+#: api/models.py:955
+msgid "National Society"
+msgstr "الجمعية الوطنية"
+
+#: api/models.py:956
+msgid "Foreign Society"
+msgstr "جمعية أجنبية"
+
+#: api/models.py:957
+msgid "Federation"
+msgstr "اتحاد"
+
+#: api/models.py:968
+msgid "Event"
+msgstr "حادثة"
+
+#: api/models.py:969
+msgid "Early Warning"
+msgstr "الإنذار المبكر"
+
+#: api/models.py:970
+msgid "Epidemic"
+msgstr "وباء"
+
+#: api/models.py:971
+msgid "COVID-19"
+msgstr "COVID-19"
+
+#: api/models.py:981
+msgid "General"
+msgstr "عام"
+
+#: api/models.py:982
+msgid "Health"
+msgstr "صحة"
+
+#: api/models.py:983
+msgid "NS Institutional Strengthening"
+msgstr "تعزيز المؤسسات الوطنية"
+
+#: api/models.py:984
+msgid "Socioeconomic Interventions"
+msgstr "التدخلات الاجتماعية والاقتصادية"
+
+#: api/models.py:1004
+msgid "Disable in form"
+msgstr "تعطيل في النموذج"
+
+#: api/models.py:1007
+msgid "action"
+msgstr "عمل"
+
+#: api/models.py:1008
+msgid "actions"
+msgstr "الإجراءات"
+
+#: api/models.py:1026
+msgid "actions taken"
+msgstr "الإجراءات المتخذة"
+
+#: api/models.py:1027
+msgid "all actions taken"
+msgstr "جميع الإجراءات المتخذة"
+
+#: api/models.py:1038
+msgid "source type"
+msgstr "نوع المصدر"
+
+#: api/models.py:1039
+msgid "source types"
+msgstr "أنواع المصادر"
+
+#: api/models.py:1053
+msgid "sources"
+msgstr "مصادر"
+
+#: api/models.py:1092
+msgid "user profile"
+msgstr "ملف تعريف المستخدم"
+
+#: api/models.py:1093
+msgid "user profiles"
+msgstr "ملفات تعريف المستخدمين"
+
+#: api/models.py:1100 api/models.py:1220 api/models.py:1311 api/models.py:1414
+msgid "Did anyone check the editable data?"
+msgstr "هل تحقق أي شخص من البيانات القابلة للتحرير؟"
+
+#: api/models.py:1212
+msgid "emergency operations dataset"
+msgstr "مجموعة بيانات عمليات الطوارئ"
+
+#: api/models.py:1213
+msgid "emergency operations datasets"
+msgstr "مجموعات بيانات عمليات الطوارئ"
+
+#: api/models.py:1303 api/models.py:1304
+msgid "emergency operations people reached"
+msgstr "وصول الأشخاص إلى عمليات الطوارئ"
+
+#: api/models.py:1406
+msgid "emergency operations emergency appeal"
+msgstr "نداء الطوارئ لعمليات الطوارئ"
+
+#: api/models.py:1407
+msgid "emergency operations emergency appeals"
+msgstr "نداءات الطوارئ المتعلقة بعمليات الطوارئ"
+
+#: api/models.py:1517
+msgid "emergency operations final report"
+msgstr "التقرير النهائي لعمليات الطوارئ"
+
+#: api/models.py:1518
+msgid "emergency operations final reports"
+msgstr "التقارير النهائية لعمليات الطوارئ"
+
+#: api/models.py:1542
+msgid "cronjob log record"
+msgstr "سجل كرونجوب"
+
+#: api/models.py:1543
+msgid "cronjob log records"
+msgstr "سجلات سجل كرونجوب"
+
+#: api/models.py:1606
+msgid "auth log"
+msgstr "سجل المصادقة"
+
+#: api/models.py:1607
+msgid "auth logs"
+msgstr "سجلات المصادقة"
+
+#: api/models.py:1633
+msgid "reversion difference log"
+msgstr "سجل اختلاف الانعكاس"
+
+#: api/models.py:1634
+msgid "reversion difference logs"
+msgstr "سجلات فرق الانعكاس"
+
+#: api/templates/admin/base.html:58
+msgid "Welcome,"
+msgstr "مرحبا،"
+
+#: api/templates/admin/base.html:63
+msgid "View site"
+msgstr "عرض الموقع"
+
+#: api/templates/admin/base.html:68
+msgid "Documentation"
+msgstr "وثائق"
+
+#: api/templates/admin/base.html:72
+msgid "Change password"
+msgstr "تغيير كلمة المرور"
+
+#: api/templates/admin/base.html:74
+msgid "Log out"
+msgstr "تسجيل الخروج"
+
+#: api/templates/admin/base.html:84 api/templates/admin/import_form.html:13
+msgid "Home"
+msgstr "الصفحة الرئيسية"
+
+#: api/templates/admin/base_site.html:5
+msgid "Django site admin"
+msgstr "موقع جانغو المشرف"
+
+#: api/templates/admin/edit_inline/tabular.html:21
+msgid "Delete?"
+msgstr "حذف؟"
+
+#: api/templates/admin/edit_inline/tabular.html:35
+msgid "Change"
+msgstr "تغيير"
+
+#: api/templates/admin/edit_inline/tabular.html:37
+msgid "View on site"
+msgstr "عرض في الموقع"
+
+#: api/templates/admin/submit_line.html:5
+msgid "Save"
+msgstr "حفظ"
+
+#: api/templates/admin/submit_line.html:9
+msgid "Delete the whole"
+msgstr "حذف الكل"
+
+#: api/templates/admin/submit_line.html:12
+msgid "Save as new"
+msgstr "حفظ كجديد"
+
+#: api/templates/admin/submit_line.html:13
+msgid "Save and add another"
+msgstr "حفظ وإضافة آخر"
+
+#: api/templates/admin/submit_line.html:14
+msgid "Save and continue editing"
+msgstr "حفظ ومتابعة التحرير"
+
+#: api/templates/admin/submit_line.html:14
+msgid "Save and view"
+msgstr "حفظ وعرض"
+
+#: api/templates/admin/submit_line.html:15
+msgid "Close"
+msgstr "قريب"

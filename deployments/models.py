@@ -3,6 +3,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
@@ -34,8 +35,8 @@ class ERUOwner(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'ERUs from a National Society'
-        verbose_name_plural = 'ERUs'
+        verbose_name = _('ERUs from a National Society')
+        verbose_name_plural = _('ERUs')
 
     def __str__(self):
         if self.national_society_country.society_name is not None:
@@ -61,6 +62,10 @@ class ERU(models.Model):
     available = models.BooleanField(default=False)
     alert_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
 
+    class Meta:
+        verbose_name = _('ERU')
+        # TODO: verbose_name_plural = _('ERUs')
+
     def __str__(self):
         return ['Basecamp', 'IT & Telecom', 'Logistics', 'RCRC Emergency Hospital', 'RCRC Emergency Clinic', 'Relief', 'WASH M15', 'WASH MSM20', 'WASH M40'][self.type]
 
@@ -81,7 +86,8 @@ class PersonnelDeployment(models.Model):
     comments = models.TextField(null=True, blank=True)
 
     class Meta:
-        verbose_name_plural = 'Personnel Deployments'
+        verbose_name = _('Personnel Deployment')
+        verbose_name_plural = _('Personnel Deployments')
 
     def __str__(self):
         return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
@@ -92,6 +98,10 @@ class DeployedPerson(models.Model):
     end_date = models.DateTimeField(null=True)
     name = models.CharField(null=True, blank=True, max_length=100)
     role = models.CharField(null=True, blank=True, max_length=32)
+
+    class Meta:
+        verbose_name = _('Deployed Person')
+        verbose_name_plural = _('Deployed Persons')
 
     def __str__(self):
         return '%s - %s' % (self.name, self.role)
@@ -116,7 +126,8 @@ class Personnel(DeployedPerson):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
 
     class Meta:
-        verbose_name_plural = 'Personnel'
+        verbose_name = _('Personnel')
+        verbose_name_plural = _('Personnels')
 
 
 class PartnerSocietyActivities(models.Model):
@@ -126,8 +137,8 @@ class PartnerSocietyActivities(models.Model):
         return self.activity
 
     class Meta:
-        verbose_name = 'Partner society activity'
-        verbose_name_plural = 'Partner society activities'
+        verbose_name = _('Partner society activity')
+        verbose_name_plural = _('Partner society activities')
 
 
 class PartnerSocietyDeployment(DeployedPerson):
@@ -135,6 +146,10 @@ class PartnerSocietyDeployment(DeployedPerson):
     parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
     country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
     district_deployed_to = models.ManyToManyField(District)
+
+    class Meta:
+        verbose_name = _('Partner Society Deployment')
+        verbose_name_plural = _('Partner Society Deployments')
 
     def __str__(self):
         return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
@@ -222,6 +237,10 @@ class RegionalProject(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = _('Regional Project')
+        verbose_name_plural = _('Regional Projects')
+
     def __str__(self):
         return self.name
 
@@ -287,6 +306,10 @@ class Project(models.Model):
     )
     visibility = models.CharField(max_length=32, choices=VISIBILITY, default=PUBLIC)
 
+    class Meta:
+        verbose_name = _('Project')
+        verbose_name_plural = _('Projects')
+
     def __str__(self):
         if self.reporting_ns is None:
             postfix = None
@@ -333,6 +356,10 @@ class ProjectImport(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
     file = models.FileField(upload_to='project-imports/')
 
+    class Meta:
+        verbose_name = _('Project Import')
+        verbose_name_plural = _('Projects Import')
+
     def __str__(self):
         return f'Project Import {self.status}:{self.created_at}'
 
@@ -347,8 +374,8 @@ class ERUReadiness(models.Model):
 
     class Meta:
         ordering = ('updated_at', 'national_society', )
-        verbose_name = 'ERU Readiness'
-        verbose_name_plural = 'NS-es ERU Readiness'
+        verbose_name = _('ERU Readiness')
+        verbose_name_plural = _('NS-es ERU Readiness')
 
     def __str__(self):
         if self.national_society is None:

@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.conf import settings
+from django.urls import path
 from django.contrib import admin
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
+from django.conf.urls.i18n import i18n_patterns
 from tastypie.api import Api
 from api.views import (
     GetAuthToken,
@@ -150,10 +152,11 @@ urlpatterns = [
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
-    url(r'^', admin.site.urls),
-    url(r'^favicon\.ico$',RedirectView.as_view(url='/static/favicon.ico')),
+    # url(r'^', admin.site.urls),
+    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
     url(r'^server-error-for-devs', DummyHttpStatusError.as_view()),
-    url(r'^exception-error-for-devs', DummyExceptionError.as_view())
+    url(r'^exception-error-for-devs', DummyExceptionError.as_view()),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
 
 if settings.DEBUG:
@@ -166,3 +169,9 @@ if settings.DEBUG:
 
     ] + urlpatterns
 
+# API With language URL patterns
+urlpatterns += i18n_patterns(
+    path('', admin.site.urls),
+    # NOTE: Current language switcher will not work if set to False.
+    prefix_default_language=True,
+)

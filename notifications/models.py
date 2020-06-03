@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -39,6 +40,8 @@ class SurgeAlert(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = _('Surge Alert')
+        verbose_name_plural = _('Surge Alerts')
 
     def save(self, *args, **kwargs):
         # On save, if `created` is not set, make it the current time
@@ -81,6 +84,7 @@ class RecordType(IntEnum):
 # update      notification_subscription set rtype=12, stype=0 where rtype=2; -- FIELDREP > EMERGENCY
 # delete from notification_subscription                       where rtype=2; -- FIELDREP > EMERGENCY
 
+
 class Subscription(models.Model):
     """ User subscriptions """
 
@@ -99,6 +103,10 @@ class Subscription(models.Model):
     event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
 
     lookup_id = models.CharField(max_length=20, null=True, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _('Subscription')
+        verbose_name_plural = _('Subscriptions')
 
     # Given a request containing new subscriptions, validate and
     # sync the subscriptions.

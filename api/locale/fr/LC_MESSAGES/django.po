@@ -1,0 +1,580 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: api/admin.py:50
+msgid "related emergency"
+msgstr "urgence liée"
+
+#: api/admin.py:54
+msgid "Exists"
+msgstr "Existe"
+
+#: api/admin.py:55
+msgid "Needs confirmation"
+msgstr "Confirmation des besoins"
+
+#: api/admin.py:56
+msgid "None"
+msgstr "Aucun"
+
+#: api/admin.py:68
+msgid "membership"
+msgstr "adhésion"
+
+#: api/admin.py:72
+msgid "Membership"
+msgstr "Adhésion"
+
+#: api/admin.py:73
+msgid "IFRC"
+msgstr "IFRC"
+
+#: api/admin.py:74
+msgid "Public"
+msgstr "Publique"
+
+#: api/admin.py:86
+msgid "appeal type"
+msgstr "type d'appel"
+
+#: api/admin.py:90
+msgid "DREF"
+msgstr "DREF"
+
+#: api/admin.py:91
+msgid "Appeal"
+msgstr "Appel"
+
+#: api/admin.py:92
+msgid "Intl appeal"
+msgstr "Appel Intl"
+
+#: api/admin.py:104
+msgid "featured"
+msgstr "en vedette"
+
+#: api/admin.py:108
+msgid "Featured"
+msgstr "En vedette"
+
+#: api/admin.py:109
+msgid "Not Featured"
+msgstr "Non en vedette"
+
+#: api/admin.py:119 api/models.py:1052
+msgid "source"
+msgstr "source"
+
+#: api/admin.py:123
+msgid "Manual input"
+msgstr "Entrée manuelle"
+
+#: api/admin.py:124
+msgid "GDACs scraper"
+msgstr "Grattoir GDAC"
+
+#: api/admin.py:125
+msgid "WHO scraper"
+msgstr "Grattoir OMS"
+
+#: api/admin.py:126
+msgid "Field report ingest"
+msgstr "Ingestion du rapport sur le terrain"
+
+#: api/admin.py:127
+msgid "Field report admin"
+msgstr "Admin du rapport sur le terrain"
+
+#: api/admin.py:128
+msgid "Appeals admin"
+msgstr "Admin des appels"
+
+#: api/admin.py:129
+msgid "Unknown automated"
+msgstr "Inconnu automatisé"
+
+#: api/apps.py:6
+msgid "api"
+msgstr "api"
+
+#: api/models.py:40
+msgid "disaster type"
+msgstr "type de catastrophe"
+
+#: api/models.py:41
+msgid "disaster types"
+msgstr "types de catastrophes"
+
+#: api/models.py:75
+msgid "region"
+msgstr "région"
+
+#: api/models.py:76
+msgid "regions"
+msgstr "régions"
+
+#: api/models.py:110
+msgid "Type of entity"
+msgstr "Type d'entité"
+
+#: api/models.py:127 api/models.py:167
+msgid "Population data from WB API"
+msgstr "Données démographiques de l'API WB"
+
+#: api/models.py:128 api/models.py:168
+msgid "Population data year from WB API"
+msgstr "Année de données démographiques à partir de l'API WB"
+
+#: api/models.py:149
+msgid "country"
+msgstr "pays"
+
+#: api/models.py:150
+msgid "countries"
+msgstr "pays"
+
+#: api/models.py:164
+msgid "Is it an enclave away from parent country?"
+msgstr "Est-ce une enclave loin du pays d'origine ?"
+
+#: api/models.py:172
+msgid "district"
+msgstr "district"
+
+#: api/models.py:173
+msgid "districts"
+msgstr "districts"
+
+#: api/models.py:195
+msgid "admin key figure"
+msgstr "figure de la clé d'administration"
+
+#: api/models.py:196
+msgid "admin key figures"
+msgstr "chiffres clés admin"
+
+#: api/models.py:207
+msgid "region key figure"
+msgstr "chiffre clé de la région"
+
+#: api/models.py:208
+msgid "region key figures"
+msgstr "chiffres clés de la région"
+
+#: api/models.py:216
+msgid "country key figure"
+msgstr "chiffre clé du pays"
+
+#: api/models.py:217
+msgid "country key figures"
+msgstr "chiffres clés par pays"
+
+#: api/models.py:243
+msgid "region snippet"
+msgstr "extrait de région"
+
+#: api/models.py:244
+msgid "region snippets"
+msgstr "extraits de région"
+
+#: api/models.py:259
+msgid "country snippet"
+msgstr "extrait de pays"
+
+#: api/models.py:260
+msgid "country snippets"
+msgstr "extraits de pays"
+
+#: api/models.py:271
+msgid "admin link"
+msgstr "lien admin"
+
+#: api/models.py:272
+msgid "admin links"
+msgstr "liens admin"
+
+#: api/models.py:279
+msgid "region link"
+msgstr "lien région"
+
+#: api/models.py:280
+msgid "region links"
+msgstr "liens de région"
+
+#: api/models.py:287
+msgid "country link"
+msgstr "lien pays"
+
+#: api/models.py:288
+msgid "country links"
+msgstr "liens pays"
+
+#: api/models.py:298
+msgid "admin contact"
+msgstr "contact admin"
+
+#: api/models.py:299
+msgid "admin contacts"
+msgstr "contacts admin"
+
+#: api/models.py:309
+msgid "region contact"
+msgstr "contact région"
+
+#: api/models.py:310
+msgid "region contacts"
+msgstr "contacts régionaux"
+
+#: api/models.py:317
+msgid "country contact"
+msgstr "contact pays"
+
+#: api/models.py:318
+msgid "country contacts"
+msgstr "contacts pays"
+
+#: api/models.py:332
+msgid ""
+"Optional string for a clean URL. For example, "
+"go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with"
+" a number and is forced to be lowercase. Recommend using hyphens over "
+"underscores. Special characters like # is not allowed."
+msgstr ""
+"Chaîne facultative pour une URL propre. Par exemple, "
+"go.ifrc.org/emergencies/hurricane-katrina-2019. La chaîne ne peut pas "
+"commencer par un nombre et est forcée d'être en minuscules. Recommandez "
+"d'utiliser des traits d'union sur les traits de soulignement. Les caractères"
+" spéciaux comme # ne sont pas autorisés."
+
+#: api/models.py:337
+msgid ""
+"If needed, you have to change the connected Appeals', Field Reports', etc to"
+" point to the parent Emergency manually."
+msgstr ""
+"Si nécessaire, vous devez modifier manuellement les appels connectés, les "
+"rapports de terrain, etc. pour pointer vers l'urgence parent."
+
+#: api/models.py:372
+msgid "emergency"
+msgstr "urgence"
+
+#: api/models.py:373
+msgid "emergencies"
+msgstr "urgences"
+
+#: api/models.py:441
+msgid "event contact"
+msgstr "contact événement"
+
+#: api/models.py:442
+msgid "event contacts"
+msgstr "contacts d'événement"
+
+#: api/models.py:458
+msgid "key figure"
+msgstr "figure clé"
+
+#: api/models.py:459
+msgid "key figures"
+msgstr "chiffres clés"
+
+#: api/models.py:477
+msgid "snippet"
+msgstr "extrait"
+
+#: api/models.py:478
+msgid "snippets"
+msgstr "des extraits"
+
+#: api/models.py:488
+msgid "Ensure this type gets precedence over others that are empty"
+msgstr "Assurez-vous que ce type a la priorité sur les autres qui sont vides"
+
+#: api/models.py:491
+msgid "situation report type"
+msgstr "type de rapport de situation"
+
+#: api/models.py:492
+msgid "situation report types"
+msgstr "types de rapports de situation"
+
+#: api/models.py:511
+msgid "Pin this report at the top"
+msgstr "Épinglez ce rapport en haut"
+
+#: api/models.py:514
+msgid "situation report"
+msgstr "rapport de situation"
+
+#: api/models.py:515
+msgid "situation reports"
+msgstr "rapports de situation"
+
+#: api/models.py:546
+msgid "gdacs event"
+msgstr "événement gdacs"
+
+#: api/models.py:547
+msgid "gdacs events"
+msgstr "événements gdacs"
+
+#: api/models.py:634
+msgid "appeal"
+msgstr "appel"
+
+#: api/models.py:635
+msgid "appeals"
+msgstr "appels"
+
+#: api/models.py:681
+msgid "appeal document"
+msgstr "document d'appel"
+
+#: api/models.py:682
+msgid "appeal documents"
+msgstr "documents d'appel"
+
+#: api/models.py:718
+msgid "Is this a Field Report specific to the COVID-19 emergency?"
+msgstr "Est-ce un rapport de terrain spécifique à l'urgence COVID-19 ?"
+
+#: api/models.py:882
+msgid "field report"
+msgstr "rapport de champ"
+
+#: api/models.py:883
+msgid "field reports"
+msgstr "rapports de terrain"
+
+#: api/models.py:942
+msgid "field report contanct"
+msgstr "champ rapport contanct"
+
+#: api/models.py:943
+msgid "field report contancts"
+msgstr "Contancts de rapport de champ"
+
+#: api/models.py:955
+msgid "National Society"
+msgstr "Société Nationale"
+
+#: api/models.py:956
+msgid "Foreign Society"
+msgstr "Société étrangère"
+
+#: api/models.py:957
+msgid "Federation"
+msgstr "Fédération"
+
+#: api/models.py:968
+msgid "Event"
+msgstr "Événement"
+
+#: api/models.py:969
+msgid "Early Warning"
+msgstr "Alerte précoce"
+
+#: api/models.py:970
+msgid "Epidemic"
+msgstr "Épidémie"
+
+#: api/models.py:971
+msgid "COVID-19"
+msgstr "COVID-19"
+
+#: api/models.py:981
+msgid "General"
+msgstr "Général"
+
+#: api/models.py:982
+msgid "Health"
+msgstr "Santé"
+
+#: api/models.py:983
+msgid "NS Institutional Strengthening"
+msgstr "Renforcement institutionnel de la Nouvelle-Écosse"
+
+#: api/models.py:984
+msgid "Socioeconomic Interventions"
+msgstr "Interventions socioéconomiques"
+
+#: api/models.py:1004
+msgid "Disable in form"
+msgstr "Désactiver dans le formulaire"
+
+#: api/models.py:1007
+msgid "action"
+msgstr "action"
+
+#: api/models.py:1008
+msgid "actions"
+msgstr "actions"
+
+#: api/models.py:1026
+msgid "actions taken"
+msgstr "mesures prises"
+
+#: api/models.py:1027
+msgid "all actions taken"
+msgstr "toutes les mesures prises"
+
+#: api/models.py:1038
+msgid "source type"
+msgstr "type source"
+
+#: api/models.py:1039
+msgid "source types"
+msgstr "types de source"
+
+#: api/models.py:1053
+msgid "sources"
+msgstr "sources"
+
+#: api/models.py:1092
+msgid "user profile"
+msgstr "profil utilisateur"
+
+#: api/models.py:1093
+msgid "user profiles"
+msgstr "profils utilisateur"
+
+#: api/models.py:1100 api/models.py:1220 api/models.py:1311 api/models.py:1414
+msgid "Did anyone check the editable data?"
+msgstr "Quelqu'un a-t-il vérifié les données modifiables ?"
+
+#: api/models.py:1212
+msgid "emergency operations dataset"
+msgstr "jeu de données sur les opérations d'urgence"
+
+#: api/models.py:1213
+msgid "emergency operations datasets"
+msgstr "jeux de données sur les opérations d'urgence"
+
+#: api/models.py:1303 api/models.py:1304
+msgid "emergency operations people reached"
+msgstr "les opérations d'urgence ont atteint les personnes"
+
+#: api/models.py:1406
+msgid "emergency operations emergency appeal"
+msgstr "opérations d'urgence appel d'urgence"
+
+#: api/models.py:1407
+msgid "emergency operations emergency appeals"
+msgstr "opérations d'urgence appels d'urgence"
+
+#: api/models.py:1517
+msgid "emergency operations final report"
+msgstr "rapport final sur les opérations d'urgence"
+
+#: api/models.py:1518
+msgid "emergency operations final reports"
+msgstr "rapports finaux sur les opérations d'urgence"
+
+#: api/models.py:1542
+msgid "cronjob log record"
+msgstr "enregistrement de journal cronjob"
+
+#: api/models.py:1543
+msgid "cronjob log records"
+msgstr "enregistrements de journal cronjob"
+
+#: api/models.py:1606
+msgid "auth log"
+msgstr "journal d'authentification"
+
+#: api/models.py:1607
+msgid "auth logs"
+msgstr "journaux d'authentification"
+
+#: api/models.py:1633
+msgid "reversion difference log"
+msgstr "journal de différence de réversion"
+
+#: api/models.py:1634
+msgid "reversion difference logs"
+msgstr "journaux de différence de réversion"
+
+#: api/templates/admin/base.html:58
+msgid "Welcome,"
+msgstr "Accueil,"
+
+#: api/templates/admin/base.html:63
+msgid "View site"
+msgstr "Voir le site"
+
+#: api/templates/admin/base.html:68
+msgid "Documentation"
+msgstr "Documentation"
+
+#: api/templates/admin/base.html:72
+msgid "Change password"
+msgstr "Modifier le mot de passe"
+
+#: api/templates/admin/base.html:74
+msgid "Log out"
+msgstr "Se déconnecter"
+
+#: api/templates/admin/base.html:84 api/templates/admin/import_form.html:13
+msgid "Home"
+msgstr "Accueil"
+
+#: api/templates/admin/base_site.html:5
+msgid "Django site admin"
+msgstr "Admin du site Django"
+
+#: api/templates/admin/edit_inline/tabular.html:21
+msgid "Delete?"
+msgstr "Supprimer ?"
+
+#: api/templates/admin/edit_inline/tabular.html:35
+msgid "Change"
+msgstr "Changement"
+
+#: api/templates/admin/edit_inline/tabular.html:37
+msgid "View on site"
+msgstr "Voir sur le site"
+
+#: api/templates/admin/submit_line.html:5
+msgid "Save"
+msgstr "Sauvegarder"
+
+#: api/templates/admin/submit_line.html:9
+msgid "Delete the whole"
+msgstr "Supprimer l'ensemble"
+
+#: api/templates/admin/submit_line.html:12
+msgid "Save as new"
+msgstr "Enregistrer comme nouveau"
+
+#: api/templates/admin/submit_line.html:13
+msgid "Save and add another"
+msgstr "Enregistrer et ajouter un autre"
+
+#: api/templates/admin/submit_line.html:14
+msgid "Save and continue editing"
+msgstr "Enregistrer et continuer à modifier"
+
+#: api/templates/admin/submit_line.html:14
+msgid "Save and view"
+msgstr "Enregistrer et afficher"
+
+#: api/templates/admin/submit_line.html:15
+msgid "Close"
+msgstr "Fermer"

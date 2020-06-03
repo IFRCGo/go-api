@@ -1,0 +1,47 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: registrations/apps.py:6
+msgid "registrations"
+msgstr "التسجيلات"
+
+#: registrations/models.py:31
+msgid "Pending user"
+msgstr "مستخدم معلق"
+
+#: registrations/models.py:32
+msgid "Pending users"
+msgstr "المستعملون المعلقون"
+
+#: registrations/models.py:50
+msgid "Recovery"
+msgstr "الاسترداد"
+
+#: registrations/models.py:51
+msgid "Recoveries"
+msgstr "المبالغ المستردة"
+
+#: registrations/models.py:64
+msgid "Domain Whitelist"
+msgstr "القائمة البيضاء للنطاق"
+
+#: registrations/models.py:65
+msgid "Domains Whitelist"
+msgstr "قائمة النطاقات البيضاء"

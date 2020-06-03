@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: databank/admin.py:41
+msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
+msgstr "المؤشرات الرئيسية القطرية (المصدر: تقارير FDRS)"
+
+#: databank/admin.py:47
+msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
+msgstr "مؤشرات المجتمع الوطني (المصدر: تقارير FDRS)"
+
+#: databank/admin.py:50
+msgid "KEY CLIMATE EVENT"
+msgstr "الحدث المناخي الرئيسي"
+
+#: databank/apps.py:6
+msgid "databank"
+msgstr "بنك البيانات"
+
+#: databank/models.py:231
+msgid "Country Overview"
+msgstr "نظرة عامة على البلد"
+
+#: databank/models.py:232
+msgid "Countries Overview"
+msgstr "نظرة عامة على البلدان"
+
+#: databank/models.py:253
+msgid "Social Event"
+msgstr "حدث اجتماعي"
+
+#: databank/models.py:254
+msgid "Social Events"
+msgstr "الفعاليات الاجتماعية"
+
+#: databank/models.py:272
+msgid "Key Client Event"
+msgstr "حدث العميل الرئيسي"
+
+#: databank/models.py:273
+msgid "Key Client Events"
+msgstr "الأحداث الرئيسية للعميل"
+
+#: databank/models.py:289
+msgid "Seasonal Calender Record"
+msgstr "سجل التقويم الموسمي"
+
+#: databank/models.py:290
+msgid "Seasonal Calender Records"
+msgstr "سجلات التقويم الموسمية"

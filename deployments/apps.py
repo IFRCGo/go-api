@@ -1,9 +1,10 @@
+from django.utils.translation import gettext_lazy as _
 from django.apps import AppConfig
 
 
 class DeploymentsConfig(AppConfig):
     name = 'deployments'
-    verbose_name = 'Deployments & 3W\'s (Who, What, Where)'
+    verbose_name = _('Deployments & 3W\'s (Who, What, Where)')
 
     def ready(self):
-        import api.receivers
+        import api.receivers  # noqa F401

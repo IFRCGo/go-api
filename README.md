@@ -55,6 +55,18 @@ Access the site at http://localhost:8000
      $ docker-compose build
 
 
+## Adding translations (Django)
+```bash
+# Generating new language po files (for eg: fr)
+python3 manage.py makemessages -l fr
+# Updating currnet language po files
+python3 manage.py makemessages -a
+# Translate empty string of po files using AWS Translate (Requires valid AWS_TRANSLATE_* env variables)
+python3 manage.py translate_po
+# Compile po files
+python3 manage.py compilemessages
+```
+
 ## Generate coverage report
 
      $ docker-compose run --rm coverage

@@ -1,0 +1,107 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: deployments/apps.py:7
+msgid "Deployments & 3W's (Who, What, Where)"
+msgstr "Déploiements et 3W (qui, quoi, où)"
+
+#: deployments/models.py:38
+msgid "ERUs from a National Society"
+msgstr "URE d'une société nationale"
+
+#: deployments/models.py:39
+msgid "ERUs"
+msgstr "URE"
+
+#: deployments/models.py:66
+msgid "ERU"
+msgstr "ERU"
+
+#: deployments/models.py:89
+msgid "Personnel Deployment"
+msgstr "Déploiement du personnel"
+
+#: deployments/models.py:90
+msgid "Personnel Deployments"
+msgstr "Déploiements de personnel"
+
+#: deployments/models.py:103
+msgid "Deployed Person"
+msgstr "Personne déployée"
+
+#: deployments/models.py:104
+msgid "Deployed Persons"
+msgstr "Personnes déployées"
+
+#: deployments/models.py:129
+msgid "Personnel"
+msgstr "Personnel"
+
+#: deployments/models.py:130
+msgid "Personnels"
+msgstr "Personnels"
+
+#: deployments/models.py:140
+msgid "Partner society activity"
+msgstr "Activité de la société partenaire"
+
+#: deployments/models.py:141
+msgid "Partner society activities"
+msgstr "Activités de la société partenaire"
+
+#: deployments/models.py:151
+msgid "Partner Society Deployment"
+msgstr "Déploiement de la société partenaire"
+
+#: deployments/models.py:152
+msgid "Partner Society Deployments"
+msgstr "Déploiements de la société partenaire"
+
+#: deployments/models.py:241
+msgid "Regional Project"
+msgstr "Projet régional"
+
+#: deployments/models.py:242
+msgid "Regional Projects"
+msgstr "Projets régionaux"
+
+#: deployments/models.py:310
+msgid "Project"
+msgstr "Projet"
+
+#: deployments/models.py:311
+msgid "Projects"
+msgstr "Projets"
+
+#: deployments/models.py:360
+msgid "Project Import"
+msgstr "Importation de projet"
+
+#: deployments/models.py:361
+msgid "Projects Import"
+msgstr "Importation de projets"
+
+#: deployments/models.py:377
+msgid "ERU Readiness"
+msgstr "Préparation aux URE"
+
+#: deployments/models.py:378
+msgid "NS-es ERU Readiness"
+msgstr "Préparation aux ERU NS-ES"

@@ -3,6 +3,7 @@ from api.models import Country
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from tinymce import HTMLField
@@ -32,6 +33,7 @@ class ProcessPhase(IntEnum):
     PLAN_OF_ACTION = 4
     ACTION_AND_ACCOUNTABILITY = 5
 
+
 class NSPhase(models.Model):
     """ NS PER Process Phase """
     country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1 ) #default=1 needed only for the migration, can be deleted later
@@ -40,8 +42,8 @@ class NSPhase(models.Model):
 
     class Meta:
         ordering = ('updated_at', 'country', )
-        verbose_name = 'NS PER Process Phase'
-        verbose_name_plural = 'NS-es PER Process Phase'
+        verbose_name = _('NS PER Process Phase')
+        verbose_name_plural = _('NS-es PER Process Phase')
 
     def __str__(self):
         if self.country is None:
@@ -49,6 +51,7 @@ class NSPhase(models.Model):
         else:
             name = self.country.society_name
         return '%s (%s)' % (name, self.phase)
+
 
 class Status(IntEnum):
     NO                          = 0
@@ -60,10 +63,12 @@ class Status(IntEnum):
     EXIST_COULD_BE_STRENGTHENED = 6 # Exist, could be strengthened
     HIGH_PERFORMANCE            = 7 # High Performance
 
+
 class Language(IntEnum):
     SPANISH = 0
     FRENCH =  1
     ENGLISH = 2
+
 
 class Draft(models.Model):
     """ PER draft form header """
@@ -75,8 +80,8 @@ class Draft(models.Model):
 
     class Meta:
         ordering = ('code', 'created_at')
-        verbose_name = 'Draft Form'
-        verbose_name_plural = 'Draft Forms'
+        verbose_name = _('Draft Form')
+        verbose_name_plural = _('Draft Forms')
 
     def __str__(self):
         if self.country is None:
@@ -84,6 +89,7 @@ class Draft(models.Model):
         else:
             country = self.country.society_name
         return '%s - %s (%s)' % (self.code, self.user, country)
+
 
 class Form(models.Model):
     """ PER form header """
@@ -106,8 +112,8 @@ class Form(models.Model):
 
     class Meta:
         ordering = ('code', 'name', 'language', 'created_at')
-        verbose_name = 'Form'
-        verbose_name_plural = 'Forms'
+        verbose_name = _('Form')
+        verbose_name_plural = _('Forms')
 
     def __str__(self):
         if self.country is None:
@@ -116,9 +122,11 @@ class Form(models.Model):
             name = self.country.society_name
         return '%s - %s (%s, %s)' % (self.code, self.name, self.language, name)
 
+
 def question_details(question_id, code):
     q = code + question_id
     return questions.get(q, '')
+
 
 class FormData(models.Model):
     """ PER form data """
@@ -129,18 +137,20 @@ class FormData(models.Model):
 
     class Meta:
         ordering = ('form', 'question_id')
-        verbose_name = 'Form Data'
-        verbose_name_plural = 'Form Data'
+        verbose_name = _('Form Data')
+        verbose_name_plural = _('Form Data')
 
     def __str__(self):
 
         #return '%s / %s' % (self.question_id, self.form)
         return question_details(self.question_id, self.form.code)
 
+
 class PriorityValue(IntEnum):
     LOW  = 0
     MID  = 1
     HIGH = 2
+
 
 class WorkPlanStatus(IntEnum):
     STANDBY            = 0
@@ -152,6 +162,7 @@ class WorkPlanStatus(IntEnum):
     FINISHED           = 6
     APPROVED           = 7
     CLOSED             = 8
+
 
 class WorkPlan(models.Model):
     prioritization = EnumIntegerField(PriorityValue)
@@ -170,8 +181,8 @@ class WorkPlan(models.Model):
 
     class Meta:
         ordering = ('prioritization', 'country')
-        verbose_name = 'PER Work Plan'
-        verbose_name_plural = 'PER Work Plans'
+        verbose_name = _('PER Work Plan')
+        verbose_name_plural = _('PER Work Plans')
 
     def __str__(self):
         if self.country is None:
@@ -184,11 +195,13 @@ class WorkPlan(models.Model):
                 return '%s, %s' % (name, verbose)
         return '%s [%s %s]' % (name, self.code, self.question_id)
 
+
 class CAssessmentType(IntEnum):
     SELF_ASSESSMENT  = 0
     SIMULATION       = 1
     OPERATIONAL      = 2
     POST_OPERATIONAL = 3
+
 
 class Overview(models.Model):
     # Without related_name Django gives: Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
@@ -213,8 +226,8 @@ class Overview(models.Model):
 
     class Meta:
         ordering = ('country',)
-        verbose_name = 'PER General Overview'
-        verbose_name_plural = 'PER General Overviews'
+        verbose_name = _('PER General Overview')
+        verbose_name_plural = _('PER General Overviews')
 
     def __str__(self):
         if self.country is None:
@@ -222,6 +235,7 @@ class Overview(models.Model):
         else:
             name = self.country.society_name
         return '%s (%s)' % (name, self.focal_point_name)
+
 
 class Visibilities(IntEnum):
     HIDDEN = 0
@@ -242,9 +256,8 @@ class NiceDocument(models.Model):
 
     class Meta:
         ordering = ('visibility', 'country')
-        verbose_name = 'PER Document'
-        verbose_name_plural = 'PER Documents'
+        verbose_name = _('PER Document')
+        verbose_name_plural = _('PER Documents')
 
     def __str__(self):
         return '%s - %s' % (self.country, self.name)
-

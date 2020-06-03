@@ -1,5 +1,7 @@
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
+
 
 class Pending(models.Model):
     """ Pending users requiring admin approval """
@@ -26,8 +28,8 @@ class Pending(models.Model):
     email_verified = models.BooleanField(default=False, editable=False)
 
     class Meta:
-        verbose_name = 'Pending user'
-        verbose_name_plural = 'Pending users'
+        verbose_name = _('Pending user')
+        verbose_name_plural = _('Pending users')
 
     def __str__(self):
         return self.user.email
@@ -44,6 +46,10 @@ class Recovery(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     token = models.CharField(max_length=32, editable=False)
 
+    class Meta:
+        verbose_name = _('Recovery')
+        verbose_name_plural = _('Recoveries')
+
     def __str__(self):
         return self.user.username
 
@@ -53,6 +59,10 @@ class DomainWhitelist(models.Model):
     domain_name = models.CharField(max_length=200)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = _('Domain Whitelist')
+        verbose_name_plural = _('Domains Whitelist')
 
     def __str__(self):
         return self.domain_name

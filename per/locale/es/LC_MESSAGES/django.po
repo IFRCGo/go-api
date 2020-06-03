@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:25+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: per/apps.py:6
+msgid "per"
+msgstr "por"
+
+#: per/models.py:45
+msgid "NS PER Process Phase"
+msgstr "Fase de proceso NS PER"
+
+#: per/models.py:46
+msgid "NS-es PER Process Phase"
+msgstr "Fase de proceso NS-ES PER"
+
+#: per/models.py:83
+msgid "Draft Form"
+msgstr "Formulario de borrador"
+
+#: per/models.py:84
+msgid "Draft Forms"
+msgstr "Formularios de borrador"
+
+#: per/models.py:115
+msgid "Form"
+msgstr "Formulario"
+
+#: per/models.py:116
+msgid "Forms"
+msgstr "Formularios"
+
+#: per/models.py:140 per/models.py:141
+msgid "Form Data"
+msgstr "Datos del formulario"
+
+#: per/models.py:184
+msgid "PER Work Plan"
+msgstr "Plan de Trabajo PER"
+
+#: per/models.py:185
+msgid "PER Work Plans"
+msgstr "Planes de Trabajo PER"
+
+#: per/models.py:229
+msgid "PER General Overview"
+msgstr "Descripción general de PER"
+
+#: per/models.py:230
+msgid "PER General Overviews"
+msgstr "Vistas generales de PER"
+
+#: per/models.py:259
+msgid "PER Document"
+msgstr "Documento PER"
+
+#: per/models.py:260
+msgid "PER Documents"
+msgstr "Documentos PER"

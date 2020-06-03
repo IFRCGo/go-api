@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.postgres.fields import JSONField
 
@@ -226,6 +227,10 @@ class CountryOverview(models.Model):
     past_epidemics = JSONField(default=list)
     inform_indicators = JSONField(default=list)
 
+    class Meta:
+        verbose_name = _('Country Overview')
+        verbose_name_plural = _('Countries Overview')
+
     def __str__(self):
         return str(self.country)
 
@@ -245,6 +250,8 @@ class SocialEvent(models.Model):
 
     class Meta:
         unique_together = ('overview', 'label')
+        verbose_name = _('Social Event')
+        verbose_name_plural = _('Social Events')
 
     def __str__(self):
         return f'{self.overview} - {self.label}: {self.value}'
@@ -262,6 +269,8 @@ class KeyClimateEvent(models.Model):
 
     class Meta:
         unique_together = ('overview', 'month')
+        verbose_name = _('Key Client Event')
+        verbose_name_plural = _('Key Client Events')
 
     def __str__(self):
         return f'{self.overview.country} - {self.get_month_display()}'
@@ -277,6 +286,8 @@ class SeasonalCalender(models.Model):
 
     class Meta:
         unique_together = ('overview', 'sector', 'title')
+        verbose_name = _('Seasonal Calender Record')
+        verbose_name_plural = _('Seasonal Calender Records')
 
     def __str__(self):
         return f'{self.overview.country} - {self.title} - {self.sector}'

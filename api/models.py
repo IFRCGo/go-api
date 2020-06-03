@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
@@ -12,6 +13,7 @@ from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
 from .utils import validate_slug_number, is_user_ifrc
+
 
 # Write model properties to dictionary
 def to_dict(instance):
@@ -35,6 +37,8 @@ class DisasterType(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name = _('disaster type')
+        verbose_name_plural = _('disaster types')
 
     def __str__(self):
         return self.name
@@ -68,6 +72,8 @@ class Region(models.Model):
 
     class Meta:
         ordering = ('name',)
+        verbose_name = _('region')
+        verbose_name_plural = _('regions')
 
     def __str__(self):
         return ['Africa', 'Americas', 'Asia Pacific', 'Europe', 'MENA'][self.name]
@@ -75,8 +81,10 @@ class Region(models.Model):
     def region_name(self):
         return str(self.name)
 
+
 def logo_document_path(instance, filename):
     return 'logos/%s/%s' % (instance.iso, filename)
+
 
 class CountryType(IntEnum):
     '''
@@ -99,7 +107,7 @@ class Country(models.Model):
     """ A country """
 
     name = models.CharField(max_length=100)
-    record_type = EnumIntegerField(CountryType, default=1, help_text='Type of entity')
+    record_type = EnumIntegerField(CountryType, default=1, help_text=_('Type of entity'))
     iso = models.CharField(max_length=2, null=True)
     iso3 = models.CharField(max_length=3, null=True)
     society_name = models.TextField(blank=True)
@@ -116,8 +124,8 @@ class Country(models.Model):
     )
 
     # Population Data From WB API
-    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text='Population data from WB API')
-    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text='Population data year from WB API')
+    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text=_('Population data from WB API'))
+    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text=_('Population data year from WB API'))
 
     def indexing(self):
         return {
@@ -138,7 +146,8 @@ class Country(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name_plural = 'Countries'
+        verbose_name = _('country')
+        verbose_name_plural = _('countries')
 
     def __str__(self):
         return self.name
@@ -152,14 +161,16 @@ class District(models.Model):
     country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
     country_iso = models.CharField(max_length=3, null=True)
     country_name = models.CharField(max_length=100)
-    is_enclave = models.BooleanField(default=False, help_text='Is it an enclave away from parent country?') # used to mark if the district is far away from the country
+    is_enclave = models.BooleanField(default=False, help_text=_('Is it an enclave away from parent country?')) # used to mark if the district is far away from the country
 
     # Population Data From WB API
-    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text='Population data from WB API')
-    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text='Population data year from WB API')
+    wb_population = models.PositiveIntegerField(null=True, blank=True, help_text=_('Population data from WB API'))
+    wb_year = models.CharField(max_length=4, null=True, blank=True, help_text=_('Population data year from WB API'))
 
     class Meta:
         ordering = ('code',)
+        verbose_name = _('district')
+        verbose_name_plural = _('districts')
 
     def __str__(self):
         return '%s - %s' % (self.country_name, self.name)
@@ -178,8 +189,12 @@ class AdminKeyFigure(models.Model):
     deck = models.CharField(max_length=50)
     source = models.CharField(max_length=256)
     visibility = EnumIntegerField(VisibilityChoices, default=3)
+
     class Meta:
         ordering = ('source',)
+        verbose_name = _('admin key figure')
+        verbose_name_plural = _('admin key figures')
+
     def __str__(self):
         return self.source
 
@@ -187,9 +202,19 @@ class AdminKeyFigure(models.Model):
 class RegionKeyFigure(AdminKeyFigure):
     region = models.ForeignKey(Region, related_name='key_figures', on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ('source',)
+        verbose_name = _('region key figure')
+        verbose_name_plural = _('region key figures')
+
 
 class CountryKeyFigure(AdminKeyFigure):
     country = models.ForeignKey(Country, related_name='key_figures', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ('source',)
+        verbose_name = _('country key figure')
+        verbose_name_plural = _('country key figures')
 
 
 class PositionType(IntEnum):
@@ -199,10 +224,12 @@ class PositionType(IntEnum):
     LOW = 4
     BOTTOM = 5
 
+
 class TabNumber(IntEnum):
     TAB_1 = 1
     TAB_2 = 2
     TAB_3 = 3
+
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, related_name='snippets', on_delete=models.CASCADE)
@@ -213,6 +240,8 @@ class RegionSnippet(models.Model):
 
     class Meta:
         ordering = ('position', 'id',)
+        verbose_name = _('region snippet')
+        verbose_name_plural = _('region snippets')
 
     def __str__(self):
         return self.snippet
@@ -227,6 +256,8 @@ class CountrySnippet(models.Model):
 
     class Meta:
         ordering = ('position', 'id',)
+        verbose_name = _('country snippet')
+        verbose_name_plural = _('country snippets')
 
     def __str__(self):
         return self.snippet
@@ -236,11 +267,25 @@ class AdminLink(models.Model):
     title = models.CharField(max_length=100)
     url = models.URLField(max_length=300)
 
+    class Meta:
+        verbose_name = _('admin link')
+        verbose_name_plural = _('admin links')
+
+
 class RegionLink(AdminLink):
     region = models.ForeignKey(Region, related_name='links', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('region link')
+        verbose_name_plural = _('region links')
+
+
 class CountryLink(AdminLink):
     country = models.ForeignKey(Country, related_name='links', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('country link')
+        verbose_name_plural = _('country links')
 
 
 class AdminContact(models.Model):
@@ -249,6 +294,10 @@ class AdminContact(models.Model):
     title = models.CharField(max_length=300)
     email = models.CharField(max_length=300)
 
+    class Meta:
+        verbose_name = _('admin contact')
+        verbose_name_plural = _('admin contacts')
+
     def __str__(self):
         return self.name
 
@@ -256,8 +305,17 @@ class AdminContact(models.Model):
 class RegionContact(AdminContact):
     region = models.ForeignKey(Region, related_name='contacts', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('region contact')
+        verbose_name_plural = _('region contacts')
+
+
 class CountryContact(AdminContact):
     country = models.ForeignKey(Country, related_name='contacts', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('country contact')
+        verbose_name_plural = _('country contacts')
 
 
 class AlertLevel(IntEnum):
@@ -271,12 +329,12 @@ class Event(models.Model):
 
     name = models.CharField(max_length=100)
     # FIXME slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
-    slug = models.CharField(max_length=50, editable=False, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text='Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.')
+    slug = models.CharField(max_length=50, editable=False, default=None, unique=True, null=True, blank=True, validators=[validate_slug, validate_slug_number], help_text=_('Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with a number and is forced to be lowercase. Recommend using hyphens over underscores. Special characters like # is not allowed.'))
     dtype = models.ForeignKey(DisasterType, null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, blank=True)
     countries = models.ManyToManyField(Country)
     regions = models.ManyToManyField(Region)
-    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL, help_text='If needed, you have to change the connected Appeals\', Field Reports\', etc to point to the parent Emergency manually.')
+    parent_event = models.ForeignKey('self', null=True, blank=True, verbose_name='Parent Emergency', on_delete=models.SET_NULL, help_text=_('If needed, you have to change the connected Appeals\', Field Reports\', etc to point to the parent Emergency manually.'))
     summary = HTMLField(blank=True, default='')
 
     num_injured = models.IntegerField(null=True, blank=True)
@@ -311,8 +369,8 @@ class Event(models.Model):
 
     class Meta:
         ordering = ('-disaster_start_date',)
-        verbose_name = 'Emergency'
-        verbose_name_plural = 'Emergencies'
+        verbose_name = _('emergency')
+        verbose_name_plural = _('emergencies')
 
     # @staticmethod
     # def get_for(user):
@@ -379,6 +437,10 @@ class EventContact(models.Model):
     phone = models.CharField(max_length=100, blank=True, null=True)
     event = models.ForeignKey(Event, related_name='contacts', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('event contact')
+        verbose_name_plural = _('event contacts')
+
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
@@ -392,9 +454,14 @@ class KeyFigure(models.Model):
     # key figure website link, publication
     source = models.CharField(max_length=256)
 
+    class Meta:
+        verbose_name = _('key figure')
+        verbose_name_plural = _('key figures')
+
 
 def snippet_image_path(instance, filename):
     return 'emergencies/%s/%s' % (instance.event.id, filename)
+
 
 class Snippet(models.Model):
     """ Snippet of text """
@@ -407,6 +474,8 @@ class Snippet(models.Model):
 
     class Meta:
         ordering = ('position', 'id',)
+        verbose_name = _('snippet')
+        verbose_name_plural = _('snippets')
 
     def __str__(self):
         return self.snippet
@@ -415,7 +484,12 @@ class Snippet(models.Model):
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
     type = models.CharField(max_length=50)
-    is_primary = models.BooleanField(default=False, help_text='Ensure this type gets precedence over others that are empty', editable=False)
+    is_primary = models.BooleanField(
+        default=False, help_text=_('Ensure this type gets precedence over others that are empty'), editable=False)
+
+    class Meta:
+        verbose_name = _('situation report type')
+        verbose_name_plural = _('situation report types')
 
     def __str__(self):
         return self.type
@@ -423,6 +497,7 @@ class SituationReportType(models.Model):
 
 def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
+
 
 class SituationReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
@@ -433,7 +508,11 @@ class SituationReport(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     type = models.ForeignKey(SituationReportType, related_name='situation_reports', null=True, on_delete=models.SET_NULL)
     visibility = EnumIntegerField(VisibilityChoices, default=VisibilityChoices.MEMBERSHIP)
-    is_pinned = models.BooleanField(default=False, help_text='Pin this report at the top')
+    is_pinned = models.BooleanField(default=False, help_text=_('Pin this report at the top'))
+
+    class Meta:
+        verbose_name = _('situation report')
+        verbose_name_plural = _('situation reports')
 
     def __str__(self):
         return '%s - %s' % (self.event, self.name)
@@ -462,6 +541,10 @@ class GDACSEvent(models.Model):
     vulnerability = models.FloatField()
     countries = models.ManyToManyField(Country)
     country_text = models.TextField()
+
+    class Meta:
+        verbose_name = _('gdacs event')
+        verbose_name_plural = _('gdacs events')
 
     def __str__(self):
         return self.title
@@ -548,6 +631,8 @@ class Appeal(models.Model):
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
+        verbose_name = _('appeal')
+        verbose_name_plural = _('appeals')
 
     def indexing(self):
         return {
@@ -582,6 +667,7 @@ class Appeal(models.Model):
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
+
 class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField()
@@ -590,6 +676,10 @@ class AppealDocument(models.Model):
     document_url = models.URLField(blank=True)
 
     appeal = models.ForeignKey(Appeal, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('appeal document')
+        verbose_name_plural = _('appeal documents')
 
     def save(self, *args, **kwargs):
         # On save, if `created` is not set, make it the current time
@@ -623,8 +713,9 @@ class FieldReport(models.Model):
                              blank=True,
                              on_delete=models.SET_NULL)
 
-    is_covid_report = models.BooleanField(default=False,
-                                          help_text='Is this a Field Report specific to the COVID-19 emergency?')
+    is_covid_report = models.BooleanField(
+        default=False,
+        help_text=_('Is this a Field Report specific to the COVID-19 emergency?'))
 
     # Used to differentiate reports that have and have not been synced from DMIS
     rid = models.CharField(max_length=100, null=True, blank=True, editable=False)
@@ -788,6 +879,8 @@ class FieldReport(models.Model):
 
     class Meta:
         ordering = ('-created_at', '-updated_at',)
+        verbose_name = _('field report')
+        verbose_name_plural = _('field reports')
 
     # @staticmethod
     # def get_for(user):
@@ -845,6 +938,10 @@ class FieldReportContact(models.Model):
     phone = models.CharField(max_length=50, blank=True)
     field_report = models.ForeignKey(FieldReport, related_name='contacts', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('field report contanct')
+        verbose_name_plural = _('field report contancts')
+
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
 
@@ -855,9 +952,9 @@ class ActionOrg:
     FEDERATION = 'FDRN'
 
     CHOICES = (
-        (NATIONAL_SOCIETY, 'National Society'),
-        (FOREIGN_SOCIETY, 'Foreign Society'),
-        (FEDERATION, 'Federation'),
+        (NATIONAL_SOCIETY, _('National Society')),
+        (FOREIGN_SOCIETY, _('Foreign Society')),
+        (FEDERATION, _('Federation')),
     )
 
 
@@ -868,11 +965,12 @@ class ActionType:
     COVID = 'COVID'
 
     CHOICES = (
-        (EVENT, 'Event'),
-        (EARLY_WARNING, 'Early Warning'),
-        (EPIDEMIC, 'Epidemic'),
-        (COVID, 'COVID-19')
+        (EVENT, _('Event')),
+        (EARLY_WARNING, _('Early Warning')),
+        (EPIDEMIC, _('Epidemic')),
+        (COVID, _('COVID-19')),
     )
+
 
 class ActionCategory:
     GENERAL = 'General'
@@ -880,10 +978,10 @@ class ActionCategory:
     NS_INSTITUTIONAL_STRENGTHENING = 'NS Institutional Strengthening'
     SOCIO_ECONOMIC_IMPACTS = 'Socioeconomic Interventions'
     CHOICES = (
-        (GENERAL, 'General'),
-        (HEALTH, 'Health'),
-        (NS_INSTITUTIONAL_STRENGTHENING, 'NS Institutional Strengthening'),
-        (SOCIO_ECONOMIC_IMPACTS, 'Socioeconomic Interventions')
+        (GENERAL, _('General')),
+        (HEALTH, _('Health')),
+        (NS_INSTITUTIONAL_STRENGTHENING, _('NS Institutional Strengthening')),
+        (SOCIO_ECONOMIC_IMPACTS, _('Socioeconomic Interventions')),
     )
 
 
@@ -903,7 +1001,11 @@ class Action(models.Model):
         default=list
     )
     category = models.CharField(max_length=255, choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL)
-    is_disabled = models.BooleanField(default=False, help_text='Disable in form')
+    is_disabled = models.BooleanField(default=False, help_text=_('Disable in form'))
+
+    class Meta:
+        verbose_name = _('action')
+        verbose_name_plural = _('actions')
 
     def __str__(self):
         return self.name
@@ -920,6 +1022,10 @@ class ActionsTaken(models.Model):
     summary = models.TextField(blank=True)
     field_report = models.ForeignKey(FieldReport, related_name='actions_taken', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _('actions taken')
+        verbose_name_plural = _('all actions taken')
+
     def __str__(self):
         return '%s: %s' % (self.organization, self.summary)
 
@@ -927,6 +1033,10 @@ class ActionsTaken(models.Model):
 class SourceType(models.Model):
     """ Types of sources """
     name = models.CharField(max_length=40)
+
+    class Meta:
+        verbose_name = _('source type')
+        verbose_name_plural = _('source types')
 
     def __str__(self):
         return self.name
@@ -937,6 +1047,10 @@ class Source(models.Model):
     stype = models.ForeignKey(SourceType, on_delete=models.PROTECT)
     spec = models.TextField(blank=True)
     field_report = models.ForeignKey(FieldReport, related_name='sources', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _('source')
+        verbose_name_plural = _('sources')
 
     def __str__(self):
         return '%s: %s' % (self.stype.name, self.spec)
@@ -975,15 +1089,15 @@ class Profile(models.Model):
     phone_number = models.CharField(blank=True, null=True, max_length=100)
 
     class Meta:
-        verbose_name = 'User profile'
-        verbose_name_plural = 'User profiles'
+        verbose_name = _('user profile')
+        verbose_name_plural = _('user profiles')
 
     def __str__(self):
         return self.user.username
 
 
 class EmergencyOperationsDataset(models.Model):
-    is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
+    is_validated = models.BooleanField(default=False, help_text=_('Did anyone check the editable data?'))
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -1095,15 +1209,15 @@ class EmergencyOperationsDataset(models.Model):
     education_requirements = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Emergency Operations Dataset'
-        verbose_name_plural = 'Emergency Operations Datasets'
+        verbose_name = _('emergency operations dataset')
+        verbose_name_plural = _('emergency operations datasets')
 
     def __str__(self):
         return self.raw_file_name
 
 
 class EmergencyOperationsPeopleReached(models.Model):
-    is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
+    is_validated = models.BooleanField(default=False, help_text=_('Did anyone check the editable data?'))
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -1186,15 +1300,15 @@ class EmergencyOperationsPeopleReached(models.Model):
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Emergency Operations People Reached'
-        verbose_name_plural = 'Emergency Operations People Reached'
+        verbose_name = _('emergency operations people reached')
+        verbose_name_plural = _('emergency operations people reached')
 
     def __str__(self):
         return self.raw_file_name
 
 
 class EmergencyOperationsEA(models.Model):
-    is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
+    is_validated = models.BooleanField(default=False, help_text=_('Did anyone check the editable data?'))
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -1289,15 +1403,15 @@ class EmergencyOperationsEA(models.Model):
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Emergency Operations Emergency Appeal'
-        verbose_name_plural = 'Emergency Operations Emergency Appeals'
+        verbose_name = _('emergency operations emergency appeal')
+        verbose_name_plural = _('emergency operations emergency appeals')
 
     def __str__(self):
         return self.raw_file_name
 
 
 class EmergencyOperationsFR(models.Model):
-    is_validated = models.BooleanField(default=False, help_text='Did anyone check the editable data?')
+    is_validated = models.BooleanField(default=False, help_text=_('Did anyone check the editable data?'))
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -1400,8 +1514,8 @@ class EmergencyOperationsFR(models.Model):
     water_sanitation_and_hygiene_requirements = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Emergency Operations Final Report'
-        verbose_name_plural = 'Emergency Operations Final Reports'
+        verbose_name = _('emergency operations final report')
+        verbose_name_plural = _('emergency operations final reports')
 
     def __str__(self):
         return self.raw_file_name
@@ -1412,6 +1526,7 @@ class CronJobStatus(IntEnum):
     SUCCESSFUL = 0
     WARNED = 1
     ERRONEOUS = 2
+
 
 class CronJob(models.Model):
     """ CronJob log row about jobs results """
@@ -1424,8 +1539,8 @@ class CronJob(models.Model):
     backend_side = models.BooleanField(default=True) # We could keep backend/frontend ingest results here also
 
     class Meta:
-        verbose_name = 'Cronjob log record'
-        verbose_name_plural = 'Cronjob log records'
+        verbose_name = _('cronjob log record')
+        verbose_name_plural = _('cronjob log records')
 
     def __str__(self):
         if self.num_result:
@@ -1487,6 +1602,10 @@ class AuthLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     #ip = models.GenericIPAddressField(null=True)
 
+    class Meta:
+        verbose_name = _('auth log')
+        verbose_name_plural = _('auth logs')
+
     def __unicode__(self):
         return '{0} - {1}'.format(self.action, self.username)
 
@@ -1509,6 +1628,10 @@ class ReversionDifferenceLog(models.Model):
         models.TextField(null=True, blank=True),
         default=list, null=True, blank=True
     )
+
+    class Meta:
+        verbose_name = _('reversion difference log')
+        verbose_name_plural = _('reversion difference logs')
 
     def __unicode__(self):
         return '{0} - {1} - {2} - {3}'.format(self.username, self.action, self.object_type, self.object_id)

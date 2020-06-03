@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: databank/admin.py:41
+msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
+msgstr "INDICATEURS CLÉS PAR PAYS (SOURCE : FDRS)"
+
+#: databank/admin.py:47
+msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
+msgstr "INDICATEURS DE LA SOCIÉTÉ NATIONALE (SOURCE : FDRS)"
+
+#: databank/admin.py:50
+msgid "KEY CLIMATE EVENT"
+msgstr "ÉVÉNEMENT CLIMATIQUE CLÉ"
+
+#: databank/apps.py:6
+msgid "databank"
+msgstr "banque de données"
+
+#: databank/models.py:231
+msgid "Country Overview"
+msgstr "Vue d'ensemble du pays"
+
+#: databank/models.py:232
+msgid "Countries Overview"
+msgstr "Aperçu des pays"
+
+#: databank/models.py:253
+msgid "Social Event"
+msgstr "Événement social"
+
+#: databank/models.py:254
+msgid "Social Events"
+msgstr "Événements sociaux"
+
+#: databank/models.py:272
+msgid "Key Client Event"
+msgstr "Événement client clé"
+
+#: databank/models.py:273
+msgid "Key Client Events"
+msgstr "Événements clients clés"
+
+#: databank/models.py:289
+msgid "Seasonal Calender Record"
+msgstr "Record de calendrier saisonnier"
+
+#: databank/models.py:290
+msgid "Seasonal Calender Records"
+msgstr "Enregistrements de calendrier saisonnier"
