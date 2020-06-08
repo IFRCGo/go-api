@@ -70,6 +70,7 @@ from .serializers import (
     SnippetSerializer,
     ListMiniEventSerializer,
     ListEventSerializer,
+    ListEventCsvSerializer,
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
@@ -255,7 +256,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
         if self.action == 'mini_events':
             return ListMiniEventSerializer
         elif self.action == 'list':
-            return ListEventSerializer
+            request_format_type = self.request.GET.get('format', 'json')
+            if request_format_type == 'csv':
+                return ListEventCsvSerializer
+            else:
+                return ListEventSerializer
         else:
             return DetailEventSerializer
 
