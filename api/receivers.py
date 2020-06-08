@@ -1,6 +1,7 @@
 import json
 from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
+from api.logger import logger
 from django.db import transaction
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -129,9 +130,12 @@ def log_deletion(sender, instance, using, **kwargs):
 
     # ElasticSearch to also delete the index if a record was deleted
     if hasattr(instance, 'es_id'):
-        bulk(client=ES_CLIENT , actions=[{
-            '_op_type': 'delete',
-            '_index': ES_PAGE_NAME,
-            '_type': 'page',
-            '_id': instance.es_id()
-        }])
+        try:
+            bulk(client=ES_CLIENT , actions=[{
+                '_op_type': 'delete',
+                '_index': ES_PAGE_NAME,
+                '_type': 'page',
+                '_id': instance.es_id()
+            }])
+        except:
+            logger.error('Could not reach Elasticsearch server.')
