@@ -197,36 +197,21 @@ class ListEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug', 'parent_event',)
 
+class CsvField(serializers.Field):
+    """
+    Converts between an array and a string of values
+    """
+    def to_representation(self, value):
+        return ','.join([str(x.id) for x in value.all()])
+
+    def to_internal_value(self, data):
+        return [int(x) for x in data.split(',')]
+
 class ListEventCsvSerializer(serializers.ModelSerializer):
-    appeals = RelatedAppealSerializer(many=True, read_only=True)
-    field_reports = MiniFieldReportSerializer(many=True, read_only=True)
-    countries = serializers.SerializerMethodField()
+    appeals = CsvField()
+    field_reports = CsvField()
+    countries = CsvField() 
     dtype = DisasterTypeSerializer()
-
-    def get_items(self, obj):
-        country_fields = {}
-        countries = obj.countries.all()
-        if len(countries) > 0:
-            country_fields['has_countries'] = True
-            country_fields['countries'] = ', '.join([str(country.id) for country in countries])
-        else:
-            country_fields['has_countries'] = False
-            country_fields['countries'] = ''
-        return country_fields
-
-
-    def get_countries(self, obj):
-        country_fields = {}
-        countries = obj.countries.all()
-        if len(countries) > 0:
-            country_fields['has_countries'] = True
-            country_fields['countries'] = ', '.join([str(country.id) for country in countries])
-        else:
-            country_fields['has_countries'] = False
-            country_fields['countries'] = ''
-        return country_fields
-
-    def get_appeals(self, obj)
 
     class Meta:
         model = Event
