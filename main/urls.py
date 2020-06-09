@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.conf import settings
 from django.contrib import admin
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
@@ -152,3 +153,14 @@ urlpatterns = [
     url(r'^server-error-for-devs', DummyHttpStatusError.as_view()),
     url(r'^exception-error-for-devs', DummyExceptionError.as_view())
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url('__debug__/', include(debug_toolbar.urls)),
+
+        # For django versions before 2.0:
+        # url(r'^__debug__/', include(debug_toolbar.urls)),
+
+    ] + urlpatterns
+
