@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import polib
-from main.translate import AmazonTranslate
+from lagn.translate import AmazonTranslate
 from django.core.management import BaseCommand
 
 

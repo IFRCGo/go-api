@@ -22,9 +22,11 @@ from .forms import ActionForm
 from reversion.admin import VersionAdmin
 from reversion.models import Revision, Version
 from reversion_compare.admin import CompareVersionAdmin
+from modeltranslation.admin import TranslationAdmin
 
 from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
+
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -67,12 +69,10 @@ class HasRelatedEventFilter(admin.SimpleListFilter):
 class MembershipFilter(admin.SimpleListFilter):
     title = _('membership')
     parameter_name = 'membership'
+
     def lookups(self, request, model_admin):
-        return (
-            ('membership', _('Membership')),
-            ('ifrc', _('IFRC')),
-            ('public', _('Public')),
-        )
+        return models.VisibilityChoices.choices()
+
     def queryset(self, request, queryset):
         if self.value() == 'membership':
             return queryset.filter(visibility=models.VisibilityChoices.MEMBERSHIP)
@@ -254,7 +254,7 @@ class FieldReportContactInline(admin.TabularInline):
     model = models.FieldReportContact
 
 
-class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
@@ -262,7 +262,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
     search_fields = ('countries__name', 'regions__name', 'summary',)
-    autocomplete_fields = ('event', 'countries', 'districts',)
+    autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
     readonly_fields = (
         'report_date', 'created_at', 'updated_at',
         'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases', 'health_min_num_dead',

@@ -55,7 +55,7 @@ Access the site at http://localhost:8000
      $ docker-compose build
 
 
-## Adding translations (Django)
+## Adding/Updating translations (Django)
 ```bash
 # Generating new language po files (for eg: fr)
 python3 manage.py makemessages -l fr
@@ -65,6 +65,14 @@ python3 manage.py makemessages -a
 python3 manage.py translate_po
 # Compile po files
 python3 manage.py compilemessages
+```
+
+## Note for Django Model translations
+```
+# Use this to copy the data from original field to it's default lanauage.
+# For eg: if the field `name` is registred for translation then
+# this command will copy value from `name` to `name_en` if en is the default language.
+python manage.py update_translation_fields
 ```
 
 ## Generate coverage report

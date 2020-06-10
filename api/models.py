@@ -181,6 +181,11 @@ class VisibilityChoices(IntEnum):
     IFRC = 2
     PUBLIC = 3
 
+    class Labels:
+        MEMBERSHIP = _('Membership')
+        IFRC = _('IFRC Only')
+        PUBLIC = _('Public')
+
 
 # Common parent class for key figures.
 # Country/region variants inherit from this.

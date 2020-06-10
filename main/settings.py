@@ -223,6 +223,7 @@ LANGUAGES = (
     ('fr', _('French')),
     ('ar', _('Arabic')),
 )
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

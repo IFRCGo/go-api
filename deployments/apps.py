@@ -7,4 +7,4 @@ class DeploymentsConfig(AppConfig):
     verbose_name = _('Deployments & 3W\'s (Who, What, Where)')
 
     def ready(self):
-        import api.receivers  # noqa F401
+        import api.receivers  # noqa: F401

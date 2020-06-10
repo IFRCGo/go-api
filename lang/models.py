@@ -1,4 +1,5 @@
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from django.db import models
 
 
@@ -6,7 +7,7 @@ class Language(models.Model):
     """
     Language is used to store go-frontend language framework data
     """
-    code = models.CharField(max_length=255, unique=True)
+    code = models.CharField(max_length=255, unique=True, choices=settings.LANGUAGES)
     description = models.TextField(blank=True)
 
     class Meta:
