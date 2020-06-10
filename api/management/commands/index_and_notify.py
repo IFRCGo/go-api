@@ -83,16 +83,19 @@ class Command(BaseCommand):
         return countries, regions
 
 
-    def gather_subscribers(self, records, rtype, stype):
+    def fix_types_for_subs(self, rtype, stype=SubscriptionType.NEW):
         # Correction for the new notification types:
-        if  rtype == RecordType.EVENT or rtype == RecordType.FIELD_REPORT:
-            rtype_of_subscr = RecordType.NEW_EMERGENCIES
+        if rtype == RecordType.EVENT or rtype == RecordType.FIELD_REPORT:
+            rtype = RecordType.NEW_EMERGENCIES
             stype = SubscriptionType.NEW
         elif rtype == RecordType.APPEAL:
-            rtype_of_subscr = RecordType.NEW_OPERATIONS
+            rtype = RecordType.NEW_OPERATIONS
             stype = SubscriptionType.NEW
-        else:
-            rtype_of_subscr = rtype
+        return rtype, stype
+        
+
+    def gather_subscribers(self, records, rtype, stype):
+        rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
 
         # Gather the email addresses of users who should be notified
         if self.is_digest_mode():
@@ -102,7 +105,7 @@ class Command(BaseCommand):
             emails = [subscriber['email'] for subscriber in subscribers]
             return emails
         else:
-        # Start with any users subscribed directly to this record type.
+            # Start with any users subscribed directly to this record type.
             subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
                                           subscription__stype=stype, is_active=True).values('email')
 
@@ -411,6 +414,7 @@ class Command(BaseCommand):
                 'gov_assistance': 'Yes' if record.request_assistance else 'No',
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
                 'dtype_id': record.dtype_id,
+                'visibility': record.visibility,
             }
         elif rtype == RecordType.APPEAL:
             optypes = {
@@ -536,22 +540,81 @@ class Command(BaseCommand):
         recipients = emails
 
         if uid is None:
-            if record_count == 1:
-                subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
+            # Handle Visibility for Field Reports
+            if rtype == RecordType.FIELD_REPORT:
+                import pdb; pdb.set_trace()
+                rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
+                non_ifrc_records = [rec for rec in record_entries if int(rec['visibility']) != 2]
+                if non_ifrc_records:
+                    non_ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) 
+                        & Q(subscription__stype=stype)
+                        & Q(is_active=True)
+                        & (~Q(groups__name='IFRC Admins') & ~Q(is_superuser=True)))
+                    non_ifrc_recipients = User.objects.filter(non_ifrc_filters).values('email')
+                    
+                    # FIXME: Code duplication but this whole thing would need a huge refactor
+                    # (almost the same as above and in the 'else' part)
+                    if non_ifrc_recipients:
+                        non_ifrc_html = render_to_string(template_path, {
+                            'hello': get_hello(),
+                            'count': record_count,
+                            'records': non_ifrc_records,
+                            'is_staff': True if uid is None else is_staff,
+                            'subject': subject,
+                        })
+                        send_notification(subject, non_ifrc_recipients, non_ifrc_html)
 
-            # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
-            if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
-                for e in list(records.values('id'))[:10]:
-                    i = e['id']
-                    if i not in events_sent_to:
-                        events_sent_to[i] = []
-                    email_list_to_add = list(set(events_sent_to[i] + recipients))
-                    if email_list_to_add:
-                        events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
+                ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) 
+                    & Q(subscription__stype=stype)
+                    & Q(is_active=True)
+                    & (Q(groups__name='IFRC Admins') | Q(is_superuser=True)))
+                ifrc_emails = User.objects.filter(ifrc_filters).values('email')
+                ifrc_recipients = ifrc_emails
 
-            plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
-            logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-            send_notification(subject, recipients, html, True if rtype == RecordType.FOLLOWED_EVENT else False)
+                # FIXME: Code duplication but this whole thing would need a huge refactor
+                # (almost the same as above and in the 'else' part)
+                ifrc_html = render_to_string(template_path, {
+                    'hello': get_hello(),
+                    'count': record_count,
+                    'records': record_entries,
+                    'is_staff': True if uid is None else is_staff,
+                    'subject': subject,
+                })
+
+                if record_count == 1:
+                    subject += ': ' + record_entries[0]['title']
+
+                # TODO: check if this is even needed in any case
+                if stype == SubscriptionType.EDIT:
+                    for e in list(records.values('id'))[:10]:
+                        i = e['id']
+                        if i not in events_sent_to:
+                            events_sent_to[i] = []
+                        email_list_to_add = list(set(events_sent_to[i] + non_ifrc_recipients))
+                        if email_list_to_add:
+                            events_sent_to[i] = list(filter(None, email_list_to_add))
+
+                plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+                logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
+                send_notification(subject, ifrc_recipients, ifrc_html)
+            else:
+                if record_count == 1:
+                    subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
+
+                # TODO: check if this is even needed in any case
+                # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
+                if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
+                    for e in list(records.values('id'))[:10]:
+                        i = e['id']
+                        if i not in events_sent_to:
+                            events_sent_to[i] = []
+                        email_list_to_add = list(set(events_sent_to[i] + recipients))
+                        if email_list_to_add:
+                            events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
+
+                plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+                logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
+                send_notification(subject, recipients, html)
         else:
             if len(recipients):
                 # check if email is not in events_sent_to{event_id: recipients}
@@ -560,7 +623,7 @@ class Command(BaseCommand):
                 # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
                 elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
                     logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
-                    send_notification(subject, recipients, html, True if rtype == RecordType.FOLLOWED_EVENT else False)
+                    send_notification(subject, recipients, html)
                 else:
                     logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
