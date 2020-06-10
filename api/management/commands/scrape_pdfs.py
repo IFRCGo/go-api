@@ -109,7 +109,7 @@ class Command(BaseCommand):
             response = requests.get(url)
             if response.status_code != 200:
                 body = { "name": "scrape_pdfs",
-                    "message": 'Error scraping ' + pdf_type + ' PDF-s from ' + url,
+                    "message": 'Error scraping ' + pdf_type + ' PDF-s from ' + url + '. (' + str(response.status_code) + ')',
                     "status": CronJobStatus.ERRONEOUS }
                 CronJob.sync_cron(body)
             items = xmltodict.parse(response.content)['rss']['channel']['item']
