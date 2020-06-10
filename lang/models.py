@@ -24,6 +24,8 @@ class Language(models.Model):
 class String(models.Model):
     language = models.ForeignKey(Language, on_delete=models.CASCADE)
     key = models.CharField(max_length=255)
+    # Used by go-frontend translation management dashboard to detect changes.
+    hash = models.CharField(max_length=32, null=True, blank=True)
     value = models.TextField()
 
     class Meta:
