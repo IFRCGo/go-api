@@ -108,7 +108,9 @@ class Command(BaseCommand):
         def get_documents_for(url, d_type, db_set):
             response = requests.get(url)
             if response.status_code != 200:
-                body = { "name": "scrape_pdfs", "message": 'Error scraping ' + pdf_type + ' PDF-s from ' + url, "status": CronJobStatus.ERRONEOUS } # not every case is catched here, e.g. if the base URL is wrong...
+                body = { "name": "scrape_pdfs",
+                    "message": 'Error scraping ' + pdf_type + ' PDF-s from ' + url + '. (' + str(response.status_code) + ')',
+                    "status": CronJobStatus.ERRONEOUS }
                 CronJob.sync_cron(body)
             items = xmltodict.parse(response.content)['rss']['channel']['item']
             link_with_filenames = []
@@ -133,9 +135,6 @@ class Command(BaseCommand):
             db_set = EmergencyOperationsFR.objects.all().values_list('raw_file_url', flat=True)
         elif pdf_type == 'ea':
             db_set = EmergencyOperationsEA.objects.all().values_list('raw_file_url', flat=True)
-
-        body = { "name": "scrape_pdfs", "message": 'Done scraping ' + pdf_type + ' PDF-s from ' + url, "num_result": len(db_set), "status": CronJobStatus.SUCCESSFUL }
-        CronJob.sync_cron(body)
 
         return get_documents_for(TYPE_URLS[pdf_type], pdf_type, db_set)
 
@@ -616,6 +615,7 @@ class Command(BaseCommand):
             urls_with_filenames = self.get_documents(pdf_type)
             logger.info('Count of new {pdftype} documents: {doc_count}'.format(pdftype=pdf_type, doc_count=len(urls_with_filenames)))
             logger.info('Starting to process PDFs.')
+            error_count = 0
             for doc in urls_with_filenames:
                 try:
                     pdf_data = self.read_pdf_into_memory(doc[0])
@@ -634,8 +634,14 @@ class Command(BaseCommand):
                         'd_type': doc[2],
                     })
                 except Exception as e:
+                    error_count += 1
                     errored_data.append(str(e))
-        
+            cron_body = { "name": "scrape_pdfs",
+                "message": 'Done scraping ' + pdf_type + ' PDF-s',
+                "num_result": len(urls_with_filenames) - error_count,
+                "status": CronJobStatus.SUCCESSFUL }
+            CronJob.sync_cron(cron_body)
+
         if len(errored_data) > 0:
             logger.error(errored_data)
         logger.info('Processing PDFs finished.')
