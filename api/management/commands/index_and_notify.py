@@ -542,7 +542,6 @@ class Command(BaseCommand):
         if uid is None:
             # Handle Visibility for Field Reports
             if rtype == RecordType.FIELD_REPORT:
-                import pdb; pdb.set_trace()
                 rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
                 non_ifrc_records = [rec for rec in record_entries if int(rec['visibility']) != 2]
                 if non_ifrc_records:
@@ -550,7 +549,7 @@ class Command(BaseCommand):
                         & Q(subscription__stype=stype)
                         & Q(is_active=True)
                         & (~Q(groups__name='IFRC Admins') & ~Q(is_superuser=True)))
-                    non_ifrc_recipients = User.objects.filter(non_ifrc_filters).values('email')
+                    non_ifrc_recipients = list(User.objects.filter(non_ifrc_filters).values_list('email', flat=True))
                     
                     # FIXME: Code duplication but this whole thing would need a huge refactor
                     # (almost the same as above and in the 'else' part)
@@ -568,7 +567,7 @@ class Command(BaseCommand):
                     & Q(subscription__stype=stype)
                     & Q(is_active=True)
                     & (Q(groups__name='IFRC Admins') | Q(is_superuser=True)))
-                ifrc_emails = User.objects.filter(ifrc_filters).values('email')
+                ifrc_emails = list(User.objects.filter(ifrc_filters).values_list('email', flat=True))
                 ifrc_recipients = ifrc_emails
 
                 # FIXME: Code duplication but this whole thing would need a huge refactor
