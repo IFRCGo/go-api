@@ -556,7 +556,7 @@ class Command(BaseCommand):
                     if non_ifrc_recipients:
                         non_ifrc_html = render_to_string(template_path, {
                             'hello': get_hello(),
-                            'count': record_count,
+                            'count': len(non_ifrc_records),
                             'records': non_ifrc_records,
                             'is_staff': True if uid is None else is_staff,
                             'subject': subject,
