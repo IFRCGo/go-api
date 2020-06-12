@@ -11,12 +11,12 @@ from api.logger import logger
 # from api.models import CronJob, CronJobStatus
 
 
-EMAIL_USER = os.environ.get('EMAIL_USER')
 # EMAIL_PASS = os.environ.get('EMAIL_PASS')
 # EMAIL_HOST = os.environ.get('EMAIL_HOST')
 # EMAIL_PORT = os.environ.get('EMAIL_PORT')
-IS_PROD = os.environ.get('PRODUCTION')
+EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
+IS_PROD = os.environ.get('PRODUCTION')
 
 test_emails = os.environ.get('TEST_EMAILS')
 if test_emails:
@@ -25,7 +25,7 @@ else:
     test_emails = ['gergely.horvath@ifrc.org']
 
 
-def send_notification(subject, recipients, html, is_followed_event=False):
+def send_notification(subject, recipients, html):
     if not EMAIL_USER or not EMAIL_API_ENDPOINT:
         logger.warn('Cannot send notifications.')
         logger.warn('No username and/or API endpoint set as environment variables.')
@@ -64,7 +64,7 @@ def send_notification(subject, recipients, html, is_followed_event=False):
     if res.status_code == 200:
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.info('Authorization/authentication failed ({}) failed to the e-mail sender API.'.format(res.status_code))
+        logger.info('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
 
