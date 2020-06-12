@@ -36,6 +36,7 @@ class LanguageBulkActionSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=ACTION_CHOICES)
     key = serializers.CharField()
     value = serializers.CharField(required=False)
+    hash = serializers.CharField(max_length=32, required=False)
 
 
 class LanguageBulkActionsSerializer(serializers.Serializer):

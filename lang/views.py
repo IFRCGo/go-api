@@ -63,12 +63,17 @@ class LanguageViewSet(viewsets.ModelViewSet):
             action = meta['action']
             key = meta['key']
             value = meta.get('value')
+            value_hash = meta.get('hash')
+            value_meta = {
+                'value': value,
+                'hash': value_hash,
+            }
             if action == LanguageBulkActionSerializer.SET:
                 if key in existing_string_keys:
-                    changed_strings[key] = value
+                    changed_strings[key] = value_meta
                 else:
                     new_strings.append(
-                        String(language=lang, key=key, value=value)
+                        String(language=lang, key=key, **value_meta)
                     )
             elif action == LanguageBulkActionSerializer.DELETE and key in existing_string_keys:
                 deleted_string_keys.append(key)
@@ -79,8 +84,9 @@ class LanguageViewSet(viewsets.ModelViewSet):
         if len(changed_strings):
             to_update_strings = list(lang.string_set.filter(key__in=changed_strings.keys()).all())
             for string in to_update_strings:
-                string.value = changed_strings[string.key]
-            String.objects.bulk_update(to_update_strings, ['value'])
+                string.value = changed_strings[string.key]['value']
+                string.hash = changed_strings[string.key]['hash']
+            String.objects.bulk_update(to_update_strings, ['value', 'hash'])
             changed_strings = to_update_strings
         if len(deleted_string_keys):
             String.objects.filter(key__in=deleted_string_keys).delete()

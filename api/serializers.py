@@ -357,7 +357,8 @@ class ListFieldReportCsvSerializer(serializers.ModelSerializer):
         model = FieldReport
         fields = '__all__'
 
-class DetailFieldReportSerializer(serializers.ModelSerializer):
+
+class DetailFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -370,7 +371,7 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
         model = FieldReport
         fields = '__all__'
 
-class CreateFieldReportSerializer(serializers.ModelSerializer):
+class CreateFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'

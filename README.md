@@ -73,6 +73,9 @@ python3 manage.py compilemessages
 # For eg: if the field `name` is registred for translation then
 # this command will copy value from `name` to `name_en` if en is the default language.
 python manage.py update_translation_fields
+
+# Auto translate values from default lang to other language
+python manage.py translate_model
 ```
 
 ## Generate coverage report
