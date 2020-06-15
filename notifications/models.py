@@ -248,3 +248,12 @@ class Subscription(models.Model):
 
     def __str__(self):
         return '%s %s (%s)' % (self.user.username, self.rtype, self.user.email)
+
+
+class NotificationGUID(models.Model):
+    """ Email GUIDs from the sender API """
+    created_at = models.DateTimeField(auto_now_add=True)
+    api_guid = models.CharField(max_length=200,
+        help_text='Can be used to do a GET request to check on the email sender API side.')
+    email_type = models.CharField(max_length=50, null=True, blank=True)
+    to_list = models.TextField(null=True, blank=True)

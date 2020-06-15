@@ -140,7 +140,8 @@ class NewRegistration(PublicJsonPostView):
 
         send_notification('Validate your account',
                           [body['email']],
-                          render_to_string(template, email_context))
+                          render_to_string(template, email_context),
+                          'Validate account')
 
         return JsonResponse({'status': 'ok'})
 
@@ -193,7 +194,8 @@ class VerifyEmail(PublicJsonRequestView):
                 }
                 send_notification('Reference to approve an account',
                                   [admin],
-                                  render_to_string('email/registration/validate.html', email_context))
+                                  render_to_string('email/registration/validate.html', email_context),
+                                  'Approve an account')
             pending_user.email_verified = True
             pending_user.save()
             return HttpResponse(render_to_string('registration/validation-sent.html'))
@@ -223,10 +225,10 @@ class ValidateUser(PublicJsonRequestView):
         if did_validate:
             return bad_http_request('Already confirmed',
                                     'You have already confirmed this user.')
-        else:
-            setattr(pending_user, 'admin_%s_validated' % admin, True)
-            setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
-            pending_user.save()
+
+        setattr(pending_user, 'admin_%s_validated' % admin, True)
+        setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
+        pending_user.save()
 
         if pending_user.admin_1_validated and pending_user.admin_2_validated:
             pending_user.user.is_active = True
@@ -236,7 +238,8 @@ class ValidateUser(PublicJsonRequestView):
             }
             send_notification('Your account has been approved',
                               [pending_user.user.email],
-                              render_to_string('email/registration/outside-email-success.html', email_context))
+                              render_to_string('email/registration/outside-email-success.html', email_context),
+                              'Approved account successfully')
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
         else:
