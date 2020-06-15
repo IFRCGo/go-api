@@ -943,7 +943,8 @@ class AuthLogAdmin(admin.ModelAdmin):
 
 
 class ReversionDifferenceLogAdmin(admin.ModelAdmin):
-    list_display = ('created_at', 'username', 'action', 'object_type', 'object_name', 'object_id', 'changed_from', 'changed_to')
+    list_display = ('created_at', 'username', 'action', 'object_type', 'object_name', 'object_id',
+                    'changed_from', 'changed_to')
     list_filter = ('action', 'object_type')
     search_fields = ('username', 'object_name', 'object_type', 'changed_from', 'changed_to')
     list_display_links = None
