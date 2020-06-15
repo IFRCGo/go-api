@@ -32,6 +32,18 @@ template_types = {
     RecordType.WEEKLY_DIGEST: 'design/weekly_digest.html',
 }
 
+
+# Used for 'Notification GUID' record creation in 'send_notification(4th param)'
+RTYPE_NAMES = {
+    0: 'Emergency',
+    1: 'Appeal',
+    2: 'Field Report',
+    3: 'Surge Alert',
+    8: 'Followed Emergency',
+    11: 'Weekly Digest',
+}
+
+
 class Command(BaseCommand):
     help = 'Index and send notifications about new/changed records'
 
@@ -561,7 +573,10 @@ class Command(BaseCommand):
                             'is_staff': True if uid is None else is_staff,
                             'subject': subject,
                         })
-                        send_notification(subject, non_ifrc_recipients, non_ifrc_html)
+                        send_notification(subject,
+                                          non_ifrc_recipients,
+                                          non_ifrc_html,
+                                          RTYPE_NAMES[rtype] + ' notification')
 
                 ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) 
                     & Q(subscription__stype=stype)
@@ -595,7 +610,7 @@ class Command(BaseCommand):
 
                 plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-                send_notification(subject, ifrc_recipients, ifrc_html)
+                send_notification(subject, ifrc_recipients, ifrc_html, RTYPE_NAMES[rtype] + ' notification')
             else:
                 if record_count == 1:
                     subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
@@ -613,7 +628,7 @@ class Command(BaseCommand):
 
                 plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-                send_notification(subject, recipients, html)
+                send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification')
         else:
             if len(recipients):
                 # check if email is not in events_sent_to{event_id: recipients}
@@ -622,7 +637,7 @@ class Command(BaseCommand):
                 # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
                 elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
                     logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
-                    send_notification(subject, recipients, html)
+                    send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification')
                 else:
                     logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
@@ -675,10 +690,13 @@ class Command(BaseCommand):
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
-            #                                Would be better in ENV variable:
-            send_notification('API monitor – ingest issues!', ['im@ifrc.org'], 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
-                settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.')
-            logger.info('Ingest issue occured, e.g. by ' + ingestor_name + ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
+            send_notification('API monitor – ingest issues!',
+                ['im@ifrc.org'], # Could be an ENV var
+                'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
+                    settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.',
+                'Ingestion error')
+            logger.info('Ingest issue occured, e.g. by ' + ingestor_name +
+                ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
 
 
     def handle(self, *args, **options):

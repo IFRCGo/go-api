@@ -23,6 +23,7 @@ class NotificationGUIDAdmin(admin.ModelAdmin):
     list_display = ('api_guid', 'email_type', 'created_at',)
     list_filter = ('email_type',)
     search_fields = ('email_type',)
+    readonly_fields = ('api_guid', 'email_type', 'to_list',)
 
     def has_add_permission(self, request, obj=None):
         return False
