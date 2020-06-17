@@ -182,21 +182,27 @@ TINYMCE_DEFAULT_CONFIG = {
             | indent outdent | bullist numlist |
             | link visualchars charmap hr nonbreaking | code preview fullscreen
             ''',
-
-#   If more formatting possibilities needed (or more rows), choose from these:
-#   'toolbar1': '''
-#           fullscreen preview bold italic underline | fontselect,
-#           fontsizeselect  | forecolor backcolor | alignleft alignright |
-#           aligncenter alignjustify | indent outdent | bullist numlist table |
-#           | link image media | codesample |
-#           ''',
-#   'toolbar2': '''
-#           visualblocks visualchars |
-#           charmap hr pagebreak nonbreaking anchor |  code |
-#           ''',
+    'toolbar2': '''
+            media embed
+            ''',
+    'force_p_newlines': False,
+    'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
+    # 'extended_valid_elements': 'iframe[src|frameborder|style|scrolling|class|width|height|name|align]',
+
+    # If more formatting possibilities needed (or more rows), choose from these:
+    # 'toolbar1': '''
+    # fullscreen preview bold italic underline | fontselect,
+    # fontsizeselect  | forecolor backcolor | alignleft alignright |
+    # aligncenter alignjustify | indent outdent | bullist numlist table |
+    # | link image media | codesample |
+    # ''',
+    # 'toolbar2': '''
+    # visualblocks visualchars |
+    # charmap hr pagebreak nonbreaking anchor |  code |
+    # ''',
 }
 
 LANGUAGE_CODE = 'en-us'
@@ -213,12 +219,12 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600 # default 2621440, 2.5MB -> 100MB
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000    # default 1000, was not enough for Mozambique Cyclone Idai data
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000     # default 1000, was not enough for Mozambique Cyclone Idai data
 
 timezone = pytz.timezone("Europe/Zurich")
-PER_LAST_DUEDATE=timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
-PER_NEXT_DUEDATE=timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
+PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
+PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
