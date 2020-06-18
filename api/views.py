@@ -399,7 +399,7 @@ class RecoverPassword(PublicJsonPostView):
         send_notification('Reset your password',
                           [user.email],
                           render_to_string('email/recover_password.html', email_context),
-                          'Password recovery')
+                          'Password recovery - ' + user.username)
 
         return JsonResponse({'status': 'ok'})
 
@@ -421,7 +421,7 @@ class ShowUsername(PublicJsonPostView):
         send_notification('Showing your username',
                           [user.email],
                           render_to_string('email/show_username.html', email_context),
-                          'Username recovery')
+                          'Username recovery - ' + user.username)
 
         return JsonResponse({'status': 'ok'})
 

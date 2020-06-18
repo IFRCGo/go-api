@@ -126,7 +126,7 @@ class NewRegistration(PublicJsonPostView):
 
         email_context = {
             'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-                settings.BASE_URL, # on PROD it should point to goadmin...
+                settings.BASE_URL,  # on PROD it should point to goadmin...
                 pending.token,
                 body['username'],
             )
@@ -141,7 +141,7 @@ class NewRegistration(PublicJsonPostView):
         send_notification('Validate your account',
                           [body['email']],
                           render_to_string(template, email_context),
-                          'Validate account')
+                          'Validate account - ' + body['username'])
 
         return JsonResponse({'status': 'ok'})
 
@@ -152,23 +152,28 @@ class VerifyEmail(PublicJsonRequestView):
         user = request.GET.get('user', None)
         if not token or not user:
             return bad_http_request('Credentials not found',
-                                    'The URL must include a token and user. Please check your verification email and try again. If this problem persists, contact a system administrator.')
+                                    'The URL must include a token and user. \
+                                    Please check your verification email and try again. \
+                                    If this problem persists, contact a system administrator.')
 
         try:
             pending_user = Pending.objects.get(token=token, user__username=user)
         except ObjectDoesNotExist:
             return bad_http_request('User not found, or token incorrect',
-                                    'We could not find a user and token that matched those supplied. Please contact your system administrator.')
+                                    'We could not find a user and token that matched those supplied. \
+                                    Please contact your system administrator.')
 
         if pending_user.user.is_active:
             return bad_http_request('%s is active' % user,
-                                    'The user is already active. If you need to reset your password, contact your system administrator.')
+                                    'The user is already active. If you need to reset your password, \
+                                    contact your system administrator.')
         if pending_user.email_verified:
             return bad_http_request('You have already verified your email',
                                     'A validation email has been sent to the administrators you listed.')
         if pending_user.created_at < datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(days=1):
             return bad_http_request('This link is expired',
-                                    'You must verify your email within 24 hours. Please contact your system administrator.')
+                                    'You must verify your email within 24 hours. \
+                                    Please contact your system administrator.')
 
         if is_valid_domain(pending_user.user.email):
             pending_user.user.is_active = True
@@ -195,7 +200,7 @@ class VerifyEmail(PublicJsonRequestView):
                 send_notification('Reference to approve an account',
                                   [admin],
                                   render_to_string('email/registration/validate.html', email_context),
-                                  'Approve an account')
+                                  'Approve an account - ' + pending_user.user.username)
             pending_user.email_verified = True
             pending_user.save()
             return HttpResponse(render_to_string('registration/validation-sent.html'))
@@ -216,7 +221,8 @@ class ValidateUser(PublicJsonRequestView):
 
         if pending_user.user.is_active:
             return bad_http_request('%s is active' % user,
-                                    'The user is already active. You can modify user accounts any time using the admin interface.')
+                                    'The user is already active. \
+                                    You can modify user accounts any time using the admin interface.')
 
         # Determine which admin we're responding to.
         admin = '1' if token == pending_user.admin_token_1 else '2'
@@ -239,7 +245,7 @@ class ValidateUser(PublicJsonRequestView):
             send_notification('Your account has been approved',
                               [pending_user.user.email],
                               render_to_string('email/registration/outside-email-success.html', email_context),
-                              'Approved account successfully')
+                              'Approved account successfully - ' + pending_user.user.username)
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
         else:

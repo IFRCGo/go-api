@@ -17,18 +17,19 @@ from deployments.models import PersonnelDeployment, ERU, Personnel
 from main.frontend import frontend_url
 import html
 
-time_5_minutes = timedelta(minutes = 5)
-time_1_day = timedelta(days = 1) # to check: the change was not between time_interval and time_interva2, so that the user don't receive email more frequent than a day.
-time_1_week = timedelta(days = 7) # for digest mode
-digest_time = int(10314) # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
-daily_retro = int(654) # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length = 860 # after this length (at the first space) we cut the sent content
-events_sent_to = {} # to document sent events before re-sending them via specific following
+time_5_minutes = timedelta(minutes=5)
+time_1_day = timedelta(days=1)
+time_1_week = timedelta(days=7)  # for digest mode
+digest_time = int(10314)  # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
+daily_retro = int(654)  # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
+max_length = 860  # after this length (at the first space) we cut the sent content
+events_sent_to = {}  # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
     RecordType.FIELD_REPORT: 'design/field_report.html',
     RecordType.APPEAL: 'design/new_operation.html',
-    98: 'design/operation_update.html', # TODO: Either Operation Update needs a number or it should be constructed from other types (ask someone)
+    # TODO: Either Operation Update needs a number or it should be constructed from other types (ask someone)
+    98: 'design/operation_update.html',
     RecordType.WEEKLY_DIGEST: 'design/weekly_digest.html',
 }
 
@@ -494,7 +495,7 @@ class Command(BaseCommand):
                 return
             else:
                 emails = list(usr.values_list('email', flat=True))  # Only one email in this case
-        
+
         # Only serialize the first 10 records
         record_entries = []
         if rtype == RecordType.WEEKLY_DIGEST:
@@ -506,14 +507,14 @@ class Command(BaseCommand):
 
         if uid is not None:
             is_staff = usr.values_list('is_staff', flat=True)[0]
-        
+
         if rtype == RecordType.WEEKLY_DIGEST:
             record_type = 'weekly digest'
         else:
             record_type = self.get_record_display(rtype, record_count)
         if uid is None:
             adj = 'new' if stype == SubscriptionType.NEW else 'modified'
-            #subject = '%s %s %s in IFRC GO' % (
+            # subject = '%s %s %s in IFRC GO' % (
             if rtype == RecordType.WEEKLY_DIGEST:
                 subject = '%s' % (
                     record_type,
@@ -529,7 +530,7 @@ class Command(BaseCommand):
                     record_type,
                 )
         else:
-            #subject = '%s followed %s modified in IFRC GO' % (
+            # subject = '%s followed %s modified in IFRC GO' % (
             subject = '%s followed %s modified' % (
                 record_count,
                 record_type,
@@ -537,7 +538,7 @@ class Command(BaseCommand):
 
         if self.is_daily_checkup_time():
             subject += ' [daily followup]'
-        
+
         template_path = self.get_template()
         if rtype == RecordType.FIELD_REPORT or rtype == RecordType.APPEAL or rtype == RecordType.WEEKLY_DIGEST:
             template_path = self.get_template(rtype)
@@ -557,12 +558,12 @@ class Command(BaseCommand):
                 rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
                 non_ifrc_records = [rec for rec in record_entries if int(rec['visibility']) != 2]
                 if non_ifrc_records:
-                    non_ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) 
-                        & Q(subscription__stype=stype)
-                        & Q(is_active=True)
-                        & (~Q(groups__name='IFRC Admins') & ~Q(is_superuser=True)))
+                    non_ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) &
+                                        Q(subscription__stype=stype) &
+                                        Q(is_active=True) &
+                                        (~Q(groups__name='IFRC Admins') & ~Q(is_superuser=True)))
                     non_ifrc_recipients = list(User.objects.filter(non_ifrc_filters).values_list('email', flat=True))
-                    
+
                     # FIXME: Code duplication but this whole thing would need a huge refactor
                     # (almost the same as above and in the 'else' part)
                     if non_ifrc_recipients:
@@ -576,12 +577,12 @@ class Command(BaseCommand):
                         send_notification(subject,
                                           non_ifrc_recipients,
                                           non_ifrc_html,
-                                          RTYPE_NAMES[rtype] + ' notification')
+                                          RTYPE_NAMES[rtype] + ' notification - ' + subject)
 
-                ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) 
-                    & Q(subscription__stype=stype)
-                    & Q(is_active=True)
-                    & (Q(groups__name='IFRC Admins') | Q(is_superuser=True)))
+                ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) &
+                                Q(subscription__stype=stype) &
+                                Q(is_active=True) &
+                                (Q(groups__name='IFRC Admins') | Q(is_superuser=True)))
                 ifrc_emails = list(User.objects.filter(ifrc_filters).values_list('email', flat=True))
                 ifrc_recipients = ifrc_emails
 
@@ -608,12 +609,15 @@ class Command(BaseCommand):
                         if email_list_to_add:
                             events_sent_to[i] = list(filter(None, email_list_to_add))
 
-                plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+                # record_type has its possible plural thanks to get_record_display()
+                plural = '' if len(emails) == 1 else 's'
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-                send_notification(subject, ifrc_recipients, ifrc_html, RTYPE_NAMES[rtype] + ' notification')
+                send_notification(subject, ifrc_recipients, ifrc_html,
+                                  RTYPE_NAMES[rtype] + ' notification - ' + subject)
             else:
                 if record_count == 1:
-                    subject += ': ' + record_entries[0]['title'] # On purpose after rendering – the subject changes only, not email body
+                    # On purpose after rendering – the subject changes only, not email body
+                    subject += ': ' + record_entries[0]['title']
 
                 # TODO: check if this is even needed in any case
                 # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
@@ -628,7 +632,7 @@ class Command(BaseCommand):
 
                 plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
-                send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification')
+                send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification - ' + subject)
         else:
             if len(recipients):
                 # check if email is not in events_sent_to{event_id: recipients}
@@ -637,14 +641,12 @@ class Command(BaseCommand):
                 # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
                 elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
                     logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
-                    send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification')
+                    send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification - ' + subject)
                 else:
                     logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
-    
     def index_records(self, records, to_create=True):
         self.bulk([self.convert_for_bulk(record, create=to_create) for record in list(records)])
-
 
     def convert_for_bulk(self, record, create):
         data = record.indexing()
@@ -660,17 +662,15 @@ class Command(BaseCommand):
             metadata['doc'] = data
         return metadata
 
-
     def bulk(self, actions):
         try:
-            created, errors = bulk(client=ES_CLIENT , actions=actions)
+            created, errors = bulk(client=ES_CLIENT, actions=actions)
             if len(errors):
                 logger.error('Produced the following errors:')
                 logger.error('[%s]' % ', '.join(map(str, errors)))
         except Exception as e:
             logger.error('Could not index records')
             logger.error('%s...' % str(e)[:512])
-
 
     # Remove items in a queryset where updated_at == created_at.
     # This leaves us with only ones that have been modified.
@@ -684,20 +684,18 @@ class Command(BaseCommand):
             return [record for record in queryset if (
                 record.updated_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
 
-
     def check_ingest_issues(self, having_ingest_issue):
         # having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
             send_notification('API monitor – ingest issues!',
-                ['im@ifrc.org'], # Could be an ENV var
+                ['im@ifrc.org'],  # Could be an ENV var
                 'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
                     settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.',
                 'Ingestion error')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name +
                 ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
-
 
     def handle(self, *args, **options):
         if self.is_digest_mode():
