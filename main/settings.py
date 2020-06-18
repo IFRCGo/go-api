@@ -225,6 +225,7 @@ LANGUAGES = (
     ('ar', _('Arabic')),
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+HIDE_LANGUAGE_UI = not DEBUG
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')

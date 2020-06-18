@@ -20,7 +20,6 @@ from django.contrib import admin
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
 from django.conf.urls.i18n import i18n_patterns
-from tastypie.api import Api
 from api.views import (
     GetAuthToken,
     ChangePassword,
@@ -97,7 +96,7 @@ router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset, base_name='percountry')
-#router.register(r'percountryusers', per_views.FormCountryUsersViewset)
+# router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'perstat', per_views.FormStatViewset, base_name='perstat')
 router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'peroverview', per_views.OverviewViewset, base_name='peroverview')
@@ -173,5 +172,6 @@ if settings.DEBUG:
 urlpatterns += i18n_patterns(
     path('', admin.site.urls),
     # NOTE: Current language switcher will not work if set to False.
-    prefix_default_language=True,
+    # TODO: Fix admin panel language switcher before enabling switcher in production
+    prefix_default_language=not settings.HIDE_LANGUAGE_UI,
 )

@@ -6,8 +6,6 @@ from .models import (
 
 
 class StringSerializer(serializers.ModelSerializer):
-    action = serializers.CharField(write_only=True)
-
     class Meta:
         model = String
         fields = '__all__'

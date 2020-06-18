@@ -36,7 +36,7 @@ def to_dict(instance):
 class DisasterType(models.Model):
     """ summary of disaster """
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    summary = models.TextField(verbose_name=_('summary'), )
+    summary = models.TextField(verbose_name=_('summary'))
 
     class Meta:
         ordering = ('name',)
@@ -246,7 +246,6 @@ class RegionKeyFigure(AdminKeyFigure):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='key_figures', on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ('source',)
         verbose_name = _('region key figure')
         verbose_name_plural = _('region key figures')
 
@@ -255,7 +254,6 @@ class CountryKeyFigure(AdminKeyFigure):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='key_figures', on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ('source',)
         verbose_name = _('country key figure')
         verbose_name_plural = _('country key figures')
 

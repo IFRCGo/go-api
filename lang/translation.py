@@ -71,6 +71,9 @@ MultilingualQuerySet.values = multilingual_queryset_values
 
 
 class AmazonTranslate(object):
+    """
+    Amazon Translate helper
+    """
     def __init__(self, client=None):
         self.translate = client or boto3.client(
             'translate',
@@ -88,6 +91,12 @@ class AmazonTranslate(object):
 
 
 class TranslatedModelSerializerMixin(serializers.ModelSerializer):
+    """
+    Translation mixin for serializer
+    - Using header/GET Params detect languge
+    - Assign original field name to requested field_<language>
+    - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
+    """
     def get_field_names(self, declared_fields, info):
         fields = super().get_field_names(declared_fields, info)
 

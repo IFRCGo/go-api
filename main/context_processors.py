@@ -8,7 +8,7 @@ def ifrc_go(request):
     return {
         # Provide a variable to define current environment
         'PRODUCTION_URL': settings.PRODUCTION_URL,
-        'DEBUG': settings.DEBUG,
+        'HIDE_LANGUAGE_UI': settings.HIDE_LANGUAGE_UI,
         'IS_STAGING': True if settings.PRODUCTION_URL == 'dsgocdnapi.azureedge.net' else False,
         # to be used later in api/templates/admin/base_site.html # True if len(having_ingest_issue) > 0 else False,
         'HAVING_INGEST_ISSUE': False,

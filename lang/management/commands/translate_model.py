@@ -40,6 +40,9 @@ def translate_fields_object(obj, field):
 
 
 class Command(BaseCommand):
+    """
+    TODO: Look up in all languge field for initial required text
+    """
     help = 'Use Amazon Translate to translate all models translated field\'s values'
 
     def handle(self, *args, **options):
