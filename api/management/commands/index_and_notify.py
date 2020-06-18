@@ -547,7 +547,7 @@ class Command(BaseCommand):
             'hello': get_hello(),
             'count': record_count,
             'records': record_entries,
-            'is_staff': True if uid is None else is_staff, # TODO: fork the sending to "is_staff / not ~" groups
+            'is_staff': True if uid is None else is_staff,  # TODO: fork the sending to "is_staff / not ~" groups
             'subject': subject,
         })
         recipients = emails
@@ -577,7 +577,7 @@ class Command(BaseCommand):
                         send_notification(subject,
                                           non_ifrc_recipients,
                                           non_ifrc_html,
-                                          RTYPE_NAMES[rtype] + ' notification - ' + subject)
+                                          RTYPE_NAMES[rtype] + ' notification (non_ifrc) - ' + subject)
 
                 ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) &
                                 Q(subscription__stype=stype) &
@@ -613,7 +613,7 @@ class Command(BaseCommand):
                 plural = '' if len(emails) == 1 else 's'
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
                 send_notification(subject, ifrc_recipients, ifrc_html,
-                                  RTYPE_NAMES[rtype] + ' notification - ' + subject)
+                                  RTYPE_NAMES[rtype] + ' notification (ifrc) - ' + subject)
             else:
                 if record_count == 1:
                     # On purpose after rendering – the subject changes only, not email body
