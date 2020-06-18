@@ -8,6 +8,7 @@ from django.shortcuts import redirect, render
 from django.http import StreamingHttpResponse
 from django.utils.translation import ugettext
 from django.utils.translation import ugettext_lazy as _
+from admin_auto_filters.filters import AutocompleteFilter
 
 from api.utils import Echo
 import deployments.models as models
@@ -67,14 +68,28 @@ class RegionalProjectAdmin(CompareVersionAdmin):
     search_fields = ('name',)
 
 
+class ProjectNSFilter(AutocompleteFilter):
+    title = _('National Society')
+    field_name = 'reporting_ns'
+
+
+class ProjectCountryFilter(AutocompleteFilter):
+    title = _('Country')
+    field_name = 'project_country'
+
+
 class ProjectAdmin(CompareVersionAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
+    list_filter = (ProjectNSFilter, ProjectCountryFilter,)
     autocomplete_fields = (
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
         'event', 'dtype',
     )
+
+    class Media:  # Required by AutocompleteFilter
+        pass
 
     def get_url_namespace(self, name, absolute=True):
         meta = self.model._meta

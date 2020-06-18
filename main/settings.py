@@ -56,6 +56,7 @@ INSTALLED_APPS = [
 
     # Utils Apps
     'tinymce',
+    'admin_auto_filters',
 
     # Logging
     'reversion',
