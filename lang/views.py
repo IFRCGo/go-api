@@ -51,14 +51,15 @@ class LanguageViewSet(viewsets.ViewSet):
         methods=('post',),
     )
     def bulk_action(self, request, pk=None, *args, **kwargs):
-        lang = pk
         actions = LanguageBulkActionsSerializer(data=request.data)
         actions.is_valid(raise_exception=True)
 
+        lang = pk
+        lang_strings_qs = String.objects.filter(language=lang)
         new_strings = []
         changed_strings = {}
         deleted_string_keys = []
-        existing_string_keys = set(lang.string_set.values_list('key', flat=True))
+        existing_string_keys = set(lang_strings_qs.values_list('key', flat=True))
         # Extract Actions
         for meta in actions.validated_data['actions']:
             action = meta['action']
@@ -83,7 +84,7 @@ class LanguageViewSet(viewsets.ViewSet):
         if len(new_strings):
             new_strings = String.objects.bulk_create(new_strings)
         if len(changed_strings):
-            to_update_strings = list(lang.string_set.filter(key__in=changed_strings.keys()).all())
+            to_update_strings = list(lang_strings_qs.filter(key__in=changed_strings.keys()).all())
             for string in to_update_strings:
                 string.value = changed_strings[string.key]['value']
                 string.hash = changed_strings[string.key]['hash']

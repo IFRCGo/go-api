@@ -5,4 +5,5 @@ from .models import Project
 # Project Options
 @register(Project)
 class ProjectTO(TranslationOptions):
-    fields = ('name',)
+    # fields = ('name',)
+    pass

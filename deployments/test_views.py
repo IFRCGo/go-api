@@ -12,6 +12,14 @@ from .models import (
 )
 
 
+def dict_to_string(dict_obj):
+    return (
+        '-'.join([
+            str(dict_obj[key]) for key in sorted(dict_obj.keys())
+        ])
+    )
+
+
 class ProjectGetTest(APITestCase):
     def setUp(self):
         super().setUp()
@@ -324,37 +332,49 @@ class ProjectGetTest(APITestCase):
             })
 
         nation_society_activities_resp = {
-            'nodes': [
-                {'id': rcountry1.id, 'type': 'supporting_ns', 'name': 'country1_sn', 'iso': 'XX', 'iso3': None},
-                {'id': rcountry2.id, 'type': 'supporting_ns', 'name': 'country2_sn', 'iso': 'XX', 'iso3': None},
-                {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
-                {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
-                {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
-                {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
-                {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
-                {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
-                {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
-                {'id': country2.id, 'type': 'receiving_ns', 'name': 'country2', 'iso': 'XX', 'iso3': None}
-            ],
-            'links': [
-                {'source': 0, 'target': 2, 'value': 2},
-                {'source': 0, 'target': 3, 'value': 1},
-                {'source': 0, 'target': 5, 'value': 1},
-                {'source': 1, 'target': 2, 'value': 1},
-                {'source': 1, 'target': 4, 'value': 1},
-                {'source': 1, 'target': 6, 'value': 1},
-                {'source': 1, 'target': 7, 'value': 1},
-                {'source': 2, 'target': 8, 'value': 3},
-                {'source': 3, 'target': 9, 'value': 1},
-                {'source': 4, 'target': 9, 'value': 1},
-                {'source': 5, 'target': 9, 'value': 1},
-                {'source': 6, 'target': 9, 'value': 1},
-                {'source': 7, 'target': 8, 'value': 1}
-            ]
+            'nodes': sorted(
+                [
+                    {'id': rcountry1.id, 'type': 'supporting_ns', 'name': 'country1_sn', 'iso': 'XX', 'iso3': None},
+                    {'id': rcountry2.id, 'type': 'supporting_ns', 'name': 'country2_sn', 'iso': 'XX', 'iso3': None},
+                    {'id': 0, 'type': 'sector', 'name': Sectors.WASH.label},
+                    {'id': 2, 'type': 'sector', 'name': Sectors.CEA.label},
+                    {'id': 3, 'type': 'sector', 'name': Sectors.MIGRATION.label},
+                    {'id': 4, 'type': 'sector', 'name': Sectors.HEALTH.label},
+                    {'id': 5, 'type': 'sector', 'name': Sectors.DRR.label},
+                    {'id': 8, 'type': 'sector', 'name': Sectors.EDUCATION.label},
+                    {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
+                    {'id': country2.id, 'type': 'receiving_ns', 'name': 'country2', 'iso': 'XX', 'iso3': None}
+                ],
+                key=lambda item: dict_to_string(item),
+            ),
+            'links': sorted(
+                [
+                    {'source': 0, 'target': 2, 'value': 2},
+                    {'source': 0, 'target': 3, 'value': 1},
+                    {'source': 0, 'target': 5, 'value': 1},
+                    {'source': 1, 'target': 2, 'value': 1},
+                    {'source': 1, 'target': 4, 'value': 1},
+                    {'source': 1, 'target': 6, 'value': 1},
+                    {'source': 1, 'target': 7, 'value': 1},
+                    {'source': 2, 'target': 8, 'value': 3},
+                    {'source': 3, 'target': 9, 'value': 1},
+                    {'source': 4, 'target': 9, 'value': 1},
+                    {'source': 5, 'target': 9, 'value': 1},
+                    {'source': 6, 'target': 9, 'value': 1},
+                    {'source': 7, 'target': 8, 'value': 1}
+                ],
+                key=lambda item: dict_to_string(item),
+            ),
         }
 
-        resp = self.client.get(f'/api/v2/region-project/{region.pk}/national-society-activities/', format='json')
-        self.assertEqual(resp.json(), nation_society_activities_resp)
+        resp = self.client.get(f'/api/v2/region-project/{region.pk}/national-society-activities/', format='json').json()
+        self.assertEqual(nation_society_activities_resp, {
+            'nodes': sorted(resp['nodes'], key=lambda item: dict_to_string(item)),
+            'links': sorted(resp['links'], key=lambda item: dict_to_string(item)),
+        })
 
-        resp = self.client.get(f'/api/v2/region-project/national-society-activities/?region={region.pk}', format='json')
-        self.assertEqual(resp.json(), nation_society_activities_resp)
+        resp = self.client.get(f'/api/v2/region-project/national-society-activities/?region={region.pk}', format='json').json()
+        self.assertEqual(nation_society_activities_resp, {
+            'nodes': sorted(resp['nodes'], key=lambda item: dict_to_string(item)),
+            'links': sorted(resp['links'], key=lambda item: dict_to_string(item)),
+        })

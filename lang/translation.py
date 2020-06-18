@@ -4,7 +4,12 @@ import boto3
 from modeltranslation.admin import TranslationBaseModelAdmin
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
-from modeltranslation.manager import get_translatable_fields_for_model
+from modeltranslation.manager import (
+    get_translatable_fields_for_model,
+    MultilingualQuerySet,
+    FallbackValuesIterable,
+    append_fallback,
+)
 from django.utils.translation import get_language as django_get_language
 
 from rest_framework import serializers
@@ -17,23 +22,6 @@ logger = logging.getLogger(__name__)
 DJANGO_AVAILABLE_LANGUAGES = set([lang[0] for lang in settings.LANGUAGES])
 AVAILABLE_LANGUAGES = mt_settings.AVAILABLE_LANGUAGES
 DEFAULT_LANGUAGE = mt_settings.DEFAULT_LANGUAGE
-
-
-class AmazonTranslate(object):
-    def __init__(self, client=None):
-        self.translate = client or boto3.client(
-            'translate',
-            aws_access_key_id=settings.AWS_TRANSLATE_ACCESS_KEY,
-            aws_secret_access_key=settings.AWS_TRANSLATE_SECRET_KEY,
-            region_name=settings.AWS_TRANSLATE_REGION,
-        )
-
-    def translate_text(self, text, source_language, dest_language):
-        return self.translate.translate_text(
-            Text=text,
-            SourceLanguageCode=source_language,
-            TargetLanguageCode=dest_language
-        )
 
 
 # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
@@ -51,6 +39,52 @@ def _exclude_original_fields(self, exclude=None):  # noqa: E302
 
 
 TranslationBaseModelAdmin._exclude_original_fields = _exclude_original_fields
+
+
+# NOTE: Fixing modeltranslation Queryset to support experssions in Queryset values()
+# https://github.com/deschler/django-modeltranslation/issues/517
+def multilingual_queryset__values(self, *original, prepare=False, **expressions):
+    if not prepare:
+        return super(MultilingualQuerySet, self)._values(*original, **expressions)
+    new_fields, translation_fields = append_fallback(self.model, original)
+    clone = super(MultilingualQuerySet, self)._values(*list(new_fields), **expressions)
+    clone.original_fields = tuple(original)
+    clone.translation_fields = translation_fields
+    clone.fields_to_del = new_fields - set(original)
+    return clone
+
+
+def multilingual_queryset_values(self, *fields, **expressions):
+    fields += tuple(expressions)
+    if not self._rewrite:
+        return super(MultilingualQuerySet, self).values(*fields, **expressions)
+    if not fields:
+        # Emulate original queryset behaviour: get all fields that are not translation fields
+        fields = self._get_original_fields()
+    clone = self._values(*fields, prepare=True, **expressions)
+    clone._iterable_class = FallbackValuesIterable
+    return clone
+
+
+MultilingualQuerySet._values = multilingual_queryset__values
+MultilingualQuerySet.values = multilingual_queryset_values
+
+
+class AmazonTranslate(object):
+    def __init__(self, client=None):
+        self.translate = client or boto3.client(
+            'translate',
+            aws_access_key_id=settings.AWS_TRANSLATE_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_TRANSLATE_SECRET_KEY,
+            region_name=settings.AWS_TRANSLATE_REGION,
+        )
+
+    def translate_text(self, text, source_language, dest_language):
+        return self.translate.translate_text(
+            Text=text,
+            SourceLanguageCode=source_language,
+            TargetLanguageCode=dest_language
+        )
 
 
 class TranslatedModelSerializerMixin(serializers.ModelSerializer):
