@@ -5,4 +5,5 @@ from .models import FieldReport
 # Field Report Translation Options
 @register(FieldReport)
 class FieldReportTO(TranslationOptions):
-    fields = ('summary', 'description')
+    pass
+    # fields = ('summary', 'description')

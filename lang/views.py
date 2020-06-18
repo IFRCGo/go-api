@@ -5,53 +5,54 @@ from rest_framework import (
     response,
 )
 
+from django.conf import settings
 from main.permissions import ModifyBySuperAdminOnly
 from .serializers import (
-    LanguageSerializer,
-    ListLanguageSerializer,
     StringSerializer,
     LanguageBulkActionSerializer,
     LanguageBulkActionsSerializer,
 )
 from .models import (
-    Language,
     String,
 )
 
 
-class LanguageViewSet(viewsets.ModelViewSet):
+class LanguageViewSet(viewsets.ViewSet):
     # TODO: Add permission level
     # TODO: Cache retrive response to file
     permission_classes = (ModifyBySuperAdminOnly,)
-    queryset = Language.objects.all()
-    serializer_class = LanguageSerializer
     lookup_url_kwarg = 'pk'
 
-    def get_object(self):
-        """
-        Retrive object by using id or code.
-        """
-        pk = self.kwargs[self.lookup_url_kwarg]
-        try:
-            pk = int(pk)
-        except ValueError:  # If it's string
-            self.lookup_field = 'code'
-        return super().get_object()
+    def list(self, request, version=None):
+        languages = [
+            {'code': code, 'title': title}
+            for code, title in settings.LANGUAGES
+        ]
+        return response.Response({
+            'count': len(languages),
+            'results': languages,
+        })
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return ListLanguageSerializer
-        return super().get_serializer_class()
+    def retrieve(self, request, pk=None, version=None):
+        languages = settings.LANGUAGES
+        code, title = next((lang for lang in languages if lang[0] == pk), (None, None))
+
+        obj = {
+            'code': code,
+            'title': title,
+            'strings': StringSerializer(String.objects.filter(language=code), many=True).data,
+        }
+
+        return response.Response(obj)
 
     @transaction.atomic
     @djaction(
         detail=True, url_path='bulk-action',
         methods=('post',),
-        serializer_class=LanguageBulkActionsSerializer,
     )
-    def bulk_action(self, request, *args, **kwargs):
-        lang = self.get_object()
-        actions = self.serializer_class(data=request.data)
+    def bulk_action(self, request, pk=None, *args, **kwargs):
+        lang = pk
+        actions = LanguageBulkActionsSerializer(data=request.data)
         actions.is_valid(raise_exception=True)
 
         new_strings = []

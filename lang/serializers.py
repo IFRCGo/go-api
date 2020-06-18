@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from .models import (
-    Language,
     String,
 )
 
@@ -12,16 +11,6 @@ class StringSerializer(serializers.ModelSerializer):
     class Meta:
         model = String
         fields = '__all__'
-
-
-class ListLanguageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Language
-        fields = '__all__'
-
-
-class LanguageSerializer(ListLanguageSerializer):
-    strings = StringSerializer(source='string_set', many=True, read_only=True)
 
 
 class LanguageBulkActionSerializer(serializers.Serializer):

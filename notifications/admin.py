@@ -2,8 +2,6 @@ from django.contrib import admin
 import notifications.models as models
 from api.admin_classes import RegionRestrictedAdmin
 from django_admin_listfilter_dropdown.filters import ChoiceDropdownFilter
-from reversion.admin import VersionAdmin
-from reversion.models import Revision
 from reversion_compare.admin import CompareVersionAdmin
 
 
@@ -16,7 +14,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 class SubscriptionAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'rtype')
-    list_filter   = (('rtype', ChoiceDropdownFilter),)
+    list_filter = (('rtype', ChoiceDropdownFilter),)
 
 
 class NotificationGUIDAdmin(admin.ModelAdmin):

@@ -14,6 +14,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 # Array of language : ['en', 'es', 'fr', ....]
+DJANGO_AVAILABLE_LANGUAGES = set([lang[0] for lang in settings.LANGUAGES])
 AVAILABLE_LANGUAGES = mt_settings.AVAILABLE_LANGUAGES
 DEFAULT_LANGUAGE = mt_settings.DEFAULT_LANGUAGE
 
@@ -47,6 +48,9 @@ def _exclude_original_fields(self, exclude=None):  # noqa: E302
         for lang in AVAILABLE_LANGUAGES
         if lang != current_lang
     ])
+
+
+TranslationBaseModelAdmin._exclude_original_fields = _exclude_original_fields
 
 
 class TranslatedModelSerializerMixin(serializers.ModelSerializer):

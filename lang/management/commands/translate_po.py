@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import polib
-from lagn.translate import AmazonTranslate
+from lang.translation import AmazonTranslate, DJANGO_AVAILABLE_LANGUAGES
 from django.core.management import BaseCommand
 
 
@@ -37,12 +37,18 @@ def translate_po_file(po, language):
 class Command(BaseCommand):
     help = 'Use Amazon Translate to translate all the .po files, Already translated strings are not touched'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--languages', nargs='+',
+            choices=DJANGO_AVAILABLE_LANGUAGES,
+            help='Languages to translate. Default is all',
+        )
+
     def handle(self, *args, **options):
-        # Loop through all locale paths defined in the project
-        for file in Path('').glob('**/*.po'):
-            # NOTE: Make sure this is the right way to get the language
-            language = str(file).split('/')[-3]
-            print(f'Translating: {file} ({language})')
-            po = polib.pofile(file)
-            po = translate_po_file(po, language)
-            po.save(file)
+        languages = options['languages'] or DJANGO_AVAILABLE_LANGUAGES
+        for language in languages:
+            for file in Path('').glob(f"**/{language}/**/*.po"):
+                print(f'Translating: {file} ({language})')
+                po = polib.pofile(file)
+                po = translate_po_file(po, language)
+                po.save(file)

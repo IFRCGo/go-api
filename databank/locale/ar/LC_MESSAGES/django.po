@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-02 10:33+0000\n"
+"POT-Creation-Date: 2020-06-18 04:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: databank/admin.py:41
+#: databank/admin.py:40
 msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
 msgstr "المؤشرات الرئيسية القطرية (المصدر: تقارير FDRS)"
 
-#: databank/admin.py:47
+#: databank/admin.py:46
 msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
 msgstr "مؤشرات المجتمع الوطني (المصدر: تقارير FDRS)"
 
-#: databank/admin.py:50
+#: databank/admin.py:49
 msgid "KEY CLIMATE EVENT"
 msgstr "الحدث المناخي الرئيسي"
 
@@ -34,34 +34,459 @@ msgstr "الحدث المناخي الرئيسي"
 msgid "databank"
 msgstr "بنك البيانات"
 
-#: databank/models.py:231
-msgid "Country Overview"
+#: databank/forms.py:18
+msgid "Invalid End Date"
+msgstr "تاريخ انتهاء غير صالح"
+
+#: databank/models.py:15
+msgid "Active"
+msgstr "نشيط"
+
+#: databank/models.py:16
+msgid "Not Active"
+msgstr "غير نشط"
+
+#: databank/models.py:35
+msgid "January"
+msgstr "يناير"
+
+#: databank/models.py:36
+msgid "February"
+msgstr "شهر فبراير"
+
+#: databank/models.py:37
+msgid "March"
+msgstr "مارس"
+
+#: databank/models.py:38
+msgid "April"
+msgstr "أبريل"
+
+#: databank/models.py:39
+msgid "May"
+msgstr "مايو"
+
+#: databank/models.py:40
+msgid "June"
+msgstr "يونيو"
+
+#: databank/models.py:41
+msgid "July"
+msgstr "يوليو"
+
+#: databank/models.py:42
+msgid "August"
+msgstr "أغسطس"
+
+#: databank/models.py:43
+msgid "September"
+msgstr "سبتمبر"
+
+#: databank/models.py:44
+msgid "October"
+msgstr "شهر اكتوبر"
+
+#: databank/models.py:45
+msgid "November"
+msgstr "شهر نوفمبر"
+
+#: databank/models.py:46
+msgid "December"
+msgstr "ديسمبر"
+
+#: databank/models.py:72
+msgid "Cold Wave"
+msgstr "موجة باردة"
+
+#: databank/models.py:73
+msgid "Heat Wave"
+msgstr "موجة الحرارة"
+
+#: databank/models.py:74
+msgid "Drought"
+msgstr "جفاف"
+
+#: databank/models.py:75
+msgid "Earthquake"
+msgstr "زلزال"
+
+#: databank/models.py:76
+msgid "Land Slide"
+msgstr "الشريحة الأرضية"
+
+#: databank/models.py:77
+msgid "Tsunami"
+msgstr "تسونامي"
+
+#: databank/models.py:78
+msgid "Volcano"
+msgstr "بركان"
+
+#: databank/models.py:79
+msgid "Extratropical Cyclone"
+msgstr "الإعصار خارج الأتروبوطي"
+
+#: databank/models.py:80
+msgid "Tropical Cyclone"
+msgstr "الإعصار الاستوائي"
+
+#: databank/models.py:81
+msgid "Storm Surge"
+msgstr "ستورم سيرج"
+
+#: databank/models.py:82
+msgid "Flood"
+msgstr "فيضان"
+
+#: databank/models.py:83
+msgid "Flash Flood"
+msgstr "فلاش الفيضانات"
+
+#: databank/models.py:84
+msgid "Complex Emergency"
+msgstr "الطوارئ المعقدة"
+
+#: databank/models.py:85
+msgid "Fire"
+msgstr "حريق"
+
+#: databank/models.py:86
+msgid "Other"
+msgstr "آخر"
+
+#: databank/models.py:104
+msgid "Cholera Outbreak"
+msgstr "فاشية الكوليرا"
+
+#: databank/models.py:105
+msgid "Meningitis"
+msgstr "التهاب السحايا"
+
+#: databank/models.py:106
+msgid "Rift Valley fever"
+msgstr "حمى الوادي المتصدع"
+
+#: databank/models.py:107
+msgid "Viral haemorrhagic fevers"
+msgstr "الحمى النزفية الفيروسية"
+
+#: databank/models.py:108
+msgid "Viral hepatitis"
+msgstr "التهاب الكبد الفيروسي"
+
+#: databank/models.py:109
+msgid "Yellow fever"
+msgstr "الحمى الصفراء"
+
+#: databank/models.py:120
+msgid "Hazard & Exposure"
+msgstr "المخاطر والتعرض"
+
+#: databank/models.py:121
+msgid "Vulnerability"
+msgstr "نقاط الضعف الأمنية"
+
+#: databank/models.py:122
+msgid "Lack Of Coping Capacity"
+msgstr "نقص القدرة على التكيف"
+
+#: databank/models.py:127
+msgid "Estimated HDI from GDP per capita"
+msgstr "تقديرات مؤشر التنمية البشرية من نصيب الفرد من الناتج المحلي الإجمالي"
+
+#: databank/models.py:128
+msgid "INFORM Risk Index"
+msgstr "مؤشر مخاطر إعلام"
+
+#: databank/models.py:129
+msgid "Hazard & Exposure Index"
+msgstr "مؤشر المخاطر والتعرض"
+
+#: databank/models.py:130
+msgid "Vulnerability Index"
+msgstr "مؤشر نقاط الضعف الأمنية"
+
+#: databank/models.py:131
+msgid "Lack of Coping Capacity Index"
+msgstr "عدم وجود مؤشر القدرة على التكيف"
+
+#: databank/models.py:134
+msgid "Human Hazard"
+msgstr "المخاطر البشرية"
+
+#: databank/models.py:135
+msgid "Current conflicts"
+msgstr "التعارضات الحالية"
+
+#: databank/models.py:136
+msgid "GCRI Internal conflicts"
+msgstr "النزاعات الداخلية"
+
+#: databank/models.py:137
+msgid "Highly Violent Conflict probability Score"
+msgstr "درجة احتمال صراع عنيف للغاية"
+
+#: databank/models.py:138
+msgid "Violent Conflict probability Score"
+msgstr "النزاع العنيف احتمال النتيجة"
+
+#: databank/models.py:139
+msgid "Natural Hazard"
+msgstr "المخاطر الطبيعية"
+
+#: databank/models.py:140
+msgid "Droughts probability and historical impact"
+msgstr "احتمال حدوث الجفاف وتأثيره التاريخي"
+
+#: databank/models.py:141
+msgid "People affected by droughts"
+msgstr "الأشخاص المتأثرون بالجفاف"
+
+#: databank/models.py:142
+msgid "People affected by drought and Frequency of events"
+msgstr "الأشخاص المتأثرون بالجفاف وتواتر الأحداث"
+
+#: databank/models.py:143 databank/models.py:144
+msgid "Agriculture Drought Probability"
+msgstr "احتمال الجفاف الزراعي"
+
+#: databank/models.py:145
+msgid "Frequency of drought events"
+msgstr "تواتر أحداث الجفاف"
+
+#: databank/models.py:146
+msgid "Epidemic"
+msgstr "وباء"
+
+#: databank/models.py:147
+msgid "Physical exposure to earthquakes"
+msgstr "التعرض المادي للزلازل"
+
+#: databank/models.py:148
+msgid "Physical exposure to floods"
+msgstr "التعرض المادي للفيضانات"
+
+#: databank/models.py:149
+msgid "Physical exposure to tropical cyclones"
+msgstr "التعرض المادي للأعاصير المدارية"
+
+#: databank/models.py:150
+msgid "Physical exposure to tsunamis"
+msgstr "التعرض المادي لأمواج تسونامي"
+
+#: databank/models.py:153
+msgid "Socio-Economic Vulnerability"
+msgstr "الضعف الاجتماعي والاقتصادي"
+
+#: databank/models.py:154
+msgid "Economic Dependency"
+msgstr "التبعية الاقتصادية"
+
+#: databank/models.py:155
+msgid "Inequality"
+msgstr "عدم المساواة"
+
+#: databank/models.py:156
+msgid "Gender Inequality Index"
+msgstr "مؤشر عدم المساواة بين الجنسين"
+
+#: databank/models.py:157
+msgid "Income Gini coefficient"
+msgstr "معامل جيني الدخل"
+
+#: databank/models.py:158
+msgid "Poverty & Development"
+msgstr "الفقر والتنمية"
+
+#: databank/models.py:159
+msgid "Human Development Index"
+msgstr "مؤشر التنمية البشرية"
+
+#: databank/models.py:160
+msgid "Multidimensional Poverty Index"
+msgstr "مؤشر الفقر المتعدد الأبعاد"
+
+#: databank/models.py:161
+msgid "Vulnerable Groups"
+msgstr "الفئات الضعيفة"
+
+#: databank/models.py:162
+msgid "Others Vulnerable Groups"
+msgstr "الفئات الضعيفة الأخرى"
+
+#: databank/models.py:163
+msgid "Uprooted people"
+msgstr "الأشخاص المقتلعون من جذورهم"
+
+#: databank/models.py:166
+msgid "Access to Health Care"
+msgstr "الحصول على الرعاية الصحية"
+
+#: databank/models.py:167
+msgid "Communication"
+msgstr "اتصالات"
+
+#: databank/models.py:168
+msgid "Physical Infrastructure"
+msgstr "البنية التحتية المادية"
+
+#: databank/models.py:169
+msgid "Disaster Risk Reduction"
+msgstr "الحد من مخاطر الكوارث"
+
+#: databank/models.py:170
+msgid "Governance"
+msgstr "الحوكمة"
+
+#: databank/models.py:192
+msgid "population"
+msgstr "سكان"
+
+#: databank/models.py:193
+msgid "GDP"
+msgstr "الناتج المحلي الإجمالي"
+
+#: databank/models.py:194
+msgid "GNI/CAPITA"
+msgstr "نصيب الفرد من الدخل القومي"
+
+#: databank/models.py:195
+msgid "life expectancy"
+msgstr "متوسط العمر المتوقع"
+
+#: databank/models.py:198
+msgid "urban POP (%)"
+msgstr "الملوثات العضوية الثابتة الحضرية (%)"
+
+#: databank/models.py:203
+msgid "poverty (%)"
+msgstr "الفقر (%)"
+
+#: databank/models.py:208
+msgid "literacy (%)"
+msgstr "محو الأمية (%)"
+
+#: databank/models.py:213
+msgid "income (CHF)"
+msgstr "الدخل (الفرنك السويسري)"
+
+#: databank/models.py:214
+msgid "expenditures (CHF)"
+msgstr "النفقات (الفرنك السويسري)"
+
+#: databank/models.py:215
+msgid "volunteers"
+msgstr "المتطوعين"
+
+#: databank/models.py:216
+msgid "trained in first aid"
+msgstr "مدربين في الإسعافات الأولية"
+
+#: databank/models.py:219
+msgid "average temperature"
+msgstr "متوسط درجة الحرارة"
+
+#: databank/models.py:220 databank/models.py:269
+msgid "average rainfall precipitation"
+msgstr "متوسط هطول الأمطار"
+
+#: databank/models.py:221
+msgid "rainy season"
+msgstr "موسم الأمطار"
+
+#: databank/models.py:225
+msgid "FTS data"
+msgstr "بيانات FTS"
+
+#: databank/models.py:226
+msgid "start network data"
+msgstr "بدء تشغيل بيانات الشبكة"
+
+#: databank/models.py:227
+msgid "past crises data"
+msgstr "بيانات الأزمات السابقة"
+
+#: databank/models.py:228
+msgid "past epidemics data"
+msgstr "بيانات الأوبئة السابقة"
+
+#: databank/models.py:229
+msgid "inform indicators data"
+msgstr "إبلاغ بيانات المؤشرات"
+
+#: databank/models.py:232 databank/models.py:248 databank/models.py:262
+#: databank/models.py:281
+#, fuzzy
+#| msgid "Country Overview"
+msgid "country overview"
 msgstr "نظرة عامة على البلد"
 
-#: databank/models.py:232
-msgid "Countries Overview"
+#: databank/models.py:233
+#, fuzzy
+#| msgid "Countries Overview"
+msgid "countries overview"
 msgstr "نظرة عامة على البلدان"
 
-#: databank/models.py:253
+#: databank/models.py:249
+msgid "label"
+msgstr "ملصق"
+
+#: databank/models.py:250
+msgid "value"
+msgstr "قيمة"
+
+#: databank/models.py:254
 msgid "Social Event"
 msgstr "حدث اجتماعي"
 
-#: databank/models.py:254
+#: databank/models.py:255
 msgid "Social Events"
 msgstr "الفعاليات الاجتماعية"
 
-#: databank/models.py:272
+#: databank/models.py:263 databank/models.py:282
+msgid "modified at"
+msgstr "تعديل في"
+
+#: databank/models.py:265
+msgid "month"
+msgstr "شهر"
+
+#: databank/models.py:267
+msgid "average maximum temperature"
+msgstr "متوسط درجة الحرارة القصوى"
+
+#: databank/models.py:268
+msgid "average minimum temperature"
+msgstr "متوسط درجة الحرارة الدنيا"
+
+#: databank/models.py:273
 msgid "Key Client Event"
 msgstr "حدث العميل الرئيسي"
 
-#: databank/models.py:273
+#: databank/models.py:274
 msgid "Key Client Events"
 msgstr "الأحداث الرئيسية للعميل"
 
-#: databank/models.py:289
+#: databank/models.py:283
+msgid "title"
+msgstr "عنوان"
+
+#: databank/models.py:284
+msgid "sector"
+msgstr "قطاع"
+
+#: databank/models.py:285
+msgid "date start"
+msgstr "تاريخ بدء"
+
+#: databank/models.py:286
+msgid "date end"
+msgstr "نهاية التاريخ"
+
+#: databank/models.py:290
 msgid "Seasonal Calender Record"
 msgstr "سجل التقويم الموسمي"
 
-#: databank/models.py:290
+#: databank/models.py:291
 msgid "Seasonal Calender Records"
 msgstr "سجلات التقويم الموسمية"

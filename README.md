@@ -57,8 +57,10 @@ Access the site at http://localhost:8000
 
 ## Adding/Updating translations (Django)
 ```bash
-# Generating new language po files (for eg: fr)
+# Creation and upkeep language po files (for eg: fr)
 python3 manage.py makemessages -l fr
+# Creation and upkeep language po files (for eg: multiple languages)
+python3 manage.py makemessages -l en -l es -l ar -l fr
 # Updating currnet language po files
 python3 manage.py makemessages -a
 # Translate empty string of po files using AWS Translate (Requires valid AWS_TRANSLATE_* env variables)

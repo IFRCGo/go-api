@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 import pytz
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     'reversion',
     'reversion_compare',
 
-    #Debug
+    # Debug
     'debug_toolbar',
 ]
 

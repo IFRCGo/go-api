@@ -1,6 +1,7 @@
 import json
 from api.models import Country, District, Region
 from main.test_case import APITestCase
+from api.models import VisibilityCharChoices
 from .models import (
     Project,
     ProgrammeTypes,
@@ -139,9 +140,9 @@ class ProjectGetTest(APITestCase):
     def test_visibility_project_get(self):
         # Create country for scoping new projects
         country = Country.objects.create(name='new_country', iso='NC')
-        public_project = self.create_project(project_country=country, visibility=Project.PUBLIC)
-        private_project = self.create_project(project_country=country, visibility=Project.LOGGED_IN_USER)
-        ifrc_only_project = self.create_project(project_country=country, visibility=Project.IFRC_ONLY)
+        public_project = self.create_project(project_country=country, visibility=VisibilityCharChoices.PUBLIC)
+        private_project = self.create_project(project_country=country, visibility=VisibilityCharChoices.MEMBERSHIP)
+        ifrc_only_project = self.create_project(project_country=country, visibility=VisibilityCharChoices.IFRC)
         # Unauthenticated user
         resp = self.client.get(f'/api/v2/project/?project_country={country.pk}')
         p_ids = [p['id'] for p in resp.json()['results']]

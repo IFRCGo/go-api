@@ -67,6 +67,7 @@ class Command(BaseCommand):
                 [
                     (
                         Q(**{f"{build_localized_fieldname(field, DEFAULT_LANGUAGE)}__isnull": False}) &
+                        ~Q(**{f"{build_localized_fieldname(field, DEFAULT_LANGUAGE)}__exact": ""}) &
                         reduce(
                             lambda acc, f: acc | f,
                             [

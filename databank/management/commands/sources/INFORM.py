@@ -33,7 +33,7 @@ def prefetch():
             'group': InformIndicator.get_group(indicator_id),
             'score': score,
 
-            'indicator_display': InformIndicator.LABEL_MAP.get(indicator_id),
+            'indicator_display': str(InformIndicator.LABEL_MAP.get(indicator_id)),
             'group_display': InformIndicator.get_group_display(indicator_id),
         }
 
