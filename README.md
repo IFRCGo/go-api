@@ -61,7 +61,7 @@ Access the site at http://localhost:8000
 python3 manage.py makemessages -l fr
 # Creation and upkeep language po files (for eg: multiple languages)
 python3 manage.py makemessages -l en -l es -l ar -l fr
-# Updating currnet language po files
+# Updating current language po files
 python3 manage.py makemessages -a
 # Translate empty string of po files using AWS Translate (Requires valid AWS_TRANSLATE_* env variables)
 python3 manage.py translate_po
