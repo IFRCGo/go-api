@@ -16,7 +16,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 class SubscriptionAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'rtype')
-    list_filter   = (('rtype', ChoiceDropdownFilter),)
+    list_filter = (('rtype', ChoiceDropdownFilter),)
 
 
 class NotificationGUIDAdmin(admin.ModelAdmin):
@@ -25,7 +25,16 @@ class NotificationGUIDAdmin(admin.ModelAdmin):
     search_fields = ('email_type',)
     readonly_fields = ('api_guid', 'email_type', 'to_list',)
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
     def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 

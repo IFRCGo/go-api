@@ -36,6 +36,11 @@ def send_notification(subject, recipients, html, mailtype=''):
                 to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
+    if not recipients_as_string:
+        if len(to_addresses) > 0:
+            logger.info('Recipients failed to be converted to string, 1st rec.: %s' % to_addresses[0])
+        else:
+            logger.info('Recipients string is empty')
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     payload = {
         "FromAsBase64": str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
@@ -51,22 +56,26 @@ def send_notification(subject, recipients, html, mailtype=''):
 
     # The response contains the GUID (res.text)
     res = requests.post(EMAIL_API_ENDPOINT, json=payload)
-    guid = res.text.replace('"', '')
-    logger.info('GUID: %s', guid)
-    # Saving GUID into a table so that the API can be queried with it to get info about
-    # if the sending has failed or not.
-    NotificationGUID.objects.create(
-        api_guid=guid,
-        email_type=mailtype,
-        to_list='To: {to}; Bcc: {bcc}'.format(to=EMAIL_TO, bcc=recipients_as_string)
-    )
+    res_text = res.text.replace('"', '')
 
-    logger.info('Subject: %s, Recipients: %s', subject, recipients_as_string)
     if res.status_code == 200:
+        logger.info('Subject: %s, Recipients: %s', subject, recipients_as_string)
+
+        logger.info('GUID: %s', res_text)
+        # Saving GUID into a table so that the API can be queried with it to get info about
+        # if the actual sending has failed or not.
+        NotificationGUID.objects.create(
+            api_guid=res_text,
+            email_type=mailtype,
+            to_list='To: {to}; Bcc: {bcc}'.format(to=EMAIL_TO, bcc=recipients_as_string)
+        )
+
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.info('Authorization/authentication failed (%s) to the e-mail sender API.', res.status_code)
+        logger.error('Authorization/authentication failed (%s) to the e-mail sender API.', res.status_code)
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
+    else:
+        logger.info(res_text)
 
     return res.text
