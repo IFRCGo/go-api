@@ -59,7 +59,7 @@ def send_notification(subject, recipients, html, mailtype=''):
     res_text = res.text.replace('"', '')
 
     if res.status_code == 200:
-        logger.info('Subject: %s, Recipients: %s', subject, recipients_as_string)
+        logger.info('Subject: %s, Recipients: %s' % subject, recipients_as_string)
 
         logger.info('GUID: %s', res_text)
         # Saving GUID into a table so that the API can be queried with it to get info about
@@ -72,7 +72,7 @@ def send_notification(subject, recipients, html, mailtype=''):
 
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.error('Authorization/authentication failed (%s) to the e-mail sender API.', res.status_code)
+        logger.error('Authorization/authentication failed (%s) to the e-mail sender API.' % res.status_code)
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
     else:
