@@ -2,6 +2,7 @@ import os
 import requests
 import base64
 from api.logger import logger
+from api.models import CronJob, CronJobStatus
 from notifications.models import NotificationGUID
 
 # EMAIL_PASS = os.environ.get('EMAIL_PASS')
@@ -38,9 +39,15 @@ def send_notification(subject, recipients, html, mailtype=''):
     recipients_as_string = ','.join(to_addresses)
     if not recipients_as_string:
         if len(to_addresses) > 0:
-            logger.info('Recipients failed to be converted to string, 1st rec.: {}'.format(to_addresses[0]))
+            warn_msg = 'Recipients failed to be converted to string, 1st rec.: {}'.format(to_addresses[0])
+            logger.info(warn_msg)
+            # Save the warning into the CronJob logs too
+            cron_error = {"name": "index_and_notify", "message": warn_msg, "status": CronJobStatus.WARNED}
+            CronJob.sync_cron(cron_error)
         else:
             logger.info('Recipients string is empty')
+        return  # If there are no recipients it's unnecessary to send out the email
+
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     payload = {
         "FromAsBase64": str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
