@@ -38,7 +38,7 @@ def send_notification(subject, recipients, html, mailtype=''):
     recipients_as_string = ','.join(to_addresses)
     if not recipients_as_string:
         if len(to_addresses) > 0:
-            logger.info('Recipients failed to be converted to string, 1st rec.: %s' % to_addresses[0])
+            logger.info('Recipients failed to be converted to string, 1st rec.: {}'.format(to_addresses[0]))
         else:
             logger.info('Recipients string is empty')
     # Encode with base64 into bytes, then converting it back to strings for the JSON
@@ -59,9 +59,9 @@ def send_notification(subject, recipients, html, mailtype=''):
     res_text = res.text.replace('"', '')
 
     if res.status_code == 200:
-        logger.info('Subject: %s, Recipients: %s' % subject, recipients_as_string)
+        logger.info('Subject: {subject}, Recipients: {recs}'.format(subject=subject, recs=recipients_as_string))
 
-        logger.info('GUID: %s', res_text)
+        logger.info('GUID: {}'.format(res_text))
         # Saving GUID into a table so that the API can be queried with it to get info about
         # if the actual sending has failed or not.
         NotificationGUID.objects.create(
@@ -72,7 +72,7 @@ def send_notification(subject, recipients, html, mailtype=''):
 
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.error('Authorization/authentication failed (%s) to the e-mail sender API.' % res.status_code)
+        logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
     else:
