@@ -689,16 +689,17 @@ class Command(BaseCommand):
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
             send_notification('API monitor – ingest issues!',
-                ['im@ifrc.org'],  # Could be an ENV var
-                'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
-                    settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.',
-                'Ingestion error')
+                              ['im@ifrc.org'],  # Could be an ENV var
+                              'Ingest issue(s) occured, one of them is ' + ingestor_name +
+                              ', via CronJob log record id: https://' + settings.BASE_URL + '/api/cronjob/' +
+                              str(ingest_issue_id) + '. Please fix it ASAP.',
+                              'Ingestion error')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name +
-                ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
+                        ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
 
     def handle(self, *args, **options):
         if self.is_digest_mode():
-            time_diff = self.diff_1_week() # in digest mode (once a week, for new_entities only) we use a bigger interval
+            time_diff = self.diff_1_week()  # in digest mode (once a week, for new_entities only) we use a bigger interval
         else:
             time_diff = self.diff_5_minutes()
         time_diff_1_day = self.diff_1_day()
@@ -734,22 +735,22 @@ class Command(BaseCommand):
         # Merge Weekly Digest into one mail instead of separate ones
         if self.is_digest_mode():
             self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
-        
-        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-        # self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
-        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-        # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
-        self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-        # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-        self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
-        self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+        else:
+            self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+            # self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+            self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+            # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+            self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+            # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
         # Followed Events
         if self.is_daily_checkup_time():
             condU = Q(updated_at__gte=time_diff_1_day)
-            cond2 = Q(previous_update__gte=time_diff_1_day) # not negated, we collect those, who had 2 changes in the last 1 day
+            cond2 = Q(previous_update__gte=time_diff_1_day)  # not negated, we collect those, who had 2 changes in the last 1 day
 
-        fe_subs = Subscription.objects.filter(event_id__isnull=False) # subscriptions of FEs
+        fe_subs = Subscription.objects.filter(event_id__isnull=False)  # subscriptions of FEs
         subscribers = fe_subs.values_list('user_id', flat=True).distinct()
         for usr in subscribers:  # looping in user_ids of specific FOLLOWED_EVENT subscriptions
             eventlist = fe_subs.filter(user_id=usr).values_list('event_id', flat=True).distinct()
