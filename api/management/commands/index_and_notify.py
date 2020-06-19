@@ -81,7 +81,6 @@ class Command(BaseCommand):
         regions = list(set(regions))
         return countries, regions
 
-
     def gather_countries_and_regions(self, records):
         # Applies to emergencies and field reports, which have a
         # many-to-many relationship to countries and regions
@@ -95,7 +94,6 @@ class Command(BaseCommand):
         countries = ['c%s' % id for id in countries]
         return countries, regions
 
-
     def fix_types_for_subs(self, rtype, stype=SubscriptionType.NEW):
         # Correction for the new notification types:
         if rtype == RecordType.EVENT or rtype == RecordType.FIELD_REPORT:
@@ -105,22 +103,21 @@ class Command(BaseCommand):
             rtype = RecordType.NEW_OPERATIONS
             stype = SubscriptionType.NEW
         return rtype, stype
-        
 
     def gather_subscribers(self, records, rtype, stype):
         rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
 
         # Gather the email addresses of users who should be notified
         if self.is_digest_mode():
-            subscribers = User.objects.filter(subscription__rtype=RecordType.WEEKLY_DIGEST, \
-                is_active=True).values('email')
+            subscribers = User.objects.filter(subscription__rtype=RecordType.WEEKLY_DIGEST,
+                                              is_active=True).values('email')
             # In digest mode we do not care about other circumstances, just get every subscriber's email.
             emails = [subscriber['email'] for subscriber in subscribers]
             return emails
         else:
             # Start with any users subscribed directly to this record type.
-            subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr, \
-                                          subscription__stype=stype, is_active=True).values('email')
+            subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr,
+                                              subscription__stype=stype, is_active=True).values('email')
 
         # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
         if rtype_of_subscr != RecordType.FOLLOWED_EVENT and \
@@ -139,15 +136,13 @@ class Command(BaseCommand):
         emails = [subscriber['email'] for subscriber in subscribers]
         return emails
 
-
     def get_template(self, rtype=99):
-        #older: return 'email/generic_notification.html'
-        #old: return 'design/generic_notification.html'
+        # older: return 'email/generic_notification.html'
+        # old: return 'design/generic_notification.html'
         return template_types[rtype]
 
-
     # Get the front-end url of the resource
-    def get_resource_uri (self, record, rtype):
+    def get_resource_uri(self, record, rtype):
         # Determine the front-end URL
         resource_uri = frontend_url
         if rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
@@ -168,7 +163,7 @@ class Command(BaseCommand):
             )
         return resource_uri
 
-    def get_admin_uri (self, record, rtype):
+    def get_admin_uri(self, record, rtype):
         admin_page = {
             RecordType.FIELD_REPORT: 'api/fieldreport',
             RecordType.APPEAL: 'api/appeal',
@@ -213,7 +208,8 @@ class Command(BaseCommand):
             sendMe = record.comments
         else:
             sendMe = '?'
-        return html.unescape(sendMe) # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
+        # For contents we allow HTML markup. = autoescape off in generic_notification.html template.
+        return html.unescape(sendMe)
 
     def get_record_display(self, rtype, count):
         display = {
@@ -235,27 +231,27 @@ class Command(BaseCommand):
         elif field == 'ea':
             return Appeal.objects.filter(end_date__gt=today, atype=1).count()
         elif field == 'fund':
-            amount_req = (
-                Appeal.objects
-                    .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
-                    .aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
-            )
-            amount_fund = (
-                Appeal.objects
-                    .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
-                    .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0
-            )
+            amount_req = (Appeal.objects
+                                .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
+                                .aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0)
+            amount_fund = (Appeal.objects
+                                 .filter(Q(end_date__gt=today, atype=1) | Q(end_date__gt=today, atype=2))
+                                 .aggregate(Sum('amount_funded'))['amount_funded__sum'] or 0)
             percent = float(round(amount_fund / amount_req, 3) * 100) if amount_req != 0 else 0
             return percent
         elif field == 'budget':
-            amount = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0
+            amount = (Appeal.objects
+                            .filter(end_date__gt=today)
+                            .aggregate(Sum('amount_requested'))['amount_requested__sum'] or 0)
             rounded_amount = round(amount / 1000000, 2)
             return rounded_amount
         elif field == 'pop':
-            people = Appeal.objects.filter(end_date__gt=today).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0
+            people = (Appeal.objects
+                            .filter(end_date__gt=today)
+                            .aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or 0)
             rounded_people = round(people / 1000000, 2)
             return rounded_people
-    
+
     def get_weekly_digest_latest_ops(self):
         dig_time = self.diff_1_week()
         ops = Appeal.objects.filter(created_at__gte=dig_time).order_by('-created_at')
@@ -296,8 +292,8 @@ class Command(BaseCommand):
         personnel_list = Personnel.objects.filter(start_date__gte=dig_time).order_by('start_date')
         for pers in personnel_list:
             deployment = PersonnelDeployment.objects.get(id=pers.deployment_id)
-            event = Event.objects.get(id=deployment.event_deployed_to_id) if deployment.event_deployed_to_id != None else None
-            country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id != None else None
+            event = Event.objects.get(id=deployment.event_deployed_to_id) if deployment.event_deployed_to_id is not None else None
+            country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id is not None else None
             dep_to_add = {
                 'operation': event.name if event else '',
                 'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
@@ -311,7 +307,6 @@ class Command(BaseCommand):
 
         return ret_data
 
-
     def get_weekly_digest_highlights(self):
         dig_time = self.diff_1_week()
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
@@ -320,10 +315,10 @@ class Command(BaseCommand):
             amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
             amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or '--'
             coverage = '--'
-            
+
             if amount_funded != '--' and amount_requested != '--':
                 coverage = round(amount_funded / amount_requested, 1) if amount_requested != 0 else 0
-            
+
             data_to_add = {
                 'hl_id': ev.id,
                 'hl_name': ev.name,
@@ -375,7 +370,7 @@ class Command(BaseCommand):
         return ret_fr_list
 
     def get_fieldreport_keyfigures(self, num_list):
-        is_none = all(num == None for num in num_list)
+        is_none = all(num is None for num in num_list)
         if is_none:
             return None
 
@@ -397,7 +392,7 @@ class Command(BaseCommand):
             shortened = self.get_record_content(record, rtype)
             if len(shortened) > max_length:
                 shortened = shortened[:max_length] + \
-                            shortened[max_length:].split(' ', 1)[0] + '...' # look for the first space
+                    shortened[max_length:].split(' ', 1)[0] + '...'  # look for the first space
 
         if rtype == RecordType.FIELD_REPORT:
             rec_obj = {
@@ -406,12 +401,18 @@ class Command(BaseCommand):
                 'title': self.get_record_title(record, rtype),
                 'description': shortened,
                 'key_figures': {
-                    'affected': self.get_fieldreport_keyfigures([record.num_affected, record.gov_num_affected, record.other_num_affected]),
-                    'injured': self.get_fieldreport_keyfigures([record.num_injured, record.gov_num_injured, record.other_num_injured]),
-                    'dead': self.get_fieldreport_keyfigures([record.num_dead, record.gov_num_dead, record.other_num_dead]),
-                    'missing': self.get_fieldreport_keyfigures([record.num_missing, record.gov_num_missing, record.other_num_missing]),
-                    'displaced': self.get_fieldreport_keyfigures([record.num_displaced, record.gov_num_displaced, record.other_num_displaced]),
-                    'assisted': self.get_fieldreport_keyfigures([record.num_assisted, record.gov_num_assisted, record.other_num_assisted]),
+                    'affected': self.get_fieldreport_keyfigures(
+                        [record.num_affected, record.gov_num_affected, record.other_num_affected]),
+                    'injured': self.get_fieldreport_keyfigures(
+                        [record.num_injured, record.gov_num_injured, record.other_num_injured]),
+                    'dead': self.get_fieldreport_keyfigures(
+                        [record.num_dead, record.gov_num_dead, record.other_num_dead]),
+                    'missing': self.get_fieldreport_keyfigures(
+                        [record.num_missing, record.gov_num_missing, record.other_num_missing]),
+                    'displaced': self.get_fieldreport_keyfigures(
+                        [record.num_displaced, record.gov_num_displaced, record.other_num_displaced]),
+                    'assisted': self.get_fieldreport_keyfigures(
+                        [record.num_assisted, record.gov_num_assisted, record.other_num_assisted]),
                 },
                 'epi_key_figures': {
                     'epi_cases': record.epi_cases,
@@ -440,7 +441,7 @@ class Command(BaseCommand):
                 'follow_url': '{}/account#notifications'.format(frontend_url),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id != None else '',
+                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else '',
                 'key_figures': {
                     'people_targeted': float(record.num_beneficiaries),
                     'funding_req': float(record.amount_requested),
@@ -449,10 +450,9 @@ class Command(BaseCommand):
                     'end_date': record.end_date,
                 },
                 'operation_type': optypes[record.atype],
-                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id != None else None,
+                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
-            dig_time = self.diff_1_week()
             rec_obj = {
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
@@ -464,7 +464,7 @@ class Command(BaseCommand):
                 'latest_deployments': self.get_weekly_digest_latest_deployments(),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
-        else: # The default (old) template
+        else:  # The default (old) template
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
@@ -472,7 +472,6 @@ class Command(BaseCommand):
                 'content': shortened,
             }
         return rec_obj
-
 
     def notify(self, records, rtype, stype, uid=None):
         record_count = 0
@@ -621,16 +620,16 @@ class Command(BaseCommand):
 
                 # TODO: check if this is even needed in any case
                 # For new (email-documented :10) events we store data to events_sent_to{ event_id: recipients }
-                if stype == SubscriptionType.EDIT: # Recently we do not allow EDIT substription
+                if stype == SubscriptionType.EDIT:  # Recently we do not allow EDIT substription
                     for e in list(records.values('id'))[:10]:
                         i = e['id']
                         if i not in events_sent_to:
                             events_sent_to[i] = []
                         email_list_to_add = list(set(events_sent_to[i] + recipients))
                         if email_list_to_add:
-                            events_sent_to[i] = list(filter(None, email_list_to_add)) # filter to skip empty elements
+                            events_sent_to[i] = list(filter(None, email_list_to_add))  # filter to skip empty elements
 
-                plural = '' if len(emails) == 1 else 's' # record_type has its possible plural thanks to get_record_display()
+                plural = '' if len(emails) == 1 else 's'  # record_type has its possible plural thanks to get_record_display()
                 logger.info('Notifying %s subscriber%s about %s %s %s' % (len(emails), plural, record_count, adj, record_type))
                 send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification - ' + subject)
         else:
@@ -690,25 +689,26 @@ class Command(BaseCommand):
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
             send_notification('API monitor – ingest issues!',
-                ['im@ifrc.org'],  # Could be an ENV var
-                'Ingest issue(s) occured, one of them is ' + ingestor_name + ', via CronJob log record id: https://' +
-                    settings.BASE_URL + '/api/cronjob/' + str(ingest_issue_id) + '. Please fix it ASAP.',
-                'Ingestion error')
+                              ['im@ifrc.org'],  # Could be an ENV var
+                              'Ingest issue(s) occured, one of them is ' + ingestor_name +
+                              ', via CronJob log record id: https://' + settings.BASE_URL + '/api/cronjob/' +
+                              str(ingest_issue_id) + '. Please fix it ASAP.',
+                              'Ingestion error')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name +
-                ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
+                        ', via CronJob log record id: ' + str(ingest_issue_id) + ', notification sent to IM team')
 
     def handle(self, *args, **options):
         if self.is_digest_mode():
-            time_diff = self.diff_1_week() # in digest mode (once a week, for new_entities only) we use a bigger interval
+            time_diff = self.diff_1_week()  # in digest mode (once a week, for new_entities only) we use a bigger interval
         else:
             time_diff = self.diff_5_minutes()
         time_diff_1_day = self.diff_1_day()
 
         cond1 = Q(created_at__gte=time_diff)
         condU = Q(updated_at__gte=time_diff)
-        condR = Q(real_data_update__gte=time_diff) # instead of modified at
-        cond2 = ~Q(previous_update__gte=time_diff_1_day) # we negate (~) this, so we want: no previous_update in the last day. So: send once a day!
-        condF = Q(auto_generated_source='New field report') # We exclude those events that were generated from field reports, to avoid 2x notif.
+        condR = Q(real_data_update__gte=time_diff)  # instead of modified at
+        cond2 = ~Q(previous_update__gte=time_diff_1_day)  # negate (~) no previous_update in the last day, so send once a day
+        condF = Q(auto_generated_source='New field report')  # exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 
         # ".annotate(diff...)" - To check if a record was newly created, we check if
@@ -716,17 +716,17 @@ class Command(BaseCommand):
         # can be off by some miliseconds upon insertion. (could be seconds too perhaps)
         new_reports = FieldReport.objects.filter(cond1)
         updated_reports = FieldReport.objects.annotate(
-            diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            diff=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
         new_appeals = Appeal.objects.filter(cond1)
         updated_appeals = Appeal.objects.annotate(
-            diff = ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
+            diff=ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
         ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
         new_events = Event.objects.filter(cond1).exclude(condF)
         updated_events = Event.objects.annotate(
-            diff = ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+            diff=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
         new_surgealerts = SurgeAlert.objects.filter(cond1)
@@ -735,28 +735,28 @@ class Command(BaseCommand):
         # Merge Weekly Digest into one mail instead of separate ones
         if self.is_digest_mode():
             self.notify(None, RecordType.WEEKLY_DIGEST, SubscriptionType.NEW)
-        
-        self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
-        #self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
-        self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
-        #self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
-        self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
-        #self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-        self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
-        self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+        else:
+            self.notify(new_reports, RecordType.FIELD_REPORT, SubscriptionType.NEW)
+            # self.notify(updated_reports, RecordType.FIELD_REPORT, SubscriptionType.EDIT)
+            self.notify(new_appeals, RecordType.APPEAL, SubscriptionType.NEW)
+            # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
+            self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
+            # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
+            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
         # Followed Events
         if self.is_daily_checkup_time():
             condU = Q(updated_at__gte=time_diff_1_day)
-            cond2 = Q(previous_update__gte=time_diff_1_day) # not negated, we collect those, who had 2 changes in the last 1 day
+            cond2 = Q(previous_update__gte=time_diff_1_day)  # not negated, we collect those, who had 2 changes in the last 1 day
 
-        fe_subs = Subscription.objects.filter(event_id__isnull=False) # subscriptions of FEs
+        fe_subs = Subscription.objects.filter(event_id__isnull=False)  # subscriptions of FEs
         subscribers = fe_subs.values_list('user_id', flat=True).distinct()
-        for usr in subscribers: # looping in user_ids of specific FOLLOWED_EVENT subscriptions
+        for usr in subscribers:  # looping in user_ids of specific FOLLOWED_EVENT subscriptions
             eventlist = fe_subs.filter(user_id=usr).values_list('event_id', flat=True).distinct()
             cond3 = Q(pk__in=eventlist)
             followed_events = Event.objects.filter(condU & cond2 & cond3)
-            if len(followed_events): # usr - unique (we loop one-by-one), followed_events - more
+            if len(followed_events):  # usr - unique (we loop one-by-one), followed_events - more
                 self.notify(followed_events, RecordType.FOLLOWED_EVENT, SubscriptionType.NEW, usr)
 
         # Indexing
@@ -773,7 +773,6 @@ class Command(BaseCommand):
         self.index_records(updated_appeals, to_create=False)
         logger.info('Indexing %s updated events' % updated_events.count())
         self.index_records(updated_events, to_create=False)
-        
 
         # CronJob feedback of smtp server working is in: notifications/notification.py
         having_ingest_issue = CronJob.objects.filter(cond1 & condE)
