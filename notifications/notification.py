@@ -33,7 +33,12 @@ def send_notification(subject, recipients, html, mailtype=''):
         logger.info('Using test email addresses...')
         to_addresses = []
         for eml in test_emails:
-            if eml and (eml in recipients):
+            is_dom = True if '@' not in eml else False
+            if is_dom:
+                for rec in recipients:
+                    if eml == rec.split('@')[1]:
+                        to_addresses.append(rec)
+            elif eml and (eml in recipients):
                 to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
