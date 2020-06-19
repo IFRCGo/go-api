@@ -6,6 +6,7 @@ from functools import reduce
 from itertools import zip_longest
 
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
@@ -48,9 +49,9 @@ class ProjectForm(forms.ModelForm):
 
 
 class ProjectImportForm(forms.Form):
-    file = forms.FileField(widget=forms.FileInput(attrs={'accept': '.csv'}))
-    field_delimiter = forms.CharField(initial=';')
-    string_delimiter = forms.CharField(initial='"')
+    file = forms.FileField(label=_('file'), widget=forms.FileInput(attrs={'accept': '.csv'}))
+    field_delimiter = forms.CharField(label=_('file delimiter'), initial=';')
+    string_delimiter = forms.CharField(label=_('string delimiter'), initial='"')
 
     class Columns:
         # COLUMNS

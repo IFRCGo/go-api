@@ -3,12 +3,13 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
 
-from api.models import District, Country, Region, Event, DisasterType, Appeal
+from api.models import District, Country, Region, Event, DisasterType, Appeal, VisibilityCharChoices
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
@@ -24,18 +25,31 @@ class ERUType(IntEnum):
     WASH_20 = 7
     WASH_40 = 8
 
+    class Labels:
+        BASECAMP = _('Basecamp')
+        TELECOM = _('IT & Telecom')
+        LOGISTICS = _('Logistics')
+        EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
+        EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
+        RELIEF = _('Relief')
+        WASH_15 = _('Wash M15')
+        WASH_20 = _('Wash MSM20')
+        WASH_40 = _('Wash M40')
+
 
 class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
-    national_society_country = models.ForeignKey(Country, null=True, on_delete=models.SET_NULL)
+    national_society_country = models.ForeignKey(
+        Country, verbose_name=_('national society country'), null=True, on_delete=models.SET_NULL
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
 
     class Meta:
-        verbose_name = 'ERUs from a National Society'
-        verbose_name_plural = 'ERUs'
+        verbose_name = _('ERUs from a National Society')
+        verbose_name_plural = _('ERUs')
 
     def __str__(self):
         if self.national_society_country.society_name is not None:
@@ -45,96 +59,145 @@ class ERUOwner(models.Model):
 
 class ERU(models.Model):
     """ A resource that can be deployed """
-    type = EnumIntegerField(ERUType, default=0)
-    units = models.IntegerField(default=0)
-    equipment_units = models.IntegerField(default=0)
-    num_people_deployed = models.IntegerField(default=0, help_text='Still not used in frontend')
+    type = EnumIntegerField(ERUType, verbose_name=_('type'), default=0)
+    units = models.IntegerField(verbose_name=_('units'), default=0)
+    equipment_units = models.IntegerField(verbose_name=_('equipment units'), default=0)
+    num_people_deployed = models.IntegerField(
+        verbose_name=_('number of people deployed'), default=0, help_text=_('still not used in frontend')
+    )
     # where deployed (none if available)
-    deployed_to = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
-    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
-    appeal = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL, help_text='Still not used in frontend')
+    deployed_to = models.ForeignKey(
+        Country, verbose_name=_('country deployed to'), null=True, blank=True, on_delete=models.SET_NULL
+    )
+    event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
+    appeal = models.ForeignKey(
+        Appeal, verbose_name=_('appeal'), null=True, blank=True, on_delete=models.SET_NULL,
+        help_text=_('still not used in frontend')
+    )
     # links to services
-    eru_owner = models.ForeignKey(ERUOwner, on_delete=models.CASCADE)
-    supporting_societies = models.CharField(null=True, blank=True, max_length=500, help_text='Still not used in frontend')
-    start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    end_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    available = models.BooleanField(default=False)
-    alert_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
+    eru_owner = models.ForeignKey(ERUOwner, verbose_name=_('owner'), on_delete=models.CASCADE)
+    supporting_societies = models.CharField(
+        verbose_name=_('suuporting societies'), null=True, blank=True, max_length=500, help_text=_('still not used in frontend')
+    )
+    start_date = models.DateTimeField(verbose_name=_('start date'), null=True, help_text=_('still not used in frontend'))
+    end_date = models.DateTimeField(verbose_name=_('end date'), null=True, help_text=_('still not used in frontend'))
+    available = models.BooleanField(verbose_name=_('available'), default=False)
+    alert_date = models.DateTimeField(verbose_name=_('alert date'), null=True, help_text=_('still not used in frontend'))
+
+    class Meta:
+        verbose_name = _('Emergency Response Unit')
+        verbose_name_plural = _('Emergency Response Units')
 
     def __str__(self):
-        return ['Basecamp', 'IT & Telecom', 'Logistics', 'RCRC Emergency Hospital', 'RCRC Emergency Clinic', 'Relief', 'WASH M15', 'WASH MSM20', 'WASH M40'][self.type]
+        return str(self.type.label)
 
 
 class PersonnelDeployment(models.Model):
-    country_deployed_to = models.ForeignKey(Country, on_delete=models.CASCADE)
-    region_deployed_to = models.ForeignKey(Region, on_delete=models.CASCADE)
-    event_deployed_to = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
-    appeal_deployed_to = models.ForeignKey(Appeal, null=True, blank=True, on_delete=models.SET_NULL, help_text='Still not used in frontend')
-    alert_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    exp_start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    end_duration = models.CharField(null=True, blank=True, max_length=100, help_text='Still not used in frontend')
-    start_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    end_date = models.DateTimeField(null=True, help_text='Still not used in frontend')
-    created_at = models.DateTimeField(auto_now_add=True) #, default = datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta('1 year'))
-    updated_at = models.DateTimeField(auto_now=True)
-    previous_update = models.DateTimeField(null=True, blank=True)
-    comments = models.TextField(null=True, blank=True)
+    country_deployed_to = models.ForeignKey(Country, verbose_name=_('country deployed to'), on_delete=models.CASCADE)
+    region_deployed_to = models.ForeignKey(Region, verbose_name=_('region deployed to'), on_delete=models.CASCADE)
+    event_deployed_to = models.ForeignKey(
+        Event, verbose_name=_('event deployed to'), null=True, blank=True, on_delete=models.SET_NULL
+    )
+    appeal_deployed_to = models.ForeignKey(
+        Appeal, verbose_name=_('appeal deployed to'), null=True, blank=True,
+        on_delete=models.SET_NULL, help_text=_('still not used in frontend')
+    )
+    alert_date = models.DateTimeField(verbose_name=_('alert date'), null=True, help_text=_('still not used in frontend'))
+    exp_start_date = models.DateTimeField(
+        verbose_name=_('expire start date'), null=True, help_text=_('still not used in frontend')
+    )
+    end_duration = models.CharField(
+        verbose_name=_('end duration'), null=True, blank=True, max_length=100, help_text=_('still not used in frontend')
+    )
+    start_date = models.DateTimeField(verbose_name=_('start date'), null=True, help_text=_('still not used in frontend'))
+    end_date = models.DateTimeField(verbose_name=_('end date'), null=True, help_text=_('still not used in frontend'))
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    previous_update = models.DateTimeField(verbose_name=_('previous update'), null=True, blank=True)
+    comments = models.TextField(verbose_name=_('comments'), null=True, blank=True)
 
     class Meta:
-        verbose_name_plural = 'Personnel Deployments'
+        verbose_name = _('Personnel Deployment')
+        verbose_name_plural = _('Personnel Deployments')
 
     def __str__(self):
         return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
 
 
 class DeployedPerson(models.Model):
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
-    name = models.CharField(null=True, blank=True, max_length=100)
-    role = models.CharField(null=True, blank=True, max_length=32)
+    start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
+    end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
+    name = models.CharField(verbose_name=_('name'), null=True, blank=True, max_length=100)
+    role = models.CharField(verbose_name=_('role'), null=True, blank=True, max_length=32)
+
+    class Meta:
+        verbose_name = _('Deployed Person')
+        verbose_name_plural = _('Deployed Persons')
 
     def __str__(self):
         return '%s - %s' % (self.name, self.role)
 
 
 class Personnel(DeployedPerson):
-    type = models.CharField(
-        choices=(
-            ('fact', 'FACT'),
-            ('heop', 'HEOP'),
-            ('rdrt', 'RDRT'),
-            ('ifrc', 'IFRC'),
-            ('eru', 'ERU HR'),
-            ('rr', 'Rapid Response'),
-        ),
-        max_length=4,
+    FACT = 'fact'
+    HEOP = 'heop'
+    RDRT = 'rdrt'
+    IFRC = 'ifrc'
+    ERU = 'eru'
+    RR = 'rr'
+
+    TYPE_CHOICES = (
+        (FACT, _('Fact')),
+        (HEOP, _('HEOP')),
+        (RDRT, _('RDRT')),
+        (IFRC, _('IFRC')),
+        (ERU, _('ERU HR')),
+        (RR, _('Rapid Response')),
     )
-    country_from = models.ForeignKey(Country, related_name='personnel_deployments', null=True, on_delete=models.SET_NULL)
-    deployment = models.ForeignKey(PersonnelDeployment, on_delete=models.CASCADE)
+
+    type = models.CharField(verbose_name=_('type'), choices=TYPE_CHOICES, max_length=4)
+    country_from = models.ForeignKey(
+        Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
+    )
+    deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
 
     class Meta:
-        verbose_name_plural = 'Personnel'
+        verbose_name = _('Personnel')
+        verbose_name_plural = _('Personnels')
 
 
 class PartnerSocietyActivities(models.Model):
-    activity = models.CharField(max_length=50)
+    activity = models.CharField(verbose_name=_('activity'), max_length=50)
 
     def __str__(self):
         return self.activity
 
     class Meta:
-        verbose_name = 'Partner society activity'
-        verbose_name_plural = 'Partner society activities'
+        verbose_name = _('Partner society activity')
+        verbose_name_plural = _('Partner society activities')
 
 
 class PartnerSocietyDeployment(DeployedPerson):
-    activity = models.ForeignKey(PartnerSocietyActivities, related_name='partner_societies', null=True, on_delete=models.CASCADE)
-    parent_society = models.ForeignKey(Country, related_name='partner_society_members', null=True, on_delete=models.SET_NULL)
-    country_deployed_to = models.ForeignKey(Country, related_name='country_partner_deployments', null=True, on_delete=models.SET_NULL)
-    district_deployed_to = models.ManyToManyField(District)
+    activity = models.ForeignKey(
+        PartnerSocietyActivities, verbose_name=_('activity'), related_name='partner_societies',
+        null=True, on_delete=models.CASCADE
+    )
+    parent_society = models.ForeignKey(
+        Country, verbose_name=_('parent society'), related_name='partner_society_members',
+        null=True, on_delete=models.SET_NULL
+    )
+    country_deployed_to = models.ForeignKey(
+        Country, verbose_name=_('country deployed to'), related_name='country_partner_deployments',
+        null=True, on_delete=models.SET_NULL,
+    )
+    district_deployed_to = models.ManyToManyField(District, verbose_name=_('district deployed to'))
+
+    class Meta:
+        verbose_name = _('Partner Society Deployment')
+        verbose_name_plural = _('Partner Society Deployments')
 
     def __str__(self):
         return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
@@ -144,6 +207,11 @@ class ProgrammeTypes(IntEnum):
     BILATERAL = 0
     MULTILATERAL = 1
     DOMESTIC = 2
+
+    class Labels:
+        BILATERAL = _('Bilateral')
+        MULTILATERAL = _('Multilateral')
+        DOMESTIC = _('Domestic')
 
 
 class Sectors(IntEnum):
@@ -157,19 +225,18 @@ class Sectors(IntEnum):
     NS_STRENGTHENING = 7
     EDUCATION = 8
     LIVELIHOODS_AND_BASIC_NEEDS = 9
-    HEALTH_CLINICAL = 10
 
     class Labels:
-        WASH = 'WASH'
-        PGI = 'PGI'
-        CEA = 'CEA'
-        MIGRATION = 'Migration'
-        HEALTH = 'Health'
-        DRR = 'DRR'
-        SHELTER = 'Shelter'
-        NS_STRENGTHENING = 'NS Strengthening'
-        EDUCATION = 'Education'
-        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
+        WASH = _('WASH')
+        PGI = _('PGI')
+        CEA = _('CEA')
+        MIGRATION = _('Migration')
+        HEALTH = _('Health')
+        DRR = _('DRR')
+        SHELTER = _('Shelter')
+        NS_STRENGTHENING = _('NS Strengthening')
+        EDUCATION = _('Education')
+        LIVELIHOODS_AND_BASIC_NEEDS = _('Livelihoods and basic needs')
 
 
 class SectorTags(IntEnum):
@@ -190,21 +257,21 @@ class SectorTags(IntEnum):
     RCCE = 14
 
     class Labels:
-        WASH = 'WASH'
-        PGI = 'PGI'
-        CEA = 'CEA'
-        MIGRATION = 'Migration'
-        DRR = 'DRR'
-        SHELTER = 'Shelter'
-        NS_STRENGTHENING = 'NS Strengthening'
-        EDUCATION = 'Education'
-        LIVELIHOODS_AND_BASIC_NEEDS = 'Livelihoods and basic needs'
-        RECOVERY = 'Recovery'
-        INTERNAL_DISPLACEMENT = 'Internal displacement'
-        HEALTH_PUBLIC = 'Health (public)'
-        HEALTH_CLINICAL = 'Health (clinical)'
-        COVID_19 = 'COVID-19'
-        RCCE = 'RCCE'
+        WASH = _('WASH')
+        PGI = _('PGI')
+        CEA = _('CEA')
+        MIGRATION = _('Migration')
+        DRR = _('DRR')
+        SHELTER = _('Shelter')
+        NS_STRENGTHENING = _('NS Strengthening')
+        EDUCATION = _('Education')
+        LIVELIHOODS_AND_BASIC_NEEDS = _('Livelihoods and basic needs')
+        RECOVERY = _('Recovery')
+        INTERNAL_DISPLACEMENT = _('Internal displacement')
+        HEALTH_PUBLIC = _('Health (public)')
+        HEALTH_CLINICAL = _('Health (clinical)')
+        COVID_19 = _('COVID-19')
+        RCCE = _('RCCE')
 
 
 class Statuses(IntEnum):
@@ -212,81 +279,90 @@ class Statuses(IntEnum):
     ONGOING = 1
     COMPLETED = 2
 
+    class Labels:
+        PLANNED = _('Planned')
+        ONGOING = _('Ongoing')
+        COMPLETED = _('Completed')
+
 
 class OperationTypes(IntEnum):
     PROGRAMME = 0
     EMERGENCY_OPERATION = 1
 
+    class Labels:
+        PROGRAMME = _('Programme')
+        EMERGENCY_OPERATION = _('Emergency Operation')
+
 
 class RegionalProject(models.Model):
-    name = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('Regional Project')
+        verbose_name_plural = _('Regional Projects')
 
     def __str__(self):
         return self.name
 
 
 class Project(models.Model):
-    PUBLIC = 'public'
-    LOGGED_IN_USER = 'logged_in_user'
-    IFRC_ONLY = 'ifrc_only'
-
-    VISIBILITY = (
-        (PUBLIC, 'Public'),
-        (LOGGED_IN_USER, 'Logged in user'),
-        (IFRC_ONLY, 'IFRC only'),
-    )
-
-    modified_at = models.DateTimeField(auto_now=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project
     reporting_ns = models.ForeignKey(
-        Country, on_delete=models.CASCADE,
+        Country, verbose_name=_('reporting national society'), on_delete=models.CASCADE,
         related_name='ns_projects',
     )  # this is the national society that is reporting the project
     project_country = models.ForeignKey(
-        Country, on_delete=models.CASCADE,
+        Country, verbose_name=_('country'), on_delete=models.CASCADE,
         null=True,  # NOTE: Added due to migrations issue
         related_name='projects',
     )  # this is the country where the project is actually taking place
     project_districts = models.ManyToManyField(
-        District,
+        District, verbose_name=_('districts'),
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
-        Event, null=True, blank=True, on_delete=models.SET_NULL,
+        Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # this is the current operation
-    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
-    name = models.TextField()
-    programme_type = EnumIntegerField(ProgrammeTypes)
-    primary_sector = EnumIntegerField(Sectors)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
+    name = models.TextField(verbose_name=_('name'))
+    programme_type = EnumIntegerField(ProgrammeTypes, verbose_name=_('programme type'))
+    primary_sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
     secondary_sectors = ArrayField(
-        EnumIntegerField(SectorTags),
-        default=list, blank=True,
+        EnumIntegerField(SectorTags), verbose_name=_('tags'), default=list, blank=True,
     )
-    operation_type = EnumIntegerField(OperationTypes)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    budget_amount = models.IntegerField()
-    status = EnumIntegerField(Statuses)
+    operation_type = EnumIntegerField(OperationTypes, verbose_name=_('operation type'))
+    start_date = models.DateField(verbose_name=_('start date'))
+    end_date = models.DateField(verbose_name=_('end date'))
+    budget_amount = models.IntegerField(verbose_name=_('budget amount'))
+    status = EnumIntegerField(Statuses, verbose_name=_('status'))
 
     # Target Metric
-    target_male = models.IntegerField(null=True, blank=True)
-    target_female = models.IntegerField(null=True, blank=True)
-    target_other = models.IntegerField(null=True, blank=True)
-    target_total = models.IntegerField(null=True, blank=True)
+    target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
+    target_female = models.IntegerField(verbose_name=_('target female'), null=True, blank=True)
+    target_other = models.IntegerField(verbose_name=_('target other'), null=True, blank=True)
+    target_total = models.IntegerField(verbose_name=_('target total'), null=True, blank=True)
 
     # Reached Metric
-    reached_male = models.IntegerField(null=True, blank=True)
-    reached_female = models.IntegerField(null=True, blank=True)
-    reached_other = models.IntegerField(null=True, blank=True)
-    reached_total = models.IntegerField(null=True, blank=True)
+    reached_male = models.IntegerField(verbose_name=_('reached male'), null=True, blank=True)
+    reached_female = models.IntegerField(verbose_name=_('reached female'), null=True, blank=True)
+    reached_other = models.IntegerField(verbose_name=_('reached other'), null=True, blank=True)
+    reached_total = models.IntegerField(verbose_name=_('reached total'), null=True, blank=True)
 
     regional_project = models.ForeignKey(
-        RegionalProject, null=True, blank=True, on_delete=models.SET_NULL
+        RegionalProject, verbose_name=_('regional project'), null=True, blank=True, on_delete=models.SET_NULL
     )
-    visibility = models.CharField(max_length=32, choices=VISIBILITY, default=PUBLIC)
+    visibility = models.CharField(
+        max_length=32, verbose_name=_('visibility'),
+        choices=VisibilityCharChoices.CHOICES, default=VisibilityCharChoices.PUBLIC
+    )
+
+    class Meta:
+        verbose_name = _('Project')
+        verbose_name_plural = _('Projects')
 
     def __str__(self):
         if self.reporting_ns is None:
@@ -308,8 +384,8 @@ class Project(models.Model):
         if user.is_authenticated:
             if user.email and user.email.endswith('@ifrc.org'):
                 return qs
-            return qs.exclude(visibility=Project.IFRC_ONLY)
-        return qs.filter(visibility=Project.PUBLIC)
+            return qs.exclude(visibility=VisibilityCharChoices.IFRC)
+        return qs.filter(visibility=VisibilityCharChoices.PUBLIC)
 
 
 class ProjectImport(models.Model):
@@ -320,48 +396,55 @@ class ProjectImport(models.Model):
     SUCCESS = 'success'
     FAILURE = 'failure'
     STATUS_CHOICES = (
-        (PENDING, 'Pending'),
-        (SUCCESS, 'Success'),
-        (FAILURE, 'Failure'),
+        (PENDING, _('Pending')),
+        (SUCCESS, _('Success')),
+        (FAILURE, _('Failure')),
     )
 
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL, verbose_name=_('created by'), on_delete=models.SET_NULL, null=True,
     )  # user who created this project import
-    created_at = models.DateTimeField(auto_now_add=True)
-    projects_created = models.ManyToManyField(Project)
-    message = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
-    file = models.FileField(upload_to='project-imports/')
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    projects_created = models.ManyToManyField(Project, verbose_name=_('projects created'))
+    message = models.TextField(verbose_name=_('message'))
+    status = models.CharField(verbose_name=_('status'), max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    file = models.FileField(verbose_name=_('file'), upload_to='project-imports/')
+
+    class Meta:
+        verbose_name = _('Project Import')
+        verbose_name_plural = _('Projects Import')
 
     def __str__(self):
-        return f'Project Import {self.status}:{self.created_at}'
+        return f'Project Import {self.get_status_display()}:{self.created_at}'
 
 
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """
-    national_society = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
-    ERU_type = EnumIntegerField(ERUType, default=0)
-    is_personnel = models.BooleanField(default=False)
-    is_equipment = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
+    national_society = models.ForeignKey(
+        Country, verbose_name=_('national society'), null=True, blank=True, on_delete=models.SET_NULL
+    )
+    ERU_type = EnumIntegerField(ERUType, verbose_name=_('ERU type'), default=0)
+    is_personnel = models.BooleanField(verbose_name=_('is personnel?'), default=False)
+    is_equipment = models.BooleanField(verbose_name=_('is equipment?'), default=False)
+    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
 
     class Meta:
         ordering = ('updated_at', 'national_society', )
-        verbose_name = 'ERU Readiness'
-        verbose_name_plural = 'NS-es ERU Readiness'
+        verbose_name = _('ERU Readiness')
+        verbose_name_plural = _('NS-es ERU Readiness')
 
     def __str__(self):
         if self.national_society is None:
             name = None
         else:
             name = self.national_society
-        return '%s (%s)' % (self.ERU_type, name)
+        return '%s (%s)' % (str(self.ERU_type.label), name)
 
 
 ###############################################################################
-####################### Deprecated tables #####################################
+####################### Deprecated tables ##################################### noqa: E266
 # https://github.com/IFRCGo/go-frontend/issues/335
+# NOTE: Translation is skipped for Deprecated tables
 ###############################################################################
 
 

@@ -21,7 +21,7 @@ def prefetch():
     daterange = f'{now.year - 10}:{now.year}'
     while True:
         # TODO: lastupdated
-        rs = requests.get(f'{url}?date={daterange}', params={
+        rs = requests.get(f'{url}?date={daterange}', verify=False, params={
             'format': 'json',
             'source': 50,
             'per_page': 5000 - 1,  # WD throws error on 5000

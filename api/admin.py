@@ -3,28 +3,26 @@ import csv
 import time
 from django.contrib import admin, messages
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils.html import format_html_join, format_html
 from django.utils.safestring import mark_safe
 from api.event_sources import SOURCES
 from api.admin_classes import RegionRestrictedAdmin
-from django_admin_listfilter_dropdown.filters import (
-    DropdownFilter, ChoiceDropdownFilter, RelatedDropdownFilter
-)
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 import api.models as models
-from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import ActionForm
-from reversion.admin import VersionAdmin
-from reversion.models import Revision, Version
+# from reversion.models import Revision
 from reversion_compare.admin import CompareVersionAdmin
+from modeltranslation.admin import TranslationAdmin
 
 from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
+
 
 class GoUserAdmin(UserAdmin):
     list_filter = (
@@ -36,11 +34,14 @@ class GoUserAdmin(UserAdmin):
         'is_active',
     )
 
+
 admin.site.unregister(User)
 admin.site.register(User, GoUserAdmin)
 
+
 class GoTokenAdmin(TokenAdmin):
     search_fields = ('user__username', 'user__email',)
+
 
 admin.site.unregister(Token)
 admin.site.register(Token, GoTokenAdmin)
@@ -49,12 +50,14 @@ admin.site.register(Token, GoTokenAdmin)
 class HasRelatedEventFilter(admin.SimpleListFilter):
     title = _('related emergency')
     parameter_name = 'related_emergency'
+
     def lookups(self, request, model_admin):
         return (
             ('yes', _('Exists')),
             ('confirm', _('Needs confirmation')),
             ('no', _('None')),
         )
+
     def queryset(self, request, queryset):
         if self.value() == 'yes':
             return queryset.filter(event__isnull=False).filter(needs_confirmation=False)
@@ -67,57 +70,48 @@ class HasRelatedEventFilter(admin.SimpleListFilter):
 class MembershipFilter(admin.SimpleListFilter):
     title = _('membership')
     parameter_name = 'membership'
+
     def lookups(self, request, model_admin):
-        return (
-            ('membership', _('Membership')),
-            ('ifrc', _('IFRC')),
-            ('public', _('Public')),
-        )
+        return models.VisibilityChoices.choices()
+
     def queryset(self, request, queryset):
-        if self.value() == 'membership':
-            return queryset.filter(visibility=models.VisibilityChoices.MEMBERSHIP)
-        if self.value() == 'ifrc':
-            return queryset.filter(visibility=models.VisibilityChoices.IFRC)
-        if self.value() == 'public':
-            return queryset.filter(visibility=models.VisibilityChoices.PUBLIC)
+        if self.value():
+            return queryset.filter(visibility=self.value())
 
 
 class AppealTypeFilter(admin.SimpleListFilter):
     title = _('appeal type')
     parameter_name = 'appeal_type'
+
     def lookups(self, request, model_admin):
-        return (
-            ('dref', _('DREF')),
-            ('appeal', _('Appeal')),
-            ('intl', _('Intl appeal')),
-        )
+        return models.AppealType.choices()
+
     def queryset(self, request, queryset):
-        if self.value() == 'dref':
-            return queryset.filter(atype=models.AppealType.DREF)
-        if self.value() == 'appeal':
-            return queryset.filter(atype=models.AppealType.APPEAL)
-        if self.value() == 'intl':
-            return queryset.filter(atype=models.AppealType.INTL)
+        if self.value():
+            return queryset.filter(atype=self.value())
 
 
 class IsFeaturedFilter(admin.SimpleListFilter):
     title = _('featured')
     parameter_name = 'featured'
+
     def lookups(self, request, model_admin):
         return (
             ('featured', _('Featured')),
             ('not', _('Not Featured')),
         )
+
     def queryset(self, request, queryset):
         if self.value() == 'featured':
             return queryset.filter(is_featured=True)
-        if self.value() == 'not':
+        elif self.value() == 'not':
             return queryset.filter(is_featured=False)
 
 
 class EventSourceFilter(admin.SimpleListFilter):
     title = _('source')
     parameter_name = 'event_source'
+
     def lookups(self, request, model_admin):
         return (
             ('input', _('Manual input')),
@@ -128,20 +122,21 @@ class EventSourceFilter(admin.SimpleListFilter):
             ('appeal_admin', _('Appeals admin')),
             ('unknown', _('Unknown automated')),
         )
+
     def queryset(self, request, queryset):
         if self.value() == 'input':
             return queryset.filter(auto_generated=False)
-        if self.value() == 'gdacs':
+        elif self.value() == 'gdacs':
             return queryset.filter(auto_generated_source=SOURCES['gdacs'])
-        if self.value() == 'who':
+        elif self.value() == 'who':
             return queryset.filter(auto_generated_source__startswith='www.who.int')
-        if self.value() == 'report_ingest':
+        elif self.value() == 'report_ingest':
             return queryset.filter(auto_generated_source=SOURCES['report_ingest'])
-        if self.value() == 'report_admin':
+        elif self.value() == 'report_admin':
             return queryset.filter(auto_generated_source=SOURCES['report_admin'])
-        if self.value() == 'appeal_admin':
+        elif self.value() == 'appeal_admin':
             return queryset.filter(auto_generated_source=SOURCES['appeal_admin'])
-        if self.value() == 'unknown':
+        elif self.value() == 'unknown':
             return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
 
 
@@ -171,9 +166,10 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
     inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
     list_display = ('name', 'ifrc_severity_level', 'glide', 'auto_generated', 'auto_generated_source',)
-    list_filter = [IsFeaturedFilter, EventSourceFilter,]
+    list_filter = [IsFeaturedFilter, EventSourceFilter]
     search_fields = ('name', 'countries__name', 'dtype__name',)
     autocomplete_fields = ('countries', 'districts', 'parent_event',)
+
     def appeals(self, instance):
         if getattr(instance, 'appeals').exists():
             return format_html_join(
@@ -186,6 +182,7 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
     # To add the 'Notify subscribers now' button
     change_form_template = "admin/emergency_changeform.html"
+
     # Overwriting readonly fields for Edit mode
     def changeform_view(self, request, *args, **kwargs):
         if not request.user.is_superuser:
@@ -200,9 +197,11 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         if "_notify-subscribers" in request.POST and request.user.is_superuser:
             notif_class = Notify()
             try:
-                notif_class.notify(records=[obj], rtype=RecordType.FOLLOWED_EVENT, stype=SubscriptionType.NEW, uid=request.user.id)
+                notif_class.notify(
+                    records=[obj], rtype=RecordType.FOLLOWED_EVENT, stype=SubscriptionType.NEW, uid=request.user.id
+                )
                 self.message_user(request, "Successfully notified subscribers.")
-            except:
+            except Exception:
                 self.message_user(request, "Could not notify subscribers.", level=messages.ERROR)
             return HttpResponseRedirect(".")
         return super().response_change(request, obj)
@@ -254,7 +253,7 @@ class FieldReportContactInline(admin.TabularInline):
     model = models.FieldReportContact
 
 
-class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
@@ -262,14 +261,14 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
     search_fields = ('countries__name', 'regions__name', 'summary',)
-    autocomplete_fields = ('event', 'countries', 'districts',)
+    autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
     readonly_fields = (
         'report_date', 'created_at', 'updated_at',
-        'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases', 'health_min_num_dead',
-        'who_cases', 'who_suspected_cases', 'who_probable_cases', 'who_confirmed_cases', 'who_num_dead',
+        'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases',
+        'health_min_num_dead', 'who_cases', 'who_suspected_cases', 'who_probable_cases', 'who_confirmed_cases', 'who_num_dead',
         'other_cases', 'other_suspected_cases', 'other_probable_cases', 'other_confirmed_cases'
     )
-    list_filter = [MembershipFilter,]
+    list_filter = [MembershipFilter]
     actions = ['create_events', 'export_field_reports', ]
 
     def create_events(self, request, queryset):
@@ -305,7 +304,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         writer.writerow(field_names)
 
         for fr in queryset:
-            row = writer.writerow([getattr(fr, field) for field in field_names])
+            writer.writerow([getattr(fr, field) for field in field_names])
         return response
     export_field_reports.short_description = 'Export selected Field Reports to CSV'
 
@@ -314,6 +313,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         if not request.user.is_superuser:
             del actions['export_field_reports']
         return actions
+
 
 class ActionAdmin(CompareVersionAdmin):
     form = ActionForm
@@ -332,8 +332,8 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_select_related = ('event',)
     search_fields = ('code', 'name',)
     readonly_fields = ('region',)
-    list_filter = [HasRelatedEventFilter, AppealTypeFilter,]
-    actions = ['create_events', 'confirm_events',]
+    list_filter = [HasRelatedEventFilter, AppealTypeFilter]
+    actions = ['create_events', 'confirm_events']
     autocomplete_fields = ('event', 'country',)
 
     def create_events(self, request, queryset):
@@ -360,8 +360,10 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
             if not appeal.needs_confirmation or not appeal.event:
                 errors.append(appeal.code)
         if len(errors):
-            self.message_user(request, '%s %s not have an unconfirmed event.' % (', '.join(errors), 'does' if len(errors) == 1 else 'do'),
-                              level=messages.ERROR)
+            self.message_user(
+                request, '%s %s not have an unconfirmed event.' % (', '.join(errors), 'does' if len(errors) == 1 else 'do'),
+                level=messages.ERROR
+            )
         else:
             for appeal in queryset:
                 appeal.needs_confirmation = False
@@ -424,14 +426,14 @@ class CountryAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
-    inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline,]
+    inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 
 
 class RegionAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = None
     region_in = 'pk__in'
-    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline,]
+    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline]
     search_fields = ('name',)
 
 
@@ -441,12 +443,12 @@ class UserProfileAdmin(CompareVersionAdmin):
         ('country__region', RelatedDropdownFilter),
         ('country', RelatedDropdownFilter),
     )
-    actions = ['export_selected_users',]
+    actions = ['export_selected_users']
 
     def export_selected_users(self, request, queryset):
         meta = self.model._meta
         prof_field_names = [field.name for field in meta.fields]
-        user_field_names = [field.name for field in models.User._meta.fields if field.name!="password"]
+        user_field_names = [field.name for field in models.User._meta.fields if field.name != "password"]
         timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
@@ -459,11 +461,14 @@ class UserProfileAdmin(CompareVersionAdmin):
         for prof in queryset:
 
             user_model = models.User.objects.get(id=prof.user_id)
-            user_groups = list(user_model.groups.values_list('name',flat = True))
+            user_groups = list(user_model.groups.values_list('name', flat=True))
             user_groups_string = ', '.join(user_groups) if user_groups else ''
 
-            writer.writerow([getattr(prof, field) for field in prof_field_names] + [
-                                  getattr(user_model, field) for field in user_field_names] + [user_groups_string] )
+            writer.writerow(
+                [getattr(prof, field) for field in prof_field_names] +
+                [getattr(user_model, field) for field in user_field_names] +
+                [user_groups_string]
+            )
         return response
     export_selected_users.short_description = 'Export selected Users with their Profiles'
 
@@ -480,14 +485,16 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
-    
+
     def link_to_event(self, obj):
-        link=reverse("admin:api_event_change", args=[obj.event.id]) #model name has to be lowercase
+        link = reverse("admin:api_event_change", args=[obj.event.id])  # model name has to be lowercase
         return format_html('<a href="{}" style="font-weight: 600;">{}</a>', link, obj.event.name)
-    link_to_event.allow_tags=True
+    link_to_event.allow_tags = True
+
 
 class SituationReportTypeAdmin(CompareVersionAdmin):
     search_fields = ('type',)
+
 
 class CronJobAdmin(CompareVersionAdmin):
     list_display = ('name', 'created_at', 'num_result', 'status')
@@ -511,77 +518,33 @@ class CronJobAdmin(CompareVersionAdmin):
             )
 
 
-class EmergencyOperationsDatasetAdmin(CompareVersionAdmin):
+class EmergencyOperationsBaseAdmin(CompareVersionAdmin):
     search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
     list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
-    readonly_fields = (
-        'raw_file_name',
-        'raw_file_url',
-        'raw_appeal_launch_date',
-        'raw_appeal_number',
-        'raw_category_allocated',
-        'raw_date_of_issue',
-        'raw_dref_allocated',
-        'raw_expected_end_date',
-        'raw_expected_time_frame',
-        'raw_glide_number',
-        'raw_num_of_people_affected',
-        'raw_num_of_people_to_be_assisted',
-        'raw_disaster_risk_reduction_female',
-        'raw_disaster_risk_reduction_male',
-        'raw_disaster_risk_reduction_people_reached',
-        'raw_disaster_risk_reduction_people_targeted',
-        'raw_disaster_risk_reduction_requirements',
-        'raw_health_female',
-        'raw_health_male',
-        'raw_health_people_reached',
-        'raw_health_people_targeted',
-        'raw_health_requirements',
-        'raw_livelihoods_and_basic_needs_female',
-        'raw_livelihoods_and_basic_needs_male',
-        'raw_livelihoods_and_basic_needs_people_reached',
-        'raw_livelihoods_and_basic_needs_people_targeted',
-        'raw_livelihoods_and_basic_needs_requirements',
-        'raw_migration_female',
-        'raw_migration_male',
-        'raw_migration_people_reached',
-        'raw_migration_people_targeted',
-        'raw_migration_requirements',
-        'raw_protection_gender_and_inclusion_female',
-        'raw_protection_gender_and_inclusion_male',
-        'raw_protection_gender_and_inclusion_people_reached',
-        'raw_protection_gender_and_inclusion_people_targeted',
-        'raw_protection_gender_and_inclusion_requirements',
-        'raw_shelter_female',
-        'raw_shelter_male',
-        'raw_shelter_people_reached',
-        'raw_shelter_people_targeted',
-        'raw_shelter_requirements',
-        'raw_water_sanitation_and_hygiene_female',
-        'raw_water_sanitation_and_hygiene_male',
-        'raw_water_sanitation_and_hygiene_people_reached',
-        'raw_water_sanitation_and_hygiene_people_targeted',
-        'raw_water_sanitation_and_hygiene_requirements',
-        'raw_education_female',
-        'raw_education_male',
-        'raw_education_people_reached',
-        'raw_education_people_targeted',
-        'raw_education_requirements',
-    )
-    fields_for_edit = ['is_validated', 'raw_file_url']
-    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
-    fields = fields_for_edit
-    actions = ['export_all_epoa', 'export_selected_epoa']
+    actions = ['export_all', 'export_selected']
+    document_type = None
 
-    def export_selected_epoa(self, request, queryset):
+    def get_readonly_fields(self, request, obj=None):
+        return [
+            field.name for field in self.model._meta.get_fields()
+            if field.name.startswith('raw_')
+        ]
+
+    def get_fields(self, request, obj=None):
+        readonly_fields = self.get_readonly_fields(request, obj)
+        return (
+            ['is_validated', 'raw_file_url'] +
+            [(f[4:], f) for f in readonly_fields if f != 'raw_file_url']
+        )
+
+    def export_selected(self, request, queryset):
         meta = self.model._meta
         field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
         timestr = time.strftime("%Y%m%d-%H%M%S")
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=epoa_selected_list_{}.csv'.format(
-            timestr)
+        response['Content-Disposition'] = f'attachment; filename={self.document_type}_selected_list_{timestr}.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -595,15 +558,15 @@ class EmergencyOperationsDatasetAdmin(CompareVersionAdmin):
             writer.writerow(new_row)
             counter += 1
         return response
-    export_selected_epoa.short_description = 'Export selected document(s) to CSV'
+    export_selected.short_description = 'Export selected document(s) to CSV'
 
-    def export_all_epoa(self, request, queryset):
-        qset = models.EmergencyOperationsDataset.objects.all()
+    def export_all(self, request, queryset):
+        qset = self.model.objects.all()
         field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
         field_names_without_raw = [name[4:] for name in field_names]
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=epoa.csv'
+        response['Content-Disposition'] = f'attachment; filename={self.document_type}.csv'
         writer = csv.writer(response)
 
         first_row = ['']
@@ -617,305 +580,23 @@ class EmergencyOperationsDatasetAdmin(CompareVersionAdmin):
             writer.writerow(new_row)
             counter += 1
         return response
-    export_all_epoa.short_description = 'Export all documents to CSV (select one before for it to work)'
+    export_all.short_description = 'Export all documents to CSV (select one before for it to work)'
 
 
-class EmergencyOperationsPeopleReachedAdmin(CompareVersionAdmin):
-    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
-    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
-    readonly_fields = (
-        'raw_file_name',
-        'raw_file_url',
-        'raw_appeal_number',
-        'raw_date_of_issue',
-        'raw_epoa_update_num',
-        'raw_glide_number',
-        'raw_operation_start_date',
-        'raw_operation_timeframe',
-        'raw_time_frame_covered_by_update',
-        'raw_disaster_risk_reduction_female',
-        'raw_disaster_risk_reduction_male',
-        'raw_disaster_risk_reduction_people_reached',
-        'raw_disaster_risk_reduction_requirements',
-        'raw_health_female',
-        'raw_health_male',
-        'raw_health_people_reached',
-        'raw_health_requirements',
-        'raw_livelihoods_and_basic_needs_female',
-        'raw_livelihoods_and_basic_needs_male',
-        'raw_livelihoods_and_basic_needs_people_reached',
-        'raw_livelihoods_and_basic_needs_requirements',
-        'raw_migration_female',
-        'raw_migration_male',
-        'raw_migration_people_reached',
-        'raw_migration_requirements',
-        'raw_protection_gender_and_inclusion_female',
-        'raw_protection_gender_and_inclusion_male',
-        'raw_protection_gender_and_inclusion_people_reached',
-        'raw_protection_gender_and_inclusion_requirements',
-        'raw_shelter_female',
-        'raw_shelter_male',
-        'raw_shelter_people_reached',
-        'raw_shelter_requirements',
-        'raw_water_sanitation_and_hygiene_female',
-        'raw_water_sanitation_and_hygiene_male',
-        'raw_water_sanitation_and_hygiene_people_reached',
-        'raw_water_sanitation_and_hygiene_requirements',
-    )
-    fields_for_edit = ['is_validated', 'raw_file_url']
-    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
-    fields = fields_for_edit
-    actions = ['export_all_ou', 'export_selected_ou']
+class EmergencyOperationsDatasetAdmin(EmergencyOperationsBaseAdmin):
+    document_type = 'epoa'
 
-    def export_selected_ou(self, request, queryset):
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ou_selected_list_{}.csv'.format(
-            timestr)
-        writer = csv.writer(response)
+class EmergencyOperationsPeopleReachedAdmin(EmergencyOperationsBaseAdmin):
+    document_type = 'ou'
 
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
 
-        counter = 0
-        for fr in queryset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_selected_ou.short_description = 'Export selected document(s) to CSV'
+class EmergencyOperationsFRAdmin(EmergencyOperationsBaseAdmin):
+    document_type = 'fr'
 
-    def export_all_ou(self, request, queryset):
-        qset = models.EmergencyOperationsDataset.objects.all()
-        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ou.csv'
-        writer = csv.writer(response)
-
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
-
-        counter = 0
-        for fr in qset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_all_ou.short_description = 'Export all documents to CSV (select one before for it to work)'
-
-class EmergencyOperationsFRAdmin(CompareVersionAdmin):
-    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
-    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
-    readonly_fields = (
-        'raw_file_name',
-        'raw_file_url',
-        'raw_appeal_number',
-        'raw_date_of_disaster',
-        'raw_date_of_issue',
-        'raw_glide_number',
-        'raw_num_of_other_partner_involved',
-        'raw_num_of_partner_ns_involved',
-        'raw_num_of_people_affected',
-        'raw_num_of_people_to_be_assisted',
-        'raw_operation_end_date',
-        'raw_operation_start_date',
-        'raw_overall_operation_budget',
-        'raw_disaster_risk_reduction_female',
-        'raw_disaster_risk_reduction_male',
-        'raw_disaster_risk_reduction_people_reached',
-        #'raw_disaster_risk_reduction_people_targeted',
-        'raw_disaster_risk_reduction_requirements',
-        'raw_health_female',
-        'raw_health_male',
-        'raw_health_people_reached',
-        #'raw_health_people_targeted',
-        'raw_health_requirements',
-        'raw_livelihoods_and_basic_needs_female',
-        'raw_livelihoods_and_basic_needs_male',
-        'raw_livelihoods_and_basic_needs_people_reached',
-        #'raw_livelihoods_and_basic_needs_people_targeted',
-        'raw_livelihoods_and_basic_needs_requirements',
-        'raw_migration_female',
-        'raw_migration_male',
-        'raw_migration_people_reached',
-        #'raw_migration_people_targeted',
-        'raw_migration_requirements',
-        'raw_protection_gender_and_inclusion_female',
-        'raw_protection_gender_and_inclusion_male',
-        'raw_protection_gender_and_inclusion_people_reached',
-        #'raw_protection_gender_and_inclusion_people_targeted',
-        'raw_protection_gender_and_inclusion_requirements',
-        'raw_shelter_female',
-        'raw_shelter_male',
-        'raw_shelter_people_reached',
-        #'raw_shelter_people_targeted',
-        'raw_shelter_requirements',
-        'raw_water_sanitation_and_hygiene_female',
-        'raw_water_sanitation_and_hygiene_male',
-        'raw_water_sanitation_and_hygiene_people_reached',
-        #'raw_water_sanitation_and_hygiene_people_targeted',
-        'raw_water_sanitation_and_hygiene_requirements',
-    )
-    fields_for_edit = ['is_validated', 'raw_file_url']
-    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
-    fields = fields_for_edit
-    actions = ['export_all_fr', 'export_selected_fr']
-
-    def export_selected_fr(self, request, queryset):
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=fr_selected_list_{}.csv'.format(
-            timestr)
-        writer = csv.writer(response)
-
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
-
-        counter = 0
-        for fr in queryset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_selected_fr.short_description = 'Export selected document(s) to CSV'
-
-    def export_all_fr(self, request, queryset):
-        qset = models.EmergencyOperationsDataset.objects.all()
-        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=fr.csv'
-        writer = csv.writer(response)
-
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
-
-        counter = 0
-        for fr in qset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_all_fr.short_description = 'Export all documents to CSV (select one before for it to work)'
-
-class EmergencyOperationsEAAdmin(CompareVersionAdmin):
-    search_fields = ('file_name', 'raw_file_name', 'appeal_number',)
-    list_display = ('file_name', 'raw_file_name', 'raw_file_url', 'appeal_number', 'is_validated',)
-    readonly_fields = (
-        'raw_file_name',
-        'raw_file_url',
-        'raw_appeal_ends',
-        'raw_appeal_launch_date',
-        'raw_appeal_number',
-        'raw_current_operation_budget',
-        'raw_dref_allocated',
-        'raw_glide_number',
-        'raw_num_of_people_to_be_assisted',
-        'raw_disaster_risk_reduction_female',
-        'raw_disaster_risk_reduction_male',
-        'raw_disaster_risk_reduction_people_reached',
-        'raw_disaster_risk_reduction_people_targeted',
-        'raw_disaster_risk_reduction_requirements',
-        'raw_health_female',
-        'raw_health_male',
-        'raw_health_people_reached',
-        'raw_health_people_targeted',
-        'raw_health_requirements',
-        'raw_livelihoods_and_basic_needs_female',
-        'raw_livelihoods_and_basic_needs_male',
-        'raw_livelihoods_and_basic_needs_people_reached',
-        'raw_livelihoods_and_basic_needs_people_targeted',
-        'raw_livelihoods_and_basic_needs_requirements',
-        'raw_migration_female',
-        'raw_migration_male',
-        'raw_migration_people_reached',
-        'raw_migration_people_targeted',
-        'raw_migration_requirements',
-        'raw_protection_gender_and_inclusion_female',
-        'raw_protection_gender_and_inclusion_male',
-        'raw_protection_gender_and_inclusion_people_reached',
-        'raw_protection_gender_and_inclusion_people_targeted',
-        'raw_protection_gender_and_inclusion_requirements',
-        'raw_shelter_female',
-        'raw_shelter_male',
-        'raw_shelter_people_reached',
-        'raw_shelter_people_targeted',
-        'raw_shelter_requirements',
-        'raw_water_sanitation_and_hygiene_female',
-        'raw_water_sanitation_and_hygiene_male',
-        'raw_water_sanitation_and_hygiene_people_reached',
-        'raw_water_sanitation_and_hygiene_people_targeted',
-        'raw_water_sanitation_and_hygiene_requirements',
-    )
-    fields_for_edit = ['is_validated', 'raw_file_url']
-    fields_for_edit.extend([(f[4:], f) for f in readonly_fields if f != 'raw_file_url'])
-    fields = fields_for_edit
-    actions = ['export_all_ea', 'export_selected_ea']
-
-    def export_selected_ea(self, request, queryset):
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ea_selected_list_{}.csv'.format(
-            timestr)
-        writer = csv.writer(response)
-
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
-
-        counter = 0
-        for fr in queryset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_selected_ea.short_description = 'Export selected document(s) to CSV'
-
-    def export_all_ea(self, request, queryset):
-        qset = models.EmergencyOperationsDataset.objects.all()
-        field_names = [field.name for field in qset.model._meta.fields if field.name.startswith('raw_')]
-        field_names_without_raw = [name[4:] for name in field_names]
-
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=ea.csv'
-        writer = csv.writer(response)
-
-        first_row = ['']
-        first_row.extend(field_names_without_raw)
-        writer.writerow(first_row)
-
-        counter = 0
-        for fr in qset:
-            new_row = [counter]
-            new_row.extend([getattr(fr, field) for field in field_names if field != ''])
-            writer.writerow(new_row)
-            counter += 1
-        return response
-    export_all_ea.short_description = 'Export all documents to CSV (select one before for it to work)'
+class EmergencyOperationsEAAdmin(EmergencyOperationsBaseAdmin):
+    document_type = 'ea'
 
 
 # Global view of Revisions, not that informational, maybe needed in the future
@@ -927,7 +608,7 @@ class EmergencyOperationsEAAdmin(CompareVersionAdmin):
 
 
 class AuthLogAdmin(admin.ModelAdmin):
-    list_display = ['created_at', 'action', 'username',]
+    list_display = ['created_at', 'action', 'username']
     list_filter = ['action']
     search_fields = ['action', 'username']
     list_display_links = None
@@ -979,6 +660,6 @@ admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.register(models.AuthLog, AuthLogAdmin)
 admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
-#admin.site.register(Revision, RevisionAdmin)
+# admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'

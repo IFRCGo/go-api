@@ -1,6 +1,8 @@
 import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
+
+from lang.translation import TranslatedModelSerializerMixin
 from .models import (
     DisasterType,
 
@@ -159,8 +161,10 @@ class FieldReportContactSerializer(serializers.ModelSerializer):
         model = FieldReportContact
         fields = ('ctype', 'name', 'title', 'email', 'phone', 'id',)
 
+
 class MiniFieldReportSerializer(serializers.ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
+
     class Meta:
         model = FieldReport
         fields = (
@@ -314,14 +318,17 @@ class SourceSerializer(serializers.ModelSerializer):
         model = Source
         fields = ('stype', 'spec', 'id',)
 
-class ListFieldReportSerializer(serializers.ModelSerializer):
+
+class ListFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     actions_taken = ActionsTakenSerializer(many=True)
+
     class Meta:
         model = FieldReport
         fields = '__all__'
+
 
 class ListFieldReportCsvSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
@@ -350,7 +357,8 @@ class ListFieldReportCsvSerializer(serializers.ModelSerializer):
         model = FieldReport
         fields = '__all__'
 
-class DetailFieldReportSerializer(serializers.ModelSerializer):
+
+class DetailFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -363,7 +371,7 @@ class DetailFieldReportSerializer(serializers.ModelSerializer):
         model = FieldReport
         fields = '__all__'
 
-class CreateFieldReportSerializer(serializers.ModelSerializer):
+class CreateFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'

@@ -422,6 +422,7 @@ class FieldReportFilter(filters.FilterSet):
             'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
@@ -431,7 +432,6 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
         qset = qset.select_related('dtype', 'event')
         return qset.prefetch_related('actions_taken', 'actions_taken__actions',
                                      'countries', 'districts', 'regions')
-
 
     def get_serializer_class(self):
         if self.action == 'list':
