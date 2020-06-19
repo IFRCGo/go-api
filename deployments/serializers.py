@@ -1,16 +1,13 @@
+from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
+from lang.translation import TranslatedModelSerializerMixin
 
 from .models import (
     ERUOwner,
     ERU,
     PersonnelDeployment,
     Personnel,
-    Heop,
-    Fact,
-    FactPerson,
-    Rdrt,
-    RdrtPerson,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
     RegionalProject,
@@ -101,7 +98,7 @@ class RegionalProjectSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ProjectSerializer(TranslatedModelSerializerMixin, EnumSupportSerializerMixin, serializers.ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
@@ -134,16 +131,16 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
             data['project_country'] = data['project_districts'][0].country
             for project in data['project_districts'][1:]:
                 if project.country != data['project_country']:
-                    raise serializers.ValidationError('Different country found for given districts')
+                    raise serializers.ValidationError(ugettext('Different country found for given districts'))
         if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
-            raise serializers.ValidationError('Reached total should be provided if status is completed')
+            raise serializers.ValidationError(ugettext('Reached total should be provided if status is completed'))
         elif (
             data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
             data['programme_type'] == ProgrammeTypes.MULTILATERAL and
             data.get('event') is None
         ):
             raise serializers.ValidationError(
-                'Event should be provided if operation type is Emergency Operation and programme type is Multilateral'
+                ugettext('Event should be provided if operation type is Emergency Operation and programme type is Multilateral')
             )
         return data
 

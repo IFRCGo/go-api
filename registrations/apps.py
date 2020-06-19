@@ -1,5 +1,6 @@
+from django.utils.translation import ugettext_lazy as _
 from django.apps import AppConfig
 
 
 class RegistrationsConfig(AppConfig):
-    name = 'registrations'
+    name = _('registrations')

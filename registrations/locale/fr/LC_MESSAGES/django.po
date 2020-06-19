@@ -1,0 +1,107 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: registrations/apps.py:6
+msgid "registrations"
+msgstr "inscriptions"
+
+#: registrations/models.py:11 registrations/models.py:44
+msgid "user"
+msgstr "utilisateur"
+
+#: registrations/models.py:17 registrations/models.py:48
+msgid "created at"
+msgstr "créé à"
+
+#: registrations/models.py:18 registrations/models.py:49
+msgid "token"
+msgstr "jeton"
+
+#: registrations/models.py:20
+msgid "admin contact 1"
+msgstr "contact admin 1"
+
+#: registrations/models.py:21
+msgid "admin contact 2"
+msgstr "contact admin 2"
+
+#: registrations/models.py:22
+msgid "admin token 1"
+msgstr "jeton d'administration 1"
+
+#: registrations/models.py:23
+msgid "admin token 2"
+msgstr "jeton d'administration 2"
+
+#: registrations/models.py:24
+msgid "admin 1 validated"
+msgstr "admin 1 validé"
+
+#: registrations/models.py:25
+msgid "admin 2 validated"
+msgstr "admin 2 validé"
+
+#: registrations/models.py:26
+msgid "admin 1 validated date"
+msgstr "admin 1 date validée"
+
+#: registrations/models.py:27
+msgid "admin 2 validated date"
+msgstr "admin 2 date validée"
+
+#: registrations/models.py:29
+msgid "email verified?"
+msgstr "email vérifié ?"
+
+#: registrations/models.py:32
+msgid "Pending user"
+msgstr "Utilisateur en attente"
+
+#: registrations/models.py:33
+msgid "Pending users"
+msgstr "Utilisateurs en attente"
+
+#: registrations/models.py:52
+msgid "Recovery"
+msgstr "Récupération"
+
+#: registrations/models.py:53
+msgid "Recoveries"
+msgstr "Récupération"
+
+#: registrations/models.py:61
+msgid "domain name"
+msgstr "nom de domaine"
+
+#: registrations/models.py:62
+msgid "description"
+msgstr "description"
+
+#: registrations/models.py:63
+msgid "is active?"
+msgstr "est actif ?"
+
+#: registrations/models.py:66
+msgid "Domain Whitelist"
+msgstr "Liste blanche du domaine"
+
+#: registrations/models.py:67
+msgid "Domains Whitelist"
+msgstr "Liste blanche des domaines"

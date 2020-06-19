@@ -5,7 +5,7 @@ EXPOSE 443
 
 RUN \
 	apt-get update; \
-	apt-get install -y nginx postgresql-client mdbtools vim tidy less; \
+	apt-get install -y nginx postgresql-client mdbtools vim tidy less gettext; \
 	apt-get install -y cron --no-install-recommends
 
 ENV HOME=/home/ifrc

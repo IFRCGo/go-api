@@ -1,7 +1,5 @@
 from django.contrib import admin
 import registrations.models as models
-from reversion.admin import VersionAdmin
-from reversion.models import Revision
 from reversion_compare.admin import CompareVersionAdmin
 
 
