@@ -418,6 +418,8 @@ class FieldReportFilter(filters.FilterSet):
     countries__in = ListFilter(field_name='countries__id')
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
+
     class Meta:
         model = FieldReport
         fields = {
