@@ -101,7 +101,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         fields = super().get_field_names(declared_fields, info)
 
         requested_langs = []
-        if 'request' in self.context:
+        if self.context.get('request') is not None:
             lang_param = self.context['request'].query_params.get('lang') or django_get_language()
         else:
             logger.warn('Request is not passed using context. This can cause unexcepted behavior for translation')
