@@ -36,8 +36,11 @@ def send_notification(subject, recipients, html, mailtype=''):
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:
-                    if eml == rec.split('@')[1]:
-                        to_addresses.append(rec)
+                    try:
+                        if eml == rec.split('@')[1]:
+                            to_addresses.append(rec)
+                    except Exception:
+                        logger.info('Could not extract domain from: {}'.format(rec))
             elif eml and (eml in recipients):
                 to_addresses.append(eml)
 
