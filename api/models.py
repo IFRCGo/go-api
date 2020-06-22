@@ -542,7 +542,7 @@ def snippet_image_path(instance, filename):
 
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage()
     )
