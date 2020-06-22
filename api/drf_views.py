@@ -114,11 +114,14 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
             return RegionSerializer
         return RegionRelationSerializer
 
+
 class CountryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    record_type = filters.NumberFilter(field_name='record_type', lookup_expr='exact')
+
     class Meta:
         model = Country
-        fields = ('region',)
+        fields = ('region', 'record_type',)
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
