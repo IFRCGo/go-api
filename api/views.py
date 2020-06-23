@@ -383,7 +383,7 @@ class RecoverPassword(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            user = User.objects.get(email=body['email'])
+            user = User.objects.get(email__iexact=body['email'])
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
@@ -398,7 +398,8 @@ class RecoverPassword(PublicJsonPostView):
         }
         send_notification('Reset your password',
                           [user.email],
-                          render_to_string('email/recover_password.html', email_context))
+                          render_to_string('email/recover_password.html', email_context),
+                          'Password recovery - ' + user.username)
 
         return JsonResponse({'status': 'ok'})
 
@@ -410,7 +411,7 @@ class ShowUsername(PublicJsonPostView):
             return bad_request('Must include an `email` property')
 
         try:
-            user = User.objects.get(email=body['email'])
+            user = User.objects.get(email__iexact=body['email'])
         except ObjectDoesNotExist:
             return bad_request('That email is not associated with a user')
 
@@ -419,7 +420,8 @@ class ShowUsername(PublicJsonPostView):
         }
         send_notification('Showing your username',
                           [user.email],
-                          render_to_string('email/show_username.html', email_context))
+                          render_to_string('email/show_username.html', email_context),
+                          'Username recovery - ' + user.username)
 
         return JsonResponse({'status': 'ok'})
 

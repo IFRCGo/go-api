@@ -1,7 +1,11 @@
 import json
+from api.indexes import ES_PAGE_NAME
+from api.esconnection import ES_CLIENT
+from api.logger import logger
 from django.db import transaction
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from elasticsearch.helpers import bulk
 from reversion.models import Revision, Version
 from reversion.signals import post_revision_commit
 from api.models import ReversionDifferenceLog, User, Country, Event
@@ -115,6 +119,7 @@ def log_deletion(sender, instance, using, **kwargs):
         if value == instance_type:
             model_name = key
 
+    # Creates a ReversionDifferenceLog record which is used for the "global" log
     ReversionDifferenceLog.objects.create(
         action='Deleted',
         username=usr,
@@ -122,3 +127,15 @@ def log_deletion(sender, instance, using, **kwargs):
         object_name=str(instance) if len(str(instance)) <= 200 else str(instance)[:200] + '...',
         object_type=MODEL_TYPES.get(model_name, instance_type) if model_name else instance_type
     )
+
+    # ElasticSearch to also delete the index if a record was deleted
+    if hasattr(instance, 'es_id'):
+        try:
+            bulk(client=ES_CLIENT , actions=[{
+                '_op_type': 'delete',
+                '_index': ES_PAGE_NAME,
+                '_type': 'page',
+                '_id': instance.es_id()
+            }])
+        except:
+            logger.error('Could not reach Elasticsearch server.')

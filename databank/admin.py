@@ -1,7 +1,7 @@
 from django.contrib import admin
-from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
+from .forms import CountryOverviewForm, SeasonalCalenderForm
 from .models import (
     Month,
     CountryOverview,
@@ -10,7 +10,6 @@ from .models import (
     KeyClimateEvent,
     SeasonalCalender,
 )
-from .forms import CountryOverviewForm, SeasonalCalenderForm
 
 
 class SocialEventInline(admin.TabularInline):

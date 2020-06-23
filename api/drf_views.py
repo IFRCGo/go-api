@@ -114,11 +114,14 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
             return RegionSerializer
         return RegionRelationSerializer
 
+
 class CountryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    record_type = filters.NumberFilter(field_name='record_type', lookup_expr='exact')
+
     class Meta:
         model = Country
-        fields = ('region',)
+        fields = ('region', 'record_type',)
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
@@ -415,12 +418,15 @@ class FieldReportFilter(filters.FilterSet):
     countries__in = ListFilter(field_name='countries__id')
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
+
     class Meta:
         model = FieldReport
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
+
 
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -431,7 +437,6 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
         qset = qset.select_related('dtype', 'event')
         return qset.prefetch_related('actions_taken', 'actions_taken__actions',
                                      'countries', 'districts', 'regions')
-
 
     def get_serializer_class(self):
         if self.action == 'list':

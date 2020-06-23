@@ -14,10 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.conf import settings
+from django.urls import path
 from django.contrib import admin
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
-from tastypie.api import Api
+from django.conf.urls.i18n import i18n_patterns
 from api.views import (
     GetAuthToken,
     ChangePassword,
@@ -60,6 +62,7 @@ from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
+from lang import views as lang_views
 
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset)
@@ -93,7 +96,7 @@ router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset, base_name='percountry')
-#router.register(r'percountryusers', per_views.FormCountryUsersViewset)
+# router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'perstat', per_views.FormStatViewset, base_name='perstat')
 router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'peroverview', per_views.OverviewViewset, base_name='peroverview')
@@ -108,6 +111,7 @@ router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'region-project', deployment_views.RegionProjectViewset, base_name='region-project')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)
+router.register(r'language', lang_views.LanguageViewSet, base_name='language')
 
 
 admin.site.site_header = 'IFRC Go administration'
@@ -147,8 +151,27 @@ urlpatterns = [
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
-    url(r'^', admin.site.urls),
-    url(r'^favicon\.ico$',RedirectView.as_view(url='/static/favicon.ico')),
+    # url(r'^', admin.site.urls),
+    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
     url(r'^server-error-for-devs', DummyHttpStatusError.as_view()),
-    url(r'^exception-error-for-devs', DummyExceptionError.as_view())
+    url(r'^exception-error-for-devs', DummyExceptionError.as_view()),
+    path('i18n/', include('django.conf.urls.i18n')),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url('__debug__/', include(debug_toolbar.urls)),
+
+        # For django versions before 2.0:
+        # url(r'^__debug__/', include(debug_toolbar.urls)),
+
+    ] + urlpatterns
+
+# API With language URL patterns
+urlpatterns += i18n_patterns(
+    path('', admin.site.urls),
+    # NOTE: Current language switcher will not work if set to False.
+    # TODO: Fix admin panel language switcher before enabling switcher in production
+    prefix_default_language=not settings.HIDE_LANGUAGE_UI,
+)

@@ -1,22 +1,17 @@
 import os
 import requests
 import base64
-# import threading
-# import smtplib
-from django.http import JsonResponse
 from api.logger import logger
-# from django.utils.html import strip_tags
-# from email.mime.multipart import MIMEMultipart
-# from email.mime.text import MIMEText
-# from api.models import CronJob, CronJobStatus
+from api.models import CronJob, CronJobStatus
+from notifications.models import NotificationGUID
 
-
-EMAIL_USER = os.environ.get('EMAIL_USER')
 # EMAIL_PASS = os.environ.get('EMAIL_PASS')
 # EMAIL_HOST = os.environ.get('EMAIL_HOST')
 # EMAIL_PORT = os.environ.get('EMAIL_PORT')
-IS_PROD = os.environ.get('PRODUCTION')
+EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
+EMAIL_TO = 'no-reply@ifrc.org'
+IS_PROD = os.environ.get('PRODUCTION')
 
 test_emails = os.environ.get('TEST_EMAILS')
 if test_emails:
@@ -25,7 +20,8 @@ else:
     test_emails = ['gergely.horvath@ifrc.org']
 
 
-def send_notification(subject, recipients, html, is_followed_event=False):
+def send_notification(subject, recipients, html, mailtype=''):
+    """ Generic email sending method, handly only HTML emails currently """
     if not EMAIL_USER or not EMAIL_API_ENDPOINT:
         logger.warn('Cannot send notifications.')
         logger.warn('No username and/or API endpoint set as environment variables.')
@@ -37,92 +33,64 @@ def send_notification(subject, recipients, html, is_followed_event=False):
         logger.info('Using test email addresses...')
         to_addresses = []
         for eml in test_emails:
-            if eml and (eml in recipients):
+            is_dom = True if '@' not in eml else False
+            if is_dom:
+                for rec in recipients:
+                    try:
+                        if eml == rec.split('@')[1]:
+                            to_addresses.append(rec)
+                    except Exception:
+                        logger.info('Could not extract domain from: {}'.format(rec))
+            elif eml and (eml in recipients):
                 to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
+    if not recipients_as_string:
+        if len(to_addresses) > 0:
+            warn_msg = 'Recipients failed to be converted to string, 1st rec.: {}'.format(to_addresses[0])
+            logger.info(warn_msg)
+            # Save the warning into the CronJob logs too
+            cron_error = {"name": "index_and_notify", "message": warn_msg, "status": CronJobStatus.WARNED}
+            CronJob.sync_cron(cron_error)
+        else:
+            logger.info('Recipients string is empty')
+        return  # If there are no recipients it's unnecessary to send out the email
+
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     payload = {
-        "FromAsBase64":str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
-        "ToAsBase64":str(base64.b64encode('no-reply@ifrc.org'.encode('utf-8')), 'utf-8'),
-        "CcAsBase64":"",
-        "BccAsBase64":str(base64.b64encode(recipients_as_string.encode('utf-8')), 'utf-8'),
-        "SubjectAsBase64":str(base64.b64encode(subject.encode('utf-8')), 'utf-8'),
-        "BodyAsBase64":str(base64.b64encode(html.encode('utf-8')), 'utf-8'),
-        "IsBodyHtml":True,
-        "TemplateName":"",
-        "TemplateLanguage":""
+        "FromAsBase64": str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
+        "ToAsBase64": str(base64.b64encode(EMAIL_TO.encode('utf-8')), 'utf-8'),
+        "CcAsBase64": "",
+        "BccAsBase64": str(base64.b64encode(recipients_as_string.encode('utf-8')), 'utf-8'),
+        "SubjectAsBase64": str(base64.b64encode(subject.encode('utf-8')), 'utf-8'),
+        "BodyAsBase64": str(base64.b64encode(html.encode('utf-8')), 'utf-8'),
+        "IsBodyHtml": True,
+        "TemplateName": "",
+        "TemplateLanguage": ""
     }
 
-    # The response contains the GUID (res.text) which could be used for future requests if something is wrong
-    # TODO: It would be best to store the GUIDs and relevant mail parameters in some way, somewhere
+    # The response contains the GUID (res.text)
     res = requests.post(EMAIL_API_ENDPOINT, json=payload)
+    res_text = res.text.replace('"', '')
 
-    guid = res.text.replace('"', '')
-    logger.info('GUID: ' + guid)
-    logger.info('Subject: ' + subject + ', Recipients: ' + recipients_as_string)
     if res.status_code == 200:
+        logger.info('Subject: {subject}, Recipients: {recs}'.format(subject=subject, recs=recipients_as_string))
+
+        logger.info('GUID: {}'.format(res_text))
+        # Saving GUID into a table so that the API can be queried with it to get info about
+        # if the actual sending has failed or not.
+        NotificationGUID.objects.create(
+            api_guid=res_text,
+            email_type=mailtype,
+            to_list='To: {to}; Bcc: {bcc}'.format(to=EMAIL_TO, bcc=recipients_as_string)
+        )
+
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.info('Authorization/authentication failed ({}) failed to the e-mail sender API.'.format(res.status_code))
+        logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
     elif res.status_code == 500:
         logger.error('Could not reach the e-mail sender API.')
+    else:
+        logger.info(res_text)
 
     return res.text
-
-
-# # Old methods for sending email notifications (Leaving this here in case we ever need it for reference)
-# class SendMail(threading.Thread):
-#     def __init__(self, recipients, msg, **kwargs):
-#         if int(IS_PROD) == 1:
-#             self.recipients = recipients
-#         else:
-#             logger.info('Using test email addresses...')
-#             self.recipients = []
-#             for eml in TEST_EMAILS:
-#                 if eml and (eml in recipients):
-#                     self.recipients.append(eml)
-
-#         self.msg = msg
-#         super(SendMail, self).__init__(**kwargs)
-
-#     def run(self):
-#         try:
-#             server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
-#             server.ehlo()
-#             server.starttls()
-#             server.ehlo()
-#             succ = server.login(EMAIL_USER, EMAIL_PASS)
-#             if 'successful' not in str(succ[1]):
-#                 body = { "name": "notification", "message": 'Error contacting ' + EMAIL_HOST + ' smtp server for notifications', "status": CronJobStatus.ERRONEOUS }
-#                 CronJob.sync_cron(body)
-#                 # ^ Mainly for index_and_notify.py cronjob log
-#             if len(self.recipients) > 0:
-#                 server.sendmail(EMAIL_USER, self.recipients, self.msg.as_string())
-#             server.quit()
-#             logger.info('Notifications sent!')
-#         except smtplib.SMTPAuthenticationError:
-#             logger.error('SMTPAuthenticationError')
-#             logger.error('Cannot send notification')
-#             logger.error(str(smtplib.SMTPAuthenticationError)[:100])
-
-
-# def send_notification(subject, recipients, html):
-#     if not username or not password:
-#         logger.warn('No username and/or password set as environment variables')
-#         logger.warn('Cannot send notification')
-#         return
-
-#     msg = MIMEMultipart('alternative')
-
-#     msg['Subject'] = '[IFRCGO] %s' % subject
-#     msg['From'] = username.upper()
-#     msg['To'] = 'no-reply@ifrc.org'
-
-#     text_body = MIMEText(strip_tags(html), 'plain')
-#     html_body = MIMEText(html, 'html')
-
-#     msg.attach(text_body)
-#     msg.attach(html_body)
-
-#     SendMail(['no-reply@ifrc.org'] + recipients, msg).start()

@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import pytz
+from django.utils.translation import ugettext_lazy as _
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -13,6 +14,8 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
     BASE_URL = 'goadmin.ifrc.org'
 # The frontend_url nicing is in frontend.py
 
+INTERNAL_IPS = ['127.0.0.1']
+
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
     ALLOWED_HOSTS.append(PRODUCTION_URL)
@@ -22,6 +25,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False if PRODUCTION_URL is not None else True
 
 INSTALLED_APPS = [
+    # External App (This app has to defined before django.contrib.admin)
+    'modeltranslation',  # https://django-modeltranslation.readthedocs.io/en/latest/installation.html#installed-apps
+
     # Django Apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,13 +52,18 @@ INSTALLED_APPS = [
     'registrations',
     'deployments',
     'databank',
+    'lang',
 
     # Utils Apps
     'tinymce',
+    'admin_auto_filters',
 
     # Logging
     'reversion',
     'reversion_compare',
+
+    # Debug
+    'debug_toolbar',
 ]
 
 REST_FRAMEWORK = {
@@ -87,9 +98,11 @@ AZURE_STORAGE = {
 }
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -176,21 +189,27 @@ TINYMCE_DEFAULT_CONFIG = {
             | indent outdent | bullist numlist |
             | link visualchars charmap hr nonbreaking | code preview fullscreen
             ''',
-
-#   If more formatting possibilities needed (or more rows), choose from these:
-#   'toolbar1': '''
-#           fullscreen preview bold italic underline | fontselect,
-#           fontsizeselect  | forecolor backcolor | alignleft alignright |
-#           aligncenter alignjustify | indent outdent | bullist numlist table |
-#           | link image media | codesample |
-#           ''',
-#   'toolbar2': '''
-#           visualblocks visualchars |
-#           charmap hr pagebreak nonbreaking anchor |  code |
-#           ''',
+    # 'toolbar2': '''
+    #         media embed
+    #         ''',
+    # 'force_p_newlines': False,
+    # 'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
+    # 'extended_valid_elements': 'iframe[src|frameborder|style|scrolling|class|width|height|name|align]',
+
+    # If more formatting possibilities needed (or more rows), choose from these:
+    # 'toolbar1': '''
+    # fullscreen preview bold italic underline | fontselect,
+    # fontsizeselect  | forecolor backcolor | alignleft alignright |
+    # aligncenter alignjustify | indent outdent | bullist numlist table |
+    # | link image media | codesample |
+    # ''',
+    # 'toolbar2': '''
+    # visualblocks visualchars |
+    # charmap hr pagebreak nonbreaking anchor |  code |
+    # ''',
 }
 
 LANGUAGE_CODE = 'en-us'
@@ -198,6 +217,16 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+LANGUAGES = (
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('fr', _('French')),
+    ('ar', _('Arabic')),
+)
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+HIDE_LANGUAGE_UI = not DEBUG
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -207,12 +236,12 @@ EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600 # default 2621440, 2.5MB -> 100MB
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000    # default 1000, was not enough for Mozambique Cyclone Idai data
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000     # default 1000, was not enough for Mozambique Cyclone Idai data
 
 timezone = pytz.timezone("Europe/Zurich")
-PER_LAST_DUEDATE=timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
-PER_NEXT_DUEDATE=timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
+PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
+PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
@@ -242,3 +271,8 @@ LOGGING = {
         },
     },
 }
+
+# AWS Translate Credentials
+AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
+AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
+AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')

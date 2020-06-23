@@ -151,8 +151,8 @@ def load(country, overview, relief_data):
             'year': data['year'],
             'month': data['month'],
 
-            'month_display': Month.LABEL_MAP.get(data['month']),
-            'event_display': PastCrisesEvent.LABEL_MAP.get(data['event']),
+            'month_display': str(Month.LABEL_MAP.get(data['month'])),
+            'event_display': str(PastCrisesEvent.LABEL_MAP.get(data['event'])),
         } for index, data in enumerate(relief_data['crises_event'].get(iso2) or [])
     ]
 
@@ -163,8 +163,8 @@ def load(country, overview, relief_data):
             'year': data['year'],
             'month': data['month'],
 
-            'month_display': Month.LABEL_MAP.get(data['month']),
-            'event_display': PastEpidemic.LABEL_MAP.get(data['epidemic']),
+            'month_display': str(Month.LABEL_MAP.get(data['month'])),
+            'event_display': str(PastEpidemic.LABEL_MAP.get(data['epidemic'])),
         } for index, data in enumerate(relief_data['epidemics'].get(iso2) or [])
     ]
     overview.save()
