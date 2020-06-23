@@ -286,7 +286,7 @@ class TabNumber(IntEnum):
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage()
     )
@@ -304,7 +304,7 @@ class RegionSnippet(models.Model):
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage()
     )
