@@ -109,4 +109,4 @@ docker run -p 80:80 --env-file .env -d -t ifrcgo/go-api:{TAG_NUMBER}
 
 ## Comment for loading data
 
-In `main/runserver.sh` the line containing the `loaddata` command is only necessary when creating a new database. In other cases it might be causing the conflict, so it is commented.
+In `main/runserver.sh` the line containing the `loaddata` command is only necessary when creating a new database. In other cases it might be causing the conflict, so it is commented. 
