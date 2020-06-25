@@ -259,7 +259,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': '../logger.log',
+            'filename': '../logs/logger.log',
             'formatter': 'timestamp',
         },
     },
