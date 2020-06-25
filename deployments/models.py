@@ -77,7 +77,7 @@ class ERU(models.Model):
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, verbose_name=_('owner'), on_delete=models.CASCADE)
     supporting_societies = models.CharField(
-        verbose_name=_('suuporting societies'), null=True, blank=True, max_length=500, help_text=_('still not used in frontend')
+        verbose_name=_('supporting societies'), null=True, blank=True, max_length=500, help_text=_('still not used in frontend')
     )
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True, help_text=_('still not used in frontend'))
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True, help_text=_('still not used in frontend'))

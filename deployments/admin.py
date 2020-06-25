@@ -13,6 +13,7 @@ from admin_auto_filters.filters import AutocompleteFilter
 from api.utils import Echo
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
+from lang.translation import TranslationAdmin
 from reversion_compare.admin import CompareVersionAdmin
 
 from .forms import ProjectForm, ProjectImportForm
@@ -20,7 +21,7 @@ from .forms import ProjectForm, ProjectImportForm
 
 class ERUInline(admin.TabularInline):
     model = models.ERU
-    autocomplete_fields = ('deployed_to', 'event',)
+    autocomplete_fields = ('deployed_to', 'event', 'appeal')
 
 
 class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
@@ -40,16 +41,17 @@ class PersonnelAdmin(CompareVersionAdmin):
 
 class PersonnelInline(admin.TabularInline):
     model = models.Personnel
+    autocomplete_fields = ('country_from',)
 
 
-class PersonnelDeploymentAdmin(CompareVersionAdmin):
+class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('country_deployed_to', 'region_deployed_to',)
-    autocomplete_fields = ('event_deployed_to',)
+    autocomplete_fields = ('event_deployed_to', 'appeal_deployed_to')
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
 
-class PartnerSocietyActivityAdmin(CompareVersionAdmin):
+class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('activity',)
 
 
@@ -63,7 +65,7 @@ class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
 
-class RegionalProjectAdmin(CompareVersionAdmin):
+class RegionalProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     list_display = ('name', 'created_at', 'modified_at',)
     search_fields = ('name',)
 
@@ -78,7 +80,7 @@ class ProjectCountryFilter(AutocompleteFilter):
     field_name = 'project_country'
 
 
-class ProjectAdmin(CompareVersionAdmin):
+class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)

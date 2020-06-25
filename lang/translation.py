@@ -1,7 +1,7 @@
 import logging
 import boto3
 
-from modeltranslation.admin import TranslationBaseModelAdmin
+from modeltranslation.admin import TranslationAdmin as O_TranslationAdmin
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
 from modeltranslation.manager import (
@@ -13,8 +13,11 @@ from modeltranslation.manager import (
 from django.utils.translation import get_language as django_get_language
 
 from rest_framework import serializers
+from rest_framework.request import Request as DrfRequest
 from django.utils.translation import get_language
 from django.conf import settings
+
+from middlewares.middlewares import get_signal_request
 
 logger = logging.getLogger(__name__)
 
@@ -24,21 +27,18 @@ AVAILABLE_LANGUAGES = mt_settings.AVAILABLE_LANGUAGES
 DEFAULT_LANGUAGE = mt_settings.DEFAULT_LANGUAGE
 
 
-# Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
-o__exclude_original_fields = TranslationBaseModelAdmin._exclude_original_fields
-def _exclude_original_fields(self, exclude=None):  # noqa: E302
-    current_lang = get_language()
-    exclude = o__exclude_original_fields(self, exclude)
-    # Exclude other languages
-    return exclude + tuple([
-        build_localized_fieldname(field, lang)
-        for field in self.trans_opts.fields.keys()
-        for lang in AVAILABLE_LANGUAGES
-        if lang != current_lang
-    ])
-
-
-TranslationBaseModelAdmin._exclude_original_fields = _exclude_original_fields
+class TranslationAdmin(O_TranslationAdmin):
+    # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
+    def _exclude_original_fields(self, exclude=None):
+        current_lang = get_language()
+        exclude = super()._exclude_original_fields(exclude)
+        # Exclude other languages
+        return exclude + tuple([
+            build_localized_fieldname(field, lang)
+            for field in self.trans_opts.fields.keys()
+            for lang in AVAILABLE_LANGUAGES
+            if lang != current_lang
+        ])
 
 
 # NOTE: Fixing modeltranslation Queryset to support experssions in Queryset values()
@@ -93,7 +93,7 @@ class AmazonTranslate(object):
 class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     """
     Translation mixin for serializer
-    - Using header/GET Params detect languge
+    - Using header/GET Params to detect languge
     - Assign original field name to requested field_<language>
     - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
     """
@@ -101,11 +101,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         fields = super().get_field_names(declared_fields, info)
 
         requested_langs = []
-        if self.context.get('request') is not None:
-            lang_param = self.context['request'].query_params.get('lang') or django_get_language()
-        else:
-            logger.warn('Request is not passed using context. This can cause unexcepted behavior for translation')
-            lang_param = django_get_language()
+        request = self.context.get('request') or (get_signal_request() and DrfRequest(get_signal_request()))
+        if request is None:
+            logger.warn('Request is not available using context/middleware. This can cause unexcepted behavior for translation')
+        lang_param = (request and request.query_params.get('lang')) or django_get_language()
 
         if lang_param == 'all':
             requested_langs = AVAILABLE_LANGUAGES
@@ -139,3 +138,26 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
             fields[field] = fields.pop(lang_field)
             fields[field].source = lang_field
         return fields
+
+    def _get_language_clear_validated_data(self, validated_data):
+        """
+        Clear value for other languages for fields if single language is specified
+        """
+        for field, lang_fields in self.included_fields_lang.items():
+            if len(lang_fields) != 1:
+                break
+            current_lang_field = lang_fields[0]
+            for lang in AVAILABLE_LANGUAGES:
+                lang_field = build_localized_fieldname(field, lang)
+                if lang_field == current_lang_field:
+                    continue
+                validated_data[lang_field] = None
+
+    def create(self, validated_data):
+        # TODO: Trigger celery task for translation
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # TODO: Trigger celery task for translation
+        self._get_language_clear_validated_data(validated_data)
+        return super().update(instance, validated_data)

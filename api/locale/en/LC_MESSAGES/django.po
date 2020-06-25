@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgstr "None"
 msgid "membership"
 msgstr "membership"
 
-#: api/admin.py:83 api/models.py:672
+#: api/admin.py:83 api/models.py:670
 msgid "appeal type"
 msgstr "appeal type"
 
@@ -54,7 +54,7 @@ msgstr "Featured"
 msgid "Not Featured"
 msgstr "Not Featured"
 
-#: api/admin.py:112 api/models.py:233 api/models.py:534 api/models.py:1177
+#: api/admin.py:112 api/models.py:233 api/models.py:532 api/models.py:1175
 msgid "source"
 msgstr "source"
 
@@ -90,26 +90,26 @@ msgstr "Unknown automated"
 msgid "api"
 msgstr "api"
 
-#: api/forms.py:8 api/models.py:1116
+#: api/forms.py:8 api/models.py:1114
 msgid "organizations"
 msgstr "organizations"
 
-#: api/forms.py:9 api/models.py:1120
+#: api/forms.py:9 api/models.py:1118
 msgid "field report types"
 msgstr "field report types"
 
 #: api/models.py:38 api/models.py:67 api/models.py:125 api/models.py:178
-#: api/models.py:352 api/models.py:394 api/models.py:422 api/models.py:516
-#: api/models.py:587 api/models.py:670 api/models.py:775 api/models.py:1055
-#: api/models.py:1113 api/models.py:1158 api/models.py:1551
+#: api/models.py:350 api/models.py:392 api/models.py:420 api/models.py:514
+#: api/models.py:585 api/models.py:668 api/models.py:773 api/models.py:1053
+#: api/models.py:1111 api/models.py:1156 api/models.py:1549
 msgid "name"
 msgstr "name"
 
-#: api/models.py:39 api/models.py:416 api/models.py:837 api/models.py:1143
+#: api/models.py:39 api/models.py:414 api/models.py:835 api/models.py:1141
 msgid "summary"
 msgstr "summary"
 
-#: api/models.py:43 api/models.py:405 api/models.py:671 api/models.py:839
+#: api/models.py:43 api/models.py:403 api/models.py:669 api/models.py:837
 msgid "disaster type"
 msgstr "disaster type"
 
@@ -137,12 +137,12 @@ msgstr "Europe"
 msgid "Middle East North Africa"
 msgstr "Middle East North Africa"
 
-#: api/models.py:85 api/models.py:132 api/models.py:246 api/models.py:290
-#: api/models.py:335 api/models.py:365 api/models.py:694
+#: api/models.py:85 api/models.py:132 api/models.py:246 api/models.py:288
+#: api/models.py:333 api/models.py:363 api/models.py:692
 msgid "region"
 msgstr "region"
 
-#: api/models.py:86 api/models.py:408 api/models.py:845
+#: api/models.py:86 api/models.py:406 api/models.py:843
 msgid "regions"
 msgstr "regions"
 
@@ -166,8 +166,8 @@ msgstr "Country Office"
 msgid "Representative Office"
 msgstr "Representative Office"
 
-#: api/models.py:126 api/models.py:351 api/models.py:515 api/models.py:567
-#: api/models.py:595 api/models.py:1054 api/models.py:1170
+#: api/models.py:126 api/models.py:349 api/models.py:513 api/models.py:565
+#: api/models.py:593 api/models.py:1052 api/models.py:1168
 msgid "type"
 msgstr "type"
 
@@ -227,16 +227,16 @@ msgstr "WB Year"
 msgid "population data year from WB API"
 msgstr "population data year from WB API"
 
-#: api/models.py:168 api/models.py:180 api/models.py:255 api/models.py:308
-#: api/models.py:343 api/models.py:373 api/models.py:693 api/models.py:1209
+#: api/models.py:168 api/models.py:180 api/models.py:254 api/models.py:306
+#: api/models.py:341 api/models.py:371 api/models.py:691 api/models.py:1207
 msgid "country"
 msgstr "country"
 
-#: api/models.py:169 api/models.py:407 api/models.py:844
+#: api/models.py:169 api/models.py:405 api/models.py:627 api/models.py:842
 msgid "countries"
 msgstr "countries"
 
-#: api/models.py:179 api/models.py:675
+#: api/models.py:179 api/models.py:673
 msgid "code"
 msgstr "code"
 
@@ -264,7 +264,7 @@ msgstr "WB year"
 msgid "district"
 msgstr "district"
 
-#: api/models.py:198 api/models.py:406 api/models.py:843
+#: api/models.py:198 api/models.py:404 api/models.py:841
 msgid "districts"
 msgstr "districts"
 
@@ -284,12 +284,12 @@ msgstr "Public"
 msgid "figure"
 msgstr "figure"
 
-#: api/models.py:232 api/models.py:533
+#: api/models.py:232 api/models.py:531
 msgid "deck"
 msgstr "deck"
 
-#: api/models.py:234 api/models.py:295 api/models.py:313 api/models.py:552
-#: api/models.py:597 api/models.py:936
+#: api/models.py:234 api/models.py:293 api/models.py:311 api/models.py:550
+#: api/models.py:595 api/models.py:934
 msgid "visibility"
 msgstr "visibility"
 
@@ -301,159 +301,160 @@ msgstr "admin key figure"
 msgid "admin key figures"
 msgstr "admin key figures"
 
-#: api/models.py:250
+#: api/models.py:249
 msgid "region key figure"
 msgstr "region key figure"
 
-#: api/models.py:251
+#: api/models.py:250
 msgid "region key figures"
 msgstr "region key figures"
 
-#: api/models.py:259
+#: api/models.py:257
 msgid "country key figure"
 msgstr "country key figure"
 
-#: api/models.py:260
+#: api/models.py:258
 msgid "country key figures"
 msgstr "country key figures"
 
-#: api/models.py:271
+#: api/models.py:269
 msgid "Top"
 msgstr "Top"
 
-#: api/models.py:272
+#: api/models.py:270
 msgid "High"
 msgstr "High"
 
-#: api/models.py:273
+#: api/models.py:271
 msgid "Middle"
 msgstr "Middle"
 
-#: api/models.py:274
+#: api/models.py:272
 msgid "Low"
 msgstr "Low"
 
-#: api/models.py:275
+#: api/models.py:273
 msgid "Bottom"
 msgstr "Bottom"
 
-#: api/models.py:284
+#: api/models.py:282
 msgid "Tab 1"
 msgstr "Tab 1"
 
-#: api/models.py:285
+#: api/models.py:283
 msgid "Tab 2"
 msgstr "Tab 2"
 
-#: api/models.py:286
+#: api/models.py:284
 msgid "Tab 3"
 msgstr "Tab 3"
 
-#: api/models.py:291 api/models.py:309 api/models.py:547 api/models.py:558
+#: api/models.py:289 api/models.py:307 api/models.py:545 api/models.py:556
 msgid "snippet"
 msgstr "snippet"
 
-#: api/models.py:293 api/models.py:311 api/models.py:549
+#: api/models.py:291 api/models.py:309 api/models.py:547 api/models.py:612
 msgid "image"
 msgstr "image"
 
-#: api/models.py:296 api/models.py:314 api/models.py:553 api/models.py:1217
+#: api/models.py:294 api/models.py:312 api/models.py:551 api/models.py:1215
 msgid "position"
 msgstr "position"
 
-#: api/models.py:300
+#: api/models.py:298
 msgid "region snippet"
 msgstr "region snippet"
 
-#: api/models.py:301
+#: api/models.py:299
 msgid "region snippets"
 msgstr "region snippets"
 
-#: api/models.py:318
+#: api/models.py:316
 msgid "country snippet"
 msgstr "country snippet"
 
-#: api/models.py:319
+#: api/models.py:317
 msgid "country snippets"
 msgstr "country snippets"
 
-#: api/models.py:326 api/models.py:353 api/models.py:517 api/models.py:1056
+#: api/models.py:324 api/models.py:351 api/models.py:515 api/models.py:610
+#: api/models.py:1054
 msgid "title"
 msgstr "title"
 
-#: api/models.py:327
+#: api/models.py:325
 msgid "url"
 msgstr "url"
 
-#: api/models.py:330
+#: api/models.py:328
 msgid "admin link"
 msgstr "admin link"
 
-#: api/models.py:331
+#: api/models.py:329
 msgid "admin links"
 msgstr "admin links"
 
-#: api/models.py:338
+#: api/models.py:336
 msgid "region link"
 msgstr "region link"
 
-#: api/models.py:339
+#: api/models.py:337
 msgid "region links"
 msgstr "region links"
 
-#: api/models.py:346
+#: api/models.py:344
 msgid "country link"
 msgstr "country link"
 
-#: api/models.py:347
+#: api/models.py:345
 msgid "country links"
 msgstr "country links"
 
-#: api/models.py:354 api/models.py:518 api/models.py:1057
+#: api/models.py:352 api/models.py:516 api/models.py:1055
 msgid "email"
 msgstr "email"
 
-#: api/models.py:357
+#: api/models.py:355
 msgid "admin contact"
 msgstr "admin contact"
 
-#: api/models.py:358
+#: api/models.py:356
 msgid "admin contacts"
 msgstr "admin contacts"
 
-#: api/models.py:368
+#: api/models.py:366
 msgid "region contact"
 msgstr "region contact"
 
-#: api/models.py:369
+#: api/models.py:367
 msgid "region contacts"
 msgstr "region contacts"
 
-#: api/models.py:376
+#: api/models.py:374
 msgid "country contact"
 msgstr "country contact"
 
-#: api/models.py:377
+#: api/models.py:375
 msgid "country contacts"
 msgstr "country contacts"
 
-#: api/models.py:386
+#: api/models.py:384
 msgid "Green"
 msgstr "Green"
 
-#: api/models.py:387
+#: api/models.py:385
 msgid "Orange"
 msgstr "Orange"
 
-#: api/models.py:388
+#: api/models.py:386
 msgid "Red"
 msgstr "Red"
 
-#: api/models.py:397
+#: api/models.py:395
 msgid "slug"
 msgstr "slug"
 
-#: api/models.py:400
+#: api/models.py:398
 msgid ""
 "Optional string for a clean URL. For example, "
 "go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with"
@@ -465,11 +466,11 @@ msgstr ""
 " a number and is forced to be lowercase. Recommend using hyphens over "
 "underscores. Special characters like # is not allowed."
 
-#: api/models.py:410
+#: api/models.py:408
 msgid "Parent Emergency"
 msgstr "Parent Emergency"
 
-#: api/models.py:412
+#: api/models.py:410
 msgid ""
 "If needed, you have to change the connected Appeals', Field Reports', etc to"
 " point to the parent Emergency manually."
@@ -477,1433 +478,1497 @@ msgstr ""
 "If needed, you have to change the connected Appeals', Field Reports', etc to"
 " point to the parent Emergency manually."
 
-#: api/models.py:418 api/models.py:850
+#: api/models.py:416 api/models.py:848
 msgid "number of injured"
 msgstr "number of injured"
 
-#: api/models.py:419 api/models.py:851
+#: api/models.py:417 api/models.py:849
 msgid "number of dead"
 msgstr "number of dead"
 
-#: api/models.py:420 api/models.py:852
+#: api/models.py:418 api/models.py:850
 msgid "number of missing"
 msgstr "number of missing"
 
-#: api/models.py:421 api/models.py:853
+#: api/models.py:419 api/models.py:851
 msgid "number of affected"
 msgstr "number of affected"
 
-#: api/models.py:424
+#: api/models.py:422
 msgid "IFRC Severity level"
 msgstr "IFRC Severity level"
 
-#: api/models.py:425
+#: api/models.py:423
 msgid "glide"
 msgstr "glide"
 
-#: api/models.py:427
+#: api/models.py:425
 msgid "disaster start date"
 msgstr "disaster start date"
 
-#: api/models.py:428 api/models.py:586 api/models.py:684 api/models.py:774
-#: api/models.py:996 api/models.py:1553 api/models.py:1626 api/models.py:1641
+#: api/models.py:426 api/models.py:584 api/models.py:682 api/models.py:772
+#: api/models.py:994 api/models.py:1551 api/models.py:1624 api/models.py:1639
 msgid "created at"
 msgstr "created at"
 
-#: api/models.py:429 api/models.py:997
+#: api/models.py:427 api/models.py:995
 msgid "updated at"
 msgstr "updated at"
 
-#: api/models.py:430 api/models.py:686
+#: api/models.py:428 api/models.py:684
 msgid "previous update"
 msgstr "previous update"
 
-#: api/models.py:432
+#: api/models.py:430
 msgid "auto generated"
 msgstr "auto generated"
 
-#: api/models.py:434
+#: api/models.py:432
 msgid "auto generated source"
 msgstr "auto generated source"
 
-#: api/models.py:438
+#: api/models.py:436
 msgid "is featured on home page"
 msgstr "is featured on home page"
 
-#: api/models.py:441
+#: api/models.py:439
 msgid "is featured on region page"
 msgstr "is featured on region page"
 
-#: api/models.py:443
+#: api/models.py:441
 msgid "hide attached field reports?"
 msgstr "hide attached field reports?"
 
-#: api/models.py:447
+#: api/models.py:445
 msgid "tab one title"
 msgstr "tab one title"
 
-#: api/models.py:449
+#: api/models.py:447
 msgid "tab two title"
 msgstr "tab two title"
 
-#: api/models.py:450
+#: api/models.py:448
 msgid "tab three title"
 msgstr "tab three title"
 
-#: api/models.py:454
+#: api/models.py:452
 msgid "emergency"
 msgstr "emergency"
 
-#: api/models.py:455
+#: api/models.py:453
 msgid "emergencies"
 msgstr "emergencies"
 
-#: api/models.py:519 api/models.py:1058
+#: api/models.py:517 api/models.py:1056
 msgid "phone"
 msgstr "phone"
 
-#: api/models.py:520 api/models.py:531 api/models.py:551 api/models.py:593
-#: api/models.py:690 api/models.py:841
+#: api/models.py:518 api/models.py:529 api/models.py:549 api/models.py:591
+#: api/models.py:688 api/models.py:839
 msgid "event"
 msgstr "event"
 
-#: api/models.py:523
+#: api/models.py:521
 msgid "event contact"
 msgstr "event contact"
 
-#: api/models.py:524
+#: api/models.py:522
 msgid "event contacts"
 msgstr "event contacts"
 
-#: api/models.py:532
+#: api/models.py:530
 msgid "number"
 msgstr "number"
 
-#: api/models.py:532
+#: api/models.py:530
 msgid "key figure metric"
 msgstr "key figure metric"
 
-#: api/models.py:533
+#: api/models.py:531
 msgid "key figure units"
 msgstr "key figure units"
 
-#: api/models.py:534
+#: api/models.py:532
 msgid "key figure website link, publication"
 msgstr "key figure website link, publication"
 
-#: api/models.py:537
+#: api/models.py:535
 msgid "key figure"
 msgstr "key figure"
 
-#: api/models.py:538
+#: api/models.py:536
 msgid "key figures"
 msgstr "key figures"
 
-#: api/models.py:554
+#: api/models.py:552
 msgid "tab"
 msgstr "tab"
 
-#: api/models.py:559
+#: api/models.py:557
 msgid "snippets"
 msgstr "snippets"
 
-#: api/models.py:569
+#: api/models.py:567
 msgid "is primary?"
 msgstr "is primary?"
 
-#: api/models.py:570
+#: api/models.py:568
 msgid "Ensure this type gets precedence over others that are empty"
 msgstr "Ensure this type gets precedence over others that are empty"
 
-#: api/models.py:574
+#: api/models.py:572
 msgid "situation report type"
 msgstr "situation report type"
 
-#: api/models.py:575
+#: api/models.py:573
 msgid "situation report types"
 msgstr "situation report types"
 
-#: api/models.py:589 api/models.py:777
+#: api/models.py:587 api/models.py:775
 msgid "document"
 msgstr "document"
 
-#: api/models.py:591 api/models.py:779
+#: api/models.py:589 api/models.py:777
 msgid "document url"
 msgstr "document url"
 
-#: api/models.py:598
+#: api/models.py:596
 msgid "is pinned?"
 msgstr "is pinned?"
 
-#: api/models.py:598
+#: api/models.py:596
 msgid "pin this report at the top"
 msgstr "pin this report at the top"
 
-#: api/models.py:601
+#: api/models.py:599
 msgid "situation report"
 msgstr "situation report"
 
-#: api/models.py:602
+#: api/models.py:600
 msgid "situation reports"
 msgstr "situation reports"
 
-#: api/models.py:633
-msgid "gdacs event"
-msgstr "gdacs event"
+#: api/models.py:609
+msgid "event id"
+msgstr "event id"
 
-#: api/models.py:634
-msgid "gdacs events"
-msgstr "gdacs events"
-
-#: api/models.py:647 api/models.py:940
-msgid "DREF"
-msgstr "DREF"
-
-#: api/models.py:648
-msgid "Emergency Appeal"
-msgstr "Emergency Appeal"
-
-#: api/models.py:649
-msgid "International Appeal"
-msgstr "International Appeal"
-
-#: api/models.py:659
-msgid "Active"
-msgstr "Active"
-
-#: api/models.py:660
-msgid "Closed"
-msgstr "Closed"
-
-#: api/models.py:661
-msgid "Frozen"
-msgstr "Frozen"
-
-#: api/models.py:662
-msgid "Archived"
-msgstr "Archived"
-
-#: api/models.py:669
-msgid "appeal ID"
-msgstr "appeal ID"
-
-#: api/models.py:674 api/models.py:846 api/models.py:1552
-msgid "status"
-msgstr "status"
-
-#: api/models.py:676
-msgid "sector"
-msgstr "sector"
-
-#: api/models.py:678
-msgid "number of beneficiaries"
-msgstr "number of beneficiaries"
-
-#: api/models.py:679
-msgid "amount requested"
-msgstr "amount requested"
-
-#: api/models.py:680
-msgid "amount funded"
-msgstr "amount funded"
-
-#: api/models.py:682 api/models.py:990
-msgid "start date"
-msgstr "start date"
-
-#: api/models.py:683
-msgid "end date"
-msgstr "end date"
-
-#: api/models.py:685
-msgid "modified at"
-msgstr "modified at"
-
-#: api/models.py:687
-msgid "real data update"
-msgstr "real data update"
-
-#: api/models.py:692
-msgid "needs confirmation?"
-msgstr "needs confirmation?"
-
-#: api/models.py:735 api/models.py:781 api/models.py:942
-msgid "appeal"
-msgstr "appeal"
-
-#: api/models.py:736
-msgid "appeals"
-msgstr "appeals"
-
-#: api/models.py:784
-msgid "appeal document"
-msgstr "appeal document"
-
-#: api/models.py:785
-msgid "appeal documents"
-msgstr "appeal documents"
-
-#: api/models.py:804
-msgid "No"
-msgstr "No"
-
-#: api/models.py:805
-msgid "Requested"
-msgstr "Requested"
-
-#: api/models.py:806
-msgid "Planned"
-msgstr "Planned"
-
-#: api/models.py:807
-msgid "Complete"
-msgstr "Complete"
-
-#: api/models.py:816
-msgid "Ministry of health"
-msgstr "Ministry of health"
-
-#: api/models.py:817
-msgid "WHO"
-msgstr "WHO"
-
-#: api/models.py:818
-msgid "OTHER"
-msgstr "OTHER"
-
-#: api/models.py:825 api/models.py:1202
-msgid "user"
-msgstr "user"
-
-#: api/models.py:830
-msgid "is covid report?"
-msgstr "is covid report?"
-
-#: api/models.py:832
-msgid "Is this a Field Report specific to the COVID-19 emergency?"
-msgstr "Is this a Field Report specific to the COVID-19 emergency?"
-
-#: api/models.py:836
-msgid "r id"
-msgstr "r id"
-
-#: api/models.py:838
+#: api/models.py:611 api/models.py:836
 msgid "description"
 msgstr "description"
 
-#: api/models.py:847
+#: api/models.py:613
+msgid "report"
+msgstr "report"
+
+#: api/models.py:614
+msgid "publication date"
+msgstr "publication date"
+
+#: api/models.py:615
+msgid "year"
+msgstr "year"
+
+#: api/models.py:616
+msgid "latitude"
+msgstr "latitude"
+
+#: api/models.py:617
+msgid "longitude"
+msgstr "longitude"
+
+#: api/models.py:618
+msgid "event type"
+msgstr "event type"
+
+#: api/models.py:619
+msgid "alert level"
+msgstr "alert level"
+
+#: api/models.py:620
+msgid "alert score"
+msgstr "alert score"
+
+#: api/models.py:621
+msgid "severity"
+msgstr "severity"
+
+#: api/models.py:622
+msgid "severity unit"
+msgstr "severity unit"
+
+#: api/models.py:623
+msgid "severity value"
+msgstr "severity value"
+
+#: api/models.py:624
+msgid "population unit"
+msgstr "population unit"
+
+#: api/models.py:625
+msgid "population value"
+msgstr "population value"
+
+#: api/models.py:626
+msgid "vulnerability"
+msgstr "vulnerability"
+
+#: api/models.py:628
+msgid "country text"
+msgstr "country text"
+
+#: api/models.py:631
+msgid "gdacs event"
+msgstr "gdacs event"
+
+#: api/models.py:632
+msgid "gdacs events"
+msgstr "gdacs events"
+
+#: api/models.py:645 api/models.py:938
+msgid "DREF"
+msgstr "DREF"
+
+#: api/models.py:646
+msgid "Emergency Appeal"
+msgstr "Emergency Appeal"
+
+#: api/models.py:647
+msgid "International Appeal"
+msgstr "International Appeal"
+
+#: api/models.py:657
+msgid "Active"
+msgstr "Active"
+
+#: api/models.py:658
+msgid "Closed"
+msgstr "Closed"
+
+#: api/models.py:659
+msgid "Frozen"
+msgstr "Frozen"
+
+#: api/models.py:660
+msgid "Archived"
+msgstr "Archived"
+
+#: api/models.py:667
+msgid "appeal ID"
+msgstr "appeal ID"
+
+#: api/models.py:672 api/models.py:844 api/models.py:1550
+msgid "status"
+msgstr "status"
+
+#: api/models.py:674
+msgid "sector"
+msgstr "sector"
+
+#: api/models.py:676
+msgid "number of beneficiaries"
+msgstr "number of beneficiaries"
+
+#: api/models.py:677
+msgid "amount requested"
+msgstr "amount requested"
+
+#: api/models.py:678
+msgid "amount funded"
+msgstr "amount funded"
+
+#: api/models.py:680 api/models.py:988
+msgid "start date"
+msgstr "start date"
+
+#: api/models.py:681
+msgid "end date"
+msgstr "end date"
+
+#: api/models.py:683
+msgid "modified at"
+msgstr "modified at"
+
+#: api/models.py:685
+msgid "real data update"
+msgstr "real data update"
+
+#: api/models.py:690
+msgid "needs confirmation?"
+msgstr "needs confirmation?"
+
+#: api/models.py:733 api/models.py:779 api/models.py:940
+msgid "appeal"
+msgstr "appeal"
+
+#: api/models.py:734
+msgid "appeals"
+msgstr "appeals"
+
+#: api/models.py:782
+msgid "appeal document"
+msgstr "appeal document"
+
+#: api/models.py:783
+msgid "appeal documents"
+msgstr "appeal documents"
+
+#: api/models.py:802
+msgid "No"
+msgstr "No"
+
+#: api/models.py:803
+msgid "Requested"
+msgstr "Requested"
+
+#: api/models.py:804
+msgid "Planned"
+msgstr "Planned"
+
+#: api/models.py:805
+msgid "Complete"
+msgstr "Complete"
+
+#: api/models.py:814
+msgid "Ministry of health"
+msgstr "Ministry of health"
+
+#: api/models.py:815
+msgid "WHO"
+msgstr "WHO"
+
+#: api/models.py:816
+msgid "OTHER"
+msgstr "OTHER"
+
+#: api/models.py:823 api/models.py:1200
+msgid "user"
+msgstr "user"
+
+#: api/models.py:828
+msgid "is covid report?"
+msgstr "is covid report?"
+
+#: api/models.py:830
+msgid "Is this a Field Report specific to the COVID-19 emergency?"
+msgstr "Is this a Field Report specific to the COVID-19 emergency?"
+
+#: api/models.py:834
+msgid "r id"
+msgstr "r id"
+
+#: api/models.py:845
 msgid "request assistance"
 msgstr "request assistance"
 
-#: api/models.py:848
+#: api/models.py:846
 msgid "NS request assistance"
 msgstr "NS request assistance"
 
-#: api/models.py:854
+#: api/models.py:852
 msgid "number of displaced"
 msgstr "number of displaced"
 
-#: api/models.py:855
+#: api/models.py:853
 msgid "number of assisted"
 msgstr "number of assisted"
 
-#: api/models.py:856
+#: api/models.py:854
 msgid "number of localstaff"
 msgstr "number of localstaff"
 
-#: api/models.py:857
+#: api/models.py:855
 msgid "number of volunteers"
 msgstr "number of volunteers"
 
-#: api/models.py:858
+#: api/models.py:856
 msgid "number of expatriate delegates"
 msgstr "number of expatriate delegates"
 
-#: api/models.py:861
+#: api/models.py:859
 msgid "number of potentially affected"
 msgstr "number of potentially affected"
 
-#: api/models.py:862
+#: api/models.py:860
 msgid "number of highest risk"
 msgstr "number of highest risk"
 
-#: api/models.py:863
+#: api/models.py:861
 msgid "affected population centres"
 msgstr "affected population centres"
 
-#: api/models.py:865
+#: api/models.py:863
 msgid "number of injured (goverment)"
 msgstr "number of injured (goverment)"
 
-#: api/models.py:866
+#: api/models.py:864
 msgid "number of dead (goverment)"
 msgstr "number of dead (goverment)"
 
-#: api/models.py:867
+#: api/models.py:865
 msgid "number of missing (goverment)"
 msgstr "number of missing (goverment)"
 
-#: api/models.py:868
+#: api/models.py:866
 msgid "number of affected (goverment)"
 msgstr "number of affected (goverment)"
 
-#: api/models.py:869
+#: api/models.py:867
 msgid "number of displaced (goverment)"
 msgstr "number of displaced (goverment)"
 
-#: api/models.py:870
+#: api/models.py:868
 msgid "number of assisted (goverment)"
 msgstr "number of assisted (goverment)"
 
-#: api/models.py:873
+#: api/models.py:871
 msgid "number of cases (epidemic)"
 msgstr "number of cases (epidemic)"
 
-#: api/models.py:874
+#: api/models.py:872
 msgid "number of suspected cases (epidemic)"
 msgstr "number of suspected cases (epidemic)"
 
-#: api/models.py:875
+#: api/models.py:873
 msgid "number of probable cases (epidemic)"
 msgstr "number of probable cases (epidemic)"
 
-#: api/models.py:876
+#: api/models.py:874
 msgid "number of confirmed cases (epidemic)"
 msgstr "number of confirmed cases (epidemic)"
 
-#: api/models.py:877
+#: api/models.py:875
 msgid "number of dead (epidemic)"
 msgstr "number of dead (epidemic)"
 
-#: api/models.py:878
+#: api/models.py:876
 msgid "figures source (epidemic)"
 msgstr "figures source (epidemic)"
 
-#: api/models.py:880
+#: api/models.py:878
 msgid "number of cases (MOH)"
 msgstr "number of cases (MOH)"
 
-#: api/models.py:881
+#: api/models.py:879
 msgid "number of suspected cases (MOH)"
 msgstr "number of suspected cases (MOH)"
 
-#: api/models.py:882
+#: api/models.py:880
 msgid "number of probabale cases (MOH)"
 msgstr "number of probabale cases (MOH)"
 
-#: api/models.py:883
+#: api/models.py:881
 msgid "number of confirmed cases (MOH)"
 msgstr "number of confirmed cases (MOH)"
 
-#: api/models.py:884
+#: api/models.py:882
 msgid "number of dead (MOH)"
 msgstr "number of dead (MOH)"
 
-#: api/models.py:886
+#: api/models.py:884
 msgid "number of cases (WHO)"
 msgstr "number of cases (WHO)"
 
-#: api/models.py:887
+#: api/models.py:885
 msgid "number of suspected cases (WHO)"
 msgstr "number of suspected cases (WHO)"
 
-#: api/models.py:888
+#: api/models.py:886
 msgid "number of probable cases (WHO)"
 msgstr "number of probable cases (WHO)"
 
-#: api/models.py:889
+#: api/models.py:887
 msgid "number of confirmed cases (WHO)"
 msgstr "number of confirmed cases (WHO)"
 
-#: api/models.py:890
+#: api/models.py:888
 msgid "number of number of dead (WHO)"
 msgstr "number of number of dead (WHO)"
 
-#: api/models.py:892
+#: api/models.py:890
 msgid "number of cases (other)"
 msgstr "number of cases (other)"
 
-#: api/models.py:893
+#: api/models.py:891
 msgid "number of suspected cases (other)"
 msgstr "number of suspected cases (other)"
 
-#: api/models.py:894
+#: api/models.py:892
 msgid "number of probable cases (other)"
 msgstr "number of probable cases (other)"
 
-#: api/models.py:895
+#: api/models.py:893
 msgid "number of confirmed cases (other)"
 msgstr "number of confirmed cases (other)"
 
-#: api/models.py:897 api/models.py:898
+#: api/models.py:895 api/models.py:896
 msgid "number of assisted (who)"
 msgstr "number of assisted (who)"
 
-#: api/models.py:901
+#: api/models.py:899
 msgid "potentially affected (goverment)"
 msgstr "potentially affected (goverment)"
 
-#: api/models.py:902
+#: api/models.py:900
 msgid "people at highest risk (goverment)"
 msgstr "people at highest risk (goverment)"
 
-#: api/models.py:904
+#: api/models.py:902
 msgid "affected population centres (goverment)"
 msgstr "affected population centres (goverment)"
 
-#: api/models.py:906
+#: api/models.py:904
 msgid "number of injured (other)"
 msgstr "number of injured (other)"
 
-#: api/models.py:907
+#: api/models.py:905
 msgid "number of dead (other)"
 msgstr "number of dead (other)"
 
-#: api/models.py:908
+#: api/models.py:906
 msgid "number of missing (other)"
 msgstr "number of missing (other)"
 
-#: api/models.py:909
+#: api/models.py:907
 msgid "number of affected (other)"
 msgstr "number of affected (other)"
 
-#: api/models.py:910
+#: api/models.py:908
 msgid "number of displace (other)"
 msgstr "number of displace (other)"
 
-#: api/models.py:911
+#: api/models.py:909
 msgid "number of assisted (other)"
 msgstr "number of assisted (other)"
 
-#: api/models.py:915
+#: api/models.py:913
 msgid "number of potentially affected (other)"
 msgstr "number of potentially affected (other)"
 
-#: api/models.py:916
+#: api/models.py:914
 msgid "number of highest risk (other)"
 msgstr "number of highest risk (other)"
 
-#: api/models.py:918
+#: api/models.py:916
 msgid "number of affected population centres (other)"
 msgstr "number of affected population centres (other)"
 
-#: api/models.py:921
+#: api/models.py:919
 msgid "number of cases"
 msgstr "number of cases"
 
-#: api/models.py:922
+#: api/models.py:920
 msgid "number of suspected cases"
 msgstr "number of suspected cases"
 
-#: api/models.py:923
+#: api/models.py:921
 msgid "number of probable cases"
 msgstr "number of probable cases"
 
-#: api/models.py:924
+#: api/models.py:922
 msgid "number of confirmed cases"
 msgstr "number of confirmed cases"
 
-#: api/models.py:927
+#: api/models.py:925
 msgid "situation fields date"
 msgstr "situation fields date"
 
-#: api/models.py:930
+#: api/models.py:928
 msgid "sources (other)"
 msgstr "sources (other)"
 
-#: api/models.py:933
+#: api/models.py:931
 msgid "actions taken (others)"
 msgstr "actions taken (others)"
 
-#: api/models.py:939
+#: api/models.py:937
 msgid "bullentin"
 msgstr "bullentin"
 
-#: api/models.py:941
+#: api/models.py:939
 msgid "DREF amount"
 msgstr "DREF amount"
 
-#: api/models.py:943
+#: api/models.py:941
 msgid "appeal amount"
 msgstr "appeal amount"
 
-#: api/models.py:944
+#: api/models.py:942
 msgid "imminent dref"
 msgstr "imminent dref"
 
-#: api/models.py:945
+#: api/models.py:943
 msgid "imminent dref amount"
 msgstr "imminent dref amount"
 
-#: api/models.py:946
+#: api/models.py:944
 msgid "forecast based action"
 msgstr "forecast based action"
 
-#: api/models.py:948
+#: api/models.py:946
 msgid "forecast based action amount"
 msgstr "forecast based action amount"
 
-#: api/models.py:951
+#: api/models.py:949
 msgid "RDRT"
 msgstr "RDRT"
 
-#: api/models.py:952
+#: api/models.py:950
 msgid "number of RDRT"
 msgstr "number of RDRT"
 
-#: api/models.py:953
+#: api/models.py:951
 msgid "fact"
 msgstr "fact"
 
-#: api/models.py:954
+#: api/models.py:952
 msgid "number of fact"
 msgstr "number of fact"
 
-#: api/models.py:955
+#: api/models.py:953
 msgid "IFRC staff"
 msgstr "IFRC staff"
 
-#: api/models.py:956
+#: api/models.py:954
 msgid "number of IFRC staff"
 msgstr "number of IFRC staff"
 
-#: api/models.py:959
+#: api/models.py:957
 msgid "ERU base camp"
 msgstr "ERU base camp"
 
-#: api/models.py:960
+#: api/models.py:958
 msgid "ERU base camp units"
 msgstr "ERU base camp units"
 
-#: api/models.py:962
+#: api/models.py:960
 msgid "ERU basic health care"
 msgstr "ERU basic health care"
 
-#: api/models.py:963
+#: api/models.py:961
 msgid "ERU basic health units"
 msgstr "ERU basic health units"
 
-#: api/models.py:965
+#: api/models.py:963
 msgid "ERU IT telecom"
 msgstr "ERU IT telecom"
 
-#: api/models.py:966
+#: api/models.py:964
 msgid "ERU IT telecom units"
 msgstr "ERU IT telecom units"
 
-#: api/models.py:968
+#: api/models.py:966
 msgid "ERU logistics"
 msgstr "ERU logistics"
 
-#: api/models.py:969
+#: api/models.py:967
 msgid "ERU logistics units"
 msgstr "ERU logistics units"
 
-#: api/models.py:971
+#: api/models.py:969
 msgid "ERU deployment hospital"
 msgstr "ERU deployment hospital"
 
-#: api/models.py:972
+#: api/models.py:970
 msgid "ERU deployment hospital units"
 msgstr "ERU deployment hospital units"
 
-#: api/models.py:974
+#: api/models.py:972
 msgid "ERU referral hospital"
 msgstr "ERU referral hospital"
 
-#: api/models.py:975
+#: api/models.py:973
 msgid "ERU referral hospital units"
 msgstr "ERU referral hospital units"
 
-#: api/models.py:977
+#: api/models.py:975
 msgid "ERU relief"
 msgstr "ERU relief"
 
-#: api/models.py:978
+#: api/models.py:976
 msgid "ERU relief units"
 msgstr "ERU relief units"
 
-#: api/models.py:980
+#: api/models.py:978
 msgid "ERU water sanitaion M15"
 msgstr "ERU water sanitaion M15"
 
-#: api/models.py:981
+#: api/models.py:979
 msgid "ERU water sanitaion M15 units"
 msgstr "ERU water sanitaion M15 units"
 
-#: api/models.py:983
+#: api/models.py:981
 msgid "ERU water sanitaion M40"
 msgstr "ERU water sanitaion M40"
 
-#: api/models.py:984
+#: api/models.py:982
 msgid "ERU water sanitaion M40 units"
 msgstr "ERU water sanitaion M40 units"
 
-#: api/models.py:986
+#: api/models.py:984
 msgid "ERU water sanitaion MSM20"
 msgstr "ERU water sanitaion MSM20"
 
-#: api/models.py:987
+#: api/models.py:985
 msgid "ERU water sanitaion MSM20 units"
 msgstr "ERU water sanitaion MSM20 units"
 
-#: api/models.py:995
+#: api/models.py:993
 msgid "report date"
 msgstr "report date"
 
-#: api/models.py:998
+#: api/models.py:996
 msgid "previous updated at"
 msgstr "previous updated at"
 
-#: api/models.py:1002 api/models.py:1060 api/models.py:1145 api/models.py:1173
+#: api/models.py:1000 api/models.py:1058 api/models.py:1143 api/models.py:1171
 msgid "field report"
 msgstr "field report"
 
-#: api/models.py:1003
+#: api/models.py:1001
 msgid "field reports"
 msgstr "field reports"
 
-#: api/models.py:1064
+#: api/models.py:1062
 msgid "field report contanct"
 msgstr "field report contanct"
 
-#: api/models.py:1065
+#: api/models.py:1063
 msgid "field report contancts"
 msgstr "field report contancts"
 
-#: api/models.py:1077 api/models.py:1193
+#: api/models.py:1075 api/models.py:1191
 msgid "National Society"
 msgstr "National Society"
 
-#: api/models.py:1078
+#: api/models.py:1076
 msgid "Foreign Society"
 msgstr "Foreign Society"
 
-#: api/models.py:1079
+#: api/models.py:1077
 msgid "Federation"
 msgstr "Federation"
 
-#: api/models.py:1090
+#: api/models.py:1088
 msgid "Event"
 msgstr "Event"
 
-#: api/models.py:1091
+#: api/models.py:1089
 msgid "Early Warning"
 msgstr "Early Warning"
 
-#: api/models.py:1092
+#: api/models.py:1090
 msgid "Epidemic"
 msgstr "Epidemic"
 
-#: api/models.py:1093
+#: api/models.py:1091
 msgid "COVID-19"
 msgstr "COVID-19"
 
-#: api/models.py:1104
+#: api/models.py:1102
 msgid "General"
 msgstr "General"
 
-#: api/models.py:1105
+#: api/models.py:1103
 msgid "Health"
 msgstr "Health"
 
-#: api/models.py:1106
+#: api/models.py:1104
 msgid "NS Institutional Strengthening"
 msgstr "NS Institutional Strengthening"
 
-#: api/models.py:1107
+#: api/models.py:1105
 msgid "Socioeconomic Interventions"
 msgstr "Socioeconomic Interventions"
 
-#: api/models.py:1123
+#: api/models.py:1121
 msgid "category"
 msgstr "category"
 
-#: api/models.py:1125
+#: api/models.py:1123
 msgid "is disabled?"
 msgstr "is disabled?"
 
-#: api/models.py:1125
+#: api/models.py:1123
 msgid "Disable in form"
 msgstr "Disable in form"
 
-#: api/models.py:1128 api/models.py:1624 api/models.py:1642
+#: api/models.py:1126 api/models.py:1622 api/models.py:1640
 msgid "action"
 msgstr "action"
 
-#: api/models.py:1129 api/models.py:1142
+#: api/models.py:1127 api/models.py:1140
 msgid "actions"
 msgstr "actions"
 
-#: api/models.py:1140 api/models.py:1213
+#: api/models.py:1138 api/models.py:1211
 msgid "organization"
 msgstr "organization"
 
-#: api/models.py:1149
+#: api/models.py:1147
 msgid "actions taken"
 msgstr "actions taken"
 
-#: api/models.py:1150
+#: api/models.py:1148
 msgid "all actions taken"
 msgstr "all actions taken"
 
-#: api/models.py:1161
+#: api/models.py:1159
 msgid "source type"
 msgstr "source type"
 
-#: api/models.py:1162
+#: api/models.py:1160
 msgid "source types"
 msgstr "source types"
 
-#: api/models.py:1171
+#: api/models.py:1169
 msgid "spec"
 msgstr "spec"
 
-#: api/models.py:1178
+#: api/models.py:1176
 msgid "sources"
 msgstr "sources"
 
-#: api/models.py:1194
+#: api/models.py:1192
 msgid "Delegation"
 msgstr "Delegation"
 
-#: api/models.py:1195
+#: api/models.py:1193
 msgid "Secretariat"
 msgstr "Secretariat"
 
-#: api/models.py:1196
+#: api/models.py:1194
 msgid "ICRC"
 msgstr "ICRC"
 
-#: api/models.py:1197
+#: api/models.py:1195
 msgid "Other"
 msgstr "Other"
 
-#: api/models.py:1214
+#: api/models.py:1212
 msgid "organization type"
 msgstr "organization type"
 
-#: api/models.py:1215
+#: api/models.py:1213
 msgid "city"
 msgstr "city"
 
-#: api/models.py:1216
+#: api/models.py:1214
 msgid "department"
 msgstr "department"
 
-#: api/models.py:1218
+#: api/models.py:1216
 msgid "phone number"
 msgstr "phone number"
 
-#: api/models.py:1221
+#: api/models.py:1219
 msgid "user profile"
 msgstr "user profile"
 
-#: api/models.py:1222
+#: api/models.py:1220
 msgid "user profiles"
 msgstr "user profiles"
 
-#: api/models.py:1231
+#: api/models.py:1229
 msgid "is validated?"
 msgstr "is validated?"
 
-#: api/models.py:1231
+#: api/models.py:1229
 msgid "Did anyone check the editable data?"
 msgstr "Did anyone check the editable data?"
 
-#: api/models.py:1233
+#: api/models.py:1231
 msgid "created_at"
 msgstr "created_at"
 
-#: api/models.py:1234
+#: api/models.py:1232
 msgid "modified_at"
 msgstr "modified_at"
 
-#: api/models.py:1239
+#: api/models.py:1237
 msgid "appeal number (raw)"
 msgstr "appeal number (raw)"
 
-#: api/models.py:1240
+#: api/models.py:1238
 msgid "date of issue (raw)"
 msgstr "date of issue (raw)"
 
-#: api/models.py:1241
+#: api/models.py:1239
 msgid "glide number (raw)"
 msgstr "glide number (raw)"
 
-#: api/models.py:1243
+#: api/models.py:1241
 msgid "number of people to be assisted (raw)"
 msgstr "number of people to be assisted (raw)"
 
-#: api/models.py:1244
+#: api/models.py:1242
 msgid "number of people affected (raw)"
 msgstr "number of people affected (raw)"
 
-#: api/models.py:1249
+#: api/models.py:1247
 msgid "number of disaster risk reduction female (raw)"
 msgstr "number of disaster risk reduction female (raw)"
 
-#: api/models.py:1251
+#: api/models.py:1249
 msgid "number of disaster risk reduction male (raw)"
 msgstr "number of disaster risk reduction male (raw)"
 
-#: api/models.py:1253
+#: api/models.py:1251
 msgid "number of disaster risk reduction people reached (raw)"
 msgstr "number of disaster risk reduction people reached (raw)"
 
-#: api/models.py:1255
+#: api/models.py:1253
 msgid "number of disaster risk reduction people targeted (raw)"
 msgstr "number of disaster risk reduction people targeted (raw)"
 
-#: api/models.py:1257
+#: api/models.py:1255
 msgid "number of disaster risk reduction requirements (raw)"
 msgstr "number of disaster risk reduction requirements (raw)"
 
-#: api/models.py:1258
+#: api/models.py:1256
 msgid "health female (raw)"
 msgstr "health female (raw)"
 
-#: api/models.py:1259
+#: api/models.py:1257
 msgid "health male (raw)"
 msgstr "health male (raw)"
 
-#: api/models.py:1260
+#: api/models.py:1258
 msgid "health people reached (raw)"
 msgstr "health people reached (raw)"
 
-#: api/models.py:1261
+#: api/models.py:1259
 msgid "health people targeted (raw)"
 msgstr "health people targeted (raw)"
 
-#: api/models.py:1262
+#: api/models.py:1260
 msgid "health requirements (raw)"
 msgstr "health requirements (raw)"
 
-#: api/models.py:1264
+#: api/models.py:1262
 msgid "number of livelihhods and basic needs female (raw)"
 msgstr "number of livelihhods and basic needs female (raw)"
 
-#: api/models.py:1266
+#: api/models.py:1264
 msgid "number of livelihhods and basic needs male (raw)"
 msgstr "number of livelihhods and basic needs male (raw)"
 
-#: api/models.py:1268
+#: api/models.py:1266
 msgid "number of livelihhods and basic needs people reached (raw)"
 msgstr "number of livelihhods and basic needs people reached (raw)"
 
-#: api/models.py:1270
+#: api/models.py:1268
 msgid "number of livelihhods and basic needs people targeted (raw)"
 msgstr "number of livelihhods and basic needs people targeted (raw)"
 
-#: api/models.py:1272
+#: api/models.py:1270
 msgid "number of livelihhods and basic needs requirements (raw)"
 msgstr "number of livelihhods and basic needs requirements (raw)"
 
-#: api/models.py:1273
+#: api/models.py:1271
 msgid "number of migration female (raw)"
 msgstr "number of migration female (raw)"
 
-#: api/models.py:1274
+#: api/models.py:1272
 msgid "number of migration male (raw)"
 msgstr "number of migration male (raw)"
 
-#: api/models.py:1276
+#: api/models.py:1274
 msgid "number of migration people reached (raw)"
 msgstr "number of migration people reached (raw)"
 
-#: api/models.py:1278
+#: api/models.py:1276
 msgid "number of migration people targeted (raw)"
 msgstr "number of migration people targeted (raw)"
 
-#: api/models.py:1279
+#: api/models.py:1277
 msgid "number of migration requirements (raw)"
 msgstr "number of migration requirements (raw)"
 
-#: api/models.py:1281
+#: api/models.py:1279
 msgid "number of protection gender and inclusion female (raw)"
 msgstr "number of protection gender and inclusion female (raw)"
 
-#: api/models.py:1283
+#: api/models.py:1281
 msgid "number of protection gender and inclusion male (raw)"
 msgstr "number of protection gender and inclusion male (raw)"
 
-#: api/models.py:1285
+#: api/models.py:1283
 msgid "number of protection gender and inclusion people reached (raw)"
 msgstr "number of protection gender and inclusion people reached (raw)"
 
-#: api/models.py:1287
+#: api/models.py:1285
 msgid "number of protection gender and inclusion people targeted (raw)"
 msgstr "number of protection gender and inclusion people targeted (raw)"
 
-#: api/models.py:1289
+#: api/models.py:1287
 msgid "number of protection gender and inclusion requirements (raw)"
 msgstr "number of protection gender and inclusion requirements (raw)"
 
-#: api/models.py:1290
+#: api/models.py:1288
 msgid "number of shelter female (raw)"
 msgstr "number of shelter female (raw)"
 
-#: api/models.py:1291
+#: api/models.py:1289
 msgid "number of shelter male (raw)"
 msgstr "number of shelter male (raw)"
 
-#: api/models.py:1292
+#: api/models.py:1290
 msgid "number of shelter people reached (raw)"
 msgstr "number of shelter people reached (raw)"
 
-#: api/models.py:1294
+#: api/models.py:1292
 msgid "number of shelter people targeted (raw)"
 msgstr "number of shelter people targeted (raw)"
 
-#: api/models.py:1295
+#: api/models.py:1293
 msgid "number of shelter requirements (raw)"
 msgstr "number of shelter requirements (raw)"
 
-#: api/models.py:1297
+#: api/models.py:1295
 msgid "number of water sanitation and hygiene female (raw)"
 msgstr "number of water sanitation and hygiene female (raw)"
 
-#: api/models.py:1299
+#: api/models.py:1297
 msgid "number of water sanitation and hygiene male (raw)"
 msgstr "number of water sanitation and hygiene male (raw)"
 
-#: api/models.py:1301
+#: api/models.py:1299
 msgid "number of water sanitation and hygiene people reached (raw)"
 msgstr "number of water sanitation and hygiene people reached (raw)"
 
-#: api/models.py:1303
+#: api/models.py:1301
 msgid "number of water sanitation and hygiene people targeted (raw)"
 msgstr "number of water sanitation and hygiene people targeted (raw)"
 
-#: api/models.py:1305
+#: api/models.py:1303
 msgid "number of water sanitation and hygiene requirements (raw)"
 msgstr "number of water sanitation and hygiene requirements (raw)"
 
-#: api/models.py:1309
+#: api/models.py:1307
 msgid "appeal number"
 msgstr "appeal number"
 
-#: api/models.py:1310
+#: api/models.py:1308
 msgid "date of issue"
 msgstr "date of issue"
 
-#: api/models.py:1311
+#: api/models.py:1309
 msgid "glide number"
 msgstr "glide number"
 
-#: api/models.py:1312
+#: api/models.py:1310
 msgid "number of people affected"
 msgstr "number of people affected"
 
-#: api/models.py:1313
+#: api/models.py:1311
 msgid "number of people to be assisted"
 msgstr "number of people to be assisted"
 
-#: api/models.py:1314 api/models.py:1515
+#: api/models.py:1312 api/models.py:1513
 msgid "operation start date"
 msgstr "operation start date"
 
-#: api/models.py:1316
+#: api/models.py:1314
 msgid "DREF allocated"
 msgstr "DREF allocated"
 
-#: api/models.py:1318
+#: api/models.py:1316
 msgid "number of disaster risk reduction female"
 msgstr "number of disaster risk reduction female"
 
-#: api/models.py:1320
+#: api/models.py:1318
 msgid "number of disaster risk reduction male"
 msgstr "number of disaster risk reduction male"
 
-#: api/models.py:1322
+#: api/models.py:1320
 msgid "number of disaster risk reduction people reached"
 msgstr "number of disaster risk reduction people reached"
 
-#: api/models.py:1324
+#: api/models.py:1322
 msgid "number of disaster risk reduction people targeted"
 msgstr "number of disaster risk reduction people targeted"
 
-#: api/models.py:1326
+#: api/models.py:1324
 msgid "number of disaster risk reduction people requirements"
 msgstr "number of disaster risk reduction people requirements"
 
-#: api/models.py:1327
+#: api/models.py:1325
 msgid "number of health female"
 msgstr "number of health female"
 
-#: api/models.py:1328
+#: api/models.py:1326
 msgid "number of health male"
 msgstr "number of health male"
 
-#: api/models.py:1329
+#: api/models.py:1327
 msgid "number of health people reached"
 msgstr "number of health people reached"
 
-#: api/models.py:1330
+#: api/models.py:1328
 msgid "number of health people targeted"
 msgstr "number of health people targeted"
 
-#: api/models.py:1331
+#: api/models.py:1329
 msgid "number of health requirements"
 msgstr "number of health requirements"
 
-#: api/models.py:1333
+#: api/models.py:1331
 msgid "number of livelihhods and basic needs female"
 msgstr "number of livelihhods and basic needs female"
 
-#: api/models.py:1335
+#: api/models.py:1333
 msgid "number of livelihhods and basic needs male"
 msgstr "number of livelihhods and basic needs male"
 
-#: api/models.py:1337
+#: api/models.py:1335
 msgid "number of livelihhods and basic people reached"
 msgstr "number of livelihhods and basic people reached"
 
-#: api/models.py:1339
+#: api/models.py:1337
 msgid "number of livelihhods and basic people targeted"
 msgstr "number of livelihhods and basic people targeted"
 
-#: api/models.py:1341
+#: api/models.py:1339
 msgid "number of livelihhods and basic needs requirements"
 msgstr "number of livelihhods and basic needs requirements"
 
-#: api/models.py:1342
+#: api/models.py:1340
 msgid "number of migration female"
 msgstr "number of migration female"
 
-#: api/models.py:1343
+#: api/models.py:1341
 msgid "number of migration male"
 msgstr "number of migration male"
 
-#: api/models.py:1344
+#: api/models.py:1342
 msgid "number of migration people reached"
 msgstr "number of migration people reached"
 
-#: api/models.py:1345
+#: api/models.py:1343
 msgid "number of migration people targeted"
 msgstr "number of migration people targeted"
 
-#: api/models.py:1346
+#: api/models.py:1344
 msgid "number of migration requirements"
 msgstr "number of migration requirements"
 
-#: api/models.py:1348
+#: api/models.py:1346
 msgid "number of protection gender and inclusion female"
 msgstr "number of protection gender and inclusion female"
 
-#: api/models.py:1350
+#: api/models.py:1348
 msgid "number of protection gender and inclusion male"
 msgstr "number of protection gender and inclusion male"
 
-#: api/models.py:1352
+#: api/models.py:1350
 msgid "number of protection gender and inclusion people reached"
 msgstr "number of protection gender and inclusion people reached"
 
-#: api/models.py:1354
+#: api/models.py:1352
 msgid "number of protection gender and inclusion people targeted"
 msgstr "number of protection gender and inclusion people targeted"
 
-#: api/models.py:1356
+#: api/models.py:1354
 msgid "number of protection gender and inclusion requirements"
 msgstr "number of protection gender and inclusion requirements"
 
-#: api/models.py:1357
+#: api/models.py:1355
 msgid "number of shelter female"
 msgstr "number of shelter female"
 
-#: api/models.py:1358
+#: api/models.py:1356
 msgid "number of shelter male"
 msgstr "number of shelter male"
 
-#: api/models.py:1359
+#: api/models.py:1357
 msgid "number of shelter people reached"
 msgstr "number of shelter people reached"
 
-#: api/models.py:1360
+#: api/models.py:1358
 msgid "number of shelter people targeted"
 msgstr "number of shelter people targeted"
 
-#: api/models.py:1361
+#: api/models.py:1359
 msgid "number of shelter people requirements"
 msgstr "number of shelter people requirements"
 
-#: api/models.py:1363
+#: api/models.py:1361
 msgid "water sanitation and hygiene female"
 msgstr "water sanitation and hygiene female"
 
-#: api/models.py:1365
+#: api/models.py:1363
 msgid "water sanitation and hygiene male"
 msgstr "water sanitation and hygiene male"
 
-#: api/models.py:1367
+#: api/models.py:1365
 msgid "water sanitation and hygiene people reached"
 msgstr "water sanitation and hygiene people reached"
 
-#: api/models.py:1369
+#: api/models.py:1367
 msgid "water sanitation and hygiene people targeted"
 msgstr "water sanitation and hygiene people targeted"
 
-#: api/models.py:1371
+#: api/models.py:1369
 msgid "water sanitation and hygiene requirements"
 msgstr "water sanitation and hygiene requirements"
 
-#: api/models.py:1379 api/models.py:1465
+#: api/models.py:1377 api/models.py:1463
 msgid "appeal launch date (raw)"
 msgstr "appeal launch date (raw)"
 
-#: api/models.py:1380
+#: api/models.py:1378
 msgid "category allocated (raw)"
 msgstr "category allocated (raw)"
 
-#: api/models.py:1381
+#: api/models.py:1379
 msgid "expected end date (raw)"
 msgstr "expected end date (raw)"
 
-#: api/models.py:1382
+#: api/models.py:1380
 msgid "expected time frame (raw)"
 msgstr "expected time frame (raw)"
 
-#: api/models.py:1384
+#: api/models.py:1382
 msgid "number of eduction female (raw)"
 msgstr "number of eduction female (raw)"
 
-#: api/models.py:1385
+#: api/models.py:1383
 msgid "number of eduction male (raw)"
 msgstr "number of eduction male (raw)"
 
-#: api/models.py:1387
+#: api/models.py:1385
 msgid "number of eduction people reached (raw)"
 msgstr "number of eduction people reached (raw)"
 
-#: api/models.py:1389
+#: api/models.py:1387
 msgid "number of eduction people targeted (raw)"
 msgstr "number of eduction people targeted (raw)"
 
-#: api/models.py:1390
+#: api/models.py:1388
 msgid "number of eduction requirements (raw)"
 msgstr "number of eduction requirements (raw)"
 
-#: api/models.py:1396 api/models.py:1475
+#: api/models.py:1394 api/models.py:1473
 msgid "appeal launch date"
 msgstr "appeal launch date"
 
-#: api/models.py:1397
+#: api/models.py:1395
 msgid "category allocated"
 msgstr "category allocated"
 
-#: api/models.py:1398
+#: api/models.py:1396
 msgid "expected end date"
 msgstr "expected end date"
 
-#: api/models.py:1399
+#: api/models.py:1397
 msgid "expected time frame"
 msgstr "expected time frame"
 
-#: api/models.py:1401
+#: api/models.py:1399
 msgid "number of eduction female"
 msgstr "number of eduction female"
 
-#: api/models.py:1402
+#: api/models.py:1400
 msgid "number of eduction male"
 msgstr "number of eduction male"
 
-#: api/models.py:1403
+#: api/models.py:1401
 msgid "number of eduction people reached"
 msgstr "number of eduction people reached"
 
-#: api/models.py:1404
+#: api/models.py:1402
 msgid "number of eduction people targeted"
 msgstr "number of eduction people targeted"
 
-#: api/models.py:1405
+#: api/models.py:1403
 msgid "number of eduction requirements"
 msgstr "number of eduction requirements"
 
-#: api/models.py:1411
+#: api/models.py:1409
 msgid "emergency operations dataset"
 msgstr "emergency operations dataset"
 
-#: api/models.py:1412
+#: api/models.py:1410
 msgid "emergency operations datasets"
 msgstr "emergency operations datasets"
 
-#: api/models.py:1420
+#: api/models.py:1418
 msgid "EPOA update number (raw)"
 msgstr "EPOA update number (raw)"
 
-#: api/models.py:1421
+#: api/models.py:1419
 msgid "operation timeframe (raw)"
 msgstr "operation timeframe (raw)"
 
-#: api/models.py:1423
+#: api/models.py:1421
 msgid "time frame covered by update (raw)"
 msgstr "time frame covered by update (raw)"
 
-#: api/models.py:1438
+#: api/models.py:1436
 msgid "EPOA update number"
 msgstr "EPOA update number"
 
-#: api/models.py:1439
+#: api/models.py:1437
 msgid "operation timeframe"
 msgstr "operation timeframe"
 
-#: api/models.py:1441
+#: api/models.py:1439
 msgid "time frame covered by update"
 msgstr "time frame covered by update"
 
-#: api/models.py:1456 api/models.py:1457
+#: api/models.py:1454 api/models.py:1455
 msgid "emergency operations people reached"
 msgstr "emergency operations people reached"
 
-#: api/models.py:1464
+#: api/models.py:1462
 msgid "appeal ends (raw)"
 msgstr "appeal ends (raw)"
 
-#: api/models.py:1466
+#: api/models.py:1464
 msgid "current operation budget (raw)"
 msgstr "current operation budget (raw)"
 
-#: api/models.py:1474
+#: api/models.py:1472
 msgid "appeal ends"
 msgstr "appeal ends"
 
-#: api/models.py:1476
+#: api/models.py:1474
 msgid "current operation budget"
 msgstr "current operation budget"
 
-#: api/models.py:1484
+#: api/models.py:1482
 msgid "emergency operations emergency appeal"
 msgstr "emergency operations emergency appeal"
 
-#: api/models.py:1485
+#: api/models.py:1483
 msgid "emergency operations emergency appeals"
 msgstr "emergency operations emergency appeals"
 
-#: api/models.py:1492
+#: api/models.py:1490
 msgid "date of disaster (raw)"
 msgstr "date of disaster (raw)"
 
-#: api/models.py:1494
+#: api/models.py:1492
 msgid "number of other partner involved (raw)"
 msgstr "number of other partner involved (raw)"
 
-#: api/models.py:1496
+#: api/models.py:1494
 msgid "number of NS partner involved (raw)"
 msgstr "number of NS partner involved (raw)"
 
-#: api/models.py:1497
+#: api/models.py:1495
 msgid "operation end date (raw)"
 msgstr "operation end date (raw)"
 
-#: api/models.py:1498
+#: api/models.py:1496
 msgid "overall operation budget (raw)"
 msgstr "overall operation budget (raw)"
 
-#: api/models.py:1511
+#: api/models.py:1509
 msgid "date of disaster"
 msgstr "date of disaster"
 
-#: api/models.py:1512
+#: api/models.py:1510
 msgid "number of other partner involved"
 msgstr "number of other partner involved"
 
-#: api/models.py:1513
+#: api/models.py:1511
 msgid "number of NS partner involved"
 msgstr "number of NS partner involved"
 
-#: api/models.py:1514
+#: api/models.py:1512
 msgid "operation end date"
 msgstr "operation end date"
 
-#: api/models.py:1516
+#: api/models.py:1514
 msgid "overall operation budget"
 msgstr "overall operation budget"
 
-#: api/models.py:1529
+#: api/models.py:1527
 msgid "emergency operations final report"
 msgstr "emergency operations final report"
 
-#: api/models.py:1530
+#: api/models.py:1528
 msgid "emergency operations final reports"
 msgstr "emergency operations final reports"
 
-#: api/models.py:1543
+#: api/models.py:1541
 msgid "Never run"
 msgstr "Never run"
 
-#: api/models.py:1544
+#: api/models.py:1542
 msgid "Successfull"
 msgstr "Successfull"
 
-#: api/models.py:1545
+#: api/models.py:1543
 msgid "Warned"
 msgstr "Warned"
 
-#: api/models.py:1546
+#: api/models.py:1544
 msgid "Erroneous"
 msgstr "Erroneous"
 
-#: api/models.py:1554
+#: api/models.py:1552
 msgid "message"
 msgstr "message"
 
-#: api/models.py:1555
+#: api/models.py:1553
 msgid "number of results"
 msgstr "number of results"
 
-#: api/models.py:1556
+#: api/models.py:1554
 msgid "storing days"
 msgstr "storing days"
 
-#: api/models.py:1558
+#: api/models.py:1556
 msgid "backend side"
 msgstr "backend side"
 
-#: api/models.py:1562
+#: api/models.py:1560
 msgid "cronjob log record"
 msgstr "cronjob log record"
 
-#: api/models.py:1563
+#: api/models.py:1561
 msgid "cronjob log records"
 msgstr "cronjob log records"
 
-#: api/models.py:1625 api/models.py:1643
+#: api/models.py:1623 api/models.py:1641
 msgid "username"
 msgstr "username"
 
-#: api/models.py:1630
+#: api/models.py:1628
 msgid "auth log"
 msgstr "auth log"
 
-#: api/models.py:1631
+#: api/models.py:1629
 msgid "auth logs"
 msgstr "auth logs"
 
-#: api/models.py:1644
+#: api/models.py:1642
 msgid "object id"
 msgstr "object id"
 
-#: api/models.py:1645
+#: api/models.py:1643
 msgid "object name"
 msgstr "object name"
 
-#: api/models.py:1646
+#: api/models.py:1644
 msgid "object type"
 msgstr "object type"
 
-#: api/models.py:1649
+#: api/models.py:1647
 msgid "changed from"
 msgstr "changed from"
 
-#: api/models.py:1653
+#: api/models.py:1651
 msgid "changed to"
 msgstr "changed to"
 
-#: api/models.py:1657
+#: api/models.py:1655
 msgid "reversion difference log"
 msgstr "reversion difference log"
 
-#: api/models.py:1658
+#: api/models.py:1656
 msgid "reversion difference logs"
 msgstr "reversion difference logs"
 

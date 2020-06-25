@@ -11,26 +11,26 @@ from lang.translation import (
     DEFAULT_LANGUAGE,
 )
 
-LANGUAGES_TO_TRANSLATE = [lang for lang in AVAILABLE_LANGUAGES if lang != DEFAULT_LANGUAGE]
-
 translate = AmazonTranslate()
 
 
 def translate_fields_object(obj, field):
-    default_lang_field = build_localized_fieldname(field, DEFAULT_LANGUAGE)
-    # NOTE: Both <field> and <field>_<default_lang> have same ref (Overide by modeltranslation)
-    default_lang_value = getattr(obj, default_lang_field, None)
-    if not default_lang_value:
+    initial_value = None
+    for lang in AVAILABLE_LANGUAGES:
+        initial_value = getattr(obj, build_localized_fieldname(field, lang), None)
+        if initial_value:
+            break
+    if not initial_value:
         return
 
-    for lang in LANGUAGES_TO_TRANSLATE:
+    for lang in AVAILABLE_LANGUAGES:
         lang_field = build_localized_fieldname(field, lang)
         value = getattr(obj, lang_field, None)
         if value:
             continue
 
         new_value = translate.translate_text(
-            default_lang_value,
+            initial_value,
             DEFAULT_LANGUAGE,
             lang,
         )['TranslatedText']
@@ -69,8 +69,18 @@ class Command(BaseCommand):
                 lambda acc, f: acc | f,
                 [
                     (
-                        Q(**{f"{build_localized_fieldname(field, DEFAULT_LANGUAGE)}__isnull": False}) &
-                        ~Q(**{f"{build_localized_fieldname(field, DEFAULT_LANGUAGE)}__exact": ""}) &
+                        # All field shouldn't be empty
+                        ~reduce(
+                            lambda acc, f: acc & f,
+                            [
+                                (
+                                    Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
+                                    Q(**{f"{build_localized_fieldname(field, lang)}__exact": ""})
+                                )
+                                for lang in AVAILABLE_LANGUAGES
+                            ]
+                        ) &
+                        # One or more field should be empty
                         reduce(
                             lambda acc, f: acc | f,
                             [
@@ -78,7 +88,7 @@ class Command(BaseCommand):
                                     Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
                                     Q(**{f"{build_localized_fieldname(field, lang)}__exact": ""})
                                 )
-                                for lang in LANGUAGES_TO_TRANSLATE
+                                for lang in AVAILABLE_LANGUAGES
                             ]
                         )
                     )

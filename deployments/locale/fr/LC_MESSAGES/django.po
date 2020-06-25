@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,23 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: deployments/admin.py:89
-#, fuzzy
-#| msgid "Project Import"
+#: deployments/admin.py:74
+msgid "National Society"
+msgstr "Société Nationale"
+
+#: deployments/admin.py:79
+msgid "Country"
+msgstr "Pays"
+
+#: deployments/admin.py:106
 msgid "New Import"
-msgstr "Importation de projet"
+msgstr "Nouvelle importation"
 
-#: deployments/admin.py:92
-#, fuzzy
-#| msgid "Project Import"
+#: deployments/admin.py:109
 msgid "Recent Imports"
-msgstr "Importation de projet"
+msgstr "Importations récentes"
 
-#: deployments/admin.py:95
+#: deployments/admin.py:112
 msgid "Import Template"
 msgstr "Importer un modèle"
 
-#: deployments/admin.py:145 deployments/models.py:365
+#: deployments/admin.py:162 deployments/models.py:365
 msgid "Projects"
 msgstr "Projets"
 
@@ -91,10 +95,8 @@ msgid "Wash M40"
 msgstr "Lavage M40"
 
 #: deployments/models.py:44
-#, fuzzy
-#| msgid "Partner society activity"
 msgid "national society country"
-msgstr "Activité de la société partenaire"
+msgstr "pays de la société nationale"
 
 #: deployments/models.py:47 deployments/models.py:114
 #: deployments/models.py:299 deployments/models.py:407
@@ -155,8 +157,8 @@ msgid "owner"
 msgstr "propriétaire"
 
 #: deployments/models.py:80
-msgid "suuporting societies"
-msgstr "les sociétés de soutènement"
+msgid "supporting societies"
+msgstr "soutenir les sociétés"
 
 #: deployments/models.py:82 deployments/models.py:112
 #: deployments/models.py:128 deployments/models.py:338
@@ -266,10 +268,8 @@ msgid "country from"
 msgstr "pays de"
 
 #: deployments/models.py:162
-#, fuzzy
-#| msgid "Personnel Deployment"
 msgid "deployment"
-msgstr "Déploiement du personnel"
+msgstr "déploiement"
 
 #: deployments/models.py:168
 msgid "Personnel"
@@ -420,10 +420,8 @@ msgid "user"
 msgstr "utilisateur"
 
 #: deployments/models.py:316
-#, fuzzy
-#| msgid "ERUs from a National Society"
 msgid "reporting national society"
-msgstr "URE d'une société nationale"
+msgstr "société nationale déclarante"
 
 #: deployments/models.py:320
 msgid "country"
@@ -494,10 +492,8 @@ msgid "reached total"
 msgstr "total atteint"
 
 #: deployments/models.py:356
-#, fuzzy
-#| msgid "Regional Project"
 msgid "regional project"
-msgstr "Projet régional"
+msgstr "projet régional"
 
 #: deployments/models.py:359
 msgid "visibility"
@@ -524,10 +520,8 @@ msgid "created by"
 msgstr "créé par"
 
 #: deployments/models.py:408
-#, fuzzy
-#| msgid "Projects Import"
 msgid "projects created"
-msgstr "Importation de projets"
+msgstr "projets créés"
 
 #: deployments/models.py:409
 msgid "message"
@@ -542,20 +536,16 @@ msgid "Projects Import"
 msgstr "Importation de projets"
 
 #: deployments/models.py:424
-#, fuzzy
-#| msgid "ERUs from a National Society"
 msgid "national society"
-msgstr "URE d'une société nationale"
+msgstr "société nationale"
 
 #: deployments/models.py:426
 msgid "ERU type"
 msgstr "Type d'ERU"
 
 #: deployments/models.py:427
-#, fuzzy
-#| msgid "Personnel"
 msgid "is personnel?"
-msgstr "Personnel"
+msgstr "est le personnel ?"
 
 #: deployments/models.py:428
 msgid "is equipment?"
@@ -584,6 +574,3 @@ msgid ""
 msgstr ""
 "L'événement doit être fourni si le type d'opération est Opération d'urgence "
 "et le type de programme est Multilatéral"
-
-#~ msgid "ERU"
-#~ msgstr "ERU"
