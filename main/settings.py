@@ -258,7 +258,7 @@ LOGGING = {
     'handlers': {
         'file': {
             'level': 'INFO',
-            'class': 'logging.FileHandler',
+            'class': 'api.filehandler.MakeFileHandler',
             'filename': '../logs/logger.log',
             'formatter': 'timestamp',
         },
