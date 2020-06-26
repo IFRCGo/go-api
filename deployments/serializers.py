@@ -119,8 +119,7 @@ class ProjectSerializer(TranslatedModelSerializerMixin, EnumSupportSerializerMix
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
-                'project_districts',
+                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'project_districts',
             )
         }
 
