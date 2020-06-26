@@ -337,7 +337,8 @@ class Project(models.Model):
     operation_type = EnumIntegerField(OperationTypes, verbose_name=_('operation type'))
     start_date = models.DateField(verbose_name=_('start date'))
     end_date = models.DateField(verbose_name=_('end date'))
-    budget_amount = models.IntegerField(verbose_name=_('budget amount'))
+    budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True)
+    actual_expenditure = models.IntegerField(verbose_name=_('actual expenditure'), null=True, blank=True)
     status = EnumIntegerField(Statuses, verbose_name=_('status'))
 
     # Target Metric
