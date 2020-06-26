@@ -6,11 +6,13 @@
 
 ## Staff email domains
 
-A list of staff email domains, which the API will treat as single-validation, email-verification only, is to be found [here](https://github.com/IFRCGo/go-api/blob/master/registrations/views.py#L25).
+A list of staff email domains, which the API will treat as single-validation,
+email-verification only, is to be found
+[here](https://github.com/IFRCGo/go-api/blob/master/registrations/views.py#L25).
 
 ## Requirements
 
-- docker and docker-compose
+-   docker and docker-compose
 
 ## Local Development
 
@@ -18,7 +20,7 @@ A list of staff email domains, which the API will treat as single-validation, em
 
      $ docker-compose build
      $ docker-compose run --rm migrate
-     $ docker-compose run --rm loaddata 
+     $ docker-compose run --rm loaddata
 
 ### Running tests
 
@@ -36,9 +38,9 @@ A list of staff email domains, which the API will treat as single-validation, em
 
      $ docker-compose run --rm migrate
 
-### Accessing python shell 
+### Accessing python shell
 
-     $ docker-compose run --rm shell 
+     $ docker-compose run --rm shell
 
 ### Adding super user
 
@@ -47,15 +49,15 @@ A list of staff email domains, which the API will treat as single-validation, em
 ### Running server
 
      $ docker-compose run --rm --service-ports serve
-    
+
 Access the site at http://localhost:8000
 
 ### Install new dependencies
 
      $ docker-compose build
 
-
 ## Adding/Updating translations (Django)
+
 ```bash
 # Creation and upkeep language po files (for eg: fr)
 python3 manage.py makemessages -l fr
@@ -70,6 +72,7 @@ python3 manage.py compilemessages
 ```
 
 ## Note for Django Model translations
+
 ```
 # Use this to copy the data from original field to it's default lanauage.
 # For eg: if the field `name` is registred for translation then
@@ -84,22 +87,62 @@ python manage.py translate_model
 
      $ docker-compose run --rm coverage
 
+## Documentation
+
+Identify the function/class to modify from [main/urls.py](main/urls.py).
+
+### Add function descriptions
+
+Use [docstrings](https://www.python.org/dev/peps/pep-0257/) to add action
+specific descriptions,
+
+```
+class CustomViewset(viewsets.ReadOnlyModelViewSet):
+    """
+    list:
+    Description for list action of Custom.
+
+    read:
+    Description for read action of Custom.
+    """
+```
+
+### Add field descriptions
+
+Look for the **field** definition in the `CustomViewset` class or its attributes
+like `CustomFilter`.
+
+Add `help_text` attribute to the field definition.
+
+```
+variable_name = filters.NumberFilter(field_name='variable name', lookup_expr='exact', help_text='Description string for variable name.')
+```
+
+Django automatically generates description strings for **standard** fields like
+`id` or `ordering`.
+
 # Continuous Integration
 
-[Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous integration.
+[Circle-ci](https://circleci.com/gh/IFRCGo/go-api) handles continuous
+integration.
 
 ## Release to Docker Hub
 
 To release a new version to docker hub do the following:
 
-- Update `version` value in `main/__init__.py`
-- Create a new git tag with the same version
-- Commit and make a PR against master
-- The tagged version of the code is used to build a new docker image and is pushed to docker hub
+-   Update `version` value in `main/__init__.py`
+-   Create a new git tag with the same version
+-   Commit and make a PR against master
+-   The tagged version of the code is used to build a new docker image and is
+    pushed to docker hub
 
 # Deployment
 
-`main/runserver.sh` is the entrypoint for deploying this API to a new environment. It is also the default command specified in `Dockerfile`. `main/runserver.sh` requires that environment variables corresponding to database connection strings, FTP settings, and email settings, among others, be set. Check the script for the specific variables in your environment.
+`main/runserver.sh` is the entrypoint for deploying this API to a new
+environment. It is also the default command specified in `Dockerfile`.
+`main/runserver.sh` requires that environment variables corresponding to
+database connection strings, FTP settings, and email settings, among others, be
+set. Check the script for the specific variables in your environment.
 
 ## Deployment command
 
@@ -109,4 +152,6 @@ docker run -p 80:80 --env-file .env -d -t ifrcgo/go-api:{TAG_NUMBER}
 
 ## Comment for loading data
 
-In `main/runserver.sh` the line containing the `loaddata` command is only necessary when creating a new database. In other cases it might be causing the conflict, so it is commented. 
+In `main/runserver.sh` the line containing the `loaddata` command is only
+necessary when creating a new database. In other cases it might be causing the
+conflict, so it is commented.
