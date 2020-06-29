@@ -46,7 +46,8 @@ class SendMail(threading.Thread):
             server.quit()
             logger.info('E-mails were sent successfully.')
         except Exception as exc:
-            logger.error('Could not send emails with Python smtlib, exception: {} -- {}'.format(type(exc).__name__, exc.args))
+            logger.error('Could not send emails with Python smtlib, exception: {} -- {}'.format(type(exc).__name__,
+                                                                                                exc.args))
 
 
 def send_notification(subject, recipients, html, mailtype=''):
