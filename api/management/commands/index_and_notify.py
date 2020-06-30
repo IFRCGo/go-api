@@ -41,7 +41,11 @@ RTYPE_NAMES = {
     2: 'Field Report',
     3: 'Surge Alert',
     8: 'Followed Emergency',
+    9: 'Surge Deployment',
     11: 'Weekly Digest',
+    12: 'Field Report/Emergency',
+    13: 'New Operation',
+    14: 'General Announcement'
 }
 
 

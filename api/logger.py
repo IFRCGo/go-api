@@ -21,6 +21,7 @@ if (os.environ.get('AZURE_STORAGE_ACCOUNT') is not None and
                       when='M',
                       interval=90,
                       container='logs',
+                      encoding='utf-8'
                       )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
