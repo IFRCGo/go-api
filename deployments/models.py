@@ -25,16 +25,16 @@ class ERUType(IntEnum):
     WASH_20 = 7
     WASH_40 = 8
 
-    class Labels:
-        BASECAMP = _('Basecamp')
-        TELECOM = _('IT & Telecom')
-        LOGISTICS = _('Logistics')
-        EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
-        EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
-        RELIEF = _('Relief')
-        WASH_15 = _('Wash M15')
-        WASH_20 = _('Wash MSM20')
-        WASH_40 = _('Wash M40')
+    # class Labels:
+    #     BASECAMP = _('Basecamp')
+    #     TELECOM = _('IT & Telecom')
+    #     LOGISTICS = _('Logistics')
+    #     EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
+    #     EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
+    #     RELIEF = _('Relief')
+    #     WASH_15 = _('Wash M15')
+    #     WASH_20 = _('Wash MSM20')
+    #     WASH_40 = _('Wash M40')
 
 
 class ERUOwner(models.Model):
@@ -147,7 +147,7 @@ class Personnel(DeployedPerson):
     RR = 'rr'
 
     TYPE_CHOICES = (
-        (FACT, _('Fact')),
+        (FACT, _('FACT')),
         (HEOP, _('HEOP')),
         (RDRT, _('RDRT')),
         (IFRC, _('IFRC')),
@@ -208,10 +208,10 @@ class ProgrammeTypes(IntEnum):
     MULTILATERAL = 1
     DOMESTIC = 2
 
-    class Labels:
-        BILATERAL = _('Bilateral')
-        MULTILATERAL = _('Multilateral')
-        DOMESTIC = _('Domestic')
+    # class Labels:
+    #     BILATERAL = _('Bilateral')
+    #     MULTILATERAL = _('Multilateral')
+    #     DOMESTIC = _('Domestic')
 
 
 class Sectors(IntEnum):
@@ -279,19 +279,19 @@ class Statuses(IntEnum):
     ONGOING = 1
     COMPLETED = 2
 
-    class Labels:
-        PLANNED = _('Planned')
-        ONGOING = _('Ongoing')
-        COMPLETED = _('Completed')
+    # class Labels:
+    #     PLANNED = _('Planned')
+    #     ONGOING = _('Ongoing')
+    #     COMPLETED = _('Completed')
 
 
 class OperationTypes(IntEnum):
     PROGRAMME = 0
     EMERGENCY_OPERATION = 1
 
-    class Labels:
-        PROGRAMME = _('Programme')
-        EMERGENCY_OPERATION = _('Emergency Operation')
+    # class Labels:
+    #     PROGRAMME = _('Programme')
+    #     EMERGENCY_OPERATION = _('Emergency Operation')
 
 
 class RegionalProject(models.Model):
