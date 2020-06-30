@@ -27,6 +27,7 @@ else:
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
+        self.msg = msg
         super(SendMail, self).__init__(**kwargs)
 
     def run(self):
@@ -48,6 +49,31 @@ class SendMail(threading.Thread):
         except Exception as exc:
             logger.error('Could not send emails with Python smtlib, exception: {} -- {}'.format(type(exc).__name__,
                                                                                                 exc.args))
+            ex = ''
+            try:
+                ex = str(exc.args)
+            except Exception as exctwo:
+                logger.error(exctwo.args)
+            cron_rec = {"name": "notification",
+                        "message": 'Error sending out email with Python smtplib: {}'.format(ex),
+                        "status": CronJobStatus.ERRONEOUS}
+            CronJob.sync_cron(cron_rec)
+
+
+def construct_msg(subject, html):
+    msg = MIMEMultipart('alternative')
+
+    msg['Subject'] = subject
+    msg['From'] = EMAIL_USER.upper()
+    msg['To'] = 'no-reply@ifrc.org'
+
+    text_body = MIMEText(strip_tags(html), 'plain')
+    html_body = MIMEText(html, 'html')
+
+    msg.attach(text_body)
+    msg.attach(html_body)
+
+    return msg
 
 
 def send_notification(subject, recipients, html, mailtype=''):
@@ -117,24 +143,14 @@ def send_notification(subject, recipients, html, mailtype=''):
 
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
-        logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
-    elif res.status_code == 500:
-        logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
-
         # Try sending with Python smtplib, if reaching the API fails
-        msg = MIMEMultipart('alternative')
-
-        msg['Subject'] = subject
-        msg['From'] = EMAIL_USER.upper()
-        msg['To'] = 'no-reply@ifrc.org'
-
-        text_body = MIMEText(strip_tags(html), 'plain')
-        html_body = MIMEText(html, 'html')
-
-        msg.attach(text_body)
-        msg.attach(html_body)
-        SendMail(to_addresses, html).start()
+        logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
+        msg = construct_msg(subject, html)
+        SendMail(to_addresses, msg).start()
     else:
-        logger.info(res_text)
+        # Try sending with Python smtplib, if reaching the API fails
+        logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
+        msg = construct_msg(subject, html)
+        SendMail(to_addresses, msg).start()
 
     return res.text
