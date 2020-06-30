@@ -49,6 +49,15 @@ class SendMail(threading.Thread):
         except Exception as exc:
             logger.error('Could not send emails with Python smtlib, exception: {} -- {}'.format(type(exc).__name__,
                                                                                                 exc.args))
+            ex = ''
+            try:
+                ex = str(exc.args)
+            except Exception as exctwo:
+                logger.error(exctwo.args)
+            cron_rec = {"name": "notification",
+                        "message": 'Error sending out email with Python smtplib: {}'.format(ex),
+                        "status": CronJobStatus.ERRONEOUS}
+            CronJob.sync_cron(cron_rec)
 
 
 def construct_msg(subject, html):
