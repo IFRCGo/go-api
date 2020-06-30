@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.284
+
+### Added
+ - Labels fix for CSVs
+
 ## 1.1.283
 
 ### Added
@@ -1193,7 +1198,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.283...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.284...HEAD
+[1.2.284]: https://github.com/IFRCGo/go-api/compare/1.2.283...1.1.284
 [1.2.283]: https://github.com/IFRCGo/go-api/compare/1.2.282...1.1.283
 [1.2.282]: https://github.com/IFRCGo/go-api/compare/1.2.281...1.1.282
 [1.2.281]: https://github.com/IFRCGo/go-api/compare/1.2.280...1.1.281
