@@ -47,8 +47,22 @@ A list of staff email domains, which the API will treat as single-validation, em
 ### Running server
 
      $ docker-compose run --rm --service-ports serve
-    
+
 Access the site at http://localhost:8000
+
+#### Make Django Debug Toolbar work with docker-compose
+
+Figure out the IP which connects your host to the container:
+
+- within the container: `/sbin/ip route|awk '/default/ { print $3 }'` <- this should be it
+- from the host: `echo $(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')`
+
+Usually you get something like `172.18.0.1`. Then you need to add the `DEBUG_INTERNAL_IP` environment variable set to your IP to the `docker-compose ... serve` command as
+
+     $ docker-compose run --rm --service-ports -e DEBUG_INTERNAL_IP=172.18.0.1 serve
+
+and you should see the toolbar just working.
+    
 
 ### Install new dependencies
 
