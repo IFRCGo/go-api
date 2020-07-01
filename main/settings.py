@@ -189,11 +189,11 @@ TINYMCE_DEFAULT_CONFIG = {
             | indent outdent | bullist numlist |
             | link visualchars charmap hr nonbreaking | code preview fullscreen
             ''',
-    'toolbar2': '''
-            media embed
-            ''',
-    'force_p_newlines': False,
-    'forced_root_block': '',
+    # 'toolbar2': '''
+    #         media embed
+    #         ''',
+    # 'force_p_newlines': False,
+    # 'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
