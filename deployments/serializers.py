@@ -15,7 +15,6 @@ from .models import (
 
     OperationTypes,
     ProgrammeTypes,
-    Statuses,
 )
 from api.serializers import (
     DisasterTypeSerializer,
@@ -119,8 +118,7 @@ class ProjectSerializer(TranslatedModelSerializerMixin, EnumSupportSerializerMix
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
-                'project_districts',
+                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'project_districts',
             )
         }
 
@@ -132,9 +130,7 @@ class ProjectSerializer(TranslatedModelSerializerMixin, EnumSupportSerializerMix
             for project in data['project_districts'][1:]:
                 if project.country != data['project_country']:
                     raise serializers.ValidationError(ugettext('Different country found for given districts'))
-        if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
-            raise serializers.ValidationError(ugettext('Reached total should be provided if status is completed'))
-        elif (
+        if (
             data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
             data['programme_type'] == ProgrammeTypes.MULTILATERAL and
             data.get('event') is None

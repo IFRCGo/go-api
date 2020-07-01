@@ -1,14 +1,19 @@
 import os
 import requests
 import base64
+import threading
+import smtplib
 from api.logger import logger
 from api.models import CronJob, CronJobStatus
+from django.utils.html import strip_tags
 from notifications.models import NotificationGUID
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
-# EMAIL_PASS = os.environ.get('EMAIL_PASS')
-# EMAIL_HOST = os.environ.get('EMAIL_HOST')
-# EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_USER = os.environ.get('EMAIL_USER')
+EMAIL_PASS = os.environ.get('EMAIL_PASS')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
 EMAIL_TO = 'no-reply@ifrc.org'
 IS_PROD = os.environ.get('PRODUCTION')
@@ -18,6 +23,57 @@ if test_emails:
     test_emails = test_emails.split(',')
 else:
     test_emails = ['gergely.horvath@ifrc.org']
+
+
+class SendMail(threading.Thread):
+    def __init__(self, recipients, msg, **kwargs):
+        self.msg = msg
+        super(SendMail, self).__init__(**kwargs)
+
+    def run(self):
+        try:
+            server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            succ = server.login(EMAIL_USER, EMAIL_PASS)
+            if 'successful' not in str(succ[1]):
+                cron_rec = {"name": "notification",
+                            "message": 'Error contacting ' + EMAIL_HOST + ' smtp server for notifications',
+                            "status": CronJobStatus.ERRONEOUS}
+                CronJob.sync_cron(cron_rec)
+            if len(self.recipients) > 0:
+                server.sendmail(EMAIL_USER, self.recipients, self.msg.as_string())
+            server.quit()
+            logger.info('E-mails were sent successfully.')
+        except Exception as exc:
+            logger.error('Could not send emails with Python smtlib, exception: {} -- {}'.format(type(exc).__name__,
+                                                                                                exc.args))
+            ex = ''
+            try:
+                ex = str(exc.args)
+            except Exception as exctwo:
+                logger.error(exctwo.args)
+            cron_rec = {"name": "notification",
+                        "message": 'Error sending out email with Python smtplib: {}'.format(ex),
+                        "status": CronJobStatus.ERRONEOUS}
+            CronJob.sync_cron(cron_rec)
+
+
+def construct_msg(subject, html):
+    msg = MIMEMultipart('alternative')
+
+    msg['Subject'] = subject
+    msg['From'] = EMAIL_USER.upper()
+    msg['To'] = 'no-reply@ifrc.org'
+
+    text_body = MIMEText(strip_tags(html), 'plain')
+    html_body = MIMEText(html, 'html')
+
+    msg.attach(text_body)
+    msg.attach(html_body)
+
+    return msg
 
 
 def send_notification(subject, recipients, html, mailtype=''):
@@ -87,10 +143,14 @@ def send_notification(subject, recipients, html, mailtype=''):
 
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
+        # Try sending with Python smtplib, if reaching the API fails
         logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
-    elif res.status_code == 500:
-        logger.error('Could not reach the e-mail sender API.')
+        msg = construct_msg(subject, html)
+        SendMail(to_addresses, msg).start()
     else:
-        logger.info(res_text)
+        # Try sending with Python smtplib, if reaching the API fails
+        logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
+        msg = construct_msg(subject, html)
+        SendMail(to_addresses, msg).start()
 
     return res.text

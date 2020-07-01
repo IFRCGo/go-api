@@ -106,20 +106,9 @@ class ProjectGetTest(APITestCase):
         self.assertEqual(resp.status_code, 201, resp.content)
 
         # Validation Tests
-        # Reached total should be provided if status is completed
-        body['status'] = Statuses.COMPLETED.value
-        body['reached_total'] = ''  # The new framework does not allow None to be sent.
-        resp = self.client.post('/api/v2/project/', body)
-        self.assertEqual(resp.status_code, 400, resp.content)
-
-        # Disaster Type should be provided if operation type is Long Term Operation
-        body['operation_type'] = OperationTypes.PROGRAMME.value
-        body['dtype'] = ''
-        resp = self.client.post('/api/v2/project/', body)
-        self.assertEqual(resp.status_code, 400, resp.content)
 
         # Event should be provided if operation type is Emergency Operation and programme type is Multilateral
-        body['operation_type'] = OperationTypes.PROGRAMME.value
+        body['operation_type'] = OperationTypes.EMERGENCY_OPERATION.value
         body['programme_type'] = ProgrammeTypes.MULTILATERAL.value
         body['event'] = ''
         resp = self.client.post('/api/v2/project/', body)
