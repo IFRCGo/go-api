@@ -14,8 +14,13 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
     BASE_URL = 'goadmin.ifrc.org'
 # The frontend_url nicing is in frontend.py
 
+if PRODUCTION_URL is not None and 'prd' in PRODUCTION_URL:
+    DEBUG = False
+else:
+    DEBUG = True
+
 local_debug_ip = os.environ.get('DEBUG_INTERNAL_IP')
-if local_debug_ip:
+if DEBUG and local_debug_ip:
     INTERNAL_IPS = ['127.0.0.1', local_debug_ip]
 else:
     INTERNAL_IPS = ['127.0.0.1']
@@ -26,7 +31,6 @@ if PRODUCTION_URL is not None:
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-DEBUG = False if PRODUCTION_URL is not None else True
 
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
