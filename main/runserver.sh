@@ -59,6 +59,7 @@ echo "export API_FQDN=\"$API_FQDN\"" >> $HOME/.env
 echo "export FRONTEND_URL=\"$FRONTEND_URL\"" >> $HOME/.env
 echo "export PRODUCTION=\"$PRODUCTION\"" >> $HOME/.env
 echo "export TEST_EMAILS=\"$TEST_EMAILS\"" >> $HOME/.env
+echo "export DEBUG_INTERNAL_IP=\"/sbin/ip route|awk '/default/ { print $3 }'\"" >> $HOME/.env
 
 (crontab -l 2>/dev/null; echo 'SHELL=/bin/bash') | crontab -
 (crontab -l 2>/dev/null; echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeal_docs >> /home/ifrc/logs/ingest_appeal_docs.log 2>&1') | crontab -
