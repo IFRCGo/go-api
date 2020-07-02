@@ -52,8 +52,9 @@ Access the site at http://localhost:8000
 
 #### Make Django Debug Toolbar work with docker-compose
 
-Figure out the IP which connects your host to the container:
+By default the debug toolbar should work (logic can be found in `settings.py`), but if it doesn't work for you try the following steps.
 
+Figure out the IP which connects your host to the container:
 - within the container: `/sbin/ip route|awk '/default/ { print $3 }'` <- this should be it
 - from the host: `echo $(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')`
 
@@ -61,7 +62,7 @@ Usually you get something like `172.18.0.1`. Then you need to add the `DEBUG_INT
 
      $ docker-compose run --rm --service-ports -e DEBUG_INTERNAL_IP=172.18.0.1 serve
 
-and you should see the toolbar just working.
+and you should see the toolbar working.
     
 
 ### Install new dependencies
