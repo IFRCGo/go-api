@@ -52,31 +52,36 @@ def unauthorized(message='You must be logged in'):
 class UpdateSubscriptionPreferences(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
-        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, True) # deletePrevious
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, True)  # deletePrevious
         if len(errors):
             return Response({
                 'status': 400,
                 'data': 'Could not create one or more subscription(s), aborting'
             })
-        return Response({ 'data': 'Success' })
+        return Response({'data': 'Success'})
 
 
 class AddSubscription(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
-        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, False) # do not deletePrevious ones, add only 1 subscription
+        # do not delete previous ones, add only 1 subscription
+        errors, created = Subscription.sync_user_subscriptions(self.request.user, request.data, False)
         if len(errors):
             return Response({
                 'status': 400,
                 'data': 'Could not add subscription, aborting'
             })
-        return Response({ 'data': 'Success' })
+        return Response({'data': 'Success'})
+
 
 class DelSubscription(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
         errors = Subscription.del_user_subscriptions(self.request.user, request.data)
         if len(errors):
@@ -84,10 +89,12 @@ class DelSubscription(APIView):
                 'status': 400,
                 'data': 'Could not remove subscription, aborting'
             })
-        return Response({ 'data': 'Success' })
+        return Response({'data': 'Success'})
+
 
 class PublicJsonRequestView(View):
     http_method_names = ['get', 'head', 'options']
+
     def handle_get(self, request, *args, **kwargs):
         print(pretty_request(request))
 
@@ -155,7 +162,7 @@ class AreaAggregate(PublicJsonRequestView):
         elif not region_id:
             return bad_request('`id` must be a region id')
 
-        aggregate = Appeal.objects.filter(**{region_type:region_id}) \
+        aggregate = Appeal.objects.filter(**{region_type: region_id}) \
                                   .annotate(count=Count('id')) \
                                   .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
 
@@ -171,7 +178,7 @@ class AggregateByDtype(PublicJsonRequestView):
             'heop': Heop,
         }
         mtype = request.GET.get('model_type', None)
-        if mtype is None or not mtype in models:
+        if mtype is None or mtype not in models:
             return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         model = models[mtype]
@@ -200,7 +207,7 @@ class AggregateByTime(PublicJsonRequestView):
         country = request.GET.get('country', None)
         region = request.GET.get('region', None)
 
-        if mtype is None or not mtype in models:
+        if mtype is None or mtype not in models:
             return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         if start_date is None:
@@ -222,7 +229,7 @@ class AggregateByTime(PublicJsonRequestView):
         elif mtype == 'event':
             date_filter = 'disaster_start_date'
 
-        filter_obj = { date_filter + '__gte': start_date }
+        filter_obj = {date_filter + '__gte': start_date}
 
         # useful shortcut for singular/plural location filters
         is_appeal = True if mtype == 'appeal' else False
@@ -269,6 +276,7 @@ class AggregateByTime(PublicJsonRequestView):
 @method_decorator(csrf_exempt, name='dispatch')
 class PublicJsonPostView(View):
     http_method_names = ['post']
+
     def decode_auth_header(self, auth_header):
         parts = auth_header[7:].split(':')
         return parts[0], parts[1]
@@ -297,7 +305,6 @@ class PublicJsonPostView(View):
 
         return user
 
-
     def handle_post(self, request, *args, **kwargs):
         print(pretty_request(request))
 
@@ -310,7 +317,7 @@ class PublicJsonPostView(View):
 class GetAuthToken(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
-        if not 'username' in body or not 'password' in body:
+        if 'username' not in body or 'password' not in body:
             return bad_request('Body must contain `username` and `password`')
         username = body['username']
         password = body['password']
@@ -349,7 +356,7 @@ class GetAuthToken(PublicJsonPostView):
 class ChangePassword(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
-        if not 'username' in body or (not 'password' in body and not 'token' in body):
+        if 'username' not in body or ('password' not in body and 'token' not in body):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
         try:
@@ -370,7 +377,7 @@ class ChangePassword(PublicJsonPostView):
             recovery.delete()
 
         # TODO validate password
-        if not 'new_password' in body:
+        if 'new_password' not in body:
             return bad_request('Must include a `new_password` property')
 
         user.set_password(body['new_password'])
@@ -382,7 +389,7 @@ class ChangePassword(PublicJsonPostView):
 class RecoverPassword(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
-        if not 'email' in body:
+        if 'email' not in body:
             return bad_request('Must include an `email` property')
 
         try:
@@ -410,7 +417,7 @@ class RecoverPassword(PublicJsonPostView):
 class ShowUsername(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
         body = json.loads(request.body.decode('utf-8'))
-        if not 'email' in body:
+        if 'email' not in body:
             return bad_request('Must include an `email` property')
 
         try:
@@ -432,6 +439,7 @@ class ShowUsername(PublicJsonPostView):
 class AddCronJobLog(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+
     def post(self, request):
         errors, created = CronJob.sync_cron(request.data)
         if len(errors):
@@ -439,7 +447,7 @@ class AddCronJobLog(APIView):
                 'status': 400,
                 'data': 'Could not add CronJob, aborting'
             })
-        return Response({ 'data': 'Success' })
+        return Response({'data': 'Success'})
 
 
 class DummyHttpStatusError(View):
