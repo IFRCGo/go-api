@@ -1,4 +1,4 @@
-FROM python:3.6.3-jessie
+FROM python:3.6.11-buster
 
 EXPOSE 80
 EXPOSE 443
@@ -6,7 +6,8 @@ EXPOSE 443
 RUN \
 	apt-get update; \
 	apt-get install -y nginx postgresql-client mdbtools vim tidy less gettext; \
-	apt-get install -y cron --no-install-recommends
+	apt-get install -y cron --no-install-recommends; \
+	apt-get install -y binutils libproj-dev gdal-bin
 
 ENV HOME=/home/ifrc
 WORKDIR $HOME
