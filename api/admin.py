@@ -444,6 +444,7 @@ class UserProfileAdmin(CompareVersionAdmin):
         ('country', RelatedDropdownFilter),
     )
     actions = ['export_selected_users']
+    readonly_fields = ('last_frontend_login',)
 
     def export_selected_users(self, request, queryset):
         meta = self.model._meta
