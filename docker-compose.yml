@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 
 services:
   base_django_setup: &base_django_setup
@@ -23,8 +23,11 @@ services:
       - db
 
   base:
-    build: .
     image: ifrcgo/go-api:latest
+    build:
+      context: .
+      cache_from:
+        - ifrcgo/go-api:latest
 
   serve:
     <<: *base_django_setup

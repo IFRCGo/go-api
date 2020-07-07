@@ -9,7 +9,19 @@ jobs:
     steps:
       - checkout
       - run:
-          name: build docker base image
+          name: Setup Custom Environment Variables
+          command: |
+            # Used to tag docker image (for caching) eg: feature/docker-setup -> feature-docker-setup
+            echo "export GO_BRANCH_NAME=$(echo ${CIRCLE_BRANCH} | tr / -)" >> $BASH_ENV
+
+      - run:
+          name: Pull docker recent image if available
+          command: |
+            docker pull ifrcgo/go-api:$GO_BRANCH_NAME \
+                && docker tag ifrcgo/go-api:$GO_BRANCH_NAME ifrcgo/go-api:latest \
+              || docker pull ifrcgo/go-api:latest || true
+      - run:
+          name: Build docker base image
           command: docker-compose build
       - run:
           name: Run tests
@@ -19,18 +31,21 @@ jobs:
             docker-compose run --rm test
 
       - run:
-          name: Push image to Docker Hub
+          name: Push image to Docker Hub (For caching)
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ] || [ "${CIRCLE_BRANCH}" == "develop" ]; then
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag ifrcgo/go-api:latest ifrcgo/go-api:$GO_BRANCH_NAME
+            docker push ifrcgo/go-api:latest
+            docker push ifrcgo/go-api:$GO_BRANCH_NAME
+
+      - run:
+          name: Push image to Docker Hub (For Deployment)
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
               {
-                if [ "${CIRCLE_BRANCH}" == "develop" ]; then
-                  LATEST_GIT_TAG=develop &&
-                  echo $LATEST_GIT_TAG
-                else
-                  LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
-                  echo $LATEST_GIT_TAG
-                  git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
-                fi
+                LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
+                echo $LATEST_GIT_TAG
+                git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
 
                 docker-compose build
                 docker login -u $DOCKER_USER -p $DOCKER_PASS
