@@ -315,21 +315,24 @@ class GetAuthToken(PublicJsonPostView):
         username = body['username']
         password = body['password']
 
-        #allowing different lower/uppercase lettered usernames:
-        try:
-            case_sensitive_username = User.objects.get(username__iexact=username)
-        except User.DoesNotExist:
-            case_sensitive_username = None
+        # Get the case-correct username for authenticate()
+        casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
+        if not casecorr_uname:
+            return bad_request('Invalid username or password')  # definately username issue
 
-        user = authenticate(username=case_sensitive_username, password=password)
-
+        # User model's __str__ is its username
+        user = authenticate(username=casecorr_uname, password=password)
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
-            # reset the key's created_at time each time we get new credentials
+            # Reset the key's created_at time each time we get new credentials
             if not created:
                 api_key.created = datetime.utcnow().replace(tzinfo=pytz.utc)
                 api_key.save()
+
+            # (Re)set the user's last frontend login datetime
+            user.profile.last_frontend_login = datetime.utcnow().replace(tzinfo=pytz.utc)
+            user.profile.save()
 
             return JsonResponse({
                 'token': api_key.key,
@@ -340,7 +343,7 @@ class GetAuthToken(PublicJsonPostView):
                 'id': user.id,
             })
         else:
-            return bad_request('Could not authenticate')
+            return bad_request('Invalid username or password')  # most probably password issue
 
 
 class ChangePassword(PublicJsonPostView):
