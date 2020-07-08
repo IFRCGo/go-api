@@ -64,6 +64,9 @@ INSTALLED_APPS = [
 
     # Debug
     'debug_toolbar',
+
+    # GIS
+    'django.contrib.gis'
 ]
 
 REST_FRAMEWORK = {
@@ -145,7 +148,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Use local postgres for dev, env-determined for production
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.environ.get('DJANGO_DB_NAME'),
         'USER': os.environ.get('DJANGO_DB_USER'),
         'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
