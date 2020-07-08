@@ -1,5 +1,4 @@
 import json
-import pytz
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -334,11 +333,11 @@ class GetAuthToken(PublicJsonPostView):
 
             # Reset the key's created_at time each time we get new credentials
             if not created:
-                api_key.created = datetime.utcnow().replace(tzinfo=pytz.utc)
+                api_key.created = timezone.now()
                 api_key.save()
 
             # (Re)set the user's last frontend login datetime
-            user.profile.last_frontend_login = datetime.utcnow().replace(tzinfo=pytz.utc)
+            user.profile.last_frontend_login = timezone.now()
             user.profile.save()
 
             return JsonResponse({
