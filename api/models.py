@@ -139,9 +139,9 @@ class Country(models.Model):
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
         storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
-    geom = models.PolygonField(srid=3857, blank=True, null=True)
-    centroid = models.PointField(srid=3857, blank=True, null=True)
-    bbox = models.PolygonField(srid=3857, blank=True, null=True)
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
