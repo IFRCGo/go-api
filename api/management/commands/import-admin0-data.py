@@ -7,6 +7,7 @@ from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import MultiPolygon
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from api.models import Country
 from api.models import Region
 
@@ -18,6 +19,7 @@ class Command(BaseCommand):
   def add_arguments(self, parser):
     parser.add_argument('filename', nargs='+', type=str)
 
+  @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
 
@@ -45,9 +47,6 @@ class Command(BaseCommand):
 
         centroid = geom.centroid.wkt
         bbox = geom.envelope.geojson
-
-          # centroid = g.centroid
-          # print(centroid)
 
         # find this country in the database
         try:
