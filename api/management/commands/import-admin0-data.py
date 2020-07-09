@@ -31,7 +31,6 @@ class Command(BaseCommand):
 
     try:
       data = DataSource(filename)
-      capitals_data = json.load(open(capitals, 'r'))
     except:
       raise CommandError('Could not open file')
 
