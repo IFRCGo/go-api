@@ -62,6 +62,7 @@ from .serializers import (
     RegionRelationSerializer,
 
     CountrySerializer,
+    MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
@@ -123,6 +124,7 @@ class CountryFilter(filters.FilterSet):
         model = Country
         fields = ('region', 'record_type',)
 
+
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     filter_class = CountryFilter
@@ -143,6 +145,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
 
     def get_serializer_class(self):
+        if self.request.GET.get('mini', None) == 'true':
+            return MiniCountrySerializer
         if self.action == 'list':
             return CountrySerializer
         return CountryRelationSerializer
