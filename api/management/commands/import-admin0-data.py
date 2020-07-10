@@ -18,6 +18,16 @@ class Command(BaseCommand):
 
   def add_arguments(self, parser):
     parser.add_argument('filename', nargs='+', type=str)
+    parser.add_argument(
+      '--update-bbox',
+      action='store_true',
+      help='Update the bbox of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin'
+      )
+    parser.add_argument(
+      '--update-centroid',
+      action='store_true',
+      help='Update the centroid of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin'
+      )
 
   @transaction.atomic
   def handle(self, *args, **options):
@@ -54,10 +64,15 @@ class Command(BaseCommand):
           # if the country exist
           # add geom
           country.geom = geom.wkt
-          # add centroid
-          country.centroid = centroid
-          # add bbox
-          country.bbox = bbox
+
+          if options['update_bbox']:
+            # add bbox
+            country.bbox = bbox
+
+          if options['update_centroid']:
+            # add centroid
+            country.centroid = centroid
+
           # save
           print('updating %s with geometries' %feature_iso2)
           country.save()
