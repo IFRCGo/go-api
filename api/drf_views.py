@@ -145,7 +145,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
 
     def get_serializer_class(self):
-        if self.request.GET.get('mini', None) == 'true':
+        if self.request.GET.get('mini', 'false').lower() == 'true':
             return MiniCountrySerializer
         if self.action == 'list':
             return CountrySerializer
