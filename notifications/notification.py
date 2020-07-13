@@ -27,6 +27,7 @@ else:
 
 class SendMail(threading.Thread):
     def __init__(self, recipients, msg, **kwargs):
+        self.recipients = recipients
         self.msg = msg
         super(SendMail, self).__init__(**kwargs)
 
@@ -130,7 +131,7 @@ def send_notification(subject, recipients, html, mailtype=''):
     res_text = res.text.replace('"', '')
 
     if res.status_code == 200:
-        logger.info('Subject: {subject}, Recipients: {recs}'.format(subject=subject, recs=recipients_as_string))
+        logger.info(u'Subject: {subject}, Recipients: {recs}'.format(subject=subject, recs=recipients_as_string))
 
         logger.info('GUID: {}'.format(res_text))
         # Saving GUID into a table so that the API can be queried with it to get info about
