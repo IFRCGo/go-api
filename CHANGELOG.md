@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.287
+
+### Added
+ - Hotfix for SendMail
+
+## 1.1.286
+
+### Added
+ - Hotfix of commits in master
+
 ## 1.1.285
 
 ### Added
@@ -1203,7 +1213,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.285...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.287...HEAD
+[1.2.287]: https://github.com/IFRCGo/go-api/compare/1.2.286...1.1.287
+[1.2.286]: https://github.com/IFRCGo/go-api/compare/1.2.285...1.1.286
 [1.2.285]: https://github.com/IFRCGo/go-api/compare/1.2.284...1.1.285
 [1.2.284]: https://github.com/IFRCGo/go-api/compare/1.2.283...1.1.284
 [1.2.283]: https://github.com/IFRCGo/go-api/compare/1.2.282...1.1.283
