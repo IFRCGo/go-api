@@ -24,7 +24,16 @@ from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
 
 
+class ProfileInline(admin.StackedInline):
+    model = models.Profile
+    can_delete = False
+    verbose_name_plural = 'User Profile'
+    fk_name = 'user'
+    readonly_fields = ('last_frontend_login',)
+
+
 class GoUserAdmin(UserAdmin):
+    inlines = (ProfileInline,)
     list_filter = (
         ('profile__country__region', RelatedDropdownFilter),
         ('profile__country', RelatedDropdownFilter),
