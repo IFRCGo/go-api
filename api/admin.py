@@ -43,6 +43,11 @@ class GoUserAdmin(UserAdmin):
         'is_active',
     )
 
+    def get_inline_instances(self, request, obj=None):
+        if not obj:
+            return list()
+        return super().get_inline_instances(request, obj)
+
 
 admin.site.unregister(User)
 admin.site.register(User, GoUserAdmin)
