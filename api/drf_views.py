@@ -257,9 +257,15 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
+            # FIXME: Why do we have an 'if' here when the (base) query is the same?
             return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
-        return Event.objects.filter(parent_event__isnull=True)
-        # return Event.get_for(self.request.user).filter(parent_event__isnull=True)
+        return (Event.objects.filter(parent_event__isnull=True)
+                             .select_related('dtype')
+                             .prefetch_related('appeals')
+                             .prefetch_related('countries')
+                             .prefetch_related('field_reports')
+                             .prefetch_related('regions')
+                             .prefetch_related('districts'))
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
