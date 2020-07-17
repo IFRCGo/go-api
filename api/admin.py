@@ -27,7 +27,7 @@ from notifications.models import RecordType, SubscriptionType
 class ProfileInline(admin.StackedInline):
     model = models.Profile
     can_delete = False
-    verbose_name_plural = 'User Profile'
+    verbose_name_plural = _('user profile')
     fk_name = 'user'
     readonly_fields = ('last_frontend_login',)
 
