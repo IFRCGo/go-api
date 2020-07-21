@@ -258,9 +258,22 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
-        return Event.objects.filter(parent_event__isnull=True)
-        # return Event.get_for(self.request.user).filter(parent_event__isnull=True)
+            return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+        return (
+            Event.objects.filter(parent_event__isnull=True)
+            .select_related('dtype')
+            .prefetch_related(
+                'regions',
+                Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
+                Prefetch('countries', queryset=Country.objects.select_related('region')),
+                Prefetch('districts', queryset=District.objects.select_related('country')),
+                Prefetch(
+                    'field_reports',
+                    queryset=FieldReport.objects.select_related('user', 'dtype', 'event')
+                                                .prefetch_related('districts', 'countries', 'regions', 'contacts')
+                ),
+            )
+        )
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
