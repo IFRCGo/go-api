@@ -198,9 +198,13 @@ class ListEventSerializer(serializers.ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     dtype = DisasterTypeSerializer()
+
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug', 'parent_event',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
+                  'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
+                  'field_reports', 'updated_at', 'id', 'slug', 'parent_event')
+
 
 class CsvField(serializers.Field):
     """
@@ -212,10 +216,11 @@ class CsvField(serializers.Field):
     def to_internal_value(self, data):
         return [int(x) for x in data.split(',')]
 
+
 class ListEventCsvSerializer(serializers.ModelSerializer):
     appeals = CsvField()
     field_reports = CsvField()
-    countries = CsvField() 
+    countries = CsvField()
     dtype = DisasterTypeSerializer()
 
     class Meta:
