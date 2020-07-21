@@ -183,11 +183,14 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO3'), max_length=3, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
+    geom = models.PolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
