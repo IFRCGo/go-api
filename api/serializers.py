@@ -2,7 +2,7 @@ import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from lang.translation import TranslatedModelSerializerMixin
+from lang.serializers import TranslatedModelSerializerMixin
 from .models import (
     DisasterType,
 

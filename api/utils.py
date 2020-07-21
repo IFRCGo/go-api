@@ -54,6 +54,10 @@ def is_user_ifrc(user):
 #     return visibility_model_class.objects.filter(visibility=VisibilityChoices.PUBLIC)
 
 
+def get_model_name(model):
+    return f'{model._meta.app_label}.{model.__name__}'
+
+
 class Echo:
     """An object that implements just the write method of the file-like
     interface.

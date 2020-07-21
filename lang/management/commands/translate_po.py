@@ -18,17 +18,17 @@ def translate_po_file(po, language):
         # that Amazon Translate will just assume is a title and
         # not translate.
         subbed_message = re.sub(
-            r"%\((\w+)\)s", r"FORMAT_\1_END", s.msgid
+            r'%\((\w+)\)s', r'FORMAT_\1_END', s.msgid
         )
         # Translate the text itself
         response = translate.translate_text(
             subbed_message,
-            "en",
             language,
+            source_language='en',
         )
         # Put back the correct gettext formatting
         s.msgstr = re.sub(
-            r"FORMAT_(\w+)_END", r"%(\1)s",
+            r'FORMAT_(\w+)_END', r'%(\1)s',
             response['TranslatedText']
         )
     return po
@@ -47,7 +47,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         languages = options['languages'] or DJANGO_AVAILABLE_LANGUAGES
         for language in languages:
-            for file in Path('').glob(f"**/{language}/**/*.po"):
+            for file in Path('').glob(f'**/{language}/**/*.po'):
                 print(f'Translating: {file} ({language})')
                 po = polib.pofile(file)
                 po = translate_po_file(po, language)

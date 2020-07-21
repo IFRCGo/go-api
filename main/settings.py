@@ -1,7 +1,9 @@
 import os
-from datetime import datetime
 import pytz
+from datetime import datetime
+
 from django.utils.translation import ugettext_lazy as _
+from celery.schedules import crontab
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -15,6 +17,10 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
 # The frontend_url nicing is in frontend.py
 
 INTERNAL_IPS = ['127.0.0.1']
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
 
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
@@ -57,6 +63,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
+    'django_celery_beat',
 
     # Logging
     'reversion',
@@ -229,7 +236,6 @@ LANGUAGES = (
     ('ar', _('Arabic')),
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-HIDE_LANGUAGE_UI = not DEBUG
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -280,3 +286,19 @@ LOGGING = {
 AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
 AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
 AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
+
+# CELERY CONFIG
+CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACKS_LATE = True
+
+CELERY_BEAT_SCHEDULE = {
+    # TODO: umcomment after we need to translate as cronjob
+    # 'translate_remaining_models_fields': {
+    #     'task': 'lang.tasks.translate_remaining_models_fields',
+    #     # Every 6 hour
+    #     'schedule': crontab(minute=0, hour="*/6"),
+    # },
+}
