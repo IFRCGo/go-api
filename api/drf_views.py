@@ -340,6 +340,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     filter_class = SituationReportFilter
     visibility_model_class = SituationReport
 
+
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
     dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
@@ -348,6 +349,7 @@ class AppealFilter(filters.FilterSet):
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+
     class Meta:
         model = Appeal
         fields = {
@@ -355,10 +357,12 @@ class AppealFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.all()
+    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     serializer_class = AppealSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+                       'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
 
     def remove_unconfirmed_event(self, obj):
@@ -386,9 +390,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
+
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
     appeal__in = ListFilter(field_name='appeal__id')
+
     class Meta:
         model = AppealDocument
         fields = {
@@ -396,11 +402,13 @@ class AppealDocumentFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     serializer_class = AppealDocumentSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = AppealDocumentFilter
+
 
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
