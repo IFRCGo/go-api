@@ -197,21 +197,40 @@ class ListEventSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug', 'parent_event',)
 
-class CsvField(serializers.Field):
-    """
-    Converts between an array and a string of values
-    """
-    def to_representation(self, value):
-        return ','.join([str(x.id) for x in value.all()])
-
-    def to_internal_value(self, data):
-        return [int(x) for x in data.split(',')]
-
 class ListEventCsvSerializer(serializers.ModelSerializer):
-    appeals = CsvField()
-    field_reports = CsvField()
-    countries = CsvField() 
+    appeals = serializers.SerializerMethodField()
+    field_reports = serializers.SerializerMethodField()
+    countries = serializers.SerializerMethodField()
     dtype = DisasterTypeSerializer()
+
+    def get_countries(self, obj):
+        country_fields = {}
+        countries = obj.countries.all()
+        if len(countries) > 0:
+            country_fields['id'] = ', '.join([str(country.id) for country in countries])
+            country_fields['name'] = ', '.join([str(country.name) for country in countries])
+        else:
+            country_fields['id'] = ''
+            country_fields['name'] = ''
+        return country_fields
+
+    def get_field_reports(self, obj):
+        field_reports_fields = {}
+        field_reports = obj.field_reports.all()
+        if len(field_reports) > 0:
+            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
+        else:
+            field_reports_fields['id'] = ''
+        return field_reports_fields
+
+    def get_appeals(self, obj):
+        appeals_fields = {}
+        appeals = obj.appeals.all()
+        if len(appeals) > 0:
+            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
+        else:
+            appeals_fields['id'] = ''
+        return appeals_fields
 
     class Meta:
         model = Event
