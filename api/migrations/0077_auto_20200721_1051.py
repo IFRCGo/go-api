@@ -4,8 +4,18 @@ from django.db import migrations, models
 
 
 def delete_idn(apps, schema_editor):
-    # Remove the 3525 | Sulawesi Tengah | ID025 | IDN entry from the database, which is a duplicate.
     District = apps.get_model('api', 'District')
+    FieldReport = apps.get_model('api', 'FieldReport')
+
+    # Find if there are any field reports associated to 3525
+    reports = FieldReport.objects.filter(districts__id=3525)
+    correct_district = District.objects.get(id=1234)
+
+    for report in reports:
+        report.districts.add(correct_district)
+        report.districts.remove(3525)
+
+    # Remove the 3525 | Sulawesi Tengah | ID025 | IDN entry from the database, which is a duplicate.
     idn = District.objects.get(id=3525)
     if idn:
         idn.delete()
@@ -19,9 +29,4 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(delete_idn),
-        # migrations.AlterField(
-        #     model_name='district',
-        #     name='country_iso',
-        #     field=models.CharField(max_length=2, null=True, verbose_name='country ISO2'),
-        # ),
     ]
