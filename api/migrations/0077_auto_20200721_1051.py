@@ -19,7 +19,6 @@ def delete_idn(apps, schema_editor):
     idn = District.objects.get(id=3525)
     if idn:
         idn.delete()
-        idn.save()
 
 class Migration(migrations.Migration):
 
