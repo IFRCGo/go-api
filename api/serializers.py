@@ -53,28 +53,35 @@ class RegionSerializer(serializers.ModelSerializer):
 class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type',)
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
+                  'inform_score', 'id', 'url_ifrc', 'record_type',)
+
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region',)
 
+
 class RegoCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'society_name', 'region', 'id',)
 
-class NotCountrySerializer(serializers.ModelSerializer): # fake serializer for a short data response for PER
+
+class NotCountrySerializer(serializers.ModelSerializer):  # fake serializer for a short data response for PER
     class Meta:
         model = Country
         fields = ('id',)
 
+
 class DistrictSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
+
     class Meta:
         model = District
         fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id',)
+
 
 class MiniDistrictSerializer(serializers.ModelSerializer):
     class Meta:
