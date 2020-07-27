@@ -330,10 +330,24 @@ class SituationReportSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
 
 
+class AppealCsvSerializer(serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    event = MiniEventSerializer()
+
+    class Meta:
+        model = Appeal
+        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
+                  'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
+                  'country', 'region', 'id',)
+
+
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
+
     class Meta:
         model = Appeal
         fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',

@@ -83,6 +83,7 @@ from .serializers import (
     SituationReportCsvSerializer,
     SituationReportTypeSerializer,
     AppealSerializer,
+    AppealCsvSerializer,
     AppealDocumentSerializer,
     UserSerializer,
     UserMeSerializer,
@@ -381,6 +382,7 @@ class AppealFilter(filters.FilterSet):
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+
     class Meta:
         model = Appeal
         fields = {
@@ -388,11 +390,16 @@ class AppealFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Appeal.objects.all()
-    serializer_class = AppealSerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
+
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return AppealCsvSerializer
+        return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj['needs_confirmation']:
@@ -419,9 +426,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
+
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
     appeal__in = ListFilter(field_name='appeal__id')
+
     class Meta:
         model = AppealDocument
         fields = {
