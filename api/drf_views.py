@@ -59,12 +59,15 @@ from .serializers import (
     RegionSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
+    RegionSnippetCsvSerializer,
     RegionRelationSerializer,
 
     CountrySerializer,
+    CountryCsvSerializer,
     MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
+    CountrySnippetCsvSerializer,
     CountryRelationSerializer,
 
     DistrictSerializer,
@@ -77,6 +80,7 @@ from .serializers import (
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
+    SituationReportCsvSerializer,
     SituationReportTypeSerializer,
     AppealSerializer,
     AppealDocumentSerializer,
@@ -148,6 +152,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         if self.request.GET.get('mini', 'false').lower() == 'true':
             return MiniCountrySerializer
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return CountryCsvSerializer
         if self.action == 'list':
             return CountrySerializer
         return CountryRelationSerializer
@@ -203,17 +209,29 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionSnippetFilter
     visibility_model_class = RegionSnippet
 
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return RegionSnippetCsvSerializer
+        return RegionSnippetSerializer
+
+
 class CountrySnippetFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
     class Meta:
         model = CountrySnippet
         fields = ('country',)
 
+
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
-    serializer_class = CountrySnippetSerializer
     filter_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
+
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return CountrySnippetCsvSerializer
+        return CountrySnippetSerializer
+
 
 class DistrictFilter(filters.FilterSet):
     class Meta:
@@ -280,7 +298,8 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListMiniEventSerializer
         elif self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
-            if request_format_type == 'csv':
+            is_tableau = request_format_type = self.request.GET.get('tableau', 'false').lower()
+            if request_format_type == 'csv' or is_tableau == 'true':
                 return ListEventCsvSerializer
             else:
                 return ListEventSerializer
@@ -323,14 +342,17 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = EventSnippetFilter
     visibility_model_class = Snippet
 
+
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
     ordering_fields = ('type',)
 
+
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     type = filters.NumberFilter(field_name='type', lookup_expr='exact')
+
     class Meta:
         model = SituationReport
         fields = {
@@ -338,12 +360,18 @@ class SituationReportFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class SituationReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
-    serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = SituationReportFilter
     visibility_model_class = SituationReport
+
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return SituationReportCsvSerializer
+        return SituationReportSerializer
+
 
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')

@@ -39,15 +39,26 @@ from .models import (
 )
 from notifications.models import Subscription
 
+
 class DisasterTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DisasterType
         fields = ('name', 'summary', 'id',)
 
+
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Region
         fields = ('name', 'id', 'region_name')
+
+
+class CountryCsvSerializer(serializers.ModelSerializer):
+    region = RegionSerializer()
+
+    class Meta:
+        model = Country
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
+                  'inform_score', 'id', 'url_ifrc', 'record_type',)
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -94,40 +105,64 @@ class RegionKeyFigureSerializer(serializers.ModelSerializer):
         model = RegionKeyFigure
         fields = ('region', 'figure', 'deck', 'source', 'visibility', 'id',)
 
+
 class CountryKeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountryKeyFigure
         fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
+
+
+class RegionSnippetCsvSerializer(serializers.ModelSerializer):
+    region = RegionSerializer()
+
+    class Meta:
+        model = RegionSnippet
+        fields = ('region', 'snippet', 'image', 'visibility', 'id',)
+
 
 class RegionSnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegionSnippet
         fields = ('region', 'snippet', 'image', 'visibility', 'id',)
 
+
+class CountrySnippetCsvSerializer(serializers.ModelSerializer):
+    country = CountrySerializer()
+
+    class Meta:
+        model = CountrySnippet
+        fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+
+
 class CountrySnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountrySnippet
         fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+
 
 class RegionLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegionLink
         fields = ('title', 'url', 'id',)
 
+
 class CountryLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountryLink
         fields = ('title', 'url', 'id',)
+
 
 class RegionContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegionContact
         fields = ('ctype', 'name', 'title', 'email', 'id',)
 
+
 class CountryContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = CountryContact
         fields = ('ctype', 'name', 'title', 'email', 'id',)
+
 
 class RegionRelationSerializer(serializers.ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
@@ -265,18 +300,31 @@ class DetailEventSerializer(serializers.ModelSerializer):
     districts = MiniDistrictSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+
     class Meta:
         model = Event
         fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
         lookup_field = 'slug'
+
 
 class SituationReportTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SituationReportType
         fields = ('type', 'id', 'is_primary',)
 
+
+class SituationReportCsvSerializer(serializers.ModelSerializer):
+    type = SituationReportTypeSerializer()
+    event = MiniEventSerializer()
+
+    class Meta:
+        model = SituationReport
+        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
+
+
 class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
+
     class Meta:
         model = SituationReport
         fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
