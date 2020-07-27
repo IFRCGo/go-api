@@ -38,6 +38,7 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
+    PartnerDeploymentCsvSerializer,
     RegionalProjectSerializer,
     ProjectSerializer,
 )
@@ -109,6 +110,7 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
+
 class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')
     country_deployed_to = filters.NumberFilter(field_name='country_deployed_to', lookup_expr='exact')
@@ -116,6 +118,7 @@ class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society__in = ListFilter(field_name='parent_society__id')
     country_deployed_to__in = ListFilter(field_name='country_deployed_to__id')
     district_deployed_to__in = ListFilter(field_name='district_deployed_to__id')
+
     class Meta:
         model = PartnerSocietyDeployment
         fields = {
@@ -123,10 +126,16 @@ class PartnerDeploymentFilterset(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = PartnerSocietyDeployment.objects.all()
     serializer_class = PartnerDeploymentSerializer
     filter_class = PartnerDeploymentFilterset
+
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return PartnerDeploymentCsvSerializer
+        return PartnerDeploymentSerializer
 
 
 class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
