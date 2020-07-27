@@ -188,7 +188,7 @@ class District(models.Model):
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
-    geom = models.PolygonField(srid=4326, blank=True, null=True)
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
 

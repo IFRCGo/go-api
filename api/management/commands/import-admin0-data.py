@@ -28,6 +28,10 @@ class Command(BaseCommand):
       action='store_true',
       help='Update the centroid of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin'
       )
+    parser.add_argument(
+      '--import-missing',
+      help='Import missing countries for iso codes mentioned in this file.'
+      )
 
   @transaction.atomic
   def handle(self, *args, **options):
@@ -40,6 +44,16 @@ class Command(BaseCommand):
       'Europe': 3,
       'Middle East and North Africa': 4
     }
+
+    import_missing = []
+
+    if options['import_missing']:
+      import_file = open(options['import_missing'], 'r')
+      import_missing = import_file.read().splitlines()
+      print('will import these isos if found', import_missing)
+    else:
+      print('will write missing country iso to missing-countries.txt')
+      missing_file = open('missing-countries.txt', 'w')
 
     try:
       data = DataSource(filename)
@@ -77,33 +91,42 @@ class Command(BaseCommand):
           print('updating %s with geometries' %feature_iso2)
           country.save()
         except ObjectDoesNotExist:
-          print('adding missing country', feature_iso2)
+          missing = []
+          if not options['import_missing']:
+            name = feature.get('NAME_ICRC')
+            missing_file.write(feature_iso2 + '\n')
+            print('missing country', feature_iso2, name)
+          else:
+            # check if this iso exists in the import list
+            if feature_iso2 in import_missing:
+              print('importing', feature_iso2)
+              # new country object
+              country = Country()
 
-          # new country object
-          country = Country()
+              record_type = 1 # country
+              name = feature.get('NAME_ICRC')
+              iso = feature_iso2
+              iso3 = feature.get('ISO3').lower()
+              region = feature.get('REGION_IFR')
 
-          name = feature.get('NAME_ICRC')
-          record_type = 1 # country
-          iso = feature_iso2
-          iso3 = feature.get('ISO3').lower()
-          region = feature.get('REGION_IFR')
+              # get region from db
+              region_id = Region.objects.get(name=region_enum[region])
 
-          # get region from db
-          region_id = Region.objects.get(name=region_enum[region])
+              country.name = name
+              country.record_type = 1
+              country.iso = iso
+              country.iso3 = iso3
+              country.region = region_id
+              country.geom = geom.wkt
+              country.centroid = centroid
+              country.bbox = bbox
 
-          country.name = name
-          country.record_type = 1
-          country.iso = iso
-          country.iso3 = iso3
-          country.region = region_id
-          country.geom = geom.wkt
-          country.centroid = centroid
-          country.bbox = bbox
-
-          # save
-          country.save()
+              # save
+              country.save()
+            else:
+              print('skipping', feature_iso2)
     
-      print('done!')
+    print('done!')
 
 
 
