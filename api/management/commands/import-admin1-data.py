@@ -38,6 +38,7 @@ class Command(BaseCommand):
       help='Import missing districts for codes mentioned in this file.'
       )
 
+  @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
 
