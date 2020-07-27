@@ -462,20 +462,44 @@ class ListFieldReportSerializer(TranslatedModelSerializerMixin, serializers.Mode
 
 class ListFieldReportCsvSerializer(serializers.ModelSerializer):
     countries = serializers.SerializerMethodField()
+    districts = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
 
     def get_countries(self, obj):
-        country_fields = {}
+        country_fields = {
+            'id': '',
+            'name': ''
+        }
         countries = obj.countries.all()
         if len(countries) > 0:
             country_fields['id'] = ', '.join([str(country.id) for country in countries])
             country_fields['name'] = ', '.join([str(country.name) for country in countries])
-        else:
-            country_fields['id'] = ''
-            country_fields['name'] = ''
         return country_fields
+
+    def get_districts(self, obj):
+        district_fields = {
+            'id': '',
+            'name': ''
+        }
+        districts = obj.districts.all()
+        if len(districts) > 0:
+            district_fields['id'] = ', '.join([str(district.id) for district in districts])
+            district_fields['name'] = ', '.join([str(district.name) for district in districts])
+        return district_fields
+
+    def get_regions(self, obj):
+        region_fields = {
+            'id': '',
+            'region_name': ''
+        }
+        regions = obj.regions.all()
+        if len(regions) > 0:
+            region_fields['id'] = ', '.join([str(region.id) for region in regions])
+            region_fields['region_name'] = ', '.join([str(region.region_name) for region in regions])
+        return region_fields
 
     def get_actions_taken_for_organization(self, obj):
         actions_data = {}
