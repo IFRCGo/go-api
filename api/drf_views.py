@@ -455,6 +455,7 @@ class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
 
@@ -505,6 +506,8 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
                                      'countries', 'districts', 'regions')
 
     def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return ListFieldReportCsvSerializer
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
             if request_format_type == 'csv':

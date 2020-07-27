@@ -461,11 +461,21 @@ class ListFieldReportSerializer(TranslatedModelSerializerMixin, serializers.Mode
 
 
 class ListFieldReportCsvSerializer(serializers.ModelSerializer):
-    countries = MiniCountrySerializer(many=True)
+    countries = serializers.SerializerMethodField()
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
-    # actions_taken = ActionsTakenSerializer(many=True)
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
+
+    def get_countries(self, obj):
+        country_fields = {}
+        countries = obj.countries.all()
+        if len(countries) > 0:
+            country_fields['id'] = ', '.join([str(country.id) for country in countries])
+            country_fields['name'] = ', '.join([str(country.name) for country in countries])
+        else:
+            country_fields['id'] = ''
+            country_fields['name'] = ''
+        return country_fields
 
     def get_actions_taken_for_organization(self, obj):
         actions_data = {}
