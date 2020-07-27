@@ -85,6 +85,7 @@ from .serializers import (
     AppealSerializer,
     AppealCsvSerializer,
     AppealDocumentSerializer,
+    AppealDocumentCsvSerializer,
     UserSerializer,
     UserMeSerializer,
     ProfileSerializer,
@@ -438,11 +439,17 @@ class AppealDocumentFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
-    serializer_class = AppealDocumentSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = AppealDocumentFilter
+
+    def get_serializer_class(self):
+        if self.request.GET.get('tableau', 'false').lower() == 'true':
+            return AppealDocumentCsvSerializer
+        return AppealDocumentSerializer
+
 
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer

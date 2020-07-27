@@ -343,6 +343,12 @@ class AppealCsvSerializer(serializers.ModelSerializer):
                   'country', 'region', 'id',)
 
 
+class MiniAppealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appeal
+        fields = ('name', 'id', 'code')
+
+
 class AppealSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
@@ -353,6 +359,15 @@ class AppealSerializer(serializers.ModelSerializer):
         fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
                   'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
                   'country', 'region', 'id',)
+
+
+class AppealDocumentCsvSerializer(serializers.ModelSerializer):
+    appeal = MiniAppealSerializer()
+
+    class Meta:
+        model = AppealDocument
+        fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'id',)
+
 
 class AppealDocumentSerializer(serializers.ModelSerializer):
     class Meta:
