@@ -876,23 +876,6 @@ class FieldReport(models.Model):
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
     epi_figures_source = EnumIntegerField(EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True)
 
-    health_min_cases = models.IntegerField(verbose_name=_('number of cases (MOH)'), null=True, blank=True)
-    health_min_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (MOH)'), null=True, blank=True)
-    health_min_probable_cases = models.IntegerField(verbose_name=_('number of probabale cases (MOH)'), null=True, blank=True)
-    health_min_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (MOH)'), null=True, blank=True)
-    health_min_num_dead = models.IntegerField(verbose_name=_('number of dead (MOH)'), null=True, blank=True)
-
-    who_cases = models.IntegerField(verbose_name=_('number of cases (WHO)'), null=True, blank=True)
-    who_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (WHO)'), null=True, blank=True)
-    who_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (WHO)'), null=True, blank=True)
-    who_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (WHO)'), null=True, blank=True)
-    who_num_dead = models.IntegerField(verbose_name=_('number of number of dead (WHO)'), null=True, blank=True)
-
-    other_cases = models.IntegerField(verbose_name=_('number of cases (other)'), null=True, blank=True)
-    other_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (other)'), null=True, blank=True)
-    other_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (other)'), null=True, blank=True)
-    other_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (other)'), null=True, blank=True)
-
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
 
@@ -915,12 +898,6 @@ class FieldReport(models.Model):
     other_num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk (other)'), null=True, blank=True)
     other_affected_pop_centres = models.CharField(
         verbose_name=_('number of affected population centres (other)'), max_length=512, blank=True, null=True)
-
-    # Epidemic fields
-    cases = models.IntegerField(verbose_name=_('number of cases'), null=True, blank=True)
-    suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases'), null=True, blank=True)
-    probable_cases = models.IntegerField(verbose_name=_('number of probable cases'), null=True, blank=True)
-    confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases'), null=True, blank=True)
 
     # Date of data for situation fields
     sit_fields_date = models.DateTimeField(verbose_name=_('situation fields date'), blank=True, null=True)

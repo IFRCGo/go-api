@@ -276,12 +276,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     list_select_related = ('event',)
     search_fields = ('countries__name', 'regions__name', 'summary',)
     autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
-    readonly_fields = (
-        'report_date', 'created_at', 'updated_at',
-        'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases',
-        'health_min_num_dead', 'who_cases', 'who_suspected_cases', 'who_probable_cases', 'who_confirmed_cases', 'who_num_dead',
-        'other_cases', 'other_suspected_cases', 'other_probable_cases', 'other_confirmed_cases'
-    )
+    readonly_fields = ('report_date', 'created_at', 'updated_at')
     list_filter = [MembershipFilter]
     actions = ['create_events', 'export_field_reports', ]
 
