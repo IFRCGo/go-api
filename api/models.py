@@ -142,6 +142,9 @@ class Country(models.Model):
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    independent = models.NullBooleanField(
+        default=None, null=True, help_text=_('Is this an independent country?')
+    )
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
