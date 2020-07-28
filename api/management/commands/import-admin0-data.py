@@ -19,6 +19,11 @@ class Command(BaseCommand):
   def add_arguments(self, parser):
     parser.add_argument('filename', nargs='+', type=str)
     parser.add_argument(
+    '--update-geom',
+    action='store_true',
+    help='Update the geometry of the district.'
+    )
+    parser.add_argument(
       '--update-bbox',
       action='store_true',
       help='Update the bbox of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin'
@@ -60,9 +65,11 @@ class Command(BaseCommand):
     except:
       raise CommandError('Could not open file')
 
+    fields = data[0].fields
     # first, let's import all the geometries for countries with iso code
     for feature in data[0]:
       feature_iso2 = feature.get('ISO2').lower()
+
       if feature_iso2:
         geom_wkt = feature.geom.wkt
         geom = GEOSGeometry(geom_wkt, srid=4326)
@@ -74,10 +81,12 @@ class Command(BaseCommand):
 
         # find this country in the database
         try:
-          country = Country.objects.get(iso=feature_iso2, record_type=1)
           # if the country exist
-          # add geom
-          country.geom = geom.wkt
+          country = Country.objects.get(iso=feature_iso2, record_type=1)
+
+          if options['update_geom']:
+            # add geom
+            country.geom = geom.wkt
 
           if options['update_bbox']:
             # add bbox
@@ -88,8 +97,9 @@ class Command(BaseCommand):
             country.centroid = centroid
 
           # save
-          print('updating %s with geometries' %feature_iso2)
-          country.save()
+          if options['update_geom'] or options['update_bbox'] or options['update_centroid']:
+            print('updating %s with geometries' %feature_iso2)
+            country.save()
         except ObjectDoesNotExist:
           missing = []
           if not options['import_missing']:
@@ -107,10 +117,22 @@ class Command(BaseCommand):
               name = feature.get('NAME_ICRC')
               iso = feature_iso2
               iso3 = feature.get('ISO3').lower()
-              region = feature.get('REGION_IFR')
 
+              region = feature.get('REGION_IFR')
               # get region from db
               region_id = Region.objects.get(name=region_enum[region])
+
+              if ('INDEPENDEN' in fields):
+                independent = feature.get('INDEPENDEN')
+                if independent == 'TRUE':
+                    country.independent = True
+                elif independent == 'FALSE':
+                    country.independent = False
+                else:
+                  country.independent = None
+
+              if ('NATIONAL_S' in fields):
+                country.society_name = feature.get('NATIONAL_S')
 
               country.name = name
               country.record_type = 1
