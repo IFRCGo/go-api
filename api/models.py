@@ -1215,6 +1215,7 @@ class Profile(models.Model):
     department = models.CharField(verbose_name=_('department'), blank=True, null=True, max_length=100)
     position = models.CharField(verbose_name=_('position'), blank=True, null=True, max_length=100)
     phone_number = models.CharField(verbose_name=_('phone number'), blank=True, null=True, max_length=100)
+    last_frontend_login = models.DateTimeField(verbose_name=_('last frontend login'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('user profile')

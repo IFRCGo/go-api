@@ -62,6 +62,7 @@ from .serializers import (
     RegionRelationSerializer,
 
     CountrySerializer,
+    MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
@@ -123,6 +124,7 @@ class CountryFilter(filters.FilterSet):
         model = Country
         fields = ('region', 'record_type',)
 
+
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.all()
     filter_class = CountryFilter
@@ -143,6 +145,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
 
     def get_serializer_class(self):
+        if self.request.GET.get('mini', 'false').lower() == 'true':
+            return MiniCountrySerializer
         if self.action == 'list':
             return CountrySerializer
         return CountryRelationSerializer
@@ -253,9 +257,22 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
-        return Event.objects.filter(parent_event__isnull=True)
-        # return Event.get_for(self.request.user).filter(parent_event__isnull=True)
+            return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+        return (
+            Event.objects.filter(parent_event__isnull=True)
+            .select_related('dtype')
+            .prefetch_related(
+                'regions',
+                Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
+                Prefetch('countries', queryset=Country.objects.select_related('region')),
+                Prefetch('districts', queryset=District.objects.select_related('country')),
+                Prefetch(
+                    'field_reports',
+                    queryset=FieldReport.objects.select_related('user', 'dtype', 'event')
+                                                .prefetch_related('districts', 'countries', 'regions', 'contacts')
+                ),
+            )
+        )
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
@@ -323,6 +340,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     filter_class = SituationReportFilter
     visibility_model_class = SituationReport
 
+
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
     dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
@@ -331,6 +349,7 @@ class AppealFilter(filters.FilterSet):
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+
     class Meta:
         model = Appeal
         fields = {
@@ -338,10 +357,12 @@ class AppealFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.all()
+    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     serializer_class = AppealSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+                       'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
 
     def remove_unconfirmed_event(self, obj):
@@ -369,9 +390,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
+
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
     appeal__in = ListFilter(field_name='appeal__id')
+
     class Meta:
         model = AppealDocument
         fields = {
@@ -379,11 +402,13 @@ class AppealDocumentFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     serializer_class = AppealDocumentSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = AppealDocumentFilter
+
 
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer

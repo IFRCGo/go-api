@@ -24,7 +24,16 @@ from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
 
 
+class ProfileInline(admin.StackedInline):
+    model = models.Profile
+    can_delete = False
+    verbose_name_plural = _('user profile')
+    fk_name = 'user'
+    readonly_fields = ('last_frontend_login',)
+
+
 class GoUserAdmin(UserAdmin):
+    inlines = (ProfileInline,)
     list_filter = (
         ('profile__country__region', RelatedDropdownFilter),
         ('profile__country', RelatedDropdownFilter),
@@ -33,6 +42,11 @@ class GoUserAdmin(UserAdmin):
         'is_superuser',
         'is_active',
     )
+
+    def get_inline_instances(self, request, obj=None):
+        if not obj:
+            return list()
+        return super().get_inline_instances(request, obj)
 
 
 admin.site.unregister(User)
@@ -444,6 +458,7 @@ class UserProfileAdmin(CompareVersionAdmin):
         ('country', RelatedDropdownFilter),
     )
     actions = ['export_selected_users']
+    readonly_fields = ('last_frontend_login',)
 
     def export_selected_users(self, request, queryset):
         meta = self.model._meta

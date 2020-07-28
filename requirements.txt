@@ -1,7 +1,7 @@
 Django==2.2.13
 Jinja2==2.10.1
 Markdown==2.6.11
-MarkupSafe==1.0
+MarkupSafe==1.1.1
 Pillow==6.2.2
 PyPDF2==1.26.0
 Pygments==2.2.0
@@ -67,7 +67,6 @@ promise==2.1
 psycopg2==2.7.3.2
 pycountry==19.8.18
 pycparser==2.19
-pygraphviz==1.3.1
 python-Levenshtein==0.12.0
 python-dateutil==2.8.0
 python-mimeparse==1.6.0
@@ -75,7 +74,7 @@ pytidylib==0.3.2
 pytz==2019.1
 regex==2018.8.29
 requests==2.21.0
-setuptools==38.2.4
+setuptools==45
 singledispatch==3.4.0.3
 six==1.12.0
 tabula-py==1.2.0
