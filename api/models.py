@@ -66,6 +66,7 @@ class RegionName(IntEnum):
 class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     def indexing(self):
         return {
