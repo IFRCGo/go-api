@@ -393,8 +393,9 @@ class AppealFilter(filters.FilterSet):
 
 
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.all()
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
+    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+                       'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
 
     def get_serializer_class(self):
