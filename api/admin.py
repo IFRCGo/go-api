@@ -415,10 +415,11 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
+    modifiable = False
 
 
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
