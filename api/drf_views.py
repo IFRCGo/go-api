@@ -300,7 +300,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListMiniEventSerializer
         elif self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
-            is_tableau = request_format_type = self.request.GET.get('tableau', 'false').lower()
+            is_tableau = self.request.GET.get('tableau', 'false').lower()
             if request_format_type == 'csv' or is_tableau == 'true':
                 return ListEventCsvSerializer
             else:
