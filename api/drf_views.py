@@ -14,6 +14,7 @@ from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .utils import is_user_ifrc
+from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
@@ -154,7 +155,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         if self.request.GET.get('mini', 'false').lower() == 'true':
             return MiniCountrySerializer
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return CountryCsvSerializer
         if self.action == 'list':
             return CountrySerializer
@@ -212,7 +213,7 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = RegionSnippet
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return RegionSnippetCsvSerializer
         return RegionSnippetSerializer
 
@@ -230,7 +231,7 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = CountrySnippet
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return CountrySnippetCsvSerializer
         return CountrySnippetSerializer
 
@@ -300,8 +301,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListMiniEventSerializer
         elif self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
-            is_tableau = self.request.GET.get('tableau', 'false').lower()
-            if request_format_type == 'csv' or is_tableau == 'true':
+            if request_format_type == 'csv' or is_tableau(self.request) is True:
                 return ListEventCsvSerializer
             else:
                 return ListEventSerializer
@@ -370,7 +370,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     visibility_model_class = SituationReport
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return SituationReportCsvSerializer
         return SituationReportSerializer
 
@@ -399,7 +399,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = AppealFilter
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return AppealCsvSerializer
         return AppealSerializer
 
@@ -447,7 +447,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = AppealDocumentFilter
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return AppealDocumentCsvSerializer
         return AppealDocumentSerializer
 
@@ -507,7 +507,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
                                      'countries', 'districts', 'regions')
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return ListFieldReportCsvSerializer
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')

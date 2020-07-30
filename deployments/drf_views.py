@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
+from main.utils import is_tableau
 
 from .filters import ProjectFilter
 from .models import (
@@ -133,7 +134,7 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PartnerDeploymentFilterset
 
     def get_serializer_class(self):
-        if self.request.GET.get('tableau', 'false').lower() == 'true':
+        if is_tableau(self.request) is True:
             return PartnerDeploymentCsvSerializer
         return PartnerDeploymentSerializer
 
