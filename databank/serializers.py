@@ -12,6 +12,8 @@ from .models import (
     SocialEvent,
     KeyClimateEvent,
     SeasonalCalender,
+    KeyDocument,
+    ExternalSource,
 )
 
 
@@ -70,6 +72,20 @@ class WBCountryPopulationSerializer(WBDistrictPopulationSerializer):
         fields = ('id', 'iso', 'iso3', 'name', 'population', 'year', 'districts')
 
 
+class KeyDocumentSerializer(serializers.ModelSerializer):
+    group_display = serializers.CharField(source='group.title', read_only=True)
+
+    class Meta:
+        model = KeyDocument
+        exclude = ('overview',)
+
+
+class ExternalSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExternalSource
+        exclude = ('overview',)
+
+
 class CountryOverviewSerializer(serializers.ModelSerializer):
     school_status_display = serializers.CharField(source='get_school_status_display', read_only=True)
     rainy_season_display = serializers.CharField(source='get_rainy_season_display', read_only=True)
@@ -80,6 +96,8 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
     climate_events = KeyClimateEventSerializer(source='keyclimateevent_set', many=True, read_only=True)
     seasonal_calender = SeasonalCalenderSerializer(source='seasonalcalender_set', many=True, read_only=True)
     appeals = AppealSerializer(many=True, read_only=True)
+    key_documents = KeyDocumentSerializer(source='keydocument_set', many=True, read_only=True)
+    external_sources = ExternalSourceSerializer(source='externalsource_set', many=True, read_only=True)
 
     class Meta:
         model = CountryOverview
