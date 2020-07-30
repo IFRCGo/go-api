@@ -6,7 +6,7 @@ from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import MultiPolygon
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import transaction
 from api.models import Country
 from api.models import Region
@@ -59,6 +59,7 @@ class Command(BaseCommand):
     else:
       print('will write missing country iso to missing-countries.txt')
       missing_file = open('missing-countries.txt', 'w')
+      duplicate_file = open('duplicate-countries.txt', 'w')
 
     try:
       data = DataSource(filename)
@@ -100,8 +101,14 @@ class Command(BaseCommand):
           if options['update_geom'] or options['update_bbox'] or options['update_centroid']:
             print('updating %s with geometries' %feature_iso2)
             country.save()
+
+        except MultipleObjectsReturned:
+          if not options['import_missing']:
+            name = feature.get('NAME_ICRC')
+            duplicate_file.write(feature_iso2 + '\n')
+            print('duplicate country', feature_iso2, name)
+
         except ObjectDoesNotExist:
-          missing = []
           if not options['import_missing']:
             name = feature.get('NAME_ICRC')
             missing_file.write(feature_iso2 + '\n')

@@ -162,7 +162,7 @@ There are two Django management commands that helps to work with ICRC admin0 and
 This management command is used for updating and importing admin0 shapefile. To run:
 * `python manage.py import-admin0-data <filename.shp>`
 
-The above command will generate a list of missing countries in the database based on the iso2 code to a file called `missing-countries.txt`
+The above command will generate a list of missing countries in the database based on the iso2 code to a file called `missing-countries.txt`. In case the script comes across any countries with duplicate iso code, these will be stored in `duplicate-countries.txt`
 
 ### Options available for the command
 * `--update-geom` -- updates the geometry for all countries matched in the shapefile using the iso2 code.
