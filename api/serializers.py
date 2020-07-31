@@ -85,7 +85,7 @@ class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-				  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid',)
+                  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid',)
 
 
 class MiniCountrySerializer(serializers.ModelSerializer):
@@ -202,36 +202,45 @@ class CountryContactSerializer(serializers.ModelSerializer):
 class RegionRelationSerializer(serializers.ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
+
     class Meta:
         model = Region
         fields = ('links', 'contacts', 'name', 'id',)
 
+
 class CountryRelationSerializer(serializers.ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
+
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',)
+        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
+                  'inform_score', 'id', 'url_ifrc',)
+
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
         fields = ('aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'start_date', 'id',)
 
+
 class KeyFigureSerializer(serializers.ModelSerializer):
     class Meta:
         model = KeyFigure
         fields = ('number', 'deck', 'source', 'id',)
+
 
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
         fields = ('event', 'snippet', 'image', 'visibility', 'position', 'tab', 'id',)
 
+
 class EventContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventContact
         fields = ('ctype', 'name', 'title', 'email', 'phone', 'event', 'id',)
+
 
 class FieldReportContactSerializer(serializers.ModelSerializer):
     class Meta:
@@ -246,13 +255,17 @@ class MiniFieldReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FieldReport
         fields = (
-            'summary', 'status', 'description', 'contacts', 'countries', 'created_at', 'updated_at', 'report_date', 'id', 'is_covid_report', 'visibility',
-            'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates',
-            'gov_num_injured', 'gov_num_dead', 'gov_num_missing', 'gov_num_affected', 'gov_num_displaced',  'gov_num_assisted',
-            'other_num_injured', 'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
-            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk', 'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres', 'other_affected_pop_centres',
-            'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases', 'epi_num_dead', 'epi_figures_source',
+            'summary', 'status', 'description', 'contacts', 'countries', 'created_at', 'updated_at', 'report_date', 'id',
+            'is_covid_report', 'visibility', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced',
+            'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'gov_num_injured', 'gov_num_dead',
+            'gov_num_missing', 'gov_num_affected', 'gov_num_displaced', 'gov_num_assisted', 'other_num_injured',
+            'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
+            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk',
+            'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres',
+            'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
+            'epi_num_dead', 'epi_figures_source',
         )
+
 
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
@@ -320,7 +333,9 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at', 'id', 'slug', 'parent_event',)
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date',
+                  'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at',
+                  'id', 'slug', 'parent_event',)
 
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
@@ -339,7 +354,10 @@ class DetailEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured', 'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
+        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
+                  'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
+                  'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug',
+                  'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
         lookup_field = 'slug'
 
 
@@ -410,20 +428,25 @@ class AppealDocumentSerializer(serializers.ModelSerializer):
         model = AppealDocument
         fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'id',)
 
+
 class ProfileSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
+
     class Meta:
         model = Profile
         fields = ('country', 'org', 'org_type', 'city', 'department', 'position', 'phone_number')
+
 
 class MiniSubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ('stype', 'rtype', 'country', 'region', 'event', 'dtype', 'lookup_id',)
 
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
     subscription = MiniSubscriptionSerializer(many=True)
+
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',)
@@ -472,14 +495,18 @@ class ActionSerializer(serializers.ModelSerializer):
         model = Action
         fields = ('name', 'id', 'organizations', 'field_report_types', 'category',)
 
+
 class ActionsTakenSerializer(serializers.ModelSerializer):
     actions = ActionSerializer(many=True)
+
     class Meta:
         model = ActionsTaken
         fields = ('organization', 'actions', 'summary', 'id',)
 
+
 class SourceSerializer(serializers.ModelSerializer):
     stype = serializers.SlugRelatedField(slug_field='name', read_only=True)
+
     class Meta:
         model = Source
         fields = ('stype', 'spec', 'id',)
@@ -567,9 +594,11 @@ class DetailFieldReportSerializer(TranslatedModelSerializerMixin, serializers.Mo
     event = MiniEventSerializer()
     countries = MiniCountrySerializer(many=True)
     districts = MiniDistrictSerializer(many=True)
+
     class Meta:
         model = FieldReport
         fields = '__all__'
+
 
 class CreateFieldReportSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     class Meta:
