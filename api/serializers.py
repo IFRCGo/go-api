@@ -47,9 +47,14 @@ class DisasterTypeSerializer(serializers.ModelSerializer):
 
 
 class RegionSerializer(serializers.ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+
+    def get_bbox(self, region):
+        return json.loads(region.bbox.geojson)
+
     class Meta:
         model = Region
-        fields = ('name', 'id', 'region_name')
+        fields = ('name', 'id', 'region_name', 'bbox',)
 
 
 class CountryCsvSerializer(serializers.ModelSerializer):
@@ -62,10 +67,25 @@ class CountryCsvSerializer(serializers.ModelSerializer):
 
 
 class CountrySerializer(serializers.ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
+
+    def get_bbox(self, country):
+        if country.bbox:
+            return json.loads(country.bbox.geojson)
+        else:
+            return None
+
+    def get_centroid(self, country):
+        if country.centroid:
+            return json.loads(country.centroid.geojson)
+        else:
+            return None
+
     class Meta:
         model = Country
         fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-                  'inform_score', 'id', 'url_ifrc', 'record_type',)
+				  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid',)
 
 
 class MiniCountrySerializer(serializers.ModelSerializer):
@@ -95,9 +115,24 @@ class DistrictSerializer(serializers.ModelSerializer):
 
 
 class MiniDistrictSerializer(serializers.ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
+
+    def get_bbox(self, district):
+        if district.bbox:
+            return json.loads(district.bbox.geojson)
+        else:
+            return None
+
+    def get_centroid(self, district):
+        if district.centroid:
+            return json.loads(district.centroid.geojson)
+        else:
+            return None
+
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'bbox', 'centroid',)
 
 
 class RegionKeyFigureSerializer(serializers.ModelSerializer):
@@ -246,6 +281,7 @@ class ListEventSerializer(serializers.ModelSerializer):
         fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
                   'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
                   'field_reports', 'updated_at', 'id', 'slug', 'parent_event')
+
 
 class ListEventCsvSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()

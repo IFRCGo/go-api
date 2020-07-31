@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+from django.contrib.gis import admin as geoadmin
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -423,18 +424,20 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
+    modifiable = False
 
 
-class CountryAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'pk__in'
     list_display = ('__str__', 'record_type')
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
+    modifiable = False
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 
