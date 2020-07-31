@@ -101,7 +101,7 @@ services:
     command: python manage.py triggers_to_db
 
   db:
-    image: postgres:9.6
+    image: mdillon/postgis:9.6-alpine
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test

@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
-from django.db import models
+# from django.db import models
+from django.contrib.gis.db import models
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 # from django.db.models import Prefetch
@@ -65,6 +66,7 @@ class RegionName(IntEnum):
 class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     def indexing(self):
         return {
@@ -138,6 +140,12 @@ class Country(models.Model):
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
         storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    independent = models.NullBooleanField(
+        default=None, null=True, help_text=_('Is this an independent country?')
+    )
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
@@ -179,11 +187,14 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO3'), max_length=3, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
