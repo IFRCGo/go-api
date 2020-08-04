@@ -8,6 +8,7 @@ from .. import models
 from . import user, regional_project
 from api.factories import country, event, disaster_type
 
+
 class ProjectFactory(factory.DjangoModelFactory):
     class Meta:
         model = models.Project
@@ -31,9 +32,9 @@ class ProjectFactory(factory.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=500)
     programme_type = fuzzy.FuzzyChoice(models.ProgrammeTypes)
     primary_sector = fuzzy.FuzzyChoice(models.Sectors)
-    secondary_sectors = factory.List([
-        fuzzy.FuzzyChoice(models.SectorTags) for _ in range(randrange(5))
-    ])
+    secondary_sectors = factory.List(
+        [fuzzy.FuzzyChoice(models.SectorTags) for _ in range(randrange(5))]
+    )
     operation_type = fuzzy.FuzzyChoice(models.OperationTypes)
     start_date = factory.LazyFunction(datetime.date.today)
     end_date = factory.LazyFunction(datetime.date.today)

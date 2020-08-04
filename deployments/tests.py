@@ -1,10 +1,8 @@
 from snapshottest.django import TestCase
 
-from .models import Project
-from api.factories import country
 
-
-class TestDeploymentsModelsProject(TestCase):
-    def test_deployments_models_project(self):
-        project_model = Project(name="Test Project", reporting_ns=country.CountryFactory.build())
-        self.assertMatchSnapshot(project_model)
+class TestProjectAPI(TestCase):
+    def test_project_list(self):
+        response = self.client.get("/api/v2/project/")
+        self.assertEqual(response.status_code, 200)
+        self.assertMatchSnapshot(response.content)
