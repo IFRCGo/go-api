@@ -25,10 +25,10 @@ def is_valid_domain(email):
     domain = email.lower().split('@')[1]
     is_allowed = (
         DomainWhitelist.objects
-            .filter(is_active=True)
-            .annotate(domain_name_lower=Lower('domain_name'))
-            .filter(domain_name_lower=domain)
-            .exists()
+                       .filter(is_active=True)
+                       .annotate(domain_name_lower=Lower('domain_name'))
+                       .filter(domain_name_lower=domain)
+                       .exists()
     )
 
     if is_allowed or domain in ['ifrc.org', 'arcs.org.af', 'voroskereszt.hu']:
@@ -189,7 +189,7 @@ class VerifyEmail(PublicJsonRequestView):
                 token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
-                        settings.BASE_URL, # on PROD it should point to goadmin...
+                        settings.BASE_URL,  # on PROD it should point to goadmin...
                         token,
                         user,
                     ),
