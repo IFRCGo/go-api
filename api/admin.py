@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+from django.contrib.gis import admin as geoadmin
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -276,12 +277,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     list_select_related = ('event',)
     search_fields = ('countries__name', 'regions__name', 'summary',)
     autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
-    readonly_fields = (
-        'report_date', 'created_at', 'updated_at',
-        'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases',
-        'health_min_num_dead', 'who_cases', 'who_suspected_cases', 'who_probable_cases', 'who_confirmed_cases', 'who_num_dead',
-        'other_cases', 'other_suspected_cases', 'other_probable_cases', 'other_confirmed_cases'
-    )
+    readonly_fields = ('report_date', 'created_at', 'updated_at')
     list_filter = [MembershipFilter]
     actions = ['create_events', 'export_field_reports', ]
 
@@ -428,18 +424,20 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
+    modifiable = False
 
 
-class CountryAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'pk__in'
     list_display = ('__str__', 'record_type')
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
+    modifiable = False
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 

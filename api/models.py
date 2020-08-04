@@ -1,5 +1,6 @@
 from django.utils.translation import ugettext_lazy as _
-from django.db import models
+# from django.db import models
+from django.contrib.gis.db import models
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 # from django.db.models import Prefetch
@@ -65,6 +66,7 @@ class RegionName(IntEnum):
 class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     def indexing(self):
         return {
@@ -138,6 +140,12 @@ class Country(models.Model):
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
         storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    independent = models.NullBooleanField(
+        default=None, null=True, help_text=_('Is this an independent country?')
+    )
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
@@ -179,11 +187,14 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO3'), max_length=3, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
@@ -287,7 +298,7 @@ class TabNumber(IntEnum):
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage()
     )
@@ -305,7 +316,7 @@ class RegionSnippet(models.Model):
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage()
     )
@@ -543,7 +554,7 @@ def snippet_image_path(instance, filename):
 
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage()
     )
@@ -876,23 +887,6 @@ class FieldReport(models.Model):
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
     epi_figures_source = EnumIntegerField(EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True)
 
-    health_min_cases = models.IntegerField(verbose_name=_('number of cases (MOH)'), null=True, blank=True)
-    health_min_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (MOH)'), null=True, blank=True)
-    health_min_probable_cases = models.IntegerField(verbose_name=_('number of probabale cases (MOH)'), null=True, blank=True)
-    health_min_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (MOH)'), null=True, blank=True)
-    health_min_num_dead = models.IntegerField(verbose_name=_('number of dead (MOH)'), null=True, blank=True)
-
-    who_cases = models.IntegerField(verbose_name=_('number of cases (WHO)'), null=True, blank=True)
-    who_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (WHO)'), null=True, blank=True)
-    who_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (WHO)'), null=True, blank=True)
-    who_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (WHO)'), null=True, blank=True)
-    who_num_dead = models.IntegerField(verbose_name=_('number of number of dead (WHO)'), null=True, blank=True)
-
-    other_cases = models.IntegerField(verbose_name=_('number of cases (other)'), null=True, blank=True)
-    other_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (other)'), null=True, blank=True)
-    other_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (other)'), null=True, blank=True)
-    other_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (other)'), null=True, blank=True)
-
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
 
@@ -915,12 +909,6 @@ class FieldReport(models.Model):
     other_num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk (other)'), null=True, blank=True)
     other_affected_pop_centres = models.CharField(
         verbose_name=_('number of affected population centres (other)'), max_length=512, blank=True, null=True)
-
-    # Epidemic fields
-    cases = models.IntegerField(verbose_name=_('number of cases'), null=True, blank=True)
-    suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases'), null=True, blank=True)
-    probable_cases = models.IntegerField(verbose_name=_('number of probable cases'), null=True, blank=True)
-    confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases'), null=True, blank=True)
 
     # Date of data for situation fields
     sit_fields_date = models.DateTimeField(verbose_name=_('situation fields date'), blank=True, null=True)
