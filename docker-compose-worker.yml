@@ -3,45 +3,9 @@ version: '2'
 # TODO: Make production ready
 services:
   base_django_setup: &base_django_setup
-    image: ifrcgo/go-api:latest
-    environment:
-      DJANGO_DB_NAME: test
-      DJANGO_SECRET_KEY: test
-      DJANGO_DB_HOST: db
-      DJANGO_DB_USER: test
-      DJANGO_DB_PASS: test
-      FRONTEND_URL: $FRONTEND_URL
-      FDRS_CREDENTIAL: $FDRS_CREDENTIAL
-      HPC_CREDENTIAL: $HPC_CREDENTIAL
-      AWS_TRANSLATE_ACCESS_KEY: $AWS_TRANSLATE_ACCESS_KEY
-      AWS_TRANSLATE_SECRET_KEY: $AWS_TRANSLATE_SECRET_KEY
-      AWS_TRANSLATE_REGION: $AWS_TRANSLATE_REGION
-    volumes:
-      - '.:/home/ifrc/go-api'
-    depends_on:
-      - db
-      - redis
-    links:
-      - db
-      - redis
-
-  base:
-    build: .
-    image: ifrcgo/go-api:latest
-
-  db:
-    image: postgres:9.6
-    environment:
-      POSTGRES_PASSWORD: test
-      POSTGRES_USER: test
-      POSTGRES_DB: test
-    volumes:
-      - './.tmp/pg:/var/lib/postgresql/data'
-
-  redis:
-    image: redis:latest
-    volumes:
-      - redis-data:/data
+    image: ifrcgo/go-api:$GO_VERSION
+    env_file:
+      - goapi.env
 
   celery-cronjob:
     <<: *base_django_setup
@@ -52,6 +16,3 @@ services:
     <<: *base_django_setup
     # TODO: Log destination
     command: celery -A main worker -Q celery --quiet -l info
-
-volumes:
-  redis-data:

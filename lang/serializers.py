@@ -1,8 +1,13 @@
 import logging
-from rest_framework import serializers
+from rest_framework import (
+    serializers,
+    permissions,
+    exceptions,
+)
 
-from django.utils.translation import ugettext, get_language as django_get_language
 from django.db import transaction
+from django.conf import settings
+from django.utils.translation import ugettext, get_language as django_get_language
 from rest_framework.request import Request as DrfRequest
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation.manager import (
@@ -64,9 +69,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         lang_param = (request and request.query_params.get('lang')) or django_get_language()
 
         # NOTE: For POST raise error on non default language
-        if (request and request.method == 'post') and lang_param != django_get_language():
-            raise serializers.ValidationError(
-                ugettext('Non english language is not supported for method: POST')
+        if (request and request.method not in permissions.SAFE_METHODS) and lang_param != settings.LANGUAGE_CODE:
+            raise exceptions.MethodNotAllowed(
+                request.method,
+                detail=ugettext('Not allowed for non-english language'),
             )
 
         if lang_param == 'all':
@@ -105,13 +111,12 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     def _get_language_clear_validated_data(self, instance, validated_data):
         """
         Clear value for other languages for fields if single language is specified
-        NOTE: Not used right now.
         """
+        cleared = False
         for field, lang_fields in self.included_fields_lang.items():
             if len(lang_fields) != 1:
                 break
             current_lang_field = lang_fields[0]
-            # TODO: Also check if value has changed or not (Validate)
             if getattr(instance, current_lang_field) == validated_data[current_lang_field]:
                 continue
             for lang in AVAILABLE_LANGUAGES:
@@ -119,17 +124,26 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
                 if lang_field == current_lang_field:
                     continue
                 validated_data[lang_field] = None
+                cleared = True
+        return cleared
+
+    def _trigger_field_translation(self, instance):
+        if not settings.TESTING:
+            transaction.on_commit(
+                lambda: translate_model_fields.delay(get_model_name(self.Meta.model), instance.pk)
+            )
+        else:
+            # NOTE: For test case run the process directly (Translator will mock the generated text)
+            transaction.on_commit(
+                lambda: translate_model_fields(get_model_name(self.Meta.model), instance.pk)
+            )
 
     def create(self, validated_data):
         instance = super().create(validated_data)
-        transaction.on_commit(
-            lambda: translate_model_fields.delay(get_model_name(self.Meta.model), instance.pk)
-        )
+        self._trigger_field_translation(instance)
         return instance
 
     def update(self, instance, validated_data):
-        # self._get_language_clear_validated_data(instance, validated_data)
-        transaction.on_commit(
-            lambda: translate_model_fields.delay(get_model_name(self.Meta.model), instance.pk)
-        )
+        if self._get_language_clear_validated_data(instance, validated_data):
+            self._trigger_field_translation(instance)
         return super().update(instance, validated_data)

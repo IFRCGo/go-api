@@ -19,9 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class TranslateModel():
-    """
-    TODO: Look up in all languge field for initial required text
-    """
     def __init__(self):
         self.aws_translator = AmazonTranslate()
 
@@ -50,7 +47,7 @@ class TranslateModel():
                 initial_value,
                 lang,
                 source_language=initial_lang,
-            )['TranslatedText']
+            )
 
             setattr(obj, lang_field, new_value)
             yield lang_field

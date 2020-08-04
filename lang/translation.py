@@ -111,17 +111,23 @@ class AmazonTranslate(object):
     Amazon Translate helper
     """
     def __init__(self, client=None):
-        self.translate = client or boto3.client(
-            'translate',
-            aws_access_key_id=settings.AWS_TRANSLATE_ACCESS_KEY,
-            aws_secret_access_key=settings.AWS_TRANSLATE_SECRET_KEY,
-            region_name=settings.AWS_TRANSLATE_REGION,
-        )
+        if not settings.TESTING:
+            # NOTE: Service not used for testing
+            self.translate = client or boto3.client(
+                'translate',
+                aws_access_key_id=settings.AWS_TRANSLATE_ACCESS_KEY,
+                aws_secret_access_key=settings.AWS_TRANSLATE_SECRET_KEY,
+                region_name=settings.AWS_TRANSLATE_REGION,
+            )
 
     def translate_text(self, text, dest_language, source_language='auto'):
         # NOTE: using 'auto' as source_language will cost extra. Language Detection: https://aws.amazon.com/comprehend/pricing/
-        return self.translate.translate_text(
-            Text=text,
-            SourceLanguageCode=source_language,
-            TargetLanguageCode=dest_language
-        )
+        if not settings.TESTING:
+            return self.translate.translate_text(
+                Text=text,
+                SourceLanguageCode=source_language,
+                TargetLanguageCode=dest_language
+            )['TranslatedText']
+        else:
+            # NOTE: Mocking for test purpose
+            return text + f' translated to "{dest_language}" using source language "{source_language}"'

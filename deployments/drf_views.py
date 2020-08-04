@@ -257,8 +257,12 @@ class RegionProjectViewset(viewsets.ViewSet):
                 **country_annotate,
             ).values('id', 'name', 'iso', 'iso3', 'projects_count', *country_annotate.keys()),
             'country_ns_sector_count': _get_country_ns_sector_count(),
-            'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id', distinct=True)).values(
-                'count', id=F('reporting_ns'), name=F('reporting_ns__name')),
+            'supporting_ns': [
+                {'id': id, 'name': name, 'count': count}
+                for id, name, count in projects.order_by().values('reporting_ns').annotate(
+                    count=Count('id', distinct=True)
+                ).values_list('reporting_ns', 'reporting_ns__name', 'count')
+            ],
         })
 
     @action(detail=True, url_path='national-society-activities', methods=('get',))
@@ -266,10 +270,16 @@ class RegionProjectViewset(viewsets.ViewSet):
         projects = self.get_projects()
 
         def _get_distinct(field, *args, **kwargs):
-            return list(
-                projects.order_by().values(field).annotate(
-                    count=Count('id', distinct=True)).values(field, *args, **kwargs).distinct()
-            )
+            kwargs[field] = field
+            return [
+                {
+                    f: p[key]
+                    for f, key in kwargs.items()
+                }
+                for p in projects.order_by().values(field).annotate(
+                    count=Count('id', distinct=True)
+                ).values(field, *kwargs.values()).distinct()
+            ]
 
         def _get_count(*fields):
             return list(
@@ -280,15 +290,15 @@ class RegionProjectViewset(viewsets.ViewSet):
         # Raw nodes
         supporting_ns_list = _get_distinct(
             'reporting_ns',
-            iso3=F('reporting_ns__iso3'),
-            iso=F('reporting_ns__iso'),
-            name=F('reporting_ns__society_name')
+            iso3='reporting_ns__iso3',
+            iso='reporting_ns__iso',
+            name='reporting_ns__society_name',
         )
         receiving_ns_list = _get_distinct(
             'project_country',
-            iso3=F('project_country__iso3'),
-            iso=F('project_country__iso'),
-            name=F('project_country__name')
+            iso3='project_country__iso3',
+            iso='project_country__iso',
+            name='project_country__name',
         )
         sector_list = _get_distinct('primary_sector')
 
