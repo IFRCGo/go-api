@@ -48,7 +48,11 @@ class RegionSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
     def get_bbox(self, region):
-        return json.loads(region.bbox.geojson)
+        if region.bbox:
+            return json.loads(region.bbox.geojson)
+        else:
+            return None
+
     class Meta:
         model = Region
         fields = ('name', 'id', 'region_name', 'bbox',)
