@@ -2,6 +2,7 @@ import json
 from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
 from api.logger import logger
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
@@ -145,7 +146,10 @@ def log_deletion(sender, instance, using, **kwargs):
 def remove_child_events_from_es(sender, instance, using, **kwargs):
     model = instance.__class__.__name__
     if model == 'Event':
-        curr_record = Event.objects.get(pk=instance.id)
+        try:
+            curr_record = Event.objects.get(pk=instance.id)
+        except ObjectDoesNotExist:
+            return
 
         if curr_record.parent_event is None and instance.parent_event:
             # Delete ES record if Emergency became a child
