@@ -2,16 +2,13 @@ import json
 from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
 from api.logger import logger
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from elasticsearch.helpers import bulk
-from reversion.models import Revision, Version
+from reversion.models import Version
 from reversion.signals import post_revision_commit
-from api.models import ReversionDifferenceLog, User, Country, Event
-from deployments.models import DeployedPerson
-from per.models import Form
+from api.models import ReversionDifferenceLog, Event
 from middlewares.middlewares import get_username
 
 
