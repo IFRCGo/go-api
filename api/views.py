@@ -420,9 +420,8 @@ class ShowUsername(PublicJsonPostView):
         if 'email' not in body:
             return bad_request('Must include an `email` property')
 
-        try:
             user = User.objects.filter(email__iexact=body['email']).first()
-        except ObjectDoesNotExist:
+        if user is None:
             return bad_request('That email is not associated with a user')
 
         email_context = {
