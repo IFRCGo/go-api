@@ -146,9 +146,8 @@ def log_deletion(sender, instance, using, **kwargs):
 def remove_child_events_from_es(sender, instance, using, **kwargs):
     model = instance.__class__.__name__
     if model == 'Event':
-        try:
-            curr_record = Event.objects.get(pk=instance.id)
-        except ObjectDoesNotExist:
+        curr_record = Event.objects.filter(id=instance.id).first()
+        if curr_record is None:
             return
 
         if curr_record.parent_event is None and instance.parent_event:
