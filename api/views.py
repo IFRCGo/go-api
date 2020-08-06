@@ -420,7 +420,7 @@ class ShowUsername(PublicJsonPostView):
         if 'email' not in body:
             return bad_request('Must include an `email` property')
 
-            user = User.objects.filter(email__iexact=body['email']).first()
+        user = User.objects.filter(email__iexact=body['email']).first()
         if user is None:
             return bad_request('That email is not associated with a user')
 
@@ -435,44 +435,45 @@ class ShowUsername(PublicJsonPostView):
         return JsonResponse({'status': 'ok'})
 
 
-class ResendValidation(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'username' not in body:
-            return bad_request('Must provide a username')
-        username = body['username']
-        pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
-        if pending_user:
-            if pending_user.user.is_active is True:
-                return bad_request('Your registration is already active, \
-                                    you can try logging in with your registered username and password')
-            if pending_user.created_at < timezone.now() - timedelta(days=1):
-                return bad_request('The verification period is expired. \
-                                    You must verify your email within 24 hours. \
-                                    Please contact your system administrator.')
+class ResendValidation(APIView):
+    def post(self, request):
+        username = request.data.get('username', None)
 
-            # Construct and re-send the email
-            email_context = {
-                'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-                    settings.BASE_URL,  # on PROD it should point to goadmin...
-                    pending_user.token,
-                    username,
-                )
-            }
+        if username:
+            pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
+            if pending_user:
+                if pending_user.user.is_active is True:
+                    return bad_request('Your registration is already active, \
+                                        you can try logging in with your registered username and password')
+                if pending_user.created_at < timezone.now() - timedelta(days=1):
+                    return bad_request('The verification period is expired. \
+                                        You must verify your email within 24 hours. \
+                                        Please contact your system administrator.')
 
-            if pending_user.user.is_staff:
-                template = 'email/registration/verify-staff-email.html'
+                # Construct and re-send the email
+                email_context = {
+                    'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
+                        settings.BASE_URL,  # on PROD it should point to goadmin...
+                        pending_user.token,
+                        username,
+                    )
+                }
+
+                if pending_user.user.is_staff:
+                    template = 'email/registration/verify-staff-email.html'
+                else:
+                    template = 'email/registration/verify-outside-email.html'
+
+                send_notification('Validate your account',
+                                pending_user.user.email,
+                                render_to_string(template, email_context),
+                                'Validate account - ' + username)
+                return Response({'data': 'Success'})
             else:
-                template = 'email/registration/verify-outside-email.html'
-
-            send_notification('Validate your account',
-                              pending_user.user.email,
-                              render_to_string(template, email_context),
-                              'Validate account - ' + username)
-            return JsonResponse({'status': 'ok'})
+                return bad_request('No pending registration found with the provided username. \
+                                    Please check your input.')
         else:
-            return bad_request('No pending registration found with the provided username. \
-                                Please check your input.')
+            return bad_request('Please provide your username in the request.')
 
 
 class AddCronJobLog(APIView):
