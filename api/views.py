@@ -465,9 +465,9 @@ class ResendValidation(APIView):
                     template = 'email/registration/verify-outside-email.html'
 
                 send_notification('Validate your account',
-                                pending_user.user.email,
-                                render_to_string(template, email_context),
-                                'Validate account - ' + username)
+                                  pending_user.user.email,
+                                  render_to_string(template, email_context),
+                                  'Validate account - ' + username)
                 return Response({'data': 'Success'})
             else:
                 return bad_request('No pending registration found with the provided username. \
