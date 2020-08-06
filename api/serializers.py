@@ -45,6 +45,11 @@ class DisasterTypeSerializer(serializers.ModelSerializer):
         fields = ('name', 'summary', 'id',)
 
 class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = ('name', 'id', 'region_name',)
+
+class RegionGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
     def get_bbox(self, region):
@@ -57,8 +62,13 @@ class RegionSerializer(serializers.ModelSerializer):
         model = Region
         fields = ('name', 'id', 'region_name', 'bbox',)
 
-
 class CountrySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Country
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'independent',)
+
+class CountryGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
 
@@ -76,12 +86,12 @@ class CountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid',)
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent')
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region',)
+        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region', 'independent',)
 
 class RegoCountrySerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,6 +110,11 @@ class DistrictSerializer(serializers.ModelSerializer):
         fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id',)
 
 class MiniDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
+
+class MiniDistrictGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
 
