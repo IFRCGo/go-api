@@ -1,7 +1,10 @@
 import logging
 import boto3
 
-from modeltranslation.admin import TranslationAdmin as O_TranslationAdmin
+from modeltranslation.admin import (
+    TranslationAdmin as O_TranslationAdmin,
+    TranslationInlineModelAdmin as O_TranslationInlineModelAdmin,
+)
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
 from modeltranslation.manager import (
@@ -28,12 +31,28 @@ AVAILABLE_LANGUAGES = mt_settings.AVAILABLE_LANGUAGES
 DEFAULT_LANGUAGE = mt_settings.DEFAULT_LANGUAGE
 
 
-class TranslationAdmin(O_TranslationAdmin):
+class TranslationAdminMixin():
     SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME = 'GO__TRANS_SHOW_ALL_LANGUAGE_IN_FORM'
 
     def _go__show_all_language_in_form(self):
         return get_signal_request().session.get(self.SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME, False)
 
+    # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
+    def _exclude_original_fields(self, exclude=None):
+        exclude = super()._exclude_original_fields(exclude)
+        if self._go__show_all_language_in_form():
+            return exclude
+        current_lang = get_language()
+        # Exclude other languages
+        return exclude + tuple([
+            build_localized_fieldname(field, lang)
+            for field in self.trans_opts.fields.keys()
+            for lang in AVAILABLE_LANGUAGES
+            if lang != current_lang
+        ])
+
+
+class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
     def get_url_namespace(self, name, absolute=True):
         meta = self.model._meta
         namespace = f'{meta.app_label}_{meta.model_name}_{name}'
@@ -62,19 +81,9 @@ class TranslationAdmin(O_TranslationAdmin):
         )
         return redirect(request.GET.get('next'))
 
-    # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
-    def _exclude_original_fields(self, exclude=None):
-        exclude = super()._exclude_original_fields(exclude)
-        if self._go__show_all_language_in_form():
-            return exclude
-        current_lang = get_language()
-        # Exclude other languages
-        return exclude + tuple([
-            build_localized_fieldname(field, lang)
-            for field in self.trans_opts.fields.keys()
-            for lang in AVAILABLE_LANGUAGES
-            if lang != current_lang
-        ])
+
+class TranslationInlineModelAdmin(TranslationAdminMixin, O_TranslationInlineModelAdmin):
+    pass
 
 
 # NOTE: Fixing modeltranslation Queryset to support experssions in Queryset values()
@@ -120,6 +129,12 @@ class AmazonTranslate(object):
                 region_name=settings.AWS_TRANSLATE_REGION,
             )
 
+    def _fake_translation(self, text, dest_language, source_language):
+        """
+        This is used for test only
+        """
+        return text + f' translated to "{dest_language}" using source language "{source_language}"'
+
     def translate_text(self, text, dest_language, source_language='auto'):
         # NOTE: using 'auto' as source_language will cost extra. Language Detection: https://aws.amazon.com/comprehend/pricing/
         if not settings.TESTING:
@@ -130,4 +145,4 @@ class AmazonTranslate(object):
             )['TranslatedText']
         else:
             # NOTE: Mocking for test purpose
-            return text + f' translated to "{dest_language}" using source language "{source_language}"'
+            return self._fake_translation(text, dest_language, source_language)

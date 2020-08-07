@@ -32,7 +32,7 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('national_society_country__name',)
 
 
-class PersonnelAdmin(CompareVersionAdmin):
+class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     country_in = 'country_from__in'
     region_in = 'country_from__region__in'
     search_fields = ('name', 'role', 'type',)
@@ -55,7 +55,7 @@ class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('activity',)
 
 
-class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'parent_society__in'
     region_in = 'parent_society__region__in'
     autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)

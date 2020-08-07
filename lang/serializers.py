@@ -1,13 +1,8 @@
 import logging
-from rest_framework import (
-    serializers,
-    permissions,
-    exceptions,
-)
-
+from rest_framework import serializers
 from django.db import transaction
 from django.conf import settings
-from django.utils.translation import ugettext, get_language as django_get_language
+from django.utils.translation import get_language as django_get_language
 from rest_framework.request import Request as DrfRequest
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation.manager import (
@@ -57,6 +52,8 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     Translation mixin for serializer
     - Using header/GET Params to detect languge
     - Assign original field name to requested field_<language>
+
+    Not feasible:
     - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
     """
     def get_field_names(self, declared_fields, info):
@@ -66,19 +63,8 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         request = self.context.get('request') or (get_signal_request() and DrfRequest(get_signal_request()))
         if request is None:
             logger.warn('Request is not available using context/middleware. This can cause unexcepted behavior for translation')
-        lang_param = (request and request.query_params.get('lang')) or django_get_language()
-
-        # NOTE: For POST raise error on non default language
-        if (request and request.method not in permissions.SAFE_METHODS) and lang_param != settings.LANGUAGE_CODE:
-            raise exceptions.MethodNotAllowed(
-                request.method,
-                detail=ugettext('Not allowed for non-english language'),
-            )
-
-        if lang_param == 'all':
-            requested_langs = AVAILABLE_LANGUAGES
-        else:
-            requested_langs = lang_param.split(',') if lang_param else []
+        lang_param = django_get_language()
+        requested_langs = [lang_param]
 
         excluded_langs = [lang for lang in AVAILABLE_LANGUAGES if lang not in requested_langs]
         included_langs = [lang for lang in AVAILABLE_LANGUAGES if lang in requested_langs]
@@ -117,7 +103,9 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
             if len(lang_fields) != 1:
                 break
             current_lang_field = lang_fields[0]
-            if getattr(instance, current_lang_field) == validated_data[current_lang_field]:
+            old_value = getattr(instance, current_lang_field) or ''
+            new_value = validated_data.get(current_lang_field) or validated_data.get(field) or ''
+            if old_value == new_value:
                 continue
             for lang in AVAILABLE_LANGUAGES:
                 lang_field = build_localized_fieldname(field, lang)
@@ -127,23 +115,24 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
                 cleared = True
         return cleared
 
-    def _trigger_field_translation(self, instance):
+    @classmethod
+    def trigger_field_translation(cls, instance):
         if not settings.TESTING:
             transaction.on_commit(
-                lambda: translate_model_fields.delay(get_model_name(self.Meta.model), instance.pk)
+                lambda: translate_model_fields.delay(get_model_name(cls.Meta.model), instance.pk)
             )
         else:
             # NOTE: For test case run the process directly (Translator will mock the generated text)
             transaction.on_commit(
-                lambda: translate_model_fields(get_model_name(self.Meta.model), instance.pk)
+                lambda: translate_model_fields(get_model_name(cls.Meta.model), instance.pk)
             )
 
     def create(self, validated_data):
         instance = super().create(validated_data)
-        self._trigger_field_translation(instance)
+        self.trigger_field_translation(instance)
         return instance
 
     def update(self, instance, validated_data):
         if self._get_language_clear_validated_data(instance, validated_data):
-            self._trigger_field_translation(instance)
+            self.trigger_field_translation(instance)
         return super().update(instance, validated_data)

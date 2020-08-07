@@ -388,7 +388,7 @@ class TranslationTest(APITestCase):
         self.authenticate(self.user)
 
         # Using both header and GET Param
-        for using in ['header', 'get_param']:
+        for using in ['header']:
             for current_language, _ in settings.LANGUAGES:
                 body = {
                     'reporting_ns': country.id,
@@ -408,11 +408,8 @@ class TranslationTest(APITestCase):
 
                 # POST (Creation)
                 with self.capture_on_commit_callbacks(execute=True):
-                    if using == 'get_param':
-                        resp = self.client.post(f'/api/v2/project/?lang={current_language}', body)
-                    else:
-                        # https://docs.djangoproject.com/en/3.0/topics/testing/tools/#setting-the-language
-                        resp = self.client.post('/api/v2/project/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                    # https://docs.djangoproject.com/en/3.0/topics/testing/tools/#setting-the-language
+                    resp = self.client.post('/api/v2/project/', body, HTTP_ACCEPT_LANGUAGE=current_language)
 
                 # NOTE: non-safe methods are not allowd for non english language
                 if current_language == settings.LANGUAGE_CODE:
@@ -426,25 +423,21 @@ class TranslationTest(APITestCase):
 
                 # GET
                 for lang, _ in settings.LANGUAGES:
-                    if using == 'get_param':
-                        resp = self.client.get(f'/api/v2/project/{project_id}/?lang={lang}')
-                    else:
-                        resp = self.client.get(f'/api/v2/project/{project_id}/', HTTP_ACCEPT_LANGUAGE=lang)
+                    resp = self.client.get(f'/api/v2/project/{project_id}/', HTTP_ACCEPT_LANGUAGE=lang)
                     self.assertEqual(resp.status_code, 200, resp.content)
                     resp_body = resp.json()
                     if lang == current_language:
                         assert resp_body['name'] == names[current_language], \
                             f"Name ({lang}): <{resp_body['name']}> should be <{names[current_language]}>"
                     else:
-                        assert resp_body['name'] is not None, f"Name ({lang}): should not be None"
+                        translated_text = self.aws_translator._fake_translation(names[current_language], lang, current_language)
+                        assert resp_body['name'] == translated_text,\
+                            f"Name ({lang}): should be <{translated_text}> instead of <{resp_body['name']}>"
 
                 # Update (This doesn't reset other language)
                 body['name'] += ''
                 with self.capture_on_commit_callbacks(execute=True):
-                    if using == 'get_param':
-                        resp = self.client.put(f'/api/v2/project/{project_id}/?lang={current_language}', body)
-                    else:
-                        resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
                 self.assertEqual(resp.status_code, 200, resp.content)
 
                 # non current language field should not be None
@@ -459,10 +452,7 @@ class TranslationTest(APITestCase):
                 # Update (Reset other language) (Without onCommit Trigger by not using self.capture_on_commit_callbacks)
                 # This way the language field are reset but auto translation work is reverted back i.e reset is preserved
                 body['name'] += ' Changed'
-                if using == 'get_param':
-                    resp = self.client.put(f'/api/v2/project/{project_id}/?lang={current_language}', body)
-                else:
-                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
                 self.assertEqual(resp.status_code, 200, resp.content)
 
                 # non current language field should be None
@@ -477,10 +467,7 @@ class TranslationTest(APITestCase):
                 # Again Update (With onCommit Trigger: Mock Translation)
                 body['name'] += ' Again Changed'
                 with self.capture_on_commit_callbacks(execute=True):
-                    if using == 'get_param':
-                        resp = self.client.put(f'/api/v2/project/{project_id}/?lang={current_language}', body)
-                    else:
-                        resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
                 self.assertEqual(resp.status_code, 200, resp.content)
 
                 # non current language field should be None

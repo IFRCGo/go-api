@@ -4,6 +4,8 @@ from rest_framework import test
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.contrib.auth.models import User
 
+from lang.translation import AmazonTranslate
+
 
 class APITestCase(test.APITestCase):
     """
@@ -35,6 +37,7 @@ class APITestCase(test.APITestCase):
             password='test123',
             email='jon@@ifrc.org',
         )
+        self.aws_translator = AmazonTranslate()
 
     def authenticate(self, user=None):
         user = user or self.user

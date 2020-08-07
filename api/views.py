@@ -161,9 +161,10 @@ class AreaAggregate(PublicJsonRequestView):
         elif not region_id:
             return bad_request('`id` must be a region id')
 
-        aggregate = Appeal.objects.filter(**{region_type: region_id}) \
-                                  .annotate(count=Count('id')) \
-                                  .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
+        aggregate = Appeal.objects\
+            .filter(**{region_type: region_id}) \
+            .annotate(count=Count('id')) \
+            .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
 
         return JsonResponse(dict(aggregate))
 
@@ -398,8 +399,7 @@ class RecoverPassword(PublicJsonPostView):
 
         token = get_random_string(length=32)
         Recovery.objects.filter(user=user).delete()
-        recovery = Recovery.objects.create(user=user,
-                                           token=token)
+        Recovery.objects.create(user=user, token=token)
         email_context = {
             'frontend_url': frontend_url,
             'username': user.username,

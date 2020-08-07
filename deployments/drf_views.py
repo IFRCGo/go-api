@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.db.models import Q, Sum, Count, F, Subquery, OuterRef, IntegerField
+from django.db.models import Q, Sum, Count, Subquery, OuterRef, IntegerField
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
