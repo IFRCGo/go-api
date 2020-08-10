@@ -173,6 +173,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
+    'entity_encoding': 'raw',
     'height': 360,
     'width': 1120,
     'cleanup_on_startup': True,
