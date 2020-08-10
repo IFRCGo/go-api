@@ -314,18 +314,20 @@ class PublicJsonPostView(View):
         return self.handle_post(request, *args, **kwargs)
 
 
-class GetAuthToken(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'username' not in body or 'password' not in body:
+class GetAuthToken(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+
+        if username is None or password is None:
             return bad_request('Body must contain `username` and `password`')
-        username = body['username']
-        password = body['password']
 
         # Get the case-correct username for authenticate()
         casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
-        if not casecorr_uname:
-            return bad_request('Invalid username or password')  # definately username issue
+        if casecorr_uname is None:
+            return bad_request('Invalid username or password')  # definitely username issue
 
         # User model's __str__ is its username
         user = authenticate(username=casecorr_uname, password=password)
@@ -353,54 +355,57 @@ class GetAuthToken(PublicJsonPostView):
             return bad_request('Invalid username or password')  # most probably password issue
 
 
-class ChangePassword(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'username' not in body or ('password' not in body and 'token' not in body):
+class ChangePassword(APIView):
+    permissions_classes = []
+
+    def post(self, request):
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+        new_pass = request.data.get('new_password', None)
+        token = request.data.get('token', None)
+        if username is None or password is None:
             return bad_request('Must include a `username` and either a `password` or `token`')
 
-        try:
-            user = User.objects.get(username__iexact=body['username'])
-        except ObjectDoesNotExist:
+        user = User.objects.filter(username__iexact=username).first()
+        if user is None:
             return bad_request('Could not authenticate')
 
-        if 'password' in body and not user.check_password(body['password']):
+        if password and not user.check_password(password):
             return bad_request('Could not authenticate')
-        elif 'token' in body:
-            try:
-                recovery = Recovery.objects.get(user=user)
-            except ObjectDoesNotExist:
+        elif token:
+            recovery = Recovery.objects.filter(user=user).first()
+            if recovery is None:
                 return bad_request('Could not authenticate')
 
-            if recovery.token != body['token']:
+            if recovery.token != token:
                 return bad_request('Could not authenticate')
             recovery.delete()
 
         # TODO validate password
-        if 'new_password' not in body:
+        if new_pass is None:
             return bad_request('Must include a `new_password` property')
 
-        user.set_password(body['new_password'])
+        user.set_password(new_pass)
         user.save()
 
         return JsonResponse({'status': 'ok'})
 
 
-class RecoverPassword(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'email' not in body:
+class RecoverPassword(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', None)
+        if email is None:
             return bad_request('Must include an `email` property')
 
-        try:
-            user = User.objects.get(email__iexact=body['email'])
-        except ObjectDoesNotExist:
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
             return bad_request('That email is not associated with a user')
 
         token = get_random_string(length=32)
         Recovery.objects.filter(user=user).delete()
-        recovery = Recovery.objects.create(user=user,
-                                           token=token)
+        Recovery.objects.create(user=user, token=token)
         email_context = {
             'frontend_url': frontend_url,
             'username': user.username,
@@ -414,13 +419,15 @@ class RecoverPassword(PublicJsonPostView):
         return JsonResponse({'status': 'ok'})
 
 
-class ShowUsername(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'email' not in body:
+class ShowUsername(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', None)
+        if email is None:
             return bad_request('Must include an `email` property')
 
-        user = User.objects.filter(email__iexact=body['email']).first()
+        user = User.objects.filter(email__iexact=email).first()
         if user is None:
             return bad_request('That email is not associated with a user')
 
@@ -436,6 +443,8 @@ class ShowUsername(PublicJsonPostView):
 
 
 class ResendValidation(APIView):
+    permission_classes = []
+
     def post(self, request):
         username = request.data.get('username', None)
 
@@ -465,7 +474,7 @@ class ResendValidation(APIView):
                     template = 'email/registration/verify-outside-email.html'
 
                 send_notification('Validate your account',
-                                  pending_user.user.email,
+                                  [pending_user.user.email],
                                   render_to_string(template, email_context),
                                   'Validate account - ' + username)
                 return Response({'data': 'Success'})
