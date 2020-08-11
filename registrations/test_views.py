@@ -17,7 +17,6 @@ from api.models import Country
 from api.views import (
     bad_request,
     bad_http_request,
-    PublicJsonPostView,
     PublicJsonRequestView,
     GetAuthToken,
 )

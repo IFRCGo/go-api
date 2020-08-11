@@ -44,7 +44,6 @@ from .serializers import (
 from api.views import (
     bad_request,
     bad_http_request,
-    PublicJsonPostView,
     PublicJsonRequestView,
 )
 

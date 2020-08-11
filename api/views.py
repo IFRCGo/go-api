@@ -273,47 +273,6 @@ class AggregateByTime(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class PublicJsonPostView(View):
-    http_method_names = ['post']
-
-    def decode_auth_header(self, auth_header):
-        parts = auth_header[7:].split(':')
-        return parts[0], parts[1]
-
-    def get_authenticated_user(self, request):
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if not auth_header:
-            return None
-
-        # Parse the authorization header
-        username, key = self.decode_auth_header(auth_header)
-        if not username or not key:
-            return None
-
-        # Query the user
-        try:
-            user = User.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return None
-
-        # Query the key
-        try:
-            Token.objects.get(user=user, key=key)
-        except ObjectDoesNotExist:
-            return None
-
-        return user
-
-    def handle_post(self, request, *args, **kwargs):
-        print(pretty_request(request))
-
-    def post(self, request, *args, **kwargs):
-        if request.META.get('CONTENT_TYPE').find('application/json') == -1:
-            return bad_request('Content-type must be `application/json`')
-        return self.handle_post(request, *args, **kwargs)
-
-
 class GetAuthToken(APIView):
     permission_classes = []
 
