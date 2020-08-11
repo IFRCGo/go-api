@@ -1,7 +1,7 @@
 import logging
 from django.core.management import BaseCommand
 
-from lang.tasks import TranslateModel
+from lang.tasks import ModelTranslator
 
 
 class Command(BaseCommand):
@@ -15,4 +15,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         logging.getLogger('').setLevel(logging.INFO)
-        TranslateModel().run(batch_size=options.pop('batch_size'))
+        ModelTranslator().run(batch_size=options.pop('batch_size') or 100)

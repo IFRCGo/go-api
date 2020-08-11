@@ -1,61 +1,71 @@
-import json, datetime, pytz
-from django.http import JsonResponse, HttpResponse
+import json
+import datetime
+import pytz
+import logging
+from django.http import JsonResponse
 from api.views import (
     bad_request,
-    bad_http_request,
     PublicJsonPostView,
-    PublicJsonRequestView,
 )
-from rest_framework import viewsets
+from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
+
 from .models import (
     Draft, Form, FormData, WorkPlan, Overview
 )
-from rest_framework.authtoken.models import Token
+
+logger = logging.getLogger(__name__)
+
 
 def create_draft(raw):
-    Draft.objects.filter(code=raw['code'], country_id=raw['country_id'], user_id=raw['user_id']).delete()  # If exists (a previous draft), delete it.
-    draft = Draft.objects.create(code       = raw['code'],
-                               user_id      = raw['user_id'],
-                               data         = raw['data'],
-                               country_id   = raw['country_id'],
-                               )
+    Draft.objects.filter(
+        code=raw['code'], country_id=raw['country_id'], user_id=raw['user_id']
+    ).delete()  # If exists (a previous draft), delete it.
+    draft = Draft.objects.create(
+        code=raw['code'],
+        country_id=raw['country_id'],
+        user_id=raw['user_id'],
+        data=raw['data'],
+    )
     draft.save()
     return draft
 
-def create_form(raw):
 
-    form = Form.objects.create(code         = raw['code'],
-                               name         = raw['name'],
-                               language     = raw['language'],
-                               user_id      = raw['user_id'],
-                               country_id   = raw['country_id'],
-                               ns           = raw['ns'],
-                               ip_address   = raw['ip_address'],
-                               started_at   = raw['started_at'],
-                               ended_at     = raw['ended_at'],
-                               submitted_at = raw['submitted_at'],
-                               comment      = raw['comment'],
-                               validated    = raw['validated'],
-                               finalized    = raw['finalized'],
-                               # unique_id  = raw['unique_id'], # only KoBo form provided
-                               )
+def create_form(raw):
+    form = Form.objects.create(
+        code=raw['code'],
+        name=raw['name'],
+        language=raw['language'],
+        user_id=raw['user_id'],
+        country_id=raw['country_id'],
+        ns=raw['ns'],
+        ip_address=raw['ip_address'],
+        started_at=raw['started_at'],
+        ended_at=raw['ended_at'],
+        submitted_at=raw['submitted_at'],
+        comment=raw['comment'],
+        validated=raw['validated'],
+        finalized=raw['finalized'],
+        # unique_id  = raw['unique_id'], # only KoBo form provided
+    )
     form.save()
     return form
 
+
 def create_form_data(raw, form):
-    form_data = FormData.objects.create(form= form,
-                            question_id     = raw['id'],
-                            selected_option = raw['op'],
-                            notes           = raw['nt'],
-                            )
+    form_data = FormData.objects.create(
+        form=form,
+        question_id=raw['id'],
+        selected_option=raw['op'],
+        notes=raw['nt'],
+    )
     form_data.save()
     return form_data
 
+
 class FormSent(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
-
-        #if not request.user.is_authenticated:
+        # if not request.user.is_authenticated:
         #    return bad_request('Could not insert PER data due to not logged in user.')
 
         body = json.loads(request.body.decode('utf-8'))
@@ -75,9 +85,9 @@ class FormSent(PublicJsonPostView):
 
         currentDT = datetime.datetime.now(pytz.timezone('UTC'))
         if 'started_at' not in body:
-            body['started_at']   = str(currentDT)
+            body['started_at'] = str(currentDT)
         if 'ended_at' not in body:
-            body['ended_at']     = str(currentDT)
+            body['ended_at'] = str(currentDT)
         if 'submitted_at' not in body:
             body['submitted_at'] = str(currentDT)
         if 'comment' not in body:
@@ -93,7 +103,6 @@ class FormSent(PublicJsonPostView):
         if 'ns' not in body:
             body['ns'] = None
 
-
         missing_fields = [field for field in required_fields if field not in body]
         if len(missing_fields):
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
@@ -103,27 +112,28 @@ class FormSent(PublicJsonPostView):
 
         try:
             form = create_form(body)
-        except:
+        except Exception:
+            logger.error('Could not insert PER form record.', exc_info=True)
             return bad_request('Could not insert PER form record.')
 
-        if hasattr(form,'status_code') and form.status_code == 400:
+        if hasattr(form, 'status_code') and form.status_code == 400:
             return bad_request('Could not insert PER form record due to inner failure.')
 
         if 'data' in body:
             for rubr in body['data']:
                 try:
                     form_data = create_form_data(rubr, form)
-                except:
+                except Exception:
+                    logger.error('Could not insert PER formdata record.', exc_info=True)
                     return bad_request('Could not insert PER formdata record.')
 
-                if hasattr(form_data,'status_code') and form_data.status_code == 400:
+                if hasattr(form_data, 'status_code') and form_data.status_code == 400:
                     return bad_request('Could not insert PER form data record due to inner failure.')
 
         return JsonResponse({'status': 'ok'})
 
 
 def change_form(raw):
-
     if 'id' not in raw:
         return bad_request('Id sending is mandatory')
 
@@ -132,38 +142,41 @@ def change_form(raw):
     if not form:
         return bad_request('Could not find PER form record.')
 
-    #form.code         = raw['code']         # we do not change it
-    #form.user_id      = raw['user_id']      # we do not change it
-    form.name         = raw['name']         if 'name'         in raw else form.name
-    form.language     = raw['language']     if 'language'     in raw else form.language
-    form.country_id   = raw['country_id']   if 'country_id'   in raw else form.country_id
-    form.ns           = raw['ns']           if 'ns'           in raw else form.ns
-    form.ip_address   = raw['ip_address']   if 'ip_address'   in raw else form.ip_address
-    form.started_at   = raw['started_at']   if 'started_at'   in raw else form.started_at
-    form.ended_at     = raw['ended_at']     if 'ended_at'     in raw else form.ended_at
-    form.submitted_at = raw['submitted_at'] if 'submitted_at' in raw else form.submitted_at
-    form.comment      = raw['comment']      if 'comment'      in raw else form.comment
-    form.validated    = raw['validated']    if 'validated'    in raw else form.validated
-    form.finalized    = raw['finalized']    if 'finalized'    in raw else form.finalized
+    # form.code = raw['code']         # we do not change it
+    # form.user_id = raw['user_id']      # we do not change it
+    form.name = raw.get('name', form.name)
+    form.language = raw.get('language', form.language)
+    form.country_id = raw.get('country_id', form.country_id)
+    form.ns = raw.get('ns', form.ns)
+    form.ip_address = raw.get('ip_address', form.ip_address)
+    form.started_at = raw.get('started_at', form.started_at)
+    form.ended_at = raw.get('ended_at', form.ended_at)
+    form.submitted_at = raw.get('submitted_at', form.submitted_at)
+    form.comment = raw.get('comment', form.comment)
+    form.validated = raw.get('validated', form.validated)
+    form.finalized = raw.get('finalized', form.finalized)
     form.save()
-
     return form
+
 
 def change_form_data(raw, form):
     if 'form_id' not in raw:
         return bad_request('Form_id sending is mandatory')
     if 'id' not in raw:
         return bad_request('Question_id sending is mandatory')
-    form_data = FormData.objects.filter(form_id=raw['form_id'], question_id=raw['id'])[0]  # If exists data item, get the first. We keep only 1 answer per question_id
+    form_data = FormData.objects.filter(
+        form_id=raw['form_id'], question_id=raw['id']
+    )[0]  # If exists data item, get the first. We keep only 1 answer per question_id
     if not form_data:
         return bad_request('Could not find PER form data record.')
 
-    #form_data.question_id     = raw['id'] # we do not change it
-    form_data.selected_option = raw['op'] if 'op' in raw else form_data.selected_option
-    form_data.notes           = raw['nt'] if 'nt' in raw else form_data.notes
-
+    # form_data.question_id     = raw['id'] # we do not change it
+    form_data.selected_option = raw.get('op', form_data.selected_option)
+    form_data.notes = raw.get('nt', form_data.notes)
     form_data.save()
+
     return form_data
+
 
 class FormEdit(PublicJsonPostView):
     def handle_post(self, request, *args, **kwargs):
@@ -172,7 +185,8 @@ class FormEdit(PublicJsonPostView):
         if richtokenstring:
             try:
                 receivedtoken = Token.objects.get(key=richtokenstring[6:])
-            except:
+            except Exception:
+                logger.error('User token is not correct.', exc_info=True)
                 return bad_request('User token is not correct.')
             u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
         else:
@@ -188,7 +202,7 @@ class FormEdit(PublicJsonPostView):
 
         currentDT = datetime.datetime.now(pytz.timezone('UTC'))
         if 'ended_at' not in body:
-            body['ended_at']     = str(currentDT)
+            body['ended_at'] = str(currentDT)
         if 'submitted_at' not in body:
             body['submitted_at'] = str(currentDT)
 
@@ -198,10 +212,11 @@ class FormEdit(PublicJsonPostView):
 
         try:
             form = change_form(body)
-        except:
+        except Exception:
+            logger.error('Could not change PER form record.', exc_info=True)
             return bad_request('Could not change PER form record.')
 
-        if hasattr(form,'status_code') and form.status_code == 400:
+        if hasattr(form, 'status_code') and form.status_code == 400:
             return bad_request('Could not change PER form record due to inner failure.')
 
         if 'data' in body:
@@ -209,10 +224,11 @@ class FormEdit(PublicJsonPostView):
                 rubr['form_id'] = body['id']
                 try:
                     form_data = change_form_data(rubr, form)
-                except:
+                except Exception:
+                    logger.error('Could not change PER formdata record.', exc_info=True)
                     return bad_request('Could not change PER formdata record.')
 
-                if hasattr(form_data,'status_code') and form_data.status_code == 400:
+                if hasattr(form_data, 'status_code') and form_data.status_code == 400:
                     return bad_request('Could not change PER form data record due to inner failure.')
 
         return JsonResponse({'status': 'ok'})
@@ -225,8 +241,10 @@ class DraftSent(PublicJsonPostView):
         if richtokenstring:
             try:
                 receivedtoken = Token.objects.get(key=richtokenstring[6:])
-            except:
+            except Exception:
+                logger.error('User token is not correct.', exc_info=True)
                 return bad_request('User token is not correct.')
+
             u = User.objects.filter(is_active=True, pk=receivedtoken.user_id)
         else:
             return bad_request('User token is not given.')
@@ -247,8 +265,9 @@ class DraftSent(PublicJsonPostView):
             return bad_request('Code can not contain spaces, please choose a different one.')
 
         try:
-            form = create_draft(body)
-        except:
+            create_draft(body)
+        except Exception:
+            logger.error('User token is not correct.', exc_info=True)
             return bad_request('Could not insert PER draft.')
 
         return JsonResponse({'status': 'ok'})

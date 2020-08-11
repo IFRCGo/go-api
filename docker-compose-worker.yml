@@ -15,4 +15,9 @@ services:
   celery-default:
     <<: *base_django_setup
     # TODO: Log destination
-    command: celery -A main worker -Q celery --quiet -l info
+    command: celery -A main worker -Q default --quiet -l info
+
+  celery-heavy:
+    <<: *base_django_setup
+    # TODO: Log destination
+    command: celery -A main worker -Q heavy --quiet -l info

@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
+from django.conf import settings
 
 from main.test_case import APITestCase
 import api.models as models
@@ -66,7 +67,7 @@ class FieldReportTest(APITestCase):
             'description': 'this is a test description',
             'bulletin': '3',
             'num_assisted': 100,
-            'visibility': 1,
+            'visibility': models.VisibilityChoices.IFRC,
             'sources': [
                 {'stype': 'Government', 'spec': 'A source'},
                 {'stype': 'Other', 'spec': 'Another source'},
@@ -102,7 +103,7 @@ class FieldReportTest(APITestCase):
         self.assertTrue(39 in actions)
 
         self.assertEqual(created.contacts.count(), 1)
-        self.assertEqual(created.visibility, 1)
+        self.assertEqual(created.visibility, models.VisibilityChoices.IFRC)
         self.assertEqual(created.dtype.id, 7)
         self.assertEqual(created.summary, 'test')
         # Translated field test
@@ -123,8 +124,8 @@ class FieldReportTest(APITestCase):
             {'stype': 'Chocolate', 'spec': 'other'},
         ]
         body['actions_taken'] = []
-        body['visibility'] = 2
-        response = self.client.put('/api/v2/update_field_report/%s/' % created.id, body, format='json').json()
+        body['visibility'] = models.VisibilityChoices.PUBLIC
+        response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
         updated = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(updated.countries.count(), 1)
@@ -139,7 +140,7 @@ class FieldReportTest(APITestCase):
 
         self.assertEqual(updated.actions_taken.count(), 0)
         self.assertEqual(updated.contacts.count(), 1)
-        self.assertEqual(updated.visibility, 2)
+        self.assertEqual(updated.visibility, models.VisibilityChoices.PUBLIC)
         # emergency still attached
         self.assertEqual(updated.event.id, event_pk)
         # Translated field test
@@ -154,13 +155,22 @@ class FieldReportTest(APITestCase):
 
         body['summary'] = 'test [updated again]'
         with self.capture_on_commit_callbacks(execute=True):
-            response = self.client.put('/api/v2/update_field_report/%s/' % created.id, body, format='json').json()
+            response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
         updated = models.FieldReport.objects.get(pk=response['id'])
         self.assertEqual(updated.summary_en, 'test [updated again]')
         self.assertEqual(
             updated.summary_es,
             self.aws_translator._fake_translation('test [updated again]', 'es', 'en'),
         )
+
+        # Check with GET (with different accept-language)
+        for lang, _ in settings.LANGUAGES:
+            response = self.client.get(f'/api/v2/field_report/{created.id}/', HTTP_ACCEPT_LANGUAGE=lang)
+            self.assert_200(response)
+            self.assertEqual(
+                response.json()['summary'],
+                self.aws_translator._fake_translation(body['summary'], lang, 'en') if lang != 'en' else body['summary'],
+            )
 
 
 class VisibilityTest(APITestCase):

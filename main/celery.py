@@ -22,11 +22,13 @@ app.autodiscover_tasks()
 
 
 class Queues():
-    DEFAULT = 'celery'
+    DEFAULT = 'default'
+    HEAVY = 'heavy'
     CRONJOB = 'cronjob'
 
     DEV_QUEUES = (
         DEFAULT,
+        HEAVY,
         CRONJOB,
     )
 

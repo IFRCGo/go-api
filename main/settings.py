@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
-# from celery.schedules import crontab
+from celery.schedules import crontab
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -317,10 +317,9 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
 
 CELERY_BEAT_SCHEDULE = {
-    # TODO: umcomment after we need to translate as cronjob
-    # 'translate_remaining_models_fields': {
-    #     'task': 'lang.tasks.translate_remaining_models_fields',
-    #     # Every 6 hour
-    #     'schedule': crontab(minute=0, hour="*/6"),
-    # },
+    'translate_remaining_models_fields': {
+        'task': 'lang.tasks.translate_remaining_models_fields',
+        # Every 6 hour
+        'schedule': crontab(minute=0, hour="*/6"),
+    },
 }

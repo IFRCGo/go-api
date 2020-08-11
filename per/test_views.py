@@ -1,8 +1,17 @@
-from django.test import TestCase
-from rest_framework.test import APITestCase
-from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+from modeltranslation.utils import build_localized_fieldname
 
-class SmokeTest(APITestCase):
+from main.test_case import APITestCase
+from api.models import Country
+from .models import Language, Form
+
+
+# TODO: Add test for Draft, Form and FormData API
+class PerTest(APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.country = Country.objects.create(name='Country 1')
+
     def test_simple_form(self):
         body = {
             'code': 'A1',
@@ -16,3 +25,32 @@ class SmokeTest(APITestCase):
         headers = {'CONTENT_TYPE': 'application/json'}
         resp = self.client.post('/sendperform', body, format='json', headers=headers)
         self.assertEqual(resp.status_code, 200)
+
+    def test_sendperform(self):
+        body = {
+            'code': 'A1',
+            'name': 'Form Name',
+            'language': Language.ENGLISH,
+            'user_id': self.user.pk,
+            'country_id': self.country.pk,
+            'comment': 'test comment',
+        }
+        resp = self.client.post('/sendperform', body, format='json')
+        self.assert_200(resp)
+
+    def test_editperform(self):
+        body = {
+            'code': 'A1',
+            'name': 'Form Name',
+            'language': Language.ENGLISH,
+            'user_id': self.user.pk,
+            'country_id': self.country.pk,
+            'comment': 'test comment',
+        }
+        form = Form.objects.create(**body)
+        body['id'] = form.pk
+        body['comment'] += ' [updated]'
+
+        self.authenticate(self.user)
+        resp = self.client.post('/editperform', body, format='json')
+        self.assert_200(resp)

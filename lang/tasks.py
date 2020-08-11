@@ -18,8 +18,9 @@ from .translation import (
 logger = logging.getLogger(__name__)
 
 
-class TranslateModel():
+class ModelTranslator():
     def __init__(self):
+        # TODO: Handle error if access credentials are not provided or are invalid
         self.aws_translator = AmazonTranslate()
 
     @property
@@ -99,7 +100,7 @@ class TranslateModel():
             )
         obj.save(update_fields=update_fields)
 
-    def run(self, batch_size=100):
+    def run(self, batch_size):
         """
         Retrive and search for fields to be translated
         batch_size: how many instances to translate for each model. None will be all
@@ -122,7 +123,7 @@ class TranslateModel():
             logger.info(f'\tFields: {translatable_fields}')
             logger.info(f'\tTotal instances: {qs_count}')
 
-            qs = qs.all()[:batch_size] if batch_size else qs
+            qs = qs.all()[:batch_size]
 
             for obj in qs.iterator():
                 logger.info(f'\t\t ({index}/{qs_count}) - {obj}')
@@ -136,11 +137,18 @@ def translate_remaining_models_fields():
     if settings.DEBUG:
         logger.warning('DEGUB is enabled.. Skipping translate_remaining_models_fields')
         return
-    TranslateModel().run()
+    ModelTranslator().run(batch_size=100)
 
 
 @shared_task(queue=Queues.DEFAULT)
 def translate_model_fields(model_name, pk):
     model = django_apps.get_model(model_name)
     obj = model.objects.get(pk=pk)
-    TranslateModel().translate_model_fields(obj)
+    ModelTranslator().translate_model_fields(obj)
+
+
+@shared_task(queue=Queues.HEAVY)
+def translate_model_fields_in_bulk(model_name, pks):
+    model = django_apps.get_model(model_name)
+    for obj in model.objects.filter(pk__in=pks):
+        ModelTranslator().translate_model_fields(obj)

@@ -56,7 +56,7 @@ Access the site at http://localhost:8000
 
      $ docker-compose build
 
-## Adding/Updating translations (Django)
+## Adding/Updating translations (Django static)
 
 ```bash
 # Creation and upkeep language po files (for eg: fr)

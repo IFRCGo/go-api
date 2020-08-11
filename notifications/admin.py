@@ -4,8 +4,10 @@ from api.admin_classes import RegionRestrictedAdmin
 from django_admin_listfilter_dropdown.filters import ChoiceDropdownFilter
 from reversion_compare.admin import CompareVersionAdmin
 
+from lang.translation import TranslationAdmin
 
-class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+
+class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)

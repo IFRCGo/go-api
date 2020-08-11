@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from .models import VisibilityChoices
-from .utils import is_user_ifrc # filter_visibility_by_auth (would be better)
+from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
+
 
 class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
     visibility_model_class = None
