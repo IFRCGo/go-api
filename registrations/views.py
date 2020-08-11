@@ -9,10 +9,10 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
+from rest_framework.views import APIView
 from api.views import (
     bad_request,
     bad_http_request,
-    PublicJsonPostView,
     PublicJsonRequestView,
 )
 from api.models import Country
@@ -48,33 +48,33 @@ def get_valid_admins(contacts):
     return emails
 
 
-def create_active_user(raw):
-    user = User.objects.create_user(username=raw['username'],
-                                    first_name=raw['firstname'],
-                                    last_name=raw['lastname'],
-                                    email=raw['email'],
-                                    password=raw['password'])
+def create_inactive_user(username, firstname, lastname, email, password):
+    user = User.objects.create_user(username=username,
+                                    first_name=firstname,
+                                    last_name=lastname,
+                                    email=email,
+                                    password=password,
+                                    is_active=False)
     return user
 
 
-def set_user_profile_inactive(user, raw):
-    user.is_active = False
-    user.profile.country = Country.objects.get(pk=raw['country'])
-    user.profile.org_type = raw['organizationType']
-    user.profile.org = raw['organization']
-    user.profile.city = raw['city'] if 'city' in raw else None
-    user.profile.department = raw['department'] if 'department' in raw else None
-    user.profile.position = raw['position'] if 'position' in raw else None
-    user.profile.phone_number = raw['phoneNumber'] if 'phoneNumber' in raw else None
+def set_user_profile(user, country, organization_type, organization, city, department, position, phone_number):
+    user.profile.country = Country.objects.get(pk=country)
+    user.profile.org_type = organization_type
+    user.profile.org = organization
+    user.profile.city = city
+    user.profile.department = department
+    user.profile.position = position
+    user.profile.phone_number = phone_number
     user.save()
     return user
 
 
-class NewRegistration(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
+class NewRegistration(APIView):
+    permission_classes = []
 
-        required_fields = [
+    def post(self, request):
+        required_fields = (
             'email',
             'username',
             'password',
@@ -83,33 +83,48 @@ class NewRegistration(PublicJsonPostView):
             'organization',
             'firstname',
             'lastname',
-        ]
+        )
 
-        missing_fields = [field for field in required_fields if field not in body]
-        if len(missing_fields):
+        missing_fields = [field for field in required_fields if field not in request.data]
+        if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        is_staff = is_valid_domain(body['email'])
-        admins = True if is_staff else get_valid_admins(body['contact'])
+        email = request.data.get('email', None)
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+        firstname = request.data.get('firstname', None)
+        lastname = request.data.get('lastname', None)
+        country = request.data.get('country', None)
+        city = request.data.get('city', None)
+        organization_type = request.data.get('organizationType', None)
+        organization = request.data.get('organization', None)
+        department = request.data.get('department', None)
+        position = request.data.get('position', None)
+        phone_number = request.data.get('phoneNumber', None)
+        contact = request.data.get('contact', None)
+
+        is_staff = is_valid_domain(email)
+        admins = True if is_staff else get_valid_admins(contact)
         if not admins:
             return bad_request('Non-IFRC users must submit two valid admin emails.')
-        if User.objects.filter(email__iexact=body['email']).count() > 0:
+        if User.objects.filter(email__iexact=email).exists():
             return bad_request('A user with that email address already exists.')
-        if User.objects.filter(username__iexact=body['username']).count() > 0:
+        if User.objects.filter(username__iexact=username).exists():
             return bad_request('That username is taken, please choose a different one.')
-        if ' ' in body['username']:
+        if ' ' in username:
             return bad_request('Username can not contain spaces, please choose a different one.')
 
+        # Create the User object
         try:
-            user = create_active_user(body)
-        except:
+            user = create_inactive_user(username, firstname, lastname, email, password)
+        except Exception:
             return bad_request('Could not create user.')
 
+        # Set the User Profile properties
         try:
-            # Note, this also sets the user's active status to False
-            set_user_profile_inactive(user, body)
-        except:
-            User.objects.filter(username=body['username']).delete()
+            set_user_profile(user, country, organization_type, organization, city, department, position, phone_number)
+        except Exception:
+            User.objects.filter(username=username).delete()
             return bad_request('Could not create user profile.')
 
         pending = Pending.objects.create(user=user,
@@ -128,7 +143,7 @@ class NewRegistration(PublicJsonPostView):
             'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
                 settings.BASE_URL,  # on PROD it should point to goadmin...
                 pending.token,
-                body['username'],
+                username,
             )
         }
 
@@ -139,9 +154,9 @@ class NewRegistration(PublicJsonPostView):
             template = 'email/registration/verify-outside-email.html'
 
         send_notification('Validate your account',
-                          [body['email']],
+                          [email],
                           render_to_string(template, email_context),
-                          'Validate account - ' + body['username'])
+                          'Validate account - ' + username)
 
         return JsonResponse({'status': 'ok'})
 
