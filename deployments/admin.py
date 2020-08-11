@@ -13,7 +13,7 @@ from admin_auto_filters.filters import AutocompleteFilter
 from api.utils import Echo
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
-from lang.translation import TranslationAdmin
+from lang.admin import TranslationAdmin
 from reversion_compare.admin import CompareVersionAdmin
 
 from .forms import ProjectForm, ProjectImportForm

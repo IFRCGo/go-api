@@ -10,7 +10,6 @@ from modeltranslation.manager import (
 
 from api.utils import get_model_name
 
-from .translation import AVAILABLE_LANGUAGES
 from .tasks import translate_model_fields, translate_model_fields_in_bulk
 from .models import (
     String,
@@ -58,7 +57,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     def _get_included_excluded_fields(cls, model):
         requested_lang = django_get_language()
 
-        excluded_langs = [lang for lang in AVAILABLE_LANGUAGES if lang != requested_lang]
+        excluded_langs = [lang for lang, _ in settings.LANGUAGES if lang != requested_lang]
         excluded_fields = set()
         included_fields_lang = {}
         for f in get_translatable_fields_for_model(model):
@@ -82,7 +81,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
                 new_value = getattr(validated_data, current_lang_field, getattr(validated_data, field, None)) or ''
             if old_value == new_value:
                 continue
-            for lang in AVAILABLE_LANGUAGES:
+            for lang, _ in settings.LANGUAGES:
                 lang_field = build_localized_fieldname(field, lang)
                 if lang_field == current_lang_field:
                     continue

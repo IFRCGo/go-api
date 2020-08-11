@@ -1048,8 +1048,8 @@ class FieldReportContact(models.Model):
     )
 
     class Meta:
-        verbose_name = _('field report contanct')
-        verbose_name_plural = _('field report contancts')
+        verbose_name = _('field report contacts')
+        verbose_name_plural = _('field report contacts')
 
     def __str__(self):
         return '%s: %s' % (self.name, self.title)

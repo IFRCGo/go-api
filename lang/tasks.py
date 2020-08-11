@@ -2,6 +2,7 @@ import logging
 from celery import shared_task
 from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
+from modeltranslation import settings as mt_settings
 from django.apps import apps as django_apps
 from django.db.models import Q
 from django.conf import settings
@@ -11,7 +12,6 @@ from main.celery import Queues
 from .translation import (
     AmazonTranslate,
     AVAILABLE_LANGUAGES,
-    DEFAULT_LANGUAGE,
 )
 
 
@@ -107,7 +107,7 @@ class ModelTranslator():
         """
         translatable_models = self.get_translatable_models()
         logger.info(f'Languages: {AVAILABLE_LANGUAGES}')
-        logger.info(f'Default language: {DEFAULT_LANGUAGE}')
+        logger.info(f'Default language: {mt_settings.DEFAULT_LANGUAGE}')
         logger.info(f'Number of models: {len(translatable_models)}')
 
         for model in translatable_models:

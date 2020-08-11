@@ -20,7 +20,7 @@ from .forms import ActionForm
 # from reversion.models import Revision
 
 from reversion_compare.admin import CompareVersionAdmin
-from lang.translation import TranslationAdmin, TranslationInlineModelAdmin
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 
 from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType

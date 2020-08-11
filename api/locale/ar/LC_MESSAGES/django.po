@@ -1229,11 +1229,11 @@ msgid "field reports"
 msgstr "التقارير الميدانية"
 
 #: api/models.py:1062
-msgid "field report contanct"
+msgid "field report contact"
 msgstr "تقرير ميداني"
 
 #: api/models.py:1063
-msgid "field report contancts"
+msgid "field report contacts"
 msgstr "تقارير ميدانية"
 
 #: api/models.py:1075 api/models.py:1191

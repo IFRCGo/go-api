@@ -1229,12 +1229,12 @@ msgid "field reports"
 msgstr "field reports"
 
 #: api/models.py:1062
-msgid "field report contanct"
-msgstr "field report contanct"
+msgid "field report contact"
+msgstr "field report contact"
 
 #: api/models.py:1063
-msgid "field report contancts"
-msgstr "field report contancts"
+msgid "field report contacts"
+msgstr "field report contacts"
 
 #: api/models.py:1075 api/models.py:1191
 msgid "National Society"

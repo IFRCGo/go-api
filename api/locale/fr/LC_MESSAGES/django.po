@@ -1230,12 +1230,12 @@ msgid "field reports"
 msgstr "rapports de terrain"
 
 #: api/models.py:1062
-msgid "field report contanct"
-msgstr "champ rapport contanct"
+msgid "field report contact"
+msgstr "champ rapport contact"
 
 #: api/models.py:1063
-msgid "field report contancts"
-msgstr "Contancts de rapport de champ"
+msgid "field report contacts"
+msgstr "contacts de rapport de champ"
 
 #: api/models.py:1075 api/models.py:1191
 msgid "National Society"

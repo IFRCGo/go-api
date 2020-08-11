@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import polib
-from lang.translation import AmazonTranslate, DJANGO_AVAILABLE_LANGUAGES
+from lang.translation import AmazonTranslate, AVAILABLE_LANGUAGES
 from django.core.management import BaseCommand
 
 
@@ -40,12 +40,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--languages', nargs='+',
-            choices=DJANGO_AVAILABLE_LANGUAGES,
+            choices=AVAILABLE_LANGUAGES,
             help='Languages to translate. Default is all',
         )
 
     def handle(self, *args, **options):
-        languages = options['languages'] or DJANGO_AVAILABLE_LANGUAGES
+        languages = options['languages'] or AVAILABLE_LANGUAGES
         for language in languages:
             for file in Path('').glob(f'**/{language}/**/*.po'):
                 print(f'Translating: {file} ({language})')

@@ -4,7 +4,7 @@ from api.admin_classes import RegionRestrictedAdmin
 from django_admin_listfilter_dropdown.filters import ChoiceDropdownFilter
 from reversion_compare.admin import CompareVersionAdmin
 
-from lang.translation import TranslationAdmin
+from lang.admin import TranslationAdmin
 
 
 class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
