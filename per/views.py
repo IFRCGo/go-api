@@ -83,9 +83,9 @@ class FormSent(APIView):
                 with transaction.atomic():  # all or nothing
                     for rubr in data:
                         FormData.objects.create(form=form,
-                                                question_id=rubr.id,
-                                                selected_option=rubr.op,
-                                                notes=rubr.nt)
+                                                question_id=rubr['id'],
+                                                selected_option=rubr['op'],
+                                                notes=rubr['nt'])
             except Exception:
                 return bad_request('Could not insert PER formdata record.')
 
@@ -140,16 +140,16 @@ class FormEdit(APIView):
             try:
                 with transaction.atomic():  # all or nothing
                     for rubr in data:
-                        if rubr.id is None:
+                        if rubr['id'] is None:
                             raise Exception('PER Form Data ID was missing. Form ID: {}'.format(form_id))
 
-                        form_data = FormData.objects.filter(form_id=form_id, question_id=rubr.id).first()
+                        form_data = FormData.objects.filter(form_id=form_id, question_id=rubr['id']).first()
                         if not form_data:
                             raise Exception('Could not find PER Form Data record. \
-                                            Form ID: {} Form Data ID: {}'.format(form_id, rubr.id))
+                                            Form ID: {} Form Data ID: {}'.format(form_id, rubr['id']))
 
-                        form_data.selected_option = rubr.op if rubr.op else form_data.selected_option
-                        form_data.notes = rubr.nt if rubr.nt else form_data.notes
+                        form_data.selected_option = rubr['op'] if rubr['op'] else form_data.selected_option
+                        form_data.notes = rubr['nt'] if rubr['nt'] else form_data.notes
 
                         form_data.save()
             except Exception as err:

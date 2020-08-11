@@ -8,6 +8,7 @@ class SmokeTest(APITestCase):
             'code': 'A1',
             'name': 'Nemo',
             'language': 1,
+            'user_id': 1,
             'unique_id': '1aad9295-ceb9-4ad5-9b10-84cc423e93f4',
             'started_at': '2019-04-11 11:42:22.278796+00',
             'submitted_at': '2019-04-11 09:42:52.278796+00',
