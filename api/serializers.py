@@ -256,12 +256,16 @@ class MiniSubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = ('stype', 'rtype', 'country', 'region', 'event', 'dtype', 'lookup_id',)
 
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
     subscription = MiniSubscriptionSerializer(many=True)
+    is_ifrc_admin = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',
+                  'is_ifrc_admin')
 
     def update(self, instance, validated_data):
         if 'profile' in validated_data:
@@ -279,6 +283,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
         return instance
+
+    def get_is_ifrc_admin(self, obj):
+        return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
 class UserMeSerializer(UserSerializer):
