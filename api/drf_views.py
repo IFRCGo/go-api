@@ -58,11 +58,13 @@ from .serializers import (
     DisasterTypeSerializer,
 
     RegionSerializer,
+    RegionGeoSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
     RegionRelationSerializer,
 
     CountrySerializer,
+    CountryGeoSerializer,
     MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
@@ -70,6 +72,7 @@ from .serializers import (
 
     DistrictSerializer,
     MiniDistrictSerializer,
+    MiniDistrictGeoSerializer,
 
     SnippetSerializer,
     ListMiniEventSerializer,
@@ -124,7 +127,7 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
     def get_serializer_class(self):
         if self.action == 'list':
-            return RegionSerializer
+            return RegionGeoSerializer
         return RegionRelationSerializer
 
 
@@ -162,7 +165,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         if is_tableau(self.request) is True:
             return CountryTableauSerializer
         if self.action == 'list':
-            return CountrySerializer
+            return CountryGeoSerializer
         return CountryRelationSerializer
 
     @action(
@@ -252,7 +255,7 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return MiniDistrictSerializer
+            return MiniDistrictGeoSerializer
         else:
             return DistrictSerializer
 

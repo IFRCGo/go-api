@@ -46,10 +46,18 @@ class DisasterTypeSerializer(serializers.ModelSerializer):
 
 
 class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = ('name', 'id', 'region_name',)
+
+class RegionGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
     def get_bbox(self, region):
-        return json.loads(region.bbox.geojson)
+        if region.bbox:
+            return json.loads(region.bbox.geojson)
+        else:
+            return None
 
     class Meta:
         model = Region
@@ -66,6 +74,13 @@ class CountryTableauSerializer(serializers.ModelSerializer):
 
 
 class CountrySerializer(serializers.ModelSerializer):
+oh
+    class Meta:
+        model = Country
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'independent',)
+
+
+class CountryGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
 
@@ -84,13 +99,13 @@ class CountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
         fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-                  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid',)
+                  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent')
 
 
 class MiniCountrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region',)
+        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region', 'independent')
 
 
 class RegoCountrySerializer(serializers.ModelSerializer):
@@ -114,6 +129,12 @@ class DistrictSerializer(serializers.ModelSerializer):
 
 
 class MiniDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
+
+
+class MiniDistrictGeoSerializer(serializers.ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
 
@@ -487,10 +508,12 @@ class MiniSubscriptionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
     subscription = MiniSubscriptionSerializer(many=True)
+    is_ifrc_admin = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',)
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',
+                  'is_ifrc_admin')
 
     def update(self, instance, validated_data):
         if 'profile' in validated_data:
@@ -508,6 +531,9 @@ class UserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
         return instance
+
+    def get_is_ifrc_admin(self, obj):
+        return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
 class UserMeSerializer(UserSerializer):

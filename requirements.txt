@@ -2,7 +2,7 @@ Django==2.2.13
 Jinja2==2.10.1
 Markdown==2.6.11
 MarkupSafe==1.1.1
-Pillow==6.2.2
+Pillow==7.2.0
 PyPDF2==1.26.0
 Pygments==2.2.0
 Rx==1.6.0
