@@ -102,14 +102,14 @@ class PublicJsonRequestView(View):
         return self.handle_get(request, *args, **kwargs)
 
 
-class EsPageHealth(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class EsPageHealth(APIView):
+    def get(self, request):
         health = ES_CLIENT.cluster.health()
         return JsonResponse(health)
 
 
-class EsPageSearch(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class EsPageSearch(APIView):
+    def get(self, request):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
         if phrase is None:
