@@ -4,6 +4,8 @@ from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
 from django.apps import apps as django_apps
+from django.db.models.functions import Length
+from django.db.models import Sum
 from django.db.models import Q
 from django.conf import settings
 from functools import reduce
@@ -20,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 class ModelTranslator():
     def __init__(self):
-        # TODO: Handle error if access credentials are not provided or are invalid
         self.aws_translator = AmazonTranslate()
 
     @property
@@ -53,6 +54,7 @@ class ModelTranslator():
             setattr(obj, lang_field, new_value)
             yield lang_field
 
+    @classmethod
     def _get_filter(self, translation_fields):
         def _get_not_empty_query(field, lang):
             return (
@@ -99,6 +101,36 @@ class ModelTranslator():
                 list(self.translate_fields_object(obj, field))
             )
         obj.save(update_fields=update_fields)
+
+    @classmethod
+    def show_characters_counts(cls):
+        """
+        Retrive and search for fields to be translated and show total character count
+        """
+        translatable_models = cls.get_translatable_models()
+        logger.info(f'Languages: {AVAILABLE_LANGUAGES}')
+        logger.info(f'Default language: {mt_settings.DEFAULT_LANGUAGE}')
+        logger.info(f'Number of models: {len(translatable_models)}')
+
+        total_count = 0
+        for model in translatable_models:
+            logger.info(f'Processing for Model: {model._meta.verbose_name.title()}')
+
+            translatable_fields = cls.get_translatable_fields(model)
+            if not translatable_fields:
+                continue
+
+            qs = model.objects.filter(cls._get_filter(translatable_fields))
+            logger.info(f'\tFields: {translatable_fields}')
+            logger.info('\tTotal characters:')
+
+            for field in translatable_fields:
+                count = qs.annotate(text_length=Length(field))\
+                    .aggregate(total_text_length=Sum('text_length'))['total_text_length'] or 0
+                total_count += count
+                logger.info(f'\t\t {field} - {count}')
+        logger.info(f'Total Count: {total_count}')
+        logger.info(f'Estimated Cost: {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
 
     def run(self, batch_size):
         """

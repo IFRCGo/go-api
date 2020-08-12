@@ -13,6 +13,15 @@ class Command(BaseCommand):
             help='how many instances to translate for each model'
         )
 
+        parser.add_argument(
+            '--show-counts-only',
+            action='store_true',
+            help='Show characters counts only',
+        )
+
     def handle(self, *args, **options):
         logging.getLogger('').setLevel(logging.INFO)
-        ModelTranslator().run(batch_size=options.pop('batch_size') or 100)
+        if options.get('show_counts_only'):
+            ModelTranslator.show_characters_counts()
+        else:
+            ModelTranslator().run(batch_size=options.pop('batch_size') or 100)
