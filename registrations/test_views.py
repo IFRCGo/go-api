@@ -6,20 +6,11 @@
 # 6. Use the admin token and new user username to query views.ValidateUser
 # 7. Confirm that a user without an official email is activated.
 
-from django.test import TestCase
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.crypto import get_random_string
 from .models import Pending
 from api.models import Country
 
-from api.views import (
-    bad_request,
-    bad_http_request,
-    PublicJsonRequestView,
-    GetAuthToken,
-)
 
 class TwoGatekeepersTest(APITestCase):
     def setUp(self):
@@ -29,7 +20,7 @@ class TwoGatekeepersTest(APITestCase):
         user2 = User.objects.create(username='ke', email='ke@arcs.org.af')
         user2.set_password('12345678')
         user2.save()
-        country = Country.objects.create(name='country')
+        Country.objects.create(name='country')
 
     def test_two_gatekeepers(self):
         # 1. Created two users to function as gatekeepers (with checkable email)
@@ -40,12 +31,12 @@ class TwoGatekeepersTest(APITestCase):
             'email': 'pe@doesnotexist.hu',
             'username': newusr,
             'password': '87654321',
-            'country':  country.pk,
+            'country': country.pk,
             'organizationType': 'OTHR',
             'organization': 'Zoo',
             'firstname': 'Peter',
             'lastname': 'Falk',
-            'contact': [{'email':'jo@arcs.org.af'}, {'email':'ke@arcs.org.af'}]
+            'contact': [{'email': 'jo@arcs.org.af'}, {'email': 'ke@arcs.org.af'}]
         }
         headers = {'CONTENT_TYPE': 'application/json'}
         resp = self.client.post('/register', body, format='json', headers=headers)
@@ -77,7 +68,7 @@ class TwoGatekeepersTest(APITestCase):
 
         # 6a_1repeat. The first token should be unusable now to query views.ValidateUser again
         resp = self.client.get('/validate_user', body2, format='json', headers=headers)
-        #resp.content: You, as an administrator has already confirmed the registration of pe user
+        # resp.content: You, as an administrator has already confirmed the registration of pe user
         self.assertEqual(resp.status_code, 400)
 
         # 7a_1. Confirming that a user without an official email is STILL NOT activated
