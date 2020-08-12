@@ -55,14 +55,22 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
         namespace = f'{meta.app_label}_{meta.model_name}_{name}'
         return f'admin:{namespace}' if absolute else namespace
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        extra_context = extra_context or {}
+    def get_additional_addlinks(self, request):
         url = reverse(self.get_url_namespace('toggle_edit_all_language')) + f'?next={request.get_full_path()}'
         label = ugettext('hide all language') if self._go__show_all_language_in_form() else ugettext('show all language')
-        extra_context['additional_addlinks'] = [{'url': url, 'label': label}]
-        return super().change_view(
-            request, object_id, form_url, extra_context=extra_context,
-        )
+        return [{'url': url, 'label': label}]
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
+        extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
+        extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
+        return super().add_view(request, form_url, extra_context=extra_context)
 
     def get_urls(self):
         return [
