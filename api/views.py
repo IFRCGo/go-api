@@ -92,16 +92,6 @@ class DelSubscription(APIView):
         return Response({'data': 'Success'})
 
 
-class PublicJsonRequestView(View):
-    http_method_names = ['get', 'head', 'options']
-
-    def handle_get(self, request, *args, **kwargs):
-        print(pretty_request(request))
-
-    def get(self, request, *args, **kwargs):
-        return self.handle_get(request, *args, **kwargs)
-
-
 class EsPageHealth(APIView):
     def get(self, request):
         health = ES_CLIENT.cluster.health()
@@ -152,8 +142,8 @@ class EsPageSearch(APIView):
         return JsonResponse(results['hits'])
 
 
-class AreaAggregate(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AreaAggregate(APIView):
+    def get(self, request):
         region_type = request.GET.get('type', None)
         region_id = request.GET.get('id', None)
 
@@ -169,8 +159,8 @@ class AreaAggregate(PublicJsonRequestView):
         return JsonResponse(dict(aggregate))
 
 
-class AggregateByDtype(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AggregateByDtype(APIView):
+    def get(self, request):
         models = {
             'appeal': Appeal,
             'event': Event,
@@ -191,8 +181,8 @@ class AggregateByDtype(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-class AggregateByTime(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AggregateByTime(APIView):
+    def get(self, request):
         models = {
             'appeal': Appeal,
             'event': Event,

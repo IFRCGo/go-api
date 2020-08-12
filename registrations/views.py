@@ -1,4 +1,3 @@
-import json
 import pytz
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -13,7 +12,6 @@ from rest_framework.views import APIView
 from api.views import (
     bad_request,
     bad_http_request,
-    PublicJsonRequestView,
 )
 from api.models import Country
 from .models import Pending, DomainWhitelist
@@ -161,8 +159,8 @@ class NewRegistration(APIView):
         return JsonResponse({'status': 'ok'})
 
 
-class VerifyEmail(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class VerifyEmail(APIView):
+    def get(self, request):
         token = request.GET.get('token', None)
         user = request.GET.get('user', None)
         if not token or not user:
@@ -221,8 +219,8 @@ class VerifyEmail(PublicJsonRequestView):
             return HttpResponse(render_to_string('registration/validation-sent.html'))
 
 
-class ValidateUser(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class ValidateUser(APIView):
+    def get(self, request):
         token = request.GET.get('token', None)
         user = request.GET.get('user', None)
         if not token or not user:
