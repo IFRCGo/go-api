@@ -39,7 +39,7 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
-    PartnerDeploymentCsvSerializer,
+    PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
     ProjectSerializer,
 )
@@ -135,7 +135,7 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return PartnerDeploymentCsvSerializer
+            return PartnerDeploymentTableauSerializer
         return PartnerDeploymentSerializer
 
 

@@ -60,15 +60,12 @@ from .serializers import (
     RegionSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
-    RegionSnippetCsvSerializer,
     RegionRelationSerializer,
 
     CountrySerializer,
-    CountryCsvSerializer,
     MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
-    CountrySnippetCsvSerializer,
     CountryRelationSerializer,
 
     DistrictSerializer,
@@ -81,12 +78,9 @@ from .serializers import (
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
-    SituationReportCsvSerializer,
     SituationReportTypeSerializer,
     AppealSerializer,
-    AppealCsvSerializer,
     AppealDocumentSerializer,
-    AppealDocumentCsvSerializer,
     UserSerializer,
     UserMeSerializer,
     ProfileSerializer,
@@ -94,6 +88,16 @@ from .serializers import (
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
+
+    # Tableau Serializers
+    AppealDocumentTableauSerializer,
+    AppealTableauSerializer,
+    CountryTableauSerializer,
+    CountrySnippetTableauSerializer,
+    ListEventTableauSerializer,
+    ListFieldReportTableauSerializer,
+    RegionSnippetTableauSerializer,
+    SituationReportTableauSerializer
 )
 from .logger import logger
 
@@ -156,7 +160,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         if self.request.GET.get('mini', 'false').lower() == 'true':
             return MiniCountrySerializer
         if is_tableau(self.request) is True:
-            return CountryCsvSerializer
+            return CountryTableauSerializer
         if self.action == 'list':
             return CountrySerializer
         return CountryRelationSerializer
@@ -214,7 +218,7 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return RegionSnippetCsvSerializer
+            return RegionSnippetTableauSerializer
         return RegionSnippetSerializer
 
 
@@ -232,7 +236,7 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return CountrySnippetCsvSerializer
+            return CountrySnippetTableauSerializer
         return CountrySnippetSerializer
 
 
@@ -301,8 +305,10 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
             return ListMiniEventSerializer
         elif self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
-            if request_format_type == 'csv' or is_tableau(self.request) is True:
+            if request_format_type == 'csv':
                 return ListEventCsvSerializer
+            elif is_tableau(self.request) is True:
+                return ListEventTableauSerializer
             else:
                 return ListEventSerializer
         else:
@@ -371,7 +377,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return SituationReportCsvSerializer
+            return SituationReportTableauSerializer
         return SituationReportSerializer
 
 
@@ -400,7 +406,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return AppealCsvSerializer
+            return AppealTableauSerializer
         return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
@@ -448,7 +454,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return AppealDocumentCsvSerializer
+            return AppealDocumentTableauSerializer
         return AppealDocumentSerializer
 
 
@@ -508,7 +514,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return ListFieldReportCsvSerializer
+            return ListFieldReportTableauSerializer
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
             if request_format_type == 'csv':

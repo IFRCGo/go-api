@@ -26,7 +26,6 @@ from .models import (
     SituationReport,
 
     Appeal,
-    AppealType,
     AppealDocument,
 
     Profile,
@@ -57,7 +56,7 @@ class RegionSerializer(serializers.ModelSerializer):
         fields = ('name', 'id', 'region_name', 'bbox',)
 
 
-class CountryCsvSerializer(serializers.ModelSerializer):
+class CountryTableauSerializer(serializers.ModelSerializer):
     region = RegionSerializer()
 
     class Meta:
@@ -147,7 +146,7 @@ class CountryKeyFigureSerializer(serializers.ModelSerializer):
         fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
 
 
-class RegionSnippetCsvSerializer(serializers.ModelSerializer):
+class RegionSnippetTableauSerializer(serializers.ModelSerializer):
     region = RegionSerializer()
 
     class Meta:
@@ -161,7 +160,7 @@ class RegionSnippetSerializer(serializers.ModelSerializer):
         fields = ('region', 'snippet', 'image', 'visibility', 'id',)
 
 
-class CountrySnippetCsvSerializer(serializers.ModelSerializer):
+class CountrySnippetTableauSerializer(serializers.ModelSerializer):
     country = CountrySerializer()
 
     class Meta:
@@ -296,6 +295,48 @@ class ListEventSerializer(serializers.ModelSerializer):
                   'field_reports', 'updated_at', 'id', 'slug', 'parent_event')
 
 
+class ListEventTableauSerializer(serializers.ModelSerializer):
+    appeals = serializers.SerializerMethodField()
+    field_reports = serializers.SerializerMethodField()
+    countries = serializers.SerializerMethodField()
+    dtype = DisasterTypeSerializer()
+
+    def get_countries(self, obj):
+        country_fields = {}
+        countries = obj.countries.all()
+        if countries.exists():
+            country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
+            country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
+        else:
+            country_fields['id'] = ''
+            country_fields['name'] = ''
+        return country_fields
+
+    def get_field_reports(self, obj):
+        field_reports_fields = {}
+        field_reports = obj.field_reports.all()
+        if len(field_reports) > 0:
+            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
+        else:
+            field_reports_fields['id'] = ''
+        return field_reports_fields
+
+    def get_appeals(self, obj):
+        appeals_fields = {}
+        appeals = obj.appeals.all()
+        if len(appeals) > 0:
+            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
+        else:
+            appeals_fields['id'] = ''
+        return appeals_fields
+
+    class Meta:
+        model = Event
+        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date',
+                  'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at',
+                  'id', 'slug', 'parent_event',)
+
+
 class ListEventCsvSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
@@ -367,7 +408,7 @@ class SituationReportTypeSerializer(serializers.ModelSerializer):
         fields = ('type', 'id', 'is_primary',)
 
 
-class SituationReportCsvSerializer(serializers.ModelSerializer):
+class SituationReportTableauSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     event = MiniEventSerializer()
 
@@ -384,7 +425,7 @@ class SituationReportSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
 
 
-class AppealCsvSerializer(serializers.ModelSerializer):
+class AppealTableauSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
@@ -415,7 +456,7 @@ class AppealSerializer(serializers.ModelSerializer):
                   'country', 'region', 'id',)
 
 
-class AppealDocumentCsvSerializer(serializers.ModelSerializer):
+class AppealDocumentTableauSerializer(serializers.ModelSerializer):
     appeal = MiniAppealSerializer()
 
     class Meta:
@@ -517,6 +558,68 @@ class ListFieldReportSerializer(TranslatedModelSerializerMixin, serializers.Mode
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
     actions_taken = ActionsTakenSerializer(many=True)
+
+    class Meta:
+        model = FieldReport
+        fields = '__all__'
+
+
+class ListFieldReportTableauSerializer(serializers.ModelSerializer):
+    countries = serializers.SerializerMethodField()
+    districts = serializers.SerializerMethodField()
+    regions = serializers.SerializerMethodField()
+    dtype = DisasterTypeSerializer()
+    event = MiniEventSerializer()
+    actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
+
+    def get_countries(self, obj):
+        country_fields = {
+            'id': '',
+            'name': ''
+        }
+        countries = obj.countries.all()
+        if len(countries) > 0:
+            country_fields['id'] = ', '.join([str(country.id) for country in countries])
+            country_fields['name'] = ', '.join([str(country.name) for country in countries])
+        return country_fields
+
+    def get_districts(self, obj):
+        district_fields = {
+            'id': '',
+            'name': ''
+        }
+        districts = obj.districts.all()
+        if len(districts) > 0:
+            district_fields['id'] = ', '.join([str(district.id) for district in districts])
+            district_fields['name'] = ', '.join([str(district.name) for district in districts])
+        return district_fields
+
+    def get_regions(self, obj):
+        region_fields = {
+            'id': '',
+            'region_name': ''
+        }
+        regions = obj.regions.all()
+        if len(regions) > 0:
+            region_fields['id'] = ', '.join([str(region.id) for region in regions])
+            region_fields['region_name'] = ', '.join([str(region.region_name) for region in regions])
+        return region_fields
+
+    def get_actions_taken_for_organization(self, obj):
+        actions_data = {}
+        actions_taken = obj.actions_taken.all()
+        for action in actions_taken:
+            if action.organization not in actions_data:
+                actions_data[action.organization] = []
+            this_action = {
+                'actions_name': [a.name for a in action.actions.all()],
+                'actions_id': [a.id for a in action.actions.all()]
+            }
+            actions_data[action.organization] = {
+                'action': json.dumps(this_action),
+                'summary': action.summary
+            }
+        return actions_data
 
     class Meta:
         model = FieldReport

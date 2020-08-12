@@ -77,7 +77,7 @@ class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
         fields = ('activity', 'id',)
 
 
-class PartnerDeploymentCsvSerializer(serializers.ModelSerializer):
+class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
     parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()
     district_deployed_to = serializers.SerializerMethodField()
