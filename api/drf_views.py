@@ -9,10 +9,12 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
+from .utils import is_user_ifrc
+from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
@@ -32,6 +34,7 @@ from .models import (
 
     Snippet,
     Event,
+    Snippet,
     SituationReport,
     SituationReportType,
     Appeal,
@@ -74,6 +77,7 @@ from .serializers import (
     SnippetSerializer,
     ListMiniEventSerializer,
     ListEventSerializer,
+    ListEventCsvSerializer,
     ListEventDeploymentsSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
@@ -87,6 +91,16 @@ from .serializers import (
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
+
+    # Tableau Serializers
+    AppealDocumentTableauSerializer,
+    AppealTableauSerializer,
+    CountryTableauSerializer,
+    CountrySnippetTableauSerializer,
+    ListEventTableauSerializer,
+    ListFieldReportTableauSerializer,
+    RegionSnippetTableauSerializer,
+    SituationReportTableauSerializer
 )
 from .logger import logger
 
@@ -150,6 +164,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         if self.request.GET.get('mini', 'false').lower() == 'true':
             return MiniCountrySerializer
+        if is_tableau(self.request) is True:
+            return CountryTableauSerializer
         if self.action == 'list':
             return CountryGeoSerializer
         return CountryRelationSerializer
@@ -213,6 +229,11 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionSnippetFilter
     visibility_model_class = RegionSnippet
 
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return RegionSnippetTableauSerializer
+        return RegionSnippetSerializer
+
 
 class CountrySnippetFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
@@ -227,6 +248,11 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     serializer_class = CountrySnippetSerializer
     filter_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return CountrySnippetTableauSerializer
+        return CountrySnippetSerializer
 
 
 class DistrictFilter(filters.FilterSet):
@@ -294,7 +320,13 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
         if self.action == 'mini_events':
             return ListMiniEventSerializer
         elif self.action == 'list':
-            return ListEventSerializer
+            request_format_type = self.request.GET.get('format', 'json')
+            if request_format_type == 'csv':
+                return ListEventCsvSerializer
+            elif is_tableau(self.request) is True:
+                return ListEventTableauSerializer
+            else:
+                return ListEventSerializer
         else:
             return DetailEventSerializer
 
@@ -362,6 +394,11 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     filter_class = SituationReportFilter
     visibility_model_class = SituationReport
 
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return SituationReportTableauSerializer
+        return SituationReportSerializer
+
 
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
@@ -386,6 +423,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return AppealTableauSerializer
+        return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj['needs_confirmation']:
@@ -427,9 +469,13 @@ class AppealDocumentFilter(filters.FilterSet):
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
-    serializer_class = AppealDocumentSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = AppealDocumentFilter
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return AppealDocumentTableauSerializer
+        return AppealDocumentSerializer
 
 
 class ProfileViewset(viewsets.ModelViewSet):
@@ -487,6 +533,8 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
                                      'countries', 'districts', 'regions')
 
     def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return ListFieldReportTableauSerializer
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
             if request_format_type == 'csv':
@@ -587,7 +635,7 @@ class GenericFieldReportView(GenericAPIView):
                     data[prop] = model.objects.get(pk=data[prop])
                 except Exception:
                     raise BadRequest('Valid %s is required' % prop)
-            elif prop != 'event':
+            elif prop is not 'event':
                 raise BadRequest('Valid %s is required' % prop)
 
         return data

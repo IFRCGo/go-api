@@ -77,6 +77,29 @@ class PartnerDeploymentActivitySerializer(TranslatedModelSerializerMixin, serial
         fields = ('activity', 'id',)
 
 
+class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer()
+    district_deployed_to = serializers.SerializerMethodField()
+    activity = PartnerDeploymentActivitySerializer()
+
+    def get_district_deployed_to(self, obj):
+        district_fields = {
+            'name': ''
+        }
+        district_deployed_to = obj.district_deployed_to.all()
+        if len(district_deployed_to) > 0:
+            district_fields['name'] = ', '.join([str(district.name) for district in district_deployed_to])
+        return district_fields
+
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to',
+            'district_deployed_to', 'activity', 'id',
+        )
+
+
 class PartnerDeploymentSerializer(serializers.ModelSerializer):
     parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()

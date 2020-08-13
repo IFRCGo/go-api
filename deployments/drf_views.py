@@ -11,6 +11,7 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
+from main.utils import is_tableau
 
 from .filters import ProjectFilter
 from .models import (
@@ -32,6 +33,7 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PartnerDeploymentSerializer,
+    PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
     ProjectSerializer,
 )
@@ -128,6 +130,11 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = PartnerSocietyDeployment.objects.all()
     serializer_class = PartnerDeploymentSerializer
     filter_class = PartnerDeploymentFilterset
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return PartnerDeploymentTableauSerializer
+        return PartnerDeploymentSerializer
 
 
 class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
