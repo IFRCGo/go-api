@@ -35,12 +35,13 @@ from api.views import (
     AreaAggregate,
     AddCronJobLog,
     DummyHttpStatusError,
-    DummyExceptionError
+    DummyExceptionError,
+    ResendValidation
 )
 from registrations.views import (
     NewRegistration,
     VerifyEmail,
-    ValidateUser,
+    ValidateUser
 )
 from per.views import (
     DraftSent,
@@ -145,6 +146,7 @@ urlpatterns = [
     url(r'^change_password', ChangePassword.as_view()),
     url(r'^recover_password', RecoverPassword.as_view()),
     url(r'^show_username', ShowUsername.as_view()),
+    url(r'^resend_validation', ResendValidation.as_view()),
     url(r'^api/v2/', include(router.urls)),
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
