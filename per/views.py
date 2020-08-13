@@ -105,7 +105,7 @@ class FormEdit(APIView):
 
     def post(self, request):
         form_id = request.data.get('id', None)
-        if form_id:
+        if form_id is None:
             return bad_request('Could not complete request. Please submit %s' % form_id)
 
         form = Form.objects.filter(pk=form_id).first()
