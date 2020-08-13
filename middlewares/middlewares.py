@@ -60,5 +60,7 @@ class RequestMiddleware:
         )
         if reject_the_request:
             return JsonResponse({
-                'error': ugettext('Currently GET method is only allowed for non-English language.'),
+                'error': ugettext('Currently %(method)s method is only allowed for non-English language.') % {
+                    'method': request.method
+                },
             }, status=405)

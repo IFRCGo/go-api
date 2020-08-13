@@ -24,4 +24,4 @@ class Command(BaseCommand):
         if options.get('show_counts_only'):
             ModelTranslator.show_characters_counts()
         else:
-            ModelTranslator().run(batch_size=options.pop('batch_size') or 100)
+            ModelTranslator().run(batch_size=options.pop('batch_size'))

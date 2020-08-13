@@ -44,7 +44,7 @@ class AppealDocumentTO(TranslationOptions):
 
 @register(Country)
 class CountryTO(TranslationOptions):
-    fields = ('name', 'overview',)
+    fields = ('name', 'society_name', 'overview',)
 
 
 @register(CountrySnippet)

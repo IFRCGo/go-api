@@ -1,9 +1,11 @@
 from rest_framework import serializers
-from .models import SurgeAlert, Subscription
 from api.serializers import MiniEventSerializer, ListEventSerializer, MiniCountrySerializer
+from lang.serializers import ModelSerializer
+
+from .models import SurgeAlert, Subscription
 
 
-class SurgeAlertSerializer(serializers.ModelSerializer):
+class SurgeAlertSerializer(ModelSerializer):
     event = ListEventSerializer()
 
     class Meta:
