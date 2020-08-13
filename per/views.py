@@ -8,6 +8,7 @@ from .models import (
 )
 from api.views import bad_request
 
+logger = logging.getLogger(__name__)
 
 def get_client_ip(request):
     """ https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django """
@@ -75,6 +76,7 @@ class FormSent(APIView):
                                        validated=validated,
                                        finalized=finalized)
         except Exception:
+            logger.error('Could not insert PER form record.', exc_info=True)
             return bad_request('Could not insert PER form record.')
 
         # Create FormData of the Form
@@ -87,6 +89,7 @@ class FormSent(APIView):
                                                 selected_option=rubr['op'],
                                                 notes=rubr['nt'])
             except Exception:
+				logger.error('Could not insert PER formdata record.', exc_info=True)
                 return bad_request('Could not insert PER formdata record.')
 
         return JsonResponse({'status': 'ok'})
@@ -133,6 +136,7 @@ class FormEdit(APIView):
             form.finalized = finalized
             form.save()
         except Exception:
+            logger.error('Could not change PER form record.', exc_info=True)
             return bad_request('Could not change PER form record.')
 
         # Update Form Data of the Form
@@ -153,6 +157,7 @@ class FormEdit(APIView):
 
                         form_data.save()
             except Exception as err:
+				logger.error('Could not change PER formdata record.', exc_info=True)
                 return bad_request('Could not change PER formdata record. {}'.format(err))
 
         return JsonResponse({'status': 'ok'})
@@ -193,7 +198,7 @@ class WorkPlanSent(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
-    def handle_post(self, request):
+    def post(self, request):
         required_fields = ('country_id', 'user_id')
         missing_fields = [field for field in required_fields if field not in request.data]
         if missing_fields:
@@ -334,3 +339,4 @@ class DelDraft(APIView):
             return bad_request('Could not delete PER Draft.')
 
         return JsonResponse({'status': 'ok'})
+

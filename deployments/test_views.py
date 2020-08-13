@@ -1,7 +1,12 @@
 import json
+
+from django.conf import settings
+
+from modeltranslation.utils import build_localized_fieldname
 from api.models import Country, District, Region
 from main.test_case import APITestCase
 from api.models import VisibilityCharChoices
+
 from .models import (
     Project,
     ProgrammeTypes,
@@ -231,94 +236,91 @@ class ProjectGetTest(APITestCase):
             )
             p.project_districts.set(pdata[1])
         resp = self.client.get(f'/api/v2/region-project/{region.pk}/overview/', format='json')
-        self.assertEqual(
-            resp.json(), {
-                'total_projects': 8,
-                'ns_with_ongoing_activities': 1,
-                'total_budget': 109102,
-                'target_total': 31000,
-                'reached_total': 9054,
-                'projects_by_status': [
-                    {'status': 0, 'count': 3},
-                    {'status': 1, 'count': 2},
-                    {'status': 2, 'count': 3}
-                ]
-            }
-        )
+        self.assertEqual({
+            'total_projects': 8,
+            'ns_with_ongoing_activities': 1,
+            'total_budget': 109102,
+            'target_total': 31000,
+            'reached_total': 9054,
+            'projects_by_status': [
+                {'status': 0, 'count': 3},
+                {'status': 1, 'count': 2},
+                {'status': 2, 'count': 3}
+            ]
+        }, resp.json())
 
         resp = self.client.get(f'/api/v2/region-project/{region.pk}/movement-activities/', format='json')
-        self.assertEqual(
-            resp.json(), {
-                'total_projects': 8,
-                'countries_count': [
-                    {
-                        'id': country1.id,
-                        'name': 'country1',
-                        'iso': 'XX',
-                        'iso3': None,
-                        'projects_count': 4,
-                        'planned_projects_count': 2,
-                        'ongoing_projects_count': 1,
-                        'completed_projects_count': 1
-                    },
-                    {
-                        'id': country2.id,
-                        'name': 'country2',
-                        'iso': 'XX',
-                        'iso3': None,
-                        'projects_count': 4,
-                        'planned_projects_count': 1,
-                        'ongoing_projects_count': 1,
-                        'completed_projects_count': 2
-                    }
-                ],
-                'country_ns_sector_count': [
-                    {
-                        'id': country1.id,
-                        'name': 'country1',
-                        'reporting_national_societies': [
-                            {
-                                'id': rcountry1.id,
-                                'name': 'rcountry1',
-                                'sectors': [
-                                    {'id': 0, 'sector': Sectors.WASH.label, 'count': 2}
-                                ]
-                            }, {
-                                'id': rcountry2.id,
-                                'name': 'rcountry2',
-                                'sectors': [
-                                    {'id': 0, 'sector': Sectors.WASH.label, 'count': 1},
-                                    {'id': 8, 'sector': Sectors.EDUCATION.label, 'count': 1}
-                                ]
-                            }
-                        ]
-                    }, {
-                        'id': country2.id,
-                        'name': 'country2',
-                        'reporting_national_societies': [
-                            {
-                                'id': rcountry1.id,
-                                'name': 'rcountry1',
-                                'sectors': [
-                                    {'id': 2, 'sector': Sectors.CEA.label, 'count': 1},
-                                    {'id': 4, 'sector': Sectors.HEALTH.label, 'count': 1}
-                                ]
-                            }, {
-                                'id': rcountry2.id,
-                                'name': 'rcountry2',
-                                'sectors': [
-                                    {'id': 3, 'sector': Sectors.MIGRATION.label, 'count': 1},
-                                    {'id': 5, 'sector': Sectors.DRR.label, 'count': 1}
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                'supporting_ns': [
-                    {'count': 4, 'id': rcountry1.id, 'name': 'rcountry1'},
-                    {'count': 4, 'id': rcountry2.id, 'name': 'rcountry2'}
-                ]
-            })
+        self.assertEqual({
+            'total_projects': 8,
+            'countries_count': [
+                {
+                    'id': country1.id,
+                    'name': 'country1',
+                    'iso': 'XX',
+                    'iso3': None,
+                    'projects_count': 4,
+                    'planned_projects_count': 2,
+                    'ongoing_projects_count': 1,
+                    'completed_projects_count': 1
+                },
+                {
+                    'id': country2.id,
+                    'name': 'country2',
+                    'iso': 'XX',
+                    'iso3': None,
+                    'projects_count': 4,
+                    'planned_projects_count': 1,
+                    'ongoing_projects_count': 1,
+                    'completed_projects_count': 2
+                }
+            ],
+            'country_ns_sector_count': [
+                {
+                    'id': country1.id,
+                    'name': 'country1',
+                    'reporting_national_societies': [
+                        {
+                            'id': rcountry1.id,
+                            'name': 'rcountry1',
+                            'sectors': [
+                                {'id': 0, 'sector': Sectors.WASH.label, 'count': 2}
+                            ]
+                        }, {
+                            'id': rcountry2.id,
+                            'name': 'rcountry2',
+                            'sectors': [
+                                {'id': 0, 'sector': Sectors.WASH.label, 'count': 1},
+                                {'id': 8, 'sector': Sectors.EDUCATION.label, 'count': 1}
+                            ]
+                        }
+                    ]
+                }, {
+                    'id': country2.id,
+                    'name': 'country2',
+                    'reporting_national_societies': [
+                        {
+                            'id': rcountry1.id,
+                            'name': 'rcountry1',
+                            'sectors': [
+                                {'id': 2, 'sector': Sectors.CEA.label, 'count': 1},
+                                {'id': 4, 'sector': Sectors.HEALTH.label, 'count': 1}
+                            ]
+                        }, {
+                            'id': rcountry2.id,
+                            'name': 'rcountry2',
+                            'sectors': [
+                                {'id': 3, 'sector': Sectors.MIGRATION.label, 'count': 1},
+                                {'id': 5, 'sector': Sectors.DRR.label, 'count': 1}
+                            ]
+                        }
+                    ]
+                }
+            ],
+            'supporting_ns': [
+                {'count': 4, 'id': rcountry1.id, 'name': 'rcountry1'},
+                {'count': 4, 'id': rcountry2.id, 'name': 'rcountry2'}
+            ]
+        }, resp.json())
 
         nation_society_activities_resp = {
             'nodes': sorted(
@@ -367,3 +369,112 @@ class ProjectGetTest(APITestCase):
             'nodes': sorted(resp['nodes'], key=lambda item: dict_to_string(item)),
             'links': sorted(resp['links'], key=lambda item: dict_to_string(item)),
         })
+
+
+class TranslationTest(APITestCase):
+    def test_translation_api_behaviour(self):
+        """
+        NOTE: This test covers for API behaviour for translation mixin serializer
+        TODO: Use model with more then one field used for translation
+        """
+        country = Country.objects.create(name='country', iso='YY')
+        district = District.objects.create(name='district', country=country)
+        names = {
+            'en': 'Project 1 (EN)',
+            'es': 'Project 1 (ES)',
+            'fr': 'Project 1 (FR)',
+            'ar': 'Project 1 (AR)',
+        }
+        self.authenticate(self.user)
+
+        # Using both header and GET Param
+        for using in ['header']:
+            for current_language, _ in settings.LANGUAGES:
+                body = {
+                    'reporting_ns': country.id,
+                    'project_country': district.country.id,
+                    'project_districts': [district.id],
+                    'name': names[current_language],
+                    'programme_type': ProgrammeTypes.BILATERAL.value,
+                    'primary_sector': Sectors.WASH.value,
+                    'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
+                    'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+                    'start_date': '2012-11-12',
+                    'end_date': '2013-11-13',
+                    'budget_amount': 7000,
+                    'target_total': 100,
+                    'status': Statuses.PLANNED.value,
+                }
+
+                # POST (Creation)
+                with self.capture_on_commit_callbacks(execute=True):
+                    # https://docs.djangoproject.com/en/3.0/topics/testing/tools/#setting-the-language
+                    resp = self.client.post('/api/v2/project/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+
+                # NOTE: non-safe methods are not allowd for non english language
+                if current_language == settings.LANGUAGE_CODE:
+                    self.assertEqual(resp.status_code, 201, resp.content)
+                else:
+                    self.assertEqual(resp.status_code, 405, resp.content)
+
+                project_id = resp.json().get('id')
+                if project_id is None:
+                    continue
+
+                # GET
+                for lang, _ in settings.LANGUAGES:
+                    resp = self.client.get(f'/api/v2/project/{project_id}/', HTTP_ACCEPT_LANGUAGE=lang)
+                    self.assertEqual(resp.status_code, 200, resp.content)
+                    resp_body = resp.json()
+                    if lang == current_language:
+                        assert resp_body['name'] == names[current_language], \
+                            f"Name ({lang}): <{resp_body['name']}> should be <{names[current_language]}>"
+                    else:
+                        translated_text = self.aws_translator._fake_translation(names[current_language], lang, current_language)
+                        assert resp_body['name'] == translated_text,\
+                            f"Name ({lang}): should be <{translated_text}> instead of <{resp_body['name']}>"
+
+                # Update (This doesn't reset other language)
+                body['name'] += ''
+                with self.capture_on_commit_callbacks(execute=True):
+                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                self.assertEqual(resp.status_code, 200, resp.content)
+
+                # non current language field should not be None
+                project = Project.objects.get(pk=project_id)
+                for lang, _ in settings.LANGUAGES:
+                    value = getattr(project, build_localized_fieldname('name', lang))
+                    if lang == current_language:
+                        assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
+                    else:
+                        assert value is not None, f"Name ({lang}): value shouldn't be None"
+
+                # Update (Reset other language) (Without onCommit Trigger by not using self.capture_on_commit_callbacks)
+                # This way the language field are reset but auto translation work is reverted back i.e reset is preserved
+                body['name'] += ' Changed'
+                resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                self.assertEqual(resp.status_code, 200, resp.content)
+
+                # non current language field should be None
+                project = Project.objects.get(pk=project_id)
+                for lang, _ in settings.LANGUAGES:
+                    value = getattr(project, build_localized_fieldname('name', lang))
+                    if lang == current_language:
+                        assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
+                    else:
+                        assert value is None, f"Name ({lang}): <{value}> should be None"
+
+                # Again Update (With onCommit Trigger: Mock Translation)
+                body['name'] += ' Again Changed'
+                with self.capture_on_commit_callbacks(execute=True):
+                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=current_language)
+                self.assertEqual(resp.status_code, 200, resp.content)
+
+                # non current language field should be None
+                project = Project.objects.get(pk=project_id)
+                for lang, _ in settings.LANGUAGES:
+                    value = getattr(project, build_localized_fieldname('name', lang))
+                    if lang == current_language:
+                        assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
+                    else:
+                        assert value is not None, f"Name ({lang}): <{value}> should not be None"

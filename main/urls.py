@@ -175,5 +175,5 @@ urlpatterns += i18n_patterns(
     path('', admin.site.urls),
     # NOTE: Current language switcher will not work if set to False.
     # TODO: Fix admin panel language switcher before enabling switcher in production
-    prefix_default_language=not settings.HIDE_LANGUAGE_UI,
+    prefix_default_language=True,
 )

@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from lang.translation import TranslatedModelSerializerMixin
+from lang.serializers import TranslatedModelSerializerMixin
 
 from .models import (
     ERUOwner,
@@ -52,7 +52,7 @@ class ERUSerializer(serializers.ModelSerializer):
         fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class PersonnelDeploymentSerializer(serializers.ModelSerializer):
+class PersonnelDeploymentSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
     event_deployed_to = ListEventSerializer()
 
@@ -70,11 +70,34 @@ class PersonnelSerializer(serializers.ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
 
 
-class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
+class PartnerDeploymentActivitySerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
 
     class Meta:
         model = PartnerSocietyActivities
         fields = ('activity', 'id',)
+
+
+class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer()
+    district_deployed_to = serializers.SerializerMethodField()
+    activity = PartnerDeploymentActivitySerializer()
+
+    def get_district_deployed_to(self, obj):
+        district_fields = {
+            'name': ''
+        }
+        district_deployed_to = obj.district_deployed_to.all()
+        if len(district_deployed_to) > 0:
+            district_fields['name'] = ', '.join([str(district.name) for district in district_deployed_to])
+        return district_fields
+
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to',
+            'district_deployed_to', 'activity', 'id',
+        )
 
 
 class PartnerDeploymentSerializer(serializers.ModelSerializer):
@@ -91,7 +114,7 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegionalProjectSerializer(serializers.ModelSerializer):
+class RegionalProjectSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = RegionalProject
         fields = '__all__'

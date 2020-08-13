@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,23 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: deployments/admin.py:89
-#, fuzzy
-#| msgid "Project Import"
+#: deployments/admin.py:74
+msgid "National Society"
+msgstr "الجمعية الوطنية"
+
+#: deployments/admin.py:79
+msgid "Country"
+msgstr "بلد"
+
+#: deployments/admin.py:106
 msgid "New Import"
-msgstr "استيراد المشروع"
+msgstr "استيراد جديد"
 
-#: deployments/admin.py:92
-#, fuzzy
-#| msgid "Project Import"
+#: deployments/admin.py:109
 msgid "Recent Imports"
-msgstr "استيراد المشروع"
+msgstr "الواردات الأخيرة"
 
-#: deployments/admin.py:95
+#: deployments/admin.py:112
 msgid "Import Template"
 msgstr "استيراد قالب"
 
-#: deployments/admin.py:145 deployments/models.py:365
+#: deployments/admin.py:162 deployments/models.py:365
 msgid "Projects"
 msgstr "المشاريع"
 
@@ -91,10 +95,8 @@ msgid "Wash M40"
 msgstr "غسل M40"
 
 #: deployments/models.py:44
-#, fuzzy
-#| msgid "Partner society activity"
 msgid "national society country"
-msgstr "نشاط المجتمع الشريك"
+msgstr "بلد المجتمع الوطني"
 
 #: deployments/models.py:47 deployments/models.py:114
 #: deployments/models.py:299 deployments/models.py:407
@@ -155,8 +157,8 @@ msgid "owner"
 msgstr "مالك"
 
 #: deployments/models.py:80
-msgid "suuporting societies"
-msgstr "مجتمعات موروعة"
+msgid "supporting societies"
+msgstr "دعم المجتمعات"
 
 #: deployments/models.py:82 deployments/models.py:112
 #: deployments/models.py:128 deployments/models.py:338
@@ -266,10 +268,8 @@ msgid "country from"
 msgstr "بلد من"
 
 #: deployments/models.py:162
-#, fuzzy
-#| msgid "Personnel Deployment"
 msgid "deployment"
-msgstr "نشر الأفراد"
+msgstr "النشر"
 
 #: deployments/models.py:168
 msgid "Personnel"
@@ -420,10 +420,8 @@ msgid "user"
 msgstr "مستخدم"
 
 #: deployments/models.py:316
-#, fuzzy
-#| msgid "ERUs from a National Society"
 msgid "reporting national society"
-msgstr "وحدات خفض الانبعاثات من جمعية وطنية"
+msgstr "الإبلاغ عن المجتمع الوطني"
 
 #: deployments/models.py:320
 msgid "country"
@@ -494,10 +492,8 @@ msgid "reached total"
 msgstr "المجموع الذي تم التوصل إليه"
 
 #: deployments/models.py:356
-#, fuzzy
-#| msgid "Regional Project"
 msgid "regional project"
-msgstr "المشروع الإقليمي"
+msgstr "مشروع إقليمي"
 
 #: deployments/models.py:359
 msgid "visibility"
@@ -524,10 +520,8 @@ msgid "created by"
 msgstr "التي تم إنشاؤها بواسطة"
 
 #: deployments/models.py:408
-#, fuzzy
-#| msgid "Projects Import"
 msgid "projects created"
-msgstr "استيراد المشاريع"
+msgstr "المشاريع التي تم إنشاؤها"
 
 #: deployments/models.py:409
 msgid "message"
@@ -542,20 +536,16 @@ msgid "Projects Import"
 msgstr "استيراد المشاريع"
 
 #: deployments/models.py:424
-#, fuzzy
-#| msgid "ERUs from a National Society"
 msgid "national society"
-msgstr "وحدات خفض الانبعاثات من جمعية وطنية"
+msgstr "الجمعية الوطنية"
 
 #: deployments/models.py:426
 msgid "ERU type"
 msgstr "نوع وحدة خفض الانبعاثات"
 
 #: deployments/models.py:427
-#, fuzzy
-#| msgid "Personnel"
 msgid "is personnel?"
-msgstr "شؤون الموظفين"
+msgstr "هل الموظفين؟"
 
 #: deployments/models.py:428
 msgid "is equipment?"
@@ -584,6 +574,3 @@ msgid ""
 msgstr ""
 "يجب توفير الحدث إذا كان نوع العملية هو عملية الطوارئ ونوع البرنامج متعدد "
 "الأطراف"
-
-#~ msgid "ERU"
-#~ msgstr "إيرو"

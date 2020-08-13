@@ -152,9 +152,10 @@ class AreaAggregate(APIView):
         elif not region_id:
             return bad_request('`id` must be a region id')
 
-        aggregate = Appeal.objects.filter(**{region_type: region_id}) \
-                                  .annotate(count=Count('id')) \
-                                  .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
+        aggregate = Appeal.objects\
+            .filter(**{region_type: region_id}) \
+            .annotate(count=Count('id')) \
+            .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
 
         return JsonResponse(dict(aggregate))
 
