@@ -1,3 +1,4 @@
+import logging
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -9,6 +10,7 @@ from .models import (
 from api.views import bad_request
 
 logger = logging.getLogger(__name__)
+
 
 def get_client_ip(request):
     """ https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django """
@@ -61,20 +63,22 @@ class FormSent(APIView):
 
         # Create the Form object
         try:
-            form = Form.objects.create(code=code,
-                                       name=name,
-                                       language=language,
-                                       user_id=user_id,
-                                       country_id=country_id,
-                                       ns=ns,
-                                       ip_address=ip,
-                                       started_at=started_at,
-                                       ended_at=ended_at,
-                                       submitted_at=submitted_at,
-                                       comment=comment,
-                                       # unique_id  = raw['unique_id'], # only KoBo form provided
-                                       validated=validated,
-                                       finalized=finalized)
+            form = Form.objects.create(
+                code=code,
+                name=name,
+                language=language,
+                user_id=user_id,
+                country_id=country_id,
+                ns=ns,
+                ip_address=ip,
+                started_at=started_at,
+                ended_at=ended_at,
+                submitted_at=submitted_at,
+                comment=comment,
+                # unique_id  = raw['unique_id'], # only KoBo form provided
+                validated=validated,
+                finalized=finalized
+            )
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
             return bad_request('Could not insert PER form record.')
@@ -89,7 +93,7 @@ class FormSent(APIView):
                                                 selected_option=rubr['op'],
                                                 notes=rubr['nt'])
             except Exception:
-				logger.error('Could not insert PER formdata record.', exc_info=True)
+                logger.error('Could not insert PER formdata record.', exc_info=True)
                 return bad_request('Could not insert PER formdata record.')
 
         return JsonResponse({'status': 'ok'})
@@ -157,7 +161,7 @@ class FormEdit(APIView):
 
                         form_data.save()
             except Exception as err:
-				logger.error('Could not change PER formdata record.', exc_info=True)
+                logger.error('Could not change PER formdata record.', exc_info=True)
                 return bad_request('Could not change PER formdata record. {}'.format(err))
 
         return JsonResponse({'status': 'ok'})
@@ -184,10 +188,12 @@ class DraftSent(APIView):
         try:
             # If exists (a previous draft), delete it.
             Draft.objects.filter(code=code, country_id=country_id, user_id=user_id).delete()
-            Draft.objects.create(code=code,
-                                 user_id=user_id,
-                                 data=data,
-                                 country_id=country_id)
+            Draft.objects.create(
+                code=code,
+                user_id=user_id,
+                data=data,
+                country_id=country_id
+            )
         except Exception:
             return bad_request('Could not create PER draft.')
 
@@ -222,19 +228,21 @@ class WorkPlanSent(APIView):
         user_id = request.data.get('user_id', None)
 
         try:
-            WorkPlan.objects.create(prioritization=prioritization,
-                                    components=components,
-                                    benchmark=benchmark,
-                                    actions=actions,
-                                    comments=comments,
-                                    timeline=timeline,
-                                    status=status,
-                                    support_required=support_required,
-                                    focal_point=focal_point,
-                                    country_id=country_id,
-                                    code=code,
-                                    question_id=question_id,
-                                    user_id=user_id)
+            WorkPlan.objects.create(
+                prioritization=prioritization,
+                components=components,
+                benchmark=benchmark,
+                actions=actions,
+                comments=comments,
+                timeline=timeline,
+                status=status,
+                support_required=support_required,
+                focal_point=focal_point,
+                country_id=country_id,
+                code=code,
+                question_id=question_id,
+                user_id=user_id
+            )
         except Exception:
             return bad_request('Could not insert PER WorkPlan.')
 
@@ -269,21 +277,23 @@ class OverviewSent(APIView):
         approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
 
         try:
-            Overview.objects.create(country_id=country_id,
-                                    user_id=user_id,
-                                    date_of_current_capacity_assessment=date_of_current_capacity_assessment,
-                                    type_of_capacity_assessment=type_of_capacity_assessment,
-                                    branch_involved=branch_involved,
-                                    focal_point_name=focal_point_name,
-                                    focal_point_email=focal_point_email,
-                                    had_previous_assessment=had_previous_assessment,
-                                    focus=focus,
-                                    facilitated_by=facilitated_by,
-                                    facilitator_email=facilitator_email,
-                                    phone_number=phone_number,
-                                    skype_address=skype_address,
-                                    date_of_mid_term_review=date_of_mid_term_review,
-                                    approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt)
+            Overview.objects.create(
+                country_id=country_id,
+                user_id=user_id,
+                date_of_current_capacity_assessment=date_of_current_capacity_assessment,
+                type_of_capacity_assessment=type_of_capacity_assessment,
+                branch_involved=branch_involved,
+                focal_point_name=focal_point_name,
+                focal_point_email=focal_point_email,
+                had_previous_assessment=had_previous_assessment,
+                focus=focus,
+                facilitated_by=facilitated_by,
+                facilitator_email=facilitator_email,
+                phone_number=phone_number,
+                skype_address=skype_address,
+                date_of_mid_term_review=date_of_mid_term_review,
+                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt
+            )
         except Exception:
             return bad_request('Could not insert PER Overview.')
 
@@ -339,4 +349,3 @@ class DelDraft(APIView):
             return bad_request('Could not delete PER Draft.')
 
         return JsonResponse({'status': 'ok'})
-
