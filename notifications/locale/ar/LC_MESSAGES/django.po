@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -95,6 +95,7 @@ msgid "is private?"
 msgstr "هل هو خاص؟"
 
 #: notifications/models.py:52 notifications/models.py:101
+#: notifications/models.py:141
 msgid "event"
 msgstr "حادثة"
 
@@ -127,20 +128,18 @@ msgid "field report"
 msgstr "تقرير ميداني"
 
 #: notifications/models.py:104
-#, fuzzy
-#| msgid "Surge Alert"
 msgid "surge alert"
 msgstr "تنبيه الطفرة"
 
-#: notifications/models.py:105
+#: notifications/models.py:105 notifications/models.py:138
 msgid "country"
 msgstr "بلد"
 
-#: notifications/models.py:106
+#: notifications/models.py:106 notifications/models.py:139
 msgid "region"
 msgstr "منطقة"
 
-#: notifications/models.py:107
+#: notifications/models.py:107 notifications/models.py:140
 msgid "disaster type"
 msgstr "نوع الكارثة"
 
@@ -179,6 +178,18 @@ msgstr "إعلانات عامة"
 #: notifications/models.py:130
 msgid "user"
 msgstr "مستخدم"
+
+#: notifications/models.py:135
+msgid "subscription type"
+msgstr "نوع الاشتراك"
+
+#: notifications/models.py:136
+msgid "record type"
+msgstr "نوع السجل"
+
+#: notifications/models.py:143
+msgid "lookup id"
+msgstr "معرف البحث"
 
 #: notifications/models.py:146
 msgid "Subscription"

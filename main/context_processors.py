@@ -7,7 +7,6 @@ def ifrc_go(request):
     return {
         # Provide a variable to define current environment
         'PRODUCTION_URL': settings.PRODUCTION_URL,
-        'HIDE_LANGUAGE_UI': settings.HIDE_LANGUAGE_UI,
         'IS_STAGING': True if settings.PRODUCTION_URL == 'dsgocdnapi.azureedge.net' else False,
         # For header /_!_\ error symbol in base_site.html
         'HAVING_INGEST_ISSUE': True if cron_error else False,

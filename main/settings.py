@@ -1,7 +1,10 @@
 import os
-from datetime import datetime
+import sys
 import pytz
+from datetime import datetime
+
 from django.utils.translation import ugettext_lazy as _
+from celery.schedules import crontab
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -15,6 +18,17 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
 # The frontend_url nicing is in frontend.py
 
 INTERNAL_IPS = ['127.0.0.1']
+if 'DOCKER_HOST_IP' in os.environ:
+    INTERNAL_IPS.append(os.environ['DOCKER_HOST_IP'])
+
+DEBUG_TOOLBAR_CONFIG = {
+    'DISABLE_PANELS': [
+        'debug_toolbar.panels.sql.SQLPanel',
+        'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+        'debug_toolbar.panels.templates.TemplatesPanel',
+    ],
+}
 
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
@@ -23,6 +37,20 @@ if PRODUCTION_URL is not None:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False if PRODUCTION_URL is not None else True
+
+# See if we are inside a test environment
+TESTING = any([
+    arg in sys.argv for arg in [
+        'test',
+        'pytest',
+        'py.test',
+        '/usr/local/bin/pytest',
+        '/usr/local/bin/py.test',
+        '/usr/local/lib/python3.6/dist-packages/py/test.py',
+    ]
+    # Provided by pytest-xdist (If pytest is used)
+]) or os.environ.get('PYTEST_XDIST_WORKER') is not None
+
 
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
@@ -57,6 +85,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
+    'django_celery_beat',
 
     # Logging
     'reversion',
@@ -216,7 +245,7 @@ TINYMCE_DEFAULT_CONFIG = {
     # ''',
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -229,7 +258,6 @@ LANGUAGES = (
     ('ar', _('Arabic')),
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-HIDE_LANGUAGE_UI = not DEBUG
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -280,3 +308,18 @@ LOGGING = {
 AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
 AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
 AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
+
+# CELERY CONFIG
+CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACKS_LATE = True
+
+CELERY_BEAT_SCHEDULE = {
+    'translate_remaining_models_fields': {
+        'task': 'lang.tasks.translate_remaining_models_fields',
+        # Every 6 hour
+        'schedule': crontab(minute=0, hour="*/6"),
+    },
+}

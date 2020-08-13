@@ -9,11 +9,10 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
-from .utils import is_user_ifrc
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
@@ -33,7 +32,6 @@ from .models import (
 
     Snippet,
     Event,
-    Snippet,
     SituationReport,
     SituationReportType,
     Appeal,
@@ -98,21 +96,23 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Personnel.objects.filter(
-                end_date__gt=timezone.now(),
-            ).order_by().values(
-                'deployment__event_deployed_to', 'type',
-            ).annotate(
-                id=models.F('deployment__event_deployed_to'),
-                deployments=models.Count('type')
-            ).values('id', 'type', 'deployments')
+            end_date__gt=timezone.now(),
+        ).order_by().values(
+            'deployment__event_deployed_to', 'type',
+        ).annotate(
+            id=models.F('deployment__event_deployed_to'),
+            deployments=models.Count('type')
+        ).values('id', 'type', 'deployments')
 
 
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
     serializer_class = DisasterTypeSerializer
 
+
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
+
     def get_serializer_class(self):
         if self.action == 'list':
             return RegionGeoSerializer
@@ -171,9 +171,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+
     class Meta:
         model = RegionKeyFigure
         fields = ('region',)
+
 
 class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -181,11 +183,14 @@ class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionKeyFigureFilter
     visibility_model_class = RegionKeyFigure
 
+
 class CountryKeyFigureFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+
     class Meta:
         model = CountryKeyFigure
         fields = ('country',)
+
 
 class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -193,11 +198,14 @@ class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     filter_class = CountryKeyFigureFilter
     visibility_model_class = CountryKeyFigure
 
+
 class RegionSnippetFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+
     class Meta:
         model = RegionSnippet
         fields = ('region',)
+
 
 class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -205,17 +213,21 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionSnippetFilter
     visibility_model_class = RegionSnippet
 
+
 class CountrySnippetFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+
     class Meta:
         model = CountrySnippet
         fields = ('country',)
+
 
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountrySnippetSerializer
     filter_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
+
 
 class DistrictFilter(filters.FilterSet):
     class Meta:
@@ -244,6 +256,7 @@ class EventFilter(filters.FilterSet):
     auto_generated_source = filters.ChoiceFilter(
         label='Auto generated source choices', choices=[(v, v) for v in SOURCES.values()],
     )
+
     class Meta:
         model = Event
         fields = {
@@ -311,9 +324,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
 class EventSnippetFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+
     class Meta:
         model = Snippet
         fields = ('event',)
+
 
 class EventSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -321,20 +336,24 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = EventSnippetFilter
     visibility_model_class = Snippet
 
+
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
     ordering_fields = ('type',)
 
+
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     type = filters.NumberFilter(field_name='type', lookup_expr='exact')
+
     class Meta:
         model = SituationReport
         fields = {
             'name': ('exact',),
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
+
 
 class SituationReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -417,6 +436,7 @@ class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
 
@@ -479,9 +499,11 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
     filter_class = FieldReportFilter
 
+
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Action.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
+
 
 class GenericFieldReportView(GenericAPIView):
     authentication_classes = (TokenAuthentication,)
@@ -563,9 +585,9 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data and data[prop] is not None:
                 try:
                     data[prop] = model.objects.get(pk=data[prop])
-                except:
+                except Exception:
                     raise BadRequest('Valid %s is required' % prop)
-            elif prop is not 'event':
+            elif prop != 'event':
                 raise BadRequest('Valid %s is required' % prop)
 
         return data
@@ -624,10 +646,10 @@ class GenericFieldReportView(GenericAPIView):
             Source.objects.filter(field_report=fieldreport).delete()
 
         if 'actions_taken' in meta:
-            for action in meta['actions_taken']:
-                actions = action['actions']
-                del action['actions']
-                actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action)
+            for action_taken in meta['actions_taken']:
+                actions = action_taken['actions']
+                del action_taken['actions']
+                actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
                 actions_taken.actions.add(*actions)
 
         if 'contacts' in meta:
@@ -642,6 +664,7 @@ class GenericFieldReportView(GenericAPIView):
             Source.objects.bulk_create(
                 [Source(field_report=fieldreport, **fields) for fields in meta['sources']]
             )
+
 
 class CreateFieldReport(CreateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
@@ -666,7 +689,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         if not serializer.is_valid():
             try:
                 logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
-            except:
+            except Exception:
                 logger.error('Could not log create Field Report serializer errors')
             raise BadRequest(serializer.errors)
 
@@ -674,16 +697,18 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         data, locations, meta = self.map_many_to_many_relations(data)
 
         try:
+            # TODO: Use serializer to create fieldreport
             fieldreport = FieldReport.objects.create(**data)
+            CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
                 err_msg = str(e)
-                logger.error('Could not create Field Report. Error: {}'.format(err_msg))
+                logger.error('Could not create Field Report.', exc_info=True)
                 raise BadRequest('Could not create Field Report. Error: {}'.format(err_msg))
-            except:
+            except Exception:
                 raise BadRequest('Could not create Field Report')
 
-        ### Creating relations ###
+        # ### Creating relations ###
         # These are *not* handled in a transaction block.
         # The data model for these is very permissive. We're more interested in the
         # Numerical data being there than not.
@@ -713,6 +738,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
+
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -733,7 +759,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 
         try:
             serializer.save()
-        except Exception as e:
+        except Exception:
+            logger.error('Faild to update field report', exc_info=True)
             raise BadRequest('Could not update field report')
 
         errors = []
