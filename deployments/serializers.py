@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from lang.translation import TranslatedModelSerializerMixin
+from lang.serializers import TranslatedModelSerializerMixin
 
 from .models import (
     ERUOwner,
@@ -52,7 +52,7 @@ class ERUSerializer(serializers.ModelSerializer):
         fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class PersonnelDeploymentSerializer(serializers.ModelSerializer):
+class PersonnelDeploymentSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
     event_deployed_to = ListEventSerializer()
 
@@ -70,7 +70,7 @@ class PersonnelSerializer(serializers.ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
 
 
-class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
+class PartnerDeploymentActivitySerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
 
     class Meta:
         model = PartnerSocietyActivities
@@ -114,7 +114,7 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegionalProjectSerializer(serializers.ModelSerializer):
+class RegionalProjectSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = RegionalProject
         fields = '__all__'

@@ -4,6 +4,7 @@ set -e
 cmd="$@"
 
 export DATABASE_URL=postgres://$DJANGO_DB_USER:$DJANGO_DB_PASS@$DJANGO_DB_HOST:5432/$DJANGO_DB_USER
+export DOCKER_HOST_IP=$(/sbin/ip route|awk '/default/ { print $3 }')
 
 function postgres_ready(){
 python << END

@@ -1,19 +1,13 @@
-import json, datetime, pytz
 from collections import defaultdict
 from rest_framework.authentication import (
     TokenAuthentication,
-    BasicAuthentication,
-    SessionAuthentication,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.shortcuts import render
-from django.contrib.postgres.aggregates.general import ArrayAgg
-from django.db.models import Q, Sum, Count, F, Subquery, OuterRef, IntegerField
+from django.db.models import Q, Sum, Count, Subquery, OuterRef, IntegerField
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
@@ -43,12 +37,6 @@ from .serializers import (
     RegionalProjectSerializer,
     ProjectSerializer,
 )
-from api.views import (
-    bad_request,
-    bad_http_request,
-    PublicJsonPostView,
-    PublicJsonRequestView,
-)
 
 
 class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
@@ -58,31 +46,38 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ERUOwnerSerializer
     ordering_fields = ('created_at', 'updated_at',)
 
+
 class ERUFilter(filters.FilterSet):
     deployed_to__isnull = filters.BooleanFilter(field_name='deployed_to', lookup_expr='isnull')
     deployed_to__in = ListFilter(field_name='deployed_to__id')
     type = filters.NumberFilter(field_name='type', lookup_expr='exact')
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     event__in = ListFilter(field_name='event')
+
     class Meta:
         model = ERU
         fields = ('available',)
 
+
 class ERUViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,) # Some figures are shown on the home page also, and not only authenticated users should see them.
+    # Some figures are shown on the home page also, and not only authenticated users should see them.
+    # permission_classes = (IsAuthenticated,)
     queryset = ERU.objects.all()
     serializer_class = ERUSerializer
     filter_class = ERUFilter
     ordering_fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available',)
 
+
 class PersonnelDeploymentFilter(filters.FilterSet):
     country_deployed_to = filters.NumberFilter(field_name='country_deployed_to', lookup_expr='exact')
     region_deployed_to = filters.NumberFilter(field_name='region_deployed_to', lookup_expr='exact')
     event_deployed_to = filters.NumberFilter(field_name='event_deployed_to', lookup_expr='exact')
+
     class Meta:
         model = PersonnelDeployment
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
+
 
 class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
@@ -92,16 +87,19 @@ class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PersonnelDeploymentFilter
     ordering_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
 
+
 class PersonnelFilter(filters.FilterSet):
     country_from = filters.NumberFilter(field_name='country_from', lookup_expr='exact')
     type = filters.CharFilter(field_name='type', lookup_expr='exact')
     event_deployed_to = filters.NumberFilter(field_name='deployment__event_deployed_to', lookup_expr='exact')
+
     class Meta:
         model = Personnel
         fields = {
             'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte')
         }
+
 
 class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
@@ -266,8 +264,12 @@ class RegionProjectViewset(viewsets.ViewSet):
                 **country_annotate,
             ).values('id', 'name', 'iso', 'iso3', 'projects_count', *country_annotate.keys()),
             'country_ns_sector_count': _get_country_ns_sector_count(),
-            'supporting_ns': projects.order_by().values('reporting_ns').annotate(count=Count('id', distinct=True)).values(
-                'count', id=F('reporting_ns'), name=F('reporting_ns__name')),
+            'supporting_ns': [
+                {'id': id, 'name': name, 'count': count}
+                for id, name, count in projects.order_by().values('reporting_ns').annotate(
+                    count=Count('id', distinct=True)
+                ).values_list('reporting_ns', 'reporting_ns__name', 'count')
+            ],
         })
 
     @action(detail=True, url_path='national-society-activities', methods=('get',))
@@ -275,10 +277,16 @@ class RegionProjectViewset(viewsets.ViewSet):
         projects = self.get_projects()
 
         def _get_distinct(field, *args, **kwargs):
-            return list(
-                projects.order_by().values(field).annotate(
-                    count=Count('id', distinct=True)).values(field, *args, **kwargs).distinct()
-            )
+            kwargs[field] = field
+            return [
+                {
+                    f: p[key]
+                    for f, key in kwargs.items()
+                }
+                for p in projects.order_by().values(field).annotate(
+                    count=Count('id', distinct=True)
+                ).values(field, *kwargs.values()).distinct()
+            ]
 
         def _get_count(*fields):
             return list(
@@ -289,15 +297,15 @@ class RegionProjectViewset(viewsets.ViewSet):
         # Raw nodes
         supporting_ns_list = _get_distinct(
             'reporting_ns',
-            iso3=F('reporting_ns__iso3'),
-            iso=F('reporting_ns__iso'),
-            name=F('reporting_ns__society_name')
+            iso3='reporting_ns__iso3',
+            iso='reporting_ns__iso',
+            name='reporting_ns__society_name',
         )
         receiving_ns_list = _get_distinct(
             'project_country',
-            iso3=F('project_country__iso3'),
-            iso=F('project_country__iso'),
-            name=F('project_country__name')
+            iso3='project_country__iso3',
+            iso='project_country__iso',
+            name='project_country__name',
         )
         sector_list = _get_distinct('primary_sector')
 

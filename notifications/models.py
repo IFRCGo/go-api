@@ -133,15 +133,15 @@ class Subscription(models.Model):
         related_name='subscription',
     )
 
-    stype = EnumIntegerField(SubscriptionType, verbose_name=('subscription type'), default=0)
-    rtype = EnumIntegerField(RecordType, verbose_name=('record type'), default=0)
+    stype = EnumIntegerField(SubscriptionType, verbose_name=_('subscription type'), default=0)
+    rtype = EnumIntegerField(RecordType, verbose_name=_('record type'), default=0)
 
-    country = models.ForeignKey(Country, verbose_name=('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    region = models.ForeignKey(Region, verbose_name=('region'), null=True, blank=True, on_delete=models.SET_NULL)
-    dtype = models.ForeignKey(DisasterType, verbose_name=('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
-    event = models.ForeignKey(Event, verbose_name=('event'), null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
 
-    lookup_id = models.CharField(verbose_name=('lookup id'), max_length=20, null=True, blank=True, editable=False)
+    lookup_id = models.CharField(verbose_name=_('lookup id'), max_length=20, null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = _('Subscription')

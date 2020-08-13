@@ -2,7 +2,7 @@ import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
-from lang.translation import TranslatedModelSerializerMixin
+from lang.serializers import TranslatedModelSerializerMixin
 from .models import (
     DisasterType,
 
@@ -26,6 +26,7 @@ from .models import (
     SituationReport,
 
     Appeal,
+    AppealType,
     AppealDocument,
 
     Profile,
@@ -97,8 +98,10 @@ class CountryGeoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-                  'inform_score', 'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent')
+        fields = (
+            'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
+            'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent',
+        )
 
 
 class MiniCountrySerializer(serializers.ModelSerializer):
@@ -233,8 +236,10 @@ class CountryRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ('links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-                  'inform_score', 'id', 'url_ifrc',)
+        fields = (
+            'links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region',
+            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',
+        )
 
 
 class RelatedAppealSerializer(serializers.ModelSerializer):
@@ -415,10 +420,12 @@ class DetailEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
-                  'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
-                  'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug',
-                  'tab_one_title', 'tab_two_title', 'tab_three_title', 'parent_event',)
+        fields = (
+            'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
+            'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
+            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title',
+            'tab_two_title', 'tab_three_title', 'parent_event',
+        )
         lookup_field = 'slug'
 
 
@@ -453,9 +460,11 @@ class AppealTableauSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appeal
-        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
-                  'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
-                  'country', 'region', 'id',)
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
+            'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
+            'country', 'region', 'id',
+        )
 
 
 class MiniAppealSerializer(serializers.ModelSerializer):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: deployments/admin.py:89
+#: deployments/admin.py:74
+msgid "National Society"
+msgstr "National Society"
+
+#: deployments/admin.py:79
+msgid "Country"
+msgstr "Country"
+
+#: deployments/admin.py:106
 msgid "New Import"
 msgstr "New Import"
 
-#: deployments/admin.py:92
+#: deployments/admin.py:109
 msgid "Recent Imports"
 msgstr "Recent Imports"
 
-#: deployments/admin.py:95
+#: deployments/admin.py:112
 msgid "Import Template"
 msgstr "Import Template"
 
-#: deployments/admin.py:145 deployments/models.py:365
+#: deployments/admin.py:162 deployments/models.py:365
 msgid "Projects"
 msgstr "Projects"
 
@@ -149,8 +157,8 @@ msgid "owner"
 msgstr "owner"
 
 #: deployments/models.py:80
-msgid "suuporting societies"
-msgstr "suuporting societies"
+msgid "supporting societies"
+msgstr "supporting societies"
 
 #: deployments/models.py:82 deployments/models.py:112
 #: deployments/models.py:128 deployments/models.py:338
