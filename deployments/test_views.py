@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 
 from modeltranslation.utils import build_localized_fieldname
-from api.models import Country, District, Region
+from api.models import Country, District, Region, DisasterType
 from main.test_case import APITestCase
 from api.models import VisibilityCharChoices
 
@@ -379,12 +379,24 @@ class TranslationTest(APITestCase):
         """
         country = Country.objects.create(name='country', iso='YY')
         district = District.objects.create(name='district', country=country)
+        disaster_names = {
+            'en': 'Disaster 1 (EN)',
+            'es': 'Disaster 1 (ES)',
+            'fr': 'Disaster 1 (FR)',
+            'ar': 'Disaster 1 (AR)',
+        }
         names = {
             'en': 'Project 1 (EN)',
             'es': 'Project 1 (ES)',
             'fr': 'Project 1 (FR)',
             'ar': 'Project 1 (AR)',
         }
+
+        disaster_type = DisasterType()
+        for lang, _ in settings.LANGUAGES:
+            setattr(disaster_type, build_localized_fieldname('name', lang), disaster_names[lang])
+        disaster_type.save()
+
         self.authenticate(self.user)
 
         # Using both header and GET Param
@@ -393,6 +405,7 @@ class TranslationTest(APITestCase):
                 body = {
                     'reporting_ns': country.id,
                     'project_country': district.country.id,
+                    'dtype': disaster_type.pk,
                     'project_districts': [district.id],
                     'name': names[current_language],
                     'programme_type': ProgrammeTypes.BILATERAL.value,
@@ -433,6 +446,9 @@ class TranslationTest(APITestCase):
                         translated_text = self.aws_translator._fake_translation(names[current_language], lang, current_language)
                         assert resp_body['name'] == translated_text,\
                             f"Name ({lang}): should be <{translated_text}> instead of <{resp_body['name']}>"
+                    # Test Nested Field Disaster Type Name
+                    assert resp_body['dtype_detail']['name'] == disaster_names[lang], \
+                        f"Name ({lang}): <{resp_body['dtype_detail']['name']}> should be <{disaster_names[lang]}>"
 
                 # Update (This doesn't reset other language)
                 body['name'] += ''

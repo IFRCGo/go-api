@@ -51,6 +51,11 @@ class ModelTranslator():
                 source_language=initial_lang,
             )
 
+            field_max_length = type(obj)._meta.get_field(field).max_length
+            if field_max_length and len(new_value) > field_max_length:
+                logger.warning(f'Greater then max_length found for Model ({type(obj)}<{lang_field}>) pk: ({obj.pk})')
+                new_value = new_value[:field_max_length]
+
             setattr(obj, lang_field, new_value)
             yield lang_field
 
@@ -132,7 +137,7 @@ class ModelTranslator():
         logger.info(f'Total Count: {total_count}')
         logger.info(f'Estimated Cost: {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
 
-    def run(self, batch_size):
+    def run(self, batch_size=None):
         """
         Retrive and search for fields to be translated
         batch_size: how many instances to translate for each model. None will be all
@@ -149,13 +154,18 @@ class ModelTranslator():
             if not translatable_fields:
                 continue
 
-            qs = model.objects.filter(self._get_filter(translatable_fields))
+            # Process recent entities first
+            qs = model.objects.filter(self._get_filter(translatable_fields)).order_by('-id')
             qs_count = qs.count()
             index = 1
             logger.info(f'\tFields: {translatable_fields}')
             logger.info(f'\tTotal instances: {qs_count}')
 
-            qs = qs.all()[:batch_size]
+            if batch_size is not None:
+                logger.info(f'\tProcessing instances: {min(qs_count, batch_size)}')
+                qs = qs.all()[:batch_size]
+            else:
+                qs = qs.all()
 
             for obj in qs.iterator():
                 logger.info(f'\t\t ({index}/{qs_count}) - {obj}')

@@ -54,18 +54,24 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
     """
     @classmethod
-    def _get_included_excluded_fields(cls, model):
+    def _get_included_excluded_fields(cls, model, selected_fields=None):
         requested_lang = django_get_language()
 
         excluded_langs = [lang for lang, _ in settings.LANGUAGES if lang != requested_lang]
         excluded_fields = set()
+        additional_fields = []
         included_fields_lang = {}
-        for f in get_translatable_fields_for_model(model):
+        for f in get_translatable_fields_for_model(model) or []:
+            requested_lang_field = build_localized_fieldname(f, requested_lang)
+            if selected_fields and f not in selected_fields:
+                continue
             excluded_fields.add(f)
+            if selected_fields and requested_lang_field not in selected_fields:
+                additional_fields.append(requested_lang_field)
             for lang in excluded_langs:
                 excluded_fields.add(build_localized_fieldname(f, lang))
-            included_fields_lang[f] = build_localized_fieldname(f, requested_lang)
-        return included_fields_lang, excluded_fields
+            included_fields_lang[f] = requested_lang_field
+        return included_fields_lang, excluded_fields, additional_fields
 
     @classmethod
     def _get_language_clear_validated_data(cls, instance, validated_data, included_fields_lang):
@@ -137,11 +143,15 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         """
         Overwrite Serializer get_fields_names to exclude non-active language fields
         """
-        self.included_fields_lang, excluded_fields = self._get_included_excluded_fields(self.Meta.model)
         fields = super().get_field_names(declared_fields, info)
+        (
+            self.included_fields_lang,
+            excluded_fields,
+            additional_fields,
+        ) = self._get_included_excluded_fields(self.Meta.model, selected_fields=fields)
         return [
             f for f in fields if f not in excluded_fields
-        ]
+        ] + additional_fields
 
     def get_fields(self, *args, **kwargs):
         """
@@ -162,3 +172,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         if self._get_language_clear_validated_data(instance, validated_data, self.included_fields_lang):
             self.trigger_field_translation(instance)
         return super().update(instance, validated_data)
+
+
+class ModelSerializer(TranslatedModelSerializerMixin, serializers.ModelSerializer):
+    """
+    Custom ModelSerializer with translaion logic (Also works for normal models)
+    """
+    pass
