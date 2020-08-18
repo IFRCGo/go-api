@@ -15,8 +15,8 @@ class CountryFactory(factory.DjangoModelFactory):
     iso3 = fuzzy.FuzzyText(length=3)
     # society_name = fuzzy.FuzzyText(length=500)
     society_name = 'Mock Society Name'
-    society_url = fuzzy.FuzzyText(length=500)
-    url_ifrc = fuzzy.FuzzyText(length=500)
+    society_url = fuzzy.FuzzyText(length=200)
+    url_ifrc = fuzzy.FuzzyText(length=200)
     region = factory.SubFactory(region.RegionFactory)
     overview = fuzzy.FuzzyText(length=500)
     key_priorities = fuzzy.FuzzyText(length=500)
