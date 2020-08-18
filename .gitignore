@@ -40,3 +40,4 @@ project-imports/
 
 htmlcov
 country-key-documents/
+celerybeat-schedule
