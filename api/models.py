@@ -6,7 +6,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
-from .storage import AzureStorage
+from .storage import get_storage
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug
 from django.contrib.postgres.fields import ArrayField
@@ -136,7 +136,7 @@ class Country(models.Model):
     inform_score = models.DecimalField(verbose_name=_('inform score'), blank=True, null=True, decimal_places=2, max_digits=3)
     logo = models.FileField(
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
-        storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
+        storage=get_storage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
 
     # Population Data From WB API
@@ -289,7 +289,7 @@ class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
     snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=get_storage()
     )
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
@@ -307,7 +307,7 @@ class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=get_storage()
     )
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
@@ -545,7 +545,7 @@ class Snippet(models.Model):
     """ Snippet of text """
     snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=get_storage()
     )
     event = models.ForeignKey(Event, verbose_name=_('event'), related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
@@ -585,7 +585,7 @@ class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
@@ -773,7 +773,7 @@ class AppealDocument(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'))
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
