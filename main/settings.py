@@ -93,6 +93,10 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
+FILE_STORAGE = {
+    'LOCATION': 'media',
+}
+
 AZURE_STORAGE = {
     'CONTAINER': 'api',
     'ACCOUNT_NAME': os.environ.get('AZURE_STORAGE_ACCOUNT'),

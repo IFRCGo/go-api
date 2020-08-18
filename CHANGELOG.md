@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.289
+
+### Added
+ - Hotfix for FR visibility for IFRC Admins
+
 ## 1.1.288
 
 ### Added
@@ -1218,7 +1223,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.288...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.289...HEAD
+[1.2.289]: https://github.com/IFRCGo/go-api/compare/1.2.288...1.1.289
 [1.2.288]: https://github.com/IFRCGo/go-api/compare/1.2.287...1.1.288
 [1.2.287]: https://github.com/IFRCGo/go-api/compare/1.2.286...1.1.287
 [1.2.286]: https://github.com/IFRCGo/go-api/compare/1.2.285...1.1.286
