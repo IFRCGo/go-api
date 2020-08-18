@@ -98,6 +98,7 @@ class Draft(models.Model):
     """ PER draft form header """
     code = models.CharField(verbose_name=_('code'), max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
+    # FIXME: Use JSONField instead of TextField
     data = models.TextField(verbose_name=_('data'), null=True, blank=True)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)

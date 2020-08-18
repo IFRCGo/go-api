@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from lang.translation import TranslatedModelSerializerMixin
+from lang.serializers import ModelSerializer
 
 from .models import (
     ERUOwner,
@@ -25,7 +25,7 @@ from api.serializers import (
 )
 
 
-class ERUSetSerializer(serializers.ModelSerializer):
+class ERUSetSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
 
     class Meta:
@@ -33,7 +33,7 @@ class ERUSetSerializer(serializers.ModelSerializer):
         fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class ERUOwnerSerializer(serializers.ModelSerializer):
+class ERUOwnerSerializer(ModelSerializer):
     eru_set = ERUSetSerializer(many=True)
     national_society_country = MiniCountrySerializer()
 
@@ -42,7 +42,7 @@ class ERUOwnerSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
 
 
-class ERUSerializer(serializers.ModelSerializer):
+class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
     event = ListEventSerializer()
     eru_owner = ERUOwnerSerializer()
@@ -52,7 +52,7 @@ class ERUSerializer(serializers.ModelSerializer):
         fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class PersonnelDeploymentSerializer(serializers.ModelSerializer):
+class PersonnelDeploymentSerializer(ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
     event_deployed_to = ListEventSerializer()
 
@@ -61,7 +61,7 @@ class PersonnelDeploymentSerializer(serializers.ModelSerializer):
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments', 'id',)
 
 
-class PersonnelSerializer(serializers.ModelSerializer):
+class PersonnelSerializer(ModelSerializer):
     country_from = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
 
@@ -70,14 +70,37 @@ class PersonnelSerializer(serializers.ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
 
 
-class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
+class PartnerDeploymentActivitySerializer(ModelSerializer):
 
     class Meta:
         model = PartnerSocietyActivities
         fields = ('activity', 'id',)
 
 
-class PartnerDeploymentSerializer(serializers.ModelSerializer):
+class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer()
+    district_deployed_to = serializers.SerializerMethodField()
+    activity = PartnerDeploymentActivitySerializer()
+
+    def get_district_deployed_to(self, obj):
+        district_fields = {
+            'name': ''
+        }
+        district_deployed_to = obj.district_deployed_to.all()
+        if len(district_deployed_to) > 0:
+            district_fields['name'] = ', '.join([str(district.name) for district in district_deployed_to])
+        return district_fields
+
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to',
+            'district_deployed_to', 'activity', 'id',
+        )
+
+
+class PartnerDeploymentSerializer(ModelSerializer):
     parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()
     district_deployed_to = MiniDistrictSerializer(many=True)
@@ -91,13 +114,13 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegionalProjectSerializer(serializers.ModelSerializer):
+class RegionalProjectSerializer(ModelSerializer):
     class Meta:
         model = RegionalProject
         fields = '__all__'
 
 
-class ProjectSerializer(TranslatedModelSerializerMixin, EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)

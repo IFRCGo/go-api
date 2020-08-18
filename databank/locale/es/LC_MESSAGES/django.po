@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -416,16 +416,12 @@ msgstr "informar a los datos de los indicadores"
 
 #: databank/models.py:232 databank/models.py:248 databank/models.py:262
 #: databank/models.py:281
-#, fuzzy
-#| msgid "Country Overview"
 msgid "country overview"
-msgstr "Visión general del país"
+msgstr "descripción del país"
 
 #: databank/models.py:233
-#, fuzzy
-#| msgid "Countries Overview"
 msgid "countries overview"
-msgstr "Visión general de los países"
+msgstr "descripción general de los países"
 
 #: databank/models.py:249
 msgid "label"

@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import polib
-from lang.translation import AmazonTranslate, DJANGO_AVAILABLE_LANGUAGES
+from lang.translation import AmazonTranslate, AVAILABLE_LANGUAGES
 from django.core.management import BaseCommand
 
 
@@ -18,17 +18,17 @@ def translate_po_file(po, language):
         # that Amazon Translate will just assume is a title and
         # not translate.
         subbed_message = re.sub(
-            r"%\((\w+)\)s", r"FORMAT_\1_END", s.msgid
+            r'%\((\w+)\)s', r'FORMAT_\1_END', s.msgid
         )
         # Translate the text itself
         response = translate.translate_text(
             subbed_message,
-            "en",
             language,
+            source_language='en',
         )
         # Put back the correct gettext formatting
         s.msgstr = re.sub(
-            r"FORMAT_(\w+)_END", r"%(\1)s",
+            r'FORMAT_(\w+)_END', r'%(\1)s',
             response['TranslatedText']
         )
     return po
@@ -40,14 +40,14 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--languages', nargs='+',
-            choices=DJANGO_AVAILABLE_LANGUAGES,
+            choices=AVAILABLE_LANGUAGES,
             help='Languages to translate. Default is all',
         )
 
     def handle(self, *args, **options):
-        languages = options['languages'] or DJANGO_AVAILABLE_LANGUAGES
+        languages = options['languages'] or AVAILABLE_LANGUAGES
         for language in languages:
-            for file in Path('').glob(f"**/{language}/**/*.po"):
+            for file in Path('').glob(f'**/{language}/**/*.po'):
                 print(f'Translating: {file} ({language})')
                 po = polib.pofile(file)
                 po = translate_po_file(po, language)

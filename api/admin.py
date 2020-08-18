@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+from django.contrib.gis import admin as geoadmin
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -17,8 +18,9 @@ from rest_framework.authtoken.models import Token
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import ActionForm
 # from reversion.models import Revision
+
 from reversion_compare.admin import CompareVersionAdmin
-from modeltranslation.admin import TranslationAdmin
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 
 from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
@@ -154,7 +156,7 @@ class EventSourceFilter(admin.SimpleListFilter):
             return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
 
 
-class DisasterTypeAdmin(admin.ModelAdmin):
+class DisasterTypeAdmin(TranslationAdmin, admin.ModelAdmin):
     search_fields = ('name',)
 
 
@@ -162,7 +164,7 @@ class KeyFigureInline(admin.TabularInline):
     model = models.KeyFigure
 
 
-class SnippetInline(admin.TabularInline):
+class SnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.Snippet
 
 
@@ -170,11 +172,11 @@ class EventContactInline(admin.TabularInline):
     model = models.EventContact
 
 
-class SituationReportInline(admin.TabularInline):
+class SituationReportInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.SituationReport
 
 
-class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
@@ -249,13 +251,13 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 #           formset.save()
 
 
-class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = None
     search_fields = ('title',)
 
 
-class ActionsTakenInline(admin.TabularInline):
+class ActionsTakenInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.ActionsTaken
 
 
@@ -276,12 +278,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     list_select_related = ('event',)
     search_fields = ('countries__name', 'regions__name', 'summary',)
     autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
-    readonly_fields = (
-        'report_date', 'created_at', 'updated_at',
-        'health_min_cases', 'health_min_suspected_cases', 'health_min_probable_cases', 'health_min_confirmed_cases',
-        'health_min_num_dead', 'who_cases', 'who_suspected_cases', 'who_probable_cases', 'who_confirmed_cases', 'who_num_dead',
-        'other_cases', 'other_suspected_cases', 'other_probable_cases', 'other_confirmed_cases'
-    )
+    readonly_fields = ('report_date', 'created_at', 'updated_at')
     list_filter = [MembershipFilter]
     actions = ['create_events', 'export_field_reports', ]
 
@@ -329,16 +326,16 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         return actions
 
 
-class ActionAdmin(CompareVersionAdmin):
+class ActionAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ActionForm
     list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
 
 
-class AppealDocumentInline(admin.TabularInline):
+class AppealDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.AppealDocument
 
 
-class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'country__pk__in'
     region_in = 'region__pk__in'
     inlines = [AppealDocumentInline]
@@ -390,7 +387,7 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         super().save_model(request, obj, form, change)
 
 
-class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'appeal__country__in'
     region_in = 'appeal__region__in'
     search_fields = ('name', 'appeal__code', 'appeal__name')
@@ -404,11 +401,11 @@ class RegionKeyFigureInline(admin.TabularInline):
     model = models.RegionKeyFigure
 
 
-class CountrySnippetInline(admin.TabularInline):
+class CountrySnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.CountrySnippet
 
 
-class RegionSnippetInline(admin.TabularInline):
+class RegionSnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.RegionSnippet
 
 
@@ -428,18 +425,20 @@ class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
 
-class DistrictAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
+    modifiable = False
 
 
-class CountryAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'pk__in'
     list_display = ('__str__', 'record_type')
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
+    modifiable = False
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 
@@ -494,7 +493,7 @@ class UserProfileAdmin(CompareVersionAdmin):
         return actions
 
 
-class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     search_fields = ('name', 'event__name',)
     list_display = ('name', 'link_to_event', 'type', 'visibility',)
     country_in = 'event__countries__in'

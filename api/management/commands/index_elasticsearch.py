@@ -9,6 +9,7 @@ from api.indexes import GenericMapping, GenericSetting, ES_PAGE_NAME
 from api.models import Region, Country, Event, Appeal, FieldReport
 from api.logger import logger
 
+
 class Command(BaseCommand):
     help = 'Create a new elasticsearch index and bulk-index existing objects'
 
@@ -41,9 +42,11 @@ class Command(BaseCommand):
                                    index=index_name,
                                    body=index_mapping)
 
-
     def push_table_to_index(self, model):
-        query = model.objects.all()
+        if model.__name__ == 'Event':
+            query = model.objects.filter(parent_event__isnull=True)
+        else:
+            query = model.objects.all()
         data = [
             self.convert_for_bulk(s) for s in list(query)
         ]
@@ -52,7 +55,6 @@ class Command(BaseCommand):
         if len(errors):
             logger.error('Produced the following errors:')
             logger.error('[%s]' % ', '.join(map(str, errors)))
-
 
     def convert_for_bulk(self, model_object):
         data = model_object.indexing()

@@ -4,7 +4,13 @@
 
     {% if additional_addlinks %}
         {% for addlink in additional_addlinks %}
-            <li><a  href="{% url addlink.namespace %}">{{addlink.label}}</a></li>
+            <li>
+                <a
+                    href="{% if addlink.url is not None %}{{url}}{% else %}{% url addlink.namespace %}{% endif %}"
+                >
+                    {{addlink.label}}
+                </a>
+            </li>
         {% endfor %}
     {% endif %}
     {{ block.super }}
