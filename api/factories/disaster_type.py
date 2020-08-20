@@ -3,7 +3,8 @@ from factory import fuzzy
 
 from .. import models
 
-class DisasterTypeFactory(factory.DjangoModelFactory):
+
+class DisasterTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.DisasterType
 

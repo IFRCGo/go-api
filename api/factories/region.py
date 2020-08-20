@@ -3,7 +3,8 @@ from factory import fuzzy
 
 from .. import models
 
-class RegionFactory(factory.DjangoModelFactory):
+
+class RegionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Region
 

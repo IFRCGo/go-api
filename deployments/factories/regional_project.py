@@ -5,7 +5,8 @@ import pytz
 
 from .. import models
 
-class RegionalProjectFactory(factory.DjangoModelFactory):
+
+class RegionalProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.RegionalProject
 

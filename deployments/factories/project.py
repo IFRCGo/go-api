@@ -9,7 +9,7 @@ from . import user, regional_project
 from api.factories import country, event, disaster_type
 
 
-class ProjectFactory(factory.DjangoModelFactory):
+class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Project
 

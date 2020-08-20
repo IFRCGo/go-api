@@ -6,7 +6,8 @@ import pytz
 from .. import models
 from . import country, disaster_type
 
-class EventFactory(factory.DjangoModelFactory):
+
+class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Event
 
@@ -41,7 +42,9 @@ class EventFactory(factory.DjangoModelFactory):
             for region in extracted:
                 self.regions.add(region)
 
-    parent_event = factory.SubFactory('api.factories.event.EventFactory', parent_event=None)
+    parent_event = factory.SubFactory(
+        "api.factories.event.EventFactory", parent_event=None
+    )
 
     summary = fuzzy.FuzzyText(length=500)
 
@@ -54,10 +57,14 @@ class EventFactory(factory.DjangoModelFactory):
     ifrc_severity_level = fuzzy.FuzzyChoice(models.AlertLevel)
     glide = fuzzy.FuzzyText(length=18)
 
-    disaster_start_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    disaster_start_date = fuzzy.FuzzyDateTime(
+        datetime.datetime(2008, 1, 1, tzinfo=pytz.utc)
+    )
     created_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     updated_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
-    previous_update = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    previous_update = fuzzy.FuzzyDateTime(
+        datetime.datetime(2008, 1, 1, tzinfo=pytz.utc)
+    )
 
     auto_generated = fuzzy.FuzzyChoice([True, False])
     auto_generated_source = fuzzy.FuzzyText(length=50)
