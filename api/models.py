@@ -55,12 +55,12 @@ class RegionName(IntEnum):
     EUROPE = 3
     MENA = 4
 
-    # class Labels:
-    #     AFRICA = _('Africa')
-    #     AMERICAS = _('Americas')
-    #     ASIA_PACIFIC = _('Asia Pacific')
-    #     EUROPE = _('Europe')
-    #     MENA = _('Middle East North Africa')
+    class Labels:
+        AFRICA = _('Africa')
+        AMERICAS = _('Americas')
+        ASIA_PACIFIC = _('Asia Pacific')
+        EUROPE = _('Europe')
+        MENA = _('Middle East & North Africa')
 
 
 class Region(models.Model):
@@ -109,12 +109,12 @@ class CountryType(IntEnum):
     COUNTRY_OFFICE = 4
     REPRESENTATIVE_OFFICE = 5
 
-    # class Labels:
-    #     COUNTRY = _('Country')
-    #     CLUSTER = _('Cluster')
-    #     REGION = _('Region')
-    #     COUNTRY_OFFICE = _('Country Office')
-    #     REPRESENTATIVE_OFFICE = _('Representative Office')
+    class Labels:
+        COUNTRY = _('Country')
+        CLUSTER = _('Cluster')
+        REGION = _('Region')
+        COUNTRY_OFFICE = _('Country Office')
+        REPRESENTATIVE_OFFICE = _('Representative Office')
 
     # select name, society_name, record_type from api_country where name like '%luster%';
     # select name, society_name, record_type from api_country where name like '%egion%';
@@ -224,10 +224,10 @@ class VisibilityChoices(IntEnum):
     IFRC = 2
     PUBLIC = 3
 
-    # class Labels:
-    #     MEMBERSHIP = _('Membership')
-    #     IFRC = _('IFRC Only')
-    #     PUBLIC = _('Public')
+    class Labels:
+        MEMBERSHIP = _('Membership')
+        IFRC = _('IFRC Only')
+        PUBLIC = _('Public')
 
 
 class VisibilityCharChoices():
@@ -283,12 +283,12 @@ class PositionType(IntEnum):
     LOW = 4
     BOTTOM = 5
 
-    # class Labels:
-    #     TOP = _('Top')
-    #     HIGH = _('High')
-    #     MIDDLE = _('Middle')
-    #     LOW = _('Low')
-    #     BOTTOM = _('Bottom')
+    class Labels:
+        TOP = _('Top')
+        HIGH = _('High')
+        MIDDLE = _('Middle')
+        LOW = _('Low')
+        BOTTOM = _('Bottom')
 
 
 class TabNumber(IntEnum):
@@ -296,10 +296,10 @@ class TabNumber(IntEnum):
     TAB_2 = 2
     TAB_3 = 3
 
-    # class Labels:
-    #     TAB_1 = _('Tab 1')
-    #     TAB_2 = _('Tab 2')
-    #     TAB_3 = _('Tab 3')
+    class Labels:
+        TAB_1 = _('Tab 1')
+        TAB_2 = _('Tab 2')
+        TAB_3 = _('Tab 3')
 
 
 class RegionSnippet(models.Model):
@@ -398,10 +398,10 @@ class AlertLevel(IntEnum):
     ORANGE = 1
     RED = 2
 
-    # class Labels:
-    #     GREEN = _('Green')
-    #     ORANGE = _('Orange')
-    #     RED = _('Red')
+    class Labels:
+        GREEN = _('Green')
+        ORANGE = _('Orange')
+        RED = _('Red')
 
 
 class Event(models.Model):
@@ -659,10 +659,10 @@ class AppealType(IntEnum):
     APPEAL = 1
     INTL = 2
 
-    # class Labels:
-    #     DREF = _('DREF')
-    #     APPEAL = _('Emergency Appeal')
-    #     INTL = _('International Appeal')
+    class Labels:
+        DREF = _('DREF')
+        APPEAL = _('Emergency Appeal')
+        INTL = _('International Appeal')
 
 
 class AppealStatus(IntEnum):
@@ -671,11 +671,11 @@ class AppealStatus(IntEnum):
     FROZEN = 2
     ARCHIVED = 3
 
-    # class Labels:
-    #     ACTIVE = _('Active')
-    #     CLOSED = _('Closed')
-    #     FROZEN = _('Frozen')
-    #     ARCHIVED = _('Archived')
+    class Labels:
+        ACTIVE = _('Active')
+        CLOSED = _('Closed')
+        FROZEN = _('Frozen')
+        ARCHIVED = _('Archived')
 
 
 class Appeal(models.Model):
@@ -816,11 +816,11 @@ class RequestChoices(IntEnum):
     PLANNED = 2
     COMPLETE = 3
 
-    # class Labels:
-    #     NO = _('No')
-    #     REQUESTED = _('Requested')
-    #     PLANNED = _('Planned')
-    #     COMPLETE = _('Complete')
+    class Labels:
+        NO = _('No')
+        REQUESTED = _('Requested')
+        PLANNED = _('Planned')
+        COMPLETE = _('Complete')
 
 
 class EPISourceChoices(IntEnum):
@@ -828,10 +828,10 @@ class EPISourceChoices(IntEnum):
     WHO = 1
     OTHER = 2
 
-    # class Labels:
-    #     MINISTRY_OF_HEALTH = _('Ministry of health')
-    #     WHO = _('WHO')
-    #     OTHER = _('OTHER')
+    class Labels:
+        MINISTRY_OF_HEALTH = _('Ministry of health')
+        WHO = _('WHO')
+        OTHER = _('OTHER')
 
 
 class FieldReport(models.Model):
@@ -1533,11 +1533,11 @@ class CronJobStatus(IntEnum):
     WARNED = 1
     ERRONEOUS = 2
 
-    # class Labels:
-    #     NEVER_RUN = _('Never run')
-    #     SUCCESSFUL = _('Successfull')
-    #     WARNED = _('Warned')
-    #     ERRONEOUS = _('Erroneous')
+    class Labels:
+        NEVER_RUN = _('Never run')
+        SUCCESSFUL = _('Successfull')
+        WARNED = _('Warned')
+        ERRONEOUS = _('Erroneous')
 
 
 class CronJob(models.Model):

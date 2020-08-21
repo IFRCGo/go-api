@@ -1,6 +1,7 @@
 import json
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from lang.serializers import ModelSerializer
 from .models import (
@@ -46,69 +47,74 @@ class DisasterTypeSerializer(ModelSerializer):
         fields = ('name', 'summary', 'id',)
 
 
-class RegionSerializer(ModelSerializer):
+class RegionSerializer(EnumSupportSerializerMixin, ModelSerializer):
     class Meta:
         model = Region
         fields = ('name', 'id', 'region_name', 'label',)
 
 
-class RegionGeoSerializer(ModelSerializer):
+class RegionGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
     def get_bbox(self, region):
-        if region.bbox:
-            return json.loads(region.bbox.geojson)
-        else:
-            return None
+        return region.bbox and json.loads(region.bbox.geojson)
 
     class Meta:
         model = Region
         fields = ('name', 'id', 'region_name', 'bbox', 'label',)
 
 
-class CountryTableauSerializer(serializers.ModelSerializer):
+class CountryTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
     region = RegionSerializer()
+    record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-                  'inform_score', 'id', 'url_ifrc', 'record_type',)
+        fields = (
+            'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
+            'inform_score', 'id', 'url_ifrc', 'record_type', 'record_type_display',
+        )
 
 
-class CountrySerializer(ModelSerializer):
-    class Meta:
-        model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'independent', 'is_deprecated',)
-
-
-class CountryGeoSerializer(ModelSerializer):
-    bbox = serializers.SerializerMethodField()
-    centroid = serializers.SerializerMethodField()
-
-    def get_bbox(self, country):
-        if country.bbox:
-            return json.loads(country.bbox.geojson)
-        else:
-            return None
-
-    def get_centroid(self, country):
-        if country.centroid:
-            return json.loads(country.centroid.geojson)
-        else:
-            return None
+class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
+    record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
     class Meta:
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent', 'is_deprecated',
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated'
         )
 
 
-class MiniCountrySerializer(ModelSerializer):
+class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
+    record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
+
+    def get_bbox(self, country):
+        return country.bbox and json.loads(country.bbox.geojson)
+
+    def get_centroid(self, country):
+        return country.centroid and json.loads(country.centroid.geojson)
+
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region', 'independent', 'is_deprecated',)
+        fields = (
+            'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated',
+        )
+
+
+class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
+    record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
+
+    class Meta:
+        model = Country
+        fields = (
+            'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
+            'region', 'independent', 'is_deprecated',
+        )
 
 
 class RegoCountrySerializer(ModelSerializer):
@@ -170,32 +176,38 @@ class CountryKeyFigureSerializer(ModelSerializer):
         fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
 
 
-class RegionSnippetTableauSerializer(serializers.ModelSerializer):
+class RegionSnippetTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
     region = RegionSerializer()
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = RegionSnippet
-        fields = ('region', 'snippet', 'image', 'visibility', 'id',)
+        fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class RegionSnippetSerializer(ModelSerializer):
+class RegionSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+
     class Meta:
         model = RegionSnippet
-        fields = ('region', 'snippet', 'image', 'visibility', 'id',)
+        fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class CountrySnippetTableauSerializer(serializers.ModelSerializer):
+class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     country = CountrySerializer()
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = CountrySnippet
-        fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+        fields = ('country', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class CountrySnippetSerializer(ModelSerializer):
+class CountrySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+
     class Meta:
         model = CountrySnippet
-        fields = ('country', 'snippet', 'image', 'visibility', 'id',)
+        fields = ('country', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
 class RegionLinkSerializer(ModelSerializer):
@@ -222,13 +234,13 @@ class CountryContactSerializer(ModelSerializer):
         fields = ('ctype', 'name', 'title', 'email', 'id',)
 
 
-class RegionRelationSerializer(ModelSerializer):
+class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
 
     class Meta:
         model = Region
-        fields = ('links', 'contacts', 'name', 'id',)
+        fields = ('links', 'contacts', 'name', 'region_name', 'id',)
 
 
 class CountryRelationSerializer(ModelSerializer):
@@ -243,10 +255,14 @@ class CountryRelationSerializer(ModelSerializer):
         )
 
 
-class RelatedAppealSerializer(ModelSerializer):
+class RelatedAppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
     class Meta:
         model = Appeal
-        fields = ('aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'start_date', 'id',)
+        fields = (
+            'aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'status_display', 'start_date', 'id',
+        )
 
 
 class KeyFigureSerializer(ModelSerializer):
@@ -255,10 +271,17 @@ class KeyFigureSerializer(ModelSerializer):
         fields = ('number', 'deck', 'source', 'id',)
 
 
-class SnippetSerializer(ModelSerializer):
+class SnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+    position_display = serializers.CharField(source='get_position_display', read_only=True)
+    tab_display = serializers.CharField(source='get_tab_display', read_only=True)
+
     class Meta:
         model = Snippet
-        fields = ('event', 'snippet', 'image', 'visibility', 'position', 'tab', 'id',)
+        fields = (
+            'event', 'snippet', 'image', 'id',
+            'visibility', 'visibility_display', 'position', 'position_display', 'tab', 'tab_display',
+        )
 
 
 class EventContactSerializer(ModelSerializer):
@@ -273,22 +296,25 @@ class FieldReportContactSerializer(ModelSerializer):
         fields = ('ctype', 'name', 'title', 'email', 'phone', 'id',)
 
 
-class MiniFieldReportSerializer(ModelSerializer):
+class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
+    epi_figures_source_display = serializers.CharField(source='get_epi_figures_source_display', read_only=True)
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = FieldReport
         fields = (
             'summary', 'status', 'description', 'contacts', 'countries', 'created_at', 'updated_at', 'report_date', 'id',
-            'is_covid_report', 'visibility', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced',
+            'is_covid_report', 'num_injured', 'num_dead', 'num_missing', 'num_affected', 'num_displaced', 'epi_num_dead',
             'num_assisted', 'num_localstaff', 'num_volunteers', 'num_expats_delegates', 'gov_num_injured', 'gov_num_dead',
             'gov_num_missing', 'gov_num_affected', 'gov_num_displaced', 'gov_num_assisted', 'other_num_injured',
             'other_num_dead', 'other_num_missing', 'other_num_affected', 'other_num_displaced', 'other_num_assisted',
             'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk',
             'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres',
             'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
-            'epi_num_dead', 'epi_figures_source',
+            'epi_figures_source', 'epi_figures_source_display',
+            'visibility', 'visibility_display',
         )
 
 
@@ -308,24 +334,28 @@ class ListMiniEventSerializer(ModelSerializer):
         fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
 
 
-class ListEventSerializer(ModelSerializer):
+class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     dtype = DisasterTypeSerializer()
+    ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
-                  'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
-                  'field_reports', 'updated_at', 'id', 'slug', 'parent_event')
+        fields = (
+            'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
+            'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
+            'field_reports', 'updated_at', 'id', 'slug', 'parent_event',
+        )
 
 
-class ListEventTableauSerializer(serializers.ModelSerializer):
+class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
     dtype = DisasterTypeSerializer()
+    ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     def get_countries(self, obj):
         country_fields = {}
@@ -358,16 +388,19 @@ class ListEventTableauSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date',
-                  'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at',
-                  'id', 'slug', 'parent_event',)
+        fields = (
+            'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
+            'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
+            'field_reports', 'updated_at', 'id', 'slug', 'parent_event',
+        )
 
 
-class ListEventCsvSerializer(serializers.ModelSerializer):
+class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
     dtype = DisasterTypeSerializer()
+    ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     def get_countries(self, obj):
         country_fields = {}
@@ -400,9 +433,11 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'glide', 'disaster_start_date',
-                  'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region', 'field_reports', 'updated_at',
-                  'id', 'slug', 'parent_event',)
+        fields = (
+            'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
+            'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
+            'field_reports', 'updated_at', 'id', 'slug', 'parent_event',
+        )
 
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
@@ -411,21 +446,22 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
     deployments = serializers.IntegerField()
 
 
-class DetailEventSerializer(ModelSerializer):
+class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
     districts = MiniDistrictSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
+    ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     class Meta:
         model = Event
         fields = (
-            'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'ifrc_severity_level', 'glide',
+            'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'tab_two_title', 'tab_three_title',
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title',
-            'tab_two_title', 'tab_three_title', 'parent_event',
+            'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
         )
         lookup_field = 'slug'
 
@@ -436,35 +472,45 @@ class SituationReportTypeSerializer(ModelSerializer):
         fields = ('type', 'id', 'is_primary',)
 
 
-class SituationReportTableauSerializer(serializers.ModelSerializer):
+class SituationReportTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
     type = SituationReportTypeSerializer()
     event = MiniEventSerializer()
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
+        fields = (
+            'created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',
+            'visibility', 'visibility_display',
+        )
 
 
-class SituationReportSerializer(ModelSerializer):
+class SituationReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
     type = SituationReportTypeSerializer()
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = SituationReport
-        fields = ('created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned', 'visibility',)
+        fields = (
+            'created_at', 'name', 'document', 'document_url', 'event', 'type', 'id', 'is_pinned',
+            'visibility', 'visibility_display',
+        )
 
 
-class AppealTableauSerializer(serializers.ModelSerializer):
+class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
     event = MiniEventSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = Appeal
         fields = (
-            'aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
-            'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
-            'country', 'region', 'id',
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
 
@@ -474,16 +520,20 @@ class MiniAppealSerializer(serializers.ModelSerializer):
         fields = ('name', 'id', 'code')
 
 
-class AppealSerializer(ModelSerializer):
+class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = Appeal
-        fields = ('aid', 'name', 'dtype', 'atype', 'status', 'code', 'sector', 'num_beneficiaries', 'amount_requested',
-                  'amount_funded', 'start_date', 'end_date', 'created_at', 'modified_at', 'event', 'needs_confirmation',
-                  'country', 'region', 'id',)
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
+        )
 
 
 class AppealDocumentTableauSerializer(serializers.ModelSerializer):
@@ -588,7 +638,33 @@ class SourceSerializer(ModelSerializer):
         fields = ('stype', 'spec', 'id',)
 
 
-class ListFieldReportSerializer(ModelSerializer):
+class FieldReportEnumDisplayMixin(EnumSupportSerializerMixin):
+    """
+    Use for fields = '__all__'
+    """
+    epi_figures_source_display = serializers.CharField(source='get_epi_figures_source_display', read_only=True)
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+    bulletin_display = serializers.CharField(source='get_bulletin_display', read_only=True)
+    dref_display = serializers.CharField(source='get_dref_display', read_only=True)
+    appeal_display = serializers.CharField(source='get_appeal_display', read_only=True)
+    imminent_dref_display = serializers.CharField(source='get_imminent_dref_display', read_only=True)
+    forecast_based_action_display = serializers.CharField(source='get_forecast_based_action_display', read_only=True)
+    rdrt_display = serializers.CharField(source='get_rdrt_display', read_only=True)
+    fact_display = serializers.CharField(source='get_fact_display', read_only=True)
+    ifrc_staff_display = serializers.CharField(source='get_ifrc_staff_display', read_only=True)
+    eru_base_camp_display = serializers.CharField(source='get_eru_base_camp_display', read_only=True)
+    eru_basic_health_care_display = serializers.CharField(source='get_eru_basic_health_care_display', read_only=True)
+    eru_it_telecom_display = serializers.CharField(source='get_eru_it_telecom_display', read_only=True)
+    eru_logistics_display = serializers.CharField(source='get_eru_logistics_display', read_only=True)
+    eru_deployment_hospital_display = serializers.CharField(source='get_eru_deployment_hospital_display', read_only=True)
+    eru_referral_hospital_display = serializers.CharField(source='get_eru_referral_hospital_display', read_only=True)
+    eru_relief_display = serializers.CharField(source='get_eru_relief_display', read_only=True)
+    eru_water_sanitation_15_display = serializers.CharField(source='get_eru_water_sanitation_15_display', read_only=True)
+    eru_water_sanitation_40_display = serializers.CharField(source='get_eru_water_sanitation_40_display', read_only=True)
+    eru_water_sanitation_20_display = serializers.CharField(source='get_eru_water_sanitation_20_display', read_only=True)
+
+
+class ListFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     dtype = DisasterTypeSerializer()
     event = MiniEventSerializer()
@@ -599,7 +675,7 @@ class ListFieldReportSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class ListFieldReportTableauSerializer(serializers.ModelSerializer):
+class ListFieldReportTableauSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     countries = serializers.SerializerMethodField()
     districts = serializers.SerializerMethodField()
     regions = serializers.SerializerMethodField()
@@ -661,7 +737,7 @@ class ListFieldReportTableauSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ListFieldReportCsvSerializer(ModelSerializer):
+class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     countries = serializers.SerializerMethodField()
     districts = serializers.SerializerMethodField()
     regions = serializers.SerializerMethodField()
@@ -723,7 +799,7 @@ class ListFieldReportCsvSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class DetailFieldReportSerializer(ModelSerializer):
+class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -738,7 +814,7 @@ class DetailFieldReportSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class CreateFieldReportSerializer(ModelSerializer):
+class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'

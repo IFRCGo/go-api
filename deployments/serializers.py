@@ -25,12 +25,13 @@ from api.serializers import (
 )
 
 
-class ERUSetSerializer(ModelSerializer):
+class ERUSetSerializer(EnumSupportSerializerMixin, ModelSerializer):
     deployed_to = MiniCountrySerializer()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
 class ERUOwnerSerializer(ModelSerializer):
@@ -42,14 +43,15 @@ class ERUOwnerSerializer(ModelSerializer):
         fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
 
 
-class ERUSerializer(ModelSerializer):
+class ERUSerializer(EnumSupportSerializerMixin, ModelSerializer):
     deployed_to = MiniCountrySerializer()
     event = ListEventSerializer()
     eru_owner = ERUOwnerSerializer()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
 class PersonnelDeploymentSerializer(ModelSerializer):
