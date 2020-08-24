@@ -275,6 +275,7 @@ timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
+FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
 
