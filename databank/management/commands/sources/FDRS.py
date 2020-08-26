@@ -27,12 +27,11 @@ FDRS_INDICATORS_FIELD_MAP = (
 )
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
 
-# MUSTFIX: Change .info to .org after for prod (.info is for staging tests only)
 # To fetch NS ID
-FDRS_NS_API_ENDPOINT = f'https://data-api.ifrc.info/api/entities/ns?apiKey={settings.FDRS_APIKEY}'
+FDRS_NS_API_ENDPOINT = f'https://data-api.ifrc.org/api/entities/ns?apiKey={settings.FDRS_APIKEY}'
 
 # To fetch NS Data using NS ID
-FDRS_DATA_API_ENDPOINT = f'https://data-api.ifrc.info/api/data?apiKey={settings.FDRS_APIKEY}&indicator=' + ','.join(FDRS_INDICATORS)
+FDRS_DATA_API_ENDPOINT = f'https://data-api.ifrc.org/api/data?apiKey={settings.FDRS_APIKEY}&indicator=' + ','.join(FDRS_INDICATORS)
 
 
 @catch_error('Error occured while fetching from FDRS API.')
