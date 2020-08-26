@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 
 from django.db import models
 
-from api.storage import AzureStorage
+from api.storage import get_storage
 from api.models import Country, Appeal
 
 
@@ -311,7 +311,7 @@ class KeyDocument(models.Model):
     title = models.CharField(max_length=20, verbose_name=_('title'))
     group = models.ForeignKey(KeyDocumentGroup, on_delete=models.CASCADE, verbose_name=_('group'))
     date = models.DateField(verbose_name=_('date'))
-    file = models.FileField(verbose_name=_('file'), upload_to=key_document_path, storage=AzureStorage())
+    file = models.FileField(verbose_name=_('file'), upload_to=key_document_path, storage=get_storage())
 
     def __str__(self):
         return f'{self.title}, {self.date}'

@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from api.storage import AzureStorage
+from api.storage import get_storage
 from .questions_data import questions
 
 
@@ -310,7 +310,7 @@ class NiceDocument(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=nice_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=nice_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
     country = models.ForeignKey(
