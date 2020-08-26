@@ -49,7 +49,7 @@ class DisasterTypeSerializer(ModelSerializer):
 class RegionSerializer(ModelSerializer):
     class Meta:
         model = Region
-        fields = ('name', 'id', 'region_name',)
+        fields = ('name', 'id', 'region_name', 'label',)
 
 
 class RegionGeoSerializer(ModelSerializer):
@@ -63,7 +63,7 @@ class RegionGeoSerializer(ModelSerializer):
 
     class Meta:
         model = Region
-        fields = ('name', 'id', 'region_name', 'bbox',)
+        fields = ('name', 'id', 'region_name', 'bbox', 'label',)
 
 
 class CountryTableauSerializer(serializers.ModelSerializer):
