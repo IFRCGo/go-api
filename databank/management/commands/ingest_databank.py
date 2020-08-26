@@ -76,7 +76,7 @@ class Command(BaseCommand):
             index, country_count = 1, Country.objects.count()
             print('\nLoading Sources data for each country to GO DB:: ')
             for country in Country.objects.prefetch_related('countryoverview').all():
-                print(u'\t -> ({}/{}) {}'.format(index, country_count, country))
+                print(u'\t -> ({}/{}) {}'.format(index, country_count, country.encode('utf-8')))
                 overview = (
                     country.countryoverview if hasattr(country, 'countryoverview') else
                     CountryOverview.objects.create(country=country)
