@@ -122,16 +122,18 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
-FILE_STORAGE = {
-    'LOCATION': 'media',
-}
+if os.environ.get("DJANGO_USE_AZURE_STORAGE", "False").lower() == "true":
+    AZURE_STORAGE_ACCOUNT_NAME = os.environ.get("AZURE_STORAGE_ACCOUNT")
+    AZURE_STORAGE_ACCOUNT_KEY = os.environ.get("AZURE_STORAGE_KEY")
+    AZURE_STORAGE_CONTAINER = "api"
+    AZURE_CUSTOM_DOMAIN = None
+    AZURE_SSL = False
+    AZURE_LOCATION = "media"
 
-AZURE_STORAGE = {
-    'CONTAINER': 'api',
-    'ACCOUNT_NAME': os.environ.get('AZURE_STORAGE_ACCOUNT'),
-    'ACCOUNT_KEY': os.environ.get('AZURE_STORAGE_KEY'),
-    'USE_SSL': False,
-}
+    DEFAULT_FILE_STORAGE = "api.storage.AzureStorage"
+else:
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = "media"
 
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
