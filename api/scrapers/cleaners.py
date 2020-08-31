@@ -21,9 +21,9 @@ def clean_appeal_code(appeal_code):
         return None
 
     regex = 'MDR.{5}'
-    match = re.search(regex, appeal_code.replace(' ','')) # elimate surplus spaces via this replace from the raw
+    match = re.search(regex, appeal_code.replace(' ',''))  # elimate surplus spaces via this replace from the raw
     if match:
-        return match.group()
+        return match.group()[:20]  # Substring at 20 because of max_length of appeal_code
     else:
         return None
 

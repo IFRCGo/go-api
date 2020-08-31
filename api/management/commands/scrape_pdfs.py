@@ -177,6 +177,10 @@ class Command(BaseCommand):
         ou_to_add = []
         fr_to_add = []
         ea_to_add = []
+        epoa_errors = []
+        ou_errors = []
+        fr_errors = []
+        ea_errors = []
 
         for data in scraped_data:
             if data['d_type'] == 'epoa':
@@ -235,15 +239,15 @@ class Command(BaseCommand):
                     raw_education_requirements=data['sector'].get('education', {}).get(_sfd.requirements),
 
                     # Cleaned data
-                    file_name=data['filename'],
+                    file_name=data['filename'][:200] if data['filename'] else None,
                     appeal_launch_date=cleaners.clean_date(data['meta'].get(_mfd.appeal_launch_date)),
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
-                    category_allocated=data['meta'].get(_mfd.category_allocated),
+                    category_allocated=data['meta'].get(_mfd.category_allocated)[:100] if data['meta'].get(_mfd.category_allocated) else None,
                     date_of_issue=cleaners.clean_date(data['meta'].get(_mfd.date_of_issue)),
                     dref_allocated=cleaners.clean_number(data['meta'].get(_mfd.dref_allocated)),
                     expected_end_date=cleaners.clean_date(data['meta'].get(_mfd.expected_end_date)),
                     expected_time_frame=cleaners.clean_number(data['meta'].get(_mfd.expected_time_frame)),
-                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) != None else None,
+                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) else None,
                     num_of_people_affected=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_affected)),
                     num_of_people_to_be_assisted=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_to_be_assisted)),
                     disaster_risk_reduction_female=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)),
@@ -329,14 +333,14 @@ class Command(BaseCommand):
                     raw_water_sanitation_and_hygiene_requirements=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.requirements),
 
                     # Cleaned data
-                    file_name=data['filename'],
+                    file_name=data['filename'][:200] if data['filename'] else None,
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
                     date_of_issue=cleaners.clean_date(data['meta'].get(_mfd.date_of_issue)),
                     epoa_update_num=cleaners.clean_number(data['meta'].get(_mfd.epoa_update_num)),
-                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) != None else None,
+                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) else None,
                     operation_start_date=cleaners.clean_date(data['meta'].get(_mfd.operation_start_date)),
-                    operation_timeframe=data['meta'].get(_mfd.operation_timeframe),
-                    time_frame_covered_by_update=data['meta'].get(_mfd.time_frame_covered_by_update),
+                    operation_timeframe=data['meta'].get(_mfd.operation_timeframe)[:200] if data['meta'].get(_mfd.operation_timeframe) else None,
+                    time_frame_covered_by_update=data['meta'].get(_mfd.time_frame_covered_by_update)[:200] if data['meta'].get(_mfd.time_frame_covered_by_update) else None,
                     disaster_risk_reduction_female=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.female)),
                     disaster_risk_reduction_male=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.male)),
                     disaster_risk_reduction_people_reached=cleaners.clean_number(data['sector'].get(_s.disaster_Risk_reduction, {}).get(_sfd.people_reached)),
@@ -418,11 +422,11 @@ class Command(BaseCommand):
                     raw_water_sanitation_and_hygiene_requirements=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.requirements),
 
                     # Cleaned data
-                    file_name=data['filename'],
+                    file_name=data['filename'][:200] if data['filename'] else None,
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
                     date_of_disaster=cleaners.clean_date(data['meta'].get(_mfd.date_of_disaster)),
                     date_of_issue=cleaners.clean_date(data['meta'].get(_mfd.date_of_issue)),
-                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) != None else None,
+                    glide_number=data['meta'].get(_mfd.glide_number)[:18] if data['meta'].get(_mfd.glide_number) else None,
                     num_of_other_partner_involved=data['meta'].get(_mfd.num_of_other_partner_involved),
                     num_of_partner_ns_involved=data['meta'].get(_mfd.num_of_partner_ns_involved),
                     num_of_people_affected=cleaners.clean_number(data['meta'].get(_mfd.num_of_people_affected)),
@@ -514,7 +518,7 @@ class Command(BaseCommand):
                     raw_water_sanitation_and_hygiene_requirements=data['sector'].get(_s.Water_sanitation_hygiene, {}).get(_sfd.requirements),
 
                     # Cleaned data
-                    file_name=data['filename'],
+                    file_name=data['filename'][:200] if data['filename'] else None,
                     appeal_ends=cleaners.clean_date(data['meta'].get(_mfd.appeal_ends)),
                     appeal_launch_date=cleaners.clean_date(data['meta'].get(_mfd.appeal_launch_date)),
                     appeal_number=cleaners.clean_appeal_code(data['meta'].get(_mfd.appeal_number)),
@@ -576,6 +580,7 @@ class Command(BaseCommand):
                 epoa_rec.save()
             except Exception as ex:
                 logger.error(f'Couldn\'t add EPoA: {epoa_rec.raw_file_name} ({epoa_rec.raw_file_url}). Exception: {str(ex)}')
+                epoa_errors.append(f'Save to DB failed for: {epoa_rec.raw_file_url}')
 
         logger.info(f'Adding new OU records to DB (count: {len(ou_to_add)})')
         for ou_rec in ou_to_add:
@@ -583,6 +588,7 @@ class Command(BaseCommand):
                 ou_rec.save()
             except Exception as ex:
                 logger.error(f'Couldn\'t add OU: {ou_rec.raw_file_name} ({ou_rec.raw_file_url}). Exception: {str(ex)}')
+                ou_errors.append(f'Save to DB failed for: {ou_rec.raw_file_url}')
 
         logger.info(f'Adding new FR records to DB (count: {len(fr_to_add)})')
         for fr_rec in fr_to_add:
@@ -590,6 +596,7 @@ class Command(BaseCommand):
                 fr_rec.save()
             except Exception as ex:
                 logger.error(f'Couldn\'t add FR: {fr_rec.raw_file_name} ({fr_rec.raw_file_url}). Exception: {str(ex)}')
+                fr_errors.append(f'Save to DB failed for: {fr_rec.raw_file_url}')
 
         logger.info(f'Adding new EA records to DB (count: {len(ea_to_add)})')
         for ea_rec in ea_to_add:
@@ -597,12 +604,16 @@ class Command(BaseCommand):
                 ea_rec.save()
             except Exception as ex:
                 logger.error(f'Couldn\'t add EA: {ea_rec.raw_file_name} ({ea_rec.raw_file_url}). Exception: {str(ex)}')
-
+                ea_errors.append(f'Save to DB failed for: {ea_rec.raw_file_url}')
+        return epoa_errors, ou_errors, fr_errors, ea_errors
 
     def handle(self, *args, **options):
         logger.info('Starting PDF scraping.')
         processed_data = []
-        errored_data = []
+        epoa_errs = []
+        ou_errs = []
+        fr_errs = []
+        ea_errs = []
 
         # Loop through the data types (epoa, ou, etc)
         for pdf_type, fields in PDF_TYPES:
@@ -610,7 +621,7 @@ class Command(BaseCommand):
             urls_with_filenames = self.get_documents(pdf_type)
             logger.info('Count of new {pdftype} documents: {doc_count}'.format(pdftype=pdf_type, doc_count=len(urls_with_filenames)))
             logger.info('Starting to process PDFs.')
-            error_count = 0
+
             for doc in urls_with_filenames:
                 try:
                     pdf_data = self.read_pdf_into_memory(doc[0])
@@ -628,19 +639,59 @@ class Command(BaseCommand):
                         'sector': s_data,
                         'd_type': doc[2],
                     })
-                except Exception as e:
-                    error_count += 1
-                    errored_data.append(str(e))
-            cron_body = { "name": "scrape_pdfs",
-                "message": 'Done scraping ' + pdf_type + ' PDF-s',
-                "num_result": len(urls_with_filenames) - error_count,
-                "status": CronJobStatus.SUCCESSFUL }
-            CronJob.sync_cron(cron_body)
+                except Exception as ex:
+                    err_msg = f'Scraping failed for: {doc[0]}. Exception: {str(ex)}\n'
+                    if pdf_type == 'epoa':
+                        epoa_errs.append(err_msg)
+                    elif pdf_type == 'ou':
+                        ou_errs.append(err_msg)
+                    elif pdf_type == 'fr':
+                        fr_errs.append(err_msg)
+                    elif pdf_type == 'ea':
+                        ea_errs.append(err_msg)
 
-        if len(errored_data) > 0:
-            logger.error(errored_data)
         logger.info('Processing PDFs finished.')
 
+        epoa_str_errs = '\n'.join(epoa_errs)
+        ou_str_errs = '\n'.join(ou_errs)
+        fr_str_errs = '\n'.join(fr_errs)
+        ea_str_errs = '\n'.join(ea_errs)
+        errors_count = len(epoa_errs) + len(ou_errs) + len(fr_errs) + len(ea_errs)
+        scraped_count = len(urls_with_filenames) - errors_count
+
+        all_error_msgs = ''
+        if errors_count:
+            all_error_msgs = f'''
+                \nScraping errors --- ({errors_count})
+                {('EPOA errors:' + epoa_str_errs) if epoa_str_errs else ''}
+                {('OU errors:' + ou_str_errs) if ou_str_errs else ''}
+                {('FR errors:' + fr_str_errs) if fr_str_errs else ''}
+                {('EA errors:' + ea_str_errs) if ea_str_errs else ''}
+            '''
+
+        cron_msg = f'Done scraping PDF-s --- ({scraped_count}) {all_error_msgs}'
+        
         logger.info('Starting data-cleaning.')
-        self.clean_data_and_save(processed_data)
+        epoa_errors, ou_errors, fr_errors, ea_errors = self.clean_data_and_save(processed_data)
+        errors_count = len(epoa_errors) + len(ou_errors) + len(fr_errors) + len(ea_errors)
+
+        all_error_msgs = ''
+        if errors_count:
+            all_error_msgs = f'''
+                \nSaving errors --- ({errors_count})
+                {('EPOA errors:' + epoa_errors) if epoa_errors else ''}
+                {('OU errors:' + ou_errors) if ou_errors else ''}
+                {('FR errors:' + fr_errors) if fr_errors else ''}
+                {('EA errors:' + ea_errors) if ea_errors else ''}
+            '''
+        
+        cron_msg += f'\nDone saving records to DB --- ({scraped_count - errors_count}) {all_error_msgs}'
+        cron_body = {
+            "name": "scrape_pdfs",
+            "message": cron_msg,
+            "num_result": len(urls_with_filenames),
+            "status": CronJobStatus.SUCCESSFUL
+        }
+        CronJob.sync_cron(cron_body)
+
         logger.info('Finished the PDF scraping.')
