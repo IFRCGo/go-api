@@ -6,13 +6,9 @@ from azure.common import AzureMissingResourceHttpError
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob.models import ContentSettings
 
-from django.core.files.storage import Storage, FileSystemStorage
+from django.core.files.storage import Storage
 from django.conf import settings
 from django.utils.deconstruct import deconstructible
-
-
-def get_storage():
-    return AzureStorage() if os.environ.get('AZURE_STORAGE_ACCOUNT') else FileSystemStorage(location=settings.FILE_STORAGE.get('LOCATION'))
 
 
 @deconstructible
