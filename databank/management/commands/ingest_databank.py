@@ -57,10 +57,10 @@ class Command(BaseCommand):
                             'status': CronJobStatus.SUCCESSFUL,
                         })
                     print(f' [{datetime.datetime.now() - start}]')
-        except Exception as e:
+        except Exception as ex:
             CronJob.sync_cron({
                 'name': 'ingest_databank',
-                'message': f'Could not prefetch from sources\n\nException:\n{e.message}',
+                'message': f'Could not prefetch from sources\n\nException:\n{str(ex)}',
                 'status': CronJobStatus.ERRONEOUS,
             })
 
@@ -76,7 +76,7 @@ class Command(BaseCommand):
             index, country_count = 1, Country.objects.count()
             print('\nLoading Sources data for each country to GO DB:: ')
             for country in Country.objects.prefetch_related('countryoverview').all():
-                print(u'\t -> ({}/{}) {}'.format(index, country_count, country.encode('utf-8')))
+                print(u'\t -> ({}/{}) {}'.format(index, country_count, str(country).encode('utf-8')))
                 overview = (
                     country.countryoverview if hasattr(country, 'countryoverview') else
                     CountryOverview.objects.create(country=country)
@@ -99,10 +99,10 @@ class Command(BaseCommand):
                     'message': f'Done querying {name} data feeds',
                     'num_result': index, "status": CronJobStatus.SUCCESSFUL,
                 })
-        except Exception as e:
+        except Exception as ex:
             CronJob.sync_cron({
                 'name': 'ingest_databank',
-                'message': f'Could not load all data\n\nException:\n{e.message}',
+                'message': f'Could not load all data\n\nException:\n{str(ex)}',
                 'status': CronJobStatus.ERRONEOUS,
             })
 
