@@ -139,13 +139,13 @@ def send_notification(subject, recipients, html, mailtype=''):
         NotificationGUID.objects.create(
             api_guid=res_text,
             email_type=mailtype,
-            to_list='To: {to}; Bcc: {bcc}'.format(to=EMAIL_TO, bcc=recipients_as_string)
+            to_list=f'To: {EMAIL_TO}; Bcc: {recipients_as_string}'
         )
 
         logger.info('E-mails were sent successfully.')
     elif res.status_code == 401 or res.status_code == 403:
         # Try sending with Python smtplib, if reaching the API fails
-        logger.error('Authorization/authentication failed ({}) to the e-mail sender API.'.format(res.status_code))
+        logger.error(f'Authorization/authentication failed ({res.status_code}) to the e-mail sender API.')
         msg = construct_msg(subject, html)
         SendMail(to_addresses, msg).start()
     else:
