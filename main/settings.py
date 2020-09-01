@@ -298,6 +298,7 @@ LOGGING = {
             'class': 'api.filehandler.MakeFileHandler',
             'filename': '../logs/logger.log',
             'formatter': 'timestamp',
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
