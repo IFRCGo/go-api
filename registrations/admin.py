@@ -11,12 +11,19 @@ class PendingAdmin(CompareVersionAdmin):
         'get_username_and_mail', 'created_at',
         'admin_contact_1', 'admin_1_validated', 'admin_1_validated_date',
         'admin_contact_2', 'admin_2_validated', 'admin_2_validated_date',
-        'email_verified'
+        'email_verified', 'user_is_active'
     )
     actions = ('activate_users',)
 
+    # Get the 'user' objects with a JOIN query
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
     def get_username_and_mail(self, obj):
         return obj.user.username + ' - ' + obj.user.email
+
+    def user_is_active(self, obj):
+        return 'Yes' if obj.user.is_active else ''
 
     def activate_users(self, request, queryset):
         for pu in queryset:
