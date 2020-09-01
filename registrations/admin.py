@@ -1,4 +1,5 @@
 from django.contrib import admin
+from api.logger import logger
 from api.models import User
 import registrations.models as models
 from reversion_compare.admin import CompareVersionAdmin
@@ -21,8 +22,13 @@ class PendingAdmin(CompareVersionAdmin):
         for pu in queryset:
             usr = User.objects.filter(id=pu.user_id).first()
             if usr:
-                usr.is_active = True
-                usr.save()
+                if usr.is_active is False:
+                    usr.is_active = True
+                    usr.save()
+                else:
+                    logger.info(f'User {usr.username} was already active')
+            else:
+                logger.info(f'There is no User record with the ID: {pu.user_id}')
 
     def get_actions(self, request):
         actions = super(PendingAdmin, self).get_actions(request)
