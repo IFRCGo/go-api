@@ -37,7 +37,10 @@ class Command(BaseCommand):
       '--import-missing',
       help='Import missing countries for iso codes mentioned in this file.'
       )
-
+    parser.add_argument(
+      '--update-iso3',
+      help='Import missing iso3 codes from this file.'
+      )
   @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
@@ -71,6 +74,13 @@ class Command(BaseCommand):
         lon = row['longitude']
         if (lat != '' and lon != ''):
           country_centroids[code] = Point(float(lon), float(lat))
+
+    iso3_codes = {}
+    if options['update_iso3']:
+      iso3_file = csv.DictReader(open(options['update_iso3'], 'r'), fieldnames=['iso2', 'iso3'])
+      next(iso3_file)
+      for row in iso3_file:
+        iso3_codes[row['iso2']] = row['iso3']
 
     try:
       data = DataSource(filename)
@@ -111,9 +121,14 @@ class Command(BaseCommand):
             else:
               country.centroid = centroid
 
+          if options['update_iso3']:
+            if (feature_iso2 in iso3_codes.keys()):
+              print('updating iso3', iso3_codes[feature_iso2])
+              country.iso3 = iso3_codes[feature_iso2]
+
           # save
-          if options['update_geom'] or options['update_bbox'] or options['update_centroid']:
-            print('updating %s with geometries' %feature_iso2)
+          if options['update_geom'] or options['update_bbox'] or options['update_centroid'] or options['update_iso3']:
+            print('updating %s' %feature_iso2)
             country.save()
 
         except MultipleObjectsReturned:
