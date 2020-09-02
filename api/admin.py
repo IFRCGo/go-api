@@ -500,6 +500,9 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translati
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('type', 'event')
+
     def link_to_event(self, obj):
         link = reverse("admin:api_event_change", args=[obj.event.id])  # model name has to be lowercase
         return format_html('<a href="{}" style="font-weight: 600;">{}</a>', link, obj.event.name)
