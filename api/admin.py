@@ -460,6 +460,9 @@ class UserProfileAdmin(CompareVersionAdmin):
     actions = ['export_selected_users']
     readonly_fields = ('last_frontend_login',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
     def export_selected_users(self, request, queryset):
         meta = self.model._meta
         prof_field_names = [field.name for field in meta.fields]
