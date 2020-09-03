@@ -429,7 +429,7 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
-    modifiable = False
+    modifiable = True
 
 
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -438,16 +438,17 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
-    modifiable = False
+    modifiable = True
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 
 
-class RegionAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = None
     region_in = 'pk__in'
     inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline]
     search_fields = ('name',)
+    modifiable = True
 
 
 class UserProfileAdmin(CompareVersionAdmin):
