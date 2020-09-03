@@ -147,6 +147,9 @@ class Country(models.Model):
     independent = models.NullBooleanField(
         default=None, null=True, help_text=_('Is this an independent country?')
     )
+    is_deprecated = models.BooleanField(
+        default=False, help_text=_('Is this an active, valid country?')
+    )
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
@@ -196,7 +199,9 @@ class District(models.Model):
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
-
+    is_deprecated = models.BooleanField(
+        default=False, help_text=_('Is this an active, valid district?')
+    )
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
         verbose_name=_('WB population'), null=True, blank=True, help_text=_('population data from WB API')
