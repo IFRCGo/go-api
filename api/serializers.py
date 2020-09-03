@@ -78,7 +78,7 @@ class CountryTableauSerializer(serializers.ModelSerializer):
 class CountrySerializer(ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'independent',)
+        fields = ('name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'record_type', 'independent', 'is_deprecated',)
 
 
 class CountryGeoSerializer(ModelSerializer):
@@ -101,14 +101,14 @@ class CountryGeoSerializer(ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent',
+            'id', 'url_ifrc', 'record_type', 'bbox', 'centroid', 'independent', 'is_deprecated',
         )
 
 
 class MiniCountrySerializer(ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region', 'independent')
+        fields = ('name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'region', 'independent', 'is_deprecated',)
 
 
 class RegoCountrySerializer(ModelSerializer):
@@ -128,13 +128,13 @@ class DistrictSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id',)
+        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id', 'is_deprecated',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave',)
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'is_deprecated',)
 
 
 class MiniDistrictGeoSerializer(ModelSerializer):
@@ -155,7 +155,7 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'bbox', 'centroid',)
+        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class RegionKeyFigureSerializer(ModelSerializer):
