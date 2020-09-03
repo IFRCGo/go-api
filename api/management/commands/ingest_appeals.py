@@ -278,7 +278,7 @@ class Command(BaseCommand):
                 logger.error(err_text)
                 errors.append(err_text)
 
-        create_cron_record(CRON_NAME, '\n'.join(errors), CronJobStatus.ERRONEOUS, len(errors))
+        create_cron_record(CRON_NAME, '\n'.join(errors), CronJobStatus.WARNED, len(errors))
 
         appeals_count = Appeal.objects.all().count()
         logger.info(f'{num_created} appeals created')
