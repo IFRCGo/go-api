@@ -37,6 +37,9 @@ class NSPhaseAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('prioritization',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('country',)
