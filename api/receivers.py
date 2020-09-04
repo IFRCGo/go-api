@@ -3,14 +3,12 @@ from api.indexes import ES_PAGE_NAME
 from api.esconnection import ES_CLIENT
 from api.logger import logger
 from django.db import transaction
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from elasticsearch.helpers import bulk
-from reversion.models import Revision, Version
+from reversion.models import Version
 from reversion.signals import post_revision_commit
-from api.models import ReversionDifferenceLog, User, Country, Event
-from deployments.models import DeployedPerson
-from per.models import Form
+from api.models import ReversionDifferenceLog, Event
 from middlewares.middlewares import get_username
 
 
@@ -131,11 +129,48 @@ def log_deletion(sender, instance, using, **kwargs):
     # ElasticSearch to also delete the index if a record was deleted
     if hasattr(instance, 'es_id'):
         try:
-            bulk(client=ES_CLIENT , actions=[{
+            bulk(client=ES_CLIENT, actions=[{
                 '_op_type': 'delete',
                 '_index': ES_PAGE_NAME,
                 '_type': 'page',
                 '_id': instance.es_id()
             }])
-        except:
+        except Exception:
             logger.error('Could not reach Elasticsearch server.')
+
+
+@receiver(pre_save)
+def remove_child_events_from_es(sender, instance, using, **kwargs):
+    model = instance.__class__.__name__
+    if model == 'Event':
+        curr_record = Event.objects.filter(id=instance.id).first()
+        if curr_record is None:
+            return
+
+        if curr_record.parent_event is None and instance.parent_event:
+            # Delete ES record if Emergency became a child
+            if hasattr(instance, 'es_id'):
+                try:
+                    bulk(client=ES_CLIENT, actions=[{
+                        '_op_type': 'delete',
+                        '_index': ES_PAGE_NAME,
+                        '_type': 'page',
+                        '_id': instance.es_id()
+                    }])
+                except Exception:
+                    logger.error('Could not reach Elasticsearch server.')
+        elif curr_record.parent_event and instance.parent_event is None:
+            # Add back ES record if Emergency became a parent (index_elasticsearch.py)
+            data = instance.indexing()
+            metadata = {
+                '_op_type': 'create',
+                '_index': ES_PAGE_NAME,
+                '_type': 'page',
+                '_id': instance.es_id(),
+            }
+            data.update(**metadata)
+            created, errors = bulk(client=ES_CLIENT, actions=[data])
+            logger.info('Created %s records' % created)
+            if len(errors):
+                logger.error('Produced the following errors:')
+                logger.error('[%s]' % ', '.join(map(str, errors)))
