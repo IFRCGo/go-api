@@ -41,6 +41,14 @@ class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('name', 'role', 'type',)
     list_display = ('name', 'role', 'start_date', 'end_date', 'country_from', 'deployment',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'country_from',
+            'deployment__country_deployed_to',
+            'deployment__region_deployed_to',
+            'deployment__event_deployed_to'
+        )
+
 
 class PersonnelInline(admin.TabularInline):
     model = models.Personnel
