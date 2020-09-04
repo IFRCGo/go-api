@@ -392,6 +392,9 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
     region_in = 'appeal__region__in'
     search_fields = ('name', 'appeal__code', 'appeal__name')
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('appeal')
+
 
 class CountryKeyFigureInline(admin.TabularInline):
     model = models.CountryKeyFigure
