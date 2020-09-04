@@ -31,6 +31,9 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     autocomplete_fields = ('national_society_country',)
     search_fields = ('national_society_country__name',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society_country')
+
 
 class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     country_in = 'country_from__in'
