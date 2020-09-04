@@ -45,6 +45,9 @@ class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__in'
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 admin.site.register(models.Form, FormAdmin)
 # admin.site.register(models.FormData, FormDataAdmin) - if we want to edit form data in Django
