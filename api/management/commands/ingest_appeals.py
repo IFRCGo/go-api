@@ -1,7 +1,9 @@
 import os
-import requests
 import json
+from requests import Session, exceptions as reqexc
+from requests.adapters import HTTPAdapter
 from datetime import datetime, timezone, timedelta
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone as tz
 from api.models import AppealType, Appeal, Region, Country, DisasterType, Event, CronJobStatus
@@ -10,9 +12,9 @@ from api.logger import logger
 from api.create_cron import create_cron_record
 
 CRON_NAME = 'ingest_appeals'
-dtype_keys = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
-dtype_vals = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
-region2country = {
+DTYPE_KEYS = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
+DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
+REGION_TO_COUNTRY = {
     'JAK': 'ID',  # Jakarta Country Cluster Office: Indonesia
     'SAM': 'AR',  # South Cone and Brazil Country Cluster Office: Argentina
     'TEG': 'HN',  # Tegucigalpa Country Cluster Office: Honduras
@@ -81,33 +83,47 @@ class Command(BaseCommand):
             logger.info('Querying appeals API for new appeals data')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            response = requests.get(url, auth=auth)
-            # not every case is handled here, e.g. if the base URL is wrong...
-            if response.status_code != 200:
-                log_text = f'Error querying AppealBilaterals API at {url} - status code: {str(response.status_code)}'
-                logger.error(log_text)
-                logger.error(response.content)
-                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                raise Exception(log_text)
+            adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
+            sess = Session()
+            sess.mount('http://', adapter)
 
+            # try 3 times to reach the API
+            try:
+                response = sess.get(url, auth=auth)
+            except reqexc.HTTPError as ex:
+                log_text = f'Error querying AppealBilaterals API: {ex}'
+                logger.error(log_text)
+                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
+                return
+            except Exception as ex:
+                log_text = f'Error querying AppealBilaterals API at {url}: {str(ex)}'
+                logger.error(log_text)
+                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
+                return
             records = response.json()
+            bilaterals = self.create_bilaterals_dict(records)
 
             # write the current record file to local disk
             with open('appealbilaterals.json', 'w') as outfile:
                 json.dump(records, outfile)
 
-            bilaterals = self.create_bilaterals_dict(records)
-
             # get latest APPEALS
             logger.info('Querying appeals API for new appeals data')
             url = 'http://go-api.ifrc.org/api/appeals'
-            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            response = requests.get(url, auth=auth)
-            if response.status_code != 200:
-                log_text = f'Error querying Appeals API at {url} - status code: {str(response.status_code)}'
+            # try 3 times to reach the API
+            try:
+                response = sess.get(url, auth=auth)
+            except reqexc.HTTPError as ex:
+                log_text = f'Error querying Appeals API: {ex}'
                 logger.error(log_text)
                 create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
-                raise Exception(log_text)
+                return
+            except Exception as ex:
+                log_text = f'Error querying Appeals API at {url}: {str(ex)}'
+                logger.error(log_text)
+                create_cron_record(CRON_NAME, log_text, CronJobStatus.ERRONEOUS)
+                return
+
             records = response.json()
 
             # write the current record file to local disk
@@ -128,11 +144,11 @@ class Command(BaseCommand):
         return new, modified, bilaterals
 
     def parse_disaster_name(self, dname):
-        if dname in dtype_keys:
-            idx = dtype_keys.index(dname)
+        if dname in DTYPE_KEYS:
+            idx = DTYPE_KEYS.index(dname)
             disaster_name = DISASTER_TYPE_MAPPING[list(DISASTER_TYPE_MAPPING)[idx]]
-        elif dname in dtype_vals:
-            idx = dtype_vals.index(dname)
+        elif dname in DTYPE_VALS:
+            idx = DTYPE_VALS.index(dname)
             disaster_name = list(DISASTER_TYPE_MAPPING.values())[idx]
         else:
             disaster_name = 'Other'
@@ -142,8 +158,8 @@ class Command(BaseCommand):
     def parse_country(self, region_code, country_name):
         country = None
         iso_code = None
-        if region_code in region2country:
-            iso_code = region2country[region_code]
+        if region_code in REGION_TO_COUNTRY:
+            iso_code = REGION_TO_COUNTRY[region_code]
 
         if iso_code:
             country = Country.objects.filter(iso__iexact=iso_code).first()
@@ -241,7 +257,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Starting appeals ingest')
         start_appeals_count = Appeal.objects.all().count()
-        new, modified, bilaterals = self.get_new_or_modified_appeals()
+        try:
+            new, modified, bilaterals = self.get_new_or_modified_appeals()
+        except Exception as ex:
+            logger.error(f'Getting Appeals and AppealBilaterals failed: {str(ex)}')
+            return
         logger.info(f'{start_appeals_count} current appeals')
         logger.info(f'Creating {len(new)} new appeals')
         logger.info(f'Updating {len(modified)} existing appeals that MIGHT have been modified')
