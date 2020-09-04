@@ -31,12 +31,23 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     autocomplete_fields = ('national_society_country',)
     search_fields = ('national_society_country__name',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society_country')
+
 
 class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     country_in = 'country_from__in'
     region_in = 'country_from__region__in'
     search_fields = ('name', 'role', 'type',)
     list_display = ('name', 'role', 'start_date', 'end_date', 'country_from', 'deployment',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'country_from',
+            'deployment__country_deployed_to',
+            'deployment__region_deployed_to',
+            'deployment__event_deployed_to'
+        )
 
 
 class PersonnelInline(admin.TabularInline):
@@ -49,6 +60,9 @@ class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
     autocomplete_fields = ('event_deployed_to', 'appeal_deployed_to')
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country_deployed_to', 'region_deployed_to', 'event_deployed_to')
 
 
 class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
@@ -63,6 +77,9 @@ class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, 
         'activity__activity', 'name', 'role', 'country_deployed_to__name', 'parent_society__name', 'district_deployed_to__name',
     )
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('activity', 'parent_society', 'country_deployed_to')
 
 
 class RegionalProjectAdmin(CompareVersionAdmin, TranslationAdmin):
@@ -211,6 +228,9 @@ class ProjectImportAdmin(admin.ModelAdmin):
 
 class ERUReadinessAdmin(CompareVersionAdmin):
     search_fields = ('national_society',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society')
 
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)

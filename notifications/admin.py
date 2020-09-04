@@ -18,6 +18,9 @@ class SubscriptionAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'rtype')
     list_filter = (('rtype', ChoiceDropdownFilter),)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
 
 class NotificationGUIDAdmin(admin.ModelAdmin):
     list_display = ('api_guid', 'email_type', 'created_at',)
