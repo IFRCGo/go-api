@@ -41,6 +41,9 @@ class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('country',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__in'
