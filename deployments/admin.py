@@ -53,6 +53,9 @@ class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country_deployed_to', 'region_deployed_to', 'event_deployed_to')
+
 
 class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('activity',)
