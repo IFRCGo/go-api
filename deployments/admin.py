@@ -93,6 +93,9 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     class Media:  # Required by AutocompleteFilter
         pass
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('reporting_ns')
+
     def get_url_namespace(self, name, absolute=True):
         meta = self.model._meta
         namespace = f'{meta.app_label}_{meta.model_name}_{name}'
