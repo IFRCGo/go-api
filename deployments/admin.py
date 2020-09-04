@@ -67,6 +67,9 @@ class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, 
     )
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('activity', 'parent_society', 'country_deployed_to')
+
 
 class RegionalProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     list_display = ('name', 'created_at', 'modified_at',)
