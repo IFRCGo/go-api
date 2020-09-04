@@ -215,6 +215,9 @@ class ProjectImportAdmin(admin.ModelAdmin):
 class ERUReadinessAdmin(CompareVersionAdmin):
     search_fields = ('national_society',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society')
+
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
