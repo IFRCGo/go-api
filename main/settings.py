@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from celery.schedules import crontab
+from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -329,3 +330,9 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour="*/6"),
     },
 }
+
+RETRY_STRATEGY = Retry(
+    total=3,
+    status_forcelist=[429, 500, 502, 503, 504],
+    method_whitelist=["HEAD", "GET", "OPTIONS"]
+)
