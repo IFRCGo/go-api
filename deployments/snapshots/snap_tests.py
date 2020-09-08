@@ -43,6 +43,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'project_country_detail': {
                 'id': 327,
                 'independent': None,
+                'is_deprecated': False,
                 'iso': 'ZS',
                 'iso3': 'YCQ',
                 'name': None,
@@ -69,6 +70,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'reporting_ns_detail': {
                 'id': 326,
                 'independent': None,
+                'is_deprecated': False,
                 'iso': 'Sn',
                 'iso3': 'iWX',
                 'name': None,
