@@ -1,11 +1,12 @@
 import sys
 import os
 import json
+import csv
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.utils import LayerMapping
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import MultiPolygon, Point
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import transaction
 from api.models import Country
@@ -30,14 +31,16 @@ class Command(BaseCommand):
       )
     parser.add_argument(
       '--update-centroid',
-      action='store_true',
-      help='Update the centroid of the country geometry. Used if you want to overwrite changes that are made by users via the Django Admin'
+      help='Update the centroid of the country using a CSV file provided. If the CSV does not have the country iso, then we use the geometric centroid'
       )
     parser.add_argument(
       '--import-missing',
       help='Import missing countries for iso codes mentioned in this file.'
       )
-
+    parser.add_argument(
+      '--update-iso3',
+      help='Import missing iso3 codes from this file.'
+      )
   @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
@@ -60,6 +63,24 @@ class Command(BaseCommand):
       print('will write missing country iso to missing-countries.txt')
       missing_file = open('missing-countries.txt', 'w')
       duplicate_file = open('duplicate-countries.txt', 'w')
+
+    country_centroids = {}
+    if options['update_centroid']:
+      centroid_file = csv.DictReader(open(options['update_centroid'], 'r'), fieldnames=['country', 'latitude', 'longitude', 'name'])
+      next(centroid_file)
+      for row in centroid_file:
+        code = row['country'].lower()
+        lat = row['latitude']
+        lon = row['longitude']
+        if (lat != '' and lon != ''):
+          country_centroids[code] = Point(float(lon), float(lat))
+
+    iso3_codes = {}
+    if options['update_iso3']:
+      iso3_file = csv.DictReader(open(options['update_iso3'], 'r'), fieldnames=['iso2', 'iso3'])
+      next(iso3_file)
+      for row in iso3_file:
+        iso3_codes[row['iso2']] = row['iso3']
 
     try:
       data = DataSource(filename)
@@ -95,11 +116,19 @@ class Command(BaseCommand):
 
           if options['update_centroid']:
             # add centroid
-            country.centroid = centroid
+            if (feature_iso2 in country_centroids.keys()):
+              country.centroid = country_centroids[feature_iso2]
+            else:
+              country.centroid = centroid
+
+          if options['update_iso3']:
+            if (feature_iso2 in iso3_codes.keys()):
+              print('updating iso3', iso3_codes[feature_iso2])
+              country.iso3 = iso3_codes[feature_iso2]
 
           # save
-          if options['update_geom'] or options['update_bbox'] or options['update_centroid']:
-            print('updating %s with geometries' %feature_iso2)
+          if options['update_geom'] or options['update_bbox'] or options['update_centroid'] or options['update_iso3']:
+            print('updating %s' %feature_iso2)
             country.save()
 
         except MultipleObjectsReturned:

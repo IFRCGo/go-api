@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from celery.schedules import crontab
+from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -279,6 +280,7 @@ timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
+FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
 
@@ -297,6 +299,7 @@ LOGGING = {
             'class': 'api.filehandler.MakeFileHandler',
             'filename': '../logs/logger.log',
             'formatter': 'timestamp',
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
@@ -329,3 +332,9 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0, hour="*/6"),
     },
 }
+
+RETRY_STRATEGY = Retry(
+    total=3,
+    status_forcelist=[429, 500, 502, 503, 504],
+    method_whitelist=["HEAD", "GET", "OPTIONS"]
+)

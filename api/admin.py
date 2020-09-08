@@ -392,6 +392,9 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
     region_in = 'appeal__region__in'
     search_fields = ('name', 'appeal__code', 'appeal__name')
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('appeal')
+
 
 class CountryKeyFigureInline(admin.TabularInline):
     model = models.CountryKeyFigure
@@ -429,7 +432,7 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country_name',)
-    modifiable = False
+    modifiable = True
 
 
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
@@ -438,16 +441,17 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
-    modifiable = False
+    modifiable = True
     inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
     exclude = ('key_priorities',)
 
 
-class RegionAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = None
     region_in = 'pk__in'
     inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline]
     search_fields = ('name',)
+    modifiable = True
 
 
 class UserProfileAdmin(CompareVersionAdmin):
@@ -458,6 +462,9 @@ class UserProfileAdmin(CompareVersionAdmin):
     )
     actions = ['export_selected_users']
     readonly_fields = ('last_frontend_login',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
 
     def export_selected_users(self, request, queryset):
         meta = self.model._meta
@@ -499,6 +506,9 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translati
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('type', 'event')
 
     def link_to_event(self, obj):
         link = reverse("admin:api_event_change", args=[obj.event.id])  # model name has to be lowercase

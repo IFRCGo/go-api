@@ -143,7 +143,7 @@ class CountryFilter(filters.FilterSet):
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Country.objects.all()
+    queryset = Country.objects.filter(is_deprecated=False)
     filter_class = CountryFilter
 
     def get_object(self):
@@ -262,7 +262,7 @@ class DistrictFilter(filters.FilterSet):
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.all()
+    queryset = District.objects.filter(is_deprecated=False)
     filter_class = DistrictFilter
 
     def get_serializer_class(self):

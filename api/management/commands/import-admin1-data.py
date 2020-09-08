@@ -37,6 +37,11 @@ class Command(BaseCommand):
       '--import-missing',
       help='Import missing districts for codes mentioned in this file.'
       )
+    parser.add_argument(
+      '--import-all',
+      action='store_true',
+      help='Import all districts in the shapefile, if possible.'
+    )
 
   @transaction.atomic
   def handle(self, *args, **options):
@@ -70,7 +75,7 @@ class Command(BaseCommand):
     for feature in data[0]:
       code = feature.get('ADMIN01COD')
       name = feature.get('ADMIN01NAM')
-      country_iso2 = feature.get('ISO2').lower()
+      country_iso2 = feature.get('ISO2')
       country_name = feature.get('COUNTRY')
 
       geom_wkt = feature.geom.wkt
@@ -80,6 +85,11 @@ class Command(BaseCommand):
 
       centroid = geom.centroid.wkt
       bbox = geom.envelope.wkt
+
+      # if there is no code, but import all is flagged then import this district
+      if code is None or code == '':
+        if options['import_all']:
+          self.add_district('all', feature, geom, centroid, bbox)
 
       # for features that has a code and not NA
       if code and code != 'N.A':
@@ -156,25 +166,26 @@ class Command(BaseCommand):
   def add_district(self, import_missing, feature, geom, centroid, bbox):
     code = feature.get('ADMIN01COD') or 'N.A'
     name = feature.get('ADMIN01NAM')
-    if (code in import_missing.keys()):
-      print('importing', code, name)
-      district = District()
-      district.code = code
-      district.name = name
-      district.country_iso = feature.get('ISO2').lower()
-      district.country_name = feature.get('COUNTRY')
-      district.geom = geom
-      district.centroid = centroid
-      district.bbox = bbox
-      try:
-        # find the country based on country iso
-        country_id = Country.objects.get(iso=feature.get('ISO2').lower())
-        district.country = country_id
-      except ObjectDoesNotExist:
-        print('country does not exist', feature.get('ISO2').lower())
-        pass
+    district = District()
+    district.code = code
+    district.name = name
+    district.country_iso = feature.get('ISO2')
+    district.country_name = feature.get('COUNTRY')
+    district.geom = geom
+    district.centroid = centroid
+    district.bbox = bbox
+    try:
+      # find the country based on country iso
+      country_id = Country.objects.get(iso=feature.get('ISO2').lower())
+      district.country = country_id
+    except ObjectDoesNotExist:
+      print('country does not exist', feature.get('ISO2').lower())
+      pass
+
+    if (import_missing == 'all'):
+      print('importing', district.name)
+      district.save()
+    elif (code in import_missing.keys()):
       district.save()
     else:
       print('skipping', code)
-
-
