@@ -196,6 +196,7 @@ class AzureStorage(Storage):
         blob_url_args = {
             'container_name': self.container,
             'blob_name': name,
+            'protocol': 'https'
         }
 
         if self.cdn_host:
