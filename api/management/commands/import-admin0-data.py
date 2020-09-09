@@ -41,6 +41,11 @@ class Command(BaseCommand):
       '--update-iso3',
       help='Import missing iso3 codes from this file.'
       )
+    parser.add_argument(
+      '--update-independent',
+      action='store_true',
+      help='Update independence status for the country'
+    )
   @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
@@ -126,8 +131,18 @@ class Command(BaseCommand):
               print('updating iso3', iso3_codes[feature_iso2])
               country.iso3 = iso3_codes[feature_iso2]
 
+          if options['update_independent']:
+              if ('INDEPENDEN' in fields):
+                independent = feature.get('INDEPENDEN')
+                if independent == 'TRUE':
+                    country.independent = True
+                elif independent == 'FALSE':
+                    country.independent = False
+                else:
+                  country.independent = None
+
           # save
-          if options['update_geom'] or options['update_bbox'] or options['update_centroid'] or options['update_iso3']:
+          if options['update_geom'] or options['update_bbox'] or options['update_centroid'] or options['update_iso3'] or options['update_independent']:
             print('updating %s' %feature_iso2)
             country.save()
 
