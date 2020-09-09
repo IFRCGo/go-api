@@ -134,8 +134,8 @@ msgid "Europe"
 msgstr "Europe"
 
 #: api/models.py:62
-msgid "Middle East North Africa"
-msgstr "Moyen-Orient Afrique du Nord"
+msgid "Middle East & North Africa"
+msgstr "Moyen-Orient et Afrique du Nord"
 
 #: api/models.py:85 api/models.py:132 api/models.py:246 api/models.py:288
 #: api/models.py:333 api/models.py:363 api/models.py:692

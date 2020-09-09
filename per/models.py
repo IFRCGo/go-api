@@ -33,13 +33,13 @@ class ProcessPhase(IntEnum):
     PLAN_OF_ACTION = 4
     ACTION_AND_ACCOUNTABILITY = 5
 
-    # class Labels:
-    #     BASELINE = _('baseline')
-    #     ORIENTATION = _('orientation')
-    #     ASSESSMENT = _('assessment')
-    #     PRIORITIZATION = _('prioritization')
-    #     PLAN_OF_ACTION = _('plan of action')
-    #     ACTION_AND_ACCOUNTABILITY = _('action and accountability')
+    class Labels:
+        BASELINE = _('baseline')
+        ORIENTATION = _('orientation')
+        ASSESSMENT = _('assessment')
+        PRIORITIZATION = _('prioritization')
+        PLAN_OF_ACTION = _('plan of action')
+        ACTION_AND_ACCOUNTABILITY = _('action and accountability')
 
 
 class NSPhase(models.Model):
@@ -72,15 +72,15 @@ class Status(IntEnum):
     EXIST_COULD_BE_STRENGTHENED = 6
     HIGH_PERFORMANCE = 7
 
-    # class Labels:
-    #     NO = _('no')
-    #     YES = _('yes')
-    #     NOT_REVIEWED = _('not reviewed')
-    #     DOES_NOT_EXIST = _('does not exist')
-    #     PARTIALLY_EXISTS = _('partially exists')
-    #     NEED_IMPROVEMENTS = _('need improvements')
-    #     EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
-    #     HIGH_PERFORMANCE = _('high performance')
+    class Labels:
+        NO = _('no')
+        YES = _('yes')
+        NOT_REVIEWED = _('not reviewed')
+        DOES_NOT_EXIST = _('does not exist')
+        PARTIALLY_EXISTS = _('partially exists')
+        NEED_IMPROVEMENTS = _('need improvements')
+        EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
+        HIGH_PERFORMANCE = _('high performance')
 
 
 class Language(IntEnum):
@@ -88,10 +88,10 @@ class Language(IntEnum):
     FRENCH = 1
     ENGLISH = 2
 
-    # class Labels:
-    #     SPANISH = _('spanish')
-    #     FRENCH = _('french')
-    #     ENGLISH = _('english')
+    class Labels:
+        SPANISH = _('spanish')
+        FRENCH = _('french')
+        ENGLISH = _('english')
 
 
 class Draft(models.Model):
@@ -177,10 +177,10 @@ class PriorityValue(IntEnum):
     MID = 1
     HIGH = 2
 
-    # class Labels:
-    #     LOW = _('low')
-    #     MID = _('medium')
-    #     HIGH = _('high')
+    class Labels:
+        LOW = _('low')
+        MID = _('medium')
+        HIGH = _('high')
 
 
 class WorkPlanStatus(IntEnum):
@@ -194,16 +194,16 @@ class WorkPlanStatus(IntEnum):
     APPROVED = 7
     CLOSED = 8
 
-    # class Labels:
-    #     STANDBY = _('standby')
-    #     ONGOING = _('ongoing')
-    #     CANCELLED = _('cancelled')
-    #     DELAYED = _('delayed')
-    #     PENDING = _('pending')
-    #     NEED_IMPROVEMENTS = _('need improvements')
-    #     FINISHED = _('finished')
-    #     APPROVED = _('approved')
-    #     CLOSED = _('closed')
+    class Labels:
+        STANDBY = _('standby')
+        ONGOING = _('ongoing')
+        CANCELLED = _('cancelled')
+        DELAYED = _('delayed')
+        PENDING = _('pending')
+        NEED_IMPROVEMENTS = _('need improvements')
+        FINISHED = _('finished')
+        APPROVED = _('approved')
+        CLOSED = _('closed')
 
 
 class WorkPlan(models.Model):
@@ -244,11 +244,11 @@ class CAssessmentType(IntEnum):
     OPERATIONAL = 2
     POST_OPERATIONAL = 3
 
-    # class Labels:
-    #     SELF_ASSESSMENT = _('self assessment')
-    #     SIMULATION = _('simulation')
-    #     OPERATIONAL = _('operational')
-    #     POST_OPERATIONAL = _('post operational')
+    class Labels:
+        SELF_ASSESSMENT = _('self assessment')
+        SIMULATION = _('simulation')
+        OPERATIONAL = _('operational')
+        POST_OPERATIONAL = _('post operational')
 
 
 class Overview(models.Model):
@@ -297,9 +297,9 @@ class Visibilities(IntEnum):
     HIDDEN = 0
     VISIBLE = 1
 
-    # class Labels:
-    #     HIDDEN = _('hidden')
-    #     VISIBLE = _('visible')
+    class Labels:
+        HIDDEN = _('hidden')
+        VISIBLE = _('visible')
 
 
 def nice_document_path(instance, filename):
