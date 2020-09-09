@@ -69,6 +69,10 @@ python3 manage.py makemessages -a
 python3 manage.py translate_po
 # Compile po files
 python3 manage.py compilemessages
+
+# Import/Export django static translation
+python3 manage.py static-translation-export path-to-export.csv
+python3 manage.py static-translation-import path-to-import.csv
 ```
 
 ## Note for Django Model translations

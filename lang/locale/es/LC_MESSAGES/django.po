@@ -20,7 +20,7 @@ msgstr ""
 
 #: lang/apps.py:6
 msgid "lang"
-msgstr "Lang"
+msgstr "idi."
 
 #: lang/models.py:7
 msgid "language"
@@ -28,11 +28,11 @@ msgstr "idioma"
 
 #: lang/models.py:8
 msgid "key"
-msgstr "clave"
+msgstr "leyenda"
 
 #: lang/models.py:10
 msgid "hash"
-msgstr "picadillo"
+msgstr "almohadilla"
 
 #: lang/models.py:11
 msgid "value"
@@ -40,8 +40,8 @@ msgstr "valor"
 
 #: lang/models.py:15
 msgid "String"
-msgstr "Cuerda"
+msgstr "Cadena"
 
 #: lang/models.py:16
 msgid "Strings"
-msgstr "Cuerdas"
+msgstr "Cadenas"

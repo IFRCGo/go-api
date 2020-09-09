@@ -24,23 +24,25 @@ msgstr "التسجيلات"
 
 #: registrations/models.py:11 registrations/models.py:44
 msgid "user"
-msgstr "مستخدم"
+msgstr "المستعمل"
 
 #: registrations/models.py:17 registrations/models.py:48
 msgid "created at"
-msgstr "التي تم إنشاؤها في"
+msgstr "أنشئت في"
 
 #: registrations/models.py:18 registrations/models.py:49
 msgid "token"
-msgstr "الرمز المميز"
+msgstr ""
+"إرْهاصَة ; إشَارَة ; إيْماءَة ; أمَارَة ; آيَة ; دَلِيل ; دَلاَلَة ; رَمْز ;"
+" رَمْزِيّ ; سِمَة ; شِعَار ; شارَة ; عَلاَمَة"
 
 #: registrations/models.py:20
 msgid "admin contact 1"
-msgstr "مسؤول الاتصال 1"
+msgstr "تواصل مع المالك"
 
 #: registrations/models.py:21
 msgid "admin contact 2"
-msgstr "المشرف الاتصال 2"
+msgstr "تواصل مع المالك"
 
 #: registrations/models.py:22
 msgid "admin token 1"
@@ -52,23 +54,23 @@ msgstr "رمز المشرف 2"
 
 #: registrations/models.py:24
 msgid "admin 1 validated"
-msgstr "المشرف 1 التحقق من صحته"
+msgstr "تم التحقق من صحة المشرف 1"
 
 #: registrations/models.py:25
 msgid "admin 2 validated"
-msgstr "المشرف 2 التحقق من صحته"
+msgstr "تم التحقق من صحة المشرف 2"
 
 #: registrations/models.py:26
 msgid "admin 1 validated date"
-msgstr "admin 1 تاريخ التحقق من صحته"
+msgstr "تاريخ التحقق من صحة المشرف 1"
 
 #: registrations/models.py:27
 msgid "admin 2 validated date"
-msgstr "المشرف 2 تاريخ التحقق من صحته"
+msgstr "تاريخ التحقق من صحة المشرف 2"
 
 #: registrations/models.py:29
 msgid "email verified?"
-msgstr "هل تم التحقق من البريد الإلكتروني؟"
+msgstr "ایمیل تایید شده است"
 
 #: registrations/models.py:32
 msgid "Pending user"
@@ -76,19 +78,19 @@ msgstr "مستخدم معلق"
 
 #: registrations/models.py:33
 msgid "Pending users"
-msgstr "المستعملون المعلقون"
+msgstr "قائمة المستخدمين المعلقين"
 
 #: registrations/models.py:52
 msgid "Recovery"
-msgstr "الاسترداد"
+msgstr "استرداد"
 
 #: registrations/models.py:53
 msgid "Recoveries"
-msgstr "المبالغ المستردة"
+msgstr "معافاة"
 
 #: registrations/models.py:61
 msgid "domain name"
-msgstr "اسم المجال"
+msgstr "اسم النطاق"
 
 #: registrations/models.py:62
 msgid "description"
@@ -100,8 +102,8 @@ msgstr "نشط؟"
 
 #: registrations/models.py:66
 msgid "Domain Whitelist"
-msgstr "القائمة البيضاء للنطاق"
+msgstr "القائمة البيضاء للمجال"
 
 #: registrations/models.py:67
 msgid "Domains Whitelist"
-msgstr "قائمة النطاقات البيضاء"
+msgstr "المجالات البيضاء"

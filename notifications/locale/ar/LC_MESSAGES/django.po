@@ -20,7 +20,7 @@ msgstr ""
 
 #: notifications/apps.py:6
 msgid "notifications"
-msgstr "الإخطارات"
+msgstr "إشعارات ؛ إخطارات ؛ تبليغات"
 
 #: notifications/models.py:20
 msgid "fact"
@@ -28,47 +28,51 @@ msgstr "حقيقة"
 
 #: notifications/models.py:21
 msgid "SIMS"
-msgstr "سيمز"
+msgstr "SIMS"
 
 #: notifications/models.py:22
 msgid "ERU"
-msgstr "إيرو"
+msgstr "ERU"
 
 #: notifications/models.py:23
 msgid "DHEOPS"
-msgstr "الدهوبس"
+msgstr "DHEOPS"
 
 #: notifications/models.py:24
 msgid "HEOPS"
-msgstr "أطواق"
+msgstr "HEOPS"
 
 #: notifications/models.py:25
 msgid "surge"
-msgstr "زيادة"
+msgstr "إندفاع التيار"
 
 #: notifications/models.py:26
 msgid "rapid response"
-msgstr "الاستجابة السريعة"
+msgstr "سرعة التصدي"
 
 #: notifications/models.py:37
 msgid "information"
-msgstr "معلومات"
+msgstr "المعلومات"
 
 #: notifications/models.py:38
 msgid "deployment"
-msgstr "النشر"
+msgstr "توزيع"
 
 #: notifications/models.py:39
 msgid "alert"
-msgstr "يقظ"
+msgstr ""
+"إسْتِنْفار ; حَذِر ; سَهْران ; صاحٍ ; مُتَحَفّظ ; مُحْتَرِز ; مُحْتَرِس ; "
+"مُحْتاط ; مُفِيق ; مُنْتَبِه ; واعٍ ; يَقِظ"
 
 #: notifications/models.py:40
 msgid "shelter"
-msgstr "ملاذ"
+msgstr ""
+"جُنّة ; حِرْز ; حِمىً ; خِدْر ; ذَرىً ; سَقِيفَة ; سِتْر ; ظُلّة ; كُنّة ; "
+"كِنَان ; كِنّ ; مَأمَن ; مَأوى ; مَخْبأ ; مَعَاذ ; مَفْزَع"
 
 #: notifications/models.py:41
 msgid "stand down"
-msgstr "الوقوف إلى أسفل"
+msgstr "انسحب, تنازل, سحب ترشيحه, ألغى حالة الإستعداد"
 
 #: notifications/models.py:46
 msgid "alert type"
@@ -76,11 +80,13 @@ msgstr "نوع التنبيه"
 
 #: notifications/models.py:47
 msgid "category"
-msgstr "الفئة"
+msgstr "تصنيف"
 
 #: notifications/models.py:48
 msgid "operation"
-msgstr "عملية"
+msgstr ""
+"إسْتِعْمال ; تَدْوِير ; تَسْيِير ; تَشْغِيل ; سَرَيَان ; عَمَل ; عَمَلِيّة ;"
+" مَفْعُول ; نَفَاذ"
 
 #: notifications/models.py:49
 msgid "message"
@@ -88,20 +94,20 @@ msgstr "رسالة"
 
 #: notifications/models.py:50
 msgid "deployment needed"
-msgstr "النشر المطلوب"
+msgstr "مطلوب نشر"
 
 #: notifications/models.py:51
 msgid "is private?"
-msgstr "هل هو خاص؟"
+msgstr "هو خاص؟"
 
 #: notifications/models.py:52 notifications/models.py:101
 #: notifications/models.py:141
 msgid "event"
-msgstr "حادثة"
+msgstr "فعالية"
 
 #: notifications/models.py:55
 msgid "created at"
-msgstr "التي تم إنشاؤها في"
+msgstr "أنشئت في"
 
 #: notifications/models.py:59
 msgid "Surge Alert"
@@ -117,7 +123,7 @@ msgstr "جديد"
 
 #: notifications/models.py:79
 msgid "edit"
-msgstr "حرر"
+msgstr "تعديل"
 
 #: notifications/models.py:102
 msgid "appeal"
@@ -129,15 +135,17 @@ msgstr "تقرير ميداني"
 
 #: notifications/models.py:104
 msgid "surge alert"
-msgstr "تنبيه الطفرة"
+msgstr "تنبيه اندفاع"
 
 #: notifications/models.py:105 notifications/models.py:138
 msgid "country"
-msgstr "بلد"
+msgstr "البلد"
 
 #: notifications/models.py:106 notifications/models.py:139
 msgid "region"
-msgstr "منطقة"
+msgstr ""
+"إقْلِيم ; أرْض ; بَلَد ; بُقْعَة ; جَنْبَة ; جِهَة ; جانِب ; دائِرَة ; رَبْع"
+" ; رَجاً ; صُقْع ; طَرَف ; قُطْر ; قِسْم ; مَحَلّة ; مَكَان"
 
 #: notifications/models.py:107 notifications/models.py:140
 msgid "disaster type"
@@ -149,7 +157,7 @@ msgstr "في تاريخ الاستحقاق"
 
 #: notifications/models.py:109
 msgid "followed event"
-msgstr "الحدث الذي تم متابعته"
+msgstr "حدث متبوع"
 
 #: notifications/models.py:110
 msgid "surge deployment messages"
@@ -157,19 +165,19 @@ msgstr "رسائل نشر الطفرة"
 
 #: notifications/models.py:111
 msgid "surge approaching end of mission"
-msgstr "الطفرة التي تقترب من نهاية البعثة"
+msgstr "تقترب من نهاية المهمة"
 
 #: notifications/models.py:112
 msgid "weekly digest"
-msgstr "الملخص الأسبوعي"
+msgstr "ملخص أسبوعي"
 
 #: notifications/models.py:113
 msgid "new emergencies"
-msgstr "حالات الطوارئ الجديدة"
+msgstr "حالات طوارئ جديدة"
 
 #: notifications/models.py:114
 msgid "new operations"
-msgstr "عمليات جديدة"
+msgstr "عمليات جديدة!"
 
 #: notifications/models.py:115
 msgid "general announcements"
@@ -177,7 +185,7 @@ msgstr "إعلانات عامة"
 
 #: notifications/models.py:130
 msgid "user"
-msgstr "مستخدم"
+msgstr "المستعمل"
 
 #: notifications/models.py:135
 msgid "subscription type"
@@ -193,7 +201,7 @@ msgstr "معرف البحث"
 
 #: notifications/models.py:146
 msgid "Subscription"
-msgstr "الاشتراك"
+msgstr "اشتراك"
 
 #: notifications/models.py:147
 msgid "Subscriptions"
