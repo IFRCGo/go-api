@@ -575,7 +575,7 @@ class Snippet(models.Model):
         verbose_name_plural = _('snippets')
 
     def __str__(self):
-        return self.snippet
+        return self.snippet if self.snippet else 'snippet __str__ is None'
 
 
 class SituationReportType(models.Model):
