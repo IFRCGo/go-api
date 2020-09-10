@@ -24,7 +24,7 @@ msgstr "Anglais"
 
 #: main/settings.py:223
 msgid "Spanish"
-msgstr "Espanol"
+msgstr "Espagnol"
 
 #: main/settings.py:224
 msgid "French"
@@ -32,4 +32,4 @@ msgstr "Français"
 
 #: main/settings.py:225
 msgid "Arabic"
-msgstr "arabe"
+msgstr "Arabe"

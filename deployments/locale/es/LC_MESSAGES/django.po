@@ -20,7 +20,7 @@ msgstr ""
 
 #: deployments/admin.py:74
 msgid "National Society"
-msgstr "Sociedad Nacional"
+msgstr "Sociedad nacional"
 
 #: deployments/admin.py:79
 msgid "Country"
@@ -28,11 +28,11 @@ msgstr "País"
 
 #: deployments/admin.py:106
 msgid "New Import"
-msgstr "Nueva importación"
+msgstr "Importar nuevo"
 
 #: deployments/admin.py:109
 msgid "Recent Imports"
-msgstr "Importaciones recientes"
+msgstr "Importados recientemente"
 
 #: deployments/admin.py:112
 msgid "Import Template"
@@ -44,7 +44,7 @@ msgstr "Proyectos"
 
 #: deployments/apps.py:7
 msgid "Deployments & 3W's (Who, What, Where)"
-msgstr "Implementaciones y 3W (quién, qué, dónde)"
+msgstr "Despliegues y 3W (Quién, Qué y Dónde)"
 
 #: deployments/forms.py:52 deployments/models.py:411
 msgid "file"
@@ -52,7 +52,7 @@ msgstr "archivo"
 
 #: deployments/forms.py:53
 msgid "file delimiter"
-msgstr "delimitador de archivos"
+msgstr "delimitador de archivo"
 
 #: deployments/forms.py:54
 msgid "string delimiter"
@@ -60,11 +60,11 @@ msgstr "delimitador de cadena"
 
 #: deployments/models.py:29
 msgid "Basecamp"
-msgstr "Marca base"
+msgstr "Campamento base"
 
 #: deployments/models.py:30
 msgid "IT & Telecom"
-msgstr "TI y telecomunicaciones"
+msgstr "TI y Telecomunicaciones"
 
 #: deployments/models.py:31
 msgid "Logistics"
@@ -72,27 +72,27 @@ msgstr "Logística"
 
 #: deployments/models.py:32
 msgid "RCRC Emergency Hospital"
-msgstr "Hospital de Urgencias de la RCRC"
+msgstr "Hospital de emergencia de RCRC"
 
 #: deployments/models.py:33
 msgid "RCRC Emergency Clinic"
-msgstr "Clínica de Urgencias de la RCRC"
+msgstr "Clínica de emergencia de RCRC"
 
 #: deployments/models.py:34
 msgid "Relief"
-msgstr "Alivio"
+msgstr "Socorro"
 
 #: deployments/models.py:35
 msgid "Wash M15"
-msgstr "Lavar M15"
+msgstr "Wash M15"
 
 #: deployments/models.py:36
 msgid "Wash MSM20"
-msgstr "Lavar MSM20"
+msgstr "Wash MSM20"
 
 #: deployments/models.py:37
 msgid "Wash M40"
-msgstr "Lavar M40"
+msgstr "Wash M40"
 
 #: deployments/models.py:44
 msgid "national society country"
@@ -101,20 +101,20 @@ msgstr "país de la sociedad nacional"
 #: deployments/models.py:47 deployments/models.py:114
 #: deployments/models.py:299 deployments/models.py:407
 msgid "created at"
-msgstr "creado en"
+msgstr "creado el"
 
 #: deployments/models.py:48 deployments/models.py:115
 #: deployments/models.py:429
 msgid "updated at"
-msgstr "actualizado en"
+msgstr "actualizado el"
 
 #: deployments/models.py:51
 msgid "ERUs from a National Society"
-msgstr "URE de una Sociedad Nacional"
+msgstr "ERU de una sociedad nacional"
 
 #: deployments/models.py:52
 msgid "ERUs"
-msgstr "URE"
+msgstr "ERU"
 
 #: deployments/models.py:62 deployments/models.py:158
 msgid "type"
@@ -126,7 +126,7 @@ msgstr "unidades"
 
 #: deployments/models.py:64
 msgid "equipment units"
-msgstr "unidades de equipo"
+msgstr "unidades de equipamiento"
 
 #: deployments/models.py:66
 msgid "number of people deployed"
@@ -138,7 +138,7 @@ msgstr "número de personas desplegadas"
 #: deployments/models.py:107 deployments/models.py:110
 #: deployments/models.py:112 deployments/models.py:113
 msgid "still not used in frontend"
-msgstr "todavía no se utiliza en frontend"
+msgstr "todavía no se usa en el frontend"
 
 #: deployments/models.py:70 deployments/models.py:96 deployments/models.py:193
 msgid "country deployed to"
@@ -150,7 +150,7 @@ msgstr "evento"
 
 #: deployments/models.py:74
 msgid "appeal"
-msgstr "apelar"
+msgstr "llamamiento"
 
 #: deployments/models.py:78
 msgid "owner"
@@ -158,7 +158,7 @@ msgstr "propietario"
 
 #: deployments/models.py:80
 msgid "supporting societies"
-msgstr "apoyar a las sociedades"
+msgstr "sociedades secundarias"
 
 #: deployments/models.py:82 deployments/models.py:112
 #: deployments/models.py:128 deployments/models.py:338
@@ -180,11 +180,11 @@ msgstr "fecha de alerta"
 
 #: deployments/models.py:88
 msgid "Emergency Response Unit"
-msgstr "Unidad de Respuesta de Emergencia"
+msgstr "Unidad de respuestas de emergencia"
 
 #: deployments/models.py:89
 msgid "Emergency Response Units"
-msgstr "Unidades de Respuesta de Emergencia"
+msgstr "Unidades de respuestas de emergencia desplegados"
 
 #: deployments/models.py:97
 msgid "region deployed to"
@@ -192,15 +192,15 @@ msgstr "región desplegada en"
 
 #: deployments/models.py:99
 msgid "event deployed to"
-msgstr "implementado en"
+msgstr "evento desplegado en"
 
 #: deployments/models.py:102
 msgid "appeal deployed to"
-msgstr "llamamiento desplegado a"
+msgstr "llamamiento desplegado en "
 
 #: deployments/models.py:107
 msgid "expire start date"
-msgstr "fecha de inicio de caducidad"
+msgstr "fecha de inicio expirada"
 
 #: deployments/models.py:110
 msgid "end duration"
@@ -229,7 +229,7 @@ msgstr "nombre"
 
 #: deployments/models.py:131
 msgid "role"
-msgstr "papel"
+msgstr "función"
 
 #: deployments/models.py:134
 msgid "Deployed Person"
@@ -245,7 +245,7 @@ msgstr "Hecho"
 
 #: deployments/models.py:151
 msgid "HEOP"
-msgstr "HEOP"
+msgstr "Op. HE."
 
 #: deployments/models.py:152
 msgid "RDRT"
@@ -257,7 +257,7 @@ msgstr "IFRC"
 
 #: deployments/models.py:154
 msgid "ERU HR"
-msgstr "ERU HR"
+msgstr "RR. HH. ERU"
 
 #: deployments/models.py:155
 msgid "Rapid Response"
@@ -265,7 +265,7 @@ msgstr "Respuesta rápida"
 
 #: deployments/models.py:160
 msgid "country from"
-msgstr "país de"
+msgstr "país desde"
 
 #: deployments/models.py:162
 msgid "deployment"
@@ -277,7 +277,7 @@ msgstr "Personal"
 
 #: deployments/models.py:169
 msgid "Personnels"
-msgstr "Personnel"
+msgstr "Personal"
 
 #: deployments/models.py:173 deployments/models.py:185
 msgid "activity"
@@ -285,11 +285,11 @@ msgstr "actividad"
 
 #: deployments/models.py:179
 msgid "Partner society activity"
-msgstr "Actividad de la sociedad asociada"
+msgstr "actividad de la sociedad asociada"
 
 #: deployments/models.py:180
 msgid "Partner society activities"
-msgstr "Actividades de la sociedad asociada"
+msgstr "actividades de la sociedad asociada"
 
 #: deployments/models.py:189
 msgid "parent society"
@@ -297,15 +297,15 @@ msgstr "sociedad matriz"
 
 #: deployments/models.py:196
 msgid "district deployed to"
-msgstr "distrito desplegado en"
+msgstr "distrito desplegado a"
 
 #: deployments/models.py:199
 msgid "Partner Society Deployment"
-msgstr "Implementación de la sociedad asociada"
+msgstr "Despliegue de la sociedad asociada"
 
 #: deployments/models.py:200
 msgid "Partner Society Deployments"
-msgstr "Implementaciones de la sociedad de socios"
+msgstr "Despliegues de la sociedad asociada"
 
 #: deployments/models.py:212
 msgid "Bilateral"
@@ -321,7 +321,7 @@ msgstr "Doméstico"
 
 #: deployments/models.py:230 deployments/models.py:260
 msgid "WASH"
-msgstr "LAVAR"
+msgstr "WASH"
 
 #: deployments/models.py:231 deployments/models.py:261
 msgid "PGI"
@@ -349,7 +349,7 @@ msgstr "Refugio"
 
 #: deployments/models.py:237 deployments/models.py:266
 msgid "NS Strengthening"
-msgstr "Fortalecimiento de la NS"
+msgstr "Refuerzo de SN"
 
 #: deployments/models.py:238 deployments/models.py:267
 msgid "Education"
@@ -357,7 +357,7 @@ msgstr "Educación"
 
 #: deployments/models.py:239 deployments/models.py:268
 msgid "Livelihoods and basic needs"
-msgstr "Medios de vida y necesidades básicas"
+msgstr "Medios de subsistencia y necesidades básicas"
 
 #: deployments/models.py:269
 msgid "Recovery"
@@ -385,15 +385,15 @@ msgstr "RCCE"
 
 #: deployments/models.py:283
 msgid "Planned"
-msgstr "Planeado"
+msgstr "Planificado"
 
 #: deployments/models.py:284
 msgid "Ongoing"
-msgstr "Continuo"
+msgstr "En marcha"
 
 #: deployments/models.py:285
 msgid "Completed"
-msgstr "Terminado"
+msgstr "Completado"
 
 #: deployments/models.py:293
 msgid "Programme"
@@ -405,15 +405,15 @@ msgstr "Operación de emergencia"
 
 #: deployments/models.py:300 deployments/models.py:311
 msgid "modified at"
-msgstr "modificado en"
+msgstr "modificado el"
 
 #: deployments/models.py:303
 msgid "Regional Project"
-msgstr "Proyecto Regional"
+msgstr "Proyecto regional"
 
 #: deployments/models.py:304
 msgid "Regional Projects"
-msgstr "Proyectos Regionales"
+msgstr "Proyectos regionales"
 
 #: deployments/models.py:313
 msgid "user"
@@ -421,7 +421,7 @@ msgstr "usuario"
 
 #: deployments/models.py:316
 msgid "reporting national society"
-msgstr "sociedad nacional informante"
+msgstr "informantes de las sociedades nacionales"
 
 #: deployments/models.py:320
 msgid "country"
@@ -453,7 +453,7 @@ msgstr "tipo de operación"
 
 #: deployments/models.py:340
 msgid "budget amount"
-msgstr "importe del presupuesto"
+msgstr "cantidad de presupuesto"
 
 #: deployments/models.py:341 deployments/models.py:410
 msgid "status"
@@ -461,39 +461,39 @@ msgstr "estado"
 
 #: deployments/models.py:344
 msgid "target male"
-msgstr "macho objetivo"
+msgstr "objetivo hombres"
 
 #: deployments/models.py:345
 msgid "target female"
-msgstr "hembra objetivo"
+msgstr "objetivo mujeres"
 
 #: deployments/models.py:346
 msgid "target other"
-msgstr "objetivo de otros"
+msgstr "objetivo otro"
 
 #: deployments/models.py:347
 msgid "target total"
-msgstr "total objetivo"
+msgstr "objetivo total"
 
 #: deployments/models.py:350
 msgid "reached male"
-msgstr "macho alcanzado"
+msgstr "hombres a los que ha llegado"
 
 #: deployments/models.py:351
 msgid "reached female"
-msgstr "hembra alcanzada"
+msgstr "mujeres a las que ha llegado"
 
 #: deployments/models.py:352
 msgid "reached other"
-msgstr "llegó a otros"
+msgstr "otros a los que ha llegado"
 
 #: deployments/models.py:353
 msgid "reached total"
-msgstr "alcanzó total"
+msgstr "total a los que ha llegado"
 
 #: deployments/models.py:356
 msgid "regional project"
-msgstr "proyecto regional"
+msgstr "proyectos regionales"
 
 #: deployments/models.py:359
 msgid "visibility"
@@ -529,11 +529,11 @@ msgstr "mensaje"
 
 #: deployments/models.py:414
 msgid "Project Import"
-msgstr "Importación de proyectos"
+msgstr "Proyecto importado"
 
 #: deployments/models.py:415
 msgid "Projects Import"
-msgstr "Importación de proyectos"
+msgstr "Proyectos importados"
 
 #: deployments/models.py:424
 msgid "national society"
@@ -541,7 +541,7 @@ msgstr "sociedad nacional"
 
 #: deployments/models.py:426
 msgid "ERU type"
-msgstr "Tipo URE"
+msgstr "tipo de ERU"
 
 #: deployments/models.py:427
 msgid "is personnel?"
@@ -549,28 +549,28 @@ msgstr "¿Es personal?"
 
 #: deployments/models.py:428
 msgid "is equipment?"
-msgstr "es el equipo?"
+msgstr "¿Es equipamiento?"
 
 #: deployments/models.py:433
 msgid "ERU Readiness"
-msgstr "Preparación para URE"
+msgstr "Preparación de ERU"
 
 #: deployments/models.py:434
 msgid "NS-es ERU Readiness"
-msgstr "Preparación para la URE NS-ES"
+msgstr "Preparación de ERU de SN-es"
 
 #: deployments/serializers.py:134
 msgid "Different country found for given districts"
-msgstr "Diferentes países encontrados para distritos determinados"
+msgstr "Diferentes países encontrados para determinados distritos"
 
 #: deployments/serializers.py:136
 msgid "Reached total should be provided if status is completed"
-msgstr "Se debe proporcionar el total alcanzado si se ha completado el estado"
+msgstr "Se debe proporcionar el total alcanzado si se completa el estado"
 
 #: deployments/serializers.py:143
 msgid ""
 "Event should be provided if operation type is Emergency Operation and "
 "programme type is Multilateral"
 msgstr ""
-"Se debe proporcionar el evento si el tipo de operación es Operación de "
-"emergencia y el tipo de programa es Multilateral"
+"Se debe indicar el evento si el tipo de operación es Operación de Emergencia"
+" y el tipo de programa es Multilateral"

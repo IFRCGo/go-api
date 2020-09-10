@@ -28,27 +28,27 @@ msgstr "usuario"
 
 #: registrations/models.py:17 registrations/models.py:48
 msgid "created at"
-msgstr "creado en"
+msgstr "creado el"
 
 #: registrations/models.py:18 registrations/models.py:49
 msgid "token"
-msgstr "ficha"
+msgstr "token"
 
 #: registrations/models.py:20
 msgid "admin contact 1"
-msgstr "contacto del administrador 1"
+msgstr "contacto de admin 1"
 
 #: registrations/models.py:21
 msgid "admin contact 2"
-msgstr "contacto del administrador 2"
+msgstr "contacto de admin 2"
 
 #: registrations/models.py:22
 msgid "admin token 1"
-msgstr "token de administración 1"
+msgstr "token de admin 1"
 
 #: registrations/models.py:23
 msgid "admin token 2"
-msgstr "token de administración 2"
+msgstr "token de admin 2"
 
 #: registrations/models.py:24
 msgid "admin 1 validated"
@@ -68,7 +68,7 @@ msgstr "admin 2 fecha validada"
 
 #: registrations/models.py:29
 msgid "email verified?"
-msgstr "¿Se ha verificado el correo electrónico?"
+msgstr "¿correo electrónico verificado?"
 
 #: registrations/models.py:32
 msgid "Pending user"
@@ -96,12 +96,12 @@ msgstr "descripción"
 
 #: registrations/models.py:63
 msgid "is active?"
-msgstr "está activo?"
+msgstr "¿está activo?"
 
 #: registrations/models.py:66
 msgid "Domain Whitelist"
-msgstr "Lista blanca de dominios"
+msgstr "Dominio de lista blanca"
 
 #: registrations/models.py:67
 msgid "Domains Whitelist"
-msgstr "Lista blanca de dominios"
+msgstr "Dominios de lista blanca"

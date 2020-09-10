@@ -28,8 +28,8 @@ msgstr "Español"
 
 #: main/settings.py:224
 msgid "French"
-msgstr "francés"
+msgstr "Francés"
 
 #: main/settings.py:225
 msgid "Arabic"
-msgstr "árabe"
+msgstr "Árabe"

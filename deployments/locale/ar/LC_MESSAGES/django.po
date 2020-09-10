@@ -24,15 +24,15 @@ msgstr "الجمعية الوطنية"
 
 #: deployments/admin.py:79
 msgid "Country"
-msgstr "بلد"
+msgstr "البلد"
 
 #: deployments/admin.py:106
 msgid "New Import"
-msgstr "استيراد جديد"
+msgstr "طلب إستيراد جديد"
 
 #: deployments/admin.py:109
 msgid "Recent Imports"
-msgstr "الواردات الأخيرة"
+msgstr "الواردات الحديثة"
 
 #: deployments/admin.py:112
 msgid "Import Template"
@@ -40,15 +40,15 @@ msgstr "استيراد قالب"
 
 #: deployments/admin.py:162 deployments/models.py:365
 msgid "Projects"
-msgstr "المشاريع"
+msgstr "بروجيكتس"
 
 #: deployments/apps.py:7
 msgid "Deployments & 3W's (Who, What, Where)"
-msgstr "عمليات النشر و 3W (منظمة الصحة العالمية، ماذا، أين)"
+msgstr "عمليات النشر و 3 W (من وماذا وأين)"
 
 #: deployments/forms.py:52 deployments/models.py:411
 msgid "file"
-msgstr "ملف"
+msgstr "فایل"
 
 #: deployments/forms.py:53
 msgid "file delimiter"
@@ -60,7 +60,7 @@ msgstr "محدد السلسلة"
 
 #: deployments/models.py:29
 msgid "Basecamp"
-msgstr "قاعدة"
+msgstr "معسكر القاعدة"
 
 #: deployments/models.py:30
 msgid "IT & Telecom"
@@ -68,7 +68,7 @@ msgstr "تكنولوجيا المعلومات والاتصالات"
 
 #: deployments/models.py:31
 msgid "Logistics"
-msgstr "الخدمات اللوجستية"
+msgstr "الامدادات"
 
 #: deployments/models.py:32
 msgid "RCRC Emergency Hospital"
@@ -80,19 +80,19 @@ msgstr "عيادة الطوارئ RCRC"
 
 #: deployments/models.py:34
 msgid "Relief"
-msgstr "راحة"
+msgstr "الإغاثة"
 
 #: deployments/models.py:35
 msgid "Wash M15"
-msgstr "غسل M15"
+msgstr "اغسل M15"
 
 #: deployments/models.py:36
 msgid "Wash MSM20"
-msgstr "غسل MSM20"
+msgstr "اغسل MSM20"
 
 #: deployments/models.py:37
 msgid "Wash M40"
-msgstr "غسل M40"
+msgstr "اغسل M40"
 
 #: deployments/models.py:44
 msgid "national society country"
@@ -101,24 +101,24 @@ msgstr "بلد المجتمع الوطني"
 #: deployments/models.py:47 deployments/models.py:114
 #: deployments/models.py:299 deployments/models.py:407
 msgid "created at"
-msgstr "التي تم إنشاؤها في"
+msgstr "أنشئت في"
 
 #: deployments/models.py:48 deployments/models.py:115
 #: deployments/models.py:429
 msgid "updated at"
-msgstr "تم تحديثه في"
+msgstr "تم التحديث في"
 
 #: deployments/models.py:51
 msgid "ERUs from a National Society"
-msgstr "وحدات خفض الانبعاثات من جمعية وطنية"
+msgstr "ERUs من جمعية وطنية"
 
 #: deployments/models.py:52
 msgid "ERUs"
-msgstr "وحدات خفض الانبعاثات"
+msgstr "ERUs"
 
 #: deployments/models.py:62 deployments/models.py:158
 msgid "type"
-msgstr "نوع"
+msgstr "النوع"
 
 #: deployments/models.py:63
 msgid "units"
@@ -130,7 +130,7 @@ msgstr "وحدات المعدات"
 
 #: deployments/models.py:66
 msgid "number of people deployed"
-msgstr "عدد الأشخاص الذين تم نشرهم"
+msgstr "عدد الأفراد المنتشرين"
 
 #: deployments/models.py:66 deployments/models.py:75 deployments/models.py:80
 #: deployments/models.py:82 deployments/models.py:83 deployments/models.py:85
@@ -142,11 +142,11 @@ msgstr "لا يزال غير مستخدم في الواجهة الأمامية"
 
 #: deployments/models.py:70 deployments/models.py:96 deployments/models.py:193
 msgid "country deployed to"
-msgstr "البلد المنتشر إلى"
+msgstr "نشر بلد إلى"
 
 #: deployments/models.py:72 deployments/models.py:328
 msgid "event"
-msgstr "حادثة"
+msgstr "فعالية"
 
 #: deployments/models.py:74
 msgid "appeal"
@@ -154,7 +154,7 @@ msgstr "استئناف"
 
 #: deployments/models.py:78
 msgid "owner"
-msgstr "مالك"
+msgstr "المالك"
 
 #: deployments/models.py:80
 msgid "supporting societies"
@@ -168,11 +168,11 @@ msgstr "تاريخ البدء"
 #: deployments/models.py:83 deployments/models.py:113
 #: deployments/models.py:129 deployments/models.py:339
 msgid "end date"
-msgstr "تاريخ الانتهاء"
+msgstr "تاريخ النهاية"
 
 #: deployments/models.py:84
 msgid "available"
-msgstr "متاح"
+msgstr "متوفر"
 
 #: deployments/models.py:85 deployments/models.py:105
 msgid "alert date"
@@ -180,11 +180,11 @@ msgstr "تاريخ التنبيه"
 
 #: deployments/models.py:88
 msgid "Emergency Response Unit"
-msgstr "وحدة الاستجابة لحالات الطوارئ"
+msgstr "وحدة التصدي للطوارئ"
 
 #: deployments/models.py:89
 msgid "Emergency Response Units"
-msgstr "وحدات الاستجابة لحالات الطوارئ"
+msgstr "وحدات الاستجابة للطوارئ"
 
 #: deployments/models.py:97
 msgid "region deployed to"
@@ -192,11 +192,11 @@ msgstr "المنطقة المنتشرة في"
 
 #: deployments/models.py:99
 msgid "event deployed to"
-msgstr "تم نشره إلى"
+msgstr "تم نشر الحدث ل"
 
 #: deployments/models.py:102
 msgid "appeal deployed to"
-msgstr "نداء تم نشره إلى"
+msgstr "نشر النداء ل"
 
 #: deployments/models.py:107
 msgid "expire start date"
@@ -216,36 +216,36 @@ msgstr "تعليقات"
 
 #: deployments/models.py:120
 msgid "Personnel Deployment"
-msgstr "نشر الأفراد"
+msgstr "توزيع الموظفين"
 
 #: deployments/models.py:121
 msgid "Personnel Deployments"
-msgstr "عمليات نشر الأفراد"
+msgstr "حسنا. أفراد الإنتشار."
 
 #: deployments/models.py:130 deployments/models.py:298
 #: deployments/models.py:331
 msgid "name"
-msgstr "اسم"
+msgstr "الأب"
 
 #: deployments/models.py:131
 msgid "role"
-msgstr "دور"
+msgstr "إشْتِراك ; إصْبَع ; دَور ; ضِلْع ; يَد"
 
 #: deployments/models.py:134
 msgid "Deployed Person"
-msgstr "شخص تم نشره"
+msgstr "فرد منتشر"
 
 #: deployments/models.py:135
 msgid "Deployed Persons"
-msgstr "الأشخاص المنتشرين"
+msgstr "الأشخاص المنتشرون"
 
 #: deployments/models.py:150
 msgid "Fact"
-msgstr "حقيقة"
+msgstr "واقعة- حقيقية"
 
 #: deployments/models.py:151
 msgid "HEOP"
-msgstr "هوب"
+msgstr "HEOP"
 
 #: deployments/models.py:152
 msgid "RDRT"
@@ -253,11 +253,11 @@ msgstr "RDRT"
 
 #: deployments/models.py:153
 msgid "IFRC"
-msgstr "IFRC"
+msgstr "‫الاتحاد الدولي لجمعيات الصليب الأحمر والهلال الأحمر‬"
 
 #: deployments/models.py:154
 msgid "ERU HR"
-msgstr "إيرو ساعة"
+msgstr "ERU HR"
 
 #: deployments/models.py:155
 msgid "Rapid Response"
@@ -269,19 +269,19 @@ msgstr "بلد من"
 
 #: deployments/models.py:162
 msgid "deployment"
-msgstr "النشر"
+msgstr "توزيع"
 
 #: deployments/models.py:168
 msgid "Personnel"
-msgstr "شؤون الموظفين"
+msgstr "الموظفين"
 
 #: deployments/models.py:169
 msgid "Personnels"
-msgstr "بيرسونيلز"
+msgstr "الأفراد"
 
 #: deployments/models.py:173 deployments/models.py:185
 msgid "activity"
-msgstr "نشاط"
+msgstr "الأنشطة"
 
 #: deployments/models.py:179
 msgid "Partner society activity"
@@ -289,43 +289,43 @@ msgstr "نشاط المجتمع الشريك"
 
 #: deployments/models.py:180
 msgid "Partner society activities"
-msgstr "أنشطة المجتمع الشريكة"
+msgstr "أنشطة المجتمع الشريك"
 
 #: deployments/models.py:189
 msgid "parent society"
-msgstr "جمعية الوالدين"
+msgstr "مجتمع الوالدين"
 
 #: deployments/models.py:196
 msgid "district deployed to"
-msgstr "المنطقة المنتشرة في"
+msgstr "نشر منطقة ل"
 
 #: deployments/models.py:199
 msgid "Partner Society Deployment"
-msgstr "نشر المجتمع الشريك"
+msgstr "انتشار المجتمع الشريك"
 
 #: deployments/models.py:200
 msgid "Partner Society Deployments"
-msgstr "عمليات نشر المجتمع الشريكة"
+msgstr "عمليات نشر المجتمع الشريك"
 
 #: deployments/models.py:212
 msgid "Bilateral"
-msgstr "ثنائي"
+msgstr "ذو جانبين، في الجانبين، على الجانبين"
 
 #: deployments/models.py:213
 msgid "Multilateral"
-msgstr "متعدد الأطراف"
+msgstr "متعددة الأطراف"
 
 #: deployments/models.py:214
 msgid "Domestic"
-msgstr "منزلي"
+msgstr "بيتي، بلدي"
 
 #: deployments/models.py:230 deployments/models.py:260
 msgid "WASH"
-msgstr "غسل"
+msgstr "المياه وخدمات الصرف الصحي والنظافة الصحية WASH"
 
 #: deployments/models.py:231 deployments/models.py:261
 msgid "PGI"
-msgstr "بي جي أي"
+msgstr "PGI"
 
 #: deployments/models.py:232 deployments/models.py:262
 msgid "CEA"
@@ -333,19 +333,19 @@ msgstr "CEA"
 
 #: deployments/models.py:233 deployments/models.py:263
 msgid "Migration"
-msgstr "هجرة"
+msgstr "الهجرة"
 
 #: deployments/models.py:234
 msgid "Health"
-msgstr "صحة"
+msgstr "الصحة"
 
 #: deployments/models.py:235 deployments/models.py:264
 msgid "DRR"
-msgstr "درر"
+msgstr "الحد من مخاطر الكوارث"
 
 #: deployments/models.py:236 deployments/models.py:265
 msgid "Shelter"
-msgstr "ملاذ"
+msgstr "مأوى"
 
 #: deployments/models.py:237 deployments/models.py:266
 msgid "NS Strengthening"
@@ -353,7 +353,7 @@ msgstr "تعزيز NS"
 
 #: deployments/models.py:238 deployments/models.py:267
 msgid "Education"
-msgstr "تعليم"
+msgstr "التعليم"
 
 #: deployments/models.py:239 deployments/models.py:268
 msgid "Livelihoods and basic needs"
@@ -361,15 +361,15 @@ msgstr "سبل العيش والاحتياجات الأساسية"
 
 #: deployments/models.py:269
 msgid "Recovery"
-msgstr "الاسترداد"
+msgstr "استرداد"
 
 #: deployments/models.py:270
 msgid "Internal displacement"
-msgstr "التشرد الداخلي"
+msgstr "خامسا - التشريد الداخلي"
 
 #: deployments/models.py:271
 msgid "Health (public)"
-msgstr "الصحة (العامة)"
+msgstr "الصحة (عامة)"
 
 #: deployments/models.py:272
 msgid "Health (clinical)"
@@ -377,7 +377,7 @@ msgstr "الصحة (السريرية)"
 
 #: deployments/models.py:273
 msgid "COVID-19"
-msgstr "COVID-19"
+msgstr "كوفويد-19"
 
 #: deployments/models.py:274
 msgid "RCCE"
@@ -385,11 +385,11 @@ msgstr "RCCE"
 
 #: deployments/models.py:283
 msgid "Planned"
-msgstr "مخطط لها"
+msgstr "مخطط"
 
 #: deployments/models.py:284
 msgid "Ongoing"
-msgstr "جارية"
+msgstr "مستمرة"
 
 #: deployments/models.py:285
 msgid "Completed"
@@ -397,11 +397,11 @@ msgstr "اكتمل"
 
 #: deployments/models.py:293
 msgid "Programme"
-msgstr "البرنامج"
+msgstr "رصد"
 
 #: deployments/models.py:294
 msgid "Emergency Operation"
-msgstr "عملية الطوارئ"
+msgstr "تشغيل الطوارئ"
 
 #: deployments/models.py:300 deployments/models.py:311
 msgid "modified at"
@@ -409,7 +409,7 @@ msgstr "تعديل في"
 
 #: deployments/models.py:303
 msgid "Regional Project"
-msgstr "المشروع الإقليمي"
+msgstr "مشروع إقليمي"
 
 #: deployments/models.py:304
 msgid "Regional Projects"
@@ -417,7 +417,7 @@ msgstr "المشاريع الإقليمية"
 
 #: deployments/models.py:313
 msgid "user"
-msgstr "مستخدم"
+msgstr "المستعمل"
 
 #: deployments/models.py:316
 msgid "reporting national society"
@@ -425,7 +425,7 @@ msgstr "الإبلاغ عن المجتمع الوطني"
 
 #: deployments/models.py:320
 msgid "country"
-msgstr "بلد"
+msgstr "البلد"
 
 #: deployments/models.py:325
 msgid "districts"
@@ -441,11 +441,11 @@ msgstr "نوع البرنامج"
 
 #: deployments/models.py:333
 msgid "sector"
-msgstr "قطاع"
+msgstr "حَقْل ; قِسْم ; قِطَاع ; قاطِع ; مَجَال"
 
 #: deployments/models.py:335
 msgid "tags"
-msgstr "العلامات"
+msgstr "الكلمات الدلالية"
 
 #: deployments/models.py:337
 msgid "operation type"
@@ -457,15 +457,17 @@ msgstr "مبلغ الميزانية"
 
 #: deployments/models.py:341 deployments/models.py:410
 msgid "status"
-msgstr "منزلة"
+msgstr ""
+"بال ; حال ; حالَة ; دَرَجَة ; رُتْبَة ; سُدّة ; طَوْر ; مَرْكَز ; مَقَام ; "
+"مَكَانَة ; مَنْزِلَة ; مَنْصِب ; مَوْقِف ; وَضْع"
 
 #: deployments/models.py:344
 msgid "target male"
-msgstr "الذكور المستهدفة"
+msgstr "الهدف من الذكور"
 
 #: deployments/models.py:345
 msgid "target female"
-msgstr "الإناث المستهدفة"
+msgstr "تستهدف الإناث"
 
 #: deployments/models.py:346
 msgid "target other"
@@ -473,23 +475,23 @@ msgstr "الهدف الآخر"
 
 #: deployments/models.py:347
 msgid "target total"
-msgstr "المجموع المستهدف"
+msgstr "الهدف الإجمالي"
 
 #: deployments/models.py:350
 msgid "reached male"
-msgstr "وصل إلى الذكور"
+msgstr "وصل ذكر"
 
 #: deployments/models.py:351
 msgid "reached female"
-msgstr "تم الوصول إلى الإناث"
+msgstr "وصلت أنثى"
 
 #: deployments/models.py:352
 msgid "reached other"
-msgstr "وصلت إلى أخرى"
+msgstr "وصلت أخرى"
 
 #: deployments/models.py:353
 msgid "reached total"
-msgstr "المجموع الذي تم التوصل إليه"
+msgstr "بلغ المجموع"
 
 #: deployments/models.py:356
 msgid "regional project"
@@ -497,31 +499,31 @@ msgstr "مشروع إقليمي"
 
 #: deployments/models.py:359
 msgid "visibility"
-msgstr "الرؤية"
+msgstr "وُضُوح"
 
 #: deployments/models.py:364
 msgid "Project"
-msgstr "مشروع"
+msgstr "المشروع"
 
 #: deployments/models.py:399
 msgid "Pending"
-msgstr "معلقة"
+msgstr "قيد الانتظار"
 
 #: deployments/models.py:400
 msgid "Success"
-msgstr "نجاح"
+msgstr "عادي"
 
 #: deployments/models.py:401
 msgid "Failure"
-msgstr "عطل"
+msgstr "فشل"
 
 #: deployments/models.py:405
 msgid "created by"
-msgstr "التي تم إنشاؤها بواسطة"
+msgstr "مُسَبّب عن"
 
 #: deployments/models.py:408
 msgid "projects created"
-msgstr "المشاريع التي تم إنشاؤها"
+msgstr "إنشاء المشاريع"
 
 #: deployments/models.py:409
 msgid "message"
@@ -541,36 +543,36 @@ msgstr "الجمعية الوطنية"
 
 #: deployments/models.py:426
 msgid "ERU type"
-msgstr "نوع وحدة خفض الانبعاثات"
+msgstr "نوع ERU"
 
 #: deployments/models.py:427
 msgid "is personnel?"
-msgstr "هل الموظفين؟"
+msgstr "هو الأفراد؟"
 
 #: deployments/models.py:428
 msgid "is equipment?"
-msgstr "هل هي معدات؟"
+msgstr "هي المعدات؟"
 
 #: deployments/models.py:433
 msgid "ERU Readiness"
-msgstr "جاهزية وحدة خفض الانبعاثات"
+msgstr "استعداد ERU"
 
 #: deployments/models.py:434
 msgid "NS-es ERU Readiness"
-msgstr "NS-ES استعداد وحدة خفض الانبعاثات"
+msgstr "جاهزية NS-es ERU"
 
 #: deployments/serializers.py:134
 msgid "Different country found for given districts"
-msgstr "تم العثور على بلد مختلف لمناطق معينة"
+msgstr "تم العثور على دولة مختلفة لمناطق معينة"
 
 #: deployments/serializers.py:136
 msgid "Reached total should be provided if status is completed"
-msgstr "وينبغي توفير المجموع الذي تم التوصل إليه في حالة اكتمال الحالة"
+msgstr "يجب تقديم المجموع الذي تم الوصول إليه في حالة اكتمال الحالة"
 
 #: deployments/serializers.py:143
 msgid ""
 "Event should be provided if operation type is Emergency Operation and "
 "programme type is Multilateral"
 msgstr ""
-"يجب توفير الحدث إذا كان نوع العملية هو عملية الطوارئ ونوع البرنامج متعدد "
-"الأطراف"
+"يجب توفير الحدث إذا كان نوع العملية عبارة عن عملية طارئة ونوع البرنامج متعدد"
+" الأطراف"

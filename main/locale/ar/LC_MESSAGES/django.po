@@ -20,15 +20,15 @@ msgstr ""
 
 #: main/settings.py:222
 msgid "English"
-msgstr "الإنجليزية"
+msgstr "اللغةالإنجليزية"
 
 #: main/settings.py:223
 msgid "Spanish"
-msgstr "أسباني"
+msgstr "الإسبانية"
 
 #: main/settings.py:224
 msgid "French"
-msgstr "فرنسي"
+msgstr "فرنسية"
 
 #: main/settings.py:225
 msgid "Arabic"

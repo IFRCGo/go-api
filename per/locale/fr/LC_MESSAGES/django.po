@@ -20,11 +20,11 @@ msgstr ""
 
 #: per/apps.py:6
 msgid "per"
-msgstr "par"
+msgstr "PIE"
 
 #: per/models.py:37
 msgid "baseline"
-msgstr "référence"
+msgstr "base de référence"
 
 #: per/models.py:38
 msgid "orientation"
@@ -36,7 +36,7 @@ msgstr "évaluation"
 
 #: per/models.py:40 per/models.py:209
 msgid "prioritization"
-msgstr "hiérarchisation des priorités"
+msgstr "priorités"
 
 #: per/models.py:41
 msgid "plan of action"
@@ -44,27 +44,27 @@ msgstr "plan d'action"
 
 #: per/models.py:42
 msgid "action and accountability"
-msgstr "l'action et la responsabilisation"
+msgstr "action et responsabilisation"
 
 #: per/models.py:54
 msgid "NS PER Process Phase"
-msgstr "Phase du processus NS PER"
+msgstr "Étape du processus de la PIE NS"
 
 #: per/models.py:55
 msgid "NS-es PER Process Phase"
-msgstr "NS-ES PER Phase du processus"
+msgstr "Étape du processus de la PIE NS-es"
 
 #: per/models.py:76
 msgid "no"
-msgstr "non"
+msgstr "Non"
 
 #: per/models.py:77
 msgid "yes"
-msgstr "oui"
+msgstr "Oui"
 
 #: per/models.py:78
 msgid "not reviewed"
-msgstr "non revu"
+msgstr "non examiné"
 
 #: per/models.py:79
 msgid "does not exist"
@@ -76,27 +76,27 @@ msgstr "existe partiellement"
 
 #: per/models.py:81 per/models.py:202
 msgid "need improvements"
-msgstr "besoin d'améliorations"
+msgstr "nécessite une amélioration"
 
 #: per/models.py:82
 msgid "exist could be strengthened"
-msgstr "exister pourrait être renforcé"
+msgstr "existent et pourraient être renforcés"
 
 #: per/models.py:83
 msgid "high performance"
-msgstr "haute performance"
+msgstr "Performance élevée"
 
 #: per/models.py:92
 msgid "spanish"
-msgstr "espagnol"
+msgstr "Espagnol"
 
 #: per/models.py:93
 msgid "french"
-msgstr "français"
+msgstr "Français"
 
 #: per/models.py:94
 msgid "english"
-msgstr "anglais"
+msgstr "Anglais"
 
 #: per/models.py:99 per/models.py:120 per/models.py:219
 msgid "code"
@@ -121,11 +121,11 @@ msgstr "créé à"
 
 #: per/models.py:107
 msgid "Draft Form"
-msgstr "Formulaire de brouillon"
+msgstr "Projet de formulaire"
 
 #: per/models.py:108
 msgid "Draft Forms"
-msgstr "Ébauche de formulaires"
+msgstr "Projets de formulaire"
 
 #: per/models.py:121 per/models.py:310
 msgid "name"
@@ -133,7 +133,7 @@ msgstr "nom"
 
 #: per/models.py:122
 msgid "language"
-msgstr "langue"
+msgstr "langue "
 
 #: per/models.py:126
 msgid "NS"
@@ -153,7 +153,7 @@ msgstr "démarré à"
 
 #: per/models.py:132
 msgid "ended at"
-msgstr "s'est terminée à"
+msgstr "terminé à"
 
 #: per/models.py:133
 msgid "finalized"
@@ -177,7 +177,7 @@ msgstr "commentaire"
 
 #: per/models.py:141
 msgid "Form"
-msgstr "Forme"
+msgstr "Formulaire"
 
 #: per/models.py:142
 msgid "Forms"
@@ -185,11 +185,11 @@ msgstr "Formulaires"
 
 #: per/models.py:159
 msgid "form"
-msgstr "forme"
+msgstr "formulaire"
 
 #: per/models.py:160 per/models.py:220
 msgid "question id"
-msgstr "ID de la question"
+msgstr "Identifiant de la question"
 
 #: per/models.py:161
 msgid "selected option"
@@ -217,11 +217,11 @@ msgstr "élevé"
 
 #: per/models.py:197
 msgid "standby"
-msgstr "veille"
+msgstr "en veille"
 
 #: per/models.py:198
 msgid "ongoing"
-msgstr "continu"
+msgstr "en cours"
 
 #: per/models.py:199
 msgid "cancelled"
@@ -237,7 +237,7 @@ msgstr "en attente"
 
 #: per/models.py:203
 msgid "finished"
-msgstr "fini"
+msgstr "terminé"
 
 #: per/models.py:204
 msgid "approved"
@@ -253,7 +253,7 @@ msgstr "composants"
 
 #: per/models.py:211
 msgid "benchmark"
-msgstr "repère"
+msgstr "référence"
 
 #: per/models.py:212
 msgid "actions"
@@ -273,7 +273,7 @@ msgstr "statut"
 
 #: per/models.py:216
 msgid "support required"
-msgstr "support requis"
+msgstr "soutien nécessaire "
 
 #: per/models.py:217
 msgid "focal point"
@@ -281,11 +281,11 @@ msgstr "point focal"
 
 #: per/models.py:225
 msgid "PER Work Plan"
-msgstr "Plan de travail PAR"
+msgstr "Plan de travail PIE"
 
 #: per/models.py:226
 msgid "PER Work Plans"
-msgstr "Plans de travail PAR"
+msgstr "Plans de travail PIE"
 
 #: per/models.py:247
 msgid "self assessment"
@@ -301,11 +301,11 @@ msgstr "opérationnel"
 
 #: per/models.py:250
 msgid "post operational"
-msgstr "poste opérationnel"
+msgstr "post-opérationnel"
 
 #: per/models.py:260
 msgid "date of current capacity assessment"
-msgstr "date de l'évaluation actuelle de la capacité"
+msgstr "date de l'évaluation des capacités actuelles"
 
 #: per/models.py:262
 msgid "type of capacity assessment"
@@ -313,7 +313,7 @@ msgstr "type d'évaluation des capacités"
 
 #: per/models.py:265
 msgid "date of last capacity assessment"
-msgstr "date de la dernière évaluation de la capacité"
+msgstr "date de la dernière évaluation des capacités"
 
 #: per/models.py:268
 msgid "type of last capacity assessment"
@@ -321,31 +321,31 @@ msgstr "type de dernière évaluation des capacités"
 
 #: per/models.py:270
 msgid "branch involved"
-msgstr "branche impliquée"
+msgstr "Branche concernée "
 
 #: per/models.py:271
 msgid "focal point name"
-msgstr "Nom du point focal"
+msgstr "nom du point focal"
 
 #: per/models.py:272
 msgid "focal point email"
-msgstr "courriel du point focal"
+msgstr "adresse électronique du point focal"
 
 #: per/models.py:273
 msgid "had previous assessment"
-msgstr "avait une évaluation antérieure"
+msgstr "a eu une évaluation antérieure"
 
 #: per/models.py:274
 msgid "focus"
-msgstr "concentrer"
+msgstr "Priorité :"
 
 #: per/models.py:275
 msgid "facilitated by"
-msgstr "facilité par"
+msgstr "transmis par"
 
 #: per/models.py:276
 msgid "facilitated email"
-msgstr "courriel facilité"
+msgstr "courriel électronique transmis"
 
 #: per/models.py:277
 msgid "phone number"
@@ -353,23 +353,23 @@ msgstr "numéro de téléphone"
 
 #: per/models.py:278
 msgid "skype address"
-msgstr "adresse skype"
+msgstr "adresse Skype"
 
 #: per/models.py:279
 msgid "date of mid term review"
-msgstr "date de l'examen à mi-parcours"
+msgstr "date de la révision à mi-parcours"
 
 #: per/models.py:280
 msgid "approximate date next capacity assessment"
-msgstr "date approximative prochaine évaluation de la capacité"
+msgstr "date approximative de la prochaine évaluation des capacités"
 
 #: per/models.py:284
 msgid "PER General Overview"
-msgstr "PER Aperçu général"
+msgstr "Aperçu général PIE"
 
 #: per/models.py:285
 msgid "PER General Overviews"
-msgstr "PER Vue d'ensemble générale"
+msgstr "Aperçu général PIE"
 
 #: per/models.py:300
 msgid "hidden"
@@ -385,7 +385,7 @@ msgstr "document"
 
 #: per/models.py:314
 msgid "document url"
-msgstr "URL du document"
+msgstr "url du document"
 
 #: per/models.py:318
 msgid "visibility"
@@ -393,8 +393,8 @@ msgstr "visibilité"
 
 #: per/models.py:322
 msgid "PER Document"
-msgstr "PAR Document"
+msgstr "Document PIE"
 
 #: per/models.py:323
 msgid "PER Documents"
-msgstr "Documents PAR"
+msgstr "Documents PIE"

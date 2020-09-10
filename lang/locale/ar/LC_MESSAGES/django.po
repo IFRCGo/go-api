@@ -20,27 +20,27 @@ msgstr ""
 
 #: lang/apps.py:6
 msgid "lang"
-msgstr "لانج"
+msgstr "اللغه"
 
 #: lang/models.py:7
 msgid "language"
-msgstr "لغة"
+msgstr "اللغة"
 
 #: lang/models.py:8
 msgid "key"
-msgstr "مفتاح"
+msgstr "رئيسية"
 
 #: lang/models.py:10
 msgid "hash"
-msgstr "حشيش"
+msgstr "حَشِيش"
 
 #: lang/models.py:11
 msgid "value"
-msgstr "قيمة"
+msgstr "القيمة"
 
 #: lang/models.py:15
 msgid "String"
-msgstr "وتر"
+msgstr "سترينغ"
 
 #: lang/models.py:16
 msgid "Strings"
