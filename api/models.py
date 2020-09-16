@@ -580,7 +580,7 @@ class Snippet(models.Model):
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
-    type = models.CharField(verbose_name=_('type'), max_length=50)
+    type = models.CharField(verbose_name=_('type'), max_length=150)
     is_primary = models.BooleanField(
         verbose_name=_('is primary?'), default=False, editable=False,
         help_text=_('Ensure this type gets precedence over others that are empty')
@@ -1103,7 +1103,7 @@ class ActionCategory:
 
 class Action(models.Model):
     """ Action taken """
-    name = models.CharField(verbose_name=_('name'), max_length=100)
+    name = models.CharField(verbose_name=_('name'), max_length=400)
     organizations = ArrayField(
         models.CharField(choices=ActionOrg.CHOICES, max_length=4),
         verbose_name=_('organizations'), default=list, blank=True
