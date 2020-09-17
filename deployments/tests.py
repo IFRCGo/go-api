@@ -89,3 +89,15 @@ class TestProjectAPI(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
+
+    @mock.patch(
+        "django.utils.timezone.now",
+        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
+    )
+    def test_project_read(self):
+        new_project = project.ProjectFactory.create(
+            visibility=VisibilityCharChoices.PUBLIC
+        )
+        response = self.client.get("/api/v2/project/{}/".format(new_project.pk))
+        self.assertEqual(response.status_code, 200)
+        self.assertMatchSnapshot(json.loads(response.content))
