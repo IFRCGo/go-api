@@ -43,8 +43,10 @@ class ProjectFactory(factory.django.DjangoModelFactory):
                 self.secondary_sectors.add(secondary_sector)
 
     operation_type = fuzzy.FuzzyChoice(models.OperationTypes)
-    start_date = factory.LazyFunction(datetime.date.today)
-    end_date = factory.LazyFunction(datetime.date.today)
+    start_date = factory.LazyFunction(
+        datetime.datetime(2008, 1, 1, tzinfo=pytz.utc).date
+    )
+    end_date = factory.LazyFunction(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc).date)
     budget_amount = fuzzy.FuzzyInteger(0)
     actual_expenditure = fuzzy.FuzzyInteger(0)
     status = fuzzy.FuzzyChoice(models.Statuses)

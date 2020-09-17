@@ -7,6 +7,14 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
+snapshots['TestProjectAPI::test_project_list_zero 1'] = {
+    'count': 0,
+    'next': None,
+    'previous': None,
+    'results': [
+    ]
+}
+
 snapshots['TestProjectAPI::test_project_list_one 1'] = {
     'count': 1,
     'next': None,
@@ -21,7 +29,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
                 'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
                 'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
             },
-            'end_date': '2020-09-11',
+            'end_date': '2008-01-01',
             'event': 8,
             'event_detail': {
                 'dtype': 70,
@@ -82,7 +90,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             ],
             'secondary_sectors_display': [
             ],
-            'start_date': '2020-09-11',
+            'start_date': '2008-01-01',
             'status': 0,
             'status_display': 'Planned',
             'target_female': 0,
@@ -92,14 +100,6 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'user': 48,
             'visibility': 'public'
         }
-    ]
-}
-
-snapshots['TestProjectAPI::test_project_list_zero 1'] = {
-    'count': 0,
-    'next': None,
-    'previous': None,
-    'results': [
     ]
 }
 
@@ -117,7 +117,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
                 'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
             },
-            'end_date': '2020-09-11',
+            'end_date': '2008-01-01',
             'event': 10,
             'event_detail': {
                 'dtype': 73,
@@ -178,7 +178,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             ],
             'secondary_sectors_display': [
             ],
-            'start_date': '2020-09-11',
+            'start_date': '2008-01-01',
             'status': 0,
             'status_display': 'Planned',
             'target_female': 0,
@@ -197,7 +197,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'name': 'RAyuOCZkltalQKOMchvwENMIakHVqhmMbIbHGWjnxhnbuiofUSirrEmfwTJPsDVZFBGzmqlmRTrzgLYXLtkYnUFBCBMVruNgMyBm',
                 'summary': 'KwxOeCkcGqLAsMPHwzbhlZuBYlwpenQxxjXuhauSaTvnDKYuoJeysMnHngJrTMZQeKPARWBuummdZFFcrAhhCkMuLypKbsbPYKaDsizcIHcvPbeEgZAUtruWwzfJXuFNdztSDFPhxNgbodaiguSUBokfmUZxIaSdqYchdteqvSNYZyrSkiLDhiujWLAOCQhHHpKEQFruXUEofqXsTfwJpQPVnSeeFdnaQnDymFgvnLWHGuWtTDPjGgioxyCNGmXzmerBkRtKPgjDgVhpbDlrbEQHCwqhJfwBnjzGBGvdCrxgdPyUBmsmzlMrHMFHBgRdPphohdcKrpeIgroNSTzzzgoUSrFnkYnwOsTMsUaglGSNEVtSpkuReklvDjaQEBvblqekRWaMwELaFpEhcbKRsoHGkWjXggtZVvCFVwIqQFqxDawtTvHXQMEhrRHUObjAoQjwFbpKVSBxnVfmyOgrORICHlqRwvzLArtmcLHSvNhBYDKYYwsh'
             },
-            'end_date': '2020-09-11',
+            'end_date': '2008-01-01',
             'event': 12,
             'event_detail': {
                 'dtype': 76,
@@ -258,7 +258,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             ],
             'secondary_sectors_display': [
             ],
-            'start_date': '2020-09-11',
+            'start_date': '2008-01-01',
             'status': 2,
             'status_display': 'Completed',
             'target_female': 0,
@@ -276,7 +276,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'budget_amount': 0,
     'dtype': None,
     'dtype_detail': None,
-    'end_date': '2020-09-11',
+    'end_date': '2008-01-01',
     'event': None,
     'event_detail': None,
     'id': 24,
@@ -336,7 +336,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     ],
     'secondary_sectors_display': [
     ],
-    'start_date': '2020-09-11',
+    'start_date': '2008-01-01',
     'status': 2,
     'status_display': 'Completed',
     'target_female': 0,
