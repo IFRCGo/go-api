@@ -24,7 +24,7 @@ msgstr "المؤشرات الرئيسية للبلد (المصدر:FDRS)"
 
 #: databank/admin.py:46
 msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
-msgstr "مؤشرات المجتمع الوطني (المصدر:FDRS)"
+msgstr "مؤشرات الجمعية الوطنية (المصدر:FDRS)"
 
 #: databank/admin.py:49
 msgid "KEY CLIMATE EVENT"
@@ -400,7 +400,7 @@ msgstr "بيانات FTS"
 
 #: databank/models.py:226
 msgid "start network data"
-msgstr "Ø§Ø¨Ø¯Ø£ Ø§ÙØ´Ø¨ÙØ©"
+msgstr "بدء بيانات الشبكة"
 
 #: databank/models.py:227
 msgid "past crises data"

@@ -32,17 +32,15 @@ msgstr "أنشئت في"
 
 #: registrations/models.py:18 registrations/models.py:49
 msgid "token"
-msgstr ""
-"إرْهاصَة ; إشَارَة ; إيْماءَة ; أمَارَة ; آيَة ; دَلِيل ; دَلاَلَة ; رَمْز ;"
-" رَمْزِيّ ; سِمَة ; شِعَار ; شارَة ; عَلاَمَة"
+msgstr "رمز"
 
 #: registrations/models.py:20
 msgid "admin contact 1"
-msgstr "تواصل مع المالك"
+msgstr "تواصل مع المشرف"
 
 #: registrations/models.py:21
 msgid "admin contact 2"
-msgstr "تواصل مع المالك"
+msgstr "تواصل مع المشرف"
 
 #: registrations/models.py:22
 msgid "admin token 1"
@@ -54,23 +52,23 @@ msgstr "رمز المشرف 2"
 
 #: registrations/models.py:24
 msgid "admin 1 validated"
-msgstr "تم التحقق من صحة المشرف 1"
+msgstr "المشرف 1 تحقق من صحتها"
 
 #: registrations/models.py:25
 msgid "admin 2 validated"
-msgstr "تم التحقق من صحة المشرف 2"
+msgstr "المشرف 2 تحقق من صحتها"
 
 #: registrations/models.py:26
 msgid "admin 1 validated date"
-msgstr "تاريخ التحقق من صحة المشرف 1"
+msgstr "تاريخ تحقق المشرف 1 "
 
 #: registrations/models.py:27
 msgid "admin 2 validated date"
-msgstr "تاريخ التحقق من صحة المشرف 2"
+msgstr "تاريخ تحقق المشرف2 "
 
 #: registrations/models.py:29
 msgid "email verified?"
-msgstr "ایمیل تایید شده است"
+msgstr "التحقق من البريد الإلكتروني؟"
 
 #: registrations/models.py:32
 msgid "Pending user"
