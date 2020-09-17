@@ -101,3 +101,39 @@ class TestProjectAPI(TestCase):
         response = self.client.get("/api/v2/project/{}/".format(new_project.pk))
         self.assertEqual(response.status_code, 200)
         self.assertMatchSnapshot(json.loads(response.content))
+
+    @mock.patch(
+        "django.utils.timezone.now",
+        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
+    )
+    def test_project_update(self):
+        new_project = project.ProjectFactory.create(
+            visibility=VisibilityCharChoices.PUBLIC
+        )
+
+        # authenticate
+        new_user = user.UserFactory.create()
+        self.client.force_login(new_user)
+
+        new_project = pydash.omit(
+            new_project,
+            ["_state", "modified_at", "user", "event", "dtype", "regional_project"],
+        )
+        # update project name
+        new_project_name = "Mock Project for Update API Test"
+        new_country = country.CountryFactory()
+        new_district = district.DistrictFactory(country=new_country)
+        new_project["name"] = new_project_name
+        new_project["reporting_ns"] = new_country.id
+        new_project["project_country"] = new_country.id
+        new_project["project_districts"] = [new_district.id]
+
+        # submit update request
+        response = self.client.put(
+            "/api/v2/project/{}/".format(new_project["id"]),
+            new_project,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertMatchSnapshot(json.loads(response.content))
+        self.assertTrue(Project.objects.get(name=new_project_name))
