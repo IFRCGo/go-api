@@ -137,3 +137,17 @@ class TestProjectAPI(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
+
+    def test_project_delete(self):
+        new_project = project.ProjectFactory.create(
+            visibility=VisibilityCharChoices.PUBLIC
+        )
+
+        # authenticate
+        new_user = user.UserFactory.create()
+        self.client.force_login(new_user)
+
+        response = self.client.delete("/api/v2/project/{}/".format(new_project.pk))
+        self.assertEqual(response.status_code, 204)
+        self.assertMatchSnapshot(response.content)
+        self.assertFalse(Project.objects.all().count())

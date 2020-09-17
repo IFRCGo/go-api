@@ -23,94 +23,6 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
         {
             'actual_expenditure': 0,
             'budget_amount': 0,
-            'dtype': 72,
-            'dtype_detail': {
-                'id': 72,
-                'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
-                'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
-            },
-            'end_date': '2008-01-01',
-            'event': 8,
-            'event_detail': {
-                'dtype': 70,
-                'id': 8,
-                'name': 'WptcCqwfChXZpnZVLSwTNOBkNiYnnZdKwIrMIkuTssKrGRgiWYAdrPiSipjTupWRzFjKOrOAyCeOYXfzGVrSxDFuLaXUfUDOQSwe',
-                'parent_event': 7,
-                'slug': 'yiznbnfrusvjkikfyvrwdcgoydbhkcdabmsiptkrfpxqfxqpkd'
-            },
-            'id': 25,
-            'modified_at': '2019-03-23T00:00:00.123456Z',
-            'name': 'ojdRUzCWMKGfoBsYzjivfEKVdJzqfzGBXSiWiEJmFzPKmJNVHpperXBuRKfhQABxwmuwMPbXtkwNZCNjCcomRxjWUfhVdpNjsavSZhtCEbvnVInnIHWqJENUjSSQbyLQHcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPiLIRZmitSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQ',
-            'operation_type': 1,
-            'operation_type_display': 'Emergency Operation',
-            'primary_sector': 9,
-            'primary_sector_display': 'Livelihoods and basic needs',
-            'programme_type': 2,
-            'programme_type_display': 'Domestic',
-            'project_country': 328,
-            'project_country_detail': {
-                'id': 328,
-                'independent': None,
-                'is_deprecated': False,
-                'iso': 'tJ',
-                'iso3': 'yPY',
-                'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
-                'record_type': 1,
-                'region': 16,
-                'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
-            },
-            'project_districts': [
-            ],
-            'project_districts_detail': [
-            ],
-            'reached_female': 0,
-            'reached_male': 0,
-            'reached_other': 0,
-            'reached_total': 0,
-            'regional_project': 1,
-            'regional_project_detail': {
-                'created_at': '2019-03-23T00:00:00.123456Z',
-                'id': 1,
-                'modified_at': '2019-03-23T00:00:00.123456Z',
-                'name': 'cfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXah'
-            },
-            'reporting_ns': 327,
-            'reporting_ns_detail': {
-                'id': 327,
-                'independent': None,
-                'is_deprecated': False,
-                'iso': 'Dy',
-                'iso3': 'rOS',
-                'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
-                'record_type': 2,
-                'region': 15,
-                'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
-            },
-            'secondary_sectors': [
-            ],
-            'secondary_sectors_display': [
-            ],
-            'start_date': '2008-01-01',
-            'status': 0,
-            'status_display': 'Planned',
-            'target_female': 0,
-            'target_male': 0,
-            'target_other': 0,
-            'target_total': 0,
-            'user': 48,
-            'visibility': 'public'
-        }
-    ]
-}
-
-snapshots['TestProjectAPI::test_project_list_two 1'] = {
-    'count': 2,
-    'next': None,
-    'previous': None,
-    'results': [
-        {
-            'actual_expenditure': 0,
-            'budget_amount': 0,
             'dtype': 75,
             'dtype_detail': {
                 'id': 75,
@@ -185,34 +97,42 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'target_male': 0,
             'target_other': 0,
             'target_total': 0,
-            'user': 49,
+            'user': 50,
             'visibility': 'public'
-        },
+        }
+    ]
+}
+
+snapshots['TestProjectAPI::test_project_list_two 1'] = {
+    'count': 2,
+    'next': None,
+    'previous': None,
+    'results': [
         {
             'actual_expenditure': 0,
             'budget_amount': 0,
             'dtype': 78,
             'dtype_detail': {
                 'id': 78,
-                'name': 'RAyuOCZkltalQKOMchvwENMIakHVqhmMbIbHGWjnxhnbuiofUSirrEmfwTJPsDVZFBGzmqlmRTrzgLYXLtkYnUFBCBMVruNgMyBm',
-                'summary': 'KwxOeCkcGqLAsMPHwzbhlZuBYlwpenQxxjXuhauSaTvnDKYuoJeysMnHngJrTMZQeKPARWBuummdZFFcrAhhCkMuLypKbsbPYKaDsizcIHcvPbeEgZAUtruWwzfJXuFNdztSDFPhxNgbodaiguSUBokfmUZxIaSdqYchdteqvSNYZyrSkiLDhiujWLAOCQhHHpKEQFruXUEofqXsTfwJpQPVnSeeFdnaQnDymFgvnLWHGuWtTDPjGgioxyCNGmXzmerBkRtKPgjDgVhpbDlrbEQHCwqhJfwBnjzGBGvdCrxgdPyUBmsmzlMrHMFHBgRdPphohdcKrpeIgroNSTzzzgoUSrFnkYnwOsTMsUaglGSNEVtSpkuReklvDjaQEBvblqekRWaMwELaFpEhcbKRsoHGkWjXggtZVvCFVwIqQFqxDawtTvHXQMEhrRHUObjAoQjwFbpKVSBxnVfmyOgrORICHlqRwvzLArtmcLHSvNhBYDKYYwsh'
+                'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
+                'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
             },
             'end_date': '2008-01-01',
             'event': 12,
             'event_detail': {
                 'dtype': 76,
                 'id': 12,
-                'name': 'EYQNekGyWPWGxFHDluTxHSETFErLzOYLPcnomCpzntByKkxqJfiWfsCHwoLcDGNvBCDBAxZFuryblCoqPewfsGGIPfYroghexcIm',
+                'name': 'WptcCqwfChXZpnZVLSwTNOBkNiYnnZdKwIrMIkuTssKrGRgiWYAdrPiSipjTupWRzFjKOrOAyCeOYXfzGVrSxDFuLaXUfUDOQSwe',
                 'parent_event': 11,
-                'slug': 'vmrvqtvxrrmtmiwtviqaxtswyzzlwpaepgwjzoouvneohlyjwd'
+                'slug': 'yiznbnfrusvjkikfyvrwdcgoydbhkcdabmsiptkrfpxqfxqpkd'
             },
             'id': 27,
             'modified_at': '2019-03-23T00:00:00.123456Z',
-            'name': 'aFRjDRjHsNJQktFseZsaDcnsLhdFtaBwQadqiwsYGQXJjfTrjUmBLfsocEwpZROyBzgqtMtlKBRuZLiRXmqiAJmttftKODIlyYBgiHCSuGRTwDwBDAADbJbXAfWiNtYpLGxiNIKsdWzizQaDZWHDdfdrPgvMgsKESvdhVLRGVTdSnHjJVFioROjtOtUaZFNSmheajMhHgpngEbGCzdhtzElpIqNRCQNhBjObljVQpkGVSImEEssQgLFxQrzySZgDABjbsDhKyaLtcPPQNCcwiDUDrakwGGnwTHyGelPjwPUKvDTYirYWQtzePEyEMQlKTGXQHqiSuLLwLNzecbUkogQgFREuWoXZUYpglUyWAedNqhcVeCWxMOblugSCyiOKJmmqFCRsomVkBHZYmfLbOQgncZiaxXAKIevlRUUPHFmnKEGwwNJiZeCBOyeKfiYHtghFodMIvbosqyTwekseIKpHNGtzNdIShLEqPbcvAqmvWdinJUvW',
-            'operation_type': 0,
-            'operation_type_display': 'Programme',
-            'primary_sector': 0,
-            'primary_sector_display': 'WASH',
+            'name': 'ojdRUzCWMKGfoBsYzjivfEKVdJzqfzGBXSiWiEJmFzPKmJNVHpperXBuRKfhQABxwmuwMPbXtkwNZCNjCcomRxjWUfhVdpNjsavSZhtCEbvnVInnIHWqJENUjSSQbyLQHcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPiLIRZmitSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQ',
+            'operation_type': 1,
+            'operation_type_display': 'Emergency Operation',
+            'primary_sector': 9,
+            'primary_sector_display': 'Livelihoods and basic needs',
             'programme_type': 2,
             'programme_type_display': 'Domestic',
             'project_country': 332,
@@ -220,12 +140,12 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'id': 332,
                 'independent': None,
                 'is_deprecated': False,
-                'iso': 'Fn',
-                'iso3': 'QVD',
-                'name': 'bIucDQBKGArbSELbuyKyuKgZFgSRnvFGZWQvkNtxBmFOYeInsqdtKzZoNVfTLgLvreKZHEBnwYePtGZtBQIumAzqNGDQWJlbOTHl',
-                'record_type': 5,
+                'iso': 'tJ',
+                'iso3': 'yPY',
+                'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
+                'record_type': 1,
                 'region': 20,
-                'society_name': 'rOIZNXBKUOdHmxDjpjVRWtBAueOnArsPkqRMpzphjmbpZtDFJBBPcmkribqYZrQJlPcUFYbdfuMteAxQQfzUiphKVGhHQLXHqFfpMhXZuvLVyZVVpBnjglnrCAqLdFIxShuIBERprYjxETxtbPMcVQZdSYQpqJytOSxZRhIpCyazqtfWptnkCOuZXPAYcrfXFEVAvTBgkSqGewAMUJVuDSbWdPPlOCYPiazmOtuKfhkpHTXPWiMRAYuCEViqlRLuZsmfAxlzyKobbJPNOofDmqSkdzNBMqjfxkKhaTHBXDRFhoTnmYrsVFyiBnMnsURmAlAYjbsqpNCpxLRPDfaEiuSzRnTyTBVMqegJddvpEwMQZMTVZcaqGNytzQxiJcLlqkGFvDifuTHBjqhuciFrVxBsqNWqHuBkuVFWjJQOZCdmjdolcEqkTDBhFcCwTJFDFhUjhwfnslkVGrKQLnLaHXKlAepXFRgvbsRRhzxLgujbfDTQEDOr'
+                'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
             },
             'project_districts': [
             ],
@@ -240,18 +160,98 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'created_at': '2019-03-23T00:00:00.123456Z',
                 'id': 3,
                 'modified_at': '2019-03-23T00:00:00.123456Z',
-                'name': 'UcgcFGoPwBEtYobdbXYZmIMyRRVbJEdyXySiBSBJihChNxwmvBdpofLaoAVWZYIKcZaUpdediClscuwMPpsiMzEQhQeeqInFTVwo'
+                'name': 'cfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXah'
             },
             'reporting_ns': 331,
             'reporting_ns_detail': {
                 'id': 331,
                 'independent': None,
                 'is_deprecated': False,
+                'iso': 'Dy',
+                'iso3': 'rOS',
+                'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
+                'record_type': 2,
+                'region': 19,
+                'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
+            },
+            'secondary_sectors': [
+            ],
+            'secondary_sectors_display': [
+            ],
+            'start_date': '2008-01-01',
+            'status': 0,
+            'status_display': 'Planned',
+            'target_female': 0,
+            'target_male': 0,
+            'target_other': 0,
+            'target_total': 0,
+            'user': 51,
+            'visibility': 'public'
+        },
+        {
+            'actual_expenditure': 0,
+            'budget_amount': 0,
+            'dtype': 81,
+            'dtype_detail': {
+                'id': 81,
+                'name': 'RAyuOCZkltalQKOMchvwENMIakHVqhmMbIbHGWjnxhnbuiofUSirrEmfwTJPsDVZFBGzmqlmRTrzgLYXLtkYnUFBCBMVruNgMyBm',
+                'summary': 'KwxOeCkcGqLAsMPHwzbhlZuBYlwpenQxxjXuhauSaTvnDKYuoJeysMnHngJrTMZQeKPARWBuummdZFFcrAhhCkMuLypKbsbPYKaDsizcIHcvPbeEgZAUtruWwzfJXuFNdztSDFPhxNgbodaiguSUBokfmUZxIaSdqYchdteqvSNYZyrSkiLDhiujWLAOCQhHHpKEQFruXUEofqXsTfwJpQPVnSeeFdnaQnDymFgvnLWHGuWtTDPjGgioxyCNGmXzmerBkRtKPgjDgVhpbDlrbEQHCwqhJfwBnjzGBGvdCrxgdPyUBmsmzlMrHMFHBgRdPphohdcKrpeIgroNSTzzzgoUSrFnkYnwOsTMsUaglGSNEVtSpkuReklvDjaQEBvblqekRWaMwELaFpEhcbKRsoHGkWjXggtZVvCFVwIqQFqxDawtTvHXQMEhrRHUObjAoQjwFbpKVSBxnVfmyOgrORICHlqRwvzLArtmcLHSvNhBYDKYYwsh'
+            },
+            'end_date': '2008-01-01',
+            'event': 14,
+            'event_detail': {
+                'dtype': 79,
+                'id': 14,
+                'name': 'EYQNekGyWPWGxFHDluTxHSETFErLzOYLPcnomCpzntByKkxqJfiWfsCHwoLcDGNvBCDBAxZFuryblCoqPewfsGGIPfYroghexcIm',
+                'parent_event': 13,
+                'slug': 'vmrvqtvxrrmtmiwtviqaxtswyzzlwpaepgwjzoouvneohlyjwd'
+            },
+            'id': 28,
+            'modified_at': '2019-03-23T00:00:00.123456Z',
+            'name': 'aFRjDRjHsNJQktFseZsaDcnsLhdFtaBwQadqiwsYGQXJjfTrjUmBLfsocEwpZROyBzgqtMtlKBRuZLiRXmqiAJmttftKODIlyYBgiHCSuGRTwDwBDAADbJbXAfWiNtYpLGxiNIKsdWzizQaDZWHDdfdrPgvMgsKESvdhVLRGVTdSnHjJVFioROjtOtUaZFNSmheajMhHgpngEbGCzdhtzElpIqNRCQNhBjObljVQpkGVSImEEssQgLFxQrzySZgDABjbsDhKyaLtcPPQNCcwiDUDrakwGGnwTHyGelPjwPUKvDTYirYWQtzePEyEMQlKTGXQHqiSuLLwLNzecbUkogQgFREuWoXZUYpglUyWAedNqhcVeCWxMOblugSCyiOKJmmqFCRsomVkBHZYmfLbOQgncZiaxXAKIevlRUUPHFmnKEGwwNJiZeCBOyeKfiYHtghFodMIvbosqyTwekseIKpHNGtzNdIShLEqPbcvAqmvWdinJUvW',
+            'operation_type': 0,
+            'operation_type_display': 'Programme',
+            'primary_sector': 0,
+            'primary_sector_display': 'WASH',
+            'programme_type': 2,
+            'programme_type_display': 'Domestic',
+            'project_country': 334,
+            'project_country_detail': {
+                'id': 334,
+                'independent': None,
+                'is_deprecated': False,
+                'iso': 'Fn',
+                'iso3': 'QVD',
+                'name': 'bIucDQBKGArbSELbuyKyuKgZFgSRnvFGZWQvkNtxBmFOYeInsqdtKzZoNVfTLgLvreKZHEBnwYePtGZtBQIumAzqNGDQWJlbOTHl',
+                'record_type': 5,
+                'region': 22,
+                'society_name': 'rOIZNXBKUOdHmxDjpjVRWtBAueOnArsPkqRMpzphjmbpZtDFJBBPcmkribqYZrQJlPcUFYbdfuMteAxQQfzUiphKVGhHQLXHqFfpMhXZuvLVyZVVpBnjglnrCAqLdFIxShuIBERprYjxETxtbPMcVQZdSYQpqJytOSxZRhIpCyazqtfWptnkCOuZXPAYcrfXFEVAvTBgkSqGewAMUJVuDSbWdPPlOCYPiazmOtuKfhkpHTXPWiMRAYuCEViqlRLuZsmfAxlzyKobbJPNOofDmqSkdzNBMqjfxkKhaTHBXDRFhoTnmYrsVFyiBnMnsURmAlAYjbsqpNCpxLRPDfaEiuSzRnTyTBVMqegJddvpEwMQZMTVZcaqGNytzQxiJcLlqkGFvDifuTHBjqhuciFrVxBsqNWqHuBkuVFWjJQOZCdmjdolcEqkTDBhFcCwTJFDFhUjhwfnslkVGrKQLnLaHXKlAepXFRgvbsRRhzxLgujbfDTQEDOr'
+            },
+            'project_districts': [
+            ],
+            'project_districts_detail': [
+            ],
+            'reached_female': 0,
+            'reached_male': 0,
+            'reached_other': 0,
+            'reached_total': 0,
+            'regional_project': 4,
+            'regional_project_detail': {
+                'created_at': '2019-03-23T00:00:00.123456Z',
+                'id': 4,
+                'modified_at': '2019-03-23T00:00:00.123456Z',
+                'name': 'UcgcFGoPwBEtYobdbXYZmIMyRRVbJEdyXySiBSBJihChNxwmvBdpofLaoAVWZYIKcZaUpdediClscuwMPpsiMzEQhQeeqInFTVwo'
+            },
+            'reporting_ns': 333,
+            'reporting_ns_detail': {
+                'id': 333,
+                'independent': None,
+                'is_deprecated': False,
                 'iso': 'nU',
                 'iso3': 'cDy',
                 'name': 'NblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgH',
                 'record_type': 2,
-                'region': 19,
+                'region': 21,
                 'society_name': 'THhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZCyRu'
             },
             'secondary_sectors': [
@@ -265,7 +265,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'target_male': 0,
             'target_other': 0,
             'target_total': 0,
-            'user': 50,
+            'user': 52,
             'visibility': 'public'
         }
     ]
@@ -350,87 +350,6 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
 snapshots['TestProjectAPI::test_project_read 1'] = {
     'actual_expenditure': 0,
     'budget_amount': 0,
-    'dtype': 81,
-    'dtype_detail': {
-        'id': 81,
-        'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
-        'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
-    },
-    'end_date': '2008-01-01',
-    'event': 14,
-    'event_detail': {
-        'dtype': 79,
-        'id': 14,
-        'name': 'WptcCqwfChXZpnZVLSwTNOBkNiYnnZdKwIrMIkuTssKrGRgiWYAdrPiSipjTupWRzFjKOrOAyCeOYXfzGVrSxDFuLaXUfUDOQSwe',
-        'parent_event': 13,
-        'slug': 'yiznbnfrusvjkikfyvrwdcgoydbhkcdabmsiptkrfpxqfxqpkd'
-    },
-    'id': 28,
-    'modified_at': '2019-03-23T00:00:00.123456Z',
-    'name': 'ojdRUzCWMKGfoBsYzjivfEKVdJzqfzGBXSiWiEJmFzPKmJNVHpperXBuRKfhQABxwmuwMPbXtkwNZCNjCcomRxjWUfhVdpNjsavSZhtCEbvnVInnIHWqJENUjSSQbyLQHcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPiLIRZmitSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQ',
-    'operation_type': 1,
-    'operation_type_display': 'Emergency Operation',
-    'primary_sector': 9,
-    'primary_sector_display': 'Livelihoods and basic needs',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
-    'project_country': 334,
-    'project_country_detail': {
-        'id': 334,
-        'independent': None,
-        'is_deprecated': False,
-        'iso': 'tJ',
-        'iso3': 'yPY',
-        'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
-        'record_type': 1,
-        'region': 22,
-        'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
-    },
-    'project_districts': [
-    ],
-    'project_districts_detail': [
-    ],
-    'reached_female': 0,
-    'reached_male': 0,
-    'reached_other': 0,
-    'reached_total': 0,
-    'regional_project': 4,
-    'regional_project_detail': {
-        'created_at': '2019-03-23T00:00:00.123456Z',
-        'id': 4,
-        'modified_at': '2019-03-23T00:00:00.123456Z',
-        'name': 'cfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXah'
-    },
-    'reporting_ns': 333,
-    'reporting_ns_detail': {
-        'id': 333,
-        'independent': None,
-        'is_deprecated': False,
-        'iso': 'Dy',
-        'iso3': 'rOS',
-        'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
-        'record_type': 2,
-        'region': 21,
-        'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
-    },
-    'secondary_sectors': [
-    ],
-    'secondary_sectors_display': [
-    ],
-    'start_date': '2008-01-01',
-    'status': 0,
-    'status_display': 'Planned',
-    'target_female': 0,
-    'target_male': 0,
-    'target_other': 0,
-    'target_total': 0,
-    'user': 51,
-    'visibility': 'public'
-}
-
-snapshots['TestProjectAPI::test_project_update 1'] = {
-    'actual_expenditure': 0,
-    'budget_amount': 0,
     'dtype': 84,
     'dtype_detail': {
         'id': 84,
@@ -448,6 +367,87 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     },
     'id': 29,
     'modified_at': '2019-03-23T00:00:00.123456Z',
+    'name': 'ojdRUzCWMKGfoBsYzjivfEKVdJzqfzGBXSiWiEJmFzPKmJNVHpperXBuRKfhQABxwmuwMPbXtkwNZCNjCcomRxjWUfhVdpNjsavSZhtCEbvnVInnIHWqJENUjSSQbyLQHcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPiLIRZmitSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQ',
+    'operation_type': 1,
+    'operation_type_display': 'Emergency Operation',
+    'primary_sector': 9,
+    'primary_sector_display': 'Livelihoods and basic needs',
+    'programme_type': 2,
+    'programme_type_display': 'Domestic',
+    'project_country': 336,
+    'project_country_detail': {
+        'id': 336,
+        'independent': None,
+        'is_deprecated': False,
+        'iso': 'tJ',
+        'iso3': 'yPY',
+        'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
+        'record_type': 1,
+        'region': 24,
+        'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
+    },
+    'project_districts': [
+    ],
+    'project_districts_detail': [
+    ],
+    'reached_female': 0,
+    'reached_male': 0,
+    'reached_other': 0,
+    'reached_total': 0,
+    'regional_project': 5,
+    'regional_project_detail': {
+        'created_at': '2019-03-23T00:00:00.123456Z',
+        'id': 5,
+        'modified_at': '2019-03-23T00:00:00.123456Z',
+        'name': 'cfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXah'
+    },
+    'reporting_ns': 335,
+    'reporting_ns_detail': {
+        'id': 335,
+        'independent': None,
+        'is_deprecated': False,
+        'iso': 'Dy',
+        'iso3': 'rOS',
+        'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
+        'record_type': 2,
+        'region': 23,
+        'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
+    },
+    'secondary_sectors': [
+    ],
+    'secondary_sectors_display': [
+    ],
+    'start_date': '2008-01-01',
+    'status': 0,
+    'status_display': 'Planned',
+    'target_female': 0,
+    'target_male': 0,
+    'target_other': 0,
+    'target_total': 0,
+    'user': 53,
+    'visibility': 'public'
+}
+
+snapshots['TestProjectAPI::test_project_update 1'] = {
+    'actual_expenditure': 0,
+    'budget_amount': 0,
+    'dtype': 87,
+    'dtype_detail': {
+        'id': 87,
+        'name': 'CXxVLHCAklbiUpQqVSVfnkzggeEJdbXzHWfgqNjfPytopVsCOiiHkbcQwuEDIrJCiSIlLMDOVOKBHOOItwEIoZfCtxAqjtaaHWiw',
+        'summary': 'sEIaSFWEtaXBZsMoYaJxmAJBzpkTVPyyoqfBOpHWZNZSRrsPVIZrAmelishODNCrSNFmubjdIblgsriTCUaofjaFnvAtYZFxDSYcvfWjdrXzeIElmqyahXTpyXCpVcmDVXgHQnEyRtukOUcVJHhqEOtmxdQnhpOBuakYrLhzYpacLYSESMjxXfpkFfRNvWOddwPjSIYgiFouJYPWwZCUmbSywUiqcFTCJsISFmKlIwuUDrMJkeHjCsqIxDaXOGyUlbNxXNpuUeQIymHRFXJjNsuAPuhgHQecilcmgFmgcKPyQFHNSLqdxoMTeanPFfDZOdxJVAxYTdNrHcUetenHggUoIymmHQpKOlJVJAVgXOKwRDSQBgkYlJzGvQkIMCwuJuxAWOBUuMpKInyXJVqxCCzaUcsMbHitatonubXSrJGJKKjgcDwjiqxLpoqZtfKzKnUeUuYElFSSKgMPtcUZKyfXdXvwBAhXoVPMaOXOydtHcuIKjuGS'
+    },
+    'end_date': '2008-01-01',
+    'event': 18,
+    'event_detail': {
+        'dtype': 85,
+        'id': 18,
+        'name': 'WptcCqwfChXZpnZVLSwTNOBkNiYnnZdKwIrMIkuTssKrGRgiWYAdrPiSipjTupWRzFjKOrOAyCeOYXfzGVrSxDFuLaXUfUDOQSwe',
+        'parent_event': 17,
+        'slug': 'yiznbnfrusvjkikfyvrwdcgoydbhkcdabmsiptkrfpxqfxqpkd'
+    },
+    'id': 30,
+    'modified_at': '2019-03-23T00:00:00.123456Z',
     'name': 'Mock Project for Update API Test',
     'operation_type': 1,
     'operation_type_display': 'Emergency Operation',
@@ -455,16 +455,16 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'primary_sector_display': 'Livelihoods and basic needs',
     'programme_type': 2,
     'programme_type_display': 'Domestic',
-    'project_country': 337,
+    'project_country': 339,
     'project_country_detail': {
-        'id': 337,
+        'id': 339,
         'independent': None,
         'is_deprecated': False,
         'iso': 'HR',
         'iso3': 'inU',
         'name': 'UKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujX',
         'record_type': 1,
-        'region': 25,
+        'region': 27,
         'society_name': 'cDyTHhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZC'
     },
     'project_districts': [
@@ -485,23 +485,23 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'reached_male': 0,
     'reached_other': 0,
     'reached_total': 0,
-    'regional_project': 5,
+    'regional_project': 6,
     'regional_project_detail': {
         'created_at': '2019-03-23T00:00:00.123456Z',
-        'id': 5,
+        'id': 6,
         'modified_at': '2019-03-23T00:00:00.123456Z',
         'name': 'cfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXah'
     },
-    'reporting_ns': 337,
+    'reporting_ns': 339,
     'reporting_ns_detail': {
-        'id': 337,
+        'id': 339,
         'independent': None,
         'is_deprecated': False,
         'iso': 'HR',
         'iso3': 'inU',
         'name': 'UKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujX',
         'record_type': 1,
-        'region': 25,
+        'region': 27,
         'society_name': 'cDyTHhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZC'
     },
     'secondary_sectors': [
@@ -515,6 +515,8 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'target_male': 0,
     'target_other': 0,
     'target_total': 0,
-    'user': 52,
+    'user': 54,
     'visibility': 'public'
 }
+
+snapshots['TestProjectAPI::test_project_delete 1'] = b''
