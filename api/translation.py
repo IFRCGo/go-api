@@ -10,6 +10,7 @@ from .models import (
     DisasterType,
     Event,
     GDACSEvent,
+    Region,
     RegionSnippet,
     SituationReport,
     SituationReportType,
@@ -66,6 +67,11 @@ class EventTO(TranslationOptions):
 @register(GDACSEvent)
 class GDACSEventTO(TranslationOptions):
     fields = ('title', 'description', 'country_text')
+
+
+@register(Region)
+class RegionTO(TranslationOptions):
+    fields = ('label',)
 
 
 @register(RegionSnippet)
