@@ -88,7 +88,7 @@ msgstr "Recuperaciones"
 
 #: registrations/models.py:61
 msgid "domain name"
-msgstr "nombre de dominio"
+msgstr "nombre del dominio"
 
 #: registrations/models.py:62
 msgid "description"

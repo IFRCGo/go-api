@@ -408,11 +408,11 @@ msgstr "datos de crisis pasadas"
 
 #: databank/models.py:228
 msgid "past epidemics data"
-msgstr "datos de crisis pasadas"
+msgstr "datos de epidemias pasadas"
 
 #: databank/models.py:229
 msgid "inform indicators data"
-msgstr "datos indicadores de información"
+msgstr "datos indicadores de inform"
 
 #: databank/models.py:232 databank/models.py:248 databank/models.py:262
 #: databank/models.py:281

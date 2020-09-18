@@ -24,7 +24,7 @@ msgstr "por"
 
 #: per/models.py:37
 msgid "baseline"
-msgstr "base"
+msgstr "linea base"
 
 #: per/models.py:38
 msgid "orientation"
@@ -48,7 +48,7 @@ msgstr "acción y responsabilidad"
 
 #: per/models.py:54
 msgid "NS PER Process Phase"
-msgstr "SN de fase proceso de PER "
+msgstr "Fase proceso de PER de la SN"
 
 #: per/models.py:55
 msgid "NS-es PER Process Phase"
@@ -357,7 +357,7 @@ msgstr "dirección de skype"
 
 #: per/models.py:279
 msgid "date of mid term review"
-msgstr "fecha de revisión de periodo medio"
+msgstr "fecha de revisión de mitad de periodo"
 
 #: per/models.py:280
 msgid "approximate date next capacity assessment"

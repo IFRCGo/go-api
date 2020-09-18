@@ -158,7 +158,7 @@ msgstr "propietario"
 
 #: deployments/models.py:80
 msgid "supporting societies"
-msgstr "sociedades secundarias"
+msgstr "sociedades de apoyo"
 
 #: deployments/models.py:82 deployments/models.py:112
 #: deployments/models.py:128 deployments/models.py:338
@@ -184,7 +184,7 @@ msgstr "Unidad de respuestas de emergencia"
 
 #: deployments/models.py:89
 msgid "Emergency Response Units"
-msgstr "Unidades de respuestas de emergencia desplegados"
+msgstr "Unidades de respuestas de emergencia"
 
 #: deployments/models.py:97
 msgid "region deployed to"
@@ -241,15 +241,15 @@ msgstr "Personas desplegadas"
 
 #: deployments/models.py:150
 msgid "Fact"
-msgstr "Hecho"
+msgstr "Fact"
 
 #: deployments/models.py:151
 msgid "HEOP"
-msgstr "Op. HE."
+msgstr "HEOP"
 
 #: deployments/models.py:152
 msgid "RDRT"
-msgstr "RDRT"
+msgstr "RIT"
 
 #: deployments/models.py:153
 msgid "IFRC"
@@ -357,7 +357,7 @@ msgstr "Educación"
 
 #: deployments/models.py:239 deployments/models.py:268
 msgid "Livelihoods and basic needs"
-msgstr "Medios de subsistencia y necesidades básicas"
+msgstr "Medios de vida y necesidades básicas"
 
 #: deployments/models.py:269
 msgid "Recovery"
@@ -421,7 +421,7 @@ msgstr "usuario"
 
 #: deployments/models.py:316
 msgid "reporting national society"
-msgstr "informantes de las sociedades nacionales"
+msgstr "sociedad nacional que reporta"
 
 #: deployments/models.py:320
 msgid "country"
@@ -477,19 +477,19 @@ msgstr "objetivo total"
 
 #: deployments/models.py:350
 msgid "reached male"
-msgstr "hombres a los que ha llegado"
+msgstr "hombres alcanzados"
 
 #: deployments/models.py:351
 msgid "reached female"
-msgstr "mujeres a las que ha llegado"
+msgstr "mujeres alcanzadas"
 
 #: deployments/models.py:352
 msgid "reached other"
-msgstr "otros a los que ha llegado"
+msgstr "otros a los que ha alcanzado"
 
 #: deployments/models.py:353
 msgid "reached total"
-msgstr "total a los que ha llegado"
+msgstr "total a los que se ha alcanzado"
 
 #: deployments/models.py:356
 msgid "regional project"
@@ -561,11 +561,13 @@ msgstr "Preparación de ERU de SN-es"
 
 #: deployments/serializers.py:134
 msgid "Different country found for given districts"
-msgstr "Diferentes países encontrados para determinados distritos"
+msgstr "Diferente país encontrado para distritos provistos"
 
 #: deployments/serializers.py:136
 msgid "Reached total should be provided if status is completed"
-msgstr "Se debe proporcionar el total alcanzado si se completa el estado"
+msgstr ""
+"Se debe proporcionar el total alcanzado si el estado es marcdo como "
+"completado"
 
 #: deployments/serializers.py:143
 msgid ""

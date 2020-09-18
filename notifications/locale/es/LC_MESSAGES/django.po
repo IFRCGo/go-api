@@ -24,7 +24,7 @@ msgstr "notificaciones"
 
 #: notifications/models.py:20
 msgid "fact"
-msgstr "hecho"
+msgstr "fact"
 
 #: notifications/models.py:21
 msgid "SIMS"
@@ -36,11 +36,11 @@ msgstr "ERU"
 
 #: notifications/models.py:23
 msgid "DHEOPS"
-msgstr "OP. DHE"
+msgstr "DHEOPS"
 
 #: notifications/models.py:24
 msgid "HEOPS"
-msgstr "OP. HE"
+msgstr "HEOPS"
 
 #: notifications/models.py:25
 msgid "surge"
@@ -105,11 +105,11 @@ msgstr "creado el"
 
 #: notifications/models.py:59
 msgid "Surge Alert"
-msgstr "Aumento de alerta"
+msgstr "Alerta Surge"
 
 #: notifications/models.py:60
 msgid "Surge Alerts"
-msgstr "Aumento de alertas"
+msgstr "Alertas Surge"
 
 #: notifications/models.py:78
 msgid "new"
@@ -149,15 +149,15 @@ msgstr "fecha de vencimiento per"
 
 #: notifications/models.py:109
 msgid "followed event"
-msgstr "evento siguiente"
+msgstr "evento seguido"
 
 #: notifications/models.py:110
 msgid "surge deployment messages"
-msgstr "aumento de mensajes de despliegue"
+msgstr "mensajes de despliegue surge"
 
 #: notifications/models.py:111
 msgid "surge approaching end of mission"
-msgstr "aumento del acercamiento de final de la misión"
+msgstr "Surge acercandose al final de la misión"
 
 #: notifications/models.py:112
 msgid "weekly digest"

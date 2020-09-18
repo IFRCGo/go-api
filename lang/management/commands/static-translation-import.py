@@ -11,9 +11,15 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("csv_file", type=Path)
+        parser.add_argument(
+            '--partial-update',
+            action='store_true',
+            help='Don\'t enforce all languages'
+        )
 
     def handle(self, *args, **options):
         csv_file_path = options['csv_file']
+        partial_update = options['partial_update']
 
         # Collect all data from csv
         translation_data = defaultdict(lambda: defaultdict(dict))
@@ -26,6 +32,7 @@ class Command(BaseCommand):
                 values = {
                     lang: row[lang]
                     for lang, _ in settings.LANGUAGES
+                    if row.get(lang) or not partial_update
                 }
                 translation_data[path_pattern][msgid] = values
 
