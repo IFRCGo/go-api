@@ -56,7 +56,7 @@ msgstr "غير مميز"
 
 #: api/admin.py:112 api/models.py:233 api/models.py:532 api/models.py:1175
 msgid "source"
-msgstr "."
+msgstr "المصدر"
 
 #: api/admin.py:117
 msgid "Manual input"
@@ -84,7 +84,7 @@ msgstr "يستأنف المشرف"
 
 #: api/admin.py:123
 msgid "Unknown automated"
-msgstr "غير معروف الآلي"
+msgstr "آلياً غير معروف"
 
 #: api/apps.py:6
 msgid "api"
@@ -103,11 +103,11 @@ msgstr "أنواع التقارير الميدانية"
 #: api/models.py:585 api/models.py:668 api/models.py:773 api/models.py:1053
 #: api/models.py:1111 api/models.py:1156 api/models.py:1549
 msgid "name"
-msgstr "الأب"
+msgstr "الاسم"
 
 #: api/models.py:39 api/models.py:414 api/models.py:835 api/models.py:1141
 msgid "summary"
-msgstr "إلى السنة المالية 2021"
+msgstr "ملخص"
 
 #: api/models.py:43 api/models.py:403 api/models.py:669 api/models.py:837
 msgid "disaster type"
@@ -123,7 +123,7 @@ msgstr "أفريقيا"
 
 #: api/models.py:59
 msgid "Americas"
-msgstr "الأمريكتين"
+msgstr "أميركا"
 
 #: api/models.py:60
 msgid "Asia Pacific"
@@ -131,7 +131,7 @@ msgstr "آسيا والمحيط الهادئ"
 
 #: api/models.py:61
 msgid "Europe"
-msgstr "Europe"
+msgstr "أوروبا"
 
 #: api/models.py:62
 msgid "Middle East & North Africa"
@@ -140,13 +140,11 @@ msgstr "الشرق الأوسط وشمال أفريقيا"
 #: api/models.py:85 api/models.py:132 api/models.py:246 api/models.py:288
 #: api/models.py:333 api/models.py:363 api/models.py:692
 msgid "region"
-msgstr ""
-"إقْلِيم ; أرْض ; بَلَد ; بُقْعَة ; جَنْبَة ; جِهَة ; جانِب ; دائِرَة ; رَبْع"
-" ; رَجاً ; صُقْع ; طَرَف ; قُطْر ; قِسْم ; مَحَلّة ; مَكَان"
+msgstr "إقليم"
 
 #: api/models.py:86 api/models.py:406 api/models.py:843
 msgid "regions"
-msgstr "المناطق"
+msgstr "أقاليم"
 
 #: api/models.py:110
 msgid "Country"
@@ -162,11 +160,11 @@ msgstr "المنطقة"
 
 #: api/models.py:113
 msgid "Country Office"
-msgstr "المكتب القطري"
+msgstr "المكتب الاقليمي"
 
 #: api/models.py:114
 msgid "Representative Office"
-msgstr "مكتب المفوض, مكتب يمثل شركة"
+msgstr "المكتب التمثيلي"
 
 #: api/models.py:126 api/models.py:349 api/models.py:513 api/models.py:565
 #: api/models.py:593 api/models.py:1052 api/models.py:1168
@@ -191,15 +189,15 @@ msgstr "اسم المجتمع"
 
 #: api/models.py:130
 msgid "URL - Society"
-msgstr "URL - المجتمع"
+msgstr "موقع الجمعية"
 
 #: api/models.py:131
 msgid "URL - IFRC"
-msgstr "URL - IFRC"
+msgstr "موقع الاتحاد"
 
 #: api/models.py:133
 msgid "overview"
-msgstr "استعراض عام ؛ فكرة عامة ؛ دراسة عامة"
+msgstr "فكرة عامة"
 
 #: api/models.py:134
 msgid "key priorities"
@@ -207,7 +205,7 @@ msgstr "الأولويات الرئيسية"
 
 #: api/models.py:135
 msgid "inform score"
-msgstr "إبلاغ النتيجة"
+msgstr "أدخل النتيجة أو إدخال النتيجة"
 
 #: api/models.py:137
 msgid "logo"
@@ -264,11 +262,11 @@ msgstr "سنة WB"
 
 #: api/models.py:197
 msgid "district"
-msgstr "مِنْطَقَةٌ صِحِّيَّة"
+msgstr "القضاء أو المحافظة"
 
 #: api/models.py:198 api/models.py:404 api/models.py:841
 msgid "districts"
-msgstr "المناطق"
+msgstr "الاقضية أو المحفظات"
 
 #: api/models.py:210 api/models.py:222
 msgid "Membership"
@@ -284,20 +282,20 @@ msgstr "عام"
 
 #: api/models.py:231
 msgid "figure"
-msgstr "رَسَم ; صَوّر"
+msgstr "رسم أو صورة ليست رقم "
 
 #: api/models.py:232 api/models.py:531
 msgid "deck"
-msgstr "شَدّة ; كُوتْشِينَة"
+msgstr "منصة"
 
 #: api/models.py:234 api/models.py:293 api/models.py:311 api/models.py:550
 #: api/models.py:595 api/models.py:934
 msgid "visibility"
-msgstr "وُضُوح"
+msgstr "أو الرؤيا حسب موقع الجملة"
 
 #: api/models.py:238
 msgid "admin key figure"
-msgstr "الرقم الرئيسي المشرف"
+msgstr "الرقم الرئيسي للمشرف"
 
 #: api/models.py:239
 msgid "admin key figures"
@@ -341,19 +339,19 @@ msgstr "أسفل الموقع"
 
 #: api/models.py:282
 msgid "Tab 1"
-msgstr "تبويب 1"
+msgstr "جدول 1"
 
 #: api/models.py:283
 msgid "Tab 2"
-msgstr "تبويب 2"
+msgstr "جدول 2"
 
 #: api/models.py:284
 msgid "Tab 3"
-msgstr "علامة التبويب 3"
+msgstr "جدول 3"
 
 #: api/models.py:289 api/models.py:307 api/models.py:545 api/models.py:556
 msgid "snippet"
-msgstr "قصاصة, نتف, بقايا"
+msgstr "مقتطف أو مستخرج"
 
 #: api/models.py:291 api/models.py:309 api/models.py:547 api/models.py:612
 msgid "image"
@@ -390,7 +388,7 @@ msgstr "عنوان URL"
 
 #: api/models.py:328
 msgid "admin link"
-msgstr "ارتباط المسؤول"
+msgstr "رابط المشرف "
 
 #: api/models.py:329
 msgid "admin links"
@@ -398,11 +396,11 @@ msgstr "روابط المسؤول"
 
 #: api/models.py:336
 msgid "region link"
-msgstr "ارتباط المنطقة"
+msgstr "رابط الإقليم"
 
 #: api/models.py:337
 msgid "region links"
-msgstr "روابط المنطقة"
+msgstr "روابط الأقاليم"
 
 #: api/models.py:344
 msgid "country link"
@@ -418,7 +416,7 @@ msgstr "البريد الإلكتروني"
 
 #: api/models.py:355
 msgid "admin contact"
-msgstr "تواصل مع المالك"
+msgstr "تواصل مع المشرف"
 
 #: api/models.py:356
 msgid "admin contacts"
@@ -446,7 +444,7 @@ msgstr "أخضر"
 
 #: api/models.py:385
 msgid "Orange"
-msgstr "البرتقال"
+msgstr "برتقالي "
 
 #: api/models.py:386
 msgid "Red"
@@ -545,15 +543,15 @@ msgstr "إخفاء التقارير الميدانية المرفقة؟"
 
 #: api/models.py:445
 msgid "tab one title"
-msgstr "علامة التبويب عنوان واحد"
+msgstr "عنوان الجدول رقم 1"
 
 #: api/models.py:447
 msgid "tab two title"
-msgstr "علامة التبويب الثانية العنوان"
+msgstr "عنوان الجدول رقم 2"
 
 #: api/models.py:448
 msgid "tab three title"
-msgstr "علامة التبويب ثلاثة العنوان"
+msgstr "عنوان الجدول رقم 3"
 
 #: api/models.py:452
 msgid "emergency"
@@ -752,11 +750,11 @@ msgstr "مغلق"
 
 #: api/models.py:659
 msgid "Frozen"
-msgstr "فروزن"
+msgstr "مجمدة"
 
 #: api/models.py:660
 msgid "Archived"
-msgstr "تم الارشفة"
+msgstr "مؤرشف"
 
 #: api/models.py:667
 msgid "appeal ID"
@@ -862,7 +860,7 @@ msgstr "هل هذا تقرير ميداني خاص بحالة طوارئ COVID-1
 
 #: api/models.py:834
 msgid "r id"
-msgstr "ص معرف"
+msgstr "r هوية"
 
 #: api/models.py:845
 msgid "request assistance"
@@ -874,7 +872,7 @@ msgstr "طلب المساعدة"
 
 #: api/models.py:852
 msgid "number of displaced"
-msgstr "عدد المهجرين"
+msgstr "عدد النازحين"
 
 #: api/models.py:853
 msgid "number of assisted"
@@ -886,7 +884,7 @@ msgstr "عدد الموظفين المحليين"
 
 #: api/models.py:855
 msgid "number of volunteers"
-msgstr "متطوعو اﻷمم المتحدة"
+msgstr "عدد المتطوعين"
 
 #: api/models.py:856
 msgid "number of expatriate delegates"
@@ -1198,27 +1196,27 @@ msgstr "وحدات الإغاثة ERU"
 
 #: api/models.py:978
 msgid "ERU water sanitaion M15"
-msgstr "ERU Water Sanitaion M15"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:979
 msgid "ERU water sanitaion M15 units"
-msgstr "وحدات ERU Water Sanitaion M15"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:981
 msgid "ERU water sanitaion M40"
-msgstr "ERU Water Sanitaion M40"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:982
 msgid "ERU water sanitaion M40 units"
-msgstr "وحدات ERU Water Sanitaion M40"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:984
 msgid "ERU water sanitaion MSM20"
-msgstr "ERU Water Sanitaion MSM20"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:985
 msgid "ERU water sanitaion MSM20 units"
-msgstr "وحدات ERU Water Sanitaion MSM20"
+msgstr "مياه الصرف الصحي"
 
 #: api/models.py:993
 msgid "report date"
@@ -1654,7 +1652,7 @@ msgstr "عدد الذكور المهاجرين"
 
 #: api/models.py:1342
 msgid "number of migration people reached"
-msgstr "عدد الأشخاص الذين يتم الوصول إليهم"
+msgstr "عدد الأشخاص الذين تم الوصول إليهم"
 
 #: api/models.py:1343
 msgid "number of migration people targeted"
@@ -1742,7 +1740,7 @@ msgstr "الإطار الزمني المتوقع (خام)"
 
 #: api/models.py:1382
 msgid "number of eduction female (raw)"
-msgstr "عدد الإناث التعليم (الخام)"
+msgstr "عدد الإناث المثقفين (الخام)"
 
 #: api/models.py:1383
 msgid "number of eduction male (raw)"
@@ -1990,7 +1988,7 @@ msgstr "اهلاً بك،"
 
 #: api/templates/admin/base.html:67
 msgid "View site"
-msgstr "‏asdfasdf"
+msgstr "عرض الموقع"
 
 #: api/templates/admin/base.html:72
 msgid "Documentation"
@@ -2030,7 +2028,7 @@ msgstr "حفظ"
 
 #: api/templates/admin/submit_line.html:9
 msgid "Delete the whole"
-msgstr "تحذف هذه القاعدة."
+msgstr "احذف الكل"
 
 #: api/templates/admin/submit_line.html:12
 msgid "Save as new"

@@ -28,7 +28,7 @@ msgstr "idioma"
 
 #: lang/models.py:8
 msgid "key"
-msgstr "leyenda"
+msgstr "clave"
 
 #: lang/models.py:10
 msgid "hash"

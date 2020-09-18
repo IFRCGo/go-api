@@ -324,7 +324,7 @@ msgstr "نوع آخر تقييم القدرات"
 
 #: per/models.py:270
 msgid "branch involved"
-msgstr "فرع متورط"
+msgstr "فرع مشارك"
 
 #: per/models.py:271
 msgid "focal point name"
@@ -342,7 +342,7 @@ msgstr ""
 
 #: per/models.py:274
 msgid "focus"
-msgstr "بُؤْرَة ; مَرْكَز ; مِحْرَق"
+msgstr "يرتكز على"
 
 #: per/models.py:275
 msgid "facilitated by"

@@ -40,7 +40,7 @@ msgstr "استيراد قالب"
 
 #: deployments/admin.py:162 deployments/models.py:365
 msgid "Projects"
-msgstr "بروجيكتس"
+msgstr "المشاريع"
 
 #: deployments/apps.py:7
 msgid "Deployments & 3W's (Who, What, Where)"
@@ -48,7 +48,7 @@ msgstr "عمليات النشر و 3 W (من وماذا وأين)"
 
 #: deployments/forms.py:52 deployments/models.py:411
 msgid "file"
-msgstr "فایل"
+msgstr "الملف"
 
 #: deployments/forms.py:53
 msgid "file delimiter"
@@ -96,7 +96,7 @@ msgstr "اغسل M40"
 
 #: deployments/models.py:44
 msgid "national society country"
-msgstr "بلد المجتمع الوطني"
+msgstr "بلد الجمعية الوطنية"
 
 #: deployments/models.py:47 deployments/models.py:114
 #: deployments/models.py:299 deployments/models.py:407
