@@ -160,7 +160,8 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         fields = super().get_fields(*args, **kwargs)
         for field, lang_field in self.included_fields_lang.items():
             fields[field] = fields.pop(lang_field)
-            fields[field].source = lang_field
+            # Commented out, hopefully makes the fallback work
+            # fields[field].source = lang_field
         return fields
 
     def create(self, validated_data):
