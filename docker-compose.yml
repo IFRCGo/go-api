@@ -111,15 +111,15 @@ services:
 
   test:
     <<: *base_django_setup
-    command: python manage.py test
+    command: python manage.py test -k
 
   test_snapshot_update:
     <<: *base_django_setup
-    command: python manage.py test --snapshot-update
+    command: python manage.py test -k --snapshot-update
 
   coverage:
     <<: *base_django_setup
-    command: coverage run --source='.' manage.py test
+    command: coverage run --source='.' manage.py test -k
 
   coverage_report:
     <<: *base_django_setup
