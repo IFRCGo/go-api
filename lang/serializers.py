@@ -100,9 +100,9 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
 
     @classmethod
     def trigger_field_translation(cls, instance):
-        # NOTE: Skip triggering translation
-        return
         if not settings.TESTING:
+            # NOTE: Skip triggering translation
+            return
             transaction.on_commit(
                 lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
             )
@@ -114,10 +114,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
 
     @classmethod
     def trigger_field_translation_in_bulk(cls, model, instances):
-        # NOTE: Skip triggering translation
-        return
         pks = [instance.pk for instance in instances]
         if not settings.TESTING:
+            # NOTE: Skip triggering translation
+            return
             transaction.on_commit(
                 lambda: translate_model_fields_in_bulk.delay(get_model_name(model), pks)
             )
