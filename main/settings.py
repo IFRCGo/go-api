@@ -323,13 +323,13 @@ CELERY_RESULT_BACKEND = CELERY_REDIS_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
 
-CELERY_BEAT_SCHEDULE = {
-    'translate_remaining_models_fields': {
-        'task': 'lang.tasks.translate_remaining_models_fields',
-        # Every 6 hour
-        'schedule': crontab(minute=0, hour="*/6"),
-    },
-}
+# CELERY_BEAT_SCHEDULE = {
+#     'translate_remaining_models_fields': {
+#         'task': 'lang.tasks.translate_remaining_models_fields',
+#         # Every 6 hour
+#         'schedule': crontab(minute=0, hour="*/6"),
+#     },
+# }
 
 RETRY_STRATEGY = Retry(
     total=3,
