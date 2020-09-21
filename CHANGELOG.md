@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.292
+
+### Added
+ - Hotfix for DATA_UPLOAD_MAX_NUMBER_FIELDS
+
+## 1.1.291
+
+### Added
+ - Fix version and git tag
+
+## 1.1.290
+
+### Added
+ - Hotfix for Elasticsearch
+
 ## 1.1.289
 
 ### Added
@@ -1223,7 +1238,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.289...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.292...HEAD
+[1.2.292]: https://github.com/IFRCGo/go-api/compare/1.2.291...1.1.292
+[1.2.291]: https://github.com/IFRCGo/go-api/compare/1.2.290...1.1.291
+[1.2.290]: https://github.com/IFRCGo/go-api/compare/1.2.289...1.1.290
 [1.2.289]: https://github.com/IFRCGo/go-api/compare/1.2.288...1.1.289
 [1.2.288]: https://github.com/IFRCGo/go-api/compare/1.2.287...1.1.288
 [1.2.287]: https://github.com/IFRCGo/go-api/compare/1.2.286...1.1.287
