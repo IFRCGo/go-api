@@ -161,6 +161,9 @@ class Command(BaseCommand):
 
         if len(iso_code) == 2:
             country = Country.objects.filter(iso__iexact=iso_code).first()
+
+            if country is None:
+                country = Country.objects.filter(name__iexact=country_name).first()
         else:
             country = Country.objects.filter(name__iexact=country_name).first()
 
