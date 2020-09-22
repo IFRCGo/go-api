@@ -155,13 +155,11 @@ class Command(BaseCommand):
         dtype = DisasterType.objects.get(name=disaster_name)
         return dtype
 
-    def parse_country(self, region_code, country_name):
-        country = None
-        iso_code = None
-        if region_code in REGION_TO_COUNTRY:
-            iso_code = REGION_TO_COUNTRY[region_code]
+    def parse_country(self, iso_code, country_name):
+        if iso_code in REGION_TO_COUNTRY:
+            iso_code = REGION_TO_COUNTRY[iso_code]
 
-        if iso_code:
+        if len(iso_code) == 2:
             country = Country.objects.filter(iso__iexact=iso_code).first()
         else:
             country = Country.objects.filter(name__iexact=country_name).first()
