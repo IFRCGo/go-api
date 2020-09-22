@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,7 +24,7 @@ msgstr "notificaciones"
 
 #: notifications/models.py:20
 msgid "fact"
-msgstr "hecho"
+msgstr "fact"
 
 #: notifications/models.py:21
 msgid "SIMS"
@@ -40,11 +40,11 @@ msgstr "DHEOPS"
 
 #: notifications/models.py:24
 msgid "HEOPS"
-msgstr "¡VAYA"
+msgstr "HEOPS"
 
 #: notifications/models.py:25
 msgid "surge"
-msgstr "oleada"
+msgstr "aumento"
 
 #: notifications/models.py:26
 msgid "rapid response"
@@ -68,7 +68,7 @@ msgstr "refugio"
 
 #: notifications/models.py:41
 msgid "stand down"
-msgstr "¡Retírense!"
+msgstr "cesar"
 
 #: notifications/models.py:46
 msgid "alert type"
@@ -88,27 +88,28 @@ msgstr "mensaje"
 
 #: notifications/models.py:50
 msgid "deployment needed"
-msgstr "implementación necesaria"
+msgstr "se necesita despliegue"
 
 #: notifications/models.py:51
 msgid "is private?"
-msgstr "¿Es privado?"
+msgstr "¿es privado?"
 
 #: notifications/models.py:52 notifications/models.py:101
+#: notifications/models.py:141
 msgid "event"
 msgstr "evento"
 
 #: notifications/models.py:55
 msgid "created at"
-msgstr "creado en"
+msgstr "creado el"
 
 #: notifications/models.py:59
 msgid "Surge Alert"
-msgstr "Alerta de sobretensión"
+msgstr "Alerta Surge"
 
 #: notifications/models.py:60
 msgid "Surge Alerts"
-msgstr "Alertas de sobretensiones"
+msgstr "Alertas Surge"
 
 #: notifications/models.py:78
 msgid "new"
@@ -120,33 +121,31 @@ msgstr "editar"
 
 #: notifications/models.py:102
 msgid "appeal"
-msgstr "apelar"
+msgstr "llamamiento"
 
 #: notifications/models.py:103
 msgid "field report"
 msgstr "informe de campo"
 
 #: notifications/models.py:104
-#, fuzzy
-#| msgid "Surge Alert"
 msgid "surge alert"
-msgstr "Alerta de sobretensión"
+msgstr "aumento de alerta"
 
-#: notifications/models.py:105
+#: notifications/models.py:105 notifications/models.py:138
 msgid "country"
 msgstr "país"
 
-#: notifications/models.py:106
+#: notifications/models.py:106 notifications/models.py:139
 msgid "region"
 msgstr "región"
 
-#: notifications/models.py:107
+#: notifications/models.py:107 notifications/models.py:140
 msgid "disaster type"
 msgstr "tipo de desastre"
 
 #: notifications/models.py:108
 msgid "per due date"
-msgstr "por fecha de vencimiento"
+msgstr "fecha de vencimiento per"
 
 #: notifications/models.py:109
 msgid "followed event"
@@ -154,23 +153,23 @@ msgstr "evento seguido"
 
 #: notifications/models.py:110
 msgid "surge deployment messages"
-msgstr "mensajes de implementación de sobretensiones"
+msgstr "mensajes de despliegue surge"
 
 #: notifications/models.py:111
 msgid "surge approaching end of mission"
-msgstr "oleada acercándose al final de la misión"
+msgstr "Surge acercandose al final de la misión"
 
 #: notifications/models.py:112
 msgid "weekly digest"
-msgstr "resumen semanal"
+msgstr "boletín semanal"
 
 #: notifications/models.py:113
 msgid "new emergencies"
-msgstr "nuevas emergencias"
+msgstr "emergencias nuevas"
 
 #: notifications/models.py:114
 msgid "new operations"
-msgstr "nuevas operaciones"
+msgstr "operaciones nuevas"
 
 #: notifications/models.py:115
 msgid "general announcements"
@@ -179,6 +178,18 @@ msgstr "anuncios generales"
 #: notifications/models.py:130
 msgid "user"
 msgstr "usuario"
+
+#: notifications/models.py:135
+msgid "subscription type"
+msgstr "tipo de suscripción"
+
+#: notifications/models.py:136
+msgid "record type"
+msgstr "tipo de informe"
+
+#: notifications/models.py:143
+msgid "lookup id"
+msgstr "búsqueda de id"
 
 #: notifications/models.py:146
 msgid "Subscription"

@@ -2,7 +2,6 @@ import logging
 import requests
 from django.conf import settings
 
-from api.utils import base64_encode
 from databank.models import CountryOverview as CO
 from .utils import catch_error
 
@@ -26,23 +25,18 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PeopleVol_Tot', CO.volunteers),
     ('KPI_TrainFA_Tot', CO.trained_in_first_aid),
 )
-
-FDRS_HEADERS = {
-    'Authorization': 'Basic {}'.format(base64_encode(settings.FDRS_CREDENTIAL))
-}
-
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
 
 # To fetch NS ID
-FDRS_NS_API_ENDPOINT = 'https://data-api.ifrc.org/api/entities/ns'
+FDRS_NS_API_ENDPOINT = f'https://data-api.ifrc.org/api/entities/ns?apiKey={settings.FDRS_APIKEY}'
 
 # To fetch NS Data using NS ID
-FDRS_DATA_API_ENDPOINT = 'https://data-api.ifrc.org/api/Data?indicator=' + ','.join(FDRS_INDICATORS)
+FDRS_DATA_API_ENDPOINT = f'https://data-api.ifrc.org/api/data?apiKey={settings.FDRS_APIKEY}&indicator=' + ','.join(FDRS_INDICATORS)
 
 
-@catch_error('Error occured while fetching from FDRS API, Please make sure valid FDRS_CREDENTIAL is provided')
+@catch_error('Error occured while fetching from FDRS API.')
 def prefetch():
-    fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT, headers=FDRS_HEADERS)
+    fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT)
     fdrs_entities.raise_for_status()
     fdrs_entities = fdrs_entities.json()
 
@@ -59,7 +53,7 @@ def prefetch():
                 ns_data['data'] and len(ns_data['data']) > 0
             ) else None
         )
-        for indicator_data in requests.get(FDRS_DATA_API_ENDPOINT, headers=FDRS_HEADERS).json()['data']
+        for indicator_data in requests.get(FDRS_DATA_API_ENDPOINT).json()['data']
         for ns_data in indicator_data['data']
     }, len(ns_iso_map), FDRS_DATA_API_ENDPOINT
 

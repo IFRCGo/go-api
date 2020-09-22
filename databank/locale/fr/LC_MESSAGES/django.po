@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,15 +20,15 @@ msgstr ""
 
 #: databank/admin.py:40
 msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
-msgstr "INDICATEURS CLÉS PAR PAYS (SOURCE : FDRS)"
+msgstr "LES INDICATEURS CLÉS DU PAYS (SOURCE : FDRS)"
 
 #: databank/admin.py:46
 msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
-msgstr "INDICATEURS DE LA SOCIÉTÉ NATIONALE (SOURCE : FDRS)"
+msgstr "LES INDICATEURS NATIONAUX DE LA SOCIÉTÉ (SOURCE : FDRS)"
 
 #: databank/admin.py:49
 msgid "KEY CLIMATE EVENT"
-msgstr "ÉVÉNEMENT CLIMATIQUE CLÉ"
+msgstr "ÉVÈNEMENT CLÉ SUR LE CLIMAT"
 
 #: databank/apps.py:6
 msgid "databank"
@@ -36,67 +36,67 @@ msgstr "banque de données"
 
 #: databank/forms.py:18
 msgid "Invalid End Date"
-msgstr "Date de fin non valide"
+msgstr "date de fin invalide"
 
 #: databank/models.py:15
 msgid "Active"
-msgstr "Actif"
+msgstr "Active"
 
 #: databank/models.py:16
 msgid "Not Active"
-msgstr "Non actif"
+msgstr "Inactive"
 
 #: databank/models.py:35
 msgid "January"
-msgstr "janvier"
+msgstr "Janvier"
 
 #: databank/models.py:36
 msgid "February"
-msgstr "février"
+msgstr "Février"
 
 #: databank/models.py:37
 msgid "March"
-msgstr "mars"
+msgstr "Mars"
 
 #: databank/models.py:38
 msgid "April"
-msgstr "avril"
+msgstr "Avril"
 
 #: databank/models.py:39
 msgid "May"
-msgstr "Peut"
+msgstr "Mai"
 
 #: databank/models.py:40
 msgid "June"
-msgstr "juin"
+msgstr "Juin"
 
 #: databank/models.py:41
 msgid "July"
-msgstr "juillet"
+msgstr "Juillet"
 
 #: databank/models.py:42
 msgid "August"
-msgstr "août"
+msgstr "Août"
 
 #: databank/models.py:43
 msgid "September"
-msgstr "septembre"
+msgstr "Septembre"
 
 #: databank/models.py:44
 msgid "October"
-msgstr "octobre"
+msgstr "Octobre"
 
 #: databank/models.py:45
 msgid "November"
-msgstr "novembre"
+msgstr "Novembre"
 
 #: databank/models.py:46
 msgid "December"
-msgstr "décembre"
+msgstr "Décembre"
 
 #: databank/models.py:72
 msgid "Cold Wave"
-msgstr "Vague froide"
+msgstr "Vague de froid"
 
 #: databank/models.py:73
 msgid "Heat Wave"
@@ -108,11 +108,11 @@ msgstr "Sécheresse"
 
 #: databank/models.py:75
 msgid "Earthquake"
-msgstr "Séisme"
+msgstr "Tremblement de terre"
 
 #: databank/models.py:76
 msgid "Land Slide"
-msgstr "Toboggan terrestre"
+msgstr "Glissement de terrain"
 
 #: databank/models.py:77
 msgid "Tsunami"
@@ -132,7 +132,7 @@ msgstr "Cyclone tropical"
 
 #: databank/models.py:81
 msgid "Storm Surge"
-msgstr "Surge de tempête"
+msgstr "Onde de tempête"
 
 #: databank/models.py:82
 msgid "Flood"
@@ -140,7 +140,7 @@ msgstr "Inondation"
 
 #: databank/models.py:83
 msgid "Flash Flood"
-msgstr "Inondation éclair"
+msgstr "Inondation subite"
 
 #: databank/models.py:84
 msgid "Complex Emergency"
@@ -148,7 +148,7 @@ msgstr "Urgence complexe"
 
 #: databank/models.py:85
 msgid "Fire"
-msgstr "Licencier"
+msgstr "Incendie"
 
 #: databank/models.py:86
 msgid "Other"
@@ -156,7 +156,7 @@ msgstr "Autre"
 
 #: databank/models.py:104
 msgid "Cholera Outbreak"
-msgstr "Éclosion de choléra"
+msgstr "Épidémie de choléra"
 
 #: databank/models.py:105
 msgid "Meningitis"
@@ -196,11 +196,11 @@ msgstr "Estimation de l'IDH à partir du PIB par habitant"
 
 #: databank/models.py:128
 msgid "INFORM Risk Index"
-msgstr "INFORTE Indice de risque"
+msgstr "Renseigner l’indice de risque"
 
 #: databank/models.py:129
 msgid "Hazard & Exposure Index"
-msgstr "Indice de risque et d'exposition"
+msgstr "Indice de Danger et Exposition"
 
 #: databank/models.py:130
 msgid "Vulnerability Index"
@@ -208,7 +208,7 @@ msgstr "Indice de vulnérabilité"
 
 #: databank/models.py:131
 msgid "Lack of Coping Capacity Index"
-msgstr "Absence d'indice de capacité d'adaptation"
+msgstr "Indice de Manque de capacité d'adaptation"
 
 #: databank/models.py:134
 msgid "Human Hazard"
@@ -224,11 +224,11 @@ msgstr "GCRI Conflits internes"
 
 #: databank/models.py:137
 msgid "Highly Violent Conflict probability Score"
-msgstr "Score de probabilité de conflit très violent"
+msgstr "Chiffre de probabilité de conflit très violent"
 
 #: databank/models.py:138
 msgid "Violent Conflict probability Score"
-msgstr "Score de probabilité de conflit violent"
+msgstr "Chiffre de probabilité de conflit violent"
 
 #: databank/models.py:139
 msgid "Natural Hazard"
@@ -236,7 +236,7 @@ msgstr "Risque naturel"
 
 #: databank/models.py:140
 msgid "Droughts probability and historical impact"
-msgstr "Probabilité des sécheresses et impact historique"
+msgstr "Probabilité de sécheresse et impact historique"
 
 #: databank/models.py:141
 msgid "People affected by droughts"
@@ -244,15 +244,15 @@ msgstr "Personnes touchées par la sécheresse"
 
 #: databank/models.py:142
 msgid "People affected by drought and Frequency of events"
-msgstr "Personnes touchées par la sécheresse et fréquence des événements"
+msgstr "Personnes touchées par la sécheresse et la fréquence des événements"
 
 #: databank/models.py:143 databank/models.py:144
 msgid "Agriculture Drought Probability"
-msgstr "Probabilité de sécheresse agricole"
+msgstr "Probabilité de sécheresse pour l’agriculture"
 
 #: databank/models.py:145
 msgid "Frequency of drought events"
-msgstr "Fréquence des sécheresses"
+msgstr "Fréquence des épisodes de sécheresse"
 
 #: databank/models.py:146
 msgid "Epidemic"
@@ -288,11 +288,11 @@ msgstr "Inégalité"
 
 #: databank/models.py:156
 msgid "Gender Inequality Index"
-msgstr "Indice des inégalités entre les sexes"
+msgstr "Indice d'inégalité entre les sexes"
 
 #: databank/models.py:157
 msgid "Income Gini coefficient"
-msgstr "Coefficient de revenu Gini"
+msgstr "Coefficient de Gini du revenu"
 
 #: databank/models.py:158
 msgid "Poverty & Development"
@@ -304,7 +304,7 @@ msgstr "Indice de développement humain"
 
 #: databank/models.py:160
 msgid "Multidimensional Poverty Index"
-msgstr "Indice de pauvreté multidimensionnel"
+msgstr "Indice de pauvreté multidimensionnelle"
 
 #: databank/models.py:161
 msgid "Vulnerable Groups"
@@ -332,7 +332,7 @@ msgstr "Infrastructure physique"
 
 #: databank/models.py:169
 msgid "Disaster Risk Reduction"
-msgstr "Réduction des risques de catastrophe"
+msgstr "Réduction des risques de catastrophes"
 
 #: databank/models.py:170
 msgid "Governance"
@@ -348,23 +348,23 @@ msgstr "PIB"
 
 #: databank/models.py:194
 msgid "GNI/CAPITA"
-msgstr "RN/HABITANT"
+msgstr "RNB/CAPITA"
 
 #: databank/models.py:195
 msgid "life expectancy"
-msgstr "espérance de vie"
+msgstr "Espérance de vie"
 
 #: databank/models.py:198
 msgid "urban POP (%)"
-msgstr "POP urbain ( %)"
+msgstr "POP urbaine (%)"
 
 #: databank/models.py:203
 msgid "poverty (%)"
-msgstr "pauvreté ( %)"
+msgstr "pauvreté (%)"
 
 #: databank/models.py:208
 msgid "literacy (%)"
-msgstr "alphabétisation ( %)"
+msgstr "Alphabétisation (%)"
 
 #: databank/models.py:213
 msgid "income (CHF)"
@@ -376,11 +376,11 @@ msgstr "dépenses (CHF)"
 
 #: databank/models.py:215
 msgid "volunteers"
-msgstr "des bénévoles"
+msgstr "bénévoles"
 
 #: databank/models.py:216
 msgid "trained in first aid"
-msgstr "formés en secourisme"
+msgstr "formés aux premiers secours"
 
 #: databank/models.py:219
 msgid "average temperature"
@@ -400,7 +400,7 @@ msgstr "Données FTS"
 
 #: databank/models.py:226
 msgid "start network data"
-msgstr "démarrer les données réseau"
+msgstr "démarrer les données du réseau"
 
 #: databank/models.py:227
 msgid "past crises data"
@@ -412,24 +412,20 @@ msgstr "données sur les épidémies passées"
 
 #: databank/models.py:229
 msgid "inform indicators data"
-msgstr "informer les données des indicateurs"
+msgstr "renseigner les données des indicateurs"
 
 #: databank/models.py:232 databank/models.py:248 databank/models.py:262
 #: databank/models.py:281
-#, fuzzy
-#| msgid "Country Overview"
 msgid "country overview"
-msgstr "Vue d'ensemble du pays"
+msgstr "aperçu du pays"
 
 #: databank/models.py:233
-#, fuzzy
-#| msgid "Countries Overview"
 msgid "countries overview"
-msgstr "Aperçu des pays"
+msgstr "aperçu des pays"
 
 #: databank/models.py:249
 msgid "label"
-msgstr "étiquette"
+msgstr "marqueur"
 
 #: databank/models.py:250
 msgid "value"
@@ -461,15 +457,15 @@ msgstr "température minimale moyenne"
 
 #: databank/models.py:273
 msgid "Key Client Event"
-msgstr "Événement client clé"
+msgstr "Événement clé pour les clients"
 
 #: databank/models.py:274
 msgid "Key Client Events"
-msgstr "Événements clients clés"
+msgstr "Événements clés pour les clients"
 
 #: databank/models.py:283
 msgid "title"
-msgstr "titre"
+msgstr "Intitulé"
 
 #: databank/models.py:284
 msgid "sector"
@@ -477,7 +473,7 @@ msgstr "secteur"
 
 #: databank/models.py:285
 msgid "date start"
-msgstr "date de début"
+msgstr "date de démarrage"
 
 #: databank/models.py:286
 msgid "date end"
@@ -485,8 +481,8 @@ msgstr "date de fin"
 
 #: databank/models.py:290
 msgid "Seasonal Calender Record"
-msgstr "Record de calendrier saisonnier"
+msgstr "Calendrier saisonnier"
 
 #: databank/models.py:291
 msgid "Seasonal Calender Records"
-msgstr "Enregistrements de calendrier saisonnier"
+msgstr "Calendriers saisonniers"

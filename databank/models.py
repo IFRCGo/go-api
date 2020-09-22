@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import JSONField
 
 from django.db import models
 
+from api.storage import get_storage
 from api.models import Country, Appeal
 
 
@@ -292,3 +293,34 @@ class SeasonalCalender(models.Model):
 
     def __str__(self):
         return f'{self.overview.country} - {self.title} - {self.sector}'
+
+
+class KeyDocumentGroup(models.Model):
+    title = models.CharField(max_length=20, verbose_name=_('title'))
+
+    def __str__(self):
+        return self.title
+
+
+def key_document_path(instance, filename):
+    return 'country-key-documents/%s/%s' % (instance.overview.country_id, filename)
+
+
+class KeyDocument(models.Model):
+    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
+    title = models.CharField(max_length=20, verbose_name=_('title'))
+    group = models.ForeignKey(KeyDocumentGroup, on_delete=models.CASCADE, verbose_name=_('group'))
+    date = models.DateField(verbose_name=_('date'))
+    file = models.FileField(verbose_name=_('file'), upload_to=key_document_path, storage=get_storage())
+
+    def __str__(self):
+        return f'{self.title}, {self.date}'
+
+
+class ExternalSource(models.Model):
+    overview = models.ForeignKey(CountryOverview, verbose_name=_('country overview'), on_delete=models.CASCADE)
+    title = models.CharField(max_length=20, verbose_name=_('title'))
+    url = models.URLField(verbose_name=_('url'), max_length=300)
+
+    def __str__(self):
+        return f'{self.title}: {self.url}'

@@ -1,0 +1,23 @@
+version: '2'
+
+# TODO: Make production ready
+services:
+  base_django_setup: &base_django_setup
+    image: ifrcgo/go-api:$GO_VERSION
+    env_file:
+      - goapi.env
+
+  celery-cronjob:
+    <<: *base_django_setup
+    # TODO: Log destination
+    command: celery -A main worker -Q cronjob -B --quiet -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  celery-default:
+    <<: *base_django_setup
+    # TODO: Log destination
+    command: celery -A main worker -Q default --quiet -l info
+
+  celery-heavy:
+    <<: *base_django_setup
+    # TODO: Log destination
+    command: celery -A main worker -Q heavy --quiet -l info

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,33 +20,28 @@ msgstr ""
 
 #: lang/apps.py:6
 msgid "lang"
-msgstr "لانج"
+msgstr "اللغه"
 
 #: lang/models.py:7
-#, fuzzy
-#| msgid "Language"
 msgid "language"
-msgstr "لغة"
+msgstr "اللغة"
 
 #: lang/models.py:8
 msgid "key"
-msgstr "مفتاح"
+msgstr "رئيسية"
 
 #: lang/models.py:10
 msgid "hash"
-msgstr "حشيش"
+msgstr "حَشِيش"
 
 #: lang/models.py:11
 msgid "value"
-msgstr "قيمة"
+msgstr "القيمة"
 
 #: lang/models.py:15
 msgid "String"
-msgstr "وتر"
+msgstr "سترينغ"
 
 #: lang/models.py:16
 msgid "Strings"
 msgstr "سلاسل"
-
-#~ msgid "Languages"
-#~ msgstr "اللغات"

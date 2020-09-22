@@ -25,16 +25,16 @@ class ERUType(IntEnum):
     WASH_20 = 7
     WASH_40 = 8
 
-    # class Labels:
-    #     BASECAMP = _('Basecamp')
-    #     TELECOM = _('IT & Telecom')
-    #     LOGISTICS = _('Logistics')
-    #     EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
-    #     EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
-    #     RELIEF = _('Relief')
-    #     WASH_15 = _('Wash M15')
-    #     WASH_20 = _('Wash MSM20')
-    #     WASH_40 = _('Wash M40')
+    class Labels:
+        BASECAMP = _('Basecamp')
+        TELECOM = _('IT & Telecom')
+        LOGISTICS = _('Logistics')
+        EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
+        EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
+        RELIEF = _('Relief')
+        WASH_15 = _('Wash M15')
+        WASH_20 = _('Wash MSM20')
+        WASH_40 = _('Wash M40')
 
 
 class ERUOwner(models.Model):
@@ -77,7 +77,7 @@ class ERU(models.Model):
     # links to services
     eru_owner = models.ForeignKey(ERUOwner, verbose_name=_('owner'), on_delete=models.CASCADE)
     supporting_societies = models.CharField(
-        verbose_name=_('suuporting societies'), null=True, blank=True, max_length=500, help_text=_('still not used in frontend')
+        verbose_name=_('supporting societies'), null=True, blank=True, max_length=500, help_text=_('still not used in frontend')
     )
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True, help_text=_('still not used in frontend'))
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True, help_text=_('still not used in frontend'))
@@ -208,10 +208,10 @@ class ProgrammeTypes(IntEnum):
     MULTILATERAL = 1
     DOMESTIC = 2
 
-    # class Labels:
-    #     BILATERAL = _('Bilateral')
-    #     MULTILATERAL = _('Multilateral')
-    #     DOMESTIC = _('Domestic')
+    class Labels:
+        BILATERAL = _('Bilateral')
+        MULTILATERAL = _('Multilateral')
+        DOMESTIC = _('Domestic')
 
 
 class Sectors(IntEnum):
@@ -279,19 +279,19 @@ class Statuses(IntEnum):
     ONGOING = 1
     COMPLETED = 2
 
-    # class Labels:
-    #     PLANNED = _('Planned')
-    #     ONGOING = _('Ongoing')
-    #     COMPLETED = _('Completed')
+    class Labels:
+        PLANNED = _('Planned')
+        ONGOING = _('Ongoing')
+        COMPLETED = _('Completed')
 
 
 class OperationTypes(IntEnum):
     PROGRAMME = 0
     EMERGENCY_OPERATION = 1
 
-    # class Labels:
-    #     PROGRAMME = _('Programme')
-    #     EMERGENCY_OPERATION = _('Emergency Operation')
+    class Labels:
+        PROGRAMME = _('Programme')
+        EMERGENCY_OPERATION = _('Emergency Operation')
 
 
 class RegionalProject(models.Model):

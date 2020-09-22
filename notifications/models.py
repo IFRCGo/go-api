@@ -16,14 +16,14 @@ class SurgeAlertType(IntEnum):
     SURGE = 5
     RAPID_RESPONSE = 6
 
-    # class Labels:
-    #     FACT = _('fact')
-    #     SIMS = _('SIMS')
-    #     ERU = _('ERU')
-    #     DHEOPS = _('DHEOPS')
-    #     HEOPS = _('HEOPS')
-    #     SURGE = _('surge')
-    #     RAPID_RESPONSE = _('rapid response')
+    class Labels:
+        FACT = _('fact')
+        SIMS = _('SIMS')
+        ERU = _('ERU')
+        DHEOPS = _('DHEOPS')
+        HEOPS = _('HEOPS')
+        SURGE = _('surge')
+        RAPID_RESPONSE = _('rapid response')
 
 
 class SurgeAlertCategory(IntEnum):
@@ -33,12 +33,12 @@ class SurgeAlertCategory(IntEnum):
     SHELTER = 3
     STAND_DOWN = 4
 
-    # class Labels:
-    #     INFO = _('information')
-    #     DEPLOYMENT = _('deployment')
-    #     ALERT = _('alert')
-    #     SHELTER = _('shelter')
-    #     STAND_DOWN = _('stand down')
+    class Labels:
+        INFO = _('information')
+        DEPLOYMENT = _('deployment')
+        ALERT = _('alert')
+        SHELTER = _('shelter')
+        STAND_DOWN = _('stand down')
 
 
 class SurgeAlert(models.Model):
@@ -74,9 +74,9 @@ class SubscriptionType(IntEnum):
     NEW = 0
     EDIT = 1
 
-    # class Labels:
-    #     NEW = _('new')
-    #     EDIT = _('edit')
+    class Labels:
+        NEW = _('new')
+        EDIT = _('edit')
 
 
 class RecordType(IntEnum):
@@ -97,22 +97,22 @@ class RecordType(IntEnum):
     NEW_OPERATIONS = 13
     GENERAL_ANNOUNCEMENTS = 14
 
-    # class Labels:
-    #     EVENT = _('event')
-    #     APPEAL = _('appeal')
-    #     FIELD_REPORT = _('field report')
-    #     SURGE_ALERT = _('surge alert')
-    #     COUNTRY = _('country')
-    #     REGION = _('region')
-    #     DTYPE = _('disaster type')
-    #     PER_DUE_DATE = _('per due date')
-    #     FOLLOWED_EVENT = _('followed event')
-    #     SURGE_DEPLOYMENT_MESSAGES = _('surge deployment messages')
-    #     SURGE_APPROACHING_END_OF_MISSION = _('surge approaching end of mission')
-    #     WEEKLY_DIGEST = _('weekly digest')
-    #     NEW_EMERGENCIES = _('new emergencies')
-    #     NEW_OPERATIONS = _('new operations')
-    #     GENERAL_ANNOUNCEMENTS = _('general announcements')
+    class Labels:
+        EVENT = _('event')
+        APPEAL = _('appeal')
+        FIELD_REPORT = _('field report')
+        SURGE_ALERT = _('surge alert')
+        COUNTRY = _('country')
+        REGION = _('region')
+        DTYPE = _('disaster type')
+        PER_DUE_DATE = _('per due date')
+        FOLLOWED_EVENT = _('followed event')
+        SURGE_DEPLOYMENT_MESSAGES = _('surge deployment messages')
+        SURGE_APPROACHING_END_OF_MISSION = _('surge approaching end of mission')
+        WEEKLY_DIGEST = _('weekly digest')
+        NEW_EMERGENCIES = _('new emergencies')
+        NEW_OPERATIONS = _('new operations')
+        GENERAL_ANNOUNCEMENTS = _('general announcements')
 
 # Migration
 # update      notification_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
@@ -133,15 +133,15 @@ class Subscription(models.Model):
         related_name='subscription',
     )
 
-    stype = EnumIntegerField(SubscriptionType, verbose_name=('subscription type'), default=0)
-    rtype = EnumIntegerField(RecordType, verbose_name=('record type'), default=0)
+    stype = EnumIntegerField(SubscriptionType, verbose_name=_('subscription type'), default=0)
+    rtype = EnumIntegerField(RecordType, verbose_name=_('record type'), default=0)
 
-    country = models.ForeignKey(Country, verbose_name=('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    region = models.ForeignKey(Region, verbose_name=('region'), null=True, blank=True, on_delete=models.SET_NULL)
-    dtype = models.ForeignKey(DisasterType, verbose_name=('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
-    event = models.ForeignKey(Event, verbose_name=('event'), null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
 
-    lookup_id = models.CharField(verbose_name=('lookup id'), max_length=20, null=True, blank=True, editable=False)
+    lookup_id = models.CharField(verbose_name=_('lookup id'), max_length=20, null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = _('Subscription')

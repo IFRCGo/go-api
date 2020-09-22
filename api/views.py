@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models import Count, Sum
@@ -26,7 +27,7 @@ from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
 from notifications.notification import send_notification
-from registrations.models import Recovery
+from registrations.models import Recovery, Pending
 from main.frontend import frontend_url
 
 
@@ -91,24 +92,14 @@ class DelSubscription(APIView):
         return Response({'data': 'Success'})
 
 
-class PublicJsonRequestView(View):
-    http_method_names = ['get', 'head', 'options']
-
-    def handle_get(self, request, *args, **kwargs):
-        print(pretty_request(request))
-
-    def get(self, request, *args, **kwargs):
-        return self.handle_get(request, *args, **kwargs)
-
-
-class EsPageHealth(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class EsPageHealth(APIView):
+    def get(self, request):
         health = ES_CLIENT.cluster.health()
         return JsonResponse(health)
 
 
-class EsPageSearch(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class EsPageSearch(APIView):
+    def get(self, request):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
         if phrase is None:
@@ -151,8 +142,8 @@ class EsPageSearch(PublicJsonRequestView):
         return JsonResponse(results['hits'])
 
 
-class AreaAggregate(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AreaAggregate(APIView):
+    def get(self, request):
         region_type = request.GET.get('type', None)
         region_id = request.GET.get('id', None)
 
@@ -161,15 +152,16 @@ class AreaAggregate(PublicJsonRequestView):
         elif not region_id:
             return bad_request('`id` must be a region id')
 
-        aggregate = Appeal.objects.filter(**{region_type: region_id}) \
-                                  .annotate(count=Count('id')) \
-                                  .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
+        aggregate = Appeal.objects\
+            .filter(**{region_type: region_id}) \
+            .annotate(count=Count('id')) \
+            .aggregate(Sum('num_beneficiaries'), Sum('amount_requested'), Sum('amount_funded'), Sum('count'))
 
         return JsonResponse(dict(aggregate))
 
 
-class AggregateByDtype(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AggregateByDtype(APIView):
+    def get(self, request):
         models = {
             'appeal': Appeal,
             'event': Event,
@@ -190,8 +182,8 @@ class AggregateByDtype(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-class AggregateByTime(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class AggregateByTime(APIView):
+    def get(self, request):
         models = {
             'appeal': Appeal,
             'event': Event,
@@ -272,59 +264,20 @@ class AggregateByTime(PublicJsonRequestView):
         return JsonResponse(dict(aggregate=list(aggregate)))
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class PublicJsonPostView(View):
-    http_method_names = ['post']
+class GetAuthToken(APIView):
+    permission_classes = []
 
-    def decode_auth_header(self, auth_header):
-        parts = auth_header[7:].split(':')
-        return parts[0], parts[1]
+    def post(self, request):
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
 
-    def get_authenticated_user(self, request):
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if not auth_header:
-            return None
-
-        # Parse the authorization header
-        username, key = self.decode_auth_header(auth_header)
-        if not username or not key:
-            return None
-
-        # Query the user
-        try:
-            user = User.objects.get(username=username)
-        except ObjectDoesNotExist:
-            return None
-
-        # Query the key
-        try:
-            Token.objects.get(user=user, key=key)
-        except ObjectDoesNotExist:
-            return None
-
-        return user
-
-    def handle_post(self, request, *args, **kwargs):
-        print(pretty_request(request))
-
-    def post(self, request, *args, **kwargs):
-        if request.META.get('CONTENT_TYPE').find('application/json') == -1:
-            return bad_request('Content-type must be `application/json`')
-        return self.handle_post(request, *args, **kwargs)
-
-
-class GetAuthToken(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'username' not in body or 'password' not in body:
+        if username is None or password is None:
             return bad_request('Body must contain `username` and `password`')
-        username = body['username']
-        password = body['password']
 
         # Get the case-correct username for authenticate()
         casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
-        if not casecorr_uname:
-            return bad_request('Invalid username or password')  # definately username issue
+        if casecorr_uname is None:
+            return bad_request('Invalid username or password')  # definitely username issue
 
         # User model's __str__ is its username
         user = authenticate(username=casecorr_uname, password=password)
@@ -352,54 +305,57 @@ class GetAuthToken(PublicJsonPostView):
             return bad_request('Invalid username or password')  # most probably password issue
 
 
-class ChangePassword(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'username' not in body or ('password' not in body and 'token' not in body):
+class ChangePassword(APIView):
+    permissions_classes = []
+
+    def post(self, request):
+        username = request.data.get('username', None)
+        password = request.data.get('password', None)
+        new_pass = request.data.get('new_password', None)
+        token = request.data.get('token', None)
+        if username is None or password is None:
             return bad_request('Must include a `username` and either a `password` or `token`')
 
-        try:
-            user = User.objects.get(username__iexact=body['username'])
-        except ObjectDoesNotExist:
+        user = User.objects.filter(username__iexact=username).first()
+        if user is None:
             return bad_request('Could not authenticate')
 
-        if 'password' in body and not user.check_password(body['password']):
+        if password and not user.check_password(password):
             return bad_request('Could not authenticate')
-        elif 'token' in body:
-            try:
-                recovery = Recovery.objects.get(user=user)
-            except ObjectDoesNotExist:
+        elif token:
+            recovery = Recovery.objects.filter(user=user).first()
+            if recovery is None:
                 return bad_request('Could not authenticate')
 
-            if recovery.token != body['token']:
+            if recovery.token != token:
                 return bad_request('Could not authenticate')
             recovery.delete()
 
         # TODO validate password
-        if 'new_password' not in body:
+        if new_pass is None:
             return bad_request('Must include a `new_password` property')
 
-        user.set_password(body['new_password'])
+        user.set_password(new_pass)
         user.save()
 
         return JsonResponse({'status': 'ok'})
 
 
-class RecoverPassword(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'email' not in body:
+class RecoverPassword(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', None)
+        if email is None:
             return bad_request('Must include an `email` property')
 
-        try:
-            user = User.objects.get(email__iexact=body['email'])
-        except ObjectDoesNotExist:
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
             return bad_request('That email is not associated with a user')
 
         token = get_random_string(length=32)
         Recovery.objects.filter(user=user).delete()
-        recovery = Recovery.objects.create(user=user,
-                                           token=token)
+        Recovery.objects.create(user=user, token=token)
         email_context = {
             'frontend_url': frontend_url,
             'username': user.username,
@@ -413,15 +369,16 @@ class RecoverPassword(PublicJsonPostView):
         return JsonResponse({'status': 'ok'})
 
 
-class ShowUsername(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
-        if 'email' not in body:
+class ShowUsername(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', None)
+        if email is None:
             return bad_request('Must include an `email` property')
 
-        try:
-            user = User.objects.get(email__iexact=body['email'])
-        except ObjectDoesNotExist:
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
             return bad_request('That email is not associated with a user')
 
         email_context = {
@@ -433,6 +390,49 @@ class ShowUsername(PublicJsonPostView):
                           'Username recovery - ' + user.username)
 
         return JsonResponse({'status': 'ok'})
+
+
+class ResendValidation(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get('username', None)
+
+        if username:
+            pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
+            if pending_user:
+                if pending_user.user.is_active is True:
+                    return bad_request('Your registration is already active, \
+                                        you can try logging in with your registered username and password')
+                if pending_user.created_at < timezone.now() - timedelta(days=1):
+                    return bad_request('The verification period is expired. \
+                                        You must verify your email within 24 hours. \
+                                        Please contact your system administrator.')
+
+                # Construct and re-send the email
+                email_context = {
+                    'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
+                        settings.BASE_URL,  # on PROD it should point to goadmin...
+                        pending_user.token,
+                        username,
+                    )
+                }
+
+                if pending_user.user.is_staff:
+                    template = 'email/registration/verify-staff-email.html'
+                else:
+                    template = 'email/registration/verify-outside-email.html'
+
+                send_notification('Validate your account',
+                                  [pending_user.user.email],
+                                  render_to_string(template, email_context),
+                                  'Validate account - ' + username)
+                return Response({'data': 'Success'})
+            else:
+                return bad_request('No pending registration found with the provided username. \
+                                    Please check your input.')
+        else:
+            return bad_request('Please provide your username in the request.')
 
 
 class AddCronJobLog(APIView):

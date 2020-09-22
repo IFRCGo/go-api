@@ -1,7 +1,11 @@
 import os
-from datetime import datetime
+import sys
 import pytz
+from datetime import datetime
+
 from django.utils.translation import ugettext_lazy as _
+from celery.schedules import crontab
+from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
@@ -15,6 +19,17 @@ if BASE_URL == 'prddsgocdnapi.azureedge.net':
 # The frontend_url nicing is in frontend.py
 
 INTERNAL_IPS = ['127.0.0.1']
+if 'DOCKER_HOST_IP' in os.environ:
+    INTERNAL_IPS.append(os.environ['DOCKER_HOST_IP'])
+
+DEBUG_TOOLBAR_CONFIG = {
+    'DISABLE_PANELS': [
+        'debug_toolbar.panels.sql.SQLPanel',
+        'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+        'debug_toolbar.panels.templates.TemplatesPanel',
+    ],
+}
 
 ALLOWED_HOSTS = [localhost, '0.0.0.0']
 if PRODUCTION_URL is not None:
@@ -23,6 +38,20 @@ if PRODUCTION_URL is not None:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False if PRODUCTION_URL is not None else True
+
+# See if we are inside a test environment
+TESTING = any([
+    arg in sys.argv for arg in [
+        'test',
+        'pytest',
+        'py.test',
+        '/usr/local/bin/pytest',
+        '/usr/local/bin/py.test',
+        '/usr/local/lib/python3.6/dist-packages/py/test.py',
+    ]
+    # Provided by pytest-xdist (If pytest is used)
+]) or os.environ.get('PYTEST_XDIST_WORKER') is not None
+
 
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
@@ -57,6 +86,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
+    'django_celery_beat',
 
     # Logging
     'reversion',
@@ -64,6 +94,9 @@ INSTALLED_APPS = [
 
     # Debug
     'debug_toolbar',
+
+    # GIS
+    'django.contrib.gis'
 ]
 
 REST_FRAMEWORK = {
@@ -88,6 +121,10 @@ REST_FRAMEWORK = {
 
 GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
+}
+
+FILE_STORAGE = {
+    'LOCATION': 'media',
 }
 
 AZURE_STORAGE = {
@@ -145,7 +182,7 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Use local postgres for dev, env-determined for production
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.environ.get('DJANGO_DB_NAME'),
         'USER': os.environ.get('DJANGO_DB_USER'),
         'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
@@ -170,6 +207,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
+    'entity_encoding': 'raw',
     'height': 360,
     'width': 1120,
     'cleanup_on_startup': True,
@@ -189,11 +227,11 @@ TINYMCE_DEFAULT_CONFIG = {
             | indent outdent | bullist numlist |
             | link visualchars charmap hr nonbreaking | code preview fullscreen
             ''',
-    # 'toolbar2': '''
-    #         media embed
-    #         ''',
-    # 'force_p_newlines': False,
-    # 'forced_root_block': '',
+    'toolbar2': '''
+            media embed
+            ''',
+    'force_p_newlines': False,
+    'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
@@ -212,7 +250,7 @@ TINYMCE_DEFAULT_CONFIG = {
     # ''',
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -225,7 +263,6 @@ LANGUAGES = (
     ('ar', _('Arabic')),
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
-HIDE_LANGUAGE_UI = not DEBUG
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -244,6 +281,7 @@ timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
+FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
 
@@ -262,6 +300,7 @@ LOGGING = {
             'class': 'api.filehandler.MakeFileHandler',
             'filename': '../logs/logger.log',
             'formatter': 'timestamp',
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
@@ -277,3 +316,24 @@ LOGGING = {
 AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
 AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
 AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
+
+# CELERY CONFIG
+CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACKS_LATE = True
+
+# CELERY_BEAT_SCHEDULE = {
+#     'translate_remaining_models_fields': {
+#         'task': 'lang.tasks.translate_remaining_models_fields',
+#         # Every 6 hour
+#         'schedule': crontab(minute=0, hour="*/6"),
+#     },
+# }
+
+RETRY_STRATEGY = Retry(
+    total=3,
+    status_forcelist=[429, 500, 502, 503, 504],
+    method_whitelist=["HEAD", "GET", "OPTIONS"]
+)

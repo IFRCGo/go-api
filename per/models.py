@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
-from api.storage import AzureStorage
+from api.storage import get_storage
 from .questions_data import questions
 
 
@@ -33,13 +33,13 @@ class ProcessPhase(IntEnum):
     PLAN_OF_ACTION = 4
     ACTION_AND_ACCOUNTABILITY = 5
 
-    # class Labels:
-    #     BASELINE = _('baseline')
-    #     ORIENTATION = _('orientation')
-    #     ASSESSMENT = _('assessment')
-    #     PRIORITIZATION = _('prioritization')
-    #     PLAN_OF_ACTION = _('plan of action')
-    #     ACTION_AND_ACCOUNTABILITY = _('action and accountability')
+    class Labels:
+        BASELINE = _('baseline')
+        ORIENTATION = _('orientation')
+        ASSESSMENT = _('assessment')
+        PRIORITIZATION = _('prioritization')
+        PLAN_OF_ACTION = _('plan of action')
+        ACTION_AND_ACCOUNTABILITY = _('action and accountability')
 
 
 class NSPhase(models.Model):
@@ -72,15 +72,15 @@ class Status(IntEnum):
     EXIST_COULD_BE_STRENGTHENED = 6
     HIGH_PERFORMANCE = 7
 
-    # class Labels:
-    #     NO = _('no')
-    #     YES = _('yes')
-    #     NOT_REVIEWED = _('not reviewed')
-    #     DOES_NOT_EXIST = _('does not exist')
-    #     PARTIALLY_EXISTS = _('partially exists')
-    #     NEED_IMPROVEMENTS = _('need improvements')
-    #     EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
-    #     HIGH_PERFORMANCE = _('high performance')
+    class Labels:
+        NO = _('no')
+        YES = _('yes')
+        NOT_REVIEWED = _('not reviewed')
+        DOES_NOT_EXIST = _('does not exist')
+        PARTIALLY_EXISTS = _('partially exists')
+        NEED_IMPROVEMENTS = _('need improvements')
+        EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
+        HIGH_PERFORMANCE = _('high performance')
 
 
 class Language(IntEnum):
@@ -88,16 +88,17 @@ class Language(IntEnum):
     FRENCH = 1
     ENGLISH = 2
 
-    # class Labels:
-    #     SPANISH = _('spanish')
-    #     FRENCH = _('french')
-    #     ENGLISH = _('english')
+    class Labels:
+        SPANISH = _('spanish')
+        FRENCH = _('french')
+        ENGLISH = _('english')
 
 
 class Draft(models.Model):
     """ PER draft form header """
     code = models.CharField(verbose_name=_('code'), max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
+    # FIXME: Use JSONField instead of TextField
     data = models.TextField(verbose_name=_('data'), null=True, blank=True)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
@@ -176,10 +177,10 @@ class PriorityValue(IntEnum):
     MID = 1
     HIGH = 2
 
-    # class Labels:
-    #     LOW = _('low')
-    #     MID = _('medium')
-    #     HIGH = _('high')
+    class Labels:
+        LOW = _('low')
+        MID = _('medium')
+        HIGH = _('high')
 
 
 class WorkPlanStatus(IntEnum):
@@ -193,16 +194,16 @@ class WorkPlanStatus(IntEnum):
     APPROVED = 7
     CLOSED = 8
 
-    # class Labels:
-    #     STANDBY = _('standby')
-    #     ONGOING = _('ongoing')
-    #     CANCELLED = _('cancelled')
-    #     DELAYED = _('delayed')
-    #     PENDING = _('pending')
-    #     NEED_IMPROVEMENTS = _('need improvements')
-    #     FINISHED = _('finished')
-    #     APPROVED = _('approved')
-    #     CLOSED = _('closed')
+    class Labels:
+        STANDBY = _('standby')
+        ONGOING = _('ongoing')
+        CANCELLED = _('cancelled')
+        DELAYED = _('delayed')
+        PENDING = _('pending')
+        NEED_IMPROVEMENTS = _('need improvements')
+        FINISHED = _('finished')
+        APPROVED = _('approved')
+        CLOSED = _('closed')
 
 
 class WorkPlan(models.Model):
@@ -243,11 +244,11 @@ class CAssessmentType(IntEnum):
     OPERATIONAL = 2
     POST_OPERATIONAL = 3
 
-    # class Labels:
-    #     SELF_ASSESSMENT = _('self assessment')
-    #     SIMULATION = _('simulation')
-    #     OPERATIONAL = _('operational')
-    #     POST_OPERATIONAL = _('post operational')
+    class Labels:
+        SELF_ASSESSMENT = _('self assessment')
+        SIMULATION = _('simulation')
+        OPERATIONAL = _('operational')
+        POST_OPERATIONAL = _('post operational')
 
 
 class Overview(models.Model):
@@ -296,9 +297,9 @@ class Visibilities(IntEnum):
     HIDDEN = 0
     VISIBLE = 1
 
-    # class Labels:
-    #     HIDDEN = _('hidden')
-    #     VISIBLE = _('visible')
+    class Labels:
+        HIDDEN = _('hidden')
+        VISIBLE = _('visible')
 
 
 def nice_document_path(instance, filename):
@@ -309,7 +310,7 @@ class NiceDocument(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=nice_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=nice_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
     country = models.ForeignKey(

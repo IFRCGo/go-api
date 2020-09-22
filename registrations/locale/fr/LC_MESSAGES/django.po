@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-18 04:24+0000\n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,11 +44,11 @@ msgstr "contact admin 2"
 
 #: registrations/models.py:22
 msgid "admin token 1"
-msgstr "jeton d'administration 1"
+msgstr "jeton admin 1"
 
 #: registrations/models.py:23
 msgid "admin token 2"
-msgstr "jeton d'administration 2"
+msgstr "jeton admin 2"
 
 #: registrations/models.py:24
 msgid "admin 1 validated"
@@ -60,15 +60,15 @@ msgstr "admin 2 validé"
 
 #: registrations/models.py:26
 msgid "admin 1 validated date"
-msgstr "admin 1 date validée"
+msgstr "date validée admin 1 "
 
 #: registrations/models.py:27
 msgid "admin 2 validated date"
-msgstr "admin 2 date validée"
+msgstr "date validée admin 2"
 
 #: registrations/models.py:29
 msgid "email verified?"
-msgstr "email vérifié ?"
+msgstr "courriel vérifié ?"
 
 #: registrations/models.py:32
 msgid "Pending user"
@@ -84,11 +84,11 @@ msgstr "Récupération"
 
 #: registrations/models.py:53
 msgid "Recoveries"
-msgstr "Récupération"
+msgstr "Récupérations"
 
 #: registrations/models.py:61
 msgid "domain name"
-msgstr "nom de domaine"
+msgstr "Nom de domaine"
 
 #: registrations/models.py:62
 msgid "description"
@@ -96,7 +96,7 @@ msgstr "description"
 
 #: registrations/models.py:63
 msgid "is active?"
-msgstr "est actif ?"
+msgstr "est actif ?"
 
 #: registrations/models.py:66
 msgid "Domain Whitelist"

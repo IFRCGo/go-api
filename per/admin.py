@@ -17,6 +17,9 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     exclude = ("ip_address", )
     search_fields = ('code', 'name', 'country__name', )
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'form__country__pk__in'
@@ -27,17 +30,29 @@ class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 class NSPhaseAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('phase',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('prioritization',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
 
 
 class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('country',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
+
 
 class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__in'
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country')
 
 
 admin.site.register(models.Form, FormAdmin)

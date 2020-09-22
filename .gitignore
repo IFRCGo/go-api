@@ -1,3 +1,6 @@
+# go file storage folder
+media
+
 # python virtual environment folder
 env
 
@@ -36,3 +39,5 @@ appeals.json
 
 # media
 project-imports/
+country-key-documents/
+celerybeat-schedule

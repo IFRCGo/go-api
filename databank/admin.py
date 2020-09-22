@@ -9,7 +9,14 @@ from .models import (
     SocialEvent,
     KeyClimateEvent,
     SeasonalCalender,
+
+    KeyDocumentGroup,
+    KeyDocument,
+    ExternalSource,
 )
+
+
+admin.site.register(KeyDocumentGroup)
 
 
 class SocialEventInline(admin.TabularInline):
@@ -26,13 +33,21 @@ class SeasonalCalenderInine(admin.TabularInline):
     form = SeasonalCalenderForm
 
 
+class KeyDocumentInine(admin.TabularInline):
+    model = KeyDocument
+
+
+class ExternalSourceInine(admin.TabularInline):
+    model = ExternalSource
+
+
 @admin.register(CountryOverview)
 class CountryOverviewAdmin(admin.ModelAdmin):
     autocomplete_fields = ('country',)
     search_fields = ('country__name',)
     list_display = ('country',)
     inlines = [
-        SocialEventInline, KeyClimateEventByInline, SeasonalCalenderInine,
+        SocialEventInline, KeyClimateEventByInline, SeasonalCalenderInine, KeyDocumentInine, ExternalSourceInine
     ]
     form = CountryOverviewForm
     fieldsets = (

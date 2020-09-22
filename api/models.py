@@ -1,12 +1,13 @@
 from django.utils.translation import ugettext_lazy as _
-from django.db import models
+# from django.db import models
+from django.contrib.gis.db import models
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
-from .storage import AzureStorage
+from .storage import get_storage
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug
 from django.contrib.postgres.fields import ArrayField
@@ -54,17 +55,19 @@ class RegionName(IntEnum):
     EUROPE = 3
     MENA = 4
 
-    # class Labels:
-    #     AFRICA = _('Africa')
-    #     AMERICAS = _('Americas')
-    #     ASIA_PACIFIC = _('Asia Pacific')
-    #     EUROPE = _('Europe')
-    #     MENA = _('Middle East North Africa')
+    class Labels:
+        AFRICA = _('Africa')
+        AMERICAS = _('Americas')
+        ASIA_PACIFIC = _('Asia Pacific')
+        EUROPE = _('Europe')
+        MENA = _('Middle East & North Africa')
 
 
 class Region(models.Model):
     """ A region """
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
 
     def indexing(self):
         return {
@@ -106,12 +109,12 @@ class CountryType(IntEnum):
     COUNTRY_OFFICE = 4
     REPRESENTATIVE_OFFICE = 5
 
-    # class Labels:
-    #     COUNTRY = _('Country')
-    #     CLUSTER = _('Cluster')
-    #     REGION = _('Region')
-    #     COUNTRY_OFFICE = _('Country Office')
-    #     REPRESENTATIVE_OFFICE = _('Representative Office')
+    class Labels:
+        COUNTRY = _('Country')
+        CLUSTER = _('Cluster')
+        REGION = _('Region')
+        COUNTRY_OFFICE = _('Country Office')
+        REPRESENTATIVE_OFFICE = _('Representative Office')
 
     # select name, society_name, record_type from api_country where name like '%luster%';
     # select name, society_name, record_type from api_country where name like '%egion%';
@@ -136,7 +139,16 @@ class Country(models.Model):
     inform_score = models.DecimalField(verbose_name=_('inform score'), blank=True, null=True, decimal_places=2, max_digits=3)
     logo = models.FileField(
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
-        storage=AzureStorage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
+        storage=get_storage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
+    )
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    independent = models.NullBooleanField(
+        default=None, null=True, help_text=_('Is this an independent country?')
+    )
+    is_deprecated = models.BooleanField(
+        default=False, help_text=_('Is this an active, valid country?')
     )
 
     # Population Data From WB API
@@ -179,12 +191,17 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO3'), max_length=3, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
-
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    is_deprecated = models.BooleanField(
+        default=False, help_text=_('Is this an active, valid district?')
+    )
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
         verbose_name=_('WB population'), null=True, blank=True, help_text=_('population data from WB API')
@@ -207,10 +224,10 @@ class VisibilityChoices(IntEnum):
     IFRC = 2
     PUBLIC = 3
 
-    # class Labels:
-    #     MEMBERSHIP = _('Membership')
-    #     IFRC = _('IFRC Only')
-    #     PUBLIC = _('Public')
+    class Labels:
+        MEMBERSHIP = _('Membership')
+        IFRC = _('IFRC Only')
+        PUBLIC = _('Public')
 
 
 class VisibilityCharChoices():
@@ -266,12 +283,12 @@ class PositionType(IntEnum):
     LOW = 4
     BOTTOM = 5
 
-    # class Labels:
-    #     TOP = _('Top')
-    #     HIGH = _('High')
-    #     MIDDLE = _('Middle')
-    #     LOW = _('Low')
-    #     BOTTOM = _('Bottom')
+    class Labels:
+        TOP = _('Top')
+        HIGH = _('High')
+        MIDDLE = _('Middle')
+        LOW = _('Low')
+        BOTTOM = _('Bottom')
 
 
 class TabNumber(IntEnum):
@@ -279,17 +296,17 @@ class TabNumber(IntEnum):
     TAB_2 = 2
     TAB_3 = 3
 
-    # class Labels:
-    #     TAB_1 = _('Tab 1')
-    #     TAB_2 = _('Tab 2')
-    #     TAB_3 = _('Tab 3')
+    class Labels:
+        TAB_1 = _('Tab 1')
+        TAB_2 = _('Tab 2')
+        TAB_3 = _('Tab 3')
 
 
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=get_storage()
     )
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
@@ -305,9 +322,9 @@ class RegionSnippet(models.Model):
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=get_storage()
     )
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
@@ -381,10 +398,10 @@ class AlertLevel(IntEnum):
     ORANGE = 1
     RED = 2
 
-    # class Labels:
-    #     GREEN = _('Green')
-    #     ORANGE = _('Orange')
-    #     RED = _('Red')
+    class Labels:
+        GREEN = _('Green')
+        ORANGE = _('Orange')
+        RED = _('Red')
 
 
 class Event(models.Model):
@@ -543,9 +560,9 @@ def snippet_image_path(instance, filename):
 
 class Snippet(models.Model):
     """ Snippet of text """
-    snippet = models.TextField(verbose_name=_('snippet'), null=True, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=AzureStorage()
+        verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=get_storage()
     )
     event = models.ForeignKey(Event, verbose_name=_('event'), related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
@@ -558,12 +575,12 @@ class Snippet(models.Model):
         verbose_name_plural = _('snippets')
 
     def __str__(self):
-        return self.snippet
+        return self.snippet if self.snippet else 'snippet __str__ is None'
 
 
 class SituationReportType(models.Model):
     """ Document type, to be able to filter Situation Reports """
-    type = models.CharField(verbose_name=_('type'), max_length=50)
+    type = models.CharField(verbose_name=_('type'), max_length=150)
     is_primary = models.BooleanField(
         verbose_name=_('is primary?'), default=False, editable=False,
         help_text=_('Ensure this type gets precedence over others that are empty')
@@ -585,7 +602,7 @@ class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
@@ -607,26 +624,26 @@ class SituationReport(models.Model):
 class GDACSEvent(models.Model):
     """ A GDACS type event, from alerts """
 
-    eventid = models.CharField(verbose_name=('event id'), max_length=12)
-    title = models.TextField(verbose_name=('title'))
-    description = models.TextField(verbose_name=('description'))
-    image = models.URLField(verbose_name=('image'), null=True)
-    report = models.URLField(verbose_name=('report'), null=True)
-    publication_date = models.DateTimeField(verbose_name=('publication date'))
-    year = models.IntegerField(verbose_name=('year'))
-    lat = models.FloatField(verbose_name=('latitude'))
-    lon = models.FloatField(verbose_name=('longitude'))
-    event_type = models.CharField(verbose_name=('event type'), max_length=16)
-    alert_level = EnumIntegerField(AlertLevel, verbose_name=('alert level'), default=0)
-    alert_score = models.CharField(verbose_name=('alert score'), max_length=16, null=True)
-    severity = models.TextField(verbose_name=('severity'))
-    severity_unit = models.CharField(verbose_name=('severity unit'), max_length=16)
-    severity_value = models.CharField(verbose_name=('severity value'), max_length=16)
-    population_unit = models.CharField(verbose_name=('population unit'), max_length=16)
-    population_value = models.CharField(verbose_name=('population value'), max_length=16)
-    vulnerability = models.FloatField(verbose_name=('vulnerability'))
-    countries = models.ManyToManyField(Country, verbose_name=('countries'))
-    country_text = models.TextField(verbose_name=('country text'))
+    eventid = models.CharField(verbose_name=_('event id'), max_length=12)
+    title = models.TextField(verbose_name=_('title'))
+    description = models.TextField(verbose_name=_('description'))
+    image = models.URLField(verbose_name=_('image'), null=True)
+    report = models.URLField(verbose_name=_('report'), null=True)
+    publication_date = models.DateTimeField(verbose_name=_('publication date'))
+    year = models.IntegerField(verbose_name=_('year'))
+    lat = models.FloatField(verbose_name=_('latitude'))
+    lon = models.FloatField(verbose_name=_('longitude'))
+    event_type = models.CharField(verbose_name=_('event type'), max_length=16)
+    alert_level = EnumIntegerField(AlertLevel, verbose_name=_('alert level'), default=0)
+    alert_score = models.CharField(verbose_name=_('alert score'), max_length=16, null=True)
+    severity = models.TextField(verbose_name=_('severity'))
+    severity_unit = models.CharField(verbose_name=_('severity unit'), max_length=16)
+    severity_value = models.CharField(verbose_name=_('severity value'), max_length=16)
+    population_unit = models.CharField(verbose_name=_('population unit'), max_length=16)
+    population_value = models.CharField(verbose_name=_('population value'), max_length=16)
+    vulnerability = models.FloatField(verbose_name=_('vulnerability'))
+    countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    country_text = models.TextField(verbose_name=_('country text'))
 
     class Meta:
         verbose_name = _('gdacs event')
@@ -642,10 +659,10 @@ class AppealType(IntEnum):
     APPEAL = 1
     INTL = 2
 
-    # class Labels:
-    #     DREF = _('DREF')
-    #     APPEAL = _('Emergency Appeal')
-    #     INTL = _('International Appeal')
+    class Labels:
+        DREF = _('DREF')
+        APPEAL = _('Emergency Appeal')
+        INTL = _('International Appeal')
 
 
 class AppealStatus(IntEnum):
@@ -654,11 +671,11 @@ class AppealStatus(IntEnum):
     FROZEN = 2
     ARCHIVED = 3
 
-    # class Labels:
-    #     ACTIVE = _('Active')
-    #     CLOSED = _('Closed')
-    #     FROZEN = _('Frozen')
-    #     ARCHIVED = _('Archived')
+    class Labels:
+        ACTIVE = _('Active')
+        CLOSED = _('Closed')
+        FROZEN = _('Frozen')
+        ARCHIVED = _('Archived')
 
 
 class Appeal(models.Model):
@@ -773,7 +790,7 @@ class AppealDocument(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'))
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path, storage=AzureStorage()
+        verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path, storage=get_storage()
     )
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
@@ -799,11 +816,11 @@ class RequestChoices(IntEnum):
     PLANNED = 2
     COMPLETE = 3
 
-    # class Labels:
-    #     NO = _('No')
-    #     REQUESTED = _('Requested')
-    #     PLANNED = _('Planned')
-    #     COMPLETE = _('Complete')
+    class Labels:
+        NO = _('No')
+        REQUESTED = _('Requested')
+        PLANNED = _('Planned')
+        COMPLETE = _('Complete')
 
 
 class EPISourceChoices(IntEnum):
@@ -811,10 +828,10 @@ class EPISourceChoices(IntEnum):
     WHO = 1
     OTHER = 2
 
-    # class Labels:
-    #     MINISTRY_OF_HEALTH = _('Ministry of health')
-    #     WHO = _('WHO')
-    #     OTHER = _('OTHER')
+    class Labels:
+        MINISTRY_OF_HEALTH = _('Ministry of health')
+        WHO = _('WHO')
+        OTHER = _('OTHER')
 
 
 class FieldReport(models.Model):
@@ -876,23 +893,6 @@ class FieldReport(models.Model):
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
     epi_figures_source = EnumIntegerField(EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True)
 
-    health_min_cases = models.IntegerField(verbose_name=_('number of cases (MOH)'), null=True, blank=True)
-    health_min_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (MOH)'), null=True, blank=True)
-    health_min_probable_cases = models.IntegerField(verbose_name=_('number of probabale cases (MOH)'), null=True, blank=True)
-    health_min_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (MOH)'), null=True, blank=True)
-    health_min_num_dead = models.IntegerField(verbose_name=_('number of dead (MOH)'), null=True, blank=True)
-
-    who_cases = models.IntegerField(verbose_name=_('number of cases (WHO)'), null=True, blank=True)
-    who_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (WHO)'), null=True, blank=True)
-    who_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (WHO)'), null=True, blank=True)
-    who_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (WHO)'), null=True, blank=True)
-    who_num_dead = models.IntegerField(verbose_name=_('number of number of dead (WHO)'), null=True, blank=True)
-
-    other_cases = models.IntegerField(verbose_name=_('number of cases (other)'), null=True, blank=True)
-    other_suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases (other)'), null=True, blank=True)
-    other_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (other)'), null=True, blank=True)
-    other_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (other)'), null=True, blank=True)
-
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
 
@@ -915,12 +915,6 @@ class FieldReport(models.Model):
     other_num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk (other)'), null=True, blank=True)
     other_affected_pop_centres = models.CharField(
         verbose_name=_('number of affected population centres (other)'), max_length=512, blank=True, null=True)
-
-    # Epidemic fields
-    cases = models.IntegerField(verbose_name=_('number of cases'), null=True, blank=True)
-    suspected_cases = models.IntegerField(verbose_name=_('number of suspected cases'), null=True, blank=True)
-    probable_cases = models.IntegerField(verbose_name=_('number of probable cases'), null=True, blank=True)
-    confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases'), null=True, blank=True)
 
     # Date of data for situation fields
     sit_fields_date = models.DateTimeField(verbose_name=_('situation fields date'), blank=True, null=True)
@@ -1060,8 +1054,8 @@ class FieldReportContact(models.Model):
     )
 
     class Meta:
-        verbose_name = _('field report contanct')
-        verbose_name_plural = _('field report contancts')
+        verbose_name = _('field report contacts')
+        verbose_name_plural = _('field report contacts')
 
     def __str__(self):
         return '%s: %s' % (self.name, self.title)
@@ -1109,7 +1103,7 @@ class ActionCategory:
 
 class Action(models.Model):
     """ Action taken """
-    name = models.CharField(verbose_name=_('name'), max_length=100)
+    name = models.CharField(verbose_name=_('name'), max_length=400)
     organizations = ArrayField(
         models.CharField(choices=ActionOrg.CHOICES, max_length=4),
         verbose_name=_('organizations'), default=list, blank=True
@@ -1539,11 +1533,11 @@ class CronJobStatus(IntEnum):
     WARNED = 1
     ERRONEOUS = 2
 
-    # class Labels:
-    #     NEVER_RUN = _('Never run')
-    #     SUCCESSFUL = _('Successfull')
-    #     WARNED = _('Warned')
-    #     ERRONEOUS = _('Erroneous')
+    class Labels:
+        NEVER_RUN = _('Never run')
+        SUCCESSFUL = _('Successfull')
+        WARNED = _('Warned')
+        ERRONEOUS = _('Erroneous')
 
 
 class CronJob(models.Model):

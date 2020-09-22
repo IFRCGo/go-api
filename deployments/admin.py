@@ -13,6 +13,7 @@ from admin_auto_filters.filters import AutocompleteFilter
 from api.utils import Echo
 import deployments.models as models
 from api.admin_classes import RegionRestrictedAdmin
+from lang.admin import TranslationAdmin
 from reversion_compare.admin import CompareVersionAdmin
 
 from .forms import ProjectForm, ProjectImportForm
@@ -20,7 +21,7 @@ from .forms import ProjectForm, ProjectImportForm
 
 class ERUInline(admin.TabularInline):
     model = models.ERU
-    autocomplete_fields = ('deployed_to', 'event',)
+    autocomplete_fields = ('deployed_to', 'event', 'appeal')
 
 
 class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
@@ -30,30 +31,45 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     autocomplete_fields = ('national_society_country',)
     search_fields = ('national_society_country__name',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society_country')
 
-class PersonnelAdmin(CompareVersionAdmin):
+
+class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     country_in = 'country_from__in'
     region_in = 'country_from__region__in'
     search_fields = ('name', 'role', 'type',)
     list_display = ('name', 'role', 'start_date', 'end_date', 'country_from', 'deployment',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'country_from',
+            'deployment__country_deployed_to',
+            'deployment__region_deployed_to',
+            'deployment__event_deployed_to'
+        )
+
 
 class PersonnelInline(admin.TabularInline):
     model = models.Personnel
+    autocomplete_fields = ('country_from',)
 
 
-class PersonnelDeploymentAdmin(CompareVersionAdmin):
+class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('country_deployed_to', 'region_deployed_to',)
-    autocomplete_fields = ('event_deployed_to',)
+    autocomplete_fields = ('event_deployed_to', 'appeal_deployed_to')
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('country_deployed_to', 'region_deployed_to', 'event_deployed_to')
 
-class PartnerSocietyActivityAdmin(CompareVersionAdmin):
+
+class PartnerSocietyActivityAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('activity',)
 
 
-class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'parent_society__in'
     region_in = 'parent_society__region__in'
     autocomplete_fields = ('parent_society', 'country_deployed_to', 'district_deployed_to',)
@@ -62,8 +78,11 @@ class PartnerSocietyDeploymentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     )
     list_display = ('name', 'role', 'activity', 'parent_society', 'country_deployed_to', 'start_date', 'end_date',)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('activity', 'parent_society', 'country_deployed_to')
 
-class RegionalProjectAdmin(CompareVersionAdmin):
+
+class RegionalProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     list_display = ('name', 'created_at', 'modified_at',)
     search_fields = ('name',)
 
@@ -78,7 +97,7 @@ class ProjectCountryFilter(AutocompleteFilter):
     field_name = 'project_country'
 
 
-class ProjectAdmin(CompareVersionAdmin):
+class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
@@ -90,6 +109,9 @@ class ProjectAdmin(CompareVersionAdmin):
 
     class Media:  # Required by AutocompleteFilter
         pass
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('reporting_ns')
 
     def get_url_namespace(self, name, absolute=True):
         meta = self.model._meta
@@ -206,6 +228,9 @@ class ProjectImportAdmin(admin.ModelAdmin):
 
 class ERUReadinessAdmin(CompareVersionAdmin):
     search_fields = ('national_society',)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('national_society')
 
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
