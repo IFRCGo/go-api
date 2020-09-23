@@ -91,6 +91,10 @@ python manage.py translate_model
 
      $ docker-compose run --rm coverage
 
+## Testing
+
+Please read [TESTING.md](./TESTING.md) for guidance on writing and executing tests.
+
 ## Documentation
 
 Identify the function/class to modify from [main/urls.py](main/urls.py).

@@ -317,6 +317,8 @@ AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
 AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
 AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
 
+TEST_RUNNER = 'snapshottest.django.TestRunner'
+
 # CELERY CONFIG
 CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
 CELERY_BROKER_URL = CELERY_REDIS_URL
