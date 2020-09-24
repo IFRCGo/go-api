@@ -31,7 +31,7 @@ class TranslationAdminMixin():
     SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME = 'GO__TRANS_SHOW_ALL_LANGUAGE_IN_FORM'
 
     def _go__show_all_language_in_form(self):
-        return get_signal_request().session.get(self.SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME, False)
+        return get_signal_request().session.get(self.SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME, True)
 
     # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
     def _exclude_original_fields(self, exclude=None):
@@ -63,13 +63,13 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
-        extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
+        # extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
-        extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
+        # extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
         return super().add_view(request, form_url, extra_context=extra_context)
 
     def get_urls(self):
