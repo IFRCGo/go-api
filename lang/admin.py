@@ -31,7 +31,8 @@ class TranslationAdminMixin():
     SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME = 'GO__TRANS_SHOW_ALL_LANGUAGE_IN_FORM'
 
     def _go__show_all_language_in_form(self):
-        return get_signal_request().session.get(self.SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME, True)
+        # return get_signal_request().session.get(self.SHOW_ALL_LANGUAGE_TOGGLE_SESSION_NAME, False)
+        return True  # temporarily always show all languages
 
     # Overwrite TranslationBaseModelAdmin _exclude_original_fields to only show current language field in Admin panel
     def _exclude_original_fields(self, exclude=None):
