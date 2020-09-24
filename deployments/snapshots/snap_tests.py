@@ -56,6 +56,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
                 'iso3': 'yPY',
                 'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
                 'record_type': 1,
+                'record_type_display': 'Country',
                 'region': 2,
                 'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
             },
@@ -83,6 +84,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
                 'iso3': 'rOS',
                 'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
                 'record_type': 2,
+                'record_type_display': 'Cluster',
                 'region': 1,
                 'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
             },
@@ -144,6 +146,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'iso3': 'yPY',
                 'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
                 'record_type': 1,
+                'record_type_display': 'Country',
                 'region': 2,
                 'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
             },
@@ -171,6 +174,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'iso3': 'rOS',
                 'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
                 'record_type': 2,
+                'record_type_display': 'Cluster',
                 'region': 1,
                 'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
             },
@@ -224,6 +228,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'iso3': 'QVD',
                 'name': 'bIucDQBKGArbSELbuyKyuKgZFgSRnvFGZWQvkNtxBmFOYeInsqdtKzZoNVfTLgLvreKZHEBnwYePtGZtBQIumAzqNGDQWJlbOTHl',
                 'record_type': 5,
+                'record_type_display': 'Representative Office',
                 'region': 4,
                 'society_name': 'rOIZNXBKUOdHmxDjpjVRWtBAueOnArsPkqRMpzphjmbpZtDFJBBPcmkribqYZrQJlPcUFYbdfuMteAxQQfzUiphKVGhHQLXHqFfpMhXZuvLVyZVVpBnjglnrCAqLdFIxShuIBERprYjxETxtbPMcVQZdSYQpqJytOSxZRhIpCyazqtfWptnkCOuZXPAYcrfXFEVAvTBgkSqGewAMUJVuDSbWdPPlOCYPiazmOtuKfhkpHTXPWiMRAYuCEViqlRLuZsmfAxlzyKobbJPNOofDmqSkdzNBMqjfxkKhaTHBXDRFhoTnmYrsVFyiBnMnsURmAlAYjbsqpNCpxLRPDfaEiuSzRnTyTBVMqegJddvpEwMQZMTVZcaqGNytzQxiJcLlqkGFvDifuTHBjqhuciFrVxBsqNWqHuBkuVFWjJQOZCdmjdolcEqkTDBhFcCwTJFDFhUjhwfnslkVGrKQLnLaHXKlAepXFRgvbsRRhzxLgujbfDTQEDOr'
             },
@@ -251,6 +256,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'iso3': 'cDy',
                 'name': 'NblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgH',
                 'record_type': 2,
+                'record_type_display': 'Cluster',
                 'region': 3,
                 'society_name': 'THhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZCyRu'
             },
@@ -295,10 +301,11 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
         'is_deprecated': False,
         'iso': 'in',
         'iso3': 'PiL',
-        'name': None,
+        'name': '',
         'record_type': 5,
+        'record_type_display': 'Representative Office',
         'region': 1,
-        'society_name': None
+        'society_name': ''
     },
     'project_districts': [
         1
@@ -327,10 +334,11 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
         'is_deprecated': False,
         'iso': 'in',
         'iso3': 'PiL',
-        'name': None,
+        'name': '',
         'record_type': 5,
+        'record_type_display': 'Representative Office',
         'region': 1,
-        'society_name': None
+        'society_name': ''
     },
     'secondary_sectors': [
     ],
@@ -383,6 +391,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
         'iso3': 'yPY',
         'name': 'eECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziM',
         'record_type': 1,
+        'record_type_display': 'Country',
         'region': 2,
         'society_name': 'viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM'
     },
@@ -410,6 +419,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
         'iso3': 'rOS',
         'name': 'bVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkIUp',
         'record_type': 2,
+        'record_type_display': 'Cluster',
         'region': 1,
         'society_name': 'JoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQvN'
     },
@@ -464,6 +474,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
         'iso3': 'inU',
         'name': 'UKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujX',
         'record_type': 1,
+        'record_type_display': 'Country',
         'region': 3,
         'society_name': 'cDyTHhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZC'
     },
@@ -501,6 +512,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
         'iso3': 'inU',
         'name': 'UKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujX',
         'record_type': 1,
+        'record_type_display': 'Country',
         'region': 3,
         'society_name': 'cDyTHhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGBJCywolBMaKFUpTGrAIKxccKETxhLESfjUUHWXrDHfHNfpEOVQQeROIZLtNdvIXaEDGEKUvAwZsskcSMVtUYKqdOELkKdQsZVNbsFfiGeYrqiNrrqaVhMlLVjQCxZlqYSpFlZHcvfjMjFWAXypQCUOknKUwdPqWhdkDzEtEVWIoyRTyEqjHBasZC'
     },
