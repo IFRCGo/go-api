@@ -16,6 +16,7 @@ from deployments.models import Project, VisibilityCharChoices
 
 
 class TestProjectAPI(TestCase):
+    maxDiff = None
     def setUp(self):
         management.call_command("flush", "--no-input")
         factory.random.reseed_random(42)
