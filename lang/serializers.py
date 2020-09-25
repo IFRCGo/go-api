@@ -130,6 +130,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     @classmethod
     def reset_and_trigger_translation_fields(cls, instance, created=False):
         """
+        NOTE: Not used right now
         To be used directly for a Model instance to reset (if value is changed) and trigger translation.
         """
         if created:
@@ -174,8 +175,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        if self._get_language_clear_validated_data(instance, validated_data, self.included_fields_lang):
-            self.trigger_field_translation(instance)
+        # NOTE: Skip reset+triggering translation (Keeping for test cases)
+        if settings.TESTING:
+            if self._get_language_clear_validated_data(instance, validated_data, self.included_fields_lang):
+                self.trigger_field_translation(instance)
         return super().update(instance, validated_data)
 
 
