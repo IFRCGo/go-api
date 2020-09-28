@@ -500,6 +500,55 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
         )
 
 
+class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    appeals = serializers.SerializerMethodField()
+    field_reports = serializers.SerializerMethodField()
+    countries = serializers.SerializerMethodField()
+    dtype_name = serializers.SerializerMethodField()
+
+    def get_countries(self, obj):
+        country_fields = {
+            'id': '',
+            'name': ''
+        }
+        countries = obj.countries.all()
+        if countries.exists():
+            country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
+            country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
+        return country_fields
+
+    def get_field_reports(self, obj):
+        field_reports_fields = {
+            'id': ''
+        }
+        field_reports = obj.field_reports.all()
+        if len(field_reports) > 0:
+            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
+        return field_reports_fields
+
+    def get_appeals(self, obj):
+        appeals_fields = {
+            'id': ''
+        }
+        appeals = obj.appeals.all()
+        if len(appeals) > 0:
+            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
+        return appeals_fields
+
+    def get_dtype_name(self, obj):
+        if obj.dtype:
+            return obj.dtype.name
+        return None
+
+    class Meta:
+        model = Event
+        fields = (
+            'name', 'dtype_name', 'countries', 'summary', 'num_affected', 'ifrc_severity_level',
+            'glide', 'disaster_start_date', 'created_at', 'appeals',
+            'field_reports', 'updated_at', 'id', 'parent_event',
+        )
+
+
 class ListEventDeploymentsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     type = serializers.CharField()
