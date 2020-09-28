@@ -125,6 +125,12 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
+class MicroCountrySerializer(ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('name', 'iso', 'id')
+
+
 class RegoCountrySerializer(ModelSerializer):
     class Meta:
         model = Country
@@ -408,32 +414,32 @@ class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSe
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     def get_countries(self, obj):
-        country_fields = {}
+        country_fields = {
+            'id': '',
+            'name': ''
+        }
         countries = obj.countries.all()
         if countries.exists():
             country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
             country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
-        else:
-            country_fields['id'] = ''
-            country_fields['name'] = ''
         return country_fields
 
     def get_field_reports(self, obj):
-        field_reports_fields = {}
+        field_reports_fields = {
+            'id': ''
+        }
         field_reports = obj.field_reports.all()
         if len(field_reports) > 0:
             field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
-        else:
-            field_reports_fields['id'] = ''
         return field_reports_fields
 
     def get_appeals(self, obj):
-        appeals_fields = {}
+        appeals_fields = {
+            'id': ''
+        }
         appeals = obj.appeals.all()
         if len(appeals) > 0:
             appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
-        else:
-            appeals_fields['id'] = ''
         return appeals_fields
 
     class Meta:
@@ -468,21 +474,21 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
         return country_fields
 
     def get_field_reports(self, obj):
-        field_reports_fields = {}
+        field_reports_fields = {
+            'id': ''
+        }
         field_reports = obj.field_reports.all()
         if len(field_reports) > 0:
             field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
-        else:
-            field_reports_fields['id'] = ''
         return field_reports_fields
 
     def get_appeals(self, obj):
-        appeals_fields = {}
+        appeals_fields = {
+            'id': ''
+        }
         appeals = obj.appeals.all()
         if len(appeals) > 0:
             appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
-        else:
-            appeals_fields['id'] = ''
         return appeals_fields
 
     class Meta:
