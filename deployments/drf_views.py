@@ -30,6 +30,7 @@ from .serializers import (
     ERUSerializer,
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
+    PersonnelCsvSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
@@ -103,13 +104,34 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
-    serializer_class = PersonnelSerializer
     filter_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
-    def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset()
-        return qs.filter(is_active=True)
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .filter(is_active=True)
+            .select_related(
+                'country_from',
+                'deployment__country_deployed_to',
+                'deployment__event_deployed_to',
+                'deployment__event_deployed_to__dtype'
+            )
+            .prefetch_related(
+                'deployment__event_deployed_to__countries',
+                'deployment__event_deployed_to__appeals',
+                'deployment__event_deployed_to__field_reports',
+                'deployment__event_deployed_to__field_reports__contacts',
+                'deployment__event_deployed_to__field_reports__countries'
+            )
+        )
+
+    def get_serializer_class(self):
+        request_format_type = self.request.GET.get('format', 'json')
+        if request_format_type == 'csv':
+            return PersonnelCsvSerializer
+        return PersonnelSerializer
+
 
 class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')
