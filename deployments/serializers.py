@@ -20,8 +20,10 @@ from .models import (
 from api.serializers import (
     DisasterTypeSerializer,
     ListEventSerializer,
+    ListEventForPersonnelCsvSerializer,
     MiniEventSerializer,
     MiniCountrySerializer,
+    MicroCountrySerializer,
     MiniDistrictSerializer,
 )
 
@@ -70,6 +72,16 @@ class MolnixTagSerializer(ModelSerializer):
         fields = ('id', 'molnix_id', 'name', 'color', 'tag_type')
         model = MolnixTag
 
+
+class PersonnelDeploymentCsvSerializer(ModelSerializer):
+    country_deployed_to = MicroCountrySerializer()
+    event_deployed_to = ListEventForPersonnelCsvSerializer()
+
+    class Meta:
+        model = PersonnelDeployment
+        fields = ('country_deployed_to', 'event_deployed_to', 'comments', 'id')
+
+
 class PersonnelSerializer(ModelSerializer):
     country_from = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
@@ -79,6 +91,15 @@ class PersonnelSerializer(ModelSerializer):
         model = Personnel
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from',
                   'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
+
+
+class PersonnelCsvSerializer(ModelSerializer):
+    country_from = MicroCountrySerializer()
+    deployment = PersonnelDeploymentCsvSerializer()
+
+    class Meta:
+        model = Personnel
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
 
 
 class PartnerDeploymentActivitySerializer(ModelSerializer):
