@@ -74,6 +74,17 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         return included_fields_lang, excluded_fields, additional_fields
 
     @classmethod
+    def _get_translated_fields_list(cls, model, orig_searchfields=[]):
+        """
+        Add translatable fieldnames to search if the original field is in search
+        """
+        field_list = []
+        for field in get_translatable_fields_for_model(model) or []:
+            if field in orig_searchfields:
+                field_list.extend([f'{field}_en', f'{field}_es', f'{field}_fr', f'{field}_ar'])
+        return field_list
+
+    @classmethod
     def _get_language_clear_validated_data(cls, instance, validated_data, included_fields_lang):
         """
         Clear value for other languages for fields if single language is specified

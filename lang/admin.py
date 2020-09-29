@@ -98,6 +98,13 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
         if instances and formset.model in self.TRANSLATION_REGISTERED_MODELS:
             TranslatedModelSerializerMixin.trigger_field_translation_in_bulk(formset.model, instances)
 
+    def get_search_fields(self, request):
+        # Ex. 'name' is translatable - add 'name_fr', 'name_es', etc
+        concated_search = (
+            list(self.search_fields) + TranslatedModelSerializerMixin._get_translated_fields_list(self.model, self.search_fields)
+        )
+        return concated_search
+
 
 class TranslationInlineModelAdmin(TranslationAdminMixin, O_TranslationInlineModelAdmin):
     pass
