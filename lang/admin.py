@@ -101,7 +101,9 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
     def get_search_fields(self, request):
         # Ex. 'name' is translatable - add 'name_fr', 'name_es', etc
         concated_search = (
-            list(self.search_fields) + TranslatedModelSerializerMixin._get_translated_fields_list(self.model, self.search_fields)
+            list(self.search_fields) + TranslatedModelSerializerMixin._get_translated_searchfields_list(
+                self.model, self.search_fields
+            )
         )
         return concated_search
 
