@@ -412,9 +412,9 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
         countries = obj.countries.all()
         if countries.exists():
             country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
-            country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
-            country_fields['iso'] = ', '.join([str(country.iso) for country in countries])
-            country_fields['iso3'] = ', '.join([str(country.iso3) for country in countries])
+            country_fields['name'] = ', '.join([country.name or '' for country in countries])
+            country_fields['iso'] = ', '.join([country.iso or '' for country in countries])
+            country_fields['iso3'] = ', '.join([country.iso3 or '' for country in countries])
         return country_fields
 
     def get_field_reports(self, obj):
@@ -759,9 +759,9 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
         countries = obj.countries.all()
         if len(countries) > 0:
             country_fields['id'] = ', '.join([str(country.id) for country in countries])
-            country_fields['name'] = ', '.join([str(country.name) for country in countries])
-            country_fields['iso'] = ', '.join([str(country.iso) for country in countries])
-            country_fields['iso3'] = ', '.join([str(country.iso3) for country in countries])
+            country_fields['name'] = ', '.join([country.name or '' for country in countries])
+            country_fields['iso'] = ', '.join([country.iso or '' for country in countries])
+            country_fields['iso3'] = ', '.join([country.iso3 or '' for country in countries])
         return country_fields
 
     def get_districts(self, obj):
