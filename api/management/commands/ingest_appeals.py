@@ -20,7 +20,6 @@ REGION_TO_COUNTRY = {
     'TEG': 'HN',  # Tegucigalpa Country Cluster Office: Honduras
     'AFR': 'KE',  # Africa regional office: Kenya
     'EAF': 'KE',  # Eastern Africa country cluster: Kenya
-    'WAF': 'NG',  # Western Africa country cluster: Nigeria
     'CAF': 'CM',  # Central Africa country cluster: Cameroon
     'SAF': 'ZA',  # Southern Africa country cluster: South Africa
     'CAM': 'HT',  # Latin Caribbean Country Cluster Office: Haiti
@@ -34,7 +33,7 @@ REGION_TO_COUNTRY = {
     'NAF': 'TN',  # MENA regional office / Tunis country cluster: Tunisia
     'MEA': 'GE',  # MENA Regonal Office / Southern Caucasus country cluster: Georgia
     'OCE': 'FJ',  # Suva Country Cluster Office: Fiji
-    'WAF': 'SG',  # Sahel country cluster: Senegal
+    'WAF': 'SN',  # Sahel country cluster: Senegal
     'WRD': 'CH',  # IFRC Headquarters: Switzerland
     'SAM': 'PE',  # Andean Country Cluster Office: Peru
     'SEA': 'TH',  # Bangkok Country Cluster Office: Thailand
