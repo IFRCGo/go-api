@@ -160,7 +160,8 @@ class Command(BaseCommand):
             iso_code = REGION_TO_COUNTRY[iso_code]
 
         if len(iso_code) == 2:
-            country = Country.objects.filter(iso__iexact=iso_code).first()
+            # Filter for 'Country' types only
+            country = Country.objects.filter(iso__iexact=iso_code, record_type=1).first()
 
             if country is None:
                 country = Country.objects.filter(name__iexact=country_name).first()
