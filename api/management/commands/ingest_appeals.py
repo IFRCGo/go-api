@@ -20,7 +20,6 @@ REGION_TO_COUNTRY = {
     'TEG': 'HN',  # Tegucigalpa Country Cluster Office: Honduras
     'AFR': 'KE',  # Africa regional office: Kenya
     'EAF': 'KE',  # Eastern Africa country cluster: Kenya
-    'WAF': 'NG',  # Western Africa country cluster: Nigeria
     'CAF': 'CM',  # Central Africa country cluster: Cameroon
     'SAF': 'ZA',  # Southern Africa country cluster: South Africa
     'CAM': 'HT',  # Latin Caribbean Country Cluster Office: Haiti
@@ -34,7 +33,7 @@ REGION_TO_COUNTRY = {
     'NAF': 'TN',  # MENA regional office / Tunis country cluster: Tunisia
     'MEA': 'GE',  # MENA Regonal Office / Southern Caucasus country cluster: Georgia
     'OCE': 'FJ',  # Suva Country Cluster Office: Fiji
-    'WAF': 'SG',  # Sahel country cluster: Senegal
+    'WAF': 'SN',  # Sahel country cluster: Senegal
     'WRD': 'CH',  # IFRC Headquarters: Switzerland
     'SAM': 'PE',  # Andean Country Cluster Office: Peru
     'SEA': 'TH',  # Bangkok Country Cluster Office: Thailand
@@ -160,7 +159,8 @@ class Command(BaseCommand):
             iso_code = REGION_TO_COUNTRY[iso_code]
 
         if len(iso_code) == 2:
-            country = Country.objects.filter(iso__iexact=iso_code).first()
+            # Filter for 'Country' types only
+            country = Country.objects.filter(iso__iexact=iso_code, record_type=1).first()
 
             if country is None:
                 country = Country.objects.filter(name__iexact=country_name).first()
