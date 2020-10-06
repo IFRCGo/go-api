@@ -313,8 +313,13 @@ class ChangePassword(APIView):
         password = request.data.get('password', None)
         new_pass = request.data.get('new_password', None)
         token = request.data.get('token', None)
-        if username is None or password is None:
+        # 'password' is checked for Change Password, 'token' is checked for Password Recovery
+        if username is None or (password is None and token is None):
             return bad_request('Must include a `username` and either a `password` or `token`')
+
+        # TODO validate password
+        if new_pass is None:
+            return bad_request('Must include a `new_password` property')
 
         user = User.objects.filter(username__iexact=username).first()
         if user is None:
@@ -330,10 +335,6 @@ class ChangePassword(APIView):
             if recovery.token != token:
                 return bad_request('Could not authenticate')
             recovery.delete()
-
-        # TODO validate password
-        if new_pass is None:
-            return bad_request('Must include a `new_password` property')
 
         user.set_password(new_pass)
         user.save()
