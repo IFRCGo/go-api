@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.300
+
+### Added
+ - Hotfix - Password Recovery
+
 ## 1.1.299
 
 ### Added
@@ -1273,7 +1278,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.299...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.300...HEAD
+[1.2.300]: https://github.com/IFRCGo/go-api/compare/1.2.299...1.1.300
 [1.2.299]: https://github.com/IFRCGo/go-api/compare/1.2.298...1.1.299
 [1.2.298]: https://github.com/IFRCGo/go-api/compare/1.2.297...1.1.298
 [1.2.297]: https://github.com/IFRCGo/go-api/compare/1.2.296...1.1.297
