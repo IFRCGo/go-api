@@ -37,11 +37,14 @@ def is_valid_domain(email):
 def get_valid_admins(contacts):
     if not type(contacts) is list:
         return False
-    emails = [admin.get('email', None) for admin in contacts]
-    if len(emails) < 1:
+    # Get the emails into an array, don't include None
+    emails = [admin.get('email', None) for admin in contacts if admin.get('email', None)]
+    # Currently we enforce 2 admins to validate
+    if len(emails) < 2:
         return False
-    admin_users = User.objects.filter(email__in=emails)
-    if admin_users.count() != len(emails):
+    is_admin1 = User.objects.filter(email__iexact=emails[0]).exists()
+    is_admin2 = User.objects.filter(email__iexact=emails[1]).exists()
+    if is_admin1 is False or is_admin2 is False:
         return False
     return emails
 
