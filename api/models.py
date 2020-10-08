@@ -435,7 +435,7 @@ class Event(models.Model):
     num_dead = models.IntegerField(verbose_name=_('number of dead'), null=True, blank=True)
     num_missing = models.IntegerField(verbose_name=_('number of missing'), null=True, blank=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), null=True, blank=True)
-    num_displaced = models.IntegerField(verbose_name=_('name'), null=True, blank=True)
+    num_displaced = models.IntegerField(verbose_name=_('number of displaced'), null=True, blank=True)
 
     ifrc_severity_level = EnumIntegerField(AlertLevel, default=0, verbose_name=_('IFRC Severity level'))
     glide = models.CharField(verbose_name=_('glide'), max_length=18, blank=True)
