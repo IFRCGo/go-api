@@ -22,6 +22,22 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('country')
 
 
+class FormAreaAdmin(CompareVersionAdmin):
+    search_fields = ('title',)
+
+
+class FormComponentAdmin(CompareVersionAdmin):
+    search_fields = ('title',)
+
+
+class FormQuestionAdmin(CompareVersionAdmin):
+    search_fields = ('question',)
+
+
+class FormAnswerAdmin(CompareVersionAdmin):
+    search_fields = ('text',)
+
+
 class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'form__country__pk__in'
     region_in = 'form__country__region_id__in'
@@ -57,6 +73,10 @@ class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 
 admin.site.register(models.Form, FormAdmin)
+admin.site.register(models.FormArea, FormAreaAdmin)
+admin.site.register(models.FormComponent, FormComponentAdmin)
+admin.site.register(models.FormQuestion, FormQuestionAdmin)
+admin.site.register(models.FormAnswer, FormAnswerAdmin)
 # admin.site.register(models.FormData, FormDataAdmin) - if we want to edit form data in Django
 admin.site.register(models.NSPhase, NSPhaseAdmin)
 admin.site.register(models.WorkPlan, WorkPlanAdmin)

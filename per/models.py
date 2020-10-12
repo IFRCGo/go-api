@@ -112,7 +112,7 @@ class FormQuestion(models.Model):
     component = models.ForeignKey(FormComponent, verbose_name=_('component'), on_delete=models.PROTECT)
     question = models.CharField(verbose_name=_('question'), max_length=500)
     question_num = models.IntegerField(verbose_name=_('question number'), default=1)
-    answers = models.ManyToManyField(FormAnswer, verbose_name=_('districts'), blank=True)
+    answers = models.ManyToManyField(FormAnswer, verbose_name=_('answers'), blank=True)
 
     def __str__(self):
         return self.question
