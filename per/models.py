@@ -10,21 +10,6 @@ from api.storage import get_storage
 from .questions_data import questions
 
 
-# Write model properties to dictionary
-def to_dict(instance):
-    opts = instance._meta
-    data = {}
-    for f in opts.concrete_fields + opts.many_to_many:
-        if isinstance(f, models.ManyToManyField):
-            if instance.pk is None:
-                data[f.name] = []
-            else:
-                data[f.name] = list(f.value_from_object(instance).values())
-        else:
-            data[f.name] = f.value_from_object(instance)
-    return data
-
-
 class ProcessPhase(IntEnum):
     BASELINE = 0
     ORIENTATION = 1
@@ -94,60 +79,68 @@ class Language(IntEnum):
         ENGLISH = _('english')
 
 
-class Draft(models.Model):
-    """ PER draft form header """
-    code = models.CharField(verbose_name=_('code'), max_length=10)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
-    # FIXME: Use JSONField instead of TextField
-    data = models.TextField(verbose_name=_('data'), null=True, blank=True)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
-
-    class Meta:
-        ordering = ('code', 'created_at')
-        verbose_name = _('Draft Form')
-        verbose_name_plural = _('Draft Forms')
+class FormArea(models.Model):
+    """ PER Form Areas (top level) """
+    title = models.CharField(verbose_name=_('title'), max_length=250)
+    area_num = models.IntegerField(verbose_name=_('area number'), default=1)
 
     def __str__(self):
-        if self.country is None:
-            country = None
-        else:
-            country = self.country.society_name
-        return '%s - %s (%s)' % (self.code, self.user, country)
+        return f'Area {self.area_num} - {self.title}'
+
+
+class FormComponent(models.Model):
+    """ PER Form Components inside Areas """
+    area = models.ForeignKey(FormArea, verbose_name=_('area'), on_delete=models.PROTECT)
+    title = models.CharField(verbose_name=_('title'), max_length=250)
+    component_num = models.IntegerField(verbose_name=_('component number'), default=1)
+    description = models.TextField(verbose_name=_('description'), null=True, blank=True)
+
+    def __str__(self):
+        return f'Component {self.component_num} - {self.title}'
+
+
+class FormAnswer(models.Model):
+    """ PER Form answer possibilities """
+    text = models.CharField(verbose_name=_('text'), max_length=40)
+
+    def __str__(self):
+        return self.text
+
+
+class FormQuestion(models.Model):
+    """ PER Form individual questions inside Components """
+    component = models.ForeignKey(FormComponent, verbose_name=_('component'), on_delete=models.PROTECT)
+    question = models.CharField(verbose_name=_('question'), max_length=500)
+    question_num = models.IntegerField(verbose_name=_('question number'), default=1)
+    answers = models.ManyToManyField(FormAnswer, verbose_name=_('districts'), blank=True)
+
+    def __str__(self):
+        return self.question
 
 
 class Form(models.Model):
-    """ PER form header """
-    code = models.CharField(verbose_name=_('code'), max_length=10)
-    name = models.CharField(verbose_name=_('name'), max_length=100)
+    """ Individually submitted PER Forms """
+    area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
     language = EnumIntegerField(Language, verbose_name=_('language'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    ns = models.CharField(  # redundant, because country has defined ns – later in "more ns/country" case it can be useful.
-        max_length=100, verbose_name=_('NS'), null=True, blank=True
-    )
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
-    submitted_at = models.DateTimeField(verbose_name=_('submitted at'), default=timezone.now)
-    started_at = models.DateTimeField(verbose_name=_('started at'), default=timezone.now)
-    ended_at = models.DateTimeField(verbose_name=_('ended at'), default=timezone.now)
-    finalized = models.BooleanField(verbose_name=_('finalized'), default=False)
-    validated = models.BooleanField(verbose_name=_('validated'), default=False)
-    ip_address = models.GenericIPAddressField(verbose_name=_('IP address'), default='192.168.0.1')
-    unique_id = models.UUIDField(verbose_name=_('unique id'), default=uuid.uuid4, editable=False, unique=True)
+    is_draft = models.BooleanField(verbose_name=_('is draft'), default=True)
+    is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
+    is_validated = models.BooleanField(verbose_name=_('is validated'), default=False)
     comment = models.TextField(verbose_name=_('comment'), null=True, blank=True)  # form level comment
 
     class Meta:
-        ordering = ('code', 'name', 'language', 'created_at')
+        ordering = ('area', 'created_at')
         verbose_name = _('Form')
         verbose_name_plural = _('Forms')
 
     def __str__(self):
-        if self.country is None:
-            name = None
-        else:
-            name = self.country.society_name
-        return '%s - %s (%s, %s)' % (self.code, self.name, self.language, name)
+        society_name = ''
+        if self.country:
+            society_name = self.country.society_name
+        return f'{self.area} ({society_name})'
 
 
 def question_details(question_id, code):
@@ -158,18 +151,22 @@ def question_details(question_id, code):
 class FormData(models.Model):
     """ PER form data """
     form = models.ForeignKey(Form, verbose_name=_('form'), on_delete=models.CASCADE)
-    question_id = models.CharField(verbose_name=_('question id'), max_length=10)
-    selected_option = EnumIntegerField(Status, verbose_name=_('selected option'), )
-    notes = models.TextField(verbose_name=_('notes'))
+    question = models.ForeignKey(FormQuestion, verbose_name=_('question'), null=True, on_delete=models.CASCADE)
+    selected_answer = models.ForeignKey(FormAnswer, verbose_name=_('answer'), null=True, on_delete=models.CASCADE)
+    notes = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
     class Meta:
-        ordering = ('form', 'question_id')
+        ordering = ('form', 'question__question_num')
         verbose_name = _('Form Data')
         verbose_name_plural = _('Form Data')
 
     def __str__(self):
-        # return '%s / %s' % (self.question_id, self.form)
-        return question_details(self.question_id, self.form.code)
+        if self.question:
+            if self.question.component:
+                return f'A{self.question.component.area.area_num} \
+                         C{self.question.component.component_num} Q{self.question.question_num}'
+            return f'Q{self.question.question_num}'
+        return ''
 
 
 class PriorityValue(IntEnum):

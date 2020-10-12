@@ -6,7 +6,8 @@ from reversion_compare.admin import CompareVersionAdmin
 
 class FormDataInline(admin.TabularInline):
     model = models.FormData
-    readonly_fields = ('question_id', 'selected_option', 'notes',)
+    # TODO: INCLUDE QUESTION ID/NAME SOMEHOW
+    readonly_fields = ('selected_answer', 'notes',)
     can_delete = False
 
 

@@ -7,17 +7,8 @@ from api.serializers import (
     RegoCountrySerializer, UserSerializer
 )
 from .models import (
-    Draft, Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
+    Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
 )
-
-
-class ListDraftSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    country = RegoCountrySerializer()
-
-    class Meta:
-        model = Draft
-        fields = ('country', 'code', 'user', 'data', 'id',)
 
 
 class FormStatSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):

@@ -44,14 +44,12 @@ from registrations.views import (
     ValidateUser
 )
 from per.views import (
-    DraftSent,
     FormSent,
     FormEdit,
     WorkPlanSent,
     OverviewSent,
     DelWorkPlan,
     DelOverview,
-    DelDraft,
 )
 from databank.views import CountryOverviewViewSet
 
@@ -93,7 +91,6 @@ router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 router.register(r'per', per_views.FormViewset, base_name='per')
-router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset, base_name='percountry')
@@ -135,12 +132,10 @@ urlpatterns = [
     url(r'^register', NewRegistration.as_view()),
     url(r'^sendperform', FormSent.as_view()),
     url(r'^editperform', FormEdit.as_view()),
-    url(r'^sendperdraft', DraftSent.as_view()),
     url(r'^sendperoverview', OverviewSent.as_view()),
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
     url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
     url(r'^api/v2/del_peroverview', DelOverview.as_view()),
-    url(r'^api/v2/del_perdraft', DelDraft.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),

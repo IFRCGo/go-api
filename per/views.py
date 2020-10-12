@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from .models import (
-    Draft, Form, FormData, WorkPlan, Overview
+    Form, FormData, WorkPlan, Overview
 )
 from api.views import bad_request
 
@@ -26,13 +26,12 @@ def get_now_str():
     return str(timezone.now())
 
 
+# TODO: REWRITE MOST VIEWS
 class FormSent(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        ip = get_client_ip(request)
-
         required_fields = [
             'user_id',
             'code',
@@ -47,12 +46,9 @@ class FormSent(APIView):
         name = request.data.get('name', None)
         code = request.data.get('code', None)
         language = request.data.get('language', None)
-        started_at = request.data.get('started_at', get_now_str())
-        ended_at = request.data.get('ended_at', get_now_str())
-        submitted_at = request.data.get('submitted_at', get_now_str())
         comment = request.data.get('comment', None)
-        validated = request.data.get('validated', False)
-        finalized = request.data.get('finalized', False)
+        is_validated = request.data.get('is_validated', False)
+        is_finalized = request.data.get('is_finalized', False)
         user_id = comment = request.data.get('user_id', None)
         country_id = request.data.get('country_id', None)
         ns = request.data.get('ns', None)
@@ -70,14 +66,9 @@ class FormSent(APIView):
                 user_id=user_id,
                 country_id=country_id,
                 ns=ns,
-                ip_address=ip,
-                started_at=started_at,
-                ended_at=ended_at,
-                submitted_at=submitted_at,
                 comment=comment,
-                # unique_id  = raw['unique_id'], # only KoBo form provided
-                validated=validated,
-                finalized=finalized
+                is_validated=is_validated,
+                is_finalized=is_finalized
             )
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
@@ -112,17 +103,13 @@ class FormEdit(APIView):
         if form is None:
             return bad_request('Could not find PER form record.')
 
-        started_at = request.data.get('started_at', form.started_at)
-        ended_at = request.data.get('ended_at', get_now_str())
-        submitted_at = request.data.get('submitted_at', get_now_str())
         name = request.data.get('name', form.name)
         language = request.data.get('language', form.language)
         country_id = request.data.get('country_id', form.country_id)
         ns = request.data.get('ns', form.ns)
-        ip = request.data.get('ip_address', form.ip_address)
         comment = request.data.get('comment', form.comment)
-        validated = request.data.get('validated', form.validated)
-        finalized = request.data.get('finalized', form.finalized)
+        is_validated = request.data.get('is_validated', form.is_validated)
+        is_finalized = request.data.get('is_finalized', form.is_finalized)
         data = request.data.get('data', None)
 
         # Update the Form properties and try to save
@@ -131,13 +118,9 @@ class FormEdit(APIView):
             form.language = language
             form.country_id = country_id
             form.ns = ns
-            form.ip_address = ip
-            form.started_at = started_at
-            form.ended_at = ended_at
-            form.submitted_at = submitted_at
             form.comment = comment
-            form.validated = validated
-            form.finalized = finalized
+            form.is_validated = is_validated
+            form.is_finalized = is_finalized
             form.save()
         except Exception:
             logger.error('Could not change PER form record.', exc_info=True)
@@ -163,39 +146,6 @@ class FormEdit(APIView):
             except Exception as err:
                 logger.error('Could not change PER formdata record.', exc_info=True)
                 return bad_request('Could not change PER formdata record. {}'.format(err))
-
-        return JsonResponse({'status': 'ok'})
-
-
-class DraftSent(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request):
-        required_fields = ('code', 'user_id')
-        missing_fields = [field for field in required_fields if field not in request.data]
-        if missing_fields:
-            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
-
-        code = request.data.get('code', None)
-        if ' ' in code:
-            return bad_request('Draft "code" can not contain spaces.')
-
-        country_id = request.data.get('country_id', None)
-        user_id = request.data.get('user_id', None)
-        data = request.data.get('data', None)
-
-        try:
-            # If exists (a previous draft), delete it.
-            Draft.objects.filter(code=code, country_id=country_id, user_id=user_id).delete()
-            Draft.objects.create(
-                code=code,
-                user_id=user_id,
-                data=data,
-                country_id=country_id
-            )
-        except Exception:
-            return bad_request('Could not create PER draft.')
 
         return JsonResponse({'status': 'ok'})
 
@@ -330,22 +280,5 @@ class DelOverview(APIView):
             Overview.objects.filter(id=overview_id).delete()
         except Exception:
             return bad_request('Could not delete PER Overview.')
-
-        return JsonResponse({'status': 'ok'})
-
-
-class DelDraft(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request):
-        draft_id = request.data.get('id', None)
-        if draft_id is None:
-            return bad_request('Need to provide Draft ID.')
-
-        try:
-            Draft.objects.filter(id=draft_id).delete()
-        except Exception:
-            return bad_request('Could not delete PER Draft.')
 
         return JsonResponse({'status': 'ok'})

@@ -23,11 +23,10 @@ import pytz
 
 from django.contrib.auth.models import User, Group
 from .models import (
-    Draft, Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
+    Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
 )
 
 from .serializers import (
-    ListDraftSerializer,
     FormStatSerializer,
     ListFormSerializer,
     ListFormDataSerializer,
@@ -41,31 +40,6 @@ from .serializers import (
     ListNiceDocSerializer,
 )
 
-class DraftFilter(filters.FilterSet):
-    user = filters.NumberFilter(field_name='user', lookup_expr='exact')
-    code = filters.CharFilter(field_name='code', lookup_expr='exact')
-    country = filters.CharFilter(field_name='country', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    class Meta:
-        model = Draft
-        fields = {
-            'user': ('exact',),
-            'code': ('exact',),
-        }
-
-class DraftViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Draft.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    filter_class = DraftFilter
-    # It is not checked whether this user is the same as the saver. Maybe (for helpers) it is not needed really.
-
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return ListDraftSerializer
-#       else:
-#           return DetailDraftSerializer
-        ordering_fields = ('name',)
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Form.objects.all()
