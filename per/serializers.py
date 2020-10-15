@@ -7,7 +7,7 @@ from api.serializers import (
     RegoCountrySerializer, UserSerializer
 )
 from .models import (
-    Form, FormData, NSPhase, WorkPlan, Overview, NiceDocument
+    Form, FormArea, FormComponent, FormQuestion, FormAnswer, FormData, NSPhase, WorkPlan, Overview, NiceDocument
 )
 
 
@@ -19,14 +19,44 @@ class FormStatSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer
         fields = ('name', 'code', 'country_id', 'language', 'language_display', 'id',)
 
 
+class FormAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormArea
+        fields = '__all__'
+
+
+class FormComponentSerializer(serializers.ModelSerializer):
+    area = FormAreaSerializer()
+
+    class Meta:
+        model = FormComponent
+        fields = ('area', 'title', 'component_num', 'description', 'id')
+
+
+class FormAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormAnswer
+        fields = '__all__'
+
+
+class FormQuestionSerializer(serializers.ModelSerializer):
+    component = FormComponentSerializer()
+    answers = FormAnswerSerializer(many=True)
+
+    class Meta:
+        model = FormQuestion
+        fields = ('component', 'question', 'question_num', 'answers', 'id')
+
+
 class ListFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    area = FormAreaSerializer()
     country = RegoCountrySerializer()
     user = UserSerializer()
     language_display = serializers.CharField(source='get_language_display', read_only=True)
 
     class Meta:
         model = Form
-        fields = ('name', 'code', 'updated_at', 'user', 'country', 'language', 'language_display', 'id',)
+        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'id',)
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
