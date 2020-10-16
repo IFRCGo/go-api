@@ -33,12 +33,23 @@ from .serializers import (
 )
 
 
+class FormFilter(filters.FilterSet):
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+
+    class Meta:
+        model = Form
+        fields = {
+            'id': ('exact',)
+        }
+
+
 class FormViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Form.objects.all()
+    queryset = Form.objects.all().select_related('user', 'area', 'country')
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+    filter_class = FormFilter
     # It is not checked whether this user is the same as the saver. Maybe (for helpers) it is not needed really.
 
     def get_queryset(self):
@@ -75,7 +86,14 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = FormDataFilter
 
     def get_queryset(self):
-        queryset = FormData.objects.all()
+        queryset = FormData.objects.all().select_related(
+            'question',
+            'selected_answer',
+            'question__component',
+            'question__component__area'
+        ).prefetch_related(
+            'question__answers'
+        )
         cond1 = Q()
         cond2 = Q()
         if 'new' in self.request.query_params.keys():

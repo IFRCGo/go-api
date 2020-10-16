@@ -599,6 +599,12 @@ class UserSerializer(ModelSerializer):
         return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
+class UserNameSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
+
+
 class UserMeSerializer(UserSerializer):
     is_admin_for_countries = serializers.SerializerMethodField()
     is_admin_for_regions = serializers.SerializerMethodField()

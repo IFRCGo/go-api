@@ -6,6 +6,7 @@ from django.db.models import Q
 # If the user does not have specific permissions for any country or region,
 # the result is an empty queryset.
 
+
 class RegionRestrictedAdmin(admin.ModelAdmin):
     def get_request_user_regions(self, request):
         permissions = request.user.get_all_permissions()
@@ -32,26 +33,26 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
         if not len(countries) and not len(regions):
             return queryset.none()
 
-        if dispatch == 0: # Django admin filtering
-        # Create an OR filter for records relating to this country or region
+        if dispatch == 0:  # Django admin filtering
+            # Create an OR filter for records relating to this country or region
             country_in = getattr(self, 'country_in', None)
             region_in = getattr(self, 'region_in', None)
         elif dispatch == 1:
-        # From drf_views.py - collection of PER-user-relevant PER form headers
+            # From drf_views.py - collection of PER-user-relevant PER form headers
             from .admin import FormAdmin
             country_in = FormAdmin.country_in
             region_in = FormAdmin.region_in
         elif dispatch == 2:
-        # From drf_views.py - collection of PER-user-relevant PER data
+            # From drf_views.py - collection of PER-user-relevant PER data
             from .admin import FormDataAdmin
             country_in = FormDataAdmin.country_in
             region_in = FormDataAdmin.region_in
         elif dispatch == 3:
-        # From drf_views.py - collection of PER-user-relevant countries
+            # From drf_views.py - collection of PER-user-relevant countries
             country_in = 'pk__in'
             region_in = 'region_id__in'
         elif dispatch == 4:
-        # From drf_views.py NiceDocuments, PERDocsViewset - collection of PER-user-relevant countries for Docs
+            # From drf_views.py NiceDocuments, PERDocsViewset - collection of PER-user-relevant countries for Docs
             country_in = 'country_id__in'
             region_in = 'country__region__in'
 

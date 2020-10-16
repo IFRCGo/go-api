@@ -4,7 +4,7 @@ from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from api.models import Region
 from api.serializers import (
-    RegoCountrySerializer, UserSerializer
+    RegoCountrySerializer, UserNameSerializer
 )
 from .models import (
     Form, FormArea, FormComponent, FormQuestion, FormAnswer, FormData, NSPhase, WorkPlan, Overview, NiceDocument
@@ -51,20 +51,21 @@ class FormQuestionSerializer(serializers.ModelSerializer):
 class ListFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     area = FormAreaSerializer()
     country = RegoCountrySerializer()
-    user = UserSerializer()
+    user = UserNameSerializer()
     language_display = serializers.CharField(source='get_language_display', read_only=True)
 
     class Meta:
         model = Form
-        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'id',)
+        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'id')
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
-    selected_option_display = serializers.CharField(source='get_selected_option_display', read_only=True)
+    selected_answer = FormAnswerSerializer()
+    question = FormQuestionSerializer()
 
     class Meta:
         model = FormData
-        fields = ('form', 'question_id', 'selected_option', 'selected_option_display', 'notes')
+        fields = ('form', 'question', 'selected_answer', 'notes', 'id')
 
 
 class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
