@@ -28,10 +28,35 @@ class FormAreaAdmin(CompareVersionAdmin):
 
 class FormComponentAdmin(CompareVersionAdmin):
     search_fields = ('title',)
+    list_display = ('title', 'area_number', 'component_number')
+
+    def component_number(self, obj):
+        return f'{obj.component_num or ""}{obj.component_letter or ""}'
+
+    def area_number(self, obj):
+        return obj.area.area_num
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+                   .order_by('area__area_num', 'component_num', 'component_letter')
+                   .select_related('area')
+        )
 
 
 class FormQuestionAdmin(CompareVersionAdmin):
     search_fields = ('question',)
+    list_display = ('question', 'component_number', 'question_num')
+
+    def component_number(self, obj):
+        return f'{obj.component.component_num or ""}{obj.component.component_letter or ""}'
+
+    def get_queryset(self, request):
+        return (
+            super().get_queryset(request)
+                   .order_by('component__component_num', 'question_num')
+                   .select_related('component')
+        )
 
 
 class FormAnswerAdmin(CompareVersionAdmin):

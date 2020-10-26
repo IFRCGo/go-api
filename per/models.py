@@ -93,6 +93,7 @@ class FormComponent(models.Model):
     area = models.ForeignKey(FormArea, verbose_name=_('area'), on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_('title'), max_length=250)
     component_num = models.IntegerField(verbose_name=_('component number'), default=1)
+    component_letter = models.CharField(verbose_name=_('component letter'), max_length=3, null=True, blank=True)
     description = models.TextField(verbose_name=_('description'), null=True, blank=True)
 
     def __str__(self):

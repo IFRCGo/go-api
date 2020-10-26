@@ -26,126 +26,119 @@ def get_now_str():
     return str(timezone.now())
 
 
-# TODO: REWRITE MOST VIEWS
-class FormSent(APIView):
+def create_form_object(aid, lang, uid, cid, comm, is_draft, is_val, is_fin):
+    form = Form.objects.create(
+        area_id=aid,
+        language=lang,  # FIXME: this is probably not needed? defaulting to english
+        user_id=uid,
+        country_id=cid,
+        comment=comm,
+        is_draft=is_draft,
+        is_validated=is_val,
+        is_finalized=is_fin
+    )
+    return form
+
+
+class CreatePerForm(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        required_fields = [
-            'user_id',
-            'code',
-            'name',
-            'language',
-        ]
-
-        missing_fields = [field for field in required_fields if field not in request.data]
-        if len(missing_fields):
-            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
-
-        name = request.data.get('name', None)
-        code = request.data.get('code', None)
-        language = request.data.get('language', None)
-        comment = request.data.get('comment', None)
-        is_validated = request.data.get('is_validated', False)
-        is_finalized = request.data.get('is_finalized', False)
-        user_id = comment = request.data.get('user_id', None)
+        area_id = request.data.get('area_id', None)
+        user_id = request.data.get('user_id', None)
         country_id = request.data.get('country_id', None)
-        ns = request.data.get('ns', None)
-        data = request.data.get('data', None)
+        is_draft = request.data.get('is_draft', None)
+        is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
+        is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
+        comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
+        questions = request.data.get('questions', None)
 
-        if ' ' in code:
-            return bad_request('Code can not contain spaces, please choose a different one.')
+        if questions is None:
+            return bad_request('Questions are missing from the request.')
 
-        # Create the Form object
         try:
-            form = Form.objects.create(
-                code=code,
-                name=name,
-                language=language,
-                user_id=user_id,
-                country_id=country_id,
-                ns=ns,
-                comment=comment,
-                is_validated=is_validated,
-                is_finalized=is_finalized
-            )
+            form = create_form_object(area_id, 2, user_id, country_id, comment, is_draft, is_validated, is_finalized)
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
             return bad_request('Could not insert PER form record.')
 
         # Create FormData of the Form
-        if data:
-            try:
-                with transaction.atomic():  # all or nothing
-                    for rubr in data:
-                        FormData.objects.create(form=form,
-                                                question_id=rubr['id'],
-                                                selected_option=rubr['op'],
-                                                notes=rubr['nt'])
-            except Exception:
-                logger.error('Could not insert PER formdata record.', exc_info=True)
-                return bad_request('Could not insert PER formdata record.')
+        try:
+            with transaction.atomic():  # all or nothing
+                for qid in questions:
+                    FormData.objects.create(
+                        form=form,
+                        question_id=qid,
+                        selected_answer_id=questions[qid]['selectedAnswer'],
+                        notes=questions[qid]['notes']
+                    )
+        except Exception:
+            logger.error('Could not insert PER formdata record.', exc_info=True)
+            return bad_request('Could not insert PER formdata record.')
 
         return JsonResponse({'status': 'ok'})
 
 
-class FormEdit(APIView):
+class EditPerForm(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        # Get the PER Form by ID
         form_id = request.data.get('id', None)
         if form_id is None:
-            return bad_request('Could not complete request. Please submit %s' % form_id)
-
+            return bad_request(f'Could not complete request. Please submit {form_id}')
         form = Form.objects.filter(pk=form_id).first()
         if form is None:
             return bad_request('Could not find PER form record.')
 
-        name = request.data.get('name', form.name)
-        language = request.data.get('language', form.language)
-        country_id = request.data.get('country_id', form.country_id)
-        ns = request.data.get('ns', form.ns)
-        comment = request.data.get('comment', form.comment)
-        is_validated = request.data.get('is_validated', form.is_validated)
-        is_finalized = request.data.get('is_finalized', form.is_finalized)
-        data = request.data.get('data', None)
+        area_id = request.data.get('area_id', None)
+        user_id = request.data.get('user_id', None)
+        country_id = request.data.get('country_id', None)
+        is_draft = request.data.get('is_draft', None)
+        is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
+        is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
+        comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
+        questions = request.data.get('questions', None)
 
-        # Update the Form properties and try to save
+        if questions is None:
+            return bad_request('Questions are missing from the request.')
+
+        # Update the Form
         try:
-            form.name = name
-            form.language = language
+            form.area_id = area_id
             form.country_id = country_id
-            form.ns = ns
             form.comment = comment
-            form.is_validated = is_validated
+            form.is_draft = is_draft
             form.is_finalized = is_finalized
+            form.is_validated = is_validated
             form.save()
         except Exception:
             logger.error('Could not change PER form record.', exc_info=True)
             return bad_request('Could not change PER form record.')
 
-        # Update Form Data of the Form
-        if data:
-            try:
-                with transaction.atomic():  # all or nothing
-                    for rubr in data:
-                        if rubr['id'] is None:
-                            raise Exception('PER Form Data ID was missing. Form ID: {}'.format(form_id))
+        # Update the FormData
+        try:
+            with transaction.atomic():  # all or nothing
+                for qid in questions:
+                    form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
+                    # Probably newly added question
+                    if not form_data:
+                        try:
+                            form = create_form_object(
+                                area_id, 2, user_id, country_id, comment, is_draft, is_validated, is_finalized
+                            )
+                        except Exception:
+                            logger.error('Could not insert PER form record.', exc_info=True)
+                            return bad_request('Could not insert PER form record.')
 
-                        form_data = FormData.objects.filter(form_id=form_id, question_id=rubr['id']).first()
-                        if not form_data:
-                            raise Exception('Could not find PER Form Data record. \
-                                            Form ID: {} Form Data ID: {}'.format(form_id, rubr['id']))
-
-                        form_data.selected_option = rubr['op'] if rubr['op'] else form_data.selected_option
-                        form_data.notes = rubr['nt'] if rubr['nt'] else form_data.notes
-
-                        form_data.save()
-            except Exception as err:
-                logger.error('Could not change PER formdata record.', exc_info=True)
-                return bad_request('Could not change PER formdata record. {}'.format(err))
+                    form_data.selected_answer_id = questions[qid]['selectedAnswer'] or form_data.selected_answer_id
+                    form_data.notes = questions[qid]['notes'] or form_data.notes
+                    form_data.save()
+        except Exception:
+            logger.error('Could not change PER formdata record.', exc_info=True)
+            return bad_request('Could not change PER formdata record.')
 
         return JsonResponse({'status': 'ok'})
 
