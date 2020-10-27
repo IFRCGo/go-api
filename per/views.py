@@ -26,20 +26,6 @@ def get_now_str():
     return str(timezone.now())
 
 
-def create_form_object(aid, lang, uid, cid, comm, is_draft, is_val, is_fin):
-    form = Form.objects.create(
-        area_id=aid,
-        language=lang,  # FIXME: this is probably not needed? defaulting to english
-        user_id=uid,
-        country_id=cid,
-        comment=comm,
-        is_draft=is_draft,
-        is_validated=is_val,
-        is_finalized=is_fin
-    )
-    return form
-
-
 class CreatePerForm(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
@@ -58,7 +44,16 @@ class CreatePerForm(APIView):
             return bad_request('Questions are missing from the request.')
 
         try:
-            form = create_form_object(area_id, 2, user_id, country_id, comment, is_draft, is_validated, is_finalized)
+            form = Form.objects.create(
+                area_id=area_id,
+                language=2,  # FIXME: this is probably not needed? defaulting to english
+                user_id=user_id,
+                country_id=country_id,
+                comment=comment,
+                is_draft=is_draft,
+                is_validated=is_validated,
+                is_finalized=is_finalized
+            )
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
             return bad_request('Could not insert PER form record.')
@@ -94,7 +89,6 @@ class EditPerForm(APIView):
             return bad_request('Could not find PER form record.')
 
         area_id = request.data.get('area_id', None)
-        user_id = request.data.get('user_id', None)
         country_id = request.data.get('country_id', None)
         is_draft = request.data.get('is_draft', None)
         is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
@@ -123,19 +117,22 @@ class EditPerForm(APIView):
             with transaction.atomic():  # all or nothing
                 for qid in questions:
                     form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
-                    # Probably newly added question
                     if not form_data:
+                        # Probably newly added question
                         try:
-                            form = create_form_object(
-                                area_id, 2, user_id, country_id, comment, is_draft, is_validated, is_finalized
+                            form_data = FormData.objects.create(
+                                form=form,
+                                question_id=qid,
+                                selected_answer_id=questions[qid]['selectedAnswer'],
+                                notes=questions[qid]['notes']
                             )
                         except Exception:
                             logger.error('Could not insert PER form record.', exc_info=True)
                             return bad_request('Could not insert PER form record.')
-
-                    form_data.selected_answer_id = questions[qid]['selectedAnswer'] or form_data.selected_answer_id
-                    form_data.notes = questions[qid]['notes'] or form_data.notes
-                    form_data.save()
+                    else:
+                        form_data.selected_answer_id = questions[qid]['selectedAnswer'] or form_data.selected_answer_id
+                        form_data.notes = questions[qid]['notes'] or form_data.notes
+                        form_data.save()
         except Exception:
             logger.error('Could not change PER formdata record.', exc_info=True)
             return bad_request('Could not change PER formdata record.')

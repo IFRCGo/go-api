@@ -61,11 +61,10 @@ class ListFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     selected_answer = FormAnswerSerializer()
-    question = FormQuestionSerializer()
 
     class Meta:
         model = FormData
-        fields = ('form', 'question', 'selected_answer', 'notes', 'id')
+        fields = ('form', 'question_id', 'selected_answer', 'notes', 'id')
 
 
 class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
