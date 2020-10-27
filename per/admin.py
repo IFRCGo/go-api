@@ -6,9 +6,16 @@ from reversion_compare.admin import CompareVersionAdmin
 
 class FormDataInline(admin.TabularInline):
     model = models.FormData
-    # TODO: INCLUDE QUESTION ID/NAME SOMEHOW
-    readonly_fields = ('selected_answer', 'notes',)
+    readonly_fields = ('question', 'selected_answer', 'notes')
     can_delete = False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'selected_answer',
+            'question',
+            'question__component',
+            'question__component__area'
+        ).prefetch_related('question__answers')
 
 
 class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
