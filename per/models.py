@@ -1,8 +1,6 @@
-import uuid
 from api.models import Country
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
@@ -68,6 +66,7 @@ class Status(IntEnum):
         HIGH_PERFORMANCE = _('high performance')
 
 
+# TODO: can't remove because it's in the 0020 migration...
 class Language(IntEnum):
     SPANISH = 0
     FRENCH = 1
@@ -122,11 +121,13 @@ class FormQuestion(models.Model):
 class Form(models.Model):
     """ Individually submitted PER Forms """
     area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
-    language = EnumIntegerField(Language, verbose_name=_('language'))
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    started_at = models.DateTimeField(verbose_name=_('started at'), blank=True, null=True)
+    saved_at = models.DateTimeField(verbose_name=_('saved at'), blank=True, null=True)
+    submitted_at = models.DateTimeField(verbose_name=_('updated at'), blank=True, null=True)
     is_draft = models.BooleanField(verbose_name=_('is draft'), default=True)
     is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
     is_validated = models.BooleanField(verbose_name=_('is validated'), default=False)
@@ -250,7 +251,8 @@ class CAssessmentType(IntEnum):
 
 
 class Overview(models.Model):
-    # Without related_name Django gives: Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
+    # Without related_name Django gives:
+    # Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
     country = models.ForeignKey(
         Country, verbose_name=_('country'), related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -277,6 +279,7 @@ class Overview(models.Model):
     skype_address = models.CharField(verbose_name=_('skype address'), max_length=90, null=True, blank=True)
     date_of_mid_term_review = models.DateTimeField(verbose_name=_('date of mid term review'))
     approximate_date_next_capacity_assmt = models.DateTimeField(verbose_name=_('approximate date next capacity assessment'))
+    is_draft = models.BooleanField(verbose_name=_('is draft'), default=True)
 
     class Meta:
         ordering = ('country',)
@@ -288,7 +291,7 @@ class Overview(models.Model):
             name = None
         else:
             name = self.country.society_name
-        return '%s (%s)' % (name, self.focal_point_name)
+        return f'{name} ({self.focal_point_name})'
 
 
 class Visibilities(IntEnum):

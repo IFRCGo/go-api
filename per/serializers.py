@@ -56,7 +56,7 @@ class ListFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer
 
     class Meta:
         model = Form
-        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'id')
+        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'is_draft', 'id')
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
