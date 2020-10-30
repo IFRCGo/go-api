@@ -150,10 +150,8 @@ class DeletePerForm(APIView):
             return bad_request('Need to provide Form ID.')
 
         try:
-            form = Form.objects.filter(id=form_id, user=user, is_draft=True).first()
-            if form:
-                form.delete()
-                FormData.objects.filter(form_id=form_id).delete()
+            # Also deletes FormData since CASCADE fk
+            Form.objects.filter(id=form_id, user=user, is_draft=True).delete()
         except Exception:
             return bad_request('Could not delete PER Form.')
 

@@ -66,7 +66,7 @@ class Status(IntEnum):
         HIGH_PERFORMANCE = _('high performance')
 
 
-# TODO: can't remove because it's in the 0020 migration...
+# FIXME: can't remove because it's in the 0020 migration...
 class Language(IntEnum):
     SPANISH = 0
     FRENCH = 1
