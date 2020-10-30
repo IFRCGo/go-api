@@ -12,7 +12,7 @@ from datetime import datetime
 import pytz
 
 from .models import (
-    Form, FormData, FormArea, FormComponent, FormQuestion, FormAnswer, NSPhase, WorkPlan, Overview, NiceDocument
+    Form, FormData, FormArea, FormComponent, FormQuestion, FormAnswer, NSPhase, WorkPlan, Overview, NiceDocument, AssessmentType
 )
 
 from .serializers import (
@@ -25,6 +25,7 @@ from .serializers import (
     NSPhaseSerializer,
     WorkPlanSerializer,
     OverviewSerializer,
+    AssessmentTypeSerializer,
     ListNiceDocSerializer,
     FormAreaSerializer,
     FormComponentSerializer,
@@ -402,7 +403,7 @@ class OverviewFilter(filters.FilterSet):
 
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Overview Viewset"""
-    queryset = Overview.objects.all()
+    queryset = Overview.objects.all().select_related('country', 'user', 'type_of_ca', 'type_of_last_ca')
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = OverviewFilter
@@ -420,7 +421,16 @@ class OverviewStrictViewset(OverviewViewset):
 
     def get_queryset(self):
         queryset = Overview.objects.all()
-        return self.get_filtered_queryset(self.request, queryset, 4)
+        return (
+            self.get_filtered_queryset(self.request, queryset, 4)
+                .select_related('country', 'user', 'type_of_ca', 'type_of_last_ca')
+        )
+
+
+class AssessmentTypeViewset(viewsets.ReadOnlyModelViewSet):
+    """ PER Overview's capacity assessment types """
+    queryset = AssessmentType.objects.all()
+    serializer_class = AssessmentTypeSerializer
 
 
 class FormAreaFilter(filters.FilterSet):

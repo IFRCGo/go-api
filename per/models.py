@@ -237,6 +237,7 @@ class WorkPlan(models.Model):
         return '%s [%s %s]' % (name, self.code, self.question_id)
 
 
+# FIXME: can't remove because it's in the 0020 migration...
 class CAssessmentType(IntEnum):
     SELF_ASSESSMENT = 0
     SIMULATION = 1
@@ -250,6 +251,17 @@ class CAssessmentType(IntEnum):
         POST_OPERATIONAL = _('post operational')
 
 
+class AssessmentType(models.Model):
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('PER Assessment Type')
+        verbose_name_plural = _('PER Assessment Types')
+
+    def __str__(self):
+        return self.name
+
+
 class Overview(models.Model):
     # Without related_name Django gives:
     # Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
@@ -259,14 +271,22 @@ class Overview(models.Model):
     # national_society = models.CharField(max_length=90,null=True, blank=True) Redundant
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
     date_of_current_capacity_assessment = models.DateTimeField(verbose_name=_('date of current capacity assessment'))
-    type_of_capacity_assessment = EnumIntegerField(
-        CAssessmentType, verbose_name=_('type of capacity assessment'), default=CAssessmentType.SELF_ASSESSMENT
+    type_of_ca = models.ForeignKey(
+        AssessmentType,
+        verbose_name=_('type of capacity assessment'),
+        related_name='type_of_capacity_assessment',
+        null=True,
+        on_delete=models.SET_NULL
     )
     date_of_last_capacity_assessment = models.DateTimeField(
         verbose_name=_('date of last capacity assessment'), null=True, blank=True
     )
-    type_of_last_capacity_assessment = EnumIntegerField(
-        CAssessmentType, verbose_name=_('type of last capacity assessment'), default=CAssessmentType.SELF_ASSESSMENT
+    type_of_last_ca = models.ForeignKey(
+        AssessmentType,
+        verbose_name=_('type of last capacity assessment'),
+        related_name='type_of_last_capacity_assessment',
+        null=True,
+        on_delete=models.SET_NULL
     )
     branch_involved = models.CharField(verbose_name=_('branch involved'), max_length=90, null=True, blank=True)
     focal_point_name = models.CharField(verbose_name=_('focal point name'), max_length=90, null=True, blank=True)

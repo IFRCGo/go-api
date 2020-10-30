@@ -46,7 +46,6 @@ class CreatePerForm(APIView):
         try:
             form = Form.objects.create(
                 area_id=area_id,
-                language=2,  # FIXME: this is probably not needed? defaulting to english
                 user_id=user_id,
                 country_id=country_id,
                 comment=comment,
@@ -75,7 +74,7 @@ class CreatePerForm(APIView):
         return JsonResponse({'status': 'ok'})
 
 
-class EditPerForm(APIView):
+class UpdatePerForm(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
@@ -83,7 +82,7 @@ class EditPerForm(APIView):
         # Get the PER Form by ID
         form_id = request.data.get('id', None)
         if form_id is None:
-            return bad_request(f'Could not complete request. Please submit {form_id}')
+            return bad_request('Could not complete request. Please submit include id')
         form = Form.objects.filter(pk=form_id).first()
         if form is None:
             return bad_request('Could not find PER form record.')
@@ -140,6 +139,27 @@ class EditPerForm(APIView):
         return JsonResponse({'status': 'ok'})
 
 
+class DeletePerForm(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        form_id = request.data.get('id', None)
+        if form_id is None:
+            return bad_request('Need to provide Form ID.')
+
+        try:
+            form = Form.objects.filter(id=form_id, user=user, is_draft=True).first()
+            if form:
+                form.delete()
+                FormData.objects.filter(form_id=form_id).delete()
+        except Exception:
+            return bad_request('Could not delete PER Form.')
+
+        return JsonResponse({'status': 'ok'})
+
+
 class WorkPlanSent(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
@@ -189,7 +209,7 @@ class WorkPlanSent(APIView):
         return JsonResponse({'status': 'ok'})
 
 
-class OverviewSent(APIView):
+class CreatePerOverview(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
 
@@ -199,43 +219,120 @@ class OverviewSent(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        country_id = request.data.get('country_id', None)
-        user_id = request.data.get('user_id', None)
+        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
+        branch_involved = request.data.get('branch_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', get_now_str())
-        type_of_capacity_assessment = request.data.get('type_of_capacity_assessment', None)
-        branch_involved = request.data.get('branch_involved', None)
+        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', get_now_str())
+        date_of_mid_term_review = request.data.get('date_of_mid_term_review', get_now_str())
+        facilitated_by = request.data.get('facilitated_by', None)
+        facilitator_email = request.data.get('facilitator_email', None)
+        focus = request.data.get('focus', None)
         focal_point_name = request.data.get('focal_point_name', None)
         focal_point_email = request.data.get('focal_point_email', None)
         had_previous_assessment = request.data.get('had_previous_assessment', None)
-        focus = request.data.get('focus', None)
-        facilitated_by = request.data.get('facilitated_by', None)
-        facilitator_email = request.data.get('facilitator_email', None)
+        is_draft = request.data.get('is_draft', None)
         phone_number = request.data.get('phone_number', None)
         skype_address = request.data.get('skype_address', None)
-        date_of_mid_term_review = request.data.get('date_of_mid_term_review', get_now_str())
-        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
+        type_of_ca_id = request.data.get('type_of_ca', None)
+        user_id = request.data.get('user_id', None)
 
         try:
             Overview.objects.create(
-                country_id=country_id,
-                user_id=user_id,
-                date_of_current_capacity_assessment=date_of_current_capacity_assessment,
-                type_of_capacity_assessment=type_of_capacity_assessment,
+                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt,
                 branch_involved=branch_involved,
-                focal_point_name=focal_point_name,
-                focal_point_email=focal_point_email,
-                had_previous_assessment=had_previous_assessment,
-                focus=focus,
+                country_id=country_id,
+                date_of_current_capacity_assessment=date_of_current_capacity_assessment,
+                date_of_last_capacity_assessment=date_of_last_capacity_assessment,
+                date_of_mid_term_review=date_of_mid_term_review,
                 facilitated_by=facilitated_by,
                 facilitator_email=facilitator_email,
+                focal_point_name=focal_point_name,
+                focal_point_email=focal_point_email,
+                focus=focus,
+                had_previous_assessment=had_previous_assessment,
+                is_draft=is_draft,
                 phone_number=phone_number,
                 skype_address=skype_address,
-                date_of_mid_term_review=date_of_mid_term_review,
-                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt
+                type_of_ca_id=type_of_ca_id,
+                user_id=user_id
             )
         except Exception:
             return bad_request('Could not insert PER Overview.')
+
+        return JsonResponse({'status': 'ok'})
+
+
+class UpdatePerOverview(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        id = request.data.get('id', None)
+        if id is None:
+            return bad_request('Could not complete request. Please submit include id')
+        ov = Overview.objects.filter(pk=id).first()
+        if ov is None:
+            return bad_request('Could not find PER Overview form record.')
+
+        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
+        branch_involved = request.data.get('branch_involved', None)
+        country_id = request.data.get('country_id', None)
+        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', get_now_str())
+        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', get_now_str())
+        date_of_mid_term_review = request.data.get('date_of_mid_term_review', get_now_str())
+        facilitated_by = request.data.get('facilitated_by', None)
+        facilitator_email = request.data.get('facilitator_email', None)
+        focus = request.data.get('focus', None)
+        focal_point_name = request.data.get('focal_point_name', None)
+        focal_point_email = request.data.get('focal_point_email', None)
+        had_previous_assessment = request.data.get('had_previous_assessment', None)
+        is_draft = request.data.get('is_draft', None)
+        phone_number = request.data.get('phone_number', None)
+        skype_address = request.data.get('skype_address', None)
+        type_of_ca_id = request.data.get('type_of_ca', None)
+        user_id = request.data.get('user_id', None)
+
+        try:
+            ov.approximate_date_next_capacity_assmt = approximate_date_next_capacity_assmt
+            ov.branch_involved = branch_involved
+            ov.country_id = country_id
+            ov.date_of_current_capacity_assessment = date_of_current_capacity_assessment
+            ov.date_of_last_capacity_assessment = date_of_last_capacity_assessment
+            ov.date_of_mid_term_review = date_of_mid_term_review
+            ov.facilitated_by = facilitated_by
+            ov.facilitator_email = facilitator_email
+            ov.focus = focus
+            ov.focal_point_email = focal_point_email
+            ov.focal_point_name = focal_point_name
+            ov.had_previous_assessment = had_previous_assessment
+            ov.is_draft = is_draft
+            ov.phone_number = phone_number
+            ov.skype_address = skype_address
+            ov.type_of_ca_id = type_of_ca_id
+            ov.user_id = user_id
+            ov.save()
+        except Exception:
+            logger.error('Could not change PER Overview form record.', exc_info=True)
+            return bad_request('Could not change PER Overview form record.')
+
+        return JsonResponse({'status': 'ok'})
+
+
+class DeletePerOverview(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        overview_id = request.data.get('id', None)
+        if overview_id is None:
+            return bad_request('Need to provide Overview ID.')
+
+        try:
+            Overview.objects.filter(id=overview_id, user=user, is_draft=True).delete()
+        except Exception:
+            return bad_request('Could not delete PER Overview.')
 
         return JsonResponse({'status': 'ok'})
 
@@ -256,19 +353,3 @@ class DelWorkPlan(APIView):
 
         return JsonResponse({'status': 'ok'})
 
-
-class DelOverview(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request):
-        overview_id = request.data.get('id', None)
-        if overview_id is None:
-            return bad_request('Need to provide Overview ID.')
-
-        try:
-            Overview.objects.filter(id=overview_id).delete()
-        except Exception:
-            return bad_request('Could not delete PER Overview.')
-
-        return JsonResponse({'status': 'ok'})

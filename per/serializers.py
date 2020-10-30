@@ -7,16 +7,14 @@ from api.serializers import (
     RegoCountrySerializer, UserNameSerializer
 )
 from .models import (
-    Form, FormArea, FormComponent, FormQuestion, FormAnswer, FormData, NSPhase, WorkPlan, Overview, NiceDocument
+    Form, FormArea, FormComponent, FormQuestion, FormAnswer, FormData, NSPhase, WorkPlan, Overview, NiceDocument, AssessmentType
 )
 
 
-class FormStatSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
-    language_display = serializers.CharField(source='get_language_display', read_only=True)
-
+class FormStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
-        fields = ('name', 'code', 'country_id', 'language', 'language_display', 'id',)
+        fields = ('name', 'code', 'country_id', 'id',)
 
 
 class FormAreaSerializer(serializers.ModelSerializer):
@@ -48,15 +46,14 @@ class FormQuestionSerializer(serializers.ModelSerializer):
         fields = ('component', 'question', 'question_num', 'answers', 'id')
 
 
-class ListFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListFormSerializer(serializers.ModelSerializer):
     area = FormAreaSerializer()
     country = RegoCountrySerializer()
     user = UserNameSerializer()
-    language_display = serializers.CharField(source='get_language_display', read_only=True)
 
     class Meta:
         model = Form
-        fields = ('area', 'updated_at', 'user', 'country', 'language', 'language_display', 'is_draft', 'id')
+        fields = ('area', 'updated_at', 'user', 'country', 'is_draft', 'id')
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
@@ -76,13 +73,12 @@ class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSeriali
         fields = ('name', 'country', 'document', 'document_url', 'visibility', 'visibility_display')
 
 
-class ShortFormSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ShortFormSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
-    language_display = serializers.CharField(source='get_language_display', read_only=True)
 
     class Meta:
         model = Form
-        fields = ('name', 'code', 'updated_at', 'country', 'language', 'language_display', 'id',)
+        fields = ('name', 'code', 'updated_at', 'country', 'id',)
 
 
 class EngagedNSPercentageSerializer(serializers.ModelSerializer):
@@ -127,13 +123,17 @@ class WorkPlanSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer
         fields = '__all__'
 
 
-class OverviewSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class AssessmentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssessmentType
+        fields = '__all__'
+
+
+class OverviewSerializer(serializers.ModelSerializer):
     user = MiniUserSerializer()
     country = RegoCountrySerializer()
-    type_of_capacity_assessment_display = serializers.CharField(
-        source='get_type_of_capacity_assessment_display', read_only=True)
-    type_of_last_capacity_assessment_display = serializers.CharField(
-        source='get_type_of_last_capacity_assessment_display', read_only=True)
+    type_of_ca = AssessmentTypeSerializer()
+    type_of_last_ca = AssessmentTypeSerializer()
 
     class Meta:
         model = Overview

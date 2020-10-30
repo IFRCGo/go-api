@@ -104,6 +104,10 @@ class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('country')
 
 
+class AssessmentTypeAdmin(CompareVersionAdmin):
+    search_fields = ('name',)
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -114,3 +118,4 @@ admin.site.register(models.NSPhase, NSPhaseAdmin)
 admin.site.register(models.WorkPlan, WorkPlanAdmin)
 admin.site.register(models.Overview, OverviewAdmin)
 admin.site.register(models.NiceDocument, NiceDocumentAdmin)
+admin.site.register(models.AssessmentType, AssessmentTypeAdmin)

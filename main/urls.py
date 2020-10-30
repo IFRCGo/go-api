@@ -45,11 +45,13 @@ from registrations.views import (
 )
 from per.views import (
     CreatePerForm,
-    EditPerForm,
+    UpdatePerForm,
+    DeletePerForm,
     WorkPlanSent,
-    OverviewSent,
-    DelWorkPlan,
-    DelOverview,
+    CreatePerOverview,
+    UpdatePerOverview,
+    DeletePerOverview,
+    DelWorkPlan
 )
 from databank.views import CountryOverviewViewSet
 
@@ -100,10 +102,11 @@ router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'peroverview', per_views.OverviewViewset, base_name='peroverview')
 router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, base_name='peroverviewstrict')
 router.register(r'per_mission', per_views.FormPermissionViewset, base_name='per_mission')
-router.register(r'per-formarea', per_views.FormAreaViewset, base_name='per formarea')
-router.register(r'per-formcomponent', per_views.FormComponentViewset, base_name='per formcomponent')
-router.register(r'per-formquestion', per_views.FormQuestionViewset, base_name='per formquestion')
-router.register(r'per-formanswer', per_views.FormAnswerViewset, base_name='per formanswer')
+router.register(r'per-formarea', per_views.FormAreaViewset, base_name='per-formarea')
+router.register(r'per-formcomponent', per_views.FormComponentViewset, base_name='per-formcomponent')
+router.register(r'per-formquestion', per_views.FormQuestionViewset, base_name='per-formquestion')
+router.register(r'per-formanswer', per_views.FormAnswerViewset, base_name='per-formanswer')
+router.register(r'per-assessmenttype', per_views.AssessmentTypeViewset, base_name='per-assessmenttype')
 router.register(r'per_country_duedate', per_views.CountryDuedateViewset)
 router.register(r'per_engaged_ns_percentage', per_views.EngagedNSPercentageViewset, base_name='per_engaged_ns_percentage')
 router.register(r'per_global_preparedness', per_views.GlobalPreparednessViewset, base_name='per_global_preparedness')
@@ -135,11 +138,13 @@ urlpatterns = [
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^register', NewRegistration.as_view()),
     url(r'^createperform', CreatePerForm.as_view()),
-    url(r'^editperform', EditPerForm.as_view()),
-    url(r'^sendperoverview', OverviewSent.as_view()),
+    url(r'^updateperform', UpdatePerForm.as_view()),
+    url(r'^deleteperform', DeletePerForm.as_view()),
+    url(r'^createperoverview', CreatePerOverview.as_view()),
+    url(r'^updateperoverview', UpdatePerOverview.as_view()),
+    url(r'^deleteperoverview', DeletePerOverview.as_view()),
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
     url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
-    url(r'^api/v2/del_peroverview', DelOverview.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
