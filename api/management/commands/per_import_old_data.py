@@ -81,38 +81,3 @@ class Command(BaseCommand):
                             fieldnames[6]: row[6]
                         })
         print('done!')
-
-
-        # import_file = open(options['import_missing'], 'r')
-        # import_missing = import_file.read().splitlines()
-        # centroid_file = csv.DictReader(open(options['update_centroid'], 'r'), fieldnames=['country', 'latitude', 'longitude', 'name'])
-        # for row in centroid_file:
-        #     code = row['country'].lower()
-        #     lat = row['latitude']
-        #     lon = row['longitude']
-        #     if (lat != '' and lon != ''):
-        #         country_centroids[code] = Point(float(lon), float(lat))
-
-
-
-        # print('%s current events' % Event.objects.all().count())
-
-        # appeals_without_events = list(Appeal.objects.filter(event__isnull=True))
-        # print ('Creating %s events' % len(appeals_without_events))
-        # for appeal in appeals_without_events:
-        #     fields = {
-        #         'name': appeal.name,
-        #         'dtype': appeal.dtype,
-        #         'disaster_start_date': appeal.start_date,
-        #         'auto_generated': True,
-        #         'auto_generated_source': SOURCES['appeal_admin'],
-        #     }
-        #     event = Event.objects.create(**fields)
-        #     if appeal.country is not None:
-        #         event.countries.add(appeal.country)
-        #     if appeal.region is not None:
-        #         event.regions.add(appeal.region)
-        #     appeal.event = event
-        #     appeal.save()
-
-        # print('%s current events' % Event.objects.all().count())
