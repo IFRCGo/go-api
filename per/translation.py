@@ -16,7 +16,7 @@ class FormAreaTO(TranslationOptions):
 
 @register(FormComponent)
 class FormComponentTO(TranslationOptions):
-    fields = ('description',)
+    fields = ('title', 'description')
 
 
 @register(FormAnswer)
