@@ -34,9 +34,12 @@ class CreatePerForm(APIView):
         area_id = request.data.get('area_id', None)
         user_id = request.data.get('user_id', None)
         country_id = request.data.get('country_id', None)
-        is_draft = request.data.get('is_draft', None)
+        is_draft = request.data.get('is_draft', True)
         is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
         is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
+        started_at = request.data.get('started_at', None)
+        saved_at = request.data.get('saved_at', None)
+        submitted_at = request.data.get('submitted_at', None)
         comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
         questions = request.data.get('questions', None)
 
@@ -51,7 +54,10 @@ class CreatePerForm(APIView):
                 comment=comment,
                 is_draft=is_draft,
                 is_validated=is_validated,
-                is_finalized=is_finalized
+                is_finalized=is_finalized,
+                started_at=started_at,
+                saved_at=saved_at,
+                submitted_at=submitted_at
             )
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
@@ -64,7 +70,7 @@ class CreatePerForm(APIView):
                     FormData.objects.create(
                         form=form,
                         question_id=qid,
-                        selected_answer_id=questions[qid]['selectedAnswer'],
+                        selected_answer_id=questions[qid]['selected_answer'],
                         notes=questions[qid]['notes']
                     )
         except Exception:
@@ -89,11 +95,16 @@ class UpdatePerForm(APIView):
 
         area_id = request.data.get('area_id', None)
         country_id = request.data.get('country_id', None)
-        is_draft = request.data.get('is_draft', None)
+        is_draft = request.data.get('is_draft', True)
         is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
         is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
+        started_at = request.data.get('started_at', None)
+        saved_at = request.data.get('saved_at', None)
+        submitted_at = request.data.get('submitted_at', None)
         comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
         questions = request.data.get('questions', None)
+        # If the updated Form remains a draft we update the 'saved_at'
+        calc_saved_at = timezone.now() if form.is_draft == is_draft else saved_at
 
         if questions is None:
             return bad_request('Questions are missing from the request.')
@@ -106,6 +117,9 @@ class UpdatePerForm(APIView):
             form.is_draft = is_draft
             form.is_finalized = is_finalized
             form.is_validated = is_validated
+            form.started_at = started_at
+            form.saved_at = calc_saved_at
+            form.submitted_at = submitted_at
             form.save()
         except Exception:
             logger.error('Could not change PER form record.', exc_info=True)
@@ -122,14 +136,14 @@ class UpdatePerForm(APIView):
                             form_data = FormData.objects.create(
                                 form=form,
                                 question_id=qid,
-                                selected_answer_id=questions[qid]['selectedAnswer'],
+                                selected_answer_id=questions[qid]['selected_answer'],
                                 notes=questions[qid]['notes']
                             )
                         except Exception:
                             logger.error('Could not insert PER form record.', exc_info=True)
                             return bad_request('Could not insert PER form record.')
                     else:
-                        form_data.selected_answer_id = questions[qid]['selectedAnswer'] or form_data.selected_answer_id
+                        form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
                         form_data.notes = questions[qid]['notes'] or form_data.notes
                         form_data.save()
         except Exception:

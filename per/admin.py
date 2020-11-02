@@ -1,10 +1,11 @@
 from django.contrib import admin
+from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 import per.models as models
 from per.admin_classes import RegionRestrictedAdmin
 from reversion_compare.admin import CompareVersionAdmin
 
 
-class FormDataInline(admin.TabularInline):
+class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.FormData
     readonly_fields = ('question', 'selected_answer', 'notes')
     can_delete = False
@@ -26,14 +27,14 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('code', 'name', 'country__name', )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('country')
+        return super().get_queryset(request).select_related('area', 'country', 'user')
 
 
-class FormAreaAdmin(CompareVersionAdmin):
+class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('title',)
 
 
-class FormComponentAdmin(CompareVersionAdmin):
+class FormComponentAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('title',)
     list_display = ('title', 'area_number', 'component_number')
 
@@ -51,7 +52,7 @@ class FormComponentAdmin(CompareVersionAdmin):
         )
 
 
-class FormQuestionAdmin(CompareVersionAdmin):
+class FormQuestionAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('question',)
     list_display = ('question', 'component_number', 'question_num')
 
@@ -66,11 +67,11 @@ class FormQuestionAdmin(CompareVersionAdmin):
         )
 
 
-class FormAnswerAdmin(CompareVersionAdmin):
+class FormAnswerAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('text',)
 
 
-class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'form__country__pk__in'
     region_in = 'form__country__region_id__in'
     search_fields = ('question_id', 'form__name', 'form__code', )
@@ -104,7 +105,7 @@ class NiceDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('country')
 
 
-class AssessmentTypeAdmin(CompareVersionAdmin):
+class AssessmentTypeAdmin(CompareVersionAdmin, TranslationAdmin):
     search_fields = ('name',)
 
 
