@@ -127,25 +127,24 @@ class UpdatePerForm(APIView):
 
         # Update the FormData
         try:
-            with transaction.atomic():  # all or nothing
-                for qid in questions:
-                    form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
-                    if not form_data:
-                        # Probably newly added question
-                        try:
-                            form_data = FormData.objects.create(
-                                form=form,
-                                question_id=qid,
-                                selected_answer_id=questions[qid]['selected_answer'],
-                                notes=questions[qid]['notes']
-                            )
-                        except Exception:
-                            logger.error('Could not insert PER form record.', exc_info=True)
-                            return bad_request('Could not insert PER form record.')
-                    else:
-                        form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
-                        form_data.notes = questions[qid]['notes'] or form_data.notes
-                        form_data.save()
+            for qid in questions:
+                form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
+                if not form_data:
+                    # Probably newly added question
+                    try:
+                        form_data = FormData.objects.create(
+                            form=form,
+                            question_id=qid,
+                            selected_answer_id=questions[qid]['selected_answer'],
+                            notes=questions[qid]['notes']
+                        )
+                    except Exception:
+                        logger.error('Could not insert PER form record.', exc_info=True)
+                        return bad_request('Could not insert PER form record.')
+                else:
+                    form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
+                    form_data.notes = questions[qid]['notes'] or form_data.notes
+                    form_data.save()
         except Exception:
             logger.error('Could not change PER formdata record.', exc_info=True)
             return bad_request('Could not change PER formdata record.')
