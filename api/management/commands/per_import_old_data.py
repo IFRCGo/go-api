@@ -1,7 +1,7 @@
 import csv
 from django.db import transaction
 from django.core.management.base import BaseCommand
-from per.models import FormArea, FormComponent, FormQuestion
+from per.models import FormArea, FormComponent, FormQuestion, FormAnswer
 
 
 class Command(BaseCommand):
@@ -65,13 +65,15 @@ class Command(BaseCommand):
                             fieldnames[11]: row[11]
                         })
             elif objtype == 'questions':
+                yes = FormAnswer.objects.filter(text__iexact='yes').first()
+                no = FormAnswer.objects.filter(text__iexact='no').first()
                 for row in rows:
                     if not row[0] and not row[1]:
                         continue
                     comp_num = row[0]
                     comp = FormComponent.objects.filter(component_num=comp_num).first()
                     if comp:
-                        FormQuestion.objects.create(**{
+                        form = FormQuestion.objects.create(**{
                             'component_id': comp.id,
                             fieldnames[1]: row[1],
                             fieldnames[2]: row[2],
@@ -80,4 +82,6 @@ class Command(BaseCommand):
                             fieldnames[5]: row[5],
                             fieldnames[6]: row[6]
                         })
+                        # By default only add yes-no answers
+                        form.answers.add(yes, no)
         print('done!')
