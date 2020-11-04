@@ -455,9 +455,20 @@ class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = FormAreaFilter
 
 
+class FormComponentFilter(filters.FilterSet):
+    area_id = filters.NumberFilter(field_name='area__id', lookup_expr='exact')
+
+    class Meta:
+        model = FormComponent
+        fields = {
+            'area_id': ('exact',)
+        }
+
+
 class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Components Viewset """
     serializer_class = FormComponentSerializer
+    filter_class = FormComponentFilter
     queryset = (
         FormComponent.objects
                      .all()
@@ -479,6 +490,7 @@ class FormQuestionFilter(filters.FilterSet):
 class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Questions Viewset """
     serializer_class = FormQuestionSerializer
+    filter_class = FormQuestionFilter
     queryset = (
         FormQuestion.objects
                     .all()
@@ -486,7 +498,6 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
                     .select_related('component')
                     .prefetch_related('answers')
     )
-    filter_class = FormQuestionFilter
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
