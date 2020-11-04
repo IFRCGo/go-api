@@ -124,6 +124,21 @@ class PersonnelDeployment(models.Model):
         return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
 
 
+class MolnixTag(models.Model):
+    '''
+    We store tags from molnix in its own model, to make m2m relations
+    from notifications.models.SurgeAlert and DeployedPerson        
+    '''
+    molnix_id = models.IntegerField()
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=512)
+    color = models.CharField(max_length=6)
+    tag_type = models.CharField(max_length=127)
+
+    def __str__(self):
+        return self.name
+
+
 class DeployedPerson(models.Model):
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
