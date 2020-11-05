@@ -28,7 +28,7 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         filename = kwargs['filename'][0]
         objtype = kwargs['type'][0]
-        area_num = kwargs['areanum'][0]
+        area_num = kwargs['areanum'][0] if kwargs['areanum'] else ''
 
         with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
