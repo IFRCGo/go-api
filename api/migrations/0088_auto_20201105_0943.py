@@ -15,9 +15,9 @@ class Migration(migrations.Migration):
             name='fdrs',
             field=models.CharField(max_length=6, null=True, verbose_name='FDRS'),
         ),
-        # migrations.AlterField(
-        #     model_name='event',
-        #     name='num_displaced',
-        #     field=models.IntegerField(blank=True, null=True, verbose_name='number of displaced'),
-        # ),
+        migrations.AlterField(
+            model_name='event',
+            name='num_displaced',
+            field=models.IntegerField(blank=True, null=True, verbose_name='number of displaced'),
+        ),
     ]
