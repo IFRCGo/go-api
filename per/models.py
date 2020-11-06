@@ -146,23 +146,37 @@ class AssessmentType(models.Model):
 
 
 class Overview(models.Model):
-    # Without related_name Django gives:
-    # Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
+    approximate_date_next_capacity_assmt = models.DateTimeField(
+        verbose_name=_('approximate date next capacity assessment'), null=True, blank=True
+    )
+    branch_involved = models.CharField(verbose_name=_('branch involved'), max_length=90, null=True, blank=True)
     country = models.ForeignKey(
         Country, verbose_name=_('country'), related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL
     )
-    # national_society = models.CharField(max_length=90,null=True, blank=True) Redundant
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     date_of_current_capacity_assessment = models.DateTimeField(verbose_name=_('date of current capacity assessment'))
+    date_of_last_capacity_assessment = models.DateTimeField(
+        verbose_name=_('date of last capacity assessment'), null=True, blank=True
+    )
+    date_of_mid_term_review = models.DateTimeField(
+        verbose_name=_('date of mid term review'), null=True, blank=True
+    )
+    facilitated_by = models.CharField(verbose_name=_('facilitated by'), max_length=90, null=True, blank=True)
+    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
+    focal_point_name = models.CharField(verbose_name=_('focal point name'), max_length=90, null=True, blank=True)
+    focal_point_email = models.CharField(verbose_name=_('focal point email'), max_length=90, null=True, blank=True)
+    focus = models.CharField(verbose_name=_('focus'), max_length=90, null=True, blank=True)
+    had_previous_assessment = models.BooleanField(verbose_name=_('had previous assessment'), default=False)
+    is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
+    is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
+    phone_number = models.CharField(verbose_name=_('phone number'), max_length=90, null=True, blank=True)
+    skype_address = models.CharField(verbose_name=_('skype address'), max_length=90, null=True, blank=True)
     type_of_ca = models.ForeignKey(
         AssessmentType,
         verbose_name=_('type of capacity assessment'),
         related_name='type_of_capacity_assessment',
         null=True,
         on_delete=models.SET_NULL
-    )
-    date_of_last_capacity_assessment = models.DateTimeField(
-        verbose_name=_('date of last capacity assessment'), null=True, blank=True
     )
     type_of_last_ca = models.ForeignKey(
         AssessmentType,
@@ -171,21 +185,8 @@ class Overview(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
-    branch_involved = models.CharField(verbose_name=_('branch involved'), max_length=90, null=True, blank=True)
-    focal_point_name = models.CharField(verbose_name=_('focal point name'), max_length=90, null=True, blank=True)
-    focal_point_email = models.CharField(verbose_name=_('focal point email'), max_length=90, null=True, blank=True)
-    had_previous_assessment = models.BooleanField(verbose_name=_('had previous assessment'), default=False)
-    focus = models.CharField(verbose_name=_('focus'), max_length=90, null=True, blank=True)
-    facilitated_by = models.CharField(verbose_name=_('facilitated by'), max_length=90, null=True, blank=True)
-    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
-    phone_number = models.CharField(verbose_name=_('phone number'), max_length=90, null=True, blank=True)
-    skype_address = models.CharField(verbose_name=_('skype address'), max_length=90, null=True, blank=True)
-    date_of_mid_term_review = models.DateTimeField(verbose_name=_('date of mid term review'))
-    approximate_date_next_capacity_assmt = models.DateTimeField(verbose_name=_('approximate date next capacity assessment'))
-    is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
-    is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
-    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ('country',)

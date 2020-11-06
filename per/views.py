@@ -32,16 +32,11 @@ class CreatePerForm(APIView):
 
     def post(self, request):
         area_id = request.data.get('area_id', None)
-        user_id = request.data.get('user_id', None)
+        comment = request.data.get('comment', None)
         country_id = request.data.get('country_id', None)
-        is_draft = request.data.get('is_draft', True)
-        is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
-        is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
-        started_at = request.data.get('started_at', None)
-        saved_at = request.data.get('saved_at', None)
-        submitted_at = request.data.get('submitted_at', None)
-        comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
+        overview_id = request.data.get('overview_id', None)
         questions = request.data.get('questions', None)
+        user_id = request.data.get('user_id', None)
 
         if questions is None:
             return bad_request('Questions are missing from the request.')
@@ -50,14 +45,9 @@ class CreatePerForm(APIView):
             form = Form.objects.create(
                 area_id=area_id,
                 user_id=user_id,
-                country_id=country_id,
                 comment=comment,
-                is_draft=is_draft,
-                is_validated=is_validated,
-                is_finalized=is_finalized,
-                started_at=started_at,
-                saved_at=saved_at,
-                submitted_at=submitted_at
+                country_id=country_id,
+                overview_id=overview_id
             )
         except Exception:
             logger.error('Could not insert PER form record.', exc_info=True)
@@ -72,6 +62,7 @@ class CreatePerForm(APIView):
                         question_id=qid,
                         selected_answer_id=questions[qid]['selected_answer'],
                         notes=questions[qid]['notes']
+                        # TODO: check if FormData also needs is_epi and is_benchmark flags
                     )
         except Exception:
             logger.error('Could not insert PER formdata record.', exc_info=True)
@@ -94,17 +85,10 @@ class UpdatePerForm(APIView):
             return bad_request('Could not find PER form record.')
 
         area_id = request.data.get('area_id', None)
+        comment = request.data.get('comment', None)
         country_id = request.data.get('country_id', None)
-        is_draft = request.data.get('is_draft', True)
-        is_finalized = request.data.get('is_finalized', False)  # FIXME: never seem to be used anywhere
-        is_validated = request.data.get('is_validated', False)  # FIXME: never seem to be used anywhere
-        started_at = request.data.get('started_at', None)
-        saved_at = request.data.get('saved_at', None)
-        submitted_at = request.data.get('submitted_at', None)
-        comment = request.data.get('comment', None)  # FIXME: never seem to be used anywhere
+        overview_id = request.data.get('overview_id', None)
         questions = request.data.get('questions', None)
-        # If the updated Form remains a draft we update the 'saved_at'
-        calc_saved_at = timezone.now() if form.is_draft == is_draft else saved_at
 
         if questions is None:
             return bad_request('Questions are missing from the request.')
@@ -112,14 +96,9 @@ class UpdatePerForm(APIView):
         # Update the Form
         try:
             form.area_id = area_id
-            form.country_id = country_id
             form.comment = comment
-            form.is_draft = is_draft
-            form.is_finalized = is_finalized
-            form.is_validated = is_validated
-            form.started_at = started_at
-            form.saved_at = calc_saved_at
-            form.submitted_at = submitted_at
+            form.country_id = country_id
+            form.overview_id = overview_id  # TODO: maybe this is not needed to be handled here
             form.save()
         except Exception:
             logger.error('Could not change PER form record.', exc_info=True)
@@ -137,6 +116,7 @@ class UpdatePerForm(APIView):
                             question_id=qid,
                             selected_answer_id=questions[qid]['selected_answer'],
                             notes=questions[qid]['notes']
+                            # TODO: just as in the CreatePerForm
                         )
                     except Exception:
                         logger.error('Could not insert PER form record.', exc_info=True)
@@ -164,7 +144,8 @@ class DeletePerForm(APIView):
 
         try:
             # Also deletes FormData since CASCADE fk
-            Form.objects.filter(id=form_id, user=user, is_draft=True).delete()
+            # TODO: check for is_finalized of Overview maybe?
+            Form.objects.filter(id=form_id, user=user).delete()
         except Exception:
             return bad_request('Could not delete PER Form.')
 
@@ -230,39 +211,38 @@ class CreatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
+        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', None)
         branch_involved = request.data.get('branch_involved', None)
         country_id = request.data.get('country_id', None)
-        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', get_now_str())
-        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', get_now_str())
-        date_of_mid_term_review = request.data.get('date_of_mid_term_review', get_now_str())
+        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', None)
+        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', None)
+        date_of_mid_term_review = request.data.get('date_of_mid_term_review', None)
         facilitated_by = request.data.get('facilitated_by', None)
         facilitator_email = request.data.get('facilitator_email', None)
         focus = request.data.get('focus', None)
         focal_point_name = request.data.get('focal_point_name', None)
         focal_point_email = request.data.get('focal_point_email', None)
         had_previous_assessment = request.data.get('had_previous_assessment', None)
-        is_draft = request.data.get('is_draft', None)
         phone_number = request.data.get('phone_number', None)
         skype_address = request.data.get('skype_address', None)
         type_of_ca_id = request.data.get('type_of_ca', None)
         user_id = request.data.get('user_id', None)
 
         try:
-            Overview.objects.create(
-                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt,
+            overview = Overview.objects.create(
+                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt or None,
                 branch_involved=branch_involved,
                 country_id=country_id,
-                date_of_current_capacity_assessment=date_of_current_capacity_assessment,
-                date_of_last_capacity_assessment=date_of_last_capacity_assessment,
-                date_of_mid_term_review=date_of_mid_term_review,
+                date_of_current_capacity_assessment=date_of_current_capacity_assessment or None,
+                date_of_last_capacity_assessment=date_of_last_capacity_assessment or None,
+                date_of_mid_term_review=date_of_mid_term_review or None,
                 facilitated_by=facilitated_by,
                 facilitator_email=facilitator_email,
                 focal_point_name=focal_point_name,
                 focal_point_email=focal_point_email,
                 focus=focus,
                 had_previous_assessment=had_previous_assessment,
-                is_draft=is_draft,
+                is_finalized=False,
                 phone_number=phone_number,
                 skype_address=skype_address,
                 type_of_ca_id=type_of_ca_id,
@@ -271,7 +251,7 @@ class CreatePerOverview(APIView):
         except Exception:
             return bad_request('Could not insert PER Overview.')
 
-        return JsonResponse({'status': 'ok'})
+        return JsonResponse({'status': 'ok', 'overview_id': overview.id})
 
 
 class UpdatePerOverview(APIView):
@@ -286,19 +266,19 @@ class UpdatePerOverview(APIView):
         if ov is None:
             return bad_request('Could not find PER Overview form record.')
 
-        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', get_now_str())
+        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', None)
         branch_involved = request.data.get('branch_involved', None)
         country_id = request.data.get('country_id', None)
-        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', get_now_str())
-        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', get_now_str())
-        date_of_mid_term_review = request.data.get('date_of_mid_term_review', get_now_str())
+        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', None)
+        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', None)
+        date_of_mid_term_review = request.data.get('date_of_mid_term_review', None)
         facilitated_by = request.data.get('facilitated_by', None)
         facilitator_email = request.data.get('facilitator_email', None)
         focus = request.data.get('focus', None)
         focal_point_name = request.data.get('focal_point_name', None)
         focal_point_email = request.data.get('focal_point_email', None)
         had_previous_assessment = request.data.get('had_previous_assessment', None)
-        is_draft = request.data.get('is_draft', None)
+        is_finalized = request.data.get('is_finalized', None)
         phone_number = request.data.get('phone_number', None)
         skype_address = request.data.get('skype_address', None)
         type_of_ca_id = request.data.get('type_of_ca', None)
@@ -317,7 +297,7 @@ class UpdatePerOverview(APIView):
             ov.focal_point_email = focal_point_email
             ov.focal_point_name = focal_point_name
             ov.had_previous_assessment = had_previous_assessment
-            ov.is_draft = is_draft
+            ov.finalized = is_finalized
             ov.phone_number = phone_number
             ov.skype_address = skype_address
             ov.type_of_ca_id = type_of_ca_id
@@ -341,7 +321,7 @@ class DeletePerOverview(APIView):
             return bad_request('Need to provide Overview ID.')
 
         try:
-            Overview.objects.filter(id=overview_id, user=user, is_draft=True).delete()
+            Overview.objects.filter(id=overview_id, user=user, is_finalized=False).delete()
         except Exception:
             return bad_request('Could not delete PER Overview.')
 

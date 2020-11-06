@@ -57,7 +57,7 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
         queryset = Form.objects.all()
         return (
             self.get_filtered_queryset(self.request, queryset, 1)
-                .select_related('area', 'country')
+                .select_related('area', 'overview', 'country')
         )
 
     def get_serializer_class(self):
