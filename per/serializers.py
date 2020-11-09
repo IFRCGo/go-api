@@ -14,6 +14,7 @@ from .models import (
 class FormStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
+        # FIXME: name, code, country_id are not part of Form anymore
         fields = ('name', 'code', 'country_id', 'id',)
 
 
@@ -48,12 +49,11 @@ class FormQuestionSerializer(serializers.ModelSerializer):
 
 class ListFormSerializer(serializers.ModelSerializer):
     area = FormAreaSerializer()
-    country = RegoCountrySerializer()
     user = UserNameSerializer()
 
     class Meta:
         model = Form
-        fields = ('area', 'overview', 'updated_at', 'user', 'country', 'id')
+        fields = ('area', 'overview', 'updated_at', 'user', 'id')
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
@@ -78,6 +78,7 @@ class ShortFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Form
+        # FIXME: name, code, country are not part of the Form anymore
         fields = ('name', 'code', 'updated_at', 'country', 'id',)
 
 

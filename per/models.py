@@ -206,7 +206,6 @@ class Form(models.Model):
     area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
     overview = models.ForeignKey(Overview, verbose_name=_('overview'), null=True, on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     comment = models.TextField(verbose_name=_('comment'), null=True, blank=True)  # form level comment

@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from .models import (
-    Form, FormData, WorkPlan, Overview
+    Form, FormData, WorkPlan, Overview, FormArea, FormQuestion
 )
 from api.views import bad_request
 
@@ -33,7 +33,6 @@ class CreatePerForm(APIView):
     def post(self, request):
         area_id = request.data.get('area_id', None)
         comment = request.data.get('comment', None)
-        country_id = request.data.get('country_id', None)
         overview_id = request.data.get('overview_id', None)
         questions = request.data.get('questions', None)
         user_id = request.data.get('user_id', None)
@@ -46,7 +45,6 @@ class CreatePerForm(APIView):
                 area_id=area_id,
                 user_id=user_id,
                 comment=comment,
-                country_id=country_id,
                 overview_id=overview_id
             )
         except Exception:
@@ -86,7 +84,6 @@ class UpdatePerForm(APIView):
 
         area_id = request.data.get('area_id', None)
         comment = request.data.get('comment', None)
-        country_id = request.data.get('country_id', None)
         overview_id = request.data.get('overview_id', None)
         questions = request.data.get('questions', None)
 
@@ -97,7 +94,6 @@ class UpdatePerForm(APIView):
         try:
             form.area_id = area_id
             form.comment = comment
-            form.country_id = country_id
             form.overview_id = overview_id  # TODO: maybe this is not needed to be handled here
             form.save()
         except Exception:
@@ -248,8 +244,22 @@ class CreatePerOverview(APIView):
                 type_of_ca_id=type_of_ca_id,
                 user_id=user_id
             )
+
+            areas = FormArea.objects.values_list('id', flat=True)
+            for aid in areas:
+                form = Form.objects.create(
+                    area_id=aid,
+                    user_id=user_id,
+                    overview_id=overview.id
+                )
+                questions = FormQuestion.objects.filter(component__area_id=aid).values_list('id', flat=True)
+                for qid in questions:
+                    FormData.objects.create(
+                        form=form,
+                        question_id=qid,
+                    )
         except Exception:
-            return bad_request('Could not insert PER Overview.')
+            return bad_request('Could not create PER Assessment.')
 
         return JsonResponse({'status': 'ok', 'overview_id': overview.id})
 
@@ -324,6 +334,8 @@ class DeletePerOverview(APIView):
             Overview.objects.filter(id=overview_id, user=user, is_finalized=False).delete()
         except Exception:
             return bad_request('Could not delete PER Overview.')
+
+        # TODO: check if all connected Forms are deleted or need to delete manually (should cascade)
 
         return JsonResponse({'status': 'ok'})
 

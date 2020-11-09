@@ -45,7 +45,7 @@ class FormFilter(filters.FilterSet):
 
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Form.objects.all().select_related('user', 'area', 'country')
+    queryset = Form.objects.all().select_related('user', 'area')
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
@@ -57,7 +57,8 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
         queryset = Form.objects.all()
         return (
             self.get_filtered_queryset(self.request, queryset, 1)
-                .select_related('area', 'overview', 'country')
+                .order_by('area__area_num')
+                .select_related('area', 'overview')
         )
 
     def get_serializer_class(self):
