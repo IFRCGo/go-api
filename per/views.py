@@ -12,61 +12,51 @@ from api.views import bad_request
 logger = logging.getLogger(__name__)
 
 
-def get_client_ip(request):
-    """ https://stackoverflow.com/questions/4581789/how-do-i-get-user-ip-address-in-django """
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[-1].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
 def get_now_str():
     return str(timezone.now())
 
 
-class CreatePerForm(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
+# class CreatePerForm(APIView):
+#     authentication_classes = (authentication.TokenAuthentication,)
+#     permissions_classes = (permissions.IsAuthenticated,)
 
-    def post(self, request):
-        area_id = request.data.get('area_id', None)
-        comment = request.data.get('comment', None)
-        overview_id = request.data.get('overview_id', None)
-        questions = request.data.get('questions', None)
-        user_id = request.data.get('user_id', None)
+#     def post(self, request):
+#         area_id = request.data.get('area_id', None)
+#         comment = request.data.get('comment', None)
+#         overview_id = request.data.get('overview_id', None)
+#         questions = request.data.get('questions', None)
+#         user_id = request.data.get('user_id', None)
 
-        if questions is None:
-            return bad_request('Questions are missing from the request.')
+#         if questions is None:
+#             return bad_request('Questions are missing from the request.')
 
-        try:
-            form = Form.objects.create(
-                area_id=area_id,
-                user_id=user_id,
-                comment=comment,
-                overview_id=overview_id
-            )
-        except Exception:
-            logger.error('Could not insert PER form record.', exc_info=True)
-            return bad_request('Could not insert PER form record.')
+#         try:
+#             form = Form.objects.create(
+#                 area_id=area_id,
+#                 user_id=user_id,
+#                 comment=comment,
+#                 overview_id=overview_id
+#             )
+#         except Exception:
+#             logger.error('Could not insert PER form record.', exc_info=True)
+#             return bad_request('Could not insert PER form record.')
 
-        # Create FormData of the Form
-        try:
-            with transaction.atomic():  # all or nothing
-                for qid in questions:
-                    FormData.objects.create(
-                        form=form,
-                        question_id=qid,
-                        selected_answer_id=questions[qid]['selected_answer'],
-                        notes=questions[qid]['notes']
-                        # TODO: check if FormData also needs is_epi and is_benchmark flags
-                    )
-        except Exception:
-            logger.error('Could not insert PER formdata record.', exc_info=True)
-            return bad_request('Could not insert PER formdata record.')
+#         # Create FormData of the Form
+#         try:
+#             with transaction.atomic():  # all or nothing
+#                 for qid in questions:
+#                     FormData.objects.create(
+#                         form=form,
+#                         question_id=qid,
+#                         selected_answer_id=questions[qid]['selected_answer'],
+#                         notes=questions[qid]['notes']
+#                         # TODO: check if FormData also needs is_epi and is_benchmark flags
+#                     )
+#         except Exception:
+#             logger.error('Could not insert PER formdata record.', exc_info=True)
+#             return bad_request('Could not insert PER formdata record.')
 
-        return JsonResponse({'status': 'ok'})
+#         return JsonResponse({'status': 'ok'})
 
 
 class UpdatePerForm(APIView):
@@ -82,9 +72,7 @@ class UpdatePerForm(APIView):
         if form is None:
             return bad_request('Could not find PER form record.')
 
-        area_id = request.data.get('area_id', None)
         comment = request.data.get('comment', None)
-        overview_id = request.data.get('overview_id', None)
         questions = request.data.get('questions', None)
 
         if questions is None:
@@ -92,9 +80,7 @@ class UpdatePerForm(APIView):
 
         # Update the Form
         try:
-            form.area_id = area_id
             form.comment = comment
-            form.overview_id = overview_id  # TODO: maybe this is not needed to be handled here
             form.save()
         except Exception:
             logger.error('Could not change PER form record.', exc_info=True)
@@ -102,6 +88,9 @@ class UpdatePerForm(APIView):
 
         # Update the FormData
         try:
+            # TODO: Maybe it would be faster to get all the questions with ONE query and
+            # loop that matching with the questions array, instead of having a
+            # query every loop (?)
             for qid in questions:
                 form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
                 if not form_data:
@@ -118,34 +107,37 @@ class UpdatePerForm(APIView):
                         logger.error('Could not insert PER form record.', exc_info=True)
                         return bad_request('Could not insert PER form record.')
                 else:
-                    form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
-                    form_data.notes = questions[qid]['notes'] or form_data.notes
-                    form_data.save()
+                    if form_data.selected_answer_id != questions[qid]['selected_answer'] \
+                            or form_data.notes != questions[qid]['notes']:
+                        form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
+                        form_data.notes = questions[qid]['notes'] or form_data.notes
+                        form_data.save()
         except Exception:
             logger.error('Could not change PER formdata record.', exc_info=True)
             return bad_request('Could not change PER formdata record.')
 
-        return JsonResponse({'status': 'ok'})
+        return JsonResponse({'status': 'ok', 'overview_id': form.overview_id})
 
 
-class DeletePerForm(APIView):
-    authentication_classes = (authentication.TokenAuthentication,)
-    permissions_classes = (permissions.IsAuthenticated,)
+# # For now, a Form can only be deleted if it's parent Overview is deleted
+# class DeletePerForm(APIView):
+#     authentication_classes = (authentication.TokenAuthentication,)
+#     permissions_classes = (permissions.IsAuthenticated,)
 
-    def post(self, request):
-        user = request.user
-        form_id = request.data.get('id', None)
-        if form_id is None:
-            return bad_request('Need to provide Form ID.')
+#     def post(self, request):
+#         user = request.user
+#         form_id = request.data.get('id', None)
+#         if form_id is None:
+#             return bad_request('Need to provide Form ID.')
 
-        try:
-            # Also deletes FormData since CASCADE fk
-            # TODO: check for is_finalized of Overview maybe?
-            Form.objects.filter(id=form_id, user=user).delete()
-        except Exception:
-            return bad_request('Could not delete PER Form.')
+#         try:
+#             # Also deletes FormData since CASCADE fk
+#             # TODO: check for is_finalized of Overview maybe?
+#             Form.objects.filter(id=form_id, user=user).delete()
+#         except Exception:
+#             return bad_request('Could not delete PER Form.')
 
-        return JsonResponse({'status': 'ok'})
+#         return JsonResponse({'status': 'ok'})
 
 
 class WorkPlanSent(APIView):
@@ -288,7 +280,7 @@ class UpdatePerOverview(APIView):
         focal_point_name = request.data.get('focal_point_name', None)
         focal_point_email = request.data.get('focal_point_email', None)
         had_previous_assessment = request.data.get('had_previous_assessment', None)
-        is_finalized = request.data.get('is_finalized', None)
+        is_finalized = request.data.get('is_finalized', False)
         phone_number = request.data.get('phone_number', None)
         skype_address = request.data.get('skype_address', None)
         type_of_ca_id = request.data.get('type_of_ca', None)
@@ -307,7 +299,7 @@ class UpdatePerOverview(APIView):
             ov.focal_point_email = focal_point_email
             ov.focal_point_name = focal_point_name
             ov.had_previous_assessment = had_previous_assessment
-            ov.finalized = is_finalized
+            ov.is_finalized = is_finalized
             ov.phone_number = phone_number
             ov.skype_address = skype_address
             ov.type_of_ca_id = type_of_ca_id

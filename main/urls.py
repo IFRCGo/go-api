@@ -44,9 +44,9 @@ from registrations.views import (
     ValidateUser
 )
 from per.views import (
-    CreatePerForm,
+    # CreatePerForm,
     UpdatePerForm,
-    DeletePerForm,
+    # DeletePerForm,
     WorkPlanSent,
     CreatePerOverview,
     UpdatePerOverview,
@@ -137,9 +137,9 @@ urlpatterns = [
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^register', NewRegistration.as_view()),
-    url(r'^createperform', CreatePerForm.as_view()),
+    # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),
-    url(r'^deleteperform', DeletePerForm.as_view()),
+    # url(r'^deleteperform', DeletePerForm.as_view()),
     url(r'^createperoverview', CreatePerOverview.as_view()),
     url(r'^updateperoverview', UpdatePerOverview.as_view()),
     url(r'^deleteperoverview', DeletePerOverview.as_view()),

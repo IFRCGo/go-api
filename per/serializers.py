@@ -11,6 +11,12 @@ from .models import (
 )
 
 
+class IsFinalOverviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Overview
+        fields = ('id', 'is_finalized')
+
+
 class FormStatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Form
@@ -50,10 +56,11 @@ class FormQuestionSerializer(serializers.ModelSerializer):
 class ListFormSerializer(serializers.ModelSerializer):
     area = FormAreaSerializer()
     user = UserNameSerializer()
+    overview = IsFinalOverviewSerializer()
 
     class Meta:
         model = Form
-        fields = ('area', 'overview', 'updated_at', 'user', 'id')
+        fields = ('area', 'overview', 'updated_at', 'comment', 'user', 'id')
 
 
 class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):

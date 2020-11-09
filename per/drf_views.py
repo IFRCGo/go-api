@@ -36,11 +36,13 @@ from .serializers import (
 
 class FormFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    overview_id = filters.NumberFilter(field_name='overview_id', lookup_expr='exact')
 
     class Meta:
         model = Form
         fields = {
-            'id': ('exact',)
+            'id': ('exact',),
+            'overview_id': ('exact',)
         }
 
 
