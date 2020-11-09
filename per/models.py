@@ -1,4 +1,5 @@
 from api.models import Country
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -216,10 +217,7 @@ class Form(models.Model):
         verbose_name_plural = _('Forms')
 
     def __str__(self):
-        society_name = ''
-        if self.country:
-            society_name = self.country.society_name
-        return f'{self.area} ({society_name})'
+        return f'{self.area} ({self.updated_at.strftime("%Y-%m-%d")})'
 
 
 def question_details(question_id, code):
