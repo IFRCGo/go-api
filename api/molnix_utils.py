@@ -75,3 +75,7 @@ class MolnixApi:
             'filter': json.dumps(deployments_filter)
         }
         return self.call_api_paginated(path='deployments', response_key='deployments', params=params)
+
+    def logout(self):
+        self.call_api('logout')
+        return True
