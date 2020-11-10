@@ -1,8 +1,14 @@
+from dateutil import parser as date_parser
+import json
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from api.molnix_utils import MolnixApi
 from api.logger import logger
+from deployments.models import MolnixTag, PersonnelDeployment, Personnel
+from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
+from api.models import Event
+
 
 def get_unique_tags(deployments, open_positions):
     tags = []
@@ -13,6 +19,80 @@ def get_unique_tags(deployments, open_positions):
                 tags.append(tag)
                 tag_ids.append(tag['id'])
     return tags
+
+
+def add_tags(molnix_tags):
+    for molnix_tag in molnix_tags:
+        tag, created = MolnixTag.objects.get_or_create(molnix_id=molnix_tag['id'])
+        tag.molnix_id = molnix_tag['id']
+        tag.name = molnix_tag['name']
+        tag.description = molnix_tag['description']
+        tag.tag_type = molnix_tag['type']
+        tag.save()
+        print('saved tag %s' % tag.name)
+
+
+
+def get_go_event(tags):
+    '''
+        Returns a GO Event object, by looking for a tag like `OP-<event_id>` or
+        None if there is not a valid OP- tag on the Position
+    '''
+    event = None
+    for tag in tags:
+        if tag['name'].startswith('OP-'):
+            event_id = tag['name'].replace('OP-', '').strip()
+            try:
+                event_id_int = int(event_id)
+            except:
+                logger.warn('%s tag is not a valid OP- tag' % event_id)
+                continue
+            try:
+                event = Event.objects.get(id=event_id_int)
+            except:
+                logger.warn('Emergency with ID %d not found' % event_id_int)
+                continue
+            return event
+    return event
+
+
+def get_datetime(datetime_string):
+    '''
+        Return a python datetime from a date-time string from the API
+    '''
+    return date_parser.parse(datetime_string)
+
+# def sync_deployments(molnix_deployments):
+#     molnix_ids = [d['id'] for d in molnix_deployments]
+#     for molnix_deployment in molnix_deployments:
+#         deployment, created = 
+
+def sync_open_positions(molnix_positions):
+    molnix_ids = [p['id'] for p in molnix_positions]
+    for position in molnix_positions:
+        event = get_go_event(position['tags'])
+
+        # If no valid GO Emergency tag is found, skip Position
+        if not event:
+            logger.warn('Position id %d does not have an Emergency tag.' % position['id'])
+            continue
+        go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position['id'])
+
+        # We set all Alerts coming from Molnix to RR / Alert
+        go_alert.atype = SurgeAlertType.RAPID_RESPONSE
+        go_alert.category = SurgeAlertCategory.ALERT        
+        # print(json.dumps(position, indent=2))
+        go_alert.molnix_id = position['id']
+        go_alert.message = position['name']
+        go_alert.event = event
+        go_alert.opens = get_datetime(position['opens'])
+        go_alert.closes = get_datetime(position['closes'])
+        go_alert.start = get_datetime(position['start'])
+        go_alert.end = get_datetime(position['end'])
+        go_alert.save()
+        print('SurgeAlert saved: %s' % go_alert.message)
+    #TODO: Handle deleting / marking inactive alerts that exist in GO that are not in molnix_ids
+
 
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
@@ -37,5 +117,7 @@ class Command(BaseCommand):
             logger.error('Failed to fetch data from Molnix API: %s' % str(ex))
             return
         used_tags = get_unique_tags(deployments, open_positions)
-        print(used_tags)
+        add_tags(used_tags)
+        # sync_deployments(deployments)
+        sync_open_positions(open_positions)
         molnix.logout()
