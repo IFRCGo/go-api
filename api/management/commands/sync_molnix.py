@@ -62,6 +62,22 @@ def get_datetime(datetime_string):
     '''
     return date_parser.parse(datetime_string)
 
+
+def add_tags_to_alert(alert, tags):
+    # We clear all tags first, and then re-add them
+    tag_molnix_ids = [t['id'] for t in tags]
+    alert.molnix_tags.clear()
+    for molnix_id in tag_molnix_ids:
+        try:
+            t = MolnixTag.objects.get(molnix_id=molnix_id)
+        except:
+            print('ERROR: %d' % molnix_id)
+            continue
+        alert.molnix_tags.add(t)
+    alert.save()
+
+    
+
 # def sync_deployments(molnix_deployments):
 #     molnix_ids = [d['id'] for d in molnix_deployments]
 #     for molnix_deployment in molnix_deployments:
@@ -89,9 +105,20 @@ def sync_open_positions(molnix_positions):
         go_alert.closes = get_datetime(position['closes'])
         go_alert.start = get_datetime(position['start'])
         go_alert.end = get_datetime(position['end'])
+        go_alert.is_active = True
         go_alert.save()
+        add_tags_to_alert(go_alert, position['tags'])
         print('SurgeAlert saved: %s' % go_alert.message)
-    #TODO: Handle deleting / marking inactive alerts that exist in GO that are not in molnix_ids
+    
+    # Find existing active alerts that are not in the current list from Molnix
+    existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
+    existing_alert_ids = [e.molnix_id for e in existing_alerts]
+    inactive_alerts = list(set(existing_alert_ids) - set(molnix_ids))
+
+    # Mark alerts that are no longer in Molnix as inactive
+    for alert in SurgeAlert.objects.filter(molnix_id__in=inactive_alerts):
+        alert.is_active = False
+        alert.save()
 
 
 class Command(BaseCommand):

@@ -60,6 +60,9 @@ class SurgeAlert(models.Model):
     end = models.DateTimeField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
 
+    # Set to inactive when position is no longer in Molnix
+    is_active = models.BooleanField(default=True)
+
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
 
