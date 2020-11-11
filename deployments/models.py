@@ -115,6 +115,7 @@ class PersonnelDeployment(models.Model):
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     previous_update = models.DateTimeField(verbose_name=_('previous update'), null=True, blank=True)
     comments = models.TextField(verbose_name=_('comments'), null=True, blank=True)
+    is_molnix = models.BooleanField(default=False) # Source is Molnix API
 
     class Meta:
         verbose_name = _('Personnel Deployment')
@@ -175,6 +176,10 @@ class Personnel(DeployedPerson):
         Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
     )
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
+    molnix_id = models.IntegerField(blank=True, null=True)
+    molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
+    is_active = models.BooleanField(default=True) # Active in Molnix API
+
 
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
