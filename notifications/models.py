@@ -78,7 +78,10 @@ class SurgeAlert(models.Model):
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.operation
+        if self.operation and self.operation != '':
+            return self.operation
+        else:
+            return self.event.name
 
 
 class SubscriptionType(IntEnum):
