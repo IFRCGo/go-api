@@ -7,8 +7,10 @@ from api.molnix_utils import MolnixApi
 from api.logger import logger
 from deployments.models import MolnixTag, PersonnelDeployment, Personnel
 from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
-from api.models import Event
+from api.models import Event, Country, CronJobStatus
+from api.create_cron import create_cron_record
 
+CRON_NAME = 'sync_molnix'
 
 def get_unique_tags(deployments, open_positions):
     tags = []
@@ -60,28 +62,87 @@ def get_datetime(datetime_string):
     '''
         Return a python datetime from a date-time string from the API
     '''
+    if not datetime_string or datetime_string == '':
+        return None
     return date_parser.parse(datetime_string)
 
 
-def add_tags_to_alert(alert, tags):
+def add_tags_to_obj(obj, tags):
     # We clear all tags first, and then re-add them
     tag_molnix_ids = [t['id'] for t in tags]
-    alert.molnix_tags.clear()
+    obj.molnix_tags.clear()
     for molnix_id in tag_molnix_ids:
         try:
             t = MolnixTag.objects.get(molnix_id=molnix_id)
         except:
             print('ERROR: %d' % molnix_id)
             continue
-        alert.molnix_tags.add(t)
-    alert.save()
+        obj.molnix_tags.add(t)
+    obj.save()
 
     
 
-# def sync_deployments(molnix_deployments):
-#     molnix_ids = [d['id'] for d in molnix_deployments]
-#     for molnix_deployment in molnix_deployments:
-#         deployment, created = 
+def sync_deployments(molnix_deployments):
+    molnix_ids = [d['id'] for d in molnix_deployments]
+
+    # Ensure there are PersonnelDeployment instances for every unique emergency
+    events = [get_go_event(d['tags']) for d in molnix_deployments]
+    event_ids = [ev.id for ev in events if ev]
+    unique_event_ids = list(set(event_ids))
+    for event_id in unique_event_ids:
+        if PersonnelDeployment.objects.filter(is_molnix=True, event_deployed_to=event_id).count() == 0:
+            event = Event.objects.get(pk=event_id)
+            p = PersonnelDeployment()
+            p.event_deployed_to = event
+
+            # FIXME: check if country exists, etc.
+            p.country_deployed_to = p.event_deployed_to.countries.all()[0]
+            p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
+            p.is_molnix = True
+            p.save()
+            print('saved Personnel Deployment!')
+    
+    # Create Personnel objects
+    for md in molnix_deployments:
+        print(md)
+        try:
+            personnel = Personnel.objects.get(molnix_id=md['id'])
+        except:
+            personnel = Personnel(molnix_id=md['id'])
+        # print('personnel found', personnel)
+        event = get_go_event(md['tags'])
+        if not event:
+            print('NOT EVENT')
+            continue
+        deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
+        print('deployment', deployment.id)
+        personnel.deployment = deployment
+        personnel.molnix_id = md['id']
+        personnel.is_active = True
+        personnel.type = Personnel.RR
+        personnel.start_date = get_datetime(md['start'])
+        personnel.end_date = get_datetime(md['end'])
+        personnel.name = md['person']['fullname']
+        personnel.role = md['title']
+        try:
+            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'])
+        except:
+            personnel.country_from = None
+        personnel.save()
+        add_tags_to_obj(personnel, md['tags'])
+        print('saved %s' % personnel.name)
+
+    all_active_personnel = Personnel.objects.filter(is_active=True, molnix_id__isnull=False)
+    active_personnel_ids = [a.id for a in all_active_personnel]
+    inactive_ids = list(set(active_personnel_ids) - set(molnix_ids))
+    
+    # Mark Personnel entries no longer in Molnix as inactive:
+
+    for id in inactive_ids:
+        personnel = Personnel.objects.get(pk=id)
+        personnel.is_active = False
+        personnel.save()
+
 
 def sync_open_positions(molnix_positions):
     molnix_ids = [p['id'] for p in molnix_positions]
@@ -107,7 +168,7 @@ def sync_open_positions(molnix_positions):
         go_alert.end = get_datetime(position['end'])
         go_alert.is_active = True
         go_alert.save()
-        add_tags_to_alert(go_alert, position['tags'])
+        add_tags_to_obj(go_alert, position['tags'])
         print('SurgeAlert saved: %s' % go_alert.message)
     
     # Find existing active alerts that are not in the current list from Molnix
@@ -145,6 +206,6 @@ class Command(BaseCommand):
             return
         used_tags = get_unique_tags(deployments, open_positions)
         add_tags(used_tags)
-        # sync_deployments(deployments)
         sync_open_positions(open_positions)
+        sync_deployments(deployments)
         molnix.logout()
