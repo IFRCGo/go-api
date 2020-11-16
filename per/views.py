@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from .models import (
-    Form, FormData, WorkPlan, Overview, FormArea, FormQuestion
+    Form, FormData, WorkPlan, Overview, FormArea, FormQuestion, FormComponent
 )
 from api.views import bad_request
 
@@ -199,44 +199,55 @@ class CreatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', None)
-        branch_involved = request.data.get('branch_involved', None)
+        branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
-        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', None)
-        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', None)
+        date_of_assessment = request.data.get('date_of_assessment', None)
         date_of_mid_term_review = request.data.get('date_of_mid_term_review', None)
-        facilitated_by = request.data.get('facilitated_by', None)
+        date_of_next_asmt = request.data.get('date_of_next_asmt', None)
+        facilitator_name = request.data.get('facilitator_name', None)
         facilitator_email = request.data.get('facilitator_email', None)
-        focus = request.data.get('focus', None)
-        focal_point_name = request.data.get('focal_point_name', None)
-        focal_point_email = request.data.get('focal_point_email', None)
-        had_previous_assessment = request.data.get('had_previous_assessment', None)
-        phone_number = request.data.get('phone_number', None)
-        skype_address = request.data.get('skype_address', None)
-        type_of_ca_id = request.data.get('type_of_ca', None)
+        facilitator_phone = request.data.get('facilitator_phone', None)
+        facilitator_contact = request.data.get('facilitator_contact', None)
+        is_epi = request.data.get('is_epi', False)
+        method_asmt_used = request.data.get('method_asmt_used', None)
+        ns_focal_point_name = request.data.get('ns_focal_point_name', None)
+        ns_focal_point_email = request.data.get('ns_focal_point_email', None)
+        ns_focal_point_phone = request.data.get('ns_focal_point_phone', None)
+        other_consideration = request.data.get('other_consideration', None)
+        partner_focal_point_name = request.data.get('partner_focal_point_name', None)
+        partner_focal_point_email = request.data.get('partner_focal_point_email', None)
+        partner_focal_point_phone = request.data.get('partner_focal_point_phone', None)
+        partner_focal_point_organization = request.data.get('partner_focal_point_organization', None)
+        type_of_assessment_id = request.data.get('type_of_assessment', None)
         user_id = request.data.get('user_id', None)
 
         try:
             overview = Overview.objects.create(
-                approximate_date_next_capacity_assmt=approximate_date_next_capacity_assmt or None,
-                branch_involved=branch_involved,
+                branches_involved=branches_involved,
                 country_id=country_id,
-                date_of_current_capacity_assessment=date_of_current_capacity_assessment or None,
-                date_of_last_capacity_assessment=date_of_last_capacity_assessment or None,
+                date_of_assessment=date_of_assessment or None,
                 date_of_mid_term_review=date_of_mid_term_review or None,
-                facilitated_by=facilitated_by,
+                date_of_next_asmt=date_of_next_asmt or None,
+                facilitator_name=facilitator_name,
                 facilitator_email=facilitator_email,
-                focal_point_name=focal_point_name,
-                focal_point_email=focal_point_email,
-                focus=focus,
-                had_previous_assessment=had_previous_assessment,
-                is_finalized=False,
-                phone_number=phone_number,
-                skype_address=skype_address,
-                type_of_ca_id=type_of_ca_id,
+                facilitator_phone=facilitator_phone,
+                facilitator_contact=facilitator_contact,
+                is_epi=is_epi,
+                is_finalized=False, # We never want to finalize an Overview by start
+                method_asmt_used=method_asmt_used,
+                ns_focal_point_name=ns_focal_point_name,
+                ns_focal_point_email=ns_focal_point_email,
+                ns_focal_point_phone=ns_focal_point_phone,
+                other_consideration=other_consideration,
+                partner_focal_point_name=partner_focal_point_name,
+                partner_focal_point_email=partner_focal_point_email,
+                partner_focal_point_phone=partner_focal_point_phone,
+                partner_focal_point_organization=partner_focal_point_organization,
+                type_of_assessment_id=type_of_assessment_id,
                 user_id=user_id
             )
 
+            # For each Area create a Form record (Overview is the parent)
             areas = FormArea.objects.values_list('id', flat=True)
             for aid in areas:
                 form = Form.objects.create(
@@ -244,11 +255,13 @@ class CreatePerOverview(APIView):
                     user_id=user_id,
                     overview_id=overview.id
                 )
+
+                # For each Question create a FormData record (Form is the parent)
                 questions = FormQuestion.objects.filter(component__area_id=aid).values_list('id', flat=True)
                 for qid in questions:
                     FormData.objects.create(
                         form=form,
-                        question_id=qid,
+                        question_id=qid
                     )
         except Exception:
             return bad_request('Could not create PER Assessment.')
@@ -268,41 +281,51 @@ class UpdatePerOverview(APIView):
         if ov is None:
             return bad_request('Could not find PER Overview form record.')
 
-        approximate_date_next_capacity_assmt = request.data.get('approximate_date_next_capacity_assmt', None)
-        branch_involved = request.data.get('branch_involved', None)
+        branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
-        date_of_current_capacity_assessment = request.data.get('date_of_current_capacity_assessment', None)
-        date_of_last_capacity_assessment = request.data.get('date_of_last_capacity_assessment', None)
+        date_of_assessment = request.data.get('date_of_assessment', None)
         date_of_mid_term_review = request.data.get('date_of_mid_term_review', None)
-        facilitated_by = request.data.get('facilitated_by', None)
+        date_of_next_asmt = request.data.get('date_of_next_asmt', None)
+        facilitator_name = request.data.get('facilitator_name', None)
         facilitator_email = request.data.get('facilitator_email', None)
-        focus = request.data.get('focus', None)
-        focal_point_name = request.data.get('focal_point_name', None)
-        focal_point_email = request.data.get('focal_point_email', None)
-        had_previous_assessment = request.data.get('had_previous_assessment', None)
+        facilitator_phone = request.data.get('facilitator_phone', None)
+        facilitator_contact = request.data.get('facilitator_contact', None)
+        is_epi = request.data.get('is_epi', False)
         is_finalized = request.data.get('is_finalized', False)
-        phone_number = request.data.get('phone_number', None)
-        skype_address = request.data.get('skype_address', None)
-        type_of_ca_id = request.data.get('type_of_ca', None)
+        method_asmt_used = request.data.get('method_asmt_used', None)
+        ns_focal_point_name = request.data.get('ns_focal_point_name', None)
+        ns_focal_point_email = request.data.get('ns_focal_point_email', None)
+        ns_focal_point_phone = request.data.get('ns_focal_point_phone', None)
+        other_consideration = request.data.get('other_consideration', None)
+        partner_focal_point_name = request.data.get('partner_focal_point_name', None)
+        partner_focal_point_email = request.data.get('partner_focal_point_email', None)
+        partner_focal_point_phone = request.data.get('partner_focal_point_phone', None)
+        partner_focal_point_organization = request.data.get('partner_focal_point_organization', None)
+        type_of_assessment_id = request.data.get('type_of_assessment', None)
         user_id = request.data.get('user_id', None)
 
         try:
-            ov.approximate_date_next_capacity_assmt = approximate_date_next_capacity_assmt
-            ov.branch_involved = branch_involved
+            ov.branches_involved = branches_involved
             ov.country_id = country_id
-            ov.date_of_current_capacity_assessment = date_of_current_capacity_assessment
-            ov.date_of_last_capacity_assessment = date_of_last_capacity_assessment
+            ov.date_of_assessment = date_of_assessment
             ov.date_of_mid_term_review = date_of_mid_term_review
-            ov.facilitated_by = facilitated_by
+            ov.date_of_next_asmt = date_of_next_asmt
+            ov.facilitator_name = facilitator_name
             ov.facilitator_email = facilitator_email
-            ov.focus = focus
-            ov.focal_point_email = focal_point_email
-            ov.focal_point_name = focal_point_name
-            ov.had_previous_assessment = had_previous_assessment
+            ov.facilitator_phone = facilitator_phone
+            ov.facilitator_contact = facilitator_contact
+            ov.is_epi = is_epi
             ov.is_finalized = is_finalized
-            ov.phone_number = phone_number
-            ov.skype_address = skype_address
-            ov.type_of_ca_id = type_of_ca_id
+            ov.method_asmt_used = method_asmt_used
+            ov.ns_focal_point_name = ns_focal_point_name
+            ov.ns_focal_point_email = ns_focal_point_email
+            ov.ns_focal_point_phone = ns_focal_point_phone
+            ov.other_consideration = other_consideration
+            ov.partner_focal_point_name = partner_focal_point_name
+            ov.partner_focal_point_email = partner_focal_point_email
+            ov.partner_focal_point_phone = partner_focal_point_phone
+            ov.partner_focal_point_organization = partner_focal_point_organization
+            ov.type_of_assessment_id = type_of_assessment_id
             ov.user_id = user_id
             ov.save()
         except Exception:
@@ -347,4 +370,3 @@ class DelWorkPlan(APIView):
             return bad_request('Could not delete PER WorkPlan.')
 
         return JsonResponse({'status': 'ok'})
-

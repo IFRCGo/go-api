@@ -404,12 +404,13 @@ class OverviewFilter(filters.FilterSet):
         model = Overview
         fields = {
             'id': ('exact',),
+            'country': ('exact',)
         }
 
 
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Overview Viewset"""
-    queryset = Overview.objects.all().select_related('country', 'user', 'type_of_ca', 'type_of_last_ca')
+    queryset = Overview.objects.all().select_related('country', 'user', 'type_of_assessment')
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = OverviewFilter
@@ -429,7 +430,7 @@ class OverviewStrictViewset(OverviewViewset):
         queryset = Overview.objects.all()
         return (
             self.get_filtered_queryset(self.request, queryset, 4)
-                .select_related('country', 'user', 'type_of_ca', 'type_of_last_ca')
+                .select_related('country', 'user', 'type_of_assessment')
         )
 
 
@@ -454,7 +455,7 @@ class FormAreaFilter(filters.FilterSet):
 class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Areas Viewset """
     serializer_class = FormAreaSerializer
-    queryset = FormArea.objects.all()
+    queryset = FormArea.objects.all().order_by('area_num')
     filter_class = FormAreaFilter
 
 

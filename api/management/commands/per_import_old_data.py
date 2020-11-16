@@ -1,7 +1,7 @@
 import csv
 from django.db import transaction
 from django.core.management.base import BaseCommand
-from per.models import FormArea, FormComponent, FormQuestion, FormAnswer
+from per.models import AssessmentType, FormArea, FormComponent, FormQuestion, FormAnswer
 
 
 class Command(BaseCommand):
@@ -13,9 +13,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '-t',
             '--type',
-            nargs='+',
             type=str,
-            help='Type must be one of the following: areas, components, questions'
+            help='Type must be one of the following: atypes, areas, components, questions'
         )
         parser.add_argument(
             '-a',
@@ -29,6 +28,14 @@ class Command(BaseCommand):
         filename = kwargs['filename'][0]
         objtype = kwargs['type'][0]
         area_num = kwargs['areanum'][0] if kwargs['areanum'] else ''
+
+        if objtype == 'atypes':
+            is_empty = not AssessmentType.objects.exists()
+            if is_empty:
+                AssessmentType.objects.create(name='Self assessment', name_en='Self assessment')
+                AssessmentType.objects.create(name='Simulation', name_en='Simulation')
+                AssessmentType.objects.create(name='Operational', name_en='Operational')
+                AssessmentType.objects.create(name='Post operational', name_en='Post operational')
 
         with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
