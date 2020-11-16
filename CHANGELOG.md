@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.302
+
+ - Hotfix: Appeal ingest geo-mapping fix
+
 ## 1.1.300
 
 ### Added
