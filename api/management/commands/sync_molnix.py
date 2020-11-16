@@ -195,17 +195,30 @@ class Command(BaseCommand):
         try:
             molnix.login()
         except Exception as ex:
-            logger.error('Failed to login to Molnix API: %s' % str(ex))
+            msg = 'Failed to login to Molnix API: %s' % str(ex)
+            logger.error(msg)
+            create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
         try:
             # tags = molnix.get_tags()
             deployments = molnix.get_deployments()
             open_positions = molnix.get_open_positions()
         except Exception as ex:
-            logger.error('Failed to fetch data from Molnix API: %s' % str(ex))
+            msg = 'Failed to fetch data from Molnix API: %s' % str(ex)
+            logger.error(msg)
+            create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
-        used_tags = get_unique_tags(deployments, open_positions)
-        add_tags(used_tags)
-        sync_open_positions(open_positions)
-        sync_deployments(deployments)
+
+        try:    
+            used_tags = get_unique_tags(deployments, open_positions)
+            add_tags(used_tags)
+            sync_open_positions(open_positions)
+            sync_deployments(deployments)
+        except Exception as ex:
+            msg = 'Unknown Error occurred: %s' % str(ex)
+            logger.error(msg)
+            create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
+            return
+        
+        create_cron_record(CRON_NAME, 'success', CronJobStatus.SUCCESSFUL)
         molnix.logout()
