@@ -5,7 +5,7 @@ from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.models import Country, Region, Event, DisasterType
-
+from deployments.models import MolnixTag
 
 class SurgeAlertType(IntEnum):
     FACT = 0
@@ -42,7 +42,7 @@ class SurgeAlertCategory(IntEnum):
 
 
 class SurgeAlert(models.Model):
-    """ Manually-entered surge alerts """
+
     atype = EnumIntegerField(SurgeAlertType, verbose_name=_('alert type'), default=0)
     category = EnumIntegerField(SurgeAlertCategory, verbose_name=_('category'), default=0)
     operation = models.CharField(verbose_name=_('operation'), max_length=100)
@@ -50,6 +50,18 @@ class SurgeAlert(models.Model):
     deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
     is_private = models.BooleanField(verbose_name=_('is private?'), default=False)
     event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
+
+    # Fields specific to Molnix integration:
+    # ID in Molnix system, if parsed from Molnix.
+    molnix_id = models.IntegerField(blank=True, null=True)    
+    opens = models.DateTimeField(blank=True, null=True)
+    closes = models.DateTimeField(blank=True, null=True)
+    start = models.DateTimeField(blank=True, null=True)
+    end = models.DateTimeField(blank=True, null=True)
+    molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
+
+    # Set to inactive when position is no longer in Molnix
+    is_active = models.BooleanField(default=True)
 
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
@@ -66,7 +78,10 @@ class SurgeAlert(models.Model):
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.operation
+        if self.operation and self.operation != '':
+            return self.operation
+        else:
+            return self.event.name
 
 
 class SubscriptionType(IntEnum):

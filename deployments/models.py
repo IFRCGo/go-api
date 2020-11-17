@@ -115,6 +115,7 @@ class PersonnelDeployment(models.Model):
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     previous_update = models.DateTimeField(verbose_name=_('previous update'), null=True, blank=True)
     comments = models.TextField(verbose_name=_('comments'), null=True, blank=True)
+    is_molnix = models.BooleanField(default=False) # Source is Molnix API
 
     class Meta:
         verbose_name = _('Personnel Deployment')
@@ -122,6 +123,21 @@ class PersonnelDeployment(models.Model):
 
     def __str__(self):
         return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
+
+
+class MolnixTag(models.Model):
+    '''
+    We store tags from molnix in its own model, to make m2m relations
+    from notifications.models.SurgeAlert and DeployedPerson        
+    '''
+    molnix_id = models.IntegerField()
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=512)
+    color = models.CharField(max_length=6)
+    tag_type = models.CharField(max_length=127)
+
+    def __str__(self):
+        return self.name
 
 
 class DeployedPerson(models.Model):
@@ -160,6 +176,10 @@ class Personnel(DeployedPerson):
         Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
     )
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
+    molnix_id = models.IntegerField(blank=True, null=True)
+    molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
+    is_active = models.BooleanField(default=True) # Active in Molnix API
+
 
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
