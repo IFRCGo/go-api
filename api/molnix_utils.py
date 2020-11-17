@@ -22,7 +22,6 @@ class MolnixApi:
         if method == 'POST':
             res = requests.post(url, json=params, headers=headers)
         if res.status_code > 300:
-            print('failed response', res, res.text)
             raise Exception('call to %s failed' % url) #FIXME: print msg from API
         return res.json()
 
@@ -32,7 +31,6 @@ class MolnixApi:
         results = []
         while next_page:
             params['page'] = page
-            print(page)
             data = self.call_api(path=path, params=params)
             if response_key:
                 data = data[response_key]['data']

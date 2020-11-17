@@ -31,7 +31,6 @@ def add_tags(molnix_tags):
         tag.description = molnix_tag['description']
         tag.tag_type = molnix_tag['type']
         tag.save()
-        print('saved tag %s' % tag.name)
 
 
 
@@ -75,7 +74,7 @@ def add_tags_to_obj(obj, tags):
         try:
             t = MolnixTag.objects.get(molnix_id=molnix_id)
         except:
-            print('ERROR: %d' % molnix_id)
+            logger.error('ERROR - tag not found: %d' % molnix_id)
             continue
         obj.molnix_tags.add(t)
     obj.save()
@@ -100,11 +99,9 @@ def sync_deployments(molnix_deployments):
             p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             p.is_molnix = True
             p.save()
-            print('saved Personnel Deployment!')
     
     # Create Personnel objects
     for md in molnix_deployments:
-        print(md)
         try:
             personnel = Personnel.objects.get(molnix_id=md['id'])
         except:
@@ -112,10 +109,8 @@ def sync_deployments(molnix_deployments):
         # print('personnel found', personnel)
         event = get_go_event(md['tags'])
         if not event:
-            print('NOT EVENT')
             continue
         deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
-        print('deployment', deployment.id)
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
         personnel.is_active = True
@@ -127,10 +122,10 @@ def sync_deployments(molnix_deployments):
         try:
             personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'])
         except:
+            logger.warn('NS Name not found: %s' % md['secondment_incoming'])
             personnel.country_from = None
         personnel.save()
         add_tags_to_obj(personnel, md['tags'])
-        print('saved %s' % personnel.name)
 
     all_active_personnel = Personnel.objects.filter(is_active=True, molnix_id__isnull=False)
     active_personnel_ids = [a.id for a in all_active_personnel]
@@ -169,8 +164,7 @@ def sync_open_positions(molnix_positions):
         go_alert.is_active = True
         go_alert.save()
         add_tags_to_obj(go_alert, position['tags'])
-        print('SurgeAlert saved: %s' % go_alert.message)
-    
+
     # Find existing active alerts that are not in the current list from Molnix
     existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
     existing_alert_ids = [e.molnix_id for e in existing_alerts]
