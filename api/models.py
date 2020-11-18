@@ -68,6 +68,7 @@ class Region(models.Model):
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
+    additional_tab_name = models.CharField(verbose_name='Label for Extra Tab', max_length=100, blank=True)
 
     def indexing(self):
         return {
@@ -158,6 +159,7 @@ class Country(models.Model):
     wb_year = models.CharField(
         verbose_name=_('WB Year'), max_length=4, null=True, blank=True, help_text=_('population data year from WB API')
     )
+    additional_tab_name = models.CharField(verbose_name='Label for Extra Tab', max_length=100, blank=True)
 
     def indexing(self):
         return {
@@ -319,6 +321,47 @@ class RegionSnippet(models.Model):
     def __str__(self):
         return self.snippet
 
+
+class RegionEmergencySnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region emergencies snippet')
+        verbose_name_plural = _('region emergencies snippets')
+
+    def __str__(self):
+        return self.snippet
+
+
+class RegionPreparednessSnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region preparedness snippet')
+        verbose_name_plural = _('region preparedness snippets')
+
+    def __str__(self):
+        return self.snippet
+
+
+class RegionAdditionalLink(models.Model):
+    region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    url = models.URLField()
+    embed_as_iframe = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
