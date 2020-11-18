@@ -149,7 +149,6 @@ class Country(models.Model):
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
         storage=get_storage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     independent = models.NullBooleanField(
@@ -230,7 +229,6 @@ class District(models.Model):
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     is_deprecated = models.BooleanField(
@@ -252,6 +250,15 @@ class District(models.Model):
     def __str__(self):
         return '%s - %s' % (self.country_name, self.name)
 
+class CountryGeoms(models.Model):
+    """ Admin0 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
+
+class DistrictGeoms(models.Model):
+    """ Admin1 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    district = models.OneToOneField(District, verbose_name=_('district'), on_delete=models.DO_NOTHING, primary_key=True)
 
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
