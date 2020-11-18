@@ -24,7 +24,7 @@ class SurgeAlertFilter(filters.FilterSet):
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    queryset = SurgeAlert.objects.all()
+    queryset = SurgeAlert.objects.filter(is_active=True)
     filter_class = SurgeAlertFilter
     ordering_fields = ('created_at', 'atype', 'category', 'event',)
 
@@ -32,7 +32,6 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_authenticated:
             return SurgeAlertSerializer
         return UnauthenticatedSurgeAlertSerializer
-
 
 class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer

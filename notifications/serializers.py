@@ -5,18 +5,21 @@ from api.serializers import MiniEventSerializer, ListEventSerializer, MiniCountr
 from lang.serializers import ModelSerializer
 
 from .models import SurgeAlert, Subscription
+from deployments.serializers import MolnixTagSerializer
 
 
 class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
     event = ListEventSerializer()
     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
+    molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = SurgeAlert
         fields = (
             'operation', 'message', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
-            'atype', 'atype_display', 'category', 'category_display',
+            'atype', 'atype_display', 'category', 'category_display', 'molnix_id', 'molnix_tags',
+            'opens', 'closes', 'start', 'end', 'is_active',
         )
 
 
@@ -29,7 +32,7 @@ class UnauthenticatedSurgeAlertSerializer(EnumSupportSerializerMixin, ModelSeria
         model = SurgeAlert
         fields = (
             'operation', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
-            'atype', 'atype_display', 'category', 'category_display',
+            'atype', 'atype_display', 'category', 'category_display', 'is_active',
         )
 
 
