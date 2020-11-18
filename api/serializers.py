@@ -83,7 +83,7 @@ class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated'
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
@@ -102,7 +102,7 @@ class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated',
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
@@ -113,7 +113,7 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
-            'region', 'independent', 'is_deprecated',
+            'region', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
