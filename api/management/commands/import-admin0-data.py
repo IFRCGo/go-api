@@ -11,6 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import transaction
 from api.models import Country
 from api.models import Region
+from api.models import CountryGeoms
 
 class Command(BaseCommand):
   help = "import a shapefile of adminstrative boundary level 0 data to the GO database. To run, python manage.py import-admin0-data input.shp"
@@ -22,7 +23,7 @@ class Command(BaseCommand):
     parser.add_argument(
     '--update-geom',
     action='store_true',
-    help='Update the geometry of the district.'
+    help='Update the geometry of the country.'
     )
     parser.add_argument(
       '--update-bbox',
@@ -113,7 +114,10 @@ class Command(BaseCommand):
 
           if options['update_geom']:
             # add geom
-            country.geom = geom.wkt
+            CountryGeom = CountryGeoms()
+            CountryGeom.country = country
+            CountryGeom.geom = geom.wkt
+            CountryGeom.save()
 
           if options['update_bbox']:
             # add bbox
