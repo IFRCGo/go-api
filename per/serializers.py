@@ -140,8 +140,7 @@ class AssessmentTypeSerializer(serializers.ModelSerializer):
 class OverviewSerializer(serializers.ModelSerializer):
     user = MiniUserSerializer()
     country = RegoCountrySerializer()
-    type_of_ca = AssessmentTypeSerializer()
-    type_of_last_ca = AssessmentTypeSerializer()
+    type_of_assessment = AssessmentTypeSerializer()
 
     class Meta:
         model = Overview

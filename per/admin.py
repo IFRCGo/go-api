@@ -20,14 +20,12 @@ class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 
 class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
-    country_in = 'country__pk__in'
-    region_in = 'country__region_id__in'
     inlines = [FormDataInline]
     exclude = ("ip_address", )
-    search_fields = ('code', 'name', 'country__name', )
+    search_fields = ('area__name',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('area', 'country', 'user')
+        return super().get_queryset(request).select_related('area', 'user')
 
 
 class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):

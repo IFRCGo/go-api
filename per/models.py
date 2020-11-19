@@ -1,5 +1,4 @@
 from api.models import Country
-from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -165,7 +164,9 @@ class Overview(models.Model):
     facilitator_contact = models.CharField(verbose_name=_('facilitated other contacts'), max_length=90, null=True, blank=True)
     is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
     is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
-    method_asmt_used = models.CharField(verbose_name=_('what method has this assessment used'), max_length=90, null=True, blank=True)
+    method_asmt_used = models.CharField(verbose_name=_(
+        'what method has this assessment used'), max_length=90, null=True, blank=True
+    )
     ns_focal_point_name = models.CharField(verbose_name=_('ns focal point name'), max_length=90, null=True, blank=True)
     ns_focal_point_email = models.CharField(verbose_name=_('ns focal point email'), max_length=90, null=True, blank=True)
     ns_focal_point_phone = models.CharField(verbose_name=_('ns focal point phone'), max_length=90, null=True, blank=True)
@@ -202,7 +203,7 @@ class Overview(models.Model):
             name = None
         else:
             name = self.country.society_name
-        return f'{name} ({self.focal_point_name})'
+        return f'{name} ({self.ns_focal_point_name})'
 
 
 class Form(models.Model):

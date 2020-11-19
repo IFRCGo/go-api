@@ -410,7 +410,11 @@ class OverviewFilter(filters.FilterSet):
 
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Overview Viewset"""
-    queryset = Overview.objects.all().select_related('country', 'user', 'type_of_assessment')
+    queryset = Overview.objects.all().select_related(
+        'country', 'user', 'type_of_assessment'
+    ).order_by(
+        'country__name', '-updated_at'
+    )
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filter_class = OverviewFilter
@@ -431,6 +435,7 @@ class OverviewStrictViewset(OverviewViewset):
         return (
             self.get_filtered_queryset(self.request, queryset, 4)
                 .select_related('country', 'user', 'type_of_assessment')
+                .order_by('country__name', '-updated_at')
         )
 
 
