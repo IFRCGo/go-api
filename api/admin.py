@@ -410,7 +410,19 @@ class CountrySnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 class RegionSnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.RegionSnippet
+    extra = 1
 
+class RegionEmergencySnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionEmergencySnippet
+    extra = 1
+
+class RegionProfileSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionProfileSnippet
+    extra = 1
+
+class RegionPreparednessSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionPreparednessSnippet
+    extra = 1
 
 class CountryLinkInline(admin.TabularInline):
     model = models.CountryLink
@@ -449,7 +461,15 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
 class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = None
     region_in = 'pk__in'
-    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline]
+    inlines = [
+        RegionKeyFigureInline,
+        RegionSnippetInline,
+        RegionEmergencySnippetInline,
+        RegionProfileSnippetInline,
+        RegionPreparednessSnippetInline,
+        RegionLinkInline,
+        RegionContactInline
+    ]
     search_fields = ('name',)
     modifiable = True
 

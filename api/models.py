@@ -68,7 +68,7 @@ class Region(models.Model):
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
-    additional_tab_name = models.CharField(verbose_name='Label for Extra Tab', max_length=100, blank=True)
+    additional_tab_name = models.CharField(verbose_name='Label for Additional Tab', max_length=100, blank=True)
 
     def indexing(self):
         return {
@@ -354,14 +354,29 @@ class RegionPreparednessSnippet(models.Model):
         return self.snippet
 
 
-class RegionAdditionalLink(models.Model):
-    region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    url = models.URLField()
-    embed_as_iframe = models.BooleanField(default=False)
+class RegionProfileSnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region profile snippet')
+        verbose_name_plural = _('region profile snippets')
 
     def __str__(self):
-        return self.title
+        return self.snippet    
+
+# class RegionAdditionalLink(models.Model):
+#     region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
+#     title = models.CharField(max_length=255)
+#     url = models.URLField()
+#     show_in_go = models.BooleanField(default=False, help_text='Show link contents within GO')
+
+#     def __str__(self):
+#         return self.title
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
@@ -392,7 +407,8 @@ class AdminLink(models.Model):
 
 class RegionLink(AdminLink):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='links', on_delete=models.CASCADE)
-
+    show_in_go = models.BooleanField(default=False, help_text='Show link contents within GO')
+    
     class Meta:
         verbose_name = _('region link')
         verbose_name_plural = _('region links')

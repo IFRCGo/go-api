@@ -14,6 +14,9 @@ from .models import (
     RegionKeyFigure,
     CountrySnippet,
     RegionSnippet,
+    RegionEmergencySnippet,
+    RegionProfileSnippet,
+    RegionPreparednessSnippet,
     CountryLink,
     RegionLink,
     CountryContact,
@@ -193,6 +196,27 @@ class RegionSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
+class RegionEmergencySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionEmergencySnippet
+        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+
+
+class RegionProfileSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionProfileSnippet
+        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+
+
+class RegionPreparednessSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionPreparednessSnippet
+        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+
+
 class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     country = CountrySerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
@@ -213,7 +237,7 @@ class CountrySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 class RegionLinkSerializer(ModelSerializer):
     class Meta:
         model = RegionLink
-        fields = ('title', 'url', 'id',)
+        fields = ('title', 'url', 'id', 'show_in_go',)
 
 
 class CountryLinkSerializer(ModelSerializer):
@@ -237,10 +261,16 @@ class CountryContactSerializer(ModelSerializer):
 class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
+    snippets = RegionSnippetSerializer(many=True, read_only=True)
+    emergency_snippets = RegionEmergencySnippetSerializer(many=True, read_only=True)
+    profile_snippets = RegionProfileSnippetSerializer(many=True, read_only=True)
+    preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
 
     class Meta:
         model = Region
-        fields = ('links', 'contacts', 'name', 'region_name', 'id',)
+        fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
+                  'profile_snippets', 'preparedness_snippets', 'name',
+                  'region_name', 'id',)
 
 
 class CountryRelationSerializer(ModelSerializer):
