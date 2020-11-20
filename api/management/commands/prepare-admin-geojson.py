@@ -15,12 +15,12 @@ class Command(BaseCommand):
 
       print('Exporting countries...')
       subprocess.Popen(['rm', '/tmp/countries.geojson'])
-      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/countries.geojson', connection_string, '-sql', 'select cd.country_id, cd.geom, c.name, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1' ])
+      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/countries.geojson', connection_string, '-sql', 'select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1' ])
       print('Countries written to /tmp/countries.geojson')
 
       print('Exporting districts...')
       subprocess.Popen(['rm', '/tmp/districts.geojson'])
-      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id' ])
+      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id' ])
       print('Districts written to /tmp/districts.geojson')
 
     except:
