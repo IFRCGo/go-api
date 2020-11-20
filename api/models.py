@@ -159,7 +159,32 @@ class Country(models.Model):
     wb_year = models.CharField(
         verbose_name=_('WB Year'), max_length=4, null=True, blank=True, help_text=_('population data year from WB API')
     )
-    additional_tab_name = models.CharField(verbose_name='Label for Extra Tab', max_length=100, blank=True)
+    additional_tab_name = models.CharField(verbose_name=_('Label for Extra Tab'), max_length=100, blank=True)
+
+    # Additional NS Indicator fields
+    nsi_income = models.CharField(max_length=16, verbose_name=_('Income (CHF)'), blank=True)
+    nsi_expenditures = models.CharField(max_length=16, verbose_name=_('Expenditures (CHF)'), blank=True)
+    nsi_branches = models.CharField(max_length=16, verbose_name=_('Branches'), blank=True)
+    nsi_staff = models.CharField(max_length=16, verbose_name=_('Staff'), blank=True)
+    nsi_volunteers = models.CharField(max_length=16, verbose_name=_('Volunteers'), blank=True)
+    nsi_youth = models.CharField(max_length=16, verbose_name=_('Youth - 6-19 Yrs'), blank=True)
+    nsi_trained_in_first_aid = models.CharField(max_length=16, verbose_name=_('Trained in First Aid'), blank=True)
+    nsi_gov_financial_support = models.CharField(max_length=16, verbose_name=_('Gov Financial Support'), blank=True)
+    nsi_domestically_generated_income = models.CharField(max_length=16, verbose_name=_('>50% Domestically Generated Income'), blank=True) 
+    nsi_annual_fdrs_reporting = models.CharField(max_length=16, verbose_name=_('Annual Reporting to FDRS'), blank=True)
+    nsi_policy_implementation = models.CharField(max_length=16, verbose_name=_('Your Policy / Programme Implementation'), blank=True)
+    nsi_risk_management_framework = models.CharField(max_length=16, verbose_name=_('Risk Management Framework'), blank=True)
+    nsi_cmc_dashboard_compliance = models.CharField(max_length=16, verbose_name=_('Complying with CMC Dashboard'), blank=True)
+
+    # WASH Capacity Indicators
+    wash_total_staff = models.IntegerField(verbose_name=_('Total WASH Staff'), null=True)
+    wash_kit2 = models.IntegerField(verbose_name=_('WASH Kit2'), null=True)
+    wash_kit5 = models.IntegerField(verbose_name=_('WASH Kit5'), null=True)
+    wash_kit10 = models.IntegerField(verbose_name=_('WASH Kit10'), null=True)
+    wash_staff_at_hq = models.IntegerField(verbose_name=_('WASH Staff at HQ'), null=True)
+    wash_staff_at_branch = models.IntegerField(verbose_name=_('WASH Staff at Branch'), null=True)
+    wash_ndrt_trained = models.IntegerField(verbose_name=_('NDRT Trained'), null=True)
+    wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True)
 
     def indexing(self):
         return {
@@ -408,7 +433,7 @@ class AdminLink(models.Model):
 class RegionLink(AdminLink):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='links', on_delete=models.CASCADE)
     show_in_go = models.BooleanField(default=False, help_text='Show link contents within GO')
-    
+
     class Meta:
         verbose_name = _('region link')
         verbose_name_plural = _('region links')
