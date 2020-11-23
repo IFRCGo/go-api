@@ -12,6 +12,9 @@ from .models import (
     GDACSEvent,
     Region,
     RegionSnippet,
+    RegionEmergencySnippet,
+    RegionProfileSnippet,
+    RegionPreparednessSnippet,
     SituationReport,
     SituationReportType,
     Snippet,
@@ -78,6 +81,17 @@ class RegionTO(TranslationOptions):
 class RegionSnippetTO(TranslationOptions):
     fields = ('snippet',)
 
+@register(RegionEmergencySnippet)
+class RegionEmergencySnippetTO(TranslationOptions):
+    fields = ('title', 'snippet',)
+
+@register(RegionProfileSnippet)
+class RegionProfileSnippetTO(TranslationOptions):
+    fields = ('title', 'snippet',)
+
+@register(RegionPreparednessSnippet)
+class RegionPreparednessSnippetTO(TranslationOptions):
+    fields = ('title', 'snippet',)
 
 @register(SituationReport)
 class SituationReportTO(TranslationOptions):
