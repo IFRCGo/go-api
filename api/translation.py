@@ -74,7 +74,7 @@ class GDACSEventTO(TranslationOptions):
 
 @register(Region)
 class RegionTO(TranslationOptions):
-    fields = ('label',)
+    fields = ('label', 'additional_tab_name',)
 
 
 @register(RegionSnippet)
