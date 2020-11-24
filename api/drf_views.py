@@ -18,6 +18,7 @@ from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
+from per.models import Overview
 
 from .models import (
     DisasterType,
@@ -551,6 +552,26 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Action.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
+
+
+# TODO: get this to work
+# class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
+#     authentication_classes = (TokenAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+
+#     def get_queryset(self):
+#         # FIXME: not working...
+#         ovs = Overview.objects.filter(country=Country('pk')).order_by('-updated_at')
+#         return (
+#             Country.objects
+#             .prefetch_related('per_overviews')
+#             .values('id', 'per_overviews')
+#             .annotate(
+#                 country_id=models.F('id'),
+#                 overviews_count=models.Count('per_overviews'),
+#                 latest_overview=models.SubQuery(ovs[:1])
+#             ).values('country_id', 'overviews_count', 'latest_overview')
+#         )
 
 
 class GenericFieldReportView(GenericAPIView):

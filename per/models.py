@@ -146,9 +146,10 @@ class AssessmentType(models.Model):
 
 
 class Overview(models.Model):
+    assessment_number = models.IntegerField(verbose_name=_('assessment number'), default=1)
     branches_involved = models.CharField(verbose_name=_('branches involved'), max_length=400, null=True, blank=True)
     country = models.ForeignKey(
-        Country, verbose_name=_('country'), related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL
+        Country, verbose_name=_('country'), related_name='per_overviews', null=True, blank=True, on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     date_of_assessment = models.DateTimeField(verbose_name=_('date of assessment'))
@@ -231,7 +232,7 @@ def question_details(question_id, code):
 
 class FormData(models.Model):
     """ PER form data """
-    form = models.ForeignKey(Form, verbose_name=_('form'), on_delete=models.CASCADE)
+    form = models.ForeignKey(Form, verbose_name=_('form'), related_name='form_data', on_delete=models.CASCADE)
     question = models.ForeignKey(FormQuestion, verbose_name=_('question'), null=True, on_delete=models.CASCADE)
     selected_answer = models.ForeignKey(FormAnswer, verbose_name=_('answer'), null=True, on_delete=models.CASCADE)
     notes = models.TextField(verbose_name=_('notes'), null=True, blank=True)

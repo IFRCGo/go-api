@@ -7,7 +7,17 @@ from api.serializers import (
     RegoCountrySerializer, UserNameSerializer
 )
 from .models import (
-    Form, FormArea, FormComponent, FormQuestion, FormAnswer, FormData, NSPhase, WorkPlan, Overview, NiceDocument, AssessmentType
+    Form,
+    FormArea,
+    FormComponent,
+    FormQuestion,
+    FormAnswer,
+    FormData,
+    NSPhase,
+    WorkPlan,
+    Overview,
+    NiceDocument,
+    AssessmentType
 )
 
 
@@ -63,12 +73,28 @@ class ListFormSerializer(serializers.ModelSerializer):
         fields = ('area', 'overview', 'updated_at', 'comment', 'user', 'id')
 
 
-class ListFormDataSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListFormDataSerializer(serializers.ModelSerializer):
     selected_answer = FormAnswerSerializer()
 
     class Meta:
         model = FormData
         fields = ('form', 'question_id', 'selected_answer', 'notes', 'id')
+
+
+class FormDataWOFormSerializer(serializers.ModelSerializer):
+    selected_answer = FormAnswerSerializer()
+
+    class Meta:
+        model = FormData
+        fields = ('question_id', 'selected_answer', 'notes', 'id')
+
+
+class ListFormWithDataSerializer(ListFormSerializer):
+    form_data = FormDataWOFormSerializer(many=True)
+
+    class Meta:
+        model = Form
+        fields = ('area', 'overview', 'form_data', 'updated_at', 'comment', 'user', 'id')
 
 
 class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):

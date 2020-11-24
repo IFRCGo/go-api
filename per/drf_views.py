@@ -12,12 +12,23 @@ from datetime import datetime
 import pytz
 
 from .models import (
-    Form, FormData, FormArea, FormComponent, FormQuestion, FormAnswer, NSPhase, WorkPlan, Overview, NiceDocument, AssessmentType
+    Form,
+    FormData,
+    FormArea,
+    FormComponent,
+    FormQuestion,
+    FormAnswer,
+    NSPhase,
+    WorkPlan,
+    Overview,
+    NiceDocument,
+    AssessmentType
 )
 
 from .serializers import (
     FormStatSerializer,
     ListFormSerializer,
+    ListFormWithDataSerializer,
     ListFormDataSerializer,
     ShortFormSerializer,
     EngagedNSPercentageSerializer,
@@ -61,9 +72,13 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
             self.get_filtered_queryset(self.request, queryset, 1)
                 .order_by('area__area_num')
                 .select_related('area', 'overview')
+                .prefetch_related('form_data')
         )
 
     def get_serializer_class(self):
+        with_data = self.request.GET.get('with_data', 'false')
+        if with_data == 'true':
+            return ListFormWithDataSerializer
         if self.action == 'list':
             return ListFormSerializer
         # else:

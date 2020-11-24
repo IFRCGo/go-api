@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from .models import (
-    Form, FormData, WorkPlan, Overview, FormArea, FormQuestion, FormComponent
+    Form, FormData, WorkPlan, Overview, FormArea, FormQuestion
 )
 from api.views import bad_request
 
@@ -88,30 +88,31 @@ class UpdatePerForm(APIView):
 
         # Update the FormData
         try:
-            # TODO: Maybe it would be faster to get all the questions with ONE query and
-            # loop that matching with the questions array, instead of having a
-            # query every loop (?)
-            for qid in questions:
-                form_data = FormData.objects.filter(form_id=form_id, question_id=qid).first()
-                if not form_data:
-                    # Probably newly added question
-                    try:
-                        form_data = FormData.objects.create(
-                            form=form,
-                            question_id=qid,
-                            selected_answer_id=questions[qid]['selected_answer'],
-                            notes=questions[qid]['notes']
-                            # TODO: just as in the CreatePerForm
-                        )
-                    except Exception:
-                        logger.error('Could not insert PER form record.', exc_info=True)
-                        return bad_request('Could not insert PER form record.')
-                else:
-                    if form_data.selected_answer_id != questions[qid]['selected_answer'] \
-                            or form_data.notes != questions[qid]['notes']:
-                        form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
-                        form_data.notes = questions[qid]['notes'] or form_data.notes
-                        form_data.save()
+            form_data_in_db = FormData.objects.filter(form_id=form_id)
+
+            with transaction.atomic():
+                for qid in questions:
+                    form_data = form_data_in_db.filter(question_id=qid).first()
+                    if not form_data:
+                        # Probably newly added question
+                        try:
+                            # TODO: look up bulk_save, (validation)
+                            form_data = FormData.objects.create(
+                                form=form,
+                                question_id=qid,
+                                selected_answer_id=questions[qid]['selected_answer'],
+                                notes=questions[qid]['notes']
+                                # TODO: just as in the CreatePerForm
+                            )
+                        except Exception:
+                            logger.error('Could not insert PER form record.', exc_info=True)
+                            return bad_request('Could not insert PER form record.')
+                    else:
+                        if form_data.selected_answer_id != questions[qid]['selected_answer'] \
+                                or form_data.notes != questions[qid]['notes']:
+                            form_data.selected_answer_id = questions[qid]['selected_answer'] or form_data.selected_answer_id
+                            form_data.notes = questions[qid]['notes'] or form_data.notes
+                            form_data.save()
         except Exception:
             logger.error('Could not change PER formdata record.', exc_info=True)
             return bad_request('Could not change PER formdata record.')
@@ -199,6 +200,7 @@ class CreatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
+        assessment_number = request.data.get('assessment_number', None)
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -223,6 +225,7 @@ class CreatePerOverview(APIView):
 
         try:
             overview = Overview.objects.create(
+                assessment_number=assessment_number,  #TODO: logic to increase/handle
                 branches_involved=branches_involved,
                 country_id=country_id,
                 date_of_assessment=date_of_assessment or None,
@@ -233,7 +236,7 @@ class CreatePerOverview(APIView):
                 facilitator_phone=facilitator_phone,
                 facilitator_contact=facilitator_contact,
                 is_epi=is_epi,
-                is_finalized=False, # We never want to finalize an Overview by start
+                is_finalized=False,  # We never want to finalize an Overview by start
                 method_asmt_used=method_asmt_used,
                 ns_focal_point_name=ns_focal_point_name,
                 ns_focal_point_email=ns_focal_point_email,
@@ -249,20 +252,26 @@ class CreatePerOverview(APIView):
 
             # For each Area create a Form record (Overview is the parent)
             areas = FormArea.objects.values_list('id', flat=True)
-            for aid in areas:
-                form = Form.objects.create(
-                    area_id=aid,
-                    user_id=user_id,
-                    overview_id=overview.id
-                )
+            form_data_to_create = []
 
-                # For each Question create a FormData record (Form is the parent)
-                questions = FormQuestion.objects.filter(component__area_id=aid).values_list('id', flat=True)
-                for qid in questions:
-                    FormData.objects.create(
-                        form=form,
-                        question_id=qid
+            with transaction.atomic():
+                for aid in areas:
+                    form = Form.objects.create(
+                        area_id=aid,
+                        user_id=user_id,
+                        overview_id=overview.id
                     )
+
+                    # For each Question create a FormData record (Form is the parent)
+                    questions = FormQuestion.objects.filter(component__area_id=aid).values_list('id', flat=True)
+                    for qid in questions:
+                        form_data_to_create.append(
+                            FormData(
+                                form=form,
+                                question_id=qid
+                            )
+                        )
+                FormData.objects.bulk_create(form_data_to_create)
         except Exception:
             return bad_request('Could not create PER Assessment.')
 
@@ -281,6 +290,7 @@ class UpdatePerOverview(APIView):
         if ov is None:
             return bad_request('Could not find PER Overview form record.')
 
+        assessment_number = request.data.get('assessment_number', None)
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -305,6 +315,7 @@ class UpdatePerOverview(APIView):
         user_id = request.data.get('user_id', None)
 
         try:
+            ov.assessment_number = assessment_number
             ov.branches_involved = branches_involved
             ov.country_id = country_id
             ov.date_of_assessment = date_of_assessment
