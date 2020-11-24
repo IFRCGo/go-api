@@ -84,6 +84,12 @@ class Region(models.Model):
     def es_id(self):
         return 'region-%s' % self.id
 
+    def get_national_society_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name='').count()
+
+    def get_country_cluster_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
+
     class Meta:
         ordering = ('name',)
         verbose_name = _('region')
@@ -352,7 +358,7 @@ class RegionEmergencySnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:
@@ -368,7 +374,7 @@ class RegionPreparednessSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:
@@ -384,7 +390,7 @@ class RegionProfileSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:

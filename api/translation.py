@@ -49,7 +49,7 @@ class AppealDocumentTO(TranslationOptions):
 
 @register(Country)
 class CountryTO(TranslationOptions):
-    fields = ('name', 'society_name', 'overview',)
+    fields = ('name', 'society_name', 'overview', 'additional_tab_name',)
 
 
 @register(CountrySnippet)
@@ -74,7 +74,7 @@ class GDACSEventTO(TranslationOptions):
 
 @register(Region)
 class RegionTO(TranslationOptions):
-    fields = ('label',)
+    fields = ('label', 'additional_tab_name',)
 
 
 @register(RegionSnippet)

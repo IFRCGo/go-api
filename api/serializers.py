@@ -200,21 +200,21 @@ class RegionEmergencySnippetSerializer(EnumSupportSerializerMixin, ModelSerializ
 
     class Meta:
         model = RegionEmergencySnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class RegionProfileSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     class Meta:
         model = RegionProfileSnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class RegionPreparednessSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     class Meta:
         model = RegionPreparednessSnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
@@ -265,12 +265,21 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     emergency_snippets = RegionEmergencySnippetSerializer(many=True, read_only=True)
     profile_snippets = RegionProfileSnippetSerializer(many=True, read_only=True)
     preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
+    national_society_count = serializers.SerializerMethodField()
+    country_cluster_count = serializers.SerializerMethodField()
 
+    def get_national_society_count(self, obj):
+        return obj.get_national_society_count()
+    
+    def get_country_cluster_count(self, obj):
+        return obj.get_country_cluster_count()
+        
     class Meta:
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
                   'profile_snippets', 'preparedness_snippets', 'name',
-                  'region_name', 'id',)
+                  'region_name', 'id', 'additional_tab_name',
+                  'national_society_count', 'country_cluster_count',)
 
 
 class CountryRelationSerializer(ModelSerializer):
@@ -281,7 +290,7 @@ class CountryRelationSerializer(ModelSerializer):
         model = Country
         fields = (
             'links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region',
-            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',
+            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'additional_tab_name',
             'nsi_income', 'nsi_expenditures', 'nsi_branches', 'nsi_staff', 'nsi_volunteers', 'nsi_youth',
             'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
             'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
