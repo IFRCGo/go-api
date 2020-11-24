@@ -84,6 +84,12 @@ class Region(models.Model):
     def es_id(self):
         return 'region-%s' % self.id
 
+    def get_national_society_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name='').count()
+
+    def get_country_cluster_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
+
     class Meta:
         ordering = ('name',)
         verbose_name = _('region')

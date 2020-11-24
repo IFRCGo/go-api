@@ -265,12 +265,21 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     emergency_snippets = RegionEmergencySnippetSerializer(many=True, read_only=True)
     profile_snippets = RegionProfileSnippetSerializer(many=True, read_only=True)
     preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
+    national_society_count = serializers.SerializerMethodField()
+    country_cluster_count = serializers.SerializerMethodField()
 
+    def get_national_society_count(self, obj):
+        return obj.get_national_society_count()
+    
+    def get_country_cluster_count(self, obj):
+        return obj.get_country_cluster_count()
+        
     class Meta:
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
                   'profile_snippets', 'preparedness_snippets', 'name',
-                  'region_name', 'id', 'additional_tab_name',)
+                  'region_name', 'id', 'additional_tab_name',
+                  'national_society_count', 'country_cluster_count',)
 
 
 class CountryRelationSerializer(ModelSerializer):
