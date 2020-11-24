@@ -352,7 +352,7 @@ class RegionEmergencySnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:
@@ -368,7 +368,7 @@ class RegionPreparednessSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:
@@ -384,7 +384,7 @@ class RegionProfileSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
     class Meta:

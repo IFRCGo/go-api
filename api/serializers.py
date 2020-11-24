@@ -200,21 +200,21 @@ class RegionEmergencySnippetSerializer(EnumSupportSerializerMixin, ModelSerializ
 
     class Meta:
         model = RegionEmergencySnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class RegionProfileSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     class Meta:
         model = RegionProfileSnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class RegionPreparednessSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     class Meta:
         model = RegionPreparednessSnippet
-        fields = ('region', 'title', 'snippet', 'visibility', 'id',)
+        fields = ('region', 'title', 'snippet', 'id',)
 
 
 class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
@@ -270,7 +270,7 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
                   'profile_snippets', 'preparedness_snippets', 'name',
-                  'region_name', 'id',)
+                  'region_name', 'id', 'additional_tab_name',)
 
 
 class CountryRelationSerializer(ModelSerializer):
