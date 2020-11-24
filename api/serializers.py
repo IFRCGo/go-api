@@ -281,7 +281,7 @@ class CountryRelationSerializer(ModelSerializer):
         model = Country
         fields = (
             'links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region',
-            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',
+            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'additional_tab_name',
             'nsi_income', 'nsi_expenditures', 'nsi_branches', 'nsi_staff', 'nsi_volunteers', 'nsi_youth',
             'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
             'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
