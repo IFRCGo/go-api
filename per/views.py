@@ -200,7 +200,6 @@ class CreatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        assessment_number = request.data.get('assessment_number', None)
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -315,7 +314,12 @@ class UpdatePerOverview(APIView):
         type_of_assessment_id = request.data.get('type_of_assessment', None)
         user_id = request.data.get('user_id', None)
 
+        prev_overview = None
+        if ov.country_id != country_id:
+            prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
+
         try:
+            ov.assessment_number = prev_overview.assessment_number + 1 if prev_overview else ov.assessment_number,
             ov.branches_involved = branches_involved
             ov.country_id = country_id
             ov.date_of_assessment = date_of_assessment
