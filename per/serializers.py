@@ -171,3 +171,11 @@ class OverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
         fields = '__all__'
+
+
+class LatestCountryOverviewSerializer(serializers.ModelSerializer):
+    type_of_assessment = AssessmentTypeSerializer()
+
+    class Meta:
+        model = Overview
+        fields = ('id', 'date_of_assessment', 'type_of_assessment')

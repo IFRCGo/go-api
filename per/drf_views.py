@@ -36,6 +36,7 @@ from .serializers import (
     NSPhaseSerializer,
     WorkPlanSerializer,
     OverviewSerializer,
+    LatestCountryOverviewSerializer,
     AssessmentTypeSerializer,
     ListNiceDocSerializer,
     FormAreaSerializer,
@@ -528,3 +529,21 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Answers Viewset """
     serializer_class = FormAnswerSerializer
     queryset = FormAnswer.objects.all()
+
+
+class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LatestCountryOverviewSerializer
+
+    def get_queryset(self):
+        country_id = self.request.GET.get('country_id', None)
+
+        if country_id:
+            return (
+                Overview.objects
+                        .select_related('country', 'type_of_assessment')
+                        .filter(country_id=country_id)
+                        .order_by('-created_at')[:1]  # first() gives error for len() and count()
+            )
+        return None
