@@ -184,14 +184,14 @@ class Country(models.Model):
     nsi_cmc_dashboard_compliance = models.NullBooleanField(verbose_name=_('Complying with CMC Dashboard'), blank=True, null=True)
 
     # WASH Capacity Indicators
-    wash_total_staff = models.IntegerField(verbose_name=_('Total WASH Staff'), null=True)
-    wash_kit2 = models.IntegerField(verbose_name=_('WASH Kit2'), null=True)
-    wash_kit5 = models.IntegerField(verbose_name=_('WASH Kit5'), null=True)
-    wash_kit10 = models.IntegerField(verbose_name=_('WASH Kit10'), null=True)
-    wash_staff_at_hq = models.IntegerField(verbose_name=_('WASH Staff at HQ'), null=True)
-    wash_staff_at_branch = models.IntegerField(verbose_name=_('WASH Staff at Branch'), null=True)
-    wash_ndrt_trained = models.IntegerField(verbose_name=_('NDRT Trained'), null=True)
-    wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True)
+    wash_total_staff = models.IntegerField(verbose_name=_('Total WASH Staff'), null=True, blank=True)
+    wash_kit2 = models.IntegerField(verbose_name=_('WASH Kit2'), null=True, blank=True)
+    wash_kit5 = models.IntegerField(verbose_name=_('WASH Kit5'), null=True, blank=True)
+    wash_kit10 = models.IntegerField(verbose_name=_('WASH Kit10'), null=True, blank=True)
+    wash_staff_at_hq = models.IntegerField(verbose_name=_('WASH Staff at HQ'), null=True, blank=True)
+    wash_staff_at_branch = models.IntegerField(verbose_name=_('WASH Staff at Branch'), null=True, blank=True)
+    wash_ndrt_trained = models.IntegerField(verbose_name=_('NDRT Trained'), null=True, blank=True)
+    wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True, blank=True)
 
     def indexing(self):
         return {
