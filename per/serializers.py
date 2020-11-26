@@ -178,4 +178,4 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Overview
-        fields = ('id', 'date_of_assessment', 'type_of_assessment')
+        fields = ('id', 'assessment_number', 'date_of_assessment', 'type_of_assessment')

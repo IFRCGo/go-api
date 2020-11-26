@@ -291,6 +291,11 @@ class UpdatePerOverview(APIView):
         if ov is None:
             return bad_request('Could not find PER Overview form record.')
 
+        required_fields = ('date_of_assessment', 'type_of_assessment', 'country_id', 'user_id')
+        missing_fields = [field for field in required_fields if field not in request.data]
+        if missing_fields:
+            return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
+
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -319,7 +324,8 @@ class UpdatePerOverview(APIView):
             prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
         try:
-            ov.assessment_number = prev_overview.assessment_number + 1 if prev_overview else ov.assessment_number,
+            if prev_overview:
+                ov.assessment_number = prev_overview.assessment_number + 1
             ov.branches_involved = branches_involved
             ov.country_id = country_id
             ov.date_of_assessment = date_of_assessment
