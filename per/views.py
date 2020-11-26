@@ -296,6 +296,11 @@ class UpdatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
+        # Fool-proofing so one couldn't change the Overview data even through
+        # plain API requests, if it's finalized already
+        if ov.is_finalized:
+            return bad_request('Form is already finalized. Can\'t save any changes to it.')
+
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -324,6 +329,8 @@ class UpdatePerOverview(APIView):
             prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
         try:
+            # One-liner didn't work, ov.assessment_number would become a tuple "randomly"... 3 -> (3,)
+            # ov.assessment_number = prev_overview.assessment_number + 1 if prev_overview else ov.assessment_number
             if prev_overview:
                 ov.assessment_number = prev_overview.assessment_number + 1
             ov.branches_involved = branches_involved
@@ -353,7 +360,7 @@ class UpdatePerOverview(APIView):
             logger.error('Could not change PER Overview form record.', exc_info=True)
             return bad_request('Could not change PER Overview form record.')
 
-        return JsonResponse({'status': 'ok'})
+        return JsonResponse({'status': 'ok', 'is_finalized': ov.is_finalized})
 
 
 class DeletePerOverview(APIView):
