@@ -166,7 +166,7 @@ class Country(models.Model):
     wb_year = models.CharField(
         verbose_name=_('WB Year'), max_length=4, null=True, blank=True, help_text=_('population data year from WB API')
     )
-    additional_tab_name = models.CharField(verbose_name=_('Label for Extra Tab'), max_length=100, blank=True)
+    additional_tab_name = models.CharField(verbose_name=_('Label for Additional Tab'), max_length=100, blank=True)
 
     # Additional NS Indicator fields
     nsi_income = models.IntegerField(verbose_name=_('Income (CHF)'), blank=True, null=True)
