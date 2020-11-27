@@ -46,6 +46,7 @@ from registrations.views import (
 from per.views import (
     # CreatePerForm,
     UpdatePerForm,
+    UpdatePerForms,
     # DeletePerForm,
     WorkPlanSent,
     CreatePerOverview,
@@ -140,6 +141,7 @@ urlpatterns = [
     url(r'^register', NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),
+    url(r'^updatemultipleperforms', UpdatePerForms.as_view()),
     # url(r'^deleteperform', DeletePerForm.as_view()),
     url(r'^createperoverview', CreatePerOverview.as_view()),
     url(r'^updateperoverview', UpdatePerOverview.as_view()),

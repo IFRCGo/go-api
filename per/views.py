@@ -67,7 +67,7 @@ class UpdatePerForm(APIView):
         # Get the PER Form by ID
         form_id = request.data.get('id', None)
         if form_id is None:
-            return bad_request('Could not complete request. Please submit include id')
+            return bad_request('Could not complete request. Please include \'id\' in the request.')
         form = Form.objects.filter(pk=form_id).first()
         if form is None:
             return bad_request('Could not find PER form record.')
@@ -118,6 +118,60 @@ class UpdatePerForm(APIView):
             return bad_request('Could not change PER formdata record.')
 
         return JsonResponse({'status': 'ok', 'overview_id': form.overview_id})
+
+
+class UpdatePerForms(APIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+    permissions_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        forms = request.data.get('forms', None)
+        forms_data = request.data.get('forms_data', None)
+
+        if not forms or not forms_data:
+            return bad_request('Could not complete request. \'forms\' or \'forms_data\' are missing.')
+
+        # Update the Forms
+        try:
+            with transaction.atomic():
+                for form_id in forms:
+                    form = Form.objects.filter(pk=forms[form_id].get('id')).first()
+                    if form:
+                        form.comment = forms[form_id].get('comment')
+                        form.save()
+        except Exception:
+            logger.error('Could not update PER Forms.', exc_info=True)
+            return bad_request('Could not update PER Forms.')
+
+        # Update the FormsData
+        try:
+            with transaction.atomic():
+                for fid in forms_data:
+                    # All FormData related to the Form
+                    db_form_data = FormData.objects.filter(form_id=fid)
+                    form_data_to_update = []
+                    for qid in forms_data[form_id]:
+                        db_fd = db_form_data.filter(question_id=qid).first()
+                        fd = forms_data[form_id][qid]
+
+                        if not db_fd:
+                            # Missing question
+                            FormData.objects.create(
+                                form_id=fid,
+                                question_id=qid,
+                                selected_answer_id=fd.get('selected_answer', None),
+                                notes=fd.get('notes', None)
+                            )
+                        else:
+                            db_fd.selected_answer_id = fd.get('selected_answer', None)
+                            db_fd.notes = fd.get('notes', None)
+                            form_data_to_update.append(db_fd)
+                    FormData.objects.bulk_update(form_data_to_update, ['selected_answer_id', 'notes'])
+        except Exception:
+            logger.error('Could not update PER FormsData.', exc_info=True)
+            return bad_request('Could not update PER FormsData.')
+
+        return JsonResponse({'status': 'ok'})
 
 
 # # For now, a Form can only be deleted if it's parent Overview is deleted
