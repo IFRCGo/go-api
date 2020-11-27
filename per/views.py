@@ -150,21 +150,28 @@ class UpdatePerForms(APIView):
                     # All FormData related to the Form
                     db_form_data = FormData.objects.filter(form_id=fid)
                     form_data_to_update = []
-                    for qid in forms_data[form_id]:
+                    for qid in forms_data[fid]:
                         db_fd = db_form_data.filter(question_id=qid).first()
-                        fd = forms_data[form_id][qid]
+                        selected_answer = forms_data[fid][qid].get('selected_answer', None)
+                        notes = forms_data[fid][qid].get('notes', None)
+
+                        if selected_answer:
+                            selected_answer = int(selected_answer)
 
                         if not db_fd:
                             # Missing question
                             FormData.objects.create(
                                 form_id=fid,
                                 question_id=qid,
-                                selected_answer_id=fd.get('selected_answer', None),
-                                notes=fd.get('notes', None)
+                                selected_answer_id=selected_answer,
+                                notes=notes
                             )
                         else:
-                            db_fd.selected_answer_id = fd.get('selected_answer', None)
-                            db_fd.notes = fd.get('notes', None)
+                            if db_fd.selected_answer_id == selected_answer \
+                                    and db_fd.notes == notes:
+                                continue
+                            db_fd.selected_answer_id = selected_answer
+                            db_fd.notes = notes
                             form_data_to_update.append(db_fd)
                     FormData.objects.bulk_update(form_data_to_update, ['selected_answer_id', 'notes'])
         except Exception:
