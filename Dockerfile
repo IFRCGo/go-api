@@ -15,7 +15,8 @@ WORKDIR $HOME
 COPY requirements.txt $HOME/requirements.txt
 RUN \
 	pip install gunicorn; \
-	pip install -r requirements.txt
+	pip install -r requirements.txt \
+	pip install mapbox-tilesets
 
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
