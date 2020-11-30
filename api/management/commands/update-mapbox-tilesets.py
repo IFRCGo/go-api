@@ -3,7 +3,7 @@ import os
 from django.core.management.base import BaseCommand, CommandError
 
 class Command(BaseCommand):
-  help = "This command produces a countries.geojson and districts.geojson to be uploaded to Mapbox as a tileset. It is the source for all GO Maps."
+  help = "This command produces a countries.geojson and districts.geojson, and uploads them to Mapbox. It is the source for all GO Maps."
 
   def handle(self, *args, **options):
     try:
@@ -20,14 +20,14 @@ class Command(BaseCommand):
 
       print('Exporting districts...')
       subprocess.Popen(['rm', '/tmp/districts.geojson'])
-      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id' ])
+      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id and cd.geom is not null' ])
       print('Districts written to /tmp/districts.geojson')
 
       print('Update Mapbox tileset source for countries...')
-      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-countries-test-src', '/tmp/countries.geojson'])
+      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-countries-src', '/tmp/countries.geojson'])
 
       print('Update Mapbox tileset for countries...')
-      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-countries-test'])
+      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-countries'])
 
 
       print('Update Mapbox tileset source for districts...')
@@ -35,5 +35,5 @@ class Command(BaseCommand):
 
       print('Update Mapbox tileset for districts...')
       subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-districts'])
-    except:
-      raise CommandError('Could not generate geojson')
+    except BaseException as e:
+      raise CommandError('Could not update tilesets: %s', str(e))
