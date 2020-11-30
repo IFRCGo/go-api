@@ -53,7 +53,10 @@ class SurgeAlert(models.Model):
 
     # Fields specific to Molnix integration:
     # ID in Molnix system, if parsed from Molnix.
-    molnix_id = models.IntegerField(blank=True, null=True)    
+    molnix_id = models.IntegerField(blank=True, null=True)
+
+    # Status field from Molnix - `unfilled` denotes Stood-Down
+    molnix_status = models.CharField(blank=True, null=True, max_length=32)    
     opens = models.DateTimeField(blank=True, null=True)
     closes = models.DateTimeField(blank=True, null=True)
     start = models.DateTimeField(blank=True, null=True)
