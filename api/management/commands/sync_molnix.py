@@ -143,7 +143,6 @@ def sync_open_positions(molnix_positions):
     molnix_ids = [p['id'] for p in molnix_positions]
     for position in molnix_positions:
         event = get_go_event(position['tags'])
-        print('status', position['status'])
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             logger.warn('Position id %d does not have an Emergency tag.' % position['id'])
@@ -198,7 +197,6 @@ class Command(BaseCommand):
             # tags = molnix.get_tags()
             deployments = molnix.get_deployments()
             open_positions = molnix.get_open_positions()
-            # print('open positions', open_positions)
         except Exception as ex:
             msg = 'Failed to fetch data from Molnix API: %s' % str(ex)
             logger.error(msg)
