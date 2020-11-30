@@ -26,7 +26,7 @@ class FormAnswerTO(TranslationOptions):
 
 @register(FormQuestion)
 class FormQuestionTO(TranslationOptions):
-    fields = ('question',)
+    fields = ('question', 'description')
 
 
 @register(FormData)

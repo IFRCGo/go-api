@@ -6,6 +6,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.storage import get_storage
 from .questions_data import questions
+from tinymce import HTMLField
 
 
 class ProcessPhase(IntEnum):
@@ -111,6 +112,7 @@ class FormQuestion(models.Model):
     """ PER Form individual questions inside Components """
     component = models.ForeignKey(FormComponent, verbose_name=_('component'), on_delete=models.PROTECT)
     question = models.CharField(verbose_name=_('question'), max_length=500)
+    description = HTMLField(verbose_name=_('description'), null=True, blank=True)
     question_num = models.IntegerField(verbose_name=_('question number'), null=True, blank=True)
     answers = models.ManyToManyField(FormAnswer, verbose_name=_('answers'), blank=True)
     is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)

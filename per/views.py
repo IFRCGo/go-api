@@ -50,7 +50,6 @@ def get_now_str():
 #                         question_id=qid,
 #                         selected_answer_id=questions[qid]['selected_answer'],
 #                         notes=questions[qid]['notes']
-#                         # TODO: check if FormData also needs is_epi and is_benchmark flags
 #                     )
 #         except Exception:
 #             logger.error('Could not insert PER formdata record.', exc_info=True)
@@ -435,11 +434,15 @@ class DeletePerOverview(APIView):
             return bad_request('Need to provide Overview ID.')
 
         try:
-            Overview.objects.filter(id=overview_id, user=user, is_finalized=False).delete()
+            ov = Overview.objects.filter(id=overview_id, user=user, is_finalized=False).first()
+            if ov:
+                ov.delete()
+            else:
+                return bad_request(
+                    f'Overview with the ID: {overview_id} is finalized or not created by your user.'
+                )
         except Exception:
             return bad_request('Could not delete PER Overview.')
-
-        # TODO: check if all connected Forms are deleted or need to delete manually (should cascade)
 
         return JsonResponse({'status': 'ok'})
 
