@@ -137,7 +137,7 @@ class Country(models.Model):
     record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
     iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True)
     iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True)
-    fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True)
+    fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
     society_url = models.URLField(blank=True, verbose_name=_('URL - Society'))
     url_ifrc = models.URLField(blank=True, verbose_name=_('URL - IFRC'))
