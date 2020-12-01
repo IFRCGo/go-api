@@ -60,7 +60,7 @@ class FormQuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormQuestion
-        fields = ('component', 'question', 'question_num', 'answers', 'is_epi', 'is_benchmark', 'id')
+        fields = ('component', 'question', 'question_num', 'answers', 'is_epi', 'is_benchmark', 'description', 'id')
 
 
 class ListFormSerializer(serializers.ModelSerializer):
