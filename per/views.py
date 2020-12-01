@@ -256,7 +256,7 @@ class CreatePerOverview(APIView):
 
     def post(self, request):
         required_fields = ('date_of_assessment', 'type_of_assessment', 'country_id', 'user_id')
-        missing_fields = [field for field in required_fields if field not in request.data]
+        missing_fields = [field for field in required_fields if field not in request.data or not request.data[field]]
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
@@ -350,9 +350,8 @@ class UpdatePerOverview(APIView):
         ov = Overview.objects.filter(pk=id).first()
         if ov is None:
             return bad_request('Could not find PER Overview form record.')
-
         required_fields = ('date_of_assessment', 'type_of_assessment', 'country_id', 'user_id')
-        missing_fields = [field for field in required_fields if field not in request.data]
+        missing_fields = [field for field in required_fields if field not in request.data or not request.data[field]]
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
