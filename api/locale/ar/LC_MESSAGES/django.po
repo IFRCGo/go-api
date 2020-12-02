@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2020-12-02 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,73 +16,78 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: api/admin.py:51
+#: api/admin.py:32 api/models.py:1306
+msgid "user profile"
+msgstr "ملف تعريف المستخدم"
+
+#: api/admin.py:67
 msgid "related emergency"
 msgstr "الطوارئ ذات الصلة"
 
-#: api/admin.py:56
+#: api/admin.py:72
 msgid "Exists"
 msgstr "موجود"
 
-#: api/admin.py:57
+#: api/admin.py:73
 msgid "Needs confirmation"
 msgstr "يحتاج إلى تأكيد"
 
-#: api/admin.py:58
+#: api/admin.py:74
 msgid "None"
 msgstr "لايوجد"
 
-#: api/admin.py:71
+#: api/admin.py:87
 msgid "membership"
 msgstr "عضوية"
 
-#: api/admin.py:83 api/models.py:670
+#: api/admin.py:99 api/models.py:779
 msgid "appeal type"
 msgstr "نوع الاستئناف"
 
-#: api/admin.py:95
+#: api/admin.py:111
 msgid "featured"
 msgstr "متميز"
 
-#: api/admin.py:100
+#: api/admin.py:116
 msgid "Featured"
 msgstr "مميز"
 
-#: api/admin.py:101
+#: api/admin.py:117
 msgid "Not Featured"
 msgstr "غير مميز"
 
-#: api/admin.py:112 api/models.py:233 api/models.py:532 api/models.py:1175
+#: api/admin.py:128 api/models.py:285 api/models.py:641 api/models.py:1261
 msgid "source"
 msgstr "المصدر"
 
-#: api/admin.py:117
+#: api/admin.py:133
 msgid "Manual input"
 msgstr "إدخال يدويّ"
 
-#: api/admin.py:118
+#: api/admin.py:134
 msgid "GDACs scraper"
 msgstr "مكشطة GDACs"
 
-#: api/admin.py:119
+#: api/admin.py:135
 msgid "WHO scraper"
 msgstr "مكشطة منظمة الصحة العالمية"
 
-#: api/admin.py:120
+#: api/admin.py:136
 msgid "Field report ingest"
 msgstr "استيعاب التقرير الميداني"
 
-#: api/admin.py:121
+#: api/admin.py:137
 msgid "Field report admin"
 msgstr "مشرف تقرير ميداني"
 
-#: api/admin.py:122
+#: api/admin.py:138
 msgid "Appeals admin"
 msgstr "يستأنف المشرف"
 
-#: api/admin.py:123
+#: api/admin.py:139
 msgid "Unknown automated"
 msgstr "آلياً غير معروف"
 
@@ -90,1919 +95,1996 @@ msgstr "آلياً غير معروف"
 msgid "api"
 msgstr "واجهة برمجة التطبيقات"
 
-#: api/forms.py:8 api/models.py:1114
+#: api/forms.py:8 api/models.py:1200
 msgid "organizations"
 msgstr "المنظمات"
 
-#: api/forms.py:9 api/models.py:1118
+#: api/forms.py:9 api/models.py:1204
 msgid "field report types"
 msgstr "أنواع التقارير الميدانية"
 
-#: api/models.py:38 api/models.py:67 api/models.py:125 api/models.py:178
-#: api/models.py:350 api/models.py:392 api/models.py:420 api/models.py:514
-#: api/models.py:585 api/models.py:668 api/models.py:773 api/models.py:1053
-#: api/models.py:1111 api/models.py:1156 api/models.py:1549
+#: api/models.py:39 api/models.py:68 api/models.py:136 api/models.py:225
+#: api/models.py:459 api/models.py:501 api/models.py:623 api/models.py:694
+#: api/models.py:777 api/models.py:882 api/models.py:1139 api/models.py:1197
+#: api/models.py:1242 api/models.py:1636
 msgid "name"
 msgstr "الاسم"
 
-#: api/models.py:39 api/models.py:414 api/models.py:835 api/models.py:1141
+#: api/models.py:40 api/models.py:523 api/models.py:944 api/models.py:1227
 msgid "summary"
 msgstr "ملخص"
 
-#: api/models.py:43 api/models.py:403 api/models.py:669 api/models.py:837
+#: api/models.py:44 api/models.py:512 api/models.py:778 api/models.py:946
 msgid "disaster type"
 msgstr "نوع الكارثة"
 
-#: api/models.py:44
+#: api/models.py:45
 msgid "disaster types"
 msgstr "أنواع الكوارث"
 
-#: api/models.py:58
+#: api/models.py:59
 msgid "Africa"
 msgstr "أفريقيا"
 
-#: api/models.py:59
+#: api/models.py:60
 msgid "Americas"
 msgstr "أميركا"
 
-#: api/models.py:60
+#: api/models.py:61
 msgid "Asia Pacific"
 msgstr "آسيا والمحيط الهادئ"
 
-#: api/models.py:61
+#: api/models.py:62
 msgid "Europe"
 msgstr "أوروبا"
 
-#: api/models.py:62
+#: api/models.py:63
 msgid "Middle East & North Africa"
 msgstr "الشرق الأوسط وشمال أفريقيا"
 
-#: api/models.py:85 api/models.py:132 api/models.py:246 api/models.py:288
-#: api/models.py:333 api/models.py:363 api/models.py:692
+#: api/models.py:70
+#, fuzzy
+#| msgid "number of highest risk"
+msgid "name of the region"
+msgstr "عدد من أعلى المخاطر"
+
+#: api/models.py:95 api/models.py:144 api/models.py:298 api/models.py:340
+#: api/models.py:358 api/models.py:374 api/models.py:390 api/models.py:441
+#: api/models.py:472 api/models.py:801
 msgid "region"
 msgstr "إقليم"
 
-#: api/models.py:86 api/models.py:406 api/models.py:843
+#: api/models.py:96 api/models.py:515 api/models.py:952
 msgid "regions"
 msgstr "أقاليم"
 
-#: api/models.py:110
+#: api/models.py:120
 msgid "Country"
 msgstr "البلد"
 
-#: api/models.py:111
+#: api/models.py:121
 msgid "Cluster"
 msgstr "تجمع"
 
-#: api/models.py:112
+#: api/models.py:122
 msgid "Region"
 msgstr "المنطقة"
 
-#: api/models.py:113
+#: api/models.py:123
 msgid "Country Office"
 msgstr "المكتب الاقليمي"
 
-#: api/models.py:114
+#: api/models.py:124
 msgid "Representative Office"
 msgstr "المكتب التمثيلي"
 
-#: api/models.py:126 api/models.py:349 api/models.py:513 api/models.py:565
-#: api/models.py:593 api/models.py:1052 api/models.py:1168
+#: api/models.py:137 api/models.py:458 api/models.py:622 api/models.py:674
+#: api/models.py:702 api/models.py:1138 api/models.py:1254
 msgid "type"
 msgstr "النوع"
 
-#: api/models.py:126
+#: api/models.py:137
 msgid "Type of entity"
 msgstr "نوع الجهة"
 
-#: api/models.py:127
+#: api/models.py:138
 msgid "ISO"
 msgstr "ايزو"
 
-#: api/models.py:128
+#: api/models.py:139
 msgid "ISO3"
 msgstr "ISO3"
 
-#: api/models.py:129
+#: api/models.py:140
+msgid "FDRS"
+msgstr ""
+
+#: api/models.py:141
 msgid "society name"
 msgstr "اسم المجتمع"
 
-#: api/models.py:130
+#: api/models.py:142
 msgid "URL - Society"
 msgstr "موقع الجمعية"
 
-#: api/models.py:131
+#: api/models.py:143
 msgid "URL - IFRC"
 msgstr "موقع الاتحاد"
 
-#: api/models.py:133
+#: api/models.py:145
 msgid "overview"
 msgstr "فكرة عامة"
 
-#: api/models.py:134
+#: api/models.py:146
 msgid "key priorities"
 msgstr "الأولويات الرئيسية"
 
-#: api/models.py:135
+#: api/models.py:147
 msgid "inform score"
 msgstr "أدخل النتيجة أو إدخال النتيجة"
 
-#: api/models.py:137
+#: api/models.py:149
 msgid "logo"
 msgstr "شعار"
 
-#: api/models.py:143 api/models.py:189
+#: api/models.py:156
+#, fuzzy
+#| msgid "Is it an enclave away from parent country?"
+msgid "Is this an independent country?"
+msgstr "هل هو جيب بعيد عن البلد الأم؟"
+
+#: api/models.py:159
+msgid "Is this an active, valid country?"
+msgstr ""
+
+#: api/models.py:164 api/models.py:241
 msgid "WB population"
 msgstr "سكان الضفة الغربية"
 
-#: api/models.py:143 api/models.py:189
+#: api/models.py:164 api/models.py:241
 msgid "population data from WB API"
 msgstr "البيانات السكانية من WB API"
 
-#: api/models.py:146
+#: api/models.py:167
 msgid "WB Year"
 msgstr "سنة WB"
 
-#: api/models.py:146 api/models.py:192
+#: api/models.py:167 api/models.py:244
 msgid "population data year from WB API"
 msgstr "سنة البيانات السكانية من WB API"
 
-#: api/models.py:168 api/models.py:180 api/models.py:254 api/models.py:306
-#: api/models.py:341 api/models.py:371 api/models.py:691 api/models.py:1207
+#: api/models.py:169
+msgid "Label for Additional Tab"
+msgstr ""
+
+#: api/models.py:172
+msgid "Income (CHF)"
+msgstr ""
+
+#: api/models.py:173
+msgid "Expenditures (CHF)"
+msgstr ""
+
+#: api/models.py:174
+msgid "Branches"
+msgstr ""
+
+#: api/models.py:175
+msgid "Staff"
+msgstr ""
+
+#: api/models.py:176
+#, fuzzy
+#| msgid "number of volunteers"
+msgid "Volunteers"
+msgstr "عدد المتطوعين"
+
+#: api/models.py:177
+msgid "Youth - 6-19 Yrs"
+msgstr ""
+
+#: api/models.py:178
+msgid "Trained in First Aid"
+msgstr ""
+
+#: api/models.py:179
+msgid "Gov Financial Support"
+msgstr ""
+
+#: api/models.py:180
+msgid ">50% Domestically Generated Income"
+msgstr ""
+
+#: api/models.py:181
+msgid "Annual Reporting to FDRS"
+msgstr ""
+
+#: api/models.py:182
+msgid "Your Policy / Programme Implementation"
+msgstr ""
+
+#: api/models.py:183
+msgid "Risk Management Framework"
+msgstr ""
+
+#: api/models.py:184
+msgid "Complying with CMC Dashboard"
+msgstr ""
+
+#: api/models.py:187
+msgid "Total WASH Staff"
+msgstr ""
+
+#: api/models.py:188
+msgid "WASH Kit2"
+msgstr ""
+
+#: api/models.py:189
+msgid "WASH Kit5"
+msgstr ""
+
+#: api/models.py:190
+msgid "WASH Kit10"
+msgstr ""
+
+#: api/models.py:191
+msgid "WASH Staff at HQ"
+msgstr ""
+
+#: api/models.py:192
+msgid "WASH Staff at Branch"
+msgstr ""
+
+#: api/models.py:193
+msgid "NDRT Trained"
+msgstr ""
+
+#: api/models.py:194
+msgid "RDRT Trained"
+msgstr ""
+
+#: api/models.py:215 api/models.py:227 api/models.py:306 api/models.py:414
+#: api/models.py:450 api/models.py:480 api/models.py:800 api/models.py:1293
 msgid "country"
 msgstr "البلد"
 
-#: api/models.py:169 api/models.py:405 api/models.py:627 api/models.py:842
+#: api/models.py:216 api/models.py:514 api/models.py:736 api/models.py:951
 msgid "countries"
 msgstr "الدول"
 
-#: api/models.py:179 api/models.py:673
+#: api/models.py:226 api/models.py:782
 msgid "code"
 msgstr "الرمز"
 
-#: api/models.py:181
-msgid "country ISO3"
+#: api/models.py:228
+#, fuzzy
+#| msgid "country ISO3"
+msgid "country ISO2"
 msgstr "بلد ISO3"
 
-#: api/models.py:182
+#: api/models.py:229
 msgid "country name"
 msgstr "اسم الدولة"
 
-#: api/models.py:184
+#: api/models.py:231
 msgid "is enclave?"
 msgstr "هو الجيب؟"
 
-#: api/models.py:184
+#: api/models.py:231
 msgid "Is it an enclave away from parent country?"
 msgstr "هل هو جيب بعيد عن البلد الأم؟"
 
-#: api/models.py:192
+#: api/models.py:237
+msgid "Is this an active, valid district?"
+msgstr ""
+
+#: api/models.py:244
 msgid "WB year"
 msgstr "سنة WB"
 
-#: api/models.py:197
+#: api/models.py:249
 msgid "district"
 msgstr "القضاء أو المحافظة"
 
-#: api/models.py:198 api/models.py:404 api/models.py:841
+#: api/models.py:250 api/models.py:513 api/models.py:950
 msgid "districts"
 msgstr "الاقضية أو المحفظات"
 
-#: api/models.py:210 api/models.py:222
+#: api/models.py:262 api/models.py:274
 msgid "Membership"
 msgstr "العضوية"
 
-#: api/models.py:211 api/models.py:223
+#: api/models.py:263 api/models.py:275
 msgid "IFRC Only"
 msgstr "الاتحاد الدولي لجمعيات الصليب الأحمر والهلال الأحمر فقط"
 
-#: api/models.py:212 api/models.py:224
+#: api/models.py:264 api/models.py:276
 msgid "Public"
 msgstr "عام"
 
-#: api/models.py:231
+#: api/models.py:283
 msgid "figure"
 msgstr "رسم أو صورة ليست رقم "
 
-#: api/models.py:232 api/models.py:531
+#: api/models.py:284 api/models.py:640
 msgid "deck"
 msgstr "منصة"
 
-#: api/models.py:234 api/models.py:293 api/models.py:311 api/models.py:550
-#: api/models.py:595 api/models.py:934
+#: api/models.py:286 api/models.py:345 api/models.py:419 api/models.py:659
+#: api/models.py:704 api/models.py:1020
 msgid "visibility"
 msgstr "أو الرؤيا حسب موقع الجملة"
 
-#: api/models.py:238
+#: api/models.py:290
 msgid "admin key figure"
 msgstr "الرقم الرئيسي للمشرف"
 
-#: api/models.py:239
+#: api/models.py:291
 msgid "admin key figures"
 msgstr "الشخصيات الرئيسية المشرف"
 
-#: api/models.py:249
+#: api/models.py:301
 msgid "region key figure"
 msgstr "رقم مفتاح المنطقة"
 
-#: api/models.py:250
+#: api/models.py:302
 msgid "region key figures"
 msgstr "الشخصيات الرئيسية في المنطقة"
 
-#: api/models.py:257
+#: api/models.py:309
 msgid "country key figure"
 msgstr "الرقم الرئيسي البلد"
 
-#: api/models.py:258
+#: api/models.py:310
 msgid "country key figures"
 msgstr "الشخصيات الرئيسية في البلاد"
 
-#: api/models.py:269
+#: api/models.py:321
 msgid "Top"
 msgstr "أعلى الموقع"
 
-#: api/models.py:270
+#: api/models.py:322
 msgid "High"
 msgstr "مرتفع"
 
-#: api/models.py:271
+#: api/models.py:323
 msgid "Middle"
 msgstr "أوسط"
 
-#: api/models.py:272
+#: api/models.py:324
 msgid "Low"
 msgstr "متدني"
 
-#: api/models.py:273
+#: api/models.py:325
 msgid "Bottom"
 msgstr "أسفل الموقع"
 
-#: api/models.py:282
+#: api/models.py:334
 msgid "Tab 1"
 msgstr "جدول 1"
 
-#: api/models.py:283
+#: api/models.py:335
 msgid "Tab 2"
 msgstr "جدول 2"
 
-#: api/models.py:284
+#: api/models.py:336
 msgid "Tab 3"
 msgstr "جدول 3"
 
-#: api/models.py:289 api/models.py:307 api/models.py:545 api/models.py:556
+#: api/models.py:341 api/models.py:360 api/models.py:376 api/models.py:392
+#: api/models.py:415 api/models.py:654 api/models.py:665
 msgid "snippet"
 msgstr "مقتطف أو مستخرج"
 
-#: api/models.py:291 api/models.py:309 api/models.py:547 api/models.py:612
+#: api/models.py:343 api/models.py:417 api/models.py:656 api/models.py:721
 msgid "image"
 msgstr "صورة"
 
-#: api/models.py:294 api/models.py:312 api/models.py:551 api/models.py:1215
+#: api/models.py:346 api/models.py:362 api/models.py:378 api/models.py:394
+#: api/models.py:420 api/models.py:660 api/models.py:1301
 msgid "position"
 msgstr "المركز"
 
-#: api/models.py:298
+#: api/models.py:350
 msgid "region snippet"
 msgstr "مقتطف المنطقة"
 
-#: api/models.py:299
+#: api/models.py:351
 msgid "region snippets"
 msgstr "مقتطفات المنطقة"
 
-#: api/models.py:316
+#: api/models.py:366
+#, fuzzy
+#| msgid "region snippet"
+msgid "region emergencies snippet"
+msgstr "مقتطف المنطقة"
+
+#: api/models.py:367
+#, fuzzy
+#| msgid "region snippets"
+msgid "region emergencies snippets"
+msgstr "مقتطفات المنطقة"
+
+#: api/models.py:382
+#, fuzzy
+#| msgid "region snippet"
+msgid "region preparedness snippet"
+msgstr "مقتطف المنطقة"
+
+#: api/models.py:383
+#, fuzzy
+#| msgid "region snippets"
+msgid "region preparedness snippets"
+msgstr "مقتطفات المنطقة"
+
+#: api/models.py:398
+#, fuzzy
+#| msgid "region snippet"
+msgid "region profile snippet"
+msgstr "مقتطف المنطقة"
+
+#: api/models.py:399
+#, fuzzy
+#| msgid "region snippets"
+msgid "region profile snippets"
+msgstr "مقتطفات المنطقة"
+
+#: api/models.py:424
 msgid "country snippet"
 msgstr "مقتطف البلد"
 
-#: api/models.py:317
+#: api/models.py:425
 msgid "country snippets"
 msgstr "مقتطفات البلد"
 
-#: api/models.py:324 api/models.py:351 api/models.py:515 api/models.py:610
-#: api/models.py:1054
+#: api/models.py:432 api/models.py:460 api/models.py:624 api/models.py:719
+#: api/models.py:1140
 msgid "title"
 msgstr "العنوان"
 
-#: api/models.py:325
+#: api/models.py:433
 msgid "url"
 msgstr "عنوان URL"
 
-#: api/models.py:328
+#: api/models.py:436
 msgid "admin link"
 msgstr "رابط المشرف "
 
-#: api/models.py:329
+#: api/models.py:437
 msgid "admin links"
 msgstr "روابط المسؤول"
 
-#: api/models.py:336
+#: api/models.py:445
 msgid "region link"
 msgstr "رابط الإقليم"
 
-#: api/models.py:337
+#: api/models.py:446
 msgid "region links"
 msgstr "روابط الأقاليم"
 
-#: api/models.py:344
+#: api/models.py:453
 msgid "country link"
 msgstr "صفحة ارتباط البلد"
 
-#: api/models.py:345
+#: api/models.py:454
 msgid "country links"
 msgstr "روابط الدول"
 
-#: api/models.py:352 api/models.py:516 api/models.py:1055
+#: api/models.py:461 api/models.py:625 api/models.py:1141
 msgid "email"
 msgstr "البريد الإلكتروني"
 
-#: api/models.py:355
+#: api/models.py:464
 msgid "admin contact"
 msgstr "تواصل مع المشرف"
 
-#: api/models.py:356
+#: api/models.py:465
 msgid "admin contacts"
 msgstr "اتصالات المسؤول"
 
-#: api/models.py:366
+#: api/models.py:475
 msgid "region contact"
 msgstr "جهة اتصال المنطقة"
 
-#: api/models.py:367
+#: api/models.py:476
 msgid "region contacts"
 msgstr "اتصالات المنطقة"
 
-#: api/models.py:374
+#: api/models.py:483
 msgid "country contact"
 msgstr "جهة اتصال البلد"
 
-#: api/models.py:375
+#: api/models.py:484
 msgid "country contacts"
 msgstr "اتصالات البلد"
 
-#: api/models.py:384
+#: api/models.py:493
 msgid "Green"
 msgstr "أخضر"
 
-#: api/models.py:385
+#: api/models.py:494
 msgid "Orange"
 msgstr "برتقالي "
 
-#: api/models.py:386
+#: api/models.py:495
 msgid "Red"
 msgstr "أحمر"
 
-#: api/models.py:395
+#: api/models.py:504
 msgid "slug"
 msgstr "سبيكة"
 
-#: api/models.py:398
+#: api/models.py:507
 msgid ""
-"Optional string for a clean URL. For example, "
-"go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with"
-" a number and is forced to be lowercase. Recommend using hyphens over "
-"underscores. Special characters like # is not allowed."
+"Optional string for a clean URL. For example, go.ifrc.org/emergencies/"
+"hurricane-katrina-2019. The string cannot start with a number and is forced "
+"to be lowercase. Recommend using hyphens over underscores. Special "
+"characters like # is not allowed."
 msgstr ""
-"سلسلة اختيارية لعنوان URL نظيف.على سبيل المثال ، "
-"go.ifrc.org/emergencies/hurricane-katrina-2019.لا يمكن أن تبدأ السلسلة برقم "
-"ويجب أن تكون صغيرة.نوصي باستخدام واصلات فوق الشرطات السفلية.الأحرف الخاصة "
-"مثل # غير مسموح بها."
+"سلسلة اختيارية لعنوان URL نظيف.على سبيل المثال ، go.ifrc.org/emergencies/"
+"hurricane-katrina-2019.لا يمكن أن تبدأ السلسلة برقم ويجب أن تكون صغيرة.نوصي "
+"باستخدام واصلات فوق الشرطات السفلية.الأحرف الخاصة مثل # غير مسموح بها."
 
-#: api/models.py:408
+#: api/models.py:517
 msgid "Parent Emergency"
 msgstr "طوارئ الوالدين"
 
-#: api/models.py:410
+#: api/models.py:519
 msgid ""
-"If needed, you have to change the connected Appeals', Field Reports', etc to"
-" point to the parent Emergency manually."
+"If needed, you have to change the connected Appeals', Field Reports', etc to "
+"point to the parent Emergency manually."
 msgstr ""
 "إذا لزم الأمر ، يجب عليك تغيير الطعون المتصلة ، والتقارير الميدانية ، وما "
 "إلى ذلك للإشارة إلى حالة الطوارئ الأصلية يدويًا."
 
-#: api/models.py:416 api/models.py:848
+#: api/models.py:525 api/models.py:957
 msgid "number of injured"
 msgstr "عدد الجرحى"
 
-#: api/models.py:417 api/models.py:849
+#: api/models.py:526 api/models.py:958
 msgid "number of dead"
 msgstr "عدد الموتي"
 
-#: api/models.py:418 api/models.py:850
+#: api/models.py:527 api/models.py:959
 msgid "number of missing"
 msgstr "عدد المفقودين"
 
-#: api/models.py:419 api/models.py:851
+#: api/models.py:528 api/models.py:960
 msgid "number of affected"
 msgstr "عدد المتأثرين"
 
-#: api/models.py:422
-msgid "IFRC Severity level"
-msgstr "مستوى الخطورة"
-
-#: api/models.py:423
-msgid "glide"
-msgstr ""
-"أزَلّ ; أفْلَت ; أفْلَص مِن ; اِنْزَلَق ; اِنْساب ; تَزَحْلَق ; تَزَلّج ; "
-"تَمَلّص ; تَمَلّص مِن ; جَرَى ; زَحْلَق ; زَلّ ; زَلَج ; زَلَق"
-
-#: api/models.py:425
-msgid "disaster start date"
-msgstr "تاريخ بدء الكارثة"
-
-#: api/models.py:426 api/models.py:584 api/models.py:682 api/models.py:772
-#: api/models.py:994 api/models.py:1551 api/models.py:1624 api/models.py:1639
-msgid "created at"
-msgstr "أنشئت في"
-
-#: api/models.py:427 api/models.py:995
-msgid "updated at"
-msgstr "تم التحديث في"
-
-#: api/models.py:428 api/models.py:684
-msgid "previous update"
-msgstr "التحديث السابق"
-
-#: api/models.py:430
-msgid "auto generated"
-msgstr "يستخرج تلقائيا"
-
-#: api/models.py:432
-msgid "auto generated source"
-msgstr "مصدر تم إنشاؤه تلقائيًا"
-
-#: api/models.py:436
-msgid "is featured on home page"
-msgstr "مميزة للصفحة الرئيسية"
-
-#: api/models.py:439
-msgid "is featured on region page"
-msgstr "واردة في صفحة المنطقة"
-
-#: api/models.py:441
-msgid "hide attached field reports?"
-msgstr "إخفاء التقارير الميدانية المرفقة؟"
-
-#: api/models.py:445
-msgid "tab one title"
-msgstr "عنوان الجدول رقم 1"
-
-#: api/models.py:447
-msgid "tab two title"
-msgstr "عنوان الجدول رقم 2"
-
-#: api/models.py:448
-msgid "tab three title"
-msgstr "عنوان الجدول رقم 3"
-
-#: api/models.py:452
-msgid "emergency"
-msgstr "إسْتِثْنائِيّ ; إضْطِرار ; إضْطِرارِيّ ; أزْمَة ; طارِئ"
-
-#: api/models.py:453
-msgid "emergencies"
-msgstr "طَوارِئ"
-
-#: api/models.py:517 api/models.py:1056
-msgid "phone"
-msgstr "رقم الهاتف"
-
-#: api/models.py:518 api/models.py:529 api/models.py:549 api/models.py:591
-#: api/models.py:688 api/models.py:839
-msgid "event"
-msgstr "فعالية"
-
-#: api/models.py:521
-msgid "event contact"
-msgstr "اتصال الحدث"
-
-#: api/models.py:522
-msgid "event contacts"
-msgstr "اتصالات الحدث"
-
-#: api/models.py:530
-msgid "number"
-msgstr "الرقم"
-
-#: api/models.py:530
-msgid "key figure metric"
-msgstr "مقياس الرقم الرئيسي"
-
-#: api/models.py:531
-msgid "key figure units"
-msgstr "وحدات الشكل الرئيسية"
-
-#: api/models.py:532
-msgid "key figure website link, publication"
-msgstr "رابط الموقع الرقم الرئيسي ، النشر"
-
-#: api/models.py:535
-msgid "key figure"
-msgstr "شخصية رئيسية"
-
-#: api/models.py:536
-msgid "key figures"
-msgstr "الأرقام الرئيسية"
-
-#: api/models.py:552
-msgid "tab"
-msgstr "عُرْوَة ; لِسَان"
-
-#: api/models.py:557
-msgid "snippets"
-msgstr "مقتطفات"
-
-#: api/models.py:567
-msgid "is primary?"
-msgstr "أساسي؟"
-
-#: api/models.py:568
-msgid "Ensure this type gets precedence over others that are empty"
-msgstr "تأكد من أن هذا النوع له الأسبقية على الأنواع الأخرى الفارغة"
-
-#: api/models.py:572
-msgid "situation report type"
-msgstr "201 - غرفة الدراسة والتحليل"
-
-#: api/models.py:573
-msgid "situation report types"
-msgstr "أنواع تقرير الحالة"
-
-#: api/models.py:587 api/models.py:775
-msgid "document"
-msgstr "وَثيقَة[ج:وَثائِق]"
-
-#: api/models.py:589 api/models.py:777
-msgid "document url"
-msgstr "رابط الوثيقة"
-
-#: api/models.py:596
-msgid "is pinned?"
-msgstr "مثبت؟"
-
-#: api/models.py:596
-msgid "pin this report at the top"
-msgstr "ثبت هذا التقرير في الأعلى"
-
-#: api/models.py:599
-msgid "situation report"
-msgstr "201 - غرفة الدراسة والتحليل"
-
-#: api/models.py:600
-msgid "situation reports"
-msgstr "تقارير عن الأوضاع"
-
-#: api/models.py:609
-msgid "event id"
-msgstr "آی دی  گردهمایی"
-
-#: api/models.py:611 api/models.py:836
-msgid "description"
-msgstr "وصف"
-
-#: api/models.py:613
-msgid "report"
-msgstr "بلاغ"
-
-#: api/models.py:614
-msgid "publication date"
-msgstr "تاريخ النشر"
-
-#: api/models.py:615
-msgid "year"
-msgstr "السنة"
-
-#: api/models.py:616
-msgid "latitude"
-msgstr "حَدّ ; مَجَال ; مَدىً ; نِطَاق"
-
-#: api/models.py:617
-msgid "longitude"
-msgstr "خط الطول"
-
-#: api/models.py:618
-msgid "event type"
-msgstr "طبيعة الإجراء الدال"
-
-#: api/models.py:619
-msgid "alert level"
-msgstr "مُسْتَوى اليَقَظَة"
-
-#: api/models.py:620
-msgid "alert score"
-msgstr "درجة التنبيه"
-
-#: api/models.py:621
-msgid "severity"
-msgstr ""
-"تَزَمّت ; تَشَدّد ; تَصْمِيم ; حَزْم ; حُمَيّا ; حِدّة ; سَوْرَة ; شِدّة ; "
-"صَرَامَة ; ضَغْط ; عُنْف ; فَوْرَة ; قَسَاوَة ; قَسْوَة ; قُوّة ; وَطْأة"
-
-#: api/models.py:622
-msgid "severity unit"
-msgstr "وحدة الشدة"
-
-#: api/models.py:623
-msgid "severity value"
-msgstr "قيمة الخطورة"
-
-#: api/models.py:624
-msgid "population unit"
-msgstr "وحدة سكانية"
-
-#: api/models.py:625
-msgid "population value"
-msgstr "قيمة السكان"
-
-#: api/models.py:626
-msgid "vulnerability"
-msgstr "سُرْعَةُ التَّأَثُّر؛تَعَرُّضِيَّة"
-
-#: api/models.py:628
-msgid "country text"
-msgstr "نص البلد"
-
-#: api/models.py:631
-msgid "gdacs event"
-msgstr "حدث gdacs"
-
-#: api/models.py:632
-msgid "gdacs events"
-msgstr "أحداث gdacs"
-
-#: api/models.py:645 api/models.py:938
-msgid "DREF"
-msgstr "DREF"
-
-#: api/models.py:646
-msgid "Emergency Appeal"
-msgstr "نداء الطوارئ"
-
-#: api/models.py:647
-msgid "International Appeal"
-msgstr "نداء دولي"
-
-#: api/models.py:657
-msgid "Active"
-msgstr "ناشط"
-
-#: api/models.py:658
-msgid "Closed"
-msgstr "مغلق"
-
-#: api/models.py:659
-msgid "Frozen"
-msgstr "مجمدة"
-
-#: api/models.py:660
-msgid "Archived"
-msgstr "مؤرشف"
-
-#: api/models.py:667
-msgid "appeal ID"
-msgstr "معرف الاستئناف"
-
-#: api/models.py:672 api/models.py:844 api/models.py:1550
-msgid "status"
-msgstr ""
-"بال ; حال ; حالَة ; دَرَجَة ; رُتْبَة ; سُدّة ; طَوْر ; مَرْكَز ; مَقَام ; "
-"مَكَانَة ; مَنْزِلَة ; مَنْصِب ; مَوْقِف ; وَضْع"
-
-#: api/models.py:674
-msgid "sector"
-msgstr "حَقْل ; قِسْم ; قِطَاع ; قاطِع ; مَجَال"
-
-#: api/models.py:676
-msgid "number of beneficiaries"
-msgstr "عدد المستفيدين"
-
-#: api/models.py:677
-msgid "amount requested"
-msgstr "المبلغ المطلوب"
-
-#: api/models.py:678
-msgid "amount funded"
-msgstr "المبلغ الممول"
-
-#: api/models.py:680 api/models.py:988
-msgid "start date"
-msgstr "تاريخ البدء"
-
-#: api/models.py:681
-msgid "end date"
-msgstr "تاريخ النهاية"
-
-#: api/models.py:683
-msgid "modified at"
-msgstr "تعديل في"
-
-#: api/models.py:685
-msgid "real data update"
-msgstr "تحديث البيانات الحقيقية"
-
-#: api/models.py:690
-msgid "needs confirmation?"
-msgstr "بحاجة الى تأكيد؟"
-
-#: api/models.py:733 api/models.py:779 api/models.py:940
-msgid "appeal"
-msgstr "استئناف"
-
-#: api/models.py:734
-msgid "appeals"
-msgstr "الاستئناف"
-
-#: api/models.py:782
-msgid "appeal document"
-msgstr "وثيقة الاستئناف"
-
-#: api/models.py:783
-msgid "appeal documents"
-msgstr "مستندات الاستئناف"
-
-#: api/models.py:802
-msgid "No"
-msgstr "لا"
-
-#: api/models.py:803
-msgid "Requested"
-msgstr "مطلوب"
-
-#: api/models.py:804
-msgid "Planned"
-msgstr "مخطط"
-
-#: api/models.py:805
-msgid "Complete"
-msgstr "کامل شده"
-
-#: api/models.py:814
-msgid "Ministry of health"
-msgstr "وزارة الصحة"
-
-#: api/models.py:815
-msgid "WHO"
-msgstr "منظمة الصحة العالمية"
-
-#: api/models.py:816
-msgid "OTHER"
-msgstr "أخرى"
-
-#: api/models.py:823 api/models.py:1200
-msgid "user"
-msgstr "المستعمل"
-
-#: api/models.py:828
-msgid "is covid report?"
-msgstr "هو تقرير كوفيد؟"
-
-#: api/models.py:830
-msgid "Is this a Field Report specific to the COVID-19 emergency?"
-msgstr "هل هذا تقرير ميداني خاص بحالة طوارئ COVID-19؟"
-
-#: api/models.py:834
-msgid "r id"
-msgstr "r هوية"
-
-#: api/models.py:845
-msgid "request assistance"
-msgstr "طلب المساعدة"
-
-#: api/models.py:846
-msgid "NS request assistance"
-msgstr "طلب المساعدة"
-
-#: api/models.py:852
+#: api/models.py:529 api/models.py:961
 msgid "number of displaced"
 msgstr "عدد النازحين"
 
-#: api/models.py:853
+#: api/models.py:531
+msgid "IFRC Severity level"
+msgstr "مستوى الخطورة"
+
+#: api/models.py:532
+msgid "glide"
+msgstr ""
+"أزَلّ ; أفْلَت ; أفْلَص مِن ; اِنْزَلَق ; اِنْساب ; تَزَحْلَق ; تَزَلّج ; تَمَلّص ; تَمَلّص مِن ; جَرَى ; "
+"زَحْلَق ; زَلّ ; زَلَج ; زَلَق"
+
+#: api/models.py:534
+msgid "disaster start date"
+msgstr "تاريخ بدء الكارثة"
+
+#: api/models.py:535 api/models.py:693 api/models.py:791 api/models.py:881
+#: api/models.py:1080 api/models.py:1638 api/models.py:1711 api/models.py:1726
+msgid "created at"
+msgstr "أنشئت في"
+
+#: api/models.py:536 api/models.py:1081
+msgid "updated at"
+msgstr "تم التحديث في"
+
+#: api/models.py:537 api/models.py:793
+msgid "previous update"
+msgstr "التحديث السابق"
+
+#: api/models.py:539
+msgid "auto generated"
+msgstr "يستخرج تلقائيا"
+
+#: api/models.py:541
+msgid "auto generated source"
+msgstr "مصدر تم إنشاؤه تلقائيًا"
+
+#: api/models.py:545
+msgid "is featured on home page"
+msgstr "مميزة للصفحة الرئيسية"
+
+#: api/models.py:548
+msgid "is featured on region page"
+msgstr "واردة في صفحة المنطقة"
+
+#: api/models.py:550
+msgid "hide attached field reports?"
+msgstr "إخفاء التقارير الميدانية المرفقة؟"
+
+#: api/models.py:554
+msgid "tab one title"
+msgstr "عنوان الجدول رقم 1"
+
+#: api/models.py:556
+msgid "tab two title"
+msgstr "عنوان الجدول رقم 2"
+
+#: api/models.py:557
+msgid "tab three title"
+msgstr "عنوان الجدول رقم 3"
+
+#: api/models.py:561
+msgid "emergency"
+msgstr "إسْتِثْنائِيّ ; إضْطِرار ; إضْطِرارِيّ ; أزْمَة ; طارِئ"
+
+#: api/models.py:562
+msgid "emergencies"
+msgstr "طَوارِئ"
+
+#: api/models.py:626 api/models.py:1142
+msgid "phone"
+msgstr "رقم الهاتف"
+
+#: api/models.py:627 api/models.py:638 api/models.py:658 api/models.py:700
+#: api/models.py:797 api/models.py:948
+msgid "event"
+msgstr "فعالية"
+
+#: api/models.py:630
+msgid "event contact"
+msgstr "اتصال الحدث"
+
+#: api/models.py:631
+msgid "event contacts"
+msgstr "اتصالات الحدث"
+
+#: api/models.py:639
+msgid "number"
+msgstr "الرقم"
+
+#: api/models.py:639
+msgid "key figure metric"
+msgstr "مقياس الرقم الرئيسي"
+
+#: api/models.py:640
+msgid "key figure units"
+msgstr "وحدات الشكل الرئيسية"
+
+#: api/models.py:641
+msgid "key figure website link, publication"
+msgstr "رابط الموقع الرقم الرئيسي ، النشر"
+
+#: api/models.py:644
+msgid "key figure"
+msgstr "شخصية رئيسية"
+
+#: api/models.py:645
+msgid "key figures"
+msgstr "الأرقام الرئيسية"
+
+#: api/models.py:661
+msgid "tab"
+msgstr "عُرْوَة ; لِسَان"
+
+#: api/models.py:666
+msgid "snippets"
+msgstr "مقتطفات"
+
+#: api/models.py:676
+msgid "is primary?"
+msgstr "أساسي؟"
+
+#: api/models.py:677
+msgid "Ensure this type gets precedence over others that are empty"
+msgstr "تأكد من أن هذا النوع له الأسبقية على الأنواع الأخرى الفارغة"
+
+#: api/models.py:681
+msgid "situation report type"
+msgstr "201 - غرفة الدراسة والتحليل"
+
+#: api/models.py:682
+msgid "situation report types"
+msgstr "أنواع تقرير الحالة"
+
+#: api/models.py:696 api/models.py:884
+msgid "document"
+msgstr "وَثيقَة[ج:وَثائِق]"
+
+#: api/models.py:698 api/models.py:886
+msgid "document url"
+msgstr "رابط الوثيقة"
+
+#: api/models.py:705
+msgid "is pinned?"
+msgstr "مثبت؟"
+
+#: api/models.py:705
+msgid "pin this report at the top"
+msgstr "ثبت هذا التقرير في الأعلى"
+
+#: api/models.py:708
+msgid "situation report"
+msgstr "201 - غرفة الدراسة والتحليل"
+
+#: api/models.py:709
+msgid "situation reports"
+msgstr "تقارير عن الأوضاع"
+
+#: api/models.py:718
+msgid "event id"
+msgstr "آی دی  گردهمایی"
+
+#: api/models.py:720 api/models.py:945
+msgid "description"
+msgstr "وصف"
+
+#: api/models.py:722
+msgid "report"
+msgstr "بلاغ"
+
+#: api/models.py:723
+msgid "publication date"
+msgstr "تاريخ النشر"
+
+#: api/models.py:724
+msgid "year"
+msgstr "السنة"
+
+#: api/models.py:725
+msgid "latitude"
+msgstr "حَدّ ; مَجَال ; مَدىً ; نِطَاق"
+
+#: api/models.py:726
+msgid "longitude"
+msgstr "خط الطول"
+
+#: api/models.py:727
+msgid "event type"
+msgstr "طبيعة الإجراء الدال"
+
+#: api/models.py:728
+msgid "alert level"
+msgstr "مُسْتَوى اليَقَظَة"
+
+#: api/models.py:729
+msgid "alert score"
+msgstr "درجة التنبيه"
+
+#: api/models.py:730
+msgid "severity"
+msgstr ""
+"تَزَمّت ; تَشَدّد ; تَصْمِيم ; حَزْم ; حُمَيّا ; حِدّة ; سَوْرَة ; شِدّة ; صَرَامَة ; ضَغْط ; عُنْف ; "
+"فَوْرَة ; قَسَاوَة ; قَسْوَة ; قُوّة ; وَطْأة"
+
+#: api/models.py:731
+msgid "severity unit"
+msgstr "وحدة الشدة"
+
+#: api/models.py:732
+msgid "severity value"
+msgstr "قيمة الخطورة"
+
+#: api/models.py:733
+msgid "population unit"
+msgstr "وحدة سكانية"
+
+#: api/models.py:734
+msgid "population value"
+msgstr "قيمة السكان"
+
+#: api/models.py:735
+msgid "vulnerability"
+msgstr "سُرْعَةُ التَّأَثُّر؛تَعَرُّضِيَّة"
+
+#: api/models.py:737
+msgid "country text"
+msgstr "نص البلد"
+
+#: api/models.py:740
+msgid "gdacs event"
+msgstr "حدث gdacs"
+
+#: api/models.py:741
+msgid "gdacs events"
+msgstr "أحداث gdacs"
+
+#: api/models.py:754 api/models.py:1024
+msgid "DREF"
+msgstr "DREF"
+
+#: api/models.py:755
+msgid "Emergency Appeal"
+msgstr "نداء الطوارئ"
+
+#: api/models.py:756
+msgid "International Appeal"
+msgstr "نداء دولي"
+
+#: api/models.py:766
+msgid "Active"
+msgstr "ناشط"
+
+#: api/models.py:767
+msgid "Closed"
+msgstr "مغلق"
+
+#: api/models.py:768
+msgid "Frozen"
+msgstr "مجمدة"
+
+#: api/models.py:769
+msgid "Archived"
+msgstr "مؤرشف"
+
+#: api/models.py:776
+msgid "appeal ID"
+msgstr "معرف الاستئناف"
+
+#: api/models.py:781 api/models.py:953 api/models.py:1637
+msgid "status"
+msgstr ""
+"بال ; حال ; حالَة ; دَرَجَة ; رُتْبَة ; سُدّة ; طَوْر ; مَرْكَز ; مَقَام ; مَكَانَة ; مَنْزِلَة ; "
+"مَنْصِب ; مَوْقِف ; وَضْع"
+
+#: api/models.py:783
+msgid "sector"
+msgstr "حَقْل ; قِسْم ; قِطَاع ; قاطِع ; مَجَال"
+
+#: api/models.py:785
+msgid "number of beneficiaries"
+msgstr "عدد المستفيدين"
+
+#: api/models.py:786
+msgid "amount requested"
+msgstr "المبلغ المطلوب"
+
+#: api/models.py:787
+msgid "amount funded"
+msgstr "المبلغ الممول"
+
+#: api/models.py:789 api/models.py:1074
+msgid "start date"
+msgstr "تاريخ البدء"
+
+#: api/models.py:790
+msgid "end date"
+msgstr "تاريخ النهاية"
+
+#: api/models.py:792
+msgid "modified at"
+msgstr "تعديل في"
+
+#: api/models.py:794
+msgid "real data update"
+msgstr "تحديث البيانات الحقيقية"
+
+#: api/models.py:799
+msgid "needs confirmation?"
+msgstr "بحاجة الى تأكيد؟"
+
+#: api/models.py:842 api/models.py:888 api/models.py:1026
+msgid "appeal"
+msgstr "استئناف"
+
+#: api/models.py:843
+msgid "appeals"
+msgstr "الاستئناف"
+
+#: api/models.py:891
+msgid "appeal document"
+msgstr "وثيقة الاستئناف"
+
+#: api/models.py:892
+msgid "appeal documents"
+msgstr "مستندات الاستئناف"
+
+#: api/models.py:911
+msgid "No"
+msgstr "لا"
+
+#: api/models.py:912
+msgid "Requested"
+msgstr "مطلوب"
+
+#: api/models.py:913
+msgid "Planned"
+msgstr "مخطط"
+
+#: api/models.py:914
+msgid "Complete"
+msgstr "کامل شده"
+
+#: api/models.py:923
+msgid "Ministry of health"
+msgstr "وزارة الصحة"
+
+#: api/models.py:924
+msgid "WHO"
+msgstr "منظمة الصحة العالمية"
+
+#: api/models.py:925
+msgid "OTHER"
+msgstr "أخرى"
+
+#: api/models.py:932 api/models.py:1286
+msgid "user"
+msgstr "المستعمل"
+
+#: api/models.py:937
+msgid "is covid report?"
+msgstr "هو تقرير كوفيد؟"
+
+#: api/models.py:939
+msgid "Is this a Field Report specific to the COVID-19 emergency?"
+msgstr "هل هذا تقرير ميداني خاص بحالة طوارئ COVID-19؟"
+
+#: api/models.py:943
+msgid "r id"
+msgstr "r هوية"
+
+#: api/models.py:954
+msgid "request assistance"
+msgstr "طلب المساعدة"
+
+#: api/models.py:955
+msgid "NS request assistance"
+msgstr "طلب المساعدة"
+
+#: api/models.py:962
 msgid "number of assisted"
 msgstr "عدد المساعدة"
 
-#: api/models.py:854
+#: api/models.py:963
 msgid "number of localstaff"
 msgstr "عدد الموظفين المحليين"
 
-#: api/models.py:855
+#: api/models.py:964
 msgid "number of volunteers"
 msgstr "عدد المتطوعين"
 
-#: api/models.py:856
+#: api/models.py:965
 msgid "number of expatriate delegates"
 msgstr "عدد المندوبين الوافدين"
 
-#: api/models.py:859
+#: api/models.py:968
 msgid "number of potentially affected"
 msgstr "عدد الأشخاص المحتمل تأثرهم"
 
-#: api/models.py:860
+#: api/models.py:969
 msgid "number of highest risk"
 msgstr "عدد من أعلى المخاطر"
 
-#: api/models.py:861
+#: api/models.py:970
 msgid "affected population centres"
 msgstr "المراكز السكانية المتضررة"
 
-#: api/models.py:863
+#: api/models.py:972
 msgid "number of injured (goverment)"
 msgstr "عدد الجرحى (الحكومة)"
 
-#: api/models.py:864
+#: api/models.py:973
 msgid "number of dead (goverment)"
 msgstr "عدد القتلى (الحكومة)"
 
-#: api/models.py:865
+#: api/models.py:974
 msgid "number of missing (goverment)"
 msgstr "عدد المفقودين (الحكومة)"
 
-#: api/models.py:866
+#: api/models.py:975
 msgid "number of affected (goverment)"
 msgstr "عدد المتضررين (الحكومة)"
 
-#: api/models.py:867
+#: api/models.py:976
 msgid "number of displaced (goverment)"
 msgstr "عدد النازحين (الحكومة)"
 
-#: api/models.py:868
+#: api/models.py:977
 msgid "number of assisted (goverment)"
 msgstr "عدد المساعدة (الحكومية)"
 
-#: api/models.py:871
+#: api/models.py:980
 msgid "number of cases (epidemic)"
 msgstr "عدد الحالات (الوباء)"
 
-#: api/models.py:872
+#: api/models.py:981
 msgid "number of suspected cases (epidemic)"
 msgstr "عدد الحالات المشتبه بها (وباء)"
 
-#: api/models.py:873
+#: api/models.py:982
 msgid "number of probable cases (epidemic)"
 msgstr "عدد الحالات المحتملة (وباء)"
 
-#: api/models.py:874
+#: api/models.py:983
 msgid "number of confirmed cases (epidemic)"
 msgstr "عدد الحالات المؤكدة (الوباء)"
 
-#: api/models.py:875
+#: api/models.py:984
 msgid "number of dead (epidemic)"
 msgstr "عدد القتلى (الوباء)"
 
-#: api/models.py:876
+#: api/models.py:985
 msgid "figures source (epidemic)"
 msgstr "مصدر الارقام (وباء)"
 
-#: api/models.py:878
-msgid "number of cases (MOH)"
-msgstr "مقاييس الأداء (عدد الحالات)"
-
-#: api/models.py:879
-msgid "number of suspected cases (MOH)"
-msgstr "عدد الحالات المشتبه بها (وزارة الصحة)"
-
-#: api/models.py:880
-msgid "number of probabale cases (MOH)"
-msgstr "عدد الحالات المحتملة (وزارة الصحة)"
-
-#: api/models.py:881
-msgid "number of confirmed cases (MOH)"
-msgstr "عدد الحاﻻت المؤكدة"
-
-#: api/models.py:882
-msgid "number of dead (MOH)"
-msgstr "عدد القتلى (وزارة الصحة)"
-
-#: api/models.py:884
-msgid "number of cases (WHO)"
-msgstr "مقاييس الأداء (عدد الحالات)"
-
-#: api/models.py:885
-msgid "number of suspected cases (WHO)"
-msgstr "عدد الحالات المشتبه بها (منظمة الصحة العالمية)"
-
-#: api/models.py:886
-msgid "number of probable cases (WHO)"
-msgstr "عدد الحالات المحتملة (منظمة الصحة العالمية)"
-
-#: api/models.py:887
-msgid "number of confirmed cases (WHO)"
-msgstr "عدد الحاﻻت المؤكدة"
-
-#: api/models.py:888
-msgid "number of number of dead (WHO)"
-msgstr "عدد القتلى (منظمة الصحة العالمية)"
-
-#: api/models.py:890
-msgid "number of cases (other)"
-msgstr "عدد الحالات (أخرى)"
-
-#: api/models.py:891
-msgid "number of suspected cases (other)"
-msgstr "عدد الحالات المشتبه بها (أخرى)"
-
-#: api/models.py:892
-msgid "number of probable cases (other)"
-msgstr "عدد الحالات المحتملة (أخرى)"
-
-#: api/models.py:893
-msgid "number of confirmed cases (other)"
-msgstr "عدد الحالات المؤكدة (أخرى)"
-
-#: api/models.py:895 api/models.py:896
+#: api/models.py:987 api/models.py:988
 msgid "number of assisted (who)"
 msgstr "عدد المساعدين (من)"
 
-#: api/models.py:899
+#: api/models.py:991
 msgid "potentially affected (goverment)"
 msgstr "يحتمل أن تتأثر (الحكومة)"
 
-#: api/models.py:900
+#: api/models.py:992
 msgid "people at highest risk (goverment)"
 msgstr "الأشخاص الأكثر عرضة للخطر (الحكومة)"
 
-#: api/models.py:902
+#: api/models.py:994
 msgid "affected population centres (goverment)"
 msgstr "المراكز السكانية المتضررة (الحكومة)"
 
-#: api/models.py:904
+#: api/models.py:996
 msgid "number of injured (other)"
 msgstr "عدد الجرحى (أخرى)"
 
-#: api/models.py:905
+#: api/models.py:997
 msgid "number of dead (other)"
 msgstr "عدد القتلى (أخرى)"
 
-#: api/models.py:906
+#: api/models.py:998
 msgid "number of missing (other)"
 msgstr "عدد المفقودين (أخرى)"
 
-#: api/models.py:907
+#: api/models.py:999
 msgid "number of affected (other)"
 msgstr "عدد المتضررين (أخرى)"
 
-#: api/models.py:908
+#: api/models.py:1000
 msgid "number of displace (other)"
 msgstr "عدد الإزاحة (أخرى)"
 
-#: api/models.py:909
+#: api/models.py:1001
 msgid "number of assisted (other)"
 msgstr "عدد المساعدين (أخرى)"
 
-#: api/models.py:913
+#: api/models.py:1005
 msgid "number of potentially affected (other)"
 msgstr "عدد الأشخاص المحتمل تأثرهم (غير ذلك)"
 
-#: api/models.py:914
+#: api/models.py:1006
 msgid "number of highest risk (other)"
 msgstr "عدد من أعلى المخاطر (أخرى)"
 
-#: api/models.py:916
+#: api/models.py:1008
 msgid "number of affected population centres (other)"
 msgstr "عدد المراكز السكانية المتضررة (أخرى)"
 
-#: api/models.py:919
-msgid "number of cases"
-msgstr "عدد الحالات"
-
-#: api/models.py:920
-msgid "number of suspected cases"
-msgstr "عدد الحالات المشتبه فيها"
-
-#: api/models.py:921
-msgid "number of probable cases"
-msgstr "عدد الحالات المحتملة"
-
-#: api/models.py:922
-msgid "number of confirmed cases"
-msgstr "عدد الحاﻻت المؤكدة"
-
-#: api/models.py:925
+#: api/models.py:1011
 msgid "situation fields date"
 msgstr "تاريخ حقول الوضع"
 
-#: api/models.py:928
+#: api/models.py:1014
 msgid "sources (other)"
 msgstr "مصادر (أخرى)"
 
-#: api/models.py:931
+#: api/models.py:1017
 msgid "actions taken (others)"
 msgstr "الإجراءات المتخذة (أخرى)"
 
-#: api/models.py:937
+#: api/models.py:1023
 msgid "bullentin"
 msgstr "بولنتين"
 
-#: api/models.py:939
+#: api/models.py:1025
 msgid "DREF amount"
 msgstr "كمية DREF"
 
-#: api/models.py:941
+#: api/models.py:1027
 msgid "appeal amount"
 msgstr "مبلغ الاستئناف"
 
-#: api/models.py:942
+#: api/models.py:1028
 msgid "imminent dref"
 msgstr "dref وشيك"
 
-#: api/models.py:943
+#: api/models.py:1029
 msgid "imminent dref amount"
 msgstr "مبلغ dref وشيك"
 
-#: api/models.py:944
+#: api/models.py:1030
 msgid "forecast based action"
 msgstr "عمل قائم على التنبؤ"
 
-#: api/models.py:946
+#: api/models.py:1032
 msgid "forecast based action amount"
 msgstr "توقع مبلغ العمل القائم"
 
-#: api/models.py:949
+#: api/models.py:1035
 msgid "RDRT"
 msgstr "RDRT"
 
-#: api/models.py:950
+#: api/models.py:1036
 msgid "number of RDRT"
 msgstr "عدد"
 
-#: api/models.py:951
+#: api/models.py:1037
 msgid "fact"
 msgstr "حقيقة"
 
-#: api/models.py:952
+#: api/models.py:1038
 msgid "number of fact"
 msgstr "عدد الحقائق"
 
-#: api/models.py:953
+#: api/models.py:1039
 msgid "IFRC staff"
 msgstr "موظفو الاتحاد الدولي"
 
-#: api/models.py:954
+#: api/models.py:1040
 msgid "number of IFRC staff"
 msgstr "عدد الموظفين"
 
-#: api/models.py:957
+#: api/models.py:1043
 msgid "ERU base camp"
 msgstr "معسكر قاعدة ERU"
 
-#: api/models.py:958
+#: api/models.py:1044
 msgid "ERU base camp units"
 msgstr "وحدات معسكر قاعدة ERU"
 
-#: api/models.py:960
+#: api/models.py:1046
 msgid "ERU basic health care"
 msgstr "الرعاية الصحية الأساسية"
 
-#: api/models.py:961
+#: api/models.py:1047
 msgid "ERU basic health units"
 msgstr "وحدات الصحة الأساسية"
 
-#: api/models.py:963
+#: api/models.py:1049
 msgid "ERU IT telecom"
 msgstr "ERU IT Telecom"
 
-#: api/models.py:964
+#: api/models.py:1050
 msgid "ERU IT telecom units"
 msgstr "وحدات الاتصالات ERU IT"
 
-#: api/models.py:966
+#: api/models.py:1052
 msgid "ERU logistics"
 msgstr "لوجستيات ERU"
 
-#: api/models.py:967
+#: api/models.py:1053
 msgid "ERU logistics units"
 msgstr "وحدات لوجستية ERU"
 
-#: api/models.py:969
+#: api/models.py:1055
 msgid "ERU deployment hospital"
 msgstr "مستشفى نشر ERU"
 
-#: api/models.py:970
+#: api/models.py:1056
 msgid "ERU deployment hospital units"
 msgstr "وحدات مستشفى نشر ERU"
 
-#: api/models.py:972
+#: api/models.py:1058
 msgid "ERU referral hospital"
 msgstr "مستشفى إحالة"
 
-#: api/models.py:973
+#: api/models.py:1059
 msgid "ERU referral hospital units"
 msgstr "وحدات مستشفى الإحالة ERU"
 
-#: api/models.py:975
+#: api/models.py:1061
 msgid "ERU relief"
 msgstr "الإغاثة ERU"
 
-#: api/models.py:976
+#: api/models.py:1062
 msgid "ERU relief units"
 msgstr "وحدات الإغاثة ERU"
 
-#: api/models.py:978
+#: api/models.py:1064
 msgid "ERU water sanitaion M15"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:979
+#: api/models.py:1065
 msgid "ERU water sanitaion M15 units"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:981
+#: api/models.py:1067
 msgid "ERU water sanitaion M40"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:982
+#: api/models.py:1068
 msgid "ERU water sanitaion M40 units"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:984
+#: api/models.py:1070
 msgid "ERU water sanitaion MSM20"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:985
+#: api/models.py:1071
 msgid "ERU water sanitaion MSM20 units"
 msgstr "مياه الصرف الصحي"
 
-#: api/models.py:993
+#: api/models.py:1079
 msgid "report date"
 msgstr "تاريخ التقرير"
 
-#: api/models.py:996
+#: api/models.py:1082
 msgid "previous updated at"
 msgstr "التحديث السابق في"
 
-#: api/models.py:1000 api/models.py:1058 api/models.py:1143 api/models.py:1171
+#: api/models.py:1086 api/models.py:1144 api/models.py:1229 api/models.py:1257
 msgid "field report"
 msgstr "تقرير ميداني"
 
-#: api/models.py:1001
+#: api/models.py:1087
 msgid "field reports"
 msgstr "تقارير الـ(أف بي أي) الميدانيّة"
 
-#: api/models.py:1062
-msgid "field report contact"
-msgstr "تقرير ميداني"
-
-#: api/models.py:1063
+#: api/models.py:1148 api/models.py:1149
 msgid "field report contacts"
 msgstr "تقارير ميدانية"
 
-#: api/models.py:1075 api/models.py:1191
+#: api/models.py:1161 api/models.py:1277
 msgid "National Society"
 msgstr "الجمعية الوطنية"
 
-#: api/models.py:1076
+#: api/models.py:1162
 msgid "Foreign Society"
 msgstr "المجتمع الأجنبي"
 
-#: api/models.py:1077
+#: api/models.py:1163
 msgid "Federation"
 msgstr "إتحاد مؤسسات"
 
-#: api/models.py:1088
+#: api/models.py:1174
 msgid "Event"
 msgstr "الحدث"
 
-#: api/models.py:1089
+#: api/models.py:1175
 msgid "Early Warning"
 msgstr "الإنذار المبكر"
 
-#: api/models.py:1090
+#: api/models.py:1176
 msgid "Epidemic"
 msgstr "وبائي"
 
-#: api/models.py:1091
+#: api/models.py:1177
 msgid "COVID-19"
 msgstr "كوفويد-19"
 
-#: api/models.py:1102
+#: api/models.py:1188
 msgid "General"
 msgstr "عام"
 
-#: api/models.py:1103
+#: api/models.py:1189
 msgid "Health"
 msgstr "الصحة"
 
-#: api/models.py:1104
+#: api/models.py:1190
 msgid "NS Institutional Strengthening"
 msgstr "2- تعزيز المؤسسات"
 
-#: api/models.py:1105
+#: api/models.py:1191
 msgid "Socioeconomic Interventions"
 msgstr "التدخلات الاجتماعية والاقتصادية"
 
-#: api/models.py:1121
+#: api/models.py:1207
 msgid "category"
 msgstr "تصنيف"
 
-#: api/models.py:1123
+#: api/models.py:1209
 msgid "is disabled?"
 msgstr "إذا كان الزوج معوقاً؛"
 
-#: api/models.py:1123
+#: api/models.py:1209
 msgid "Disable in form"
 msgstr "تعطيل في الشكل"
 
-#: api/models.py:1126 api/models.py:1622 api/models.py:1640
+#: api/models.py:1212 api/models.py:1709 api/models.py:1727
 msgid "action"
 msgstr ""
-"إجْراء ; اِنْعِكاس ; أثَر ; تَأثِير ; تَحَرّك ; تَدْبِير ; تَصَرّف ; تدَاعِي"
-" ; خُصُومَة ; دَعْوَى ; سُلُوك ; صَنِيع ; عَمَل ; عَمَلِيّة ; فِعْل ; "
-"قَضِيّة"
+"إجْراء ; اِنْعِكاس ; أثَر ; تَأثِير ; تَحَرّك ; تَدْبِير ; تَصَرّف ; تدَاعِي ; خُصُومَة ; دَعْوَى ; "
+"سُلُوك ; صَنِيع ; عَمَل ; عَمَلِيّة ; فِعْل ; قَضِيّة"
 
-#: api/models.py:1127 api/models.py:1140
+#: api/models.py:1213 api/models.py:1226
 msgid "actions"
 msgstr "عَجَلَة ; مُعَجّل ; عاجِل"
 
-#: api/models.py:1138 api/models.py:1211
+#: api/models.py:1224 api/models.py:1297
 msgid "organization"
 msgstr "تَعَضٍّ"
 
-#: api/models.py:1147
+#: api/models.py:1233
 msgid "actions taken"
 msgstr "الإجراءات التي تم اتخاذها"
 
-#: api/models.py:1148
+#: api/models.py:1234
 msgid "all actions taken"
 msgstr "الإجراءات التي تم اتخاذها"
 
-#: api/models.py:1159
+#: api/models.py:1245
 msgid "source type"
 msgstr "نوع المصدر"
 
-#: api/models.py:1160
+#: api/models.py:1246
 msgid "source types"
 msgstr "أنواع المصادر"
 
-#: api/models.py:1169
+#: api/models.py:1255
 msgid "spec"
 msgstr "المواصفات"
 
-#: api/models.py:1176
+#: api/models.py:1262
 msgid "sources"
 msgstr "المصادر"
 
-#: api/models.py:1192
+#: api/models.py:1278
 msgid "Delegation"
 msgstr "اسم مصدر بمعنى التوكيل"
 
-#: api/models.py:1193
+#: api/models.py:1279
 msgid "Secretariat"
 msgstr "الأمانة"
 
-#: api/models.py:1194
+#: api/models.py:1280
 msgid "ICRC"
 msgstr "ICRC"
 
-#: api/models.py:1195
+#: api/models.py:1281
 msgid "Other"
 msgstr "أخرى"
 
-#: api/models.py:1212
+#: api/models.py:1298
 msgid "organization type"
 msgstr "نوع المنظمة"
 
-#: api/models.py:1213
+#: api/models.py:1299
 msgid "city"
 msgstr "بَلَد ; بَلْدَة ; مَدِينَة ; مَدِينِيّ ; مِصْر"
 
-#: api/models.py:1214
+#: api/models.py:1300
 msgid "department"
 msgstr "القلب"
 
-#: api/models.py:1216
+#: api/models.py:1302
 msgid "phone number"
 msgstr "رقم الهاتف"
 
-#: api/models.py:1219
-msgid "user profile"
-msgstr "ملف تعريف المستخدم"
+#: api/models.py:1303
+msgid "last frontend login"
+msgstr ""
 
-#: api/models.py:1220
+#: api/models.py:1307
 msgid "user profiles"
 msgstr "ملف مستخدم"
 
-#: api/models.py:1229
+#: api/models.py:1316
 msgid "is validated?"
 msgstr "تم التحقق من صحتها؟"
 
-#: api/models.py:1229
+#: api/models.py:1316
 msgid "Did anyone check the editable data?"
 msgstr "هل قام أحد بفحص البيانات القابلة للتحرير؟"
 
-#: api/models.py:1231
+#: api/models.py:1318
 msgid "created_at"
 msgstr "تاريخ الإنشاء"
 
-#: api/models.py:1232
+#: api/models.py:1319
 msgid "modified_at"
 msgstr "تعديل في"
 
-#: api/models.py:1237
+#: api/models.py:1324
 msgid "appeal number (raw)"
 msgstr "رقم الاستئناف (خام)"
 
-#: api/models.py:1238
+#: api/models.py:1325
 msgid "date of issue (raw)"
 msgstr "تاريخ الإصدار (خام)"
 
-#: api/models.py:1239
+#: api/models.py:1326
 msgid "glide number (raw)"
 msgstr "رقم الانزلاق (خام)"
 
-#: api/models.py:1241
+#: api/models.py:1328
 msgid "number of people to be assisted (raw)"
 msgstr "عدد الأشخاص الذين ستتم مساعدتهم (خام)"
 
-#: api/models.py:1242
+#: api/models.py:1329
 msgid "number of people affected (raw)"
 msgstr "عدد الأشخاص المتضررين"
 
-#: api/models.py:1247
+#: api/models.py:1334
 msgid "number of disaster risk reduction female (raw)"
 msgstr "عدد الإناث الحد من مخاطر الكوارث (الخام)"
 
-#: api/models.py:1249
+#: api/models.py:1336
 msgid "number of disaster risk reduction male (raw)"
 msgstr "عدد الذكور الحد من مخاطر الكوارث (الخام)"
 
-#: api/models.py:1251
+#: api/models.py:1338
 msgid "number of disaster risk reduction people reached (raw)"
 msgstr "عدد الأشخاص الذين تم الوصول إليهم للحد من مخاطر الكوارث (الخام)"
 
-#: api/models.py:1253
+#: api/models.py:1340
 msgid "number of disaster risk reduction people targeted (raw)"
 msgstr "عدد الأشخاص المستهدفين للحد من مخاطر الكوارث (الخام)"
 
-#: api/models.py:1255
+#: api/models.py:1342
 msgid "number of disaster risk reduction requirements (raw)"
 msgstr "عدد متطلبات الحد من مخاطر الكوارث (الخام)"
 
-#: api/models.py:1256
+#: api/models.py:1343
 msgid "health female (raw)"
 msgstr "صحة أنثى (خام)"
 
-#: api/models.py:1257
+#: api/models.py:1344
 msgid "health male (raw)"
 msgstr "صحة الذكور (الخام)"
 
-#: api/models.py:1258
+#: api/models.py:1345
 msgid "health people reached (raw)"
 msgstr "الأشخاص الذين وصلوا إلى الصحة (الخام)"
 
-#: api/models.py:1259
+#: api/models.py:1346
 msgid "health people targeted (raw)"
 msgstr "صحة الناس المستهدفين (الخام)"
 
-#: api/models.py:1260
+#: api/models.py:1347
 msgid "health requirements (raw)"
 msgstr "المتطلبات الصحية (الخام)"
 
-#: api/models.py:1262
+#: api/models.py:1349
 msgid "number of livelihhods and basic needs female (raw)"
 msgstr "عدد المواشي والاحتياجات الأساسية للإناث (الخام)"
 
-#: api/models.py:1264
+#: api/models.py:1351
 msgid "number of livelihhods and basic needs male (raw)"
 msgstr "عدد العيش والحاجات الاساسية للذكور (خام)"
 
-#: api/models.py:1266
+#: api/models.py:1353
 msgid "number of livelihhods and basic needs people reached (raw)"
 msgstr ""
 "عدد الأشخاص الذين تم الوصول إليهم (الخام) من العيش والاحتياجات الأساسية"
 
-#: api/models.py:1268
+#: api/models.py:1355
 msgid "number of livelihhods and basic needs people targeted (raw)"
 msgstr "عدد الأشخاص المستهدفين بالعيش والاحتياجات الأساسية (الخام)"
 
-#: api/models.py:1270
+#: api/models.py:1357
 msgid "number of livelihhods and basic needs requirements (raw)"
 msgstr "عدد المواشي ومتطلبات الاحتياجات الأساسية (خام)"
 
-#: api/models.py:1271
+#: api/models.py:1358
 msgid "number of migration female (raw)"
 msgstr "عدد الإناث المهاجرات (الخام)"
 
-#: api/models.py:1272
+#: api/models.py:1359
 msgid "number of migration male (raw)"
 msgstr "عدد الذكور المهاجرين (الخام)"
 
-#: api/models.py:1274
+#: api/models.py:1361
 msgid "number of migration people reached (raw)"
 msgstr "عدد المهاجرين الذين وصلوا (خام)"
 
-#: api/models.py:1276
+#: api/models.py:1363
 msgid "number of migration people targeted (raw)"
 msgstr "عدد المهاجرين المستهدفين (الخام)"
 
-#: api/models.py:1277
+#: api/models.py:1364
 msgid "number of migration requirements (raw)"
 msgstr "عدد متطلبات الهجرة (الخام)"
 
-#: api/models.py:1279
+#: api/models.py:1366
 msgid "number of protection gender and inclusion female (raw)"
 msgstr "عدد نوع الحماية وإدماج الإناث (الخام)"
 
-#: api/models.py:1281
+#: api/models.py:1368
 msgid "number of protection gender and inclusion male (raw)"
 msgstr "عدد نوع الحماية والشمول ذكر (خام)"
 
-#: api/models.py:1283
+#: api/models.py:1370
 msgid "number of protection gender and inclusion people reached (raw)"
 msgstr "عدد الأشخاص الذين حصلوا على الحماية من النوع الاجتماعي والإدماج (خام)"
 
-#: api/models.py:1285
+#: api/models.py:1372
 msgid "number of protection gender and inclusion people targeted (raw)"
 msgstr "عدد الأشخاص المستهدفين للحماية والدمج (الخام)"
 
-#: api/models.py:1287
+#: api/models.py:1374
 msgid "number of protection gender and inclusion requirements (raw)"
 msgstr "عدد متطلبات نوع الحماية والإدماج (الخام)"
 
-#: api/models.py:1288
+#: api/models.py:1375
 msgid "number of shelter female (raw)"
 msgstr "عدد الإناث المأوى (الخام)"
 
-#: api/models.py:1289
+#: api/models.py:1376
 msgid "number of shelter male (raw)"
 msgstr "عدد مأوى الذكور (الخام)"
 
-#: api/models.py:1290
+#: api/models.py:1377
 msgid "number of shelter people reached (raw)"
 msgstr "عدد الأشخاص الذين وصلوا إلى المأوى (الخام)"
 
-#: api/models.py:1292
+#: api/models.py:1379
 msgid "number of shelter people targeted (raw)"
 msgstr "عدد الأشخاص المستهدفين في المأوى (الخام)"
 
-#: api/models.py:1293
+#: api/models.py:1380
 msgid "number of shelter requirements (raw)"
 msgstr "عدد متطلبات المأوى (الخام)"
 
-#: api/models.py:1295
+#: api/models.py:1382
 msgid "number of water sanitation and hygiene female (raw)"
 msgstr "عدد مياه الصرف الصحي والنظافة النسائية (الخام)"
 
-#: api/models.py:1297
+#: api/models.py:1384
 msgid "number of water sanitation and hygiene male (raw)"
 msgstr "عدد مياه الصرف الصحي والنظافة الذكور (الخام)"
 
-#: api/models.py:1299
+#: api/models.py:1386
 msgid "number of water sanitation and hygiene people reached (raw)"
 msgstr "عدد الأشخاص الذين وصلوا إلى خدمات الصرف الصحي والنظافة الصحية (الخام)"
 
-#: api/models.py:1301
+#: api/models.py:1388
 msgid "number of water sanitation and hygiene people targeted (raw)"
 msgstr "عدد الأشخاص المستهدفين الصرف الصحي والنظافة الصحية (الخام)"
 
-#: api/models.py:1303
+#: api/models.py:1390
 msgid "number of water sanitation and hygiene requirements (raw)"
 msgstr "عدد متطلبات المياه والصرف الصحي والنظافة (الخام)"
 
-#: api/models.py:1307
+#: api/models.py:1394
 msgid "appeal number"
 msgstr "رقم الاستئناف:"
 
-#: api/models.py:1308
+#: api/models.py:1395
 msgid "date of issue"
 msgstr "تاريخ الاصدار"
 
-#: api/models.py:1309
+#: api/models.py:1396
 msgid "glide number"
 msgstr "رقم الانزلاق"
 
-#: api/models.py:1310
+#: api/models.py:1397
 msgid "number of people affected"
 msgstr "عدد الأشخاص المتضررين"
 
-#: api/models.py:1311
+#: api/models.py:1398
 msgid "number of people to be assisted"
 msgstr "عدد الأشخاص الذين ستتم مساعدتهم"
 
-#: api/models.py:1312 api/models.py:1513
+#: api/models.py:1399 api/models.py:1600
 msgid "operation start date"
 msgstr "تاريخ بدء العملية"
 
-#: api/models.py:1314
+#: api/models.py:1401
 msgid "DREF allocated"
 msgstr "تخصيص DREF"
 
-#: api/models.py:1316
+#: api/models.py:1403
 msgid "number of disaster risk reduction female"
 msgstr "عدد الإناث الحد من مخاطر الكوارث"
 
-#: api/models.py:1318
+#: api/models.py:1405
 msgid "number of disaster risk reduction male"
 msgstr "عدد الذكور الحد من مخاطر الكوارث"
 
-#: api/models.py:1320
+#: api/models.py:1407
 msgid "number of disaster risk reduction people reached"
 msgstr "عدد الأشخاص الذين تم الوصول إليهم للحد من مخاطر الكوارث"
 
-#: api/models.py:1322
+#: api/models.py:1409
 msgid "number of disaster risk reduction people targeted"
 msgstr "عدد الأشخاص المستهدفين للحد من مخاطر الكوارث"
 
-#: api/models.py:1324
+#: api/models.py:1411
 msgid "number of disaster risk reduction people requirements"
 msgstr "عدد متطلبات الأفراد للحد من مخاطر الكوارث"
 
-#: api/models.py:1325
+#: api/models.py:1412
 msgid "number of health female"
 msgstr "عدد النساء الصحية"
 
-#: api/models.py:1326
+#: api/models.py:1413
 msgid "number of health male"
 msgstr "عدد الذكور الصحية"
 
-#: api/models.py:1327
+#: api/models.py:1414
 msgid "number of health people reached"
 msgstr "عدد الأشخاص الذين يتم الوصول إليهم"
 
-#: api/models.py:1328
+#: api/models.py:1415
 msgid "number of health people targeted"
 msgstr "عدد الأشخاص الصحيين المستهدفين"
 
-#: api/models.py:1329
+#: api/models.py:1416
 msgid "number of health requirements"
 msgstr "عدد المتطلبات الصحية"
 
-#: api/models.py:1331
+#: api/models.py:1418
 msgid "number of livelihhods and basic needs female"
 msgstr "عدد المعيشية والاحتياجات الأساسية للإناث"
 
-#: api/models.py:1333
+#: api/models.py:1420
 msgid "number of livelihhods and basic needs male"
 msgstr "عدد العيش والحاجات الأساسية للذكور"
 
-#: api/models.py:1335
+#: api/models.py:1422
 msgid "number of livelihhods and basic people reached"
 msgstr "تم الوصول إلى عدد من الأحياء والأشخاص الأساسيين"
 
-#: api/models.py:1337
+#: api/models.py:1424
 msgid "number of livelihhods and basic people targeted"
 msgstr "عدد المستهدفين من الأحياء والأشخاص الأساسيين"
 
-#: api/models.py:1339
+#: api/models.py:1426
 msgid "number of livelihhods and basic needs requirements"
 msgstr "عدد من متطلبات العيش والاحتياجات الأساسية"
 
-#: api/models.py:1340
+#: api/models.py:1427
 msgid "number of migration female"
 msgstr "عدد الإناث المهاجرات"
 
-#: api/models.py:1341
+#: api/models.py:1428
 msgid "number of migration male"
 msgstr "عدد الذكور المهاجرين"
 
-#: api/models.py:1342
+#: api/models.py:1429
 msgid "number of migration people reached"
 msgstr "عدد الأشخاص الذين تم الوصول إليهم"
 
-#: api/models.py:1343
+#: api/models.py:1430
 msgid "number of migration people targeted"
 msgstr "عدد المهاجرين المستهدفين"
 
-#: api/models.py:1344
+#: api/models.py:1431
 msgid "number of migration requirements"
 msgstr "عدد متطلبات الهجرة"
 
-#: api/models.py:1346
+#: api/models.py:1433
 msgid "number of protection gender and inclusion female"
 msgstr "عدد النوع الاجتماعي الحماية وإدماج الإناث"
 
-#: api/models.py:1348
+#: api/models.py:1435
 msgid "number of protection gender and inclusion male"
 msgstr "عدد الجنس الحماية وإدماج الذكور"
 
-#: api/models.py:1350
+#: api/models.py:1437
 msgid "number of protection gender and inclusion people reached"
 msgstr "عدد الأشخاص الذين تم الوصول إليهم في مجال الحماية والدمج بين الجنسين"
 
-#: api/models.py:1352
+#: api/models.py:1439
 msgid "number of protection gender and inclusion people targeted"
 msgstr "عدد الأشخاص المستهدفين في مجال الحماية والدمج بين الجنسين"
 
-#: api/models.py:1354
+#: api/models.py:1441
 msgid "number of protection gender and inclusion requirements"
 msgstr "عدد متطلبات نوع الحماية والإدماج"
 
-#: api/models.py:1355
+#: api/models.py:1442
 msgid "number of shelter female"
 msgstr "عدد الإناث المأوى"
 
-#: api/models.py:1356
+#: api/models.py:1443
 msgid "number of shelter male"
 msgstr "عدد الذكور المأوى"
 
-#: api/models.py:1357
+#: api/models.py:1444
 msgid "number of shelter people reached"
 msgstr "عدد الأشخاص الذين يتم الوصول إليهم"
 
-#: api/models.py:1358
+#: api/models.py:1445
 msgid "number of shelter people targeted"
 msgstr "عدد الأشخاص المستهدفين في المأوى"
 
-#: api/models.py:1359
+#: api/models.py:1446
 msgid "number of shelter people requirements"
 msgstr "عدد متطلبات المأوى"
 
-#: api/models.py:1361
+#: api/models.py:1448
 msgid "water sanitation and hygiene female"
 msgstr "المياه والصرف الصحي والنظافة الصحية"
 
-#: api/models.py:1363
+#: api/models.py:1450
 msgid "water sanitation and hygiene male"
 msgstr "المياه والصرف الصحي والنظافة الصحية"
 
-#: api/models.py:1365
+#: api/models.py:1452
 msgid "water sanitation and hygiene people reached"
 msgstr "تم الوصول إلى الناس في مجال المياه والصرف الصحي والنظافة"
 
-#: api/models.py:1367
+#: api/models.py:1454
 msgid "water sanitation and hygiene people targeted"
 msgstr "الأشخاص المستهدفون بالمياه والصرف الصحي والنظافة"
 
-#: api/models.py:1369
+#: api/models.py:1456
 msgid "water sanitation and hygiene requirements"
 msgstr "المياه والصرف الصحي والنظافة الصحية"
 
-#: api/models.py:1377 api/models.py:1463
+#: api/models.py:1464 api/models.py:1550
 msgid "appeal launch date (raw)"
 msgstr "تاريخ إطلاق الاستئناف (خام)"
 
-#: api/models.py:1378
+#: api/models.py:1465
 msgid "category allocated (raw)"
 msgstr "فئة مخصصة (خام)"
 
-#: api/models.py:1379
+#: api/models.py:1466
 msgid "expected end date (raw)"
 msgstr "تاريخ الانتهاء المتوقع (خام)"
 
-#: api/models.py:1380
+#: api/models.py:1467
 msgid "expected time frame (raw)"
 msgstr "الإطار الزمني المتوقع (خام)"
 
-#: api/models.py:1382
+#: api/models.py:1469
 msgid "number of eduction female (raw)"
 msgstr "عدد الإناث المثقفين (الخام)"
 
-#: api/models.py:1383
+#: api/models.py:1470
 msgid "number of eduction male (raw)"
 msgstr "عدد الذكور المثقفين (الخام)"
 
-#: api/models.py:1385
+#: api/models.py:1472
 msgid "number of eduction people reached (raw)"
 msgstr "عدد المتعلمين الذين تم الوصول إليهم (خام)"
 
-#: api/models.py:1387
+#: api/models.py:1474
 msgid "number of eduction people targeted (raw)"
 msgstr "عدد الأفراد المستهدفين (الخام)"
 
-#: api/models.py:1388
+#: api/models.py:1475
 msgid "number of eduction requirements (raw)"
 msgstr "عدد متطلبات التعليم (خام)"
 
-#: api/models.py:1394 api/models.py:1473
+#: api/models.py:1481 api/models.py:1560
 msgid "appeal launch date"
 msgstr "تاريخ إطلاق الاستئناف"
 
-#: api/models.py:1395
+#: api/models.py:1482
 msgid "category allocated"
 msgstr "الفئة المخصصة"
 
-#: api/models.py:1396
+#: api/models.py:1483
 msgid "expected end date"
 msgstr "تاريخ الانتهاء المتوقع"
 
-#: api/models.py:1397
+#: api/models.py:1484
 msgid "expected time frame"
 msgstr "الإطار الزمني المتوقع"
 
-#: api/models.py:1399
+#: api/models.py:1486
 msgid "number of eduction female"
 msgstr "عدد الإناث التعليم"
 
-#: api/models.py:1400
+#: api/models.py:1487
 msgid "number of eduction male"
 msgstr "عدد الذكور المثقفين"
 
-#: api/models.py:1401
+#: api/models.py:1488
 msgid "number of eduction people reached"
 msgstr "عدد الأشخاص الذين يتم الوصول إليهم"
 
-#: api/models.py:1402
+#: api/models.py:1489
 msgid "number of eduction people targeted"
 msgstr "عدد الأشخاص المستهدفين في مجال التعليم"
 
-#: api/models.py:1403
+#: api/models.py:1490
 msgid "number of eduction requirements"
 msgstr "عدد متطلبات التعليم"
 
-#: api/models.py:1409
+#: api/models.py:1496
 msgid "emergency operations dataset"
 msgstr "مجموعة بيانات عمليات الطوارئ"
 
-#: api/models.py:1410
+#: api/models.py:1497
 msgid "emergency operations datasets"
 msgstr "مجموعات بيانات عمليات الطوارئ"
 
-#: api/models.py:1418
+#: api/models.py:1505
 msgid "EPOA update number (raw)"
 msgstr "رقم تحديث EPOA (خام)"
 
-#: api/models.py:1419
+#: api/models.py:1506
 msgid "operation timeframe (raw)"
 msgstr "الإطار الزمني للعملية (خام)"
 
-#: api/models.py:1421
+#: api/models.py:1508
 msgid "time frame covered by update (raw)"
 msgstr "الإطار الزمني الذي يشمله التحديث (خام)"
 
-#: api/models.py:1436
+#: api/models.py:1523
 msgid "EPOA update number"
 msgstr "رقم تحديث EPOA"
 
-#: api/models.py:1437
+#: api/models.py:1524
 msgid "operation timeframe"
 msgstr "الإطار الزمني للعملية"
 
-#: api/models.py:1439
+#: api/models.py:1526
 msgid "time frame covered by update"
 msgstr "الإطار الزمني الذي يشمله التحديث"
 
-#: api/models.py:1454 api/models.py:1455
+#: api/models.py:1541 api/models.py:1542
 msgid "emergency operations people reached"
 msgstr "وصلت عمليات الطوارئ الناس"
 
-#: api/models.py:1462
+#: api/models.py:1549
 msgid "appeal ends (raw)"
 msgstr "ينتهي الاستئناف (خام)"
 
-#: api/models.py:1464
+#: api/models.py:1551
 msgid "current operation budget (raw)"
 msgstr "ميزانية العملية الحالية (خام)"
 
-#: api/models.py:1472
+#: api/models.py:1559
 msgid "appeal ends"
 msgstr "ينتهي الاستئناف"
 
-#: api/models.py:1474
+#: api/models.py:1561
 msgid "current operation budget"
 msgstr "ميزانية العملية الحالية"
 
-#: api/models.py:1482
+#: api/models.py:1569
 msgid "emergency operations emergency appeal"
 msgstr "نداء الطوارئ لعمليات الطوارئ"
 
-#: api/models.py:1483
+#: api/models.py:1570
 msgid "emergency operations emergency appeals"
 msgstr "نداءات الطوارئ عمليات الطوارئ"
 
-#: api/models.py:1490
+#: api/models.py:1577
 msgid "date of disaster (raw)"
 msgstr "تاريخ الكارثة (خام)"
 
-#: api/models.py:1492
+#: api/models.py:1579
 msgid "number of other partner involved (raw)"
 msgstr "عدد الشركاء الآخرين المعنيين (الخام)"
 
-#: api/models.py:1494
+#: api/models.py:1581
 msgid "number of NS partner involved (raw)"
 msgstr "عدد شركاء NS المشاركين (الخام)"
 
-#: api/models.py:1495
+#: api/models.py:1582
 msgid "operation end date (raw)"
 msgstr "تاريخ انتهاء العملية (خام)"
 
-#: api/models.py:1496
+#: api/models.py:1583
 msgid "overall operation budget (raw)"
 msgstr "ميزانية التشغيل الإجمالية (خام)"
 
-#: api/models.py:1509
+#: api/models.py:1596
 msgid "date of disaster"
 msgstr "تاريخ الكارثة"
 
-#: api/models.py:1510
+#: api/models.py:1597
 msgid "number of other partner involved"
 msgstr "عدد الشركاء الآخرين المعنيين"
 
-#: api/models.py:1511
+#: api/models.py:1598
 msgid "number of NS partner involved"
 msgstr "عدد شركاء NS المشاركين"
 
-#: api/models.py:1512
+#: api/models.py:1599
 msgid "operation end date"
 msgstr "تاريخ انتهاء العملية"
 
-#: api/models.py:1514
+#: api/models.py:1601
 msgid "overall operation budget"
 msgstr "ميزانية التشغيل الإجمالية"
 
-#: api/models.py:1527
+#: api/models.py:1614
 msgid "emergency operations final report"
 msgstr "التقرير النهائي لعمليات الطوارئ"
 
-#: api/models.py:1528
+#: api/models.py:1615
 msgid "emergency operations final reports"
 msgstr "التقارير النهائية لعمليات الطوارئ"
 
-#: api/models.py:1541
+#: api/models.py:1628
 msgid "Never run"
 msgstr "لا تهرب"
 
-#: api/models.py:1542
+#: api/models.py:1629
 msgid "Successfull"
 msgstr "نجح"
 
-#: api/models.py:1543
+#: api/models.py:1630
 msgid "Warned"
 msgstr "محذَّر"
 
-#: api/models.py:1544
+#: api/models.py:1631
 msgid "Erroneous"
 msgstr "خاطئ"
 
-#: api/models.py:1552
+#: api/models.py:1639
 msgid "message"
 msgstr "رسالة"
 
-#: api/models.py:1553
+#: api/models.py:1640
 msgid "number of results"
 msgstr "الحد الاقصى لعدد النتائج"
 
-#: api/models.py:1554
+#: api/models.py:1641
 msgid "storing days"
 msgstr "أيام التخزين"
 
-#: api/models.py:1556
+#: api/models.py:1643
 msgid "backend side"
 msgstr "الجانب الخلفي"
 
-#: api/models.py:1560
+#: api/models.py:1647
 msgid "cronjob log record"
 msgstr "سجل سجل cronjob"
 
-#: api/models.py:1561
+#: api/models.py:1648
 msgid "cronjob log records"
 msgstr "سجلات سجل cronjob"
 
-#: api/models.py:1623 api/models.py:1641
+#: api/models.py:1710 api/models.py:1728
 msgid "username"
 msgstr "رقم العضوية"
 
-#: api/models.py:1628
+#: api/models.py:1715
 msgid "auth log"
 msgstr "سجل المصادقة"
 
-#: api/models.py:1629
+#: api/models.py:1716
 msgid "auth logs"
 msgstr "Auth Logs"
 
-#: api/models.py:1642
+#: api/models.py:1729
 msgid "object id"
 msgstr "معرف الكائن"
 
-#: api/models.py:1643
+#: api/models.py:1730
 msgid "object name"
 msgstr "اسم الكائن"
 
-#: api/models.py:1644
+#: api/models.py:1731
 msgid "object type"
 msgstr "نوع الكائن"
 
-#: api/models.py:1647
+#: api/models.py:1734
 msgid "changed from"
 msgstr "تغير من"
 
-#: api/models.py:1651
+#: api/models.py:1738
 msgid "changed to"
 msgstr "تغيير  إلى"
 
-#: api/models.py:1655
+#: api/models.py:1742
 msgid "reversion difference log"
 msgstr "سجل فرق الارتداد"
 
-#: api/models.py:1656
+#: api/models.py:1743
 msgid "reversion difference logs"
 msgstr "سجلات فرق الارتداد"
 
-#: api/templates/admin/base.html:62
+#: api/templates/admin/base.html:74
 msgid "Welcome,"
 msgstr "اهلاً بك،"
 
-#: api/templates/admin/base.html:67
+#: api/templates/admin/base.html:79
 msgid "View site"
 msgstr "عرض الموقع"
 
-#: api/templates/admin/base.html:72
+#: api/templates/admin/base.html:84
 msgid "Documentation"
 msgstr "توثيق"
 
-#: api/templates/admin/base.html:76
+#: api/templates/admin/base.html:88
 msgid "Change password"
 msgstr "تغيير كلمة المرور"
 
-#: api/templates/admin/base.html:78
+#: api/templates/admin/base.html:90
 msgid "Log out"
 msgstr "تسجيل خروج"
 
-#: api/templates/admin/base.html:88 api/templates/admin/import_form.html:13
+#: api/templates/admin/base.html:100 api/templates/admin/import_form.html:13
 msgid "Home"
 msgstr "الرئيسية"
 
@@ -2053,3 +2135,60 @@ msgstr "إغلاق"
 #: api/utils.py:38
 msgid "slug should not start with a number"
 msgstr "لا ينبغي أن تبدأ سبيكة برقم"
+
+#~ msgid "number of cases (MOH)"
+#~ msgstr "مقاييس الأداء (عدد الحالات)"
+
+#~ msgid "number of suspected cases (MOH)"
+#~ msgstr "عدد الحالات المشتبه بها (وزارة الصحة)"
+
+#~ msgid "number of probabale cases (MOH)"
+#~ msgstr "عدد الحالات المحتملة (وزارة الصحة)"
+
+#~ msgid "number of confirmed cases (MOH)"
+#~ msgstr "عدد الحاﻻت المؤكدة"
+
+#~ msgid "number of dead (MOH)"
+#~ msgstr "عدد القتلى (وزارة الصحة)"
+
+#~ msgid "number of cases (WHO)"
+#~ msgstr "مقاييس الأداء (عدد الحالات)"
+
+#~ msgid "number of suspected cases (WHO)"
+#~ msgstr "عدد الحالات المشتبه بها (منظمة الصحة العالمية)"
+
+#~ msgid "number of probable cases (WHO)"
+#~ msgstr "عدد الحالات المحتملة (منظمة الصحة العالمية)"
+
+#~ msgid "number of confirmed cases (WHO)"
+#~ msgstr "عدد الحاﻻت المؤكدة"
+
+#~ msgid "number of number of dead (WHO)"
+#~ msgstr "عدد القتلى (منظمة الصحة العالمية)"
+
+#~ msgid "number of cases (other)"
+#~ msgstr "عدد الحالات (أخرى)"
+
+#~ msgid "number of suspected cases (other)"
+#~ msgstr "عدد الحالات المشتبه بها (أخرى)"
+
+#~ msgid "number of probable cases (other)"
+#~ msgstr "عدد الحالات المحتملة (أخرى)"
+
+#~ msgid "number of confirmed cases (other)"
+#~ msgstr "عدد الحالات المؤكدة (أخرى)"
+
+#~ msgid "number of cases"
+#~ msgstr "عدد الحالات"
+
+#~ msgid "number of suspected cases"
+#~ msgstr "عدد الحالات المشتبه فيها"
+
+#~ msgid "number of probable cases"
+#~ msgstr "عدد الحالات المحتملة"
+
+#~ msgid "number of confirmed cases"
+#~ msgstr "عدد الحاﻻت المؤكدة"
+
+#~ msgid "field report contact"
+#~ msgstr "تقرير ميداني"

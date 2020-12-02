@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2020-12-02 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lang/admin.py:61
+#, fuzzy
+#| msgid "language"
+msgid "hide all language"
+msgstr "idioma"
+
+#: lang/admin.py:61
+#, fuzzy
+#| msgid "language"
+msgid "show all language"
+msgstr "idioma"
 
 #: lang/apps.py:6
 msgid "lang"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2020-12-02 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,7 +34,7 @@ msgstr "orientation"
 msgid "assessment"
 msgstr "assessment"
 
-#: per/models.py:40 per/models.py:209
+#: per/models.py:40 per/models.py:210
 msgid "prioritization"
 msgstr "prioritization"
 
@@ -74,7 +74,7 @@ msgstr "does not exist"
 msgid "partially exists"
 msgstr "partially exists"
 
-#: per/models.py:81 per/models.py:202
+#: per/models.py:81 per/models.py:203
 msgid "need improvements"
 msgstr "need improvements"
 
@@ -98,303 +98,303 @@ msgstr "french"
 msgid "english"
 msgstr "english"
 
-#: per/models.py:99 per/models.py:120 per/models.py:219
+#: per/models.py:99 per/models.py:121 per/models.py:220
 msgid "code"
 msgstr "code"
 
-#: per/models.py:100 per/models.py:123 per/models.py:221 per/models.py:259
+#: per/models.py:100 per/models.py:124 per/models.py:222 per/models.py:260
 msgid "user"
 msgstr "user"
 
-#: per/models.py:101
+#: per/models.py:102
 msgid "data"
 msgstr "data"
 
-#: per/models.py:102 per/models.py:124 per/models.py:218 per/models.py:256
-#: per/models.py:316
+#: per/models.py:103 per/models.py:125 per/models.py:219 per/models.py:257
+#: per/models.py:317
 msgid "country"
 msgstr "country"
 
-#: per/models.py:103 per/models.py:128 per/models.py:309
+#: per/models.py:104 per/models.py:129 per/models.py:310
 msgid "created at"
 msgstr "created at"
 
-#: per/models.py:107
+#: per/models.py:108
 msgid "Draft Form"
 msgstr "Draft Form"
 
-#: per/models.py:108
+#: per/models.py:109
 msgid "Draft Forms"
 msgstr "Draft Forms"
 
-#: per/models.py:121 per/models.py:310
+#: per/models.py:122 per/models.py:311
 msgid "name"
 msgstr "name"
 
-#: per/models.py:122
+#: per/models.py:123
 msgid "language"
 msgstr "language"
 
-#: per/models.py:126
+#: per/models.py:127
 msgid "NS"
 msgstr "NS"
 
-#: per/models.py:129
+#: per/models.py:130
 msgid "updated at"
 msgstr "updated at"
 
-#: per/models.py:130
+#: per/models.py:131
 msgid "submitted at"
 msgstr "submitted at"
 
-#: per/models.py:131
+#: per/models.py:132
 msgid "started at"
 msgstr "started at"
 
-#: per/models.py:132
+#: per/models.py:133
 msgid "ended at"
 msgstr "ended at"
 
-#: per/models.py:133
+#: per/models.py:134
 msgid "finalized"
 msgstr "finalized"
 
-#: per/models.py:134
+#: per/models.py:135
 msgid "validated"
 msgstr "validated"
 
-#: per/models.py:135
+#: per/models.py:136
 msgid "IP address"
 msgstr "IP address"
 
-#: per/models.py:136
+#: per/models.py:137
 msgid "unique id"
 msgstr "unique id"
 
-#: per/models.py:137
+#: per/models.py:138
 msgid "comment"
 msgstr "comment"
 
-#: per/models.py:141
+#: per/models.py:142
 msgid "Form"
 msgstr "Form"
 
-#: per/models.py:142
+#: per/models.py:143
 msgid "Forms"
 msgstr "Forms"
 
-#: per/models.py:159
+#: per/models.py:160
 msgid "form"
 msgstr "form"
 
-#: per/models.py:160 per/models.py:220
+#: per/models.py:161 per/models.py:221
 msgid "question id"
 msgstr "question id"
 
-#: per/models.py:161
+#: per/models.py:162
 msgid "selected option"
 msgstr "selected option"
 
-#: per/models.py:162
+#: per/models.py:163
 msgid "notes"
 msgstr "notes"
 
-#: per/models.py:166 per/models.py:167
+#: per/models.py:167 per/models.py:168
 msgid "Form Data"
 msgstr "Form Data"
 
-#: per/models.py:180
+#: per/models.py:181
 msgid "low"
 msgstr "low"
 
-#: per/models.py:181
+#: per/models.py:182
 msgid "medium"
 msgstr "medium"
 
-#: per/models.py:182
+#: per/models.py:183
 msgid "high"
 msgstr "high"
 
-#: per/models.py:197
+#: per/models.py:198
 msgid "standby"
 msgstr "standby"
 
-#: per/models.py:198
+#: per/models.py:199
 msgid "ongoing"
 msgstr "ongoing"
 
-#: per/models.py:199
+#: per/models.py:200
 msgid "cancelled"
 msgstr "cancelled"
 
-#: per/models.py:200
+#: per/models.py:201
 msgid "delayed"
 msgstr "delayed"
 
-#: per/models.py:201
+#: per/models.py:202
 msgid "pending"
 msgstr "pending"
 
-#: per/models.py:203
+#: per/models.py:204
 msgid "finished"
 msgstr "finished"
 
-#: per/models.py:204
+#: per/models.py:205
 msgid "approved"
 msgstr "approved"
 
-#: per/models.py:205
+#: per/models.py:206
 msgid "closed"
 msgstr "closed"
 
-#: per/models.py:210
+#: per/models.py:211
 msgid "components"
 msgstr "components"
 
-#: per/models.py:211
+#: per/models.py:212
 msgid "benchmark"
 msgstr "benchmark"
 
-#: per/models.py:212
+#: per/models.py:213
 msgid "actions"
 msgstr "actions"
 
-#: per/models.py:213
+#: per/models.py:214
 msgid "comments"
 msgstr "comments"
 
-#: per/models.py:214
+#: per/models.py:215
 msgid "timeline"
 msgstr "timeline"
 
-#: per/models.py:215
+#: per/models.py:216
 msgid "status"
 msgstr "status"
 
-#: per/models.py:216
+#: per/models.py:217
 msgid "support required"
 msgstr "support required"
 
-#: per/models.py:217
+#: per/models.py:218
 msgid "focal point"
 msgstr "focal point"
 
-#: per/models.py:225
+#: per/models.py:226
 msgid "PER Work Plan"
 msgstr "PER Work Plan"
 
-#: per/models.py:226
+#: per/models.py:227
 msgid "PER Work Plans"
 msgstr "PER Work Plans"
 
-#: per/models.py:247
+#: per/models.py:248
 msgid "self assessment"
 msgstr "self assessment"
 
-#: per/models.py:248
+#: per/models.py:249
 msgid "simulation"
 msgstr "simulation"
 
-#: per/models.py:249
+#: per/models.py:250
 msgid "operational"
 msgstr "operational"
 
-#: per/models.py:250
+#: per/models.py:251
 msgid "post operational"
 msgstr "post operational"
 
-#: per/models.py:260
+#: per/models.py:261
 msgid "date of current capacity assessment"
 msgstr "date of current capacity assessment"
 
-#: per/models.py:262
+#: per/models.py:263
 msgid "type of capacity assessment"
 msgstr "type of capacity assessment"
 
-#: per/models.py:265
+#: per/models.py:266
 msgid "date of last capacity assessment"
 msgstr "date of last capacity assessment"
 
-#: per/models.py:268
+#: per/models.py:269
 msgid "type of last capacity assessment"
 msgstr "type of last capacity assessment"
 
-#: per/models.py:270
+#: per/models.py:271
 msgid "branch involved"
 msgstr "branch involved"
 
-#: per/models.py:271
+#: per/models.py:272
 msgid "focal point name"
 msgstr "focal point name"
 
-#: per/models.py:272
+#: per/models.py:273
 msgid "focal point email"
 msgstr "focal point email"
 
-#: per/models.py:273
+#: per/models.py:274
 msgid "had previous assessment"
 msgstr "had previous assessment"
 
-#: per/models.py:274
+#: per/models.py:275
 msgid "focus"
 msgstr "focus"
 
-#: per/models.py:275
+#: per/models.py:276
 msgid "facilitated by"
 msgstr "facilitated by"
 
-#: per/models.py:276
+#: per/models.py:277
 msgid "facilitated email"
 msgstr "facilitated email"
 
-#: per/models.py:277
+#: per/models.py:278
 msgid "phone number"
 msgstr "phone number"
 
-#: per/models.py:278
+#: per/models.py:279
 msgid "skype address"
 msgstr "skype address"
 
-#: per/models.py:279
+#: per/models.py:280
 msgid "date of mid term review"
 msgstr "date of mid term review"
 
-#: per/models.py:280
+#: per/models.py:281
 msgid "approximate date next capacity assessment"
 msgstr "approximate date next capacity assessment"
 
-#: per/models.py:284
+#: per/models.py:285
 msgid "PER General Overview"
 msgstr "PER General Overview"
 
-#: per/models.py:285
+#: per/models.py:286
 msgid "PER General Overviews"
 msgstr "PER General Overviews"
 
-#: per/models.py:300
+#: per/models.py:301
 msgid "hidden"
 msgstr "hidden"
 
-#: per/models.py:301
+#: per/models.py:302
 msgid "visible"
 msgstr "visible"
 
-#: per/models.py:312
+#: per/models.py:313
 msgid "document"
 msgstr "document"
 
-#: per/models.py:314
+#: per/models.py:315
 msgid "document url"
 msgstr "document url"
 
-#: per/models.py:318
+#: per/models.py:319
 msgid "visibility"
 msgstr "visibility"
 
-#: per/models.py:322
+#: per/models.py:323
 msgid "PER Document"
 msgstr "PER Document"
 
-#: per/models.py:323
+#: per/models.py:324
 msgid "PER Documents"
 msgstr "PER Documents"
