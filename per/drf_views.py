@@ -129,7 +129,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
             cid = self.request.query_params.get('country', None) or 0
             country = Country.objects.filter(pk=cid)
             if country:
-                cond2 = Q(form__country_id=country[0].id)
+                cond2 = Q(form__overview__country_id=country[0].id)
         queryset = FormData.objects.filter(cond1 & cond2)
         if queryset.exists():
             queryset = self.get_filtered_queryset(self.request, queryset, 2)

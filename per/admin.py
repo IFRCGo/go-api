@@ -25,7 +25,7 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('area__name',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('area', 'user')
+        return super().get_queryset(request).select_related('area', 'user').prefetch_related('form_data')
 
 
 class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):
@@ -70,9 +70,16 @@ class FormAnswerAdmin(CompareVersionAdmin, TranslationAdmin):
 
 
 class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
-    country_in = 'form__country__pk__in'
-    region_in = 'form__country__region_id__in'
-    search_fields = ('question_id', 'form__name', 'form__code', )
+    country_in = 'form__overview__country__pk__in'
+    # region_in = 'form__country__region_id__in'
+    search_fields = ('question_id', 'form__area__title')
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'form',
+            'form__overview',
+            'form__overview__country'
+        )
 
 
 class NSPhaseAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
