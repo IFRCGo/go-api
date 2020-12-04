@@ -205,8 +205,9 @@ class Overview(models.Model):
         if self.country is None:
             name = None
         else:
-            name = self.country.society_name
-        return f'{name} ({self.ns_focal_point_name})'
+            name = self.country.society_name or ''
+        fpname = f' ({self.ns_focal_point_name})' if self.ns_focal_point_name else ''
+        return f'{name}{fpname}'
 
 
 class Form(models.Model):

@@ -11,21 +11,40 @@ class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
     can_delete = False
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related(
-            'selected_answer',
-            'question',
-            'question__component',
-            'question__component__area'
-        ).prefetch_related('question__answers')
+        return (
+            super().get_queryset(request)
+                   .select_related(
+                       'selected_answer',
+                       'question',
+                       'question__component',
+                       'question__component__area'
+                    )
+                   .prefetch_related('question__answers')
+                   .order_by(
+                       'question__component__area__area_num',
+                       'question__component__component_num',
+                       'question__question_num'
+                    )
+        )
 
 
 class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     inlines = [FormDataInline]
     exclude = ("ip_address", )
+    list_display = ('area', 'overview', 'overview__date_of_assessment')
     search_fields = ('area__name',)
+    readonly_fields = ('overview', 'area')
+    ordering = ('-created_at',)
+
+    def overview__date_of_assessment(self, obj):
+        return f'{obj.overview.date_of_assessment or ""}'
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('area', 'user').prefetch_related('form_data')
+        return (
+            super().get_queryset(request)
+                   .select_related('area', 'user', 'overview', 'overview__country')
+                   .prefetch_related('form_data')
+        )
 
 
 class FormAreaAdmin(CompareVersionAdmin, TranslationAdmin):
