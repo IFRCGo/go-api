@@ -85,7 +85,7 @@ class Region(models.Model):
         return 'region-%s' % self.id
 
     def get_national_society_count(self):
-        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name='').count()
+        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name_en='').count()
 
     def get_country_cluster_count(self):
         return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
