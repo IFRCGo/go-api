@@ -65,6 +65,23 @@ def get_datetime(datetime_string):
         return None
     return date_parser.parse(datetime_string)
 
+def get_status_message(positions_messages, deployments_messages, positions_warnings, deployments_warnings):
+    msg = ''
+    msg += 'Summary of Open Positions Import:\n\n'
+    msg += '\n'.join(positions_messages)
+    msg += '\n\n'
+    msg += 'Summary of Deployments Import:\n\n'
+    msg += '\n'.join(deployments_messages)
+    msg += '\n\n'
+    if len(positions_warnings) > 0:
+        msg += 'Warnings for Open Positions Imports:\n\n'
+        msg += '\n'.join(positions_warnings)
+        msg += '\n\n'
+    if len(deployments_warnings) > 0:
+        msg += 'Warnings for Deployment Imports:\n\n'
+        msg += '\n'.join(deployments_warnings)
+        msg += '\n\n'
+    return msg
 
 def add_tags_to_obj(obj, tags):
     # We clear all tags first, and then re-add them
@@ -83,7 +100,10 @@ def add_tags_to_obj(obj, tags):
 
 def sync_deployments(molnix_deployments):
     molnix_ids = [d['id'] for d in molnix_deployments]
-
+    warnings = []
+    messages = []
+    successful_creates = 0
+    successful_updates = 0
     # Ensure there are PersonnelDeployment instances for every unique emergency
     events = [get_go_event(d['tags']) for d in molnix_deployments]
     event_ids = [ev.id for ev in events if ev]
@@ -104,11 +124,16 @@ def sync_deployments(molnix_deployments):
     for md in molnix_deployments:
         try:
             personnel = Personnel.objects.get(molnix_id=md['id'])
+            created = False
         except:
             personnel = Personnel(molnix_id=md['id'])
+            created = True
         # print('personnel found', personnel)
         event = get_go_event(md['tags'])
         if not event:
+            warning = 'Deployment id %d does not have a valid Emergency tag.' % md['id']
+            logger.warn(warning)
+            warnings.append(warning)
             continue
         deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         personnel.deployment = deployment
@@ -122,15 +147,20 @@ def sync_deployments(molnix_deployments):
         try:
             personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'])
         except:
-            logger.warn('NS Name not found: %s' % md['secondment_incoming'])
+            warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['secondment_incoming'],)
+            logger.warn(warning)
+            warnings.append(warning)
             personnel.country_from = None
         personnel.save()
         add_tags_to_obj(personnel, md['tags'])
-
+        if created:
+            successful_creates += 1
+        else:
+            successful_updates += 1
     all_active_personnel = Personnel.objects.filter(is_active=True, molnix_id__isnull=False)
     active_personnel_ids = [a.id for a in all_active_personnel]
     inactive_ids = list(set(active_personnel_ids) - set(molnix_ids))
-    
+    marked_inactive = len(inactive_ids)
     # Mark Personnel entries no longer in Molnix as inactive:
 
     for id in inactive_ids:
@@ -138,17 +168,31 @@ def sync_deployments(molnix_deployments):
         personnel.is_active = False
         personnel.save()
 
+    messages = [
+        'Successfully created: %d' % successful_creates,
+        'Successfully updated: %d' % successful_updates,
+        'Marked inactive: %d' % marked_inactive,
+        'No of Warnings: %d' % len(warnings)
+    ]
+    return messages, warnings, successful_creates
+
 
 def sync_open_positions(molnix_positions):
     molnix_ids = [p['id'] for p in molnix_positions]
+    warnings = []
+    messages = []
+    successful_creates = 0
+    successful_updates = 0
+    
     for position in molnix_positions:
         event = get_go_event(position['tags'])
         # If no valid GO Emergency tag is found, skip Position
         if not event:
-            logger.warn('Position id %d does not have an Emergency tag.' % position['id'])
+            warning = 'Position id %d does not have a valid Emergency tag.' % position['id']
+            logger.warn(warning)
+            warnings.append(warning)
             continue
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position['id'])
-
         # We set all Alerts coming from Molnix to RR / Alert
         go_alert.atype = SurgeAlertType.RAPID_RESPONSE
         go_alert.category = SurgeAlertCategory.ALERT        
@@ -164,6 +208,10 @@ def sync_open_positions(molnix_positions):
         go_alert.is_active = True
         go_alert.save()
         add_tags_to_obj(go_alert, position['tags'])
+        if created:
+            successful_creates +=1
+        else:
+            successful_updates += 1
 
     # Find existing active alerts that are not in the current list from Molnix
     existing_alerts = SurgeAlert.objects.filter(is_active=True).exclude(molnix_id__isnull=True)
@@ -174,7 +222,15 @@ def sync_open_positions(molnix_positions):
     for alert in SurgeAlert.objects.filter(molnix_id__in=inactive_alerts):
         alert.is_active = False
         alert.save()
-
+    
+    marked_inactive = len(inactive_alerts)
+    messages = [
+        'Successfully created: %d' % successful_creates,
+        'Successfully updated: %d' % successful_updates,
+        'Marked inactive: %d' % marked_inactive,
+        'No of Warnings: %d' % len(warnings)
+    ]
+    return messages, warnings, successful_creates
 
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
@@ -206,13 +262,18 @@ class Command(BaseCommand):
         try:    
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags)
-            sync_open_positions(open_positions)
-            sync_deployments(deployments)
+            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions)
+            deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
+            raise ex
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
-        
-        create_cron_record(CRON_NAME, 'success', CronJobStatus.SUCCESSFUL)
+
+        msg = get_status_message(positions_messages, deployments_messages, positions_warnings, deployments_warnings)
+        num_records = positions_created + deployments_created
+        has_warnings = len(positions_warnings) > 0 or len(deployments_warnings) > 0    
+        cron_status = CronJobStatus.WARNED if has_warnings else CronJobStatus.SUCCESSFUL
+        create_cron_record(CRON_NAME, msg, cron_status, num_result=num_records)
         molnix.logout()
