@@ -7,6 +7,7 @@ from .models import (
     ERUOwner,
     ERU,
     PersonnelDeployment,
+    MolnixTag,
     Personnel,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
@@ -63,13 +64,21 @@ class PersonnelDeploymentSerializer(ModelSerializer):
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments', 'id',)
 
 
+class MolnixTagSerializer(ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'molnix_id', 'name', 'color', 'tag_type')
+        model = MolnixTag
+
 class PersonnelSerializer(ModelSerializer):
     country_from = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
+    molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from',
+                  'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
 
 
 class PartnerDeploymentActivitySerializer(ModelSerializer):

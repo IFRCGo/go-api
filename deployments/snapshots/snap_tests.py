@@ -49,6 +49,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'programme_type_display': 'Domestic',
             'project_country': 2,
             'project_country_detail': {
+                'fdrs': None,
                 'id': 2,
                 'independent': None,
                 'is_deprecated': False,
@@ -77,6 +78,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             },
             'reporting_ns': 1,
             'reporting_ns_detail': {
+                'fdrs': None,
                 'id': 1,
                 'independent': None,
                 'is_deprecated': False,
@@ -139,6 +141,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'programme_type_display': 'Domestic',
             'project_country': 2,
             'project_country_detail': {
+                'fdrs': None,
                 'id': 2,
                 'independent': None,
                 'is_deprecated': False,
@@ -167,6 +170,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             },
             'reporting_ns': 1,
             'reporting_ns_detail': {
+                'fdrs': None,
                 'id': 1,
                 'independent': None,
                 'is_deprecated': False,
@@ -221,6 +225,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'programme_type_display': 'Domestic',
             'project_country': 4,
             'project_country_detail': {
+                'fdrs': None,
                 'id': 4,
                 'independent': None,
                 'is_deprecated': False,
@@ -249,6 +254,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             },
             'reporting_ns': 3,
             'reporting_ns_detail': {
+                'fdrs': None,
                 'id': 3,
                 'independent': None,
                 'is_deprecated': False,
@@ -296,6 +302,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'programme_type_display': 'Bilateral',
     'project_country': 1,
     'project_country_detail': {
+        'fdrs': None,
         'id': 1,
         'independent': None,
         'is_deprecated': False,
@@ -329,6 +336,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'regional_project_detail': None,
     'reporting_ns': 1,
     'reporting_ns_detail': {
+        'fdrs': None,
         'id': 1,
         'independent': None,
         'is_deprecated': False,
@@ -384,6 +392,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'programme_type_display': 'Domestic',
     'project_country': 2,
     'project_country_detail': {
+        'fdrs': None,
         'id': 2,
         'independent': None,
         'is_deprecated': False,
@@ -412,6 +421,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     },
     'reporting_ns': 1,
     'reporting_ns_detail': {
+        'fdrs': None,
         'id': 1,
         'independent': None,
         'is_deprecated': False,
@@ -467,6 +477,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'programme_type_display': 'Domestic',
     'project_country': 3,
     'project_country_detail': {
+        'fdrs': None,
         'id': 3,
         'independent': None,
         'is_deprecated': False,
@@ -505,6 +516,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     },
     'reporting_ns': 3,
     'reporting_ns_detail': {
+        'fdrs': None,
         'id': 3,
         'independent': None,
         'is_deprecated': False,

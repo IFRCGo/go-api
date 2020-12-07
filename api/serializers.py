@@ -14,6 +14,9 @@ from .models import (
     RegionKeyFigure,
     CountrySnippet,
     RegionSnippet,
+    RegionEmergencySnippet,
+    RegionProfileSnippet,
+    RegionPreparednessSnippet,
     CountryLink,
     RegionLink,
     CountryContact,
@@ -83,7 +86,7 @@ class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated'
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
@@ -102,7 +105,7 @@ class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
-            'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated',
+            'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
@@ -113,7 +116,7 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
-            'region', 'independent', 'is_deprecated',
+            'region', 'independent', 'is_deprecated', 'fdrs',
         )
 
 
@@ -193,6 +196,27 @@ class RegionSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
+class RegionEmergencySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionEmergencySnippet
+        fields = ('region', 'title', 'snippet', 'id',)
+
+
+class RegionProfileSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionProfileSnippet
+        fields = ('region', 'title', 'snippet', 'id',)
+
+
+class RegionPreparednessSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+
+    class Meta:
+        model = RegionPreparednessSnippet
+        fields = ('region', 'title', 'snippet', 'id',)
+
+
 class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     country = CountrySerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
@@ -213,7 +237,7 @@ class CountrySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
 class RegionLinkSerializer(ModelSerializer):
     class Meta:
         model = RegionLink
-        fields = ('title', 'url', 'id',)
+        fields = ('title', 'url', 'id', 'show_in_go',)
 
 
 class CountryLinkSerializer(ModelSerializer):
@@ -237,10 +261,25 @@ class CountryContactSerializer(ModelSerializer):
 class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
+    snippets = RegionSnippetSerializer(many=True, read_only=True)
+    emergency_snippets = RegionEmergencySnippetSerializer(many=True, read_only=True)
+    profile_snippets = RegionProfileSnippetSerializer(many=True, read_only=True)
+    preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
+    national_society_count = serializers.SerializerMethodField()
+    country_cluster_count = serializers.SerializerMethodField()
 
+    def get_national_society_count(self, obj):
+        return obj.get_national_society_count()
+    
+    def get_country_cluster_count(self, obj):
+        return obj.get_country_cluster_count()
+        
     class Meta:
         model = Region
-        fields = ('links', 'contacts', 'name', 'region_name', 'id',)
+        fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
+                  'profile_snippets', 'preparedness_snippets', 'name',
+                  'region_name', 'id', 'additional_tab_name',
+                  'national_society_count', 'country_cluster_count',)
 
 
 class CountryRelationSerializer(ModelSerializer):
@@ -251,7 +290,12 @@ class CountryRelationSerializer(ModelSerializer):
         model = Country
         fields = (
             'links', 'contacts', 'name', 'iso', 'society_name', 'society_url', 'region',
-            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc',
+            'overview', 'key_priorities', 'inform_score', 'id', 'url_ifrc', 'additional_tab_name',
+            'nsi_income', 'nsi_expenditures', 'nsi_branches', 'nsi_staff', 'nsi_volunteers', 'nsi_youth',
+            'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
+            'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
+            'nsi_cmc_dashboard_compliance', 'wash_kit2', 'wash_kit5', 'wash_kit10', 'wash_staff_at_hq',
+            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained',
         )
 
 

@@ -107,6 +107,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     filter_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
+    def get_queryset(self, *args, **kwargs):
+        qs = super().get_queryset()
+        return qs.filter(is_active=True)
 
 class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')

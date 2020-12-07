@@ -22,7 +22,7 @@ REGION_TO_COUNTRY = {
     'EAF': 'KE',  # Eastern Africa country cluster: Kenya
     'CAF': 'CM',  # Central Africa country cluster: Cameroon
     'SAF': 'ZA',  # Southern Africa country cluster: South Africa
-    'CAM': 'HT',  # Latin Caribbean Country Cluster Office: Haiti
+    'CAM': 'HN',  # Latin Caribbean Country Cluster Office: Honduras
     'CAR': 'TT',  # Caribbean Country Cluster: Trinidad and Tobago
     'NAM': 'PA',  # Americas regional office: Panama
     'AME': 'PA',  # Americas regional office: Panama
