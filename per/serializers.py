@@ -27,13 +27,6 @@ class IsFinalOverviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'is_finalized')
 
 
-class FormStatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Form
-        # FIXME: name, code, country_id are not part of Form anymore
-        fields = ('name', 'code', 'country_id', 'id',)
-
-
 class FormAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormArea
@@ -73,6 +66,15 @@ class ListFormSerializer(serializers.ModelSerializer):
         fields = ('area', 'overview', 'updated_at', 'comment', 'user', 'id')
 
 
+class FormStatSerializer(serializers.ModelSerializer):
+    area = FormAreaSerializer()
+    overview = IsFinalOverviewSerializer()
+
+    class Meta:
+        model = Form
+        fields = ('area', 'overview', 'id',)
+
+
 class ListFormDataSerializer(serializers.ModelSerializer):
     selected_answer = FormAnswerSerializer()
 
@@ -107,12 +109,12 @@ class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSeriali
 
 
 class ShortFormSerializer(serializers.ModelSerializer):
-    country = RegoCountrySerializer()
+    area = FormAreaSerializer()
+    overview = IsFinalOverviewSerializer()
 
     class Meta:
         model = Form
-        # FIXME: name, code, country are not part of the Form anymore
-        fields = ('name', 'code', 'updated_at', 'country', 'id',)
+        fields = ('area', 'overview', 'updated_at', 'id',)
 
 
 class EngagedNSPercentageSerializer(serializers.ModelSerializer):

@@ -124,7 +124,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
             tmz = pytz.timezone("Europe/Zurich")
             if not last_duedate:
                 last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
-            cond1 = Q(form__submitted_at__gt=last_duedate)
+            cond1 = Q(form__updated_at__gt=last_duedate)
         if 'country' in self.request.query_params.keys():
             cid = self.request.query_params.get('country', None) or 0
             country = Country.objects.filter(pk=cid)
@@ -290,7 +290,7 @@ class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = tmz.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = Form.objects.filter(submitted_at__gt=last_duedate)
+        queryset = Form.objects.filter(updated_at__gt=last_duedate)
         if queryset.exists():
             return queryset
         else:
@@ -312,20 +312,23 @@ class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = tmz.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset1 = Region.objects.all().annotate(Count('country')).values('id', 'country__count')
-        queryset2 = Region.objects.filter(country__form__submitted_at__gt=last_duedate) \
-            .values('id').annotate(forms_sent=Count('country', distinct=True))
+        # FIXME: these make no sense, Region doesn't have a Country relation
+        # hopefully removable after adding the dashboards
+        # queryset1 = Region.objects.all().annotate(Count('country')).values('id', 'country__count')
+        # queryset2 = Region.objects.filter(country__form__updated_at__gt=last_duedate) \
+        #     .values('id').annotate(forms_sent=Count('country', distinct=True))
 
         # We merge the 2 lists (all and forms_sent), like {'id': 2, 'country__count': 37} and {'id': 2, 'forms_sent': 2} to
         #                                                 {'id': 2, 'country__count': 37, 'forms_sent': 2}, even with zeroes.
         result = []
-        for i in queryset1:
-            i['forms_sent'] = 0
-            for j in queryset2:
-                if int(j['id']) == int(i['id']):
-                    # if this never occurs, (so no form-sender country in this region), forms_sent remain 0
-                    i['forms_sent'] = j['forms_sent']
-            result.append(i)
+        # FIXME: as above
+        # for i in queryset1:
+        #     i['forms_sent'] = 0
+        #     for j in queryset2:
+        #         if int(j['id']) == int(i['id']):
+        #             # if this never occurs, (so no form-sender country in this region), forms_sent remain 0
+        #             i['forms_sent'] = j['forms_sent']
+        #     result.append(i)
         # [{'id': 0, 'country__count': 49, 'forms_sent': 0}, {'id': 1, 'country__count': 35, 'forms_sent': 1}...
         return result
 
@@ -345,7 +348,7 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = tmz.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = FormData.objects.filter(form__submitted_at__gt=last_duedate, selected_option=7).select_related('form')
+        queryset = FormData.objects.filter(form__updated_at__gt=last_duedate, selected_option=7).select_related('form')
         result = []
         for i in queryset:
             j = {'id': i.form.id}
