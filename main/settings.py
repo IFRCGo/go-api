@@ -340,3 +340,7 @@ RETRY_STRATEGY = Retry(
     status_forcelist=[429, 500, 502, 503, 504],
     method_whitelist=["HEAD", "GET", "OPTIONS"]
 )
+
+MOLNIX_API_BASE = os.environ.get('MOLNIX_API_BASE', 'https://api.ifrc-staging.rpm.molnix.com/api/')
+MOLNIX_USERNAME = os.environ.get('MOLNIX_USERNAME')
+MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')

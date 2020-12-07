@@ -410,7 +410,23 @@ class CountrySnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 class RegionSnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.RegionSnippet
+    verbose_name_plural = 'Regional Snippets shown in Additional Tab'
+    extra = 1
 
+class RegionEmergencySnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionEmergencySnippet
+    verbose_name_plural = 'Snippets shown in Operations / Emergencies Tab'
+    extra = 1
+
+class RegionProfileSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionProfileSnippet
+    verbose_name_plural = 'Snippets shown in Regional Profile Tab'
+    extra = 1
+
+class RegionPreparednessSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
+    model = models.RegionPreparednessSnippet
+    verbose_name_plural = 'Snippets shown in Preparedness Tab'
+    extra = 1
 
 class CountryLinkInline(admin.TabularInline):
     model = models.CountryLink
@@ -446,10 +462,18 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
     exclude = ('key_priorities',)
 
 
-class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
+class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = None
     region_in = 'pk__in'
-    inlines = [RegionKeyFigureInline, RegionSnippetInline, RegionLinkInline, RegionContactInline]
+    inlines = [
+        RegionKeyFigureInline,
+        RegionSnippetInline,
+        RegionEmergencySnippetInline,
+        RegionProfileSnippetInline,
+        RegionPreparednessSnippetInline,
+        RegionLinkInline,
+        RegionContactInline
+    ]
     search_fields = ('name',)
     modifiable = True
 

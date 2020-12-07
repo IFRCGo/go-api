@@ -68,6 +68,7 @@ class Region(models.Model):
     name = EnumIntegerField(RegionName, verbose_name=_('name'))
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
+    additional_tab_name = models.CharField(verbose_name='Label for Additional Tab', max_length=100, blank=True)
 
     def indexing(self):
         return {
@@ -82,6 +83,12 @@ class Region(models.Model):
 
     def es_id(self):
         return 'region-%s' % self.id
+
+    def get_national_society_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name_en='').count()
+
+    def get_country_cluster_count(self):
+        return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
 
     class Meta:
         ordering = ('name',)
@@ -130,6 +137,7 @@ class Country(models.Model):
     record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
     iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True)
     iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True)
+    fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
     society_url = models.URLField(blank=True, verbose_name=_('URL - Society'))
     url_ifrc = models.URLField(blank=True, verbose_name=_('URL - IFRC'))
@@ -158,6 +166,32 @@ class Country(models.Model):
     wb_year = models.CharField(
         verbose_name=_('WB Year'), max_length=4, null=True, blank=True, help_text=_('population data year from WB API')
     )
+    additional_tab_name = models.CharField(verbose_name=_('Label for Additional Tab'), max_length=100, blank=True)
+
+    # Additional NS Indicator fields
+    nsi_income = models.IntegerField(verbose_name=_('Income (CHF)'), blank=True, null=True)
+    nsi_expenditures = models.IntegerField(verbose_name=_('Expenditures (CHF)'), blank=True, null=True)
+    nsi_branches = models.IntegerField(verbose_name=_('Branches'), blank=True, null=True)
+    nsi_staff = models.IntegerField(verbose_name=_('Staff'), blank=True, null=True)
+    nsi_volunteers = models.IntegerField(verbose_name=_('Volunteers'), blank=True, null=True)
+    nsi_youth = models.IntegerField(verbose_name=_('Youth - 6-19 Yrs'), blank=True, null=True)
+    nsi_trained_in_first_aid = models.IntegerField(verbose_name=_('Trained in First Aid'), blank=True, null=True)
+    nsi_gov_financial_support = models.NullBooleanField(verbose_name=_('Gov Financial Support'), blank=True, null=True)
+    nsi_domestically_generated_income = models.NullBooleanField(verbose_name=_('>50% Domestically Generated Income'), blank=True, null=True) 
+    nsi_annual_fdrs_reporting = models.NullBooleanField(verbose_name=_('Annual Reporting to FDRS'), blank=True, null=True)
+    nsi_policy_implementation = models.NullBooleanField(verbose_name=_('Your Policy / Programme Implementation'), blank=True, null=True)
+    nsi_risk_management_framework = models.NullBooleanField(verbose_name=_('Risk Management Framework'), blank=True, null=True)
+    nsi_cmc_dashboard_compliance = models.NullBooleanField(verbose_name=_('Complying with CMC Dashboard'), blank=True, null=True)
+
+    # WASH Capacity Indicators
+    wash_total_staff = models.IntegerField(verbose_name=_('Total WASH Staff'), null=True, blank=True)
+    wash_kit2 = models.IntegerField(verbose_name=_('WASH Kit2'), null=True, blank=True)
+    wash_kit5 = models.IntegerField(verbose_name=_('WASH Kit5'), null=True, blank=True)
+    wash_kit10 = models.IntegerField(verbose_name=_('WASH Kit10'), null=True, blank=True)
+    wash_staff_at_hq = models.IntegerField(verbose_name=_('WASH Staff at HQ'), null=True, blank=True)
+    wash_staff_at_branch = models.IntegerField(verbose_name=_('WASH Staff at Branch'), null=True, blank=True)
+    wash_ndrt_trained = models.IntegerField(verbose_name=_('NDRT Trained'), null=True, blank=True)
+    wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True, blank=True)
 
     def indexing(self):
         return {
@@ -320,6 +354,62 @@ class RegionSnippet(models.Model):
         return self.snippet
 
 
+class RegionEmergencySnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region emergencies snippet')
+        verbose_name_plural = _('region emergencies snippets')
+
+    def __str__(self):
+        return self.snippet
+
+
+class RegionPreparednessSnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region preparedness snippet')
+        verbose_name_plural = _('region preparedness snippets')
+
+    def __str__(self):
+        return self.snippet
+
+
+class RegionProfileSnippet(models.Model):
+    region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True)
+    snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
+    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+
+    class Meta:
+        ordering = ('position', 'id',)
+        verbose_name = _('region profile snippet')
+        verbose_name_plural = _('region profile snippets')
+
+    def __str__(self):
+        return self.snippet    
+
+# class RegionAdditionalLink(models.Model):
+#     region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
+#     title = models.CharField(max_length=255)
+#     url = models.URLField()
+#     show_in_go = models.BooleanField(default=False, help_text='Show link contents within GO')
+
+#     def __str__(self):
+#         return self.title
+
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -349,6 +439,7 @@ class AdminLink(models.Model):
 
 class RegionLink(AdminLink):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='links', on_delete=models.CASCADE)
+    show_in_go = models.BooleanField(default=False, help_text='Show link contents within GO')
 
     class Meta:
         verbose_name = _('region link')
@@ -435,7 +526,7 @@ class Event(models.Model):
     num_dead = models.IntegerField(verbose_name=_('number of dead'), null=True, blank=True)
     num_missing = models.IntegerField(verbose_name=_('number of missing'), null=True, blank=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), null=True, blank=True)
-    num_displaced = models.IntegerField(verbose_name=_('name'), null=True, blank=True)
+    num_displaced = models.IntegerField(verbose_name=_('number of displaced'), null=True, blank=True)
 
     ifrc_severity_level = EnumIntegerField(AlertLevel, default=0, verbose_name=_('IFRC Severity level'))
     glide = models.CharField(verbose_name=_('glide'), max_length=18, blank=True)

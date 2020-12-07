@@ -195,3 +195,6 @@ The above command will generate a list of missing districts in the database base
 
 ## Update bbox for regions
 Run `python manage.py update-region-bbox` to update the bbox for each region in the database.
+
+## Import FDRS codes
+Run `python manage.py import-fdrs iso-fdrs.csv` to update the countries table with FDRS codes. The csv should have `iso,fdrs` structure
