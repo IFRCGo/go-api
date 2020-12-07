@@ -158,7 +158,7 @@ def sync_deployments(molnix_deployments):
         else:
             successful_updates += 1
     all_active_personnel = Personnel.objects.filter(is_active=True, molnix_id__isnull=False)
-    active_personnel_ids = [a.id for a in all_active_personnel]
+    active_personnel_ids = [a.molnix_id for a in all_active_personnel]
     inactive_ids = list(set(active_personnel_ids) - set(molnix_ids))
     marked_inactive = len(inactive_ids)
     # Mark Personnel entries no longer in Molnix as inactive:
