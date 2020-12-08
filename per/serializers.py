@@ -169,6 +169,7 @@ class OverviewSerializer(serializers.ModelSerializer):
     user = MiniUserSerializer()
     country = RegoCountrySerializer()
     type_of_assessment = AssessmentTypeSerializer()
+    included_forms = serializers.CharField(source='get_included_forms', read_only=True)
 
     class Meta:
         model = Overview

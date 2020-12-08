@@ -431,7 +431,7 @@ class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Overview Viewset"""
     queryset = Overview.objects.all().select_related(
         'country', 'user', 'type_of_assessment'
-    ).order_by(
+    ).prefetch_related('forms').order_by(
         'country__name', '-updated_at'
     )
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
