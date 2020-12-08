@@ -1,28 +1,12 @@
-import uuid
 from api.models import Country
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.storage import get_storage
 from .questions_data import questions
-
-
-# Write model properties to dictionary
-def to_dict(instance):
-    opts = instance._meta
-    data = {}
-    for f in opts.concrete_fields + opts.many_to_many:
-        if isinstance(f, models.ManyToManyField):
-            if instance.pk is None:
-                data[f.name] = []
-            else:
-                data[f.name] = list(f.value_from_object(instance).values())
-        else:
-            data[f.name] = f.value_from_object(instance)
-    return data
+from tinymce import HTMLField
 
 
 class ProcessPhase(IntEnum):
@@ -83,6 +67,7 @@ class Status(IntEnum):
         HIGH_PERFORMANCE = _('high performance')
 
 
+# FIXME: can't remove because it's in the 0020 migration...
 class Language(IntEnum):
     SPANISH = 0
     FRENCH = 1
@@ -94,60 +79,153 @@ class Language(IntEnum):
         ENGLISH = _('english')
 
 
-class Draft(models.Model):
-    """ PER draft form header """
-    code = models.CharField(verbose_name=_('code'), max_length=10)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
-    # FIXME: Use JSONField instead of TextField
-    data = models.TextField(verbose_name=_('data'), null=True, blank=True)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
-
-    class Meta:
-        ordering = ('code', 'created_at')
-        verbose_name = _('Draft Form')
-        verbose_name_plural = _('Draft Forms')
+class FormArea(models.Model):
+    """ PER Form Areas (top level) """
+    title = models.CharField(verbose_name=_('title'), max_length=250)
+    area_num = models.IntegerField(verbose_name=_('area number'), default=1)
 
     def __str__(self):
-        if self.country is None:
-            country = None
-        else:
-            country = self.country.society_name
-        return '%s - %s (%s)' % (self.code, self.user, country)
+        return f'Area {self.area_num} - {self.title}'
 
 
-class Form(models.Model):
-    """ PER form header """
-    code = models.CharField(verbose_name=_('code'), max_length=10)
-    name = models.CharField(verbose_name=_('name'), max_length=100)
-    language = EnumIntegerField(Language, verbose_name=_('language'))
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
-    ns = models.CharField(  # redundant, because country has defined ns – later in "more ns/country" case it can be useful.
-        max_length=100, verbose_name=_('NS'), null=True, blank=True
-    )
-    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
-    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
-    submitted_at = models.DateTimeField(verbose_name=_('submitted at'), default=timezone.now)
-    started_at = models.DateTimeField(verbose_name=_('started at'), default=timezone.now)
-    ended_at = models.DateTimeField(verbose_name=_('ended at'), default=timezone.now)
-    finalized = models.BooleanField(verbose_name=_('finalized'), default=False)
-    validated = models.BooleanField(verbose_name=_('validated'), default=False)
-    ip_address = models.GenericIPAddressField(verbose_name=_('IP address'), default='192.168.0.1')
-    unique_id = models.UUIDField(verbose_name=_('unique id'), default=uuid.uuid4, editable=False, unique=True)
-    comment = models.TextField(verbose_name=_('comment'), null=True, blank=True)  # form level comment
+class FormComponent(models.Model):
+    """ PER Form Components inside Areas """
+    area = models.ForeignKey(FormArea, verbose_name=_('area'), on_delete=models.PROTECT)
+    title = models.CharField(verbose_name=_('title'), max_length=250)
+    component_num = models.IntegerField(verbose_name=_('component number'), default=1)
+    component_letter = models.CharField(verbose_name=_('component letter'), max_length=3, null=True, blank=True)
+    description = models.TextField(verbose_name=_('description'), null=True, blank=True)
+
+    def __str__(self):
+        return f'Component {self.component_num} - {self.title}'
+
+
+class FormAnswer(models.Model):
+    """ PER Form answer possibilities """
+    text = models.CharField(verbose_name=_('text'), max_length=40)
+
+    def __str__(self):
+        return self.text
+
+
+class FormQuestion(models.Model):
+    """ PER Form individual questions inside Components """
+    component = models.ForeignKey(FormComponent, verbose_name=_('component'), on_delete=models.PROTECT)
+    question = models.CharField(verbose_name=_('question'), max_length=500)
+    description = HTMLField(verbose_name=_('description'), null=True, blank=True)
+    question_num = models.IntegerField(verbose_name=_('question number'), null=True, blank=True)
+    answers = models.ManyToManyField(FormAnswer, verbose_name=_('answers'), blank=True)
+    is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
+    is_benchmark = models.BooleanField(verbose_name=_('is benchmark'), default=False)
+
+    def __str__(self):
+        return self.question
+
+
+# FIXME: can't remove because it's in the 0020 migration...
+class CAssessmentType(IntEnum):
+    SELF_ASSESSMENT = 0
+    SIMULATION = 1
+    OPERATIONAL = 2
+    POST_OPERATIONAL = 3
+
+    class Labels:
+        SELF_ASSESSMENT = _('self assessment')
+        SIMULATION = _('simulation')
+        OPERATIONAL = _('operational')
+        POST_OPERATIONAL = _('post operational')
+
+
+class AssessmentType(models.Model):
+    name = models.CharField(verbose_name=_('name'), max_length=200)
 
     class Meta:
-        ordering = ('code', 'name', 'language', 'created_at')
-        verbose_name = _('Form')
-        verbose_name_plural = _('Forms')
+        verbose_name = _('PER Assessment Type')
+        verbose_name_plural = _('PER Assessment Types')
+
+    def __str__(self):
+        return self.name
+
+
+class Overview(models.Model):
+    assessment_number = models.IntegerField(verbose_name=_('assessment number'), default=1)
+    branches_involved = models.CharField(verbose_name=_('branches involved'), max_length=400, null=True, blank=True)
+    country = models.ForeignKey(
+        Country, verbose_name=_('country'), related_name='per_overviews', null=True, blank=True, on_delete=models.SET_NULL
+    )
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    date_of_assessment = models.DateTimeField(verbose_name=_('date of assessment'))
+    date_of_mid_term_review = models.DateTimeField(
+        verbose_name=_('estimated date of mid term review'), null=True, blank=True
+    )
+    date_of_next_asmt = models.DateTimeField(
+        verbose_name=_('estimated date of next assessment'), null=True, blank=True
+    )
+    facilitator_name = models.CharField(verbose_name=_('facilitator name'), max_length=90, null=True, blank=True)
+    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
+    facilitator_phone = models.CharField(verbose_name=_('facilitated phone'), max_length=90, null=True, blank=True)
+    facilitator_contact = models.CharField(verbose_name=_('facilitated other contacts'), max_length=90, null=True, blank=True)
+    is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
+    is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
+    method_asmt_used = models.CharField(verbose_name=_(
+        'what method has this assessment used'), max_length=90, null=True, blank=True
+    )
+    ns_focal_point_name = models.CharField(verbose_name=_('ns focal point name'), max_length=90, null=True, blank=True)
+    ns_focal_point_email = models.CharField(verbose_name=_('ns focal point email'), max_length=90, null=True, blank=True)
+    ns_focal_point_phone = models.CharField(verbose_name=_('ns focal point phone'), max_length=90, null=True, blank=True)
+    other_consideration = models.CharField(verbose_name=_('other consideration'), max_length=400, null=True, blank=True)
+    partner_focal_point_name = models.CharField(
+        verbose_name=_('partner focal point name'), max_length=90, null=True, blank=True
+    )
+    partner_focal_point_email = models.CharField(
+        verbose_name=_('partner focal point email'), max_length=90, null=True, blank=True
+    )
+    partner_focal_point_phone = models.CharField(
+        verbose_name=_('partner focal point phone'), max_length=90, null=True, blank=True
+    )
+    partner_focal_point_organization = models.CharField(
+        verbose_name=_('partner focal point organization name'), max_length=90, null=True, blank=True
+    )
+    type_of_assessment = models.ForeignKey(
+        AssessmentType,
+        verbose_name=_('type of assessment'),
+        related_name='type_of_assessment',
+        null=True,
+        on_delete=models.SET_NULL
+    )
+    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('country',)
+        verbose_name = _('PER General Overview')
+        verbose_name_plural = _('PER General Overviews')
 
     def __str__(self):
         if self.country is None:
             name = None
         else:
-            name = self.country.society_name
-        return '%s - %s (%s, %s)' % (self.code, self.name, self.language, name)
+            name = self.country.society_name or ''
+        fpname = f' ({self.ns_focal_point_name})' if self.ns_focal_point_name else ''
+        return f'{name}{fpname}'
+
+
+class Form(models.Model):
+    """ Individually submitted PER Forms """
+    area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
+    overview = models.ForeignKey(Overview, verbose_name=_('overview'), null=True, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
+    updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    comment = models.TextField(verbose_name=_('comment'), null=True, blank=True)  # form level comment
+
+    class Meta:
+        ordering = ('area', 'created_at')
+        verbose_name = _('Form')
+        verbose_name_plural = _('Forms')
+
+    def __str__(self):
+        return f'{self.area} ({self.updated_at.strftime("%Y-%m-%d")})'
 
 
 def question_details(question_id, code):
@@ -157,19 +235,23 @@ def question_details(question_id, code):
 
 class FormData(models.Model):
     """ PER form data """
-    form = models.ForeignKey(Form, verbose_name=_('form'), on_delete=models.CASCADE)
-    question_id = models.CharField(verbose_name=_('question id'), max_length=10)
-    selected_option = EnumIntegerField(Status, verbose_name=_('selected option'), )
-    notes = models.TextField(verbose_name=_('notes'))
+    form = models.ForeignKey(Form, verbose_name=_('form'), related_name='form_data', on_delete=models.CASCADE)
+    question = models.ForeignKey(FormQuestion, verbose_name=_('question'), null=True, on_delete=models.CASCADE)
+    selected_answer = models.ForeignKey(FormAnswer, verbose_name=_('answer'), null=True, on_delete=models.CASCADE)
+    notes = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
     class Meta:
-        ordering = ('form', 'question_id')
+        ordering = ('form', 'question__question_num')
         verbose_name = _('Form Data')
         verbose_name_plural = _('Form Data')
 
     def __str__(self):
-        # return '%s / %s' % (self.question_id, self.form)
-        return question_details(self.question_id, self.form.code)
+        if self.question:
+            if self.question.component:
+                return f'A{self.question.component.area.area_num} \
+                         C{self.question.component.component_num} Q{self.question.question_num}'
+            return f'Q{self.question.question_num}'
+        return ''
 
 
 class PriorityValue(IntEnum):
@@ -236,61 +318,6 @@ class WorkPlan(models.Model):
             if verbose and name:
                 return '%s, %s' % (name, verbose)
         return '%s [%s %s]' % (name, self.code, self.question_id)
-
-
-class CAssessmentType(IntEnum):
-    SELF_ASSESSMENT = 0
-    SIMULATION = 1
-    OPERATIONAL = 2
-    POST_OPERATIONAL = 3
-
-    class Labels:
-        SELF_ASSESSMENT = _('self assessment')
-        SIMULATION = _('simulation')
-        OPERATIONAL = _('operational')
-        POST_OPERATIONAL = _('post operational')
-
-
-class Overview(models.Model):
-    # Without related_name Django gives: Reverse query name for 'Overview.country' clashes with field name 'Country.overview'.
-    country = models.ForeignKey(
-        Country, verbose_name=_('country'), related_name='asmt_country', null=True, blank=True, on_delete=models.SET_NULL
-    )
-    # national_society = models.CharField(max_length=90,null=True, blank=True) Redundant
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
-    date_of_current_capacity_assessment = models.DateTimeField(verbose_name=_('date of current capacity assessment'))
-    type_of_capacity_assessment = EnumIntegerField(
-        CAssessmentType, verbose_name=_('type of capacity assessment'), default=CAssessmentType.SELF_ASSESSMENT
-    )
-    date_of_last_capacity_assessment = models.DateTimeField(
-        verbose_name=_('date of last capacity assessment'), null=True, blank=True
-    )
-    type_of_last_capacity_assessment = EnumIntegerField(
-        CAssessmentType, verbose_name=_('type of last capacity assessment'), default=CAssessmentType.SELF_ASSESSMENT
-    )
-    branch_involved = models.CharField(verbose_name=_('branch involved'), max_length=90, null=True, blank=True)
-    focal_point_name = models.CharField(verbose_name=_('focal point name'), max_length=90, null=True, blank=True)
-    focal_point_email = models.CharField(verbose_name=_('focal point email'), max_length=90, null=True, blank=True)
-    had_previous_assessment = models.BooleanField(verbose_name=_('had previous assessment'), default=False)
-    focus = models.CharField(verbose_name=_('focus'), max_length=90, null=True, blank=True)
-    facilitated_by = models.CharField(verbose_name=_('facilitated by'), max_length=90, null=True, blank=True)
-    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
-    phone_number = models.CharField(verbose_name=_('phone number'), max_length=90, null=True, blank=True)
-    skype_address = models.CharField(verbose_name=_('skype address'), max_length=90, null=True, blank=True)
-    date_of_mid_term_review = models.DateTimeField(verbose_name=_('date of mid term review'))
-    approximate_date_next_capacity_assmt = models.DateTimeField(verbose_name=_('approximate date next capacity assessment'))
-
-    class Meta:
-        ordering = ('country',)
-        verbose_name = _('PER General Overview')
-        verbose_name_plural = _('PER General Overviews')
-
-    def __str__(self):
-        if self.country is None:
-            name = None
-        else:
-            name = self.country.society_name
-        return '%s (%s)' % (name, self.focal_point_name)
 
 
 class Visibilities(IntEnum):

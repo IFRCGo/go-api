@@ -11,7 +11,7 @@ class Command(BaseCommand):
             or else the CSV has to be named like "tablename__fieldname.csv" (ex. api_country__name.csv). \
             Delimiter should be ";". Field order: original, fr, es, ar (ex. name, name_fr, name_es, name_ar)'
 
-    missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
+    missing_args_message = "Filename is missing."
 
     def add_arguments(self, parser):
         parser.add_argument('filename', nargs='+', type=str)

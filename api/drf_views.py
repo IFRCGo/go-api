@@ -18,6 +18,7 @@ from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
+from per.models import Overview
 
 from .models import (
     DisasterType,
