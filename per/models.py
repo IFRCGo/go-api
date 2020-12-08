@@ -201,6 +201,10 @@ class Overview(models.Model):
         verbose_name = _('PER General Overview')
         verbose_name_plural = _('PER General Overviews')
 
+    def get_included_forms(self):
+        allForms = self.forms.all()
+        return ', '.join(f'Area {form.area.area_num}' for form in allForms)
+
     def __str__(self):
         if self.country is None:
             name = None
@@ -214,7 +218,7 @@ class Form(models.Model):
     """ Individually submitted PER Forms """
     area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL)
-    overview = models.ForeignKey(Overview, verbose_name=_('overview'), null=True, on_delete=models.CASCADE)
+    overview = models.ForeignKey(Overview, verbose_name=_('overview'), related_name='forms', null=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     comment = models.TextField(verbose_name=_('comment'), null=True, blank=True)  # form level comment
