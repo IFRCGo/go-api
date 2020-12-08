@@ -1,17 +1,20 @@
 import subprocess
 import os
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 
 class Command(BaseCommand):
   help = "This command produces a countries.geojson and districts.geojson, and uploads them to Mapbox. It is the source for all GO Maps."
 
   def handle(self, *args, **options):
     try:
-      DB_HOST = os.environ['DJANGO_DB_HOST']
-      DB_NAME = os.environ['DJANGO_DB_NAME']
-      DB_USER = os.environ['DJANGO_DB_USER']
-      DB_PASSWORD = os.environ['DJANGO_DB_PASS']
-      connection_string = 'PG:host={} dbname={} user={} password={}'.format(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD)
+      db = settings.DATABASES[0]
+      DB_HOST = db.HOST
+      DB_NAME = db.NAME
+      DB_USER = db.USER
+      DB_PASSWORD = db.PASSWORD
+      DB_PORT = db.PORT
+      connection_string = 'PG:host={} dbname={} user={} password={} port={}'.format(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
 
       print('Exporting countries...')
       subprocess.Popen(['rm', '/tmp/countries.geojson'])
