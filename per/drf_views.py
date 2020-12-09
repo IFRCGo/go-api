@@ -1,6 +1,7 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from django.db.models import Q
@@ -553,14 +554,14 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
         return None
 
 
-class ExportAssessmentToCSVViewset(viewsets.ReadOnlyModelViewSet):
+class ExportAssessmentToCSVViewset(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
 
-    def get_queryset(self):
-        overview_id = self.request.GET.get('overview_id', None)
-        user = self.request.user
+    def get(self, request):
+        overview_id = request.GET.get('overview_id', None)
+        user = request.user
 
         if overview_id:
             # FIXME: permissions, instead of user, check for PER group / country
