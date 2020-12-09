@@ -8,12 +8,12 @@ class Command(BaseCommand):
 
   def handle(self, *args, **options):
     try:
-      db = settings.DATABASES[0]
-      DB_HOST = db.HOST
-      DB_NAME = db.NAME
-      DB_USER = db.USER
-      DB_PASSWORD = db.PASSWORD
-      DB_PORT = db.PORT
+      db = settings.DATABASES['default']
+      DB_HOST = db['HOST']
+      DB_NAME = db['NAME']
+      DB_USER = db['USER']
+      DB_PASSWORD = db['PASSWORD']
+      DB_PORT = 5432
       connection_string = 'PG:host={} dbname={} user={} password={} port={}'.format(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
 
       print('Exporting countries...')
@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
       print('Exporting districts...')
       subprocess.Popen(['rm', '/tmp/districts.geojson'])
-      subprocess.Popen(['ogr2ogr', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id and cd.geom is not null' ])
+      subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=5', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id and cd.geom is not null' ])
       print('Districts written to /tmp/districts.geojson')
 
       print('Update Mapbox tileset source for countries...')
@@ -34,9 +34,9 @@ class Command(BaseCommand):
 
 
       print('Update Mapbox tileset source for districts...')
-      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-districts-src', '/tmp/districts.geojson'])
+      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-districts-src-1', '/tmp/districts.geojson'])
 
       print('Update Mapbox tileset for districts...')
-      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-districts'])
+      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-districts-1'])
     except BaseException as e:
-      raise CommandError('Could not update tilesets: %s', str(e))
+      raise CommandError('Could not update tilesets: ' + str(e))
