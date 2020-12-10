@@ -10,6 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from api.models import Country
 from api.models import District
+from api.models import DistrictGeoms
 
 class Command(BaseCommand):
   help = "import a shapefile of administrative boundary level 1 data to the GO database. To run, python manage.py import-admin1-data input.shp"
@@ -89,7 +90,7 @@ class Command(BaseCommand):
       # if there is no code, but import all is flagged then import this district
       if code is None or code == '':
         if options['import_all']:
-          self.add_district('all', feature, geom, centroid, bbox)
+          self.add_district(options, 'all', feature, geom, centroid, bbox)
 
       # for features that has a code and not NA
       if code and code != 'N.A':
@@ -97,7 +98,7 @@ class Command(BaseCommand):
         if len(districts) == 0:
           if options['import_missing']:
             # if it doesn't exist, add it
-            self.add_district(import_missing, feature, geom, centroid, bbox)
+            self.add_district(options, import_missing, feature, geom, centroid, bbox)
           else:
             missing_file.writerow({'code': code, 'name': name})
 
@@ -109,7 +110,7 @@ class Command(BaseCommand):
             # update geom, centroid and bbox
             d = district[0]
             if options['update_geom']:
-              d.geom = geom
+              self.update_geom(d, geom)
             if options['update_centroid']:
               d.centroid = centroid
             if options['update_bbox']:
@@ -118,7 +119,7 @@ class Command(BaseCommand):
           else:
             if options['import_missing']:
               # if it doesn't exist, add it
-              self.add_district(import_missing, feature, geom, centroid, bbox)
+              self.add_district(options, import_missing, feature, geom, centroid, bbox)
             else:
               missing_file.writerow({'code': code, 'name': name})
 
@@ -126,7 +127,7 @@ class Command(BaseCommand):
         if len(districts) == 1:
           d = districts[0]
           if options['update_geom']:
-            d.geom = geom
+            self.update_geom(d, geom)
           if options['update_centroid']:
             d.centroid = centroid
           if options['update_bbox']:
@@ -138,7 +139,7 @@ class Command(BaseCommand):
         if len(district):
           d = district[0]
           if options['update_geom']:
-            d.geom = geom
+            self.update_geom(d, geom)
           if options['update_centroid']:
             d.centroid = centroid
           if options['update_bbox']:
@@ -146,7 +147,7 @@ class Command(BaseCommand):
           d.save()
         else:
           if options['import_missing']:
-            self.add_district(import_missing, feature, geom, centroid, bbox)
+            self.add_district(options, import_missing, feature, geom, centroid, bbox)
           else:
             missing_file.writerow({'code': code, 'name': name})
 
@@ -156,14 +157,14 @@ class Command(BaseCommand):
         district = District.objects.filter(name__icontains=name)
         if not len(district):
           if options['import_missing']:
-            self.add_district(import_missing, feature, geom, centroid, bbox)
+            self.add_district(options, import_missing, feature, geom, centroid, bbox)
           else:
             missing_file.writerow({'code': code, 'name': name})
 
     print('done!')
 
 
-  def add_district(self, import_missing, feature, geom, centroid, bbox):
+  def add_district(self, options, import_missing, feature, geom, centroid, bbox):
     code = feature.get('ADMIN01COD') or 'N.A'
     name = feature.get('ADMIN01NAM')
     district = District()
@@ -171,7 +172,6 @@ class Command(BaseCommand):
     district.name = name
     district.country_iso = feature.get('ISO2')
     district.country_name = feature.get('COUNTRY')
-    district.geom = geom
     district.centroid = centroid
     district.bbox = bbox
     try:
@@ -185,7 +185,17 @@ class Command(BaseCommand):
     if (import_missing == 'all'):
       print('importing', district.name)
       district.save()
+      if (options['update_geom']):
+        self.update_geom(district, geom)
     elif (code in import_missing.keys()):
       district.save()
+      if (options['update_geom']):
+        self.update_geom(district, geom)
     else:
       print('skipping', code)
+
+  def update_geom(self, district, geom):
+      DistrictGeom = DistrictGeoms()
+      DistrictGeom.district = district
+      DistrictGeom.geom = geom
+      DistrictGeom.save()

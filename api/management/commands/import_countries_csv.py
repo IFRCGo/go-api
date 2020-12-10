@@ -50,7 +50,6 @@ class Command(BaseCommand):
             'logo',
             'iso3',
             'url_ifrc',
-            'geom',
             'centroid',
             'bbox'] + boolean_fields + int_fields
         if not os.path.exists(filename):
