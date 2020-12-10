@@ -1,14 +1,16 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
-from django.utils import timezone
+from rest_framework.views import APIView
+from django.http import HttpResponse
 from django_filters import rest_framework as filters
-from django.db.models import Count, Q
+from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country, Region
 from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
 from django.conf import settings
 from datetime import datetime
+import csv
 import pytz
 
 from .models import (
@@ -549,4 +551,61 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
                         .filter(country_id=country_id)
                         .order_by('-created_at')[:1]  # first() gives error for len() and count()
             )
+        return None
+
+
+class ExportAssessmentToCSVViewset(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = LatestCountryOverviewSerializer
+
+    def get(self, request):
+        # TODO: Add Overview data too
+        overview_id = request.GET.get('overview_id', None)
+        # user = request.user
+
+        if overview_id:
+            # FIXME: permissions, check for PER group / country
+            ov = Overview.objects.filter(id=overview_id).first()
+            if not ov:
+                return None
+
+            response = HttpResponse(content_type='text/csv')
+            writer = csv.writer(response)
+            writer.writerow(['component number', 'question number', 'benchmark/epi?', 'answer', 'notes'])
+
+            form_data = (
+                FormData.objects
+                .select_related(
+                    'form',
+                    'form__overview',
+                    'question',
+                    'question__component',
+                    'selected_answer'
+                )
+                .filter(form__overview__id=ov.id)
+                .order_by(
+                    'question__component__component_num',
+                    'question__question_num',
+                    'question__is_epi',
+                    'question__is_benchmark'
+                )
+            )
+            for fd in form_data:
+                bench_epi = ''
+                if fd.question.is_benchmark:
+                    bench_epi = 'benchmark'
+                if fd.question.is_epi:
+                    bench_epi = 'epi'
+                writer.writerow([
+                    fd.question.component.component_num,
+                    fd.question.question_num,
+                    bench_epi,
+                    fd.selected_answer.text if fd.selected_answer else '',
+                    fd.notes
+                ])
+
+            response['Content-Disposition'] = f'attachment; filename=assessment_{ov.id}.csv'
+
+            return response
         return None
