@@ -177,7 +177,7 @@ def sync_deployments(molnix_deployments):
     return messages, warnings, successful_creates
 
 
-def sync_open_positions(molnix_positions):
+def sync_open_positions(molnix_positions, molnix_api):
     molnix_ids = [p['id'] for p in molnix_positions]
     warnings = []
     messages = []
@@ -220,7 +220,16 @@ def sync_open_positions(molnix_positions):
 
     # Mark alerts that are no longer in Molnix as inactive
     for alert in SurgeAlert.objects.filter(molnix_id__in=inactive_alerts):
-        alert.is_active = False
+        # We need to check the position ID in Molnix
+        # If the status is "unfilled", we don't mark the position as inactive,
+        # just set status to unfilled
+        position = molnix_api.get_position(alert.molnix_id)
+        if not position:
+            warnings.append('Position id %d not found in Molnix API' % alert.molnix_id)
+        if position and position['status'] == 'unfilled':
+            alert.molnix_status = position['status']
+        else:
+            alert.is_active = False
         alert.save()
     
     marked_inactive = len(inactive_alerts)
@@ -262,7 +271,7 @@ class Command(BaseCommand):
         try:    
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags)
-            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions)
+            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
             raise ex
