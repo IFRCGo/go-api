@@ -84,28 +84,31 @@ class Command(BaseCommand):
                     high_performance = answers.filter(text__iexact='high performance').first()
 
                     prev_comp_num = 0
+                    prev_comp_letter = ''
                     for row in rows:
                         if not row[0] and not row[1]:
                             continue
-                        comp_num = row[0]
-                        comp = FormComponent.objects.filter(component_num=comp_num).first()
 
+                        comp_num = row[0]
+                        comp_letter = row[1]
+                        comp = FormComponent.objects.filter(component_num=comp_num, component_letter=comp_letter).first()
                         if comp:
                             question = FormQuestion.objects.create(**{
                                 'component_id': comp.id,
-                                fieldnames[1]: row[1],
                                 fieldnames[2]: row[2],
                                 fieldnames[3]: row[3],
                                 fieldnames[4]: row[4],
                                 fieldnames[5]: row[5],
-                                fieldnames[6]: row[6]
+                                fieldnames[6]: row[6],
+                                fieldnames[7]: row[7]
                             })
 
                             # By default only add yes-no answers
                             question.answers.add(yes, no)
 
-                            if prev_comp_num != comp_num:
+                            if prev_comp_num != comp_num or prev_comp_letter != comp_letter:
                                 prev_comp_num = comp_num
+                                prev_comp_letter = comp_letter
                                 # Add benchmark performance questions with relevant answers for each component
                                 bench_q = FormQuestion.objects.create(
                                     component_id=comp.id,
