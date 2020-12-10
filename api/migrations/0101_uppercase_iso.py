@@ -6,8 +6,8 @@ def uppercase_iso(apps, schema_editor):
     if country.iso:
       country.iso = country.iso.upper()
 
-    if country.iso2:
-      country.iso2 = country.iso2.upper()
+    if country.iso3:
+      country.iso3 = country.iso3.upper()
   
   District = apps.get_model('api', 'District')
   for district in District.objects.all():
