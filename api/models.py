@@ -9,7 +9,7 @@ from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
 from .storage import get_storage
 from tinymce import HTMLField
-from django.core.validators import FileExtensionValidator, validate_slug
+from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
@@ -135,8 +135,10 @@ class Country(models.Model):
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
     record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
-    iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True)
-    iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True)
+    iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True, blank=True,
+                                         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
+    iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True, blank=True,
+                                          validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
     society_url = models.URLField(blank=True, verbose_name=_('URL - Society'))
@@ -224,7 +226,8 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True,
+                                  validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
