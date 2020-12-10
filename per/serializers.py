@@ -38,7 +38,7 @@ class FormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = ('area', 'title', 'component_num', 'description', 'id')
+        fields = ('area', 'title', 'component_num', 'component_letter', 'description', 'id')
 
 
 class FormAnswerSerializer(serializers.ModelSerializer):
