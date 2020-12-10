@@ -560,12 +560,13 @@ class ExportAssessmentToCSVViewset(APIView):
     serializer_class = LatestCountryOverviewSerializer
 
     def get(self, request):
+        # TODO: Add Overview data too
         overview_id = request.GET.get('overview_id', None)
-        user = request.user
+        # user = request.user
 
         if overview_id:
-            # FIXME: permissions, instead of user, check for PER group / country
-            ov = Overview.objects.filter(id=overview_id, user=user).first()
+            # FIXME: permissions, check for PER group / country
+            ov = Overview.objects.filter(id=overview_id).first()
             if not ov:
                 return None
 
@@ -583,7 +584,12 @@ class ExportAssessmentToCSVViewset(APIView):
                     'selected_answer'
                 )
                 .filter(form__overview__id=ov.id)
-                .order_by('question__component__component_num', 'question__question_num')
+                .order_by(
+                    'question__component__component_num',
+                    'question__question_num',
+                    'question__is_epi',
+                    'question__is_benchmark'
+                )
             )
             for fd in form_data:
                 bench_epi = ''
@@ -595,7 +601,7 @@ class ExportAssessmentToCSVViewset(APIView):
                     fd.question.component.component_num,
                     fd.question.question_num,
                     bench_epi,
-                    fd.selected_answer.text,
+                    fd.selected_answer.text if fd.selected_answer else '',
                     fd.notes
                 ])
 
