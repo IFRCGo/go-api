@@ -557,7 +557,9 @@ class Event(models.Model):
     # Allows admins to feature the Event on the region page.
     is_featured_region = models.BooleanField(default=False, verbose_name=_('is featured on region page'))
 
-    hide_attached_field_reports = models.BooleanField(verbose_name=_('hide attached field reports?'), default=False)
+    hide_attached_field_reports = models.BooleanField(verbose_name=_('hide field report numeric details'), default=False)
+    
+    hide_field_report_map = models.BooleanField(verbose_name=_('hide field report map'), default=False)
 
     # Tabs. Events can have upto 3 tabs to organize snippets.
     tab_one_title = models.CharField(

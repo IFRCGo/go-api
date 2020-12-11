@@ -73,6 +73,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     is_featured_region = fuzzy.FuzzyChoice([True, False])
 
     hide_attached_field_reports = fuzzy.FuzzyChoice([True, False])
+    hide_field_report_map = fuzzy.FuzzyChoice([True, False])
 
     tab_one_title = fuzzy.FuzzyText(length=50)
     tab_two_title = fuzzy.FuzzyText(length=50)
