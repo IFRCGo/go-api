@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 from .models import (
     Form, FormData, WorkPlan, Overview, FormArea, FormQuestion
 )
+from .admin_classes import RegionRestrictedAdmin
 from api.views import bad_request
+from api.models import Country
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,7 @@ def get_now_str():
 class UpdatePerForm(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def post(self, request):
         # Get the PER Form by ID
@@ -76,6 +79,16 @@ class UpdatePerForm(APIView):
 
         if questions is None:
             return bad_request('Questions are missing from the request.')
+
+        # Check if the User has permissions to update
+        countries, regions = self.get_request_user_regions(request)
+        # These need to be strings
+        ov_country = f'{form.overview.country.id}' or ''
+        ov_region = f'{form.overview.country.region.id}' if form.overview.country.region else ''
+
+        if not form.overview \
+                or (ov_country not in countries and ov_region not in regions):
+            return bad_request('You don\'t have permission to update these forms.')
 
         # Update the Form
         try:
@@ -122,6 +135,7 @@ class UpdatePerForm(APIView):
 class UpdatePerForms(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def post(self, request):
         forms = request.data.get('forms', None)
@@ -129,6 +143,18 @@ class UpdatePerForms(APIView):
 
         if not forms or not forms_data:
             return bad_request('Could not complete request. \'forms\' or \'forms_data\' are missing.')
+
+        # Check if the User has permissions to update
+        countries, regions = self.get_request_user_regions(request)
+        overview_id = forms[list(forms.keys())[0]]['overview']['id']
+        ov = Overview.objects.filter(id=overview_id).first()
+        # These need to be strings
+        ov_country = f'{ov.country.id}' or ''
+        ov_region = f'{ov.country.region.id}' if ov.country.region else ''
+
+        if not ov \
+                or (ov_country not in countries and ov_region not in regions):
+            return bad_request('You don\'t have permission to update these forms.')
 
         # Update the Forms
         try:
@@ -253,6 +279,7 @@ class WorkPlanSent(APIView):
 class CreatePerOverview(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def post(self, request):
         required_fields = ('date_of_assessment', 'type_of_assessment', 'country_id', 'user_id')
@@ -281,6 +308,19 @@ class CreatePerOverview(APIView):
         partner_focal_point_organization = request.data.get('partner_focal_point_organization', None)
         type_of_assessment_id = request.data.get('type_of_assessment', None)
         user_id = request.data.get('user_id', None)
+
+        # Check if the User has permissions to create
+        countries, regions = self.get_request_user_regions(request)
+        country = Country.objects.filter(id=country_id).first() if country_id else None
+        if country:
+            # These need to be strings
+            country_id_string = f'{country.id}' or ''
+            region_id_string = f'{country.region.id}' if country.region else ''
+
+            if country_id_string not in countries and region_id_string not in regions:
+                return bad_request('You don\'t have permission to create an Overview for the selected Country.')
+        else:
+            return bad_request('You don\'t have permission to create an Overview for the selected Country.')
 
         prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
@@ -342,6 +382,7 @@ class CreatePerOverview(APIView):
 class UpdatePerOverview(APIView):
     authentication_classes = (authentication.TokenAuthentication,)
     permissions_classes = (permissions.IsAuthenticated,)
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def post(self, request):
         id = request.data.get('id', None)
@@ -382,6 +423,19 @@ class UpdatePerOverview(APIView):
         partner_focal_point_organization = request.data.get('partner_focal_point_organization', None)
         type_of_assessment_id = request.data.get('type_of_assessment', None)
         user_id = request.data.get('user_id', None)
+
+        # Check if the User has permissions to update
+        countries, regions = self.get_request_user_regions(request)
+        country = Country.objects.filter(id=country_id).first() if country_id else None
+        if country:
+            # These need to be strings
+            country_id_string = f'{country.id}' or ''
+            region_id_string = f'{country.region.id}' if country.region else ''
+
+            if country_id_string not in countries and region_id_string not in regions:
+                return bad_request('You don\'t have permission to update the Overview for the selected Country.')
+        else:
+            return bad_request('You don\'t have permission to update the Overview for the selected Country.')
 
         prev_overview = None
         if ov.country_id != country_id:
