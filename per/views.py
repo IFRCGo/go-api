@@ -81,16 +81,19 @@ class UpdatePerForm(APIView):
             return bad_request('Questions are missing from the request.')
 
         # Check if the User has permissions to update
-        countries, regions = self.get_request_user_regions(request)
-        # These need to be strings
-        if form.overview:
-            ov_country = f'{form.overview.country.id}' or ''
-            ov_region = f'{form.overview.country.region.id}' if form.overview.country.region else ''
+        if not request.user.is_superuser \
+                and not request.user.has_perm('api.ifrc_admin') \
+                and not request.user.has_perm('api.per_core_admin'):
+            countries, regions = self.get_request_user_regions(request)
+            # These need to be strings
+            if form.overview:
+                ov_country = f'{form.overview.country.id}' or ''
+                ov_region = f'{form.overview.country.region.id}' if form.overview.country.region else ''
 
-            if ov_country not in countries and ov_region not in regions:
+                if ov_country not in countries and ov_region not in regions:
+                    return bad_request('You don\'t have permission to update these forms.')
+            else:
                 return bad_request('You don\'t have permission to update these forms.')
-        else:
-            return bad_request('You don\'t have permission to update these forms.')
 
         # Update the Form
         try:
@@ -147,16 +150,19 @@ class UpdatePerForms(APIView):
             return bad_request('Could not complete request. \'forms\' or \'forms_data\' are missing.')
 
         # Check if the User has permissions to update
-        countries, regions = self.get_request_user_regions(request)
-        overview_id = forms[list(forms.keys())[0]]['overview']['id']
-        ov = Overview.objects.filter(id=overview_id).first()
-        # These need to be strings
-        ov_country = f'{ov.country.id}' or ''
-        ov_region = f'{ov.country.region.id}' if ov.country.region else ''
+        if not request.user.is_superuser \
+                and not request.user.has_perm('api.ifrc_admin') \
+                and not request.user.has_perm('api.per_core_admin'):
+            countries, regions = self.get_request_user_regions(request)
+            overview_id = forms[list(forms.keys())[0]]['overview']['id']
+            ov = Overview.objects.filter(id=overview_id).first()
+            # These need to be strings
+            ov_country = f'{ov.country.id}' or ''
+            ov_region = f'{ov.country.region.id}' if ov.country.region else ''
 
-        if not ov \
-                or (ov_country not in countries and ov_region not in regions):
-            return bad_request('You don\'t have permission to update these forms.')
+            if not ov \
+                    or (ov_country not in countries and ov_region not in regions):
+                return bad_request('You don\'t have permission to update these forms.')
 
         # Update the Forms
         try:
@@ -312,17 +318,20 @@ class CreatePerOverview(APIView):
         user_id = request.data.get('user_id', None)
 
         # Check if the User has permissions to create
-        countries, regions = self.get_request_user_regions(request)
-        country = Country.objects.filter(id=country_id).first() if country_id else None
-        if country:
-            # These need to be strings
-            country_id_string = f'{country.id}' or ''
-            region_id_string = f'{country.region.id}' if country.region else ''
+        if not request.user.is_superuser \
+                and not request.user.has_perm('api.ifrc_admin') \
+                and not request.user.has_perm('api.per_core_admin'):
+            countries, regions = self.get_request_user_regions(request)
+            country = Country.objects.filter(id=country_id).first() if country_id else None
+            if country:
+                # These need to be strings
+                country_id_string = f'{country.id}' or ''
+                region_id_string = f'{country.region.id}' if country.region else ''
 
-            if country_id_string not in countries and region_id_string not in regions:
+                if country_id_string not in countries and region_id_string not in regions:
+                    return bad_request('You don\'t have permission to create an Overview for the selected Country.')
+            else:
                 return bad_request('You don\'t have permission to create an Overview for the selected Country.')
-        else:
-            return bad_request('You don\'t have permission to create an Overview for the selected Country.')
 
         prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
@@ -427,17 +436,20 @@ class UpdatePerOverview(APIView):
         user_id = request.data.get('user_id', None)
 
         # Check if the User has permissions to update
-        countries, regions = self.get_request_user_regions(request)
-        country = Country.objects.filter(id=country_id).first() if country_id else None
-        if country:
-            # These need to be strings
-            country_id_string = f'{country.id}' or ''
-            region_id_string = f'{country.region.id}' if country.region else ''
+        if not request.user.is_superuser \
+                and not request.user.has_perm('api.ifrc_admin') \
+                and not request.user.has_perm('api.per_core_admin'):
+            countries, regions = self.get_request_user_regions(request)
+            country = Country.objects.filter(id=country_id).first() if country_id else None
+            if country:
+                # These need to be strings
+                country_id_string = f'{country.id}' or ''
+                region_id_string = f'{country.region.id}' if country.region else ''
 
-            if country_id_string not in countries and region_id_string not in regions:
+                if country_id_string not in countries and region_id_string not in regions:
+                    return bad_request('You don\'t have permission to update the Overview for the selected Country.')
+            else:
                 return bad_request('You don\'t have permission to update the Overview for the selected Country.')
-        else:
-            return bad_request('You don\'t have permission to update the Overview for the selected Country.')
 
         prev_overview = None
         if ov.country_id != country_id:
