@@ -29,6 +29,8 @@ class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
 
 
 class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+    country_in = 'overview__country_id__in'
+    region_in = 'overview__country__region_id__in'
     inlines = [FormDataInline]
     exclude = ("ip_address", )
     list_display = ('area', 'overview', 'overview__date_of_assessment')
@@ -89,8 +91,8 @@ class FormAnswerAdmin(CompareVersionAdmin, TranslationAdmin):
 
 
 class FormDataAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
-    country_in = 'form__overview__country__pk__in'
-    # region_in = 'form__country__region_id__in'
+    country_in = 'form__overview__country_id__in'
+    region_in = 'form__overview__country__region_id__in'
     search_fields = ('question_id', 'form__area__title')
 
     def get_queryset(self, request):
@@ -116,6 +118,8 @@ class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 
 
 class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
+    country_in = 'country_id__in'
+    region_in = 'country__region_id__in'
     search_fields = ('country',)
 
     def get_queryset(self, request):
