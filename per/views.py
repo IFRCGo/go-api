@@ -156,12 +156,15 @@ class UpdatePerForms(APIView):
             countries, regions = self.get_request_user_regions(request)
             overview_id = forms[list(forms.keys())[0]]['overview']['id']
             ov = Overview.objects.filter(id=overview_id).first()
-            # These need to be strings
-            ov_country = f'{ov.country.id}' or ''
-            ov_region = f'{ov.country.region.id}' if ov.country.region else ''
 
-            if not ov \
-                    or (ov_country not in countries and ov_region not in regions):
+            if ov:
+                # These need to be strings
+                ov_country = f'{ov.country.id}' or ''
+                ov_region = f'{ov.country.region.id}' if ov.country.region else ''
+
+                if ov_country not in countries and ov_region not in regions:
+                    return bad_request('You don\'t have permission to update these forms.')
+            else:
                 return bad_request('You don\'t have permission to update these forms.')
 
         # Update the Forms
