@@ -90,6 +90,7 @@ router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset)
 router.register(r'personnel', deployment_views.PersonnelViewset)
+router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset)
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')

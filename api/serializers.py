@@ -494,6 +494,24 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
     deployments = serializers.IntegerField()
 
 
+class DeploymentsByEventSerializer(ModelSerializer):
+    personnel_count = serializers.IntegerField(source='personnel__count')
+    organizations_from = serializers.SerializerMethodField()
+
+    def get_organizations_from(self, obj):
+        deployments = [d for d in obj.personneldeployment_set.all()]
+        personnels = []
+        for d in deployments:
+            for p in d.personnel_set.all():
+                personnels.append(p)
+        return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
+
+    class Meta:
+        model = Event
+        fields = (
+            'id', 'name', 'personnel_count', 'organizations_from',
+        )
+
 class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
