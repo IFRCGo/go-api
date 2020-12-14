@@ -46,12 +46,12 @@ class Command(BaseCommand):
                 if objtype == 'areas':
                     for row in rows:
                         FormArea.objects.create(**{
-                            fieldnames[0]: row[0],
-                            fieldnames[1]: row[1],
-                            fieldnames[2]: row[2],
-                            fieldnames[3]: row[3],
-                            fieldnames[4]: row[4],
-                            fieldnames[5]: row[5]
+                            fieldnames[0]: row[0],  # area_num
+                            fieldnames[1]: row[1],  # title
+                            fieldnames[2]: row[2],  # title_en
+                            fieldnames[3]: row[3],  # title_fr
+                            fieldnames[4]: row[4],  # title_es
+                            fieldnames[5]: row[5]  # title_ar
                         })
                 elif objtype == 'components':
                     for row in rows:
@@ -59,18 +59,18 @@ class Command(BaseCommand):
                         if area:
                             FormComponent.objects.create(**{
                                 'area_id': area.id,
-                                fieldnames[0]: row[0],
-                                fieldnames[1]: row[1],
-                                fieldnames[2]: row[2],
-                                fieldnames[3]: row[3],
-                                fieldnames[4]: row[4],
-                                fieldnames[5]: row[5],
-                                fieldnames[6]: row[6],
-                                fieldnames[7]: row[7],
-                                fieldnames[8]: row[8],
-                                fieldnames[9]: row[9],
-                                fieldnames[10]: row[10],
-                                fieldnames[11]: row[11]
+                                fieldnames[0]: row[0],  # component_num
+                                fieldnames[1]: row[1],  # component_letter
+                                fieldnames[2]: row[2],  # title
+                                fieldnames[3]: row[3],  # title_en
+                                fieldnames[4]: row[4],  # title_fr
+                                fieldnames[5]: row[5],  # title_es
+                                fieldnames[6]: row[6],  # title_ar
+                                fieldnames[7]: row[7],  # description
+                                fieldnames[8]: row[8],  # description_en
+                                fieldnames[9]: row[9],  # description_fr
+                                fieldnames[10]: row[10],  # description_es
+                                fieldnames[11]: row[11]  # description_ar
                             })
                 elif objtype == 'questions':
                     answers = FormAnswer.objects.all()
@@ -86,48 +86,99 @@ class Command(BaseCommand):
                     prev_comp_num = 0
                     prev_comp_letter = ''
                     for row in rows:
+                        # If Component number and letter are both empty, skip
                         if not row[0] and not row[1]:
                             continue
 
                         comp_num = row[0]
                         comp_letter = row[1]
-                        comp = FormComponent.objects.filter(component_num=comp_num, component_letter=comp_letter).first()
-                        if comp:
-                            question = FormQuestion.objects.create(**{
-                                'component_id': comp.id,
-                                fieldnames[2]: row[2],
-                                fieldnames[3]: row[3],
-                                fieldnames[4]: row[4],
-                                fieldnames[5]: row[5],
-                                fieldnames[6]: row[6],
-                                fieldnames[7]: row[7]
-                            })
+                        # Component 34 has subcomponents but no letters to distinguish
+                        if comp_num == '34':
+                            question_num = int(row[2])
+                            last_question = True if question_num == 32 else False
 
-                            # By default only add yes-no answers
-                            question.answers.add(yes, no)
+                            if question_num <= 7:
+                                comp = FormComponent.objects.filter(title__iexact='LOGISTICS MANAGEMENT').first()
+                            elif question_num <= 12:
+                                comp = FormComponent.objects.filter(title__iexact='SUPPLY CHAIN MANAGEMENT').first()
+                            elif question_num <= 17:
+                                comp = FormComponent.objects.filter(title__iexact='PROCUREMENT').first()
+                            elif question_num <= 28:
+                                comp = FormComponent.objects.filter(title__iexact='FLEET AND TRANSPORTATION MANAGEMENT').first()
+                            else:
+                                comp = FormComponent.objects.filter(title__iexact='WAREHOUSE AND STOCK MANAGEMENT').first()
 
-                            if prev_comp_num != comp_num or prev_comp_letter != comp_letter:
-                                prev_comp_num = comp_num
-                                prev_comp_letter = comp_letter
-                                # Add benchmark performance questions with relevant answers for each component
-                                bench_q = FormQuestion.objects.create(
-                                    component_id=comp.id,
-                                    question='Component performance',
-                                    is_benchmark=True
-                                )
-                                bench_q.answers.add(
-                                    not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
-                                )
+                            if comp:
+                                question = FormQuestion.objects.create(**{
+                                    'component_id': comp.id,
+                                    fieldnames[2]: row[2],  # question_num
+                                    fieldnames[3]: row[3],  # question
+                                    fieldnames[4]: row[4],  # question_en
+                                    fieldnames[5]: row[5],  # question_fr
+                                    fieldnames[6]: row[6],  # question_es
+                                    fieldnames[7]: row[7]  # question_ar
+                                })
 
-                                # Add EPI question
-                                epi_q = FormQuestion.objects.create(
-                                    component_id=comp.id,
-                                    question='Component Epidemic Preparedness',
-                                    is_epi=True
-                                )
-                                epi_q.answers.add(
-                                    not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
-                                )
+                                # By default only add yes-no answers
+                                question.answers.add(yes, no)
+
+                                if last_question:
+                                    bench_q = FormQuestion.objects.create(
+                                        component_id=comp.id,
+                                        question='Component performance',
+                                        is_benchmark=True
+                                    )
+                                    bench_q.answers.add(
+                                        not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
+                                    )
+
+                                    # Add EPI question
+                                    epi_q = FormQuestion.objects.create(
+                                        component_id=comp.id,
+                                        question='Component Epidemic Preparedness',
+                                        is_epi=True
+                                    )
+                                    epi_q.answers.add(
+                                        not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
+                                    )
+                        else:
+                            comp = FormComponent.objects.filter(component_num=comp_num, component_letter=comp_letter).first()
+                            if comp:
+                                question = FormQuestion.objects.create(**{
+                                    'component_id': comp.id,
+                                    fieldnames[2]: row[2],  # question_num
+                                    fieldnames[3]: row[3],  # question
+                                    fieldnames[4]: row[4],  # question_en
+                                    fieldnames[5]: row[5],  # question_fr
+                                    fieldnames[6]: row[6],  # question_es
+                                    fieldnames[7]: row[7]  # question_ar
+                                })
+
+                                # By default only add yes-no answers
+                                question.answers.add(yes, no)
+
+                                if prev_comp_num != comp_num or prev_comp_letter != comp_letter:
+                                    prev_comp_num = comp_num
+                                    prev_comp_letter = comp_letter
+                                    # Add benchmark performance questions with relevant answers for each component
+                                    bench_q = FormQuestion.objects.create(
+                                        component_id=comp.id,
+                                        question='Component performance',
+                                        is_benchmark=True
+                                    )
+                                    bench_q.answers.add(
+                                        not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
+                                    )
+
+                                    # Add EPI question
+                                    epi_q = FormQuestion.objects.create(
+                                        component_id=comp.id,
+                                        question='Component Epidemic Preparedness',
+                                        is_epi=True
+                                    )
+                                    epi_q.answers.add(
+                                        not_reviewed, does_not_exist, partially, need_improv, exist, high_performance
+                                    )
             print('done!')
         except Exception as e:
             print('FAILED')
