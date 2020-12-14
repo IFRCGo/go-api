@@ -162,9 +162,9 @@ class Overview(models.Model):
         verbose_name=_('estimated date of next assessment'), null=True, blank=True
     )
     facilitator_name = models.CharField(verbose_name=_('facilitator name'), max_length=90, null=True, blank=True)
-    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
-    facilitator_phone = models.CharField(verbose_name=_('facilitated phone'), max_length=90, null=True, blank=True)
-    facilitator_contact = models.CharField(verbose_name=_('facilitated other contacts'), max_length=90, null=True, blank=True)
+    facilitator_email = models.CharField(verbose_name=_('facilitator email'), max_length=90, null=True, blank=True)
+    facilitator_phone = models.CharField(verbose_name=_('facilitator phone'), max_length=90, null=True, blank=True)
+    facilitator_contact = models.CharField(verbose_name=_('facilitator other contacts'), max_length=90, null=True, blank=True)
     is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
     is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
     method_asmt_used = models.CharField(verbose_name=_(
