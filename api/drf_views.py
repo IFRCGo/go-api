@@ -9,7 +9,7 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Q, Count
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
@@ -80,6 +80,7 @@ from .serializers import (
     ListEventSerializer,
     ListEventCsvSerializer,
     ListEventDeploymentsSerializer,
+    DeploymentsByEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
     SituationReportTypeSerializer,
@@ -104,6 +105,14 @@ from .serializers import (
     SituationReportTableauSerializer
 )
 from .logger import logger
+
+class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DeploymentsByEventSerializer
+    queryset = Event.objects.annotate(personnel__count=Count('personneldeployment__personnel')) \
+                            .prefetch_related('personneldeployment_set__personnel_set__country_from') \
+                            .filter(personnel__count__gt=0) \
+                            .order_by('-disaster_start_date')
+
 
 
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
