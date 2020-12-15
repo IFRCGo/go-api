@@ -46,6 +46,7 @@ class NSPhase(models.Model):
         return '%s (%s)' % (name, self.phase)
 
 
+# FIXME: should be removable in some way (?)
 class Status(IntEnum):
     NO = 0
     YES = 1
@@ -62,8 +63,8 @@ class Status(IntEnum):
         NOT_REVIEWED = _('not reviewed')
         DOES_NOT_EXIST = _('does not exist')
         PARTIALLY_EXISTS = _('partially exists')
-        NEED_IMPROVEMENTS = _('need improvements')
-        EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
+        NEED_IMPROVEMENTS = _('needs improvement')
+        EXIST_COULD_BE_STRENGTHENED = _('exists could be strengthened')
         HIGH_PERFORMANCE = _('high performance')
 
 
@@ -162,9 +163,9 @@ class Overview(models.Model):
         verbose_name=_('estimated date of next assessment'), null=True, blank=True
     )
     facilitator_name = models.CharField(verbose_name=_('facilitator name'), max_length=90, null=True, blank=True)
-    facilitator_email = models.CharField(verbose_name=_('facilitated email'), max_length=90, null=True, blank=True)
-    facilitator_phone = models.CharField(verbose_name=_('facilitated phone'), max_length=90, null=True, blank=True)
-    facilitator_contact = models.CharField(verbose_name=_('facilitated other contacts'), max_length=90, null=True, blank=True)
+    facilitator_email = models.CharField(verbose_name=_('facilitator email'), max_length=90, null=True, blank=True)
+    facilitator_phone = models.CharField(verbose_name=_('facilitator phone'), max_length=90, null=True, blank=True)
+    facilitator_contact = models.CharField(verbose_name=_('facilitator other contacts'), max_length=90, null=True, blank=True)
     is_epi = models.BooleanField(verbose_name=_('is epi'), default=False)
     is_finalized = models.BooleanField(verbose_name=_('is finalized'), default=False)
     method_asmt_used = models.CharField(verbose_name=_(
