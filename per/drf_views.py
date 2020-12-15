@@ -7,6 +7,7 @@ from django_filters import rest_framework as filters
 from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country, Region
+from api.views import bad_request
 from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
 from django.conf import settings
 from datetime import datetime
@@ -558,54 +559,69 @@ class ExportAssessmentToCSVViewset(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
 
     def get(self, request):
         # TODO: Add Overview data too
         overview_id = request.GET.get('overview_id', None)
-        # user = request.user
+        if not overview_id:
+            return bad_request('Could not complete request, \'overview_id\' is missing.')
 
-        if overview_id:
-            # FIXME: permissions, check for PER group / country
-            ov = Overview.objects.filter(id=overview_id).first()
-            if not ov:
-                return None
+        ov = Overview.objects.filter(id=overview_id).first()
+        if not ov:
+            return bad_request('Could not find an Overview with the provided \'overview_id\'.')
 
-            response = HttpResponse(content_type='text/csv')
-            writer = csv.writer(response)
-            writer.writerow(['component number', 'question number', 'benchmark/epi?', 'answer', 'notes'])
+        # Check if the User has permissions to update
+        if not request.user.is_superuser \
+                and not request.user.has_perm('api.ifrc_admin') \
+                and not request.user.has_perm('api.per_core_admin'):
+            countries, regions = self.get_request_user_regions(request)
 
-            form_data = (
-                FormData.objects
-                .select_related(
-                    'form',
-                    'form__overview',
-                    'question',
-                    'question__component',
-                    'selected_answer'
-                )
-                .filter(form__overview__id=ov.id)
-                .order_by(
-                    'question__component__component_num',
-                    'question__question_num',
-                    'question__is_epi',
-                    'question__is_benchmark'
-                )
+            if ov:
+                # These need to be strings
+                ov_country = f'{ov.country.id}' or ''
+                ov_region = f'{ov.country.region.id}' if ov.country.region else ''
+
+                if ov_country not in countries and ov_region not in regions:
+                    return bad_request('You don\'t have permission to update these forms.')
+            else:
+                return bad_request('You don\'t have permission to update these forms.')
+
+        response = HttpResponse(content_type='text/csv')
+        writer = csv.writer(response)
+        writer.writerow(['component number', 'question number', 'benchmark/epi?', 'answer', 'notes'])
+
+        form_data = (
+            FormData.objects
+            .select_related(
+                'form',
+                'form__overview',
+                'question',
+                'question__component',
+                'selected_answer'
             )
-            for fd in form_data:
-                bench_epi = ''
-                if fd.question.is_benchmark:
-                    bench_epi = 'benchmark'
-                if fd.question.is_epi:
-                    bench_epi = 'epi'
-                writer.writerow([
-                    fd.question.component.component_num,
-                    fd.question.question_num,
-                    bench_epi,
-                    fd.selected_answer.text if fd.selected_answer else '',
-                    fd.notes
-                ])
+            .filter(form__overview__id=ov.id)
+            .order_by(
+                'question__component__component_num',
+                'question__question_num',
+                'question__is_epi',
+                'question__is_benchmark'
+            )
+        )
+        for fd in form_data:
+            bench_epi = ''
+            if fd.question.is_benchmark:
+                bench_epi = 'benchmark'
+            if fd.question.is_epi:
+                bench_epi = 'epi'
+            writer.writerow([
+                fd.question.component.component_num,
+                fd.question.question_num,
+                bench_epi,
+                fd.selected_answer.text if fd.selected_answer else '',
+                fd.notes
+            ])
 
-            response['Content-Disposition'] = f'attachment; filename=assessment_{ov.id}.csv'
+        response['Content-Disposition'] = f'attachment; filename=assessment_{ov.id}.csv'
 
-            return response
-        return None
+        return response
