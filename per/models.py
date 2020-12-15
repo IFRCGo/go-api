@@ -46,6 +46,7 @@ class NSPhase(models.Model):
         return '%s (%s)' % (name, self.phase)
 
 
+# FIXME: should be removable in some way (?)
 class Status(IntEnum):
     NO = 0
     YES = 1
@@ -62,8 +63,8 @@ class Status(IntEnum):
         NOT_REVIEWED = _('not reviewed')
         DOES_NOT_EXIST = _('does not exist')
         PARTIALLY_EXISTS = _('partially exists')
-        NEED_IMPROVEMENTS = _('need improvements')
-        EXIST_COULD_BE_STRENGTHENED = _('exist could be strengthened')
+        NEED_IMPROVEMENTS = _('needs improvement')
+        EXIST_COULD_BE_STRENGTHENED = _('exists could be strengthened')
         HIGH_PERFORMANCE = _('high performance')
 
 

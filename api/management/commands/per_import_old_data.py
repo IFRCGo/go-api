@@ -9,7 +9,7 @@ class Command(BaseCommand):
     missing_args_message = "filename, type or areanum are missing"
 
     def add_arguments(self, parser):
-        parser.add_argument('filename', nargs='+', type=str)
+        parser.add_argument('filename', nargs='?', type=str)
         parser.add_argument(
             '-t',
             '--type',
@@ -25,9 +25,25 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        filename = kwargs['filename'][0]
+        filename = kwargs['filename'] if kwargs['filename'] else ''
         objtype = kwargs['type']
         area_num = kwargs['areanum'][0] if kwargs['areanum'] else ''
+
+        if objtype == 'answers':
+            is_empty = not FormAnswer.objects.exists()
+            if is_empty:
+                FormAnswer.objects.create(text='yes', text_en='yes')
+                FormAnswer.objects.create(text='no', text_en='no')
+                FormAnswer.objects.create(text='Not Reviewed', text_en='Not Reviewed')
+                FormAnswer.objects.create(text='Does not exist', text_en='Does not exist')
+                FormAnswer.objects.create(text='Partially exists', text_en='Partially exists')
+                FormAnswer.objects.create(text='Needs improvement', text_en='Needs improvement')
+                FormAnswer.objects.create(text='Exists, could be strengthened', text_en='Exists, could be strengthened')
+                FormAnswer.objects.create(text='High performance', text_en='High performance')
+                print('done!')
+            else:
+                print('per_formanswer table is not empty')
+            return
 
         if objtype == 'atypes':
             is_empty = not AssessmentType.objects.exists()
@@ -36,8 +52,19 @@ class Command(BaseCommand):
                 AssessmentType.objects.create(name='Simulation', name_en='Simulation')
                 AssessmentType.objects.create(name='Operational', name_en='Operational')
                 AssessmentType.objects.create(name='Post operational', name_en='Post operational')
+                print('done!')
+            else:
+                print('per_assessmenttype table is not empty')
+            return
 
         try:
+            if not filename:
+                print('FAILED, filename is empty')
+                return
+            if not objtype:
+                print('FAILED, --type is empty')
+                return
+
             with open(filename, 'r') as f:
                 reader = csv.reader(f, delimiter=',')
                 fieldnames = next(reader)
@@ -54,6 +81,9 @@ class Command(BaseCommand):
                             fieldnames[5]: row[5]  # title_ar
                         })
                 elif objtype == 'components':
+                    if not area_num:
+                        print('FAILED, --areanum is empty')
+
                     for row in rows:
                         area = FormArea.objects.filter(area_num=area_num).first()
                         if area:
@@ -79,8 +109,8 @@ class Command(BaseCommand):
                     not_reviewed = answers.filter(text__iexact='not reviewed').first()
                     does_not_exist = answers.filter(text__iexact='does not exist').first()
                     partially = answers.filter(text__iexact='partially exists').first()
-                    need_improv = answers.filter(text__iexact='need improvements').first()
-                    exist = answers.filter(text__iexact='exist, could be strengthened').first()
+                    need_improv = answers.filter(text__iexact='needs improvement').first()
+                    exist = answers.filter(text__iexact='exists, could be strengthened').first()
                     high_performance = answers.filter(text__iexact='high performance').first()
 
                     prev_comp_num = 0
