@@ -508,7 +508,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
 
     def get_personnel_count(self, obj):
-        return Personnel.objects.filter(type=Personnel.RR).filter(deployment__event=obj.id).count()
+        return Personnel.objects.filter(type=Personnel.RR).filter(deployment__event_deployed_to=obj.id).count()
 
     class Meta:
         model = Event
