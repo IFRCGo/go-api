@@ -112,6 +112,7 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Event.objects.annotate(personnel__count=Count('personneldeployment__personnel')) \
                             .prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .filter(personnel__count__gt=0) \
+                            .filter(personneldeployment__personnel__type=Personnel.RR) \
                             .filter(personneldeployment__personnel__end_date__gt=datetime.datetime.now()) \
                             .order_by('-disaster_start_date')
 

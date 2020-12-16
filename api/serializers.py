@@ -1,4 +1,5 @@
 import json
+import datetime
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
@@ -42,6 +43,7 @@ from .models import (
     FieldReport,
 )
 from notifications.models import Subscription
+from deployments.models import Personnel
 
 
 class DisasterTypeSerializer(ModelSerializer):
@@ -495,7 +497,7 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
 
 
 class DeploymentsByEventSerializer(ModelSerializer):
-    personnel_count = serializers.IntegerField(source='personnel__count')
+    personnel_count = serializers.SerializerMethodField()
     organizations_from = serializers.SerializerMethodField()
 
     def get_organizations_from(self, obj):
@@ -505,6 +507,12 @@ class DeploymentsByEventSerializer(ModelSerializer):
             for p in d.personnel_set.all():
                 personnels.append(p)
         return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
+
+    def get_personnel_count(self, obj):
+        return Personnel.objects.filter(type=Personnel.RR) \
+                                .filter(deployment__event_deployed_to=obj.id)\
+                                .filter(end_date__gte=datetime.datetime.now())\
+                                .count()
 
     class Meta:
         model = Event
