@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "go-districts-1": {
+      "source": "mapbox://tileset-source/go-ifrc/go-districts-src-1",
+      "minzoom": 8,
+      "maxzoom": 10
+    }
+  }
+}

@@ -494,6 +494,24 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
     deployments = serializers.IntegerField()
 
 
+class DeploymentsByEventSerializer(ModelSerializer):
+    personnel_count = serializers.IntegerField(source='personnel__count')
+    organizations_from = serializers.SerializerMethodField()
+
+    def get_organizations_from(self, obj):
+        deployments = [d for d in obj.personneldeployment_set.all()]
+        personnels = []
+        for d in deployments:
+            for p in d.personnel_set.all():
+                personnels.append(p)
+        return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
+
+    class Meta:
+        model = Event
+        fields = (
+            'id', 'name', 'personnel_count', 'organizations_from',
+        )
+
 class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
@@ -508,7 +526,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'tab_two_title', 'tab_three_title',
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
-            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'updated_at', 'id', 'slug', 'tab_one_title',
+            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at', 'id', 'slug', 'tab_one_title',
             'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
         )
         lookup_field = 'slug'
@@ -641,6 +659,12 @@ class UserSerializer(ModelSerializer):
 
     def get_is_ifrc_admin(self, obj):
         return obj.groups.filter(name__iexact="IFRC Admins").exists()
+
+
+class UserNameSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name')
 
 
 class UserMeSerializer(UserSerializer):

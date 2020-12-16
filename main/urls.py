@@ -44,14 +44,15 @@ from registrations.views import (
     ValidateUser
 )
 from per.views import (
-    DraftSent,
-    FormSent,
-    FormEdit,
+    # CreatePerForm,
+    UpdatePerForm,
+    UpdatePerForms,
+    # DeletePerForm,
     WorkPlanSent,
-    OverviewSent,
-    DelWorkPlan,
-    DelOverview,
-    DelDraft,
+    CreatePerOverview,
+    UpdatePerOverview,
+    DeletePerOverview,
+    DelWorkPlan
 )
 from databank.views import CountryOverviewViewSet
 
@@ -89,11 +90,11 @@ router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset)
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset)
 router.register(r'personnel', deployment_views.PersonnelViewset)
+router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset)
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset)
 router.register(r'surge_alert', notification_views.SurgeAlertViewset)
 router.register(r'subscription', notification_views.SubscriptionViewset, base_name='subscription')
 router.register(r'per', per_views.FormViewset, base_name='per')
-router.register(r'perdraft', per_views.DraftViewset)
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'percountry', per_views.FormCountryViewset, base_name='percountry')
@@ -103,10 +104,16 @@ router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'peroverview', per_views.OverviewViewset, base_name='peroverview')
 router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, base_name='peroverviewstrict')
 router.register(r'per_mission', per_views.FormPermissionViewset, base_name='per_mission')
+router.register(r'per-formarea', per_views.FormAreaViewset, base_name='per-formarea')
+router.register(r'per-formcomponent', per_views.FormComponentViewset, base_name='per-formcomponent')
+router.register(r'per-formquestion', per_views.FormQuestionViewset, base_name='per-formquestion')
+router.register(r'per-formanswer', per_views.FormAnswerViewset, base_name='per-formanswer')
+router.register(r'per-assessmenttype', per_views.AssessmentTypeViewset, base_name='per-assessmenttype')
 router.register(r'per_country_duedate', per_views.CountryDuedateViewset)
 router.register(r'per_engaged_ns_percentage', per_views.EngagedNSPercentageViewset, base_name='per_engaged_ns_percentage')
 router.register(r'per_global_preparedness', per_views.GlobalPreparednessViewset, base_name='per_global_preparedness')
 router.register(r'per_ns_phase', per_views.NSPhaseViewset)
+router.register(r'latest_country_overview', per_views.LatestCountryOverviewViewset, base_name='latest_country_overview')
 router.register(r'regional-project', deployment_views.RegionalProjectViewset)
 router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
@@ -133,14 +140,15 @@ urlpatterns = [
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^register', NewRegistration.as_view()),
-    url(r'^sendperform', FormSent.as_view()),
-    url(r'^editperform', FormEdit.as_view()),
-    url(r'^sendperdraft', DraftSent.as_view()),
-    url(r'^sendperoverview', OverviewSent.as_view()),
+    # url(r'^createperform', CreatePerForm.as_view()),
+    url(r'^updateperform', UpdatePerForm.as_view()),
+    url(r'^updatemultipleperforms', UpdatePerForms.as_view()),
+    # url(r'^deleteperform', DeletePerForm.as_view()),
+    url(r'^createperoverview', CreatePerOverview.as_view()),
+    url(r'^updateperoverview', UpdatePerOverview.as_view()),
+    url(r'^deleteperoverview', DeletePerOverview.as_view()),
     url(r'^sendperworkplan', WorkPlanSent.as_view()),
     url(r'^api/v2/del_perworkplan', DelWorkPlan.as_view()),
-    url(r'^api/v2/del_peroverview', DelOverview.as_view()),
-    url(r'^api/v2/del_perdraft', DelDraft.as_view()),
     url(r'^verify_email', VerifyEmail.as_view()),
     url(r'^validate_user', ValidateUser.as_view()),
     url(r'^change_password', ChangePassword.as_view()),
@@ -150,6 +158,7 @@ urlpatterns = [
     url(r'^api/v2/', include(router.urls)),
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
+    url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
     url(r'^docs/', include_docs_urls(title='IFRC Go API')),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),

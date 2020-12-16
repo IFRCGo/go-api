@@ -1,3 +1,4 @@
+import datetime
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Q, Count
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
@@ -18,6 +19,7 @@ from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
+from per.models import Overview
 
 from .models import (
     DisasterType,
@@ -79,6 +81,7 @@ from .serializers import (
     ListEventSerializer,
     ListEventCsvSerializer,
     ListEventDeploymentsSerializer,
+    DeploymentsByEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
     SituationReportTypeSerializer,
@@ -103,6 +106,15 @@ from .serializers import (
     SituationReportTableauSerializer
 )
 from .logger import logger
+
+class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DeploymentsByEventSerializer
+    queryset = Event.objects.annotate(personnel__count=Count('personneldeployment__personnel')) \
+                            .prefetch_related('personneldeployment_set__personnel_set__country_from') \
+                            .filter(personnel__count__gt=0) \
+                            .filter(personneldeployment__personnel__end_date__gt=datetime.datetime.now()) \
+                            .order_by('-disaster_start_date')
+
 
 
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):

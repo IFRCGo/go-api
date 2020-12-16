@@ -9,7 +9,7 @@ from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
 from .storage import get_storage
 from tinymce import HTMLField
-from django.core.validators import FileExtensionValidator, validate_slug
+from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
@@ -135,8 +135,10 @@ class Country(models.Model):
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
     record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
-    iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True)
-    iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True)
+    iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True, blank=True,
+                                         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
+    iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True, blank=True,
+                                          validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
     society_url = models.URLField(blank=True, verbose_name=_('URL - Society'))
@@ -149,7 +151,6 @@ class Country(models.Model):
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
         storage=get_storage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     independent = models.NullBooleanField(
@@ -225,12 +226,12 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True)
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True,
+                                  validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     is_deprecated = models.BooleanField(
@@ -252,6 +253,15 @@ class District(models.Model):
     def __str__(self):
         return '%s - %s' % (self.country_name, self.name)
 
+class CountryGeoms(models.Model):
+    """ Admin0 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
+
+class DistrictGeoms(models.Model):
+    """ Admin1 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    district = models.OneToOneField(District, verbose_name=_('district'), on_delete=models.DO_NOTHING, primary_key=True)
 
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
@@ -547,7 +557,9 @@ class Event(models.Model):
     # Allows admins to feature the Event on the region page.
     is_featured_region = models.BooleanField(default=False, verbose_name=_('is featured on region page'))
 
-    hide_attached_field_reports = models.BooleanField(verbose_name=_('hide attached field reports?'), default=False)
+    hide_attached_field_reports = models.BooleanField(verbose_name=_('hide field report numeric details'), default=False)
+    
+    hide_field_report_map = models.BooleanField(verbose_name=_('hide field report map'), default=False)
 
     # Tabs. Events can have upto 3 tabs to organize snippets.
     tab_one_title = models.CharField(

@@ -75,6 +75,15 @@ class MolnixApi:
         }
         return self.call_api_paginated(path='deployments', response_key='deployments', params=params)
 
+    '''
+        WARNING: If position is not found or generates an error, we return None
+    '''
+    def get_position(self, id):
+        try:
+            return self.call_api(path='positions/%d' % id)
+        except:
+            return None
+
     def logout(self):
         self.call_api('logout')
         return True
