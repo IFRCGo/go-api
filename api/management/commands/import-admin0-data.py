@@ -194,12 +194,16 @@ class Command(BaseCommand):
               country.iso = iso
               country.iso3 = iso3
               country.region = region_id
-              country.geom = geom.wkt
               country.centroid = centroid
               country.bbox = bbox
-
               # save
               country.save()
+
+              # import geom
+              CountryGeom = CountryGeoms()
+              CountryGeom.country = country
+              CountryGeom.geom = geom.wkt
+              CountryGeom.save()
             else:
               print('skipping', feature_iso2)
     
