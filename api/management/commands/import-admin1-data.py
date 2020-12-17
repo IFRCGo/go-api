@@ -176,10 +176,10 @@ class Command(BaseCommand):
     district.bbox = bbox
     try:
       # find the country based on country iso
-      country_id = Country.objects.get(iso=feature.get('ISO2').lower())
+      country_id = Country.objects.get(iso=feature.get('ISO2'))
       district.country = country_id
     except ObjectDoesNotExist:
-      print('country does not exist', feature.get('ISO2').lower())
+      print('country does not exist', feature.get('ISO2'))
       pass
 
     if (import_missing == 'all'):
