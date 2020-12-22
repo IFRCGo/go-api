@@ -56,7 +56,7 @@ class PersonnelInline(admin.TabularInline):
 
 
 class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):
-    search_fields = ('country_deployed_to', 'region_deployed_to',)
+    search_fields = ('country_deployed_to__name', 'region_deployed_to__label', 'event_deployed_to__name')
     autocomplete_fields = ('event_deployed_to', 'appeal_deployed_to')
     inlines = [PersonnelInline]
     list_display = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments',)
