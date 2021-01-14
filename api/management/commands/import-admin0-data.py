@@ -75,7 +75,7 @@ class Command(BaseCommand):
       centroid_file = csv.DictReader(open(options['update_centroid'], 'r'), fieldnames=['country', 'latitude', 'longitude', 'name'])
       next(centroid_file)
       for row in centroid_file:
-        code = row['country'].lower()
+        code = row['country']
         lat = row['latitude']
         lon = row['longitude']
         if (lat != '' and lon != ''):
@@ -96,7 +96,7 @@ class Command(BaseCommand):
     fields = data[0].fields
     # first, let's import all the geometries for countries with iso code
     for feature in data[0]:
-      feature_iso2 = feature.get('ISO2').lower()
+      feature_iso2 = feature.get('ISO2')
 
       if feature_iso2:
         geom_wkt = feature.geom.wkt
@@ -171,7 +171,7 @@ class Command(BaseCommand):
               record_type = 1 # country
               name = feature.get('NAME_ICRC')
               iso = feature_iso2
-              iso3 = feature.get('ISO3').lower()
+              iso3 = feature.get('ISO3')
 
               region = feature.get('REGION_IFR')
               # get region from db
@@ -194,12 +194,16 @@ class Command(BaseCommand):
               country.iso = iso
               country.iso3 = iso3
               country.region = region_id
-              country.geom = geom.wkt
               country.centroid = centroid
               country.bbox = bbox
-
               # save
               country.save()
+
+              # import geom
+              CountryGeom = CountryGeoms()
+              CountryGeom.country = country
+              CountryGeom.geom = geom.wkt
+              CountryGeom.save()
             else:
               print('skipping', feature_iso2)
     

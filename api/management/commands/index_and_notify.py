@@ -728,7 +728,8 @@ class Command(BaseCommand):
             diff=ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
         ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-        new_events = Event.objects.filter(cond1).exclude(condF)
+        all_new_events = Event.objects.filter(cond1)
+        new_events = all_new_events.exclude(condF)
         updated_events = Event.objects.annotate(
             diff=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
@@ -769,7 +770,7 @@ class Command(BaseCommand):
         logger.info('Indexing %s new appeals' % new_appeals.count())
         self.index_records(new_appeals)
         logger.info('Indexing %s new events' % new_events.count())
-        self.index_records(new_events)
+        self.index_records(all_new_events)
 
         logger.info('Indexing %s updated field reports' % updated_reports.count())
         self.index_records(updated_reports, to_create=False)
