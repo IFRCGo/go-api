@@ -12,20 +12,23 @@ def log_errors(errors):
 
 def delete_es_index(instance):
     ''' instance needs an es_id() '''
-    if hasattr(instance, 'es_id'):
-        try:
-            deleted, errors = bulk(client=ES_CLIENT, actions=[{
-                '_op_type': 'delete',
-                '_index': ES_PAGE_NAME,
-                '_type': 'page',
-                '_id': instance.es_id()
-            }])
-            logger.info(f'Deleted {deleted} records')
-            log_errors(errors)
-        except Exception:
-            logger.error('Could not reach Elasticsearch server or index was already missing.')
-    else:
-        logger.warn('instance does not have an es_id() method')
+
+    if ES_CLIENT and ES_PAGE_NAME:
+        # To make sure it doesn't run for tests
+        if hasattr(instance, 'es_id'):
+            try:
+                deleted, errors = bulk(client=ES_CLIENT, actions=[{
+                    '_op_type': 'delete',
+                    '_index': ES_PAGE_NAME,
+                    '_type': 'page',
+                    '_id': instance.es_id()
+                }])
+                logger.info(f'Deleted {deleted} records')
+                log_errors(errors)
+            except Exception:
+                logger.error('Could not reach Elasticsearch server or index was already missing.')
+        else:
+            logger.warn('instance does not have an es_id() method')
 
 
 def construct_es_data(instance, is_create=False):
@@ -44,12 +47,20 @@ def construct_es_data(instance, is_create=False):
 
 
 def create_es_index(instance):
-    created, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance, True)])
-    logger.info(f'Created {created} records')
-    log_errors(errors)
+    ''' Creates an Elasticsearch index from the record instance '''
+
+    if ES_CLIENT and ES_PAGE_NAME:
+        # To make sure it doesn't run for tests
+        created, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance, True)])
+        logger.info(f'Created {created} records')
+        log_errors(errors)
 
 
 def update_es_index(instance):
-    updated, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance)])
-    logger.info('Updated {updated} records')
-    log_errors(errors)
+    ''' Updates the Elasticsearch index from the record instance '''
+
+    if ES_CLIENT and ES_PAGE_NAME:
+        # To make sure it doesn't run for tests
+        updated, errors = bulk(client=ES_CLIENT, actions=[construct_es_data(instance)])
+        logger.info(f'Updated {updated} records')
+        log_errors(errors)

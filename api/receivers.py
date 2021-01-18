@@ -1,6 +1,6 @@
 import json
 from django.db import transaction
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from reversion.models import Version
 from reversion.signals import post_revision_commit
@@ -46,19 +46,6 @@ MODEL_TYPES = {
     'per.workplan': 'PER Work Plan',
     'registrations.pending': 'Pending registration',
 }
-
-
-def disable_for_loaddata(signal_handler):
-    """
-    Decorator that turns off signal handlers when loading fixture data.
-    """
-
-    @wraps(signal_handler)
-    def wrapper(*args, **kwargs):
-        if kwargs.get('raw'):
-            return
-        signal_handler(*args, **kwargs)
-    return wrapper
 
 
 def create_global_reversion_log(versions, revision):
@@ -158,25 +145,32 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
             create_es_index(instance)
 
 
-@receiver(pre_save)
-@disable_for_loaddata
-def update_country_es(sender, instance, using, **kwargs):
+@receiver(post_save)
+def update_country_es(sender, instance, created, using, **kwargs):
     ''' Handle Country Elasticsearch indexes '''
     model = instance.__class__.__name__
     if model == 'Country':
-        curr_record = Country.objects.filter(id=instance.id).first()
-        if curr_record:
-            if curr_record.society_name and not instance.society_name:
-                # Remove ES record if society_name is removed
-                delete_es_index(instance)
-            elif instance.name != curr_record.name \
-                    or instance.society_name != curr_record.society_name:
-                # Check if the name or society name has been updated
-                if not curr_record.society_name:
-                    create_es_index(instance)
-                else:
-                    update_es_index(instance)
-        else:
-            if instance.society_name:
-                # Only create an index if society_name is not empty
+        if instance.society_name:
+            if created:
                 create_es_index(instance)
+            else:
+                update_es_index(instance)
+        else:
+            delete_es_index(instance)
+
+        # curr_record = Country.objects.filter(id=instance.id).first()
+        # if curr_record:
+        #     if curr_record.society_name and not instance.society_name:
+        #         # Remove ES record if society_name is removed
+        #         delete_es_index(instance)
+        #     elif instance.name != curr_record.name \
+        #             or instance.society_name != curr_record.society_name:
+        #         # Check if the name or society name has been updated
+        #         if not curr_record.society_name:
+        #             create_es_index(instance)
+        #         else:
+        #             update_es_index(instance)
+        # else:
+        #     if instance.society_name:
+        #         # Only create an index if society_name is not empty
+        #         create_es_index(instance)
