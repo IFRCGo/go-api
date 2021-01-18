@@ -47,7 +47,7 @@ printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 (crontab -l 2>/dev/null; echo '*/5 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py index_and_notify >> /home/ifrc/logs/index_and_notify.log 2>&1') | crontab -
 (crontab -l 2>/dev/null; echo '10 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py scrape_pdfs >> /home/ifrc/logs/scrape_pdfs.log 2>&1') | crontab -
 (crontab -l 2>/dev/null; echo '30 1 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_databank >> /home/ifrc/logs/ingest_databank.log 2>&1') | crontab -
-#(crontab -l 2>/dev/null; echo '*/15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py sync_molnix >> /home/ifrc/logs/sync_molnix.log 2>&1') | crontab -
+(crontab -l 2>/dev/null; echo '*/15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py sync_molnix >> /home/ifrc/logs/sync_molnix.log 2>&1') | crontab -
 service cron start
 
 tail -n 0 -f $HOME/logs/*.log &
