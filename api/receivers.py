@@ -7,6 +7,7 @@ from reversion.signals import post_revision_commit
 from api.models import ReversionDifferenceLog, Event, Country
 from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
+from functools import wraps
 
 
 MODEL_TYPES = {
@@ -45,6 +46,19 @@ MODEL_TYPES = {
     'per.workplan': 'PER Work Plan',
     'registrations.pending': 'Pending registration',
 }
+
+
+def disable_for_loaddata(signal_handler):
+    """
+    Decorator that turns off signal handlers when loading fixture data.
+    """
+
+    @wraps(signal_handler)
+    def wrapper(*args, **kwargs):
+        if kwargs.get('raw'):
+            return
+        signal_handler(*args, **kwargs)
+    return wrapper
 
 
 def create_global_reversion_log(versions, revision):
@@ -145,6 +159,7 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
 
 
 @receiver(pre_save)
+@disable_for_loaddata
 def update_country_es(sender, instance, using, **kwargs):
     ''' Handle Country Elasticsearch indexes '''
     model = instance.__class__.__name__
