@@ -23,8 +23,18 @@ class Command(BaseCommand):
 
       print('Exporting districts...')
       subprocess.Popen(['rm', '/tmp/districts.geojson'])
+      # FIXME eventually should be name_en, name_es etc.
       subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=5', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id and cd.geom is not null' ])
       print('Districts written to /tmp/districts.geojson')
+
+      print('Exporting country centroids...')
+      subprocess.Popen(['rm', '/tmp/country-centroids.geojson'])
+      subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id, name_en, name_ar, name_es, name_fr, independent, is_deprecated, iso, iso3, record_type, centroid from api_country where centroid is not null'])
+
+      print('Exporting district centroids...')
+      subprocess.Popen(['rm', '/tmp/district-centroids.geojson'])
+      # FIXME eventually should be name_en, name_es etc.
+      subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', connection_string, '-sql', 'select id, name, is_deprecated, is_enclave, country_iso, centroid from api_district where centroid is not null'])
 
       print('Update Mapbox tileset source for countries...')
       subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-countries-src', '/tmp/countries.geojson'])
@@ -38,5 +48,17 @@ class Command(BaseCommand):
 
       print('Update Mapbox tileset for districts...')
       subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-districts-1'])
+
+      print('Update Mapbox tileset source for country centroids...')
+      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-country-centroids', '/tmp/country-centroids.geojson'])
+
+      print('Update Mapbox tileset for country centroids...')
+      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-country-centroids'])
+
+      print('Update Mapbox tileset source for district centroids...')
+      subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-district-centroids', '/tmp/district-centroids.geojson'])
+
+      print('Update Mapbox tileset for district centroids...')
+      subprocess.Popen(['tilesets', 'publish', 'go-ifrc.go-district-centroids'])
     except BaseException as e:
       raise CommandError('Could not update tilesets: ' + str(e))
