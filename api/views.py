@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
@@ -316,9 +317,13 @@ class ChangePassword(APIView):
         if username is None or (password is None and token is None):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
-        # TODO validate password
         if new_pass is None:
             return bad_request('Must include a `new_password` property')
+        try:
+            validate_password(new_pass)
+        except Exception as exc:
+            ers = ' '.join(str(err) for err in exc)
+            return bad_request(ers)
 
         user = User.objects.filter(username__iexact=username).first()
         if user is None:
