@@ -275,11 +275,6 @@ class GetAuthToken(APIView):
         if username is None or password is None:
             return bad_request('Body must contain `email/username` and `password`')
 
-        # Get the case-correct username for authenticate()
-        # casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
-        # if casecorr_uname is None:
-        #     return bad_request('Invalid email/username or password')  # definitely username issue
-
         user = authenticate(username=username, password=password)
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
