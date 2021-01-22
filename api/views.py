@@ -14,7 +14,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
@@ -399,7 +399,10 @@ class ResendValidation(APIView):
         username = request.data.get('username', None)
 
         if username:
-            pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
+            # Now we allow requesting with either email or username
+            pending_user = Pending.objects.select_related('user')\
+                                          .filter(Q(user__username__iexact=username) | Q(user__email__iexact=username))\
+                                          .first()
             if pending_user:
                 if pending_user.user.is_active is True:
                     return bad_request('Your registration is already active, \
