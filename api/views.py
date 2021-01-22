@@ -10,10 +10,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
@@ -272,15 +273,9 @@ class GetAuthToken(APIView):
         password = request.data.get('password', None)
 
         if username is None or password is None:
-            return bad_request('Body must contain `username` and `password`')
+            return bad_request('Body must contain `email/username` and `password`')
 
-        # Get the case-correct username for authenticate()
-        casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
-        if casecorr_uname is None:
-            return bad_request('Invalid username or password')  # definitely username issue
-
-        # User model's __str__ is its username
-        user = authenticate(username=casecorr_uname, password=password)
+        user = authenticate(username=username, password=password)
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
@@ -317,9 +312,13 @@ class ChangePassword(APIView):
         if username is None or (password is None and token is None):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
-        # TODO validate password
         if new_pass is None:
             return bad_request('Must include a `new_password` property')
+        try:
+            validate_password(new_pass)
+        except Exception as exc:
+            ers = ' '.join(str(err) for err in exc)
+            return bad_request(ers)
 
         user = User.objects.filter(username__iexact=username).first()
         if user is None:
@@ -400,7 +399,10 @@ class ResendValidation(APIView):
         username = request.data.get('username', None)
 
         if username:
-            pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
+            # Now we allow requesting with either email or username
+            pending_user = Pending.objects.select_related('user')\
+                                          .filter(Q(user__username__iexact=username) | Q(user__email__iexact=username))\
+                                          .first()
             if pending_user:
                 if pending_user.user.is_active is True:
                     return bad_request('Your registration is already active, \
