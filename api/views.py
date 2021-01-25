@@ -149,26 +149,32 @@ class AggregateHeaderFigures(APIView):
         now = timezone.now()
         appeal_conditions = (Q(atype=1) | Q(atype=2)) & Q(end_date__gt=now)
         appeals_aggregated = Appeal.objects.annotate(
+            # Active Appeals with DREF type
             actd=Count(Case(
                 When(Q(atype=0) & Q(end_date__gt=now), then=1),
                 output_field=IntegerField()
             )),
+            # Active Appeals with type Emergency Appeal or International Appeal
             acta=Count(Case(
                 When(appeal_conditions, then=1),
                 output_field=IntegerField()
             )),
+            # Total Appeals count which are not DREF
             tota=Count(Case(
                 When(Q(atype=1) | Q(atype=2), then=1),
                 output_field=IntegerField()
             )),
+            # Active Appeals' target population
             tarp=Sum(Case(
                 When(Q(end_date__gt=now), then=F('num_beneficiaries')),
                 output_field=IntegerField()
             )),
+            # Active Appeals' requested amount
             amor=Case(
                 When(appeal_conditions, then=F('amount_requested')),
                 output_field=IntegerField()
             ),
+            # Active Appeals' funded amount
             amof=Case(
                 When(appeal_conditions, then=F('amount_funded')),
                 output_field=IntegerField()
