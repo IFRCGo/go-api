@@ -169,12 +169,12 @@ class AggregateHeaderFigures(APIView):
                 When(Q(end_date__gt=now), then=F('num_beneficiaries')),
                 output_field=IntegerField()
             )),
-            # Active Appeals' requested amount
+            # Active Appeals' requested amount, which are not DREF
             amor=Case(
                 When(appeal_conditions, then=F('amount_requested')),
                 output_field=IntegerField()
             ),
-            # Active Appeals' funded amount
+            # Active Appeals' funded amount, which are not DREF
             amof=Case(
                 When(appeal_conditions, then=F('amount_funded')),
                 output_field=IntegerField()
