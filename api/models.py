@@ -994,7 +994,15 @@ class FieldReport(models.Model):
     epi_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (epidemic)'), null=True, blank=True)
     epi_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (epidemic)'), null=True, blank=True)
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
-    epi_figures_source = EnumIntegerField(EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True)
+    epi_figures_source = EnumIntegerField(
+        EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True
+    )
+    epi_cases_since_last_fr = models.IntegerField(
+        verbose_name=_('number of new cases since the last field report'), null=True, blank=True
+    )
+    epi_deaths_since_last_fr = models.IntegerField(
+        verbose_name=_('number of new deaths since last field report'), null=True, blank=True
+    )
 
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
@@ -1219,6 +1227,7 @@ class Action(models.Model):
         max_length=255, verbose_name=_('category'), choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL
     )
     is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False, help_text=_('Disable in form'))
+    tooltip_text = models.TextField(verbose_name=_('tooltip text'), null=True, blank='true')
 
     class Meta:
         verbose_name = _('action')
