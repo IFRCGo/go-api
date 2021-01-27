@@ -360,7 +360,7 @@ class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres',
             'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
             'epi_figures_source', 'epi_figures_source_display', 'epi_cases_since_last_fr', 'epi_deaths_since_last_fr',
-            'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance'
+            'epi_notes_since_last_fr', 'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance'
         )
 
 
