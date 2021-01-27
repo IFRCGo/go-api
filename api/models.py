@@ -1003,6 +1003,7 @@ class FieldReport(models.Model):
     epi_deaths_since_last_fr = models.IntegerField(
         verbose_name=_('number of new deaths since last field report'), null=True, blank=True
     )
+    epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
