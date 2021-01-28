@@ -145,6 +145,7 @@ class EsPageSearch(APIView):
 
 
 class AggregateHeaderFigures(APIView):
+    ''' Used mainly for the key-figures header and by FDRS '''
     def get(self, request):
         now = timezone.now()
         appeal_conditions = (Q(atype=1) | Q(atype=2)) & Q(end_date__gt=now)
