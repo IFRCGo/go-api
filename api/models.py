@@ -761,11 +761,13 @@ class AppealType(IntEnum):
     DREF = 0
     APPEAL = 1
     INTL = 2
+    FBA = 3
 
     class Labels:
         DREF = _('DREF')
         APPEAL = _('Emergency Appeal')
         INTL = _('International Appeal')
+        FBA = _('Forecast Based Action')
 
 
 class AppealStatus(IntEnum):
