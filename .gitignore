@@ -32,6 +32,7 @@ db.sqlite3-journal
 
 # Generated json file
 appeals.json
+appealbilaterals.json
 .tmp
 
 # Personal / IDE / Editor stuff
