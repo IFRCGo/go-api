@@ -284,6 +284,9 @@ class Command(BaseCommand):
                 errors.append(err_text)
 
         num_updated = 0
+        fba_appeals = list(
+            Appeal.objects.filter(atype=AppealType.FBA).values_list('code', flat=True)
+        )
         for i, r in enumerate(modified):
             fields = self.parse_appeal_record(r, is_new_appeal=False)
             # correction of the appeal record with appealbilaterals value
@@ -291,7 +294,10 @@ class Command(BaseCommand):
                 fields['amount_funded'] += round(bilaterals[fields['code']], 1)
 
             try:
-                appeal, created = Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
+                # DREF is coming from Apple (doesn't have FBA), keep FBA type
+                if fields['code'] in fba_appeals:
+                    fields['atype'] = AppealType.FBA
+                Appeal.objects.update_or_create(code=fields['code'], defaults=fields)
                 num_updated += 1
             except Exception as ex:
                 err_text = f'Could not update appeal with code {fields["code"]}'
