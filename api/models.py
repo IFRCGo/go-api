@@ -1093,6 +1093,11 @@ class FieldReport(models.Model):
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, verbose_name=_('ERU water sanitaion MSM20'), default=0)
     eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitaion MSM20 units'), null=True, blank=True)
 
+    # Ugly solution to a design problem with handling Actions
+    notes_health = models.TextField(verbose_name=_('Description (Health)'), null=True, blank=True)
+    notes_ns = models.TextField(verbose_name=_('Description (NS Institutional Strengthening)'), null=True, blank=True)
+    notes_socioeco = models.TextField(verbose_name=_('Description (Socioeconomic Interventions)'), null=True, blank=True)
+
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)
 
