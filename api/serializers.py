@@ -7,6 +7,12 @@ from enumfields.drf.serializers import EnumSupportSerializerMixin
 from lang.serializers import ModelSerializer
 from .models import (
     DisasterType,
+    ExternalPartner,
+    FieldReportExternalPartner,
+    ExternalPartnerCategory,
+    FieldReportExternalPartnerCategory,
+    SupportedActivity,
+    FieldReportSupportedActivity,
 
     Region,
     Country,
@@ -710,6 +716,48 @@ class ActionsTakenSerializer(ModelSerializer):
     class Meta:
         model = ActionsTaken
         fields = ('organization', 'actions', 'summary', 'id',)
+
+
+class ExternalPartnerSerializer(ModelSerializer):
+    class Meta:
+        model = ExternalPartner
+        fields = ('name',)
+
+
+class FieldReportExternalPartnerSerializer(ModelSerializer):
+    external_partners = ExternalPartnerSerializer(many=True)
+
+    class Meta:
+        model = FieldReportExternalPartner
+        fields = ('external_partners', 'field_report_id', 'id')
+
+
+class ExternalPartnerCategorySerializer(ModelSerializer):
+    class Meta:
+        model = ExternalPartnerCategory
+        fields = ('name',)
+
+
+class FieldReportExternalPartnerCategorySerializer(ModelSerializer):
+    external_partner_categories = ExternalPartnerCategorySerializer(many=True)
+
+    class Meta:
+        model = FieldReportExternalPartnerCategory
+        fields = ('external_partner_categories', 'field_report_id', 'id')
+
+
+class SupportedActivitySerializer(ModelSerializer):
+    class Meta:
+        model = SupportedActivity
+        fields = ('name',)
+
+
+class FieldReportSupportedActivitySerializer(ModelSerializer):
+    supported_activities = SupportedActivitySerializer(many=True)
+
+    class Meta:
+        model = FieldReportSupportedActivity
+        fields = ('supported_activities', 'field_report_id', 'id')
 
 
 class SourceSerializer(ModelSerializer):
