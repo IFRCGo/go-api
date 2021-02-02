@@ -361,7 +361,7 @@ class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
             'epi_figures_source', 'epi_figures_source_display', 'epi_cases_since_last_fr', 'epi_deaths_since_last_fr',
             'epi_notes_since_last_fr', 'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance',
-            'notes_health', 'notes_ns'
+            'notes_health', 'notes_ns', 'notes_socioeco'
         )
 
 
