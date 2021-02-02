@@ -939,6 +939,45 @@ class EPISourceChoices(IntEnum):
         OTHER = _('OTHER')
 
 
+class ExternalPartner(models.Model):
+    ''' Dropdown items for COVID Field Reports '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('external partner')
+        verbose_name_plural = _('external partners')
+
+    def __str__(self):
+        return self.name
+
+
+class ExternalPartnerCategory(models.Model):
+    ''' Details options for ExternalPartners '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('external partner category')
+        verbose_name_plural = _('external partner caregories')
+
+    def __str__(self):
+        return self.name
+
+
+class SupportedActivity(models.Model):
+    ''' Supported/partnered activities for COVID Field Reports '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('supported activity')
+        verbose_name_plural = _('supported activities')
+
+    def __str__(self):
+        return self.name
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -1158,6 +1197,60 @@ class FieldReport(models.Model):
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
         return '%s - %s' % (self.id, summary)
+
+
+class FieldReportExternalPartner(models.Model):
+    ''' Saved relations between Field Reports and External Partners '''
+
+    external_partners = models.ManyToManyField(
+        ExternalPartner, verbose_name=_('external partners'), blank=True
+    )
+    field_report = models.ForeignKey(
+        FieldReport, verbose_name=_('field report'), related_name='externalpartners', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _('field report external partners')
+        verbose_name_plural = _('field report external partners')
+
+    def __str__(self):
+        return self.field_report.summary
+
+
+class FieldReportExternalPartnerCategory(models.Model):
+    ''' Saved relations between Field Reports and External Partner Categories '''
+
+    external_partner_categories = models.ManyToManyField(
+        ExternalPartnerCategory, verbose_name=_('external partner categories'), blank=True
+    )
+    field_report = models.ForeignKey(
+        FieldReport, verbose_name=_('field report'), related_name='externalpartnercategories', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _('field report external partner categories')
+        verbose_name_plural = _('field report external partner categories')
+
+    def __str__(self):
+        return self.field_report.summary
+
+
+class FieldReportSupportedActivity(models.Model):
+    ''' Saved relations between Field Reports and Supported Activities '''
+
+    supported_activities = models.ManyToManyField(
+        SupportedActivity, verbose_name=_('supported activities'), blank=True
+    )
+    field_report = models.ForeignKey(
+        FieldReport, verbose_name=_('field report'), related_name='supportedactivities', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        verbose_name = _('field report supported activities')
+        verbose_name_plural = _('field report supported activities')
+
+    def __str__(self):
+        return self.field_report.summary
 
 
 class FieldReportContact(models.Model):

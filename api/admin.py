@@ -326,6 +326,18 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         return actions
 
 
+class ExternalPartnerAdmin(CompareVersionAdmin, TranslationAdmin):
+    model = models.ExternalPartner
+
+
+class ExternalPartnerCategoryAdmin(CompareVersionAdmin, TranslationAdmin):
+    model = models.ExternalPartnerCategory
+
+
+class SupportedActivityAdmin(CompareVersionAdmin, TranslationAdmin):
+    model = models.SupportedActivity
+
+
 class ActionAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ActionForm
     list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
@@ -697,6 +709,9 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
+admin.site.register(models.ExternalPartner, ExternalPartnerAdmin)
+admin.site.register(models.ExternalPartnerCategory, ExternalPartnerCategoryAdmin)
+admin.site.register(models.SupportedActivity, SupportedActivityAdmin)
 admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
