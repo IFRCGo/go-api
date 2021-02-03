@@ -17,6 +17,13 @@ class Command(BaseCommand):
   help = "import a shapefile of adminstrative boundary level 0 data to the GO database. To run, python manage.py import-admin0-data input.shp"
 
   missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
+  region_enum = {
+    'Africa': 0,
+    'Americas': 1,
+    'Asia-Pacific': 2,
+    'Europe': 3,
+    'Middle East and North Africa': 4
+  }
 
   def add_arguments(self, parser):
     parser.add_argument('filename', nargs='+', type=str)
@@ -47,17 +54,15 @@ class Command(BaseCommand):
       action='store_true',
       help='Update independence status for the country'
     )
+    parser.add_argument(
+      '--import-all',
+      action='store_true',
+      help='Import all geometries in the given shapefile.'
+    )
+
   @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]
-
-    region_enum = {
-      'Africa': 0,
-      'Americas': 1,
-      'Asia-Pacific': 2,
-      'Europe': 3,
-      'Middle East and North Africa': 4
-    }
 
     import_missing = []
 
@@ -97,16 +102,15 @@ class Command(BaseCommand):
     # first, let's import all the geometries for countries with iso code
     for feature in data[0]:
       feature_iso2 = feature.get('ISO2')
+      geom_wkt = feature.geom.wkt
+      geom = GEOSGeometry(geom_wkt, srid=4326)
+      if (geom.geom_type == 'Polygon'):
+        geom = MultiPolygon(geom)
+
+      centroid = geom.centroid.wkt
+      bbox = geom.envelope.geojson
 
       if feature_iso2:
-        geom_wkt = feature.geom.wkt
-        geom = GEOSGeometry(geom_wkt, srid=4326)
-        if (geom.geom_type == 'Polygon'):
-          geom = MultiPolygon(geom)
-
-        centroid = geom.centroid.wkt
-        bbox = geom.envelope.geojson
-
         # find this country in the database
         try:
           # if the country exist
@@ -165,49 +169,47 @@ class Command(BaseCommand):
             # check if this iso exists in the import list
             if feature_iso2 in import_missing:
               print('importing', feature_iso2)
-              # new country object
-              country = Country()
-
-              record_type = 1 # country
-              name = feature.get('NAME_ICRC')
-              iso = feature_iso2
-              iso3 = feature.get('ISO3')
-
-              region = feature.get('REGION_IFR')
-              # get region from db
-              region_id = Region.objects.get(name=region_enum[region])
-
-              if ('INDEPENDEN' in fields):
-                independent = feature.get('INDEPENDEN')
-                if independent == 'TRUE':
-                    country.independent = True
-                elif independent == 'FALSE':
-                    country.independent = False
-                else:
-                  country.independent = None
-
-              if ('NATIONAL_S' in fields):
-                country.society_name = feature.get('NATIONAL_S')
-
-              country.name = name
-              country.record_type = 1
-              country.iso = iso
-              country.iso3 = iso3
-              country.region = region_id
-              country.centroid = centroid
-              country.bbox = bbox
-              # save
-              country.save()
-
-              # import geom
-              CountryGeom = CountryGeoms()
-              CountryGeom.country = country
-              CountryGeom.geom = geom.wkt
-              CountryGeom.save()
+              self.add_country(feature, geom, centroid, bbox, feature_iso2, fields)
             else:
               print('skipping', feature_iso2)
-    
+      else:
+        if (options['import_all']):
+          print('Geometry with no iso code found, but will still import.')
+          self.add_country(feature, geom, centroid, bbox, None,  fields)
     print('done!')
 
+  def add_country(self, feature, geom, centroid, bbox, iso, fields):
+    # new country object
+    country = Country()
 
+    name = feature.get('NAME_ICRC')
+    iso3 = feature.get('ISO3')
+
+    region = feature.get('REGION_IFR')
+    # get region from db
+    region_id = Region.objects.get(name=self.region_enum[region])
+
+    if ('INDEPENDEN' in fields):
+      independent = feature.get('INDEPENDEN')
+      if independent == 'TRUE':
+          country.independent = True
+      elif independent == 'FALSE':
+          country.independent = False
+      else:
+        country.independent = None
+
+    if ('NATIONAL_S' in fields):
+      country.society_name = feature.get('NATIONAL_S')
+
+    country.name = name
+    country.record_type = 1
+    country.iso = iso
+    country.iso3 = iso3
+    country.region = region_id
+    country.geom = geom.wkt
+    country.centroid = centroid
+    country.bbox = bbox
+
+    # save
+    country.save()
 
