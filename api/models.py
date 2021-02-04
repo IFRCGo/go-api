@@ -558,7 +558,7 @@ class Event(models.Model):
     is_featured_region = models.BooleanField(default=False, verbose_name=_('is featured on region page'))
 
     hide_attached_field_reports = models.BooleanField(verbose_name=_('hide field report numeric details'), default=False)
-    
+
     hide_field_report_map = models.BooleanField(verbose_name=_('hide field report map'), default=False)
 
     # Tabs. Events can have upto 3 tabs to organize snippets.
@@ -1137,6 +1137,16 @@ class FieldReport(models.Model):
     notes_ns = models.TextField(verbose_name=_('Description (NS Institutional Strengthening)'), null=True, blank=True)
     notes_socioeco = models.TextField(verbose_name=_('Description (Socioeconomic Interventions)'), null=True, blank=True)
 
+    external_partners = models.ManyToManyField(
+        ExternalPartner, verbose_name=_('external partners'), blank=True
+    )
+    external_partner_categories = models.ManyToManyField(
+        ExternalPartnerCategory, verbose_name=_('external partner categories'), blank=True
+    )
+    supported_activities = models.ManyToManyField(
+        SupportedActivity, verbose_name=_('supported activities'), blank=True
+    )
+
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)
 
@@ -1197,60 +1207,6 @@ class FieldReport(models.Model):
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
         return '%s - %s' % (self.id, summary)
-
-
-class FieldReportExternalPartner(models.Model):
-    ''' Saved relations between Field Reports and External Partners '''
-
-    external_partners = models.ManyToManyField(
-        ExternalPartner, verbose_name=_('external partners'), blank=True
-    )
-    field_report = models.ForeignKey(
-        FieldReport, verbose_name=_('field report'), related_name='externalpartners', on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = _('field report external partners')
-        verbose_name_plural = _('field report external partners')
-
-    def __str__(self):
-        return self.field_report.summary
-
-
-class FieldReportExternalPartnerCategory(models.Model):
-    ''' Saved relations between Field Reports and External Partner Categories '''
-
-    external_partner_categories = models.ManyToManyField(
-        ExternalPartnerCategory, verbose_name=_('external partner categories'), blank=True
-    )
-    field_report = models.ForeignKey(
-        FieldReport, verbose_name=_('field report'), related_name='externalpartnercategories', on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = _('field report external partner categories')
-        verbose_name_plural = _('field report external partner categories')
-
-    def __str__(self):
-        return self.field_report.summary
-
-
-class FieldReportSupportedActivity(models.Model):
-    ''' Saved relations between Field Reports and Supported Activities '''
-
-    supported_activities = models.ManyToManyField(
-        SupportedActivity, verbose_name=_('supported activities'), blank=True
-    )
-    field_report = models.ForeignKey(
-        FieldReport, verbose_name=_('field report'), related_name='supportedactivities', on_delete=models.CASCADE
-    )
-
-    class Meta:
-        verbose_name = _('field report supported activities')
-        verbose_name_plural = _('field report supported activities')
-
-    def __str__(self):
-        return self.field_report.summary
 
 
 class FieldReportContact(models.Model):

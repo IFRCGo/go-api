@@ -8,11 +8,8 @@ from lang.serializers import ModelSerializer
 from .models import (
     DisasterType,
     ExternalPartner,
-    FieldReportExternalPartner,
     ExternalPartnerCategory,
-    FieldReportExternalPartnerCategory,
     SupportedActivity,
-    FieldReportSupportedActivity,
 
     Region,
     Country,
@@ -721,43 +718,19 @@ class ActionsTakenSerializer(ModelSerializer):
 class ExternalPartnerSerializer(ModelSerializer):
     class Meta:
         model = ExternalPartner
-        fields = ('name',)
-
-
-class FieldReportExternalPartnerSerializer(ModelSerializer):
-    external_partners = ExternalPartnerSerializer(many=True)
-
-    class Meta:
-        model = FieldReportExternalPartner
-        fields = ('external_partners', 'field_report_id', 'id')
+        fields = ('name', 'id')
 
 
 class ExternalPartnerCategorySerializer(ModelSerializer):
     class Meta:
         model = ExternalPartnerCategory
-        fields = ('name',)
-
-
-class FieldReportExternalPartnerCategorySerializer(ModelSerializer):
-    external_partner_categories = ExternalPartnerCategorySerializer(many=True)
-
-    class Meta:
-        model = FieldReportExternalPartnerCategory
-        fields = ('external_partner_categories', 'field_report_id', 'id')
+        fields = ('name', 'id')
 
 
 class SupportedActivitySerializer(ModelSerializer):
     class Meta:
         model = SupportedActivity
-        fields = ('name',)
-
-
-class FieldReportSupportedActivitySerializer(ModelSerializer):
-    supported_activities = SupportedActivitySerializer(many=True)
-
-    class Meta:
-        model = FieldReportSupportedActivity
-        fields = ('supported_activities', 'field_report_id', 'id')
+        fields = ('name', 'id')
 
 
 class SourceSerializer(ModelSerializer):
@@ -942,6 +915,9 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     event = MiniEventSerializer()
     countries = MiniCountrySerializer(many=True)
     districts = MiniDistrictSerializer(many=True)
+    external_partners = ExternalPartnerSerializer(many=True)
+    external_partner_categories = ExternalPartnerCategorySerializer(many=True)
+    supported_activities = SupportedActivitySerializer(many=True)
 
     class Meta:
         model = FieldReport
