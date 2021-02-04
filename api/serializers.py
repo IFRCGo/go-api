@@ -7,6 +7,9 @@ from enumfields.drf.serializers import EnumSupportSerializerMixin
 from lang.serializers import ModelSerializer
 from .models import (
     DisasterType,
+    ExternalPartner,
+    ExternalPartnerCategory,
+    SupportedActivity,
 
     Region,
     Country,
@@ -359,8 +362,9 @@ class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected', 'num_highest_risk',
             'gov_num_highest_risk', 'other_num_highest_risk', 'affected_pop_centres', 'gov_affected_pop_centres',
             'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
-            'epi_figures_source', 'epi_figures_source_display',
-            'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance'
+            'epi_figures_source', 'epi_figures_source_display', 'epi_cases_since_last_fr', 'epi_deaths_since_last_fr',
+            'epi_notes_since_last_fr', 'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance',
+            'notes_health', 'notes_ns', 'notes_socioeco'
         )
 
 
@@ -700,7 +704,7 @@ class UserMeSerializer(UserSerializer):
 class ActionSerializer(ModelSerializer):
     class Meta:
         model = Action
-        fields = ('name', 'id', 'organizations', 'field_report_types', 'category',)
+        fields = ('name', 'id', 'organizations', 'field_report_types', 'category', 'tooltip_text')
 
 
 class ActionsTakenSerializer(ModelSerializer):
@@ -709,6 +713,24 @@ class ActionsTakenSerializer(ModelSerializer):
     class Meta:
         model = ActionsTaken
         fields = ('organization', 'actions', 'summary', 'id',)
+
+
+class ExternalPartnerSerializer(ModelSerializer):
+    class Meta:
+        model = ExternalPartner
+        fields = ('name', 'id')
+
+
+class ExternalPartnerCategorySerializer(ModelSerializer):
+    class Meta:
+        model = ExternalPartnerCategory
+        fields = ('name', 'id')
+
+
+class SupportedActivitySerializer(ModelSerializer):
+    class Meta:
+        model = SupportedActivity
+        fields = ('name', 'id')
 
 
 class SourceSerializer(ModelSerializer):
@@ -893,6 +915,9 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     event = MiniEventSerializer()
     countries = MiniCountrySerializer(many=True)
     districts = MiniDistrictSerializer(many=True)
+    external_partners = ExternalPartnerSerializer(many=True)
+    external_partner_categories = ExternalPartnerCategorySerializer(many=True)
+    supported_activities = SupportedActivitySerializer(many=True)
 
     class Meta:
         model = FieldReport

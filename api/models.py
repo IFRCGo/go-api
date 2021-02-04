@@ -560,7 +560,7 @@ class Event(models.Model):
     is_featured_region = models.BooleanField(default=False, verbose_name=_('is featured on region page'))
 
     hide_attached_field_reports = models.BooleanField(verbose_name=_('hide field report numeric details'), default=False)
-    
+
     hide_field_report_map = models.BooleanField(verbose_name=_('hide field report map'), default=False)
 
     # Tabs. Events can have upto 3 tabs to organize snippets.
@@ -941,6 +941,45 @@ class EPISourceChoices(IntEnum):
         OTHER = _('OTHER')
 
 
+class ExternalPartner(models.Model):
+    ''' Dropdown items for COVID Field Reports '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('external partner')
+        verbose_name_plural = _('external partners')
+
+    def __str__(self):
+        return self.name
+
+
+class ExternalPartnerCategory(models.Model):
+    ''' Details options for ExternalPartners '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('external partner category')
+        verbose_name_plural = _('external partner caregories')
+
+    def __str__(self):
+        return self.name
+
+
+class SupportedActivity(models.Model):
+    ''' Supported/partnered activities for COVID Field Reports '''
+
+    name = models.CharField(verbose_name=_('name'), max_length=200)
+
+    class Meta:
+        verbose_name = _('supported activity')
+        verbose_name_plural = _('supported activities')
+
+    def __str__(self):
+        return self.name
+
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -998,7 +1037,16 @@ class FieldReport(models.Model):
     epi_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (epidemic)'), null=True, blank=True)
     epi_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (epidemic)'), null=True, blank=True)
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
-    epi_figures_source = EnumIntegerField(EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True)
+    epi_figures_source = EnumIntegerField(
+        EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True
+    )
+    epi_cases_since_last_fr = models.IntegerField(
+        verbose_name=_('number of new cases since the last field report'), null=True, blank=True
+    )
+    epi_deaths_since_last_fr = models.IntegerField(
+        verbose_name=_('number of new deaths since last field report'), null=True, blank=True
+    )
+    epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
     who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
     health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
@@ -1085,6 +1133,21 @@ class FieldReport(models.Model):
 
     eru_water_sanitation_20 = EnumIntegerField(RequestChoices, verbose_name=_('ERU water sanitaion MSM20'), default=0)
     eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitaion MSM20 units'), null=True, blank=True)
+
+    # Ugly solution to a design problem with handling Actions
+    notes_health = models.TextField(verbose_name=_('Description (Health)'), null=True, blank=True)
+    notes_ns = models.TextField(verbose_name=_('Description (NS Institutional Strengthening)'), null=True, blank=True)
+    notes_socioeco = models.TextField(verbose_name=_('Description (Socioeconomic Interventions)'), null=True, blank=True)
+
+    external_partners = models.ManyToManyField(
+        ExternalPartner, verbose_name=_('external partners'), blank=True
+    )
+    external_partner_categories = models.ManyToManyField(
+        ExternalPartnerCategory, verbose_name=_('external partner categories'), blank=True
+    )
+    supported_activities = models.ManyToManyField(
+        SupportedActivity, verbose_name=_('supported activities'), blank=True
+    )
 
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)
@@ -1223,6 +1286,7 @@ class Action(models.Model):
         max_length=255, verbose_name=_('category'), choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL
     )
     is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False, help_text=_('Disable in form'))
+    tooltip_text = models.TextField(verbose_name=_('tooltip text'), null=True, blank='true')
 
     class Meta:
         verbose_name = _('action')
