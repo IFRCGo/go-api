@@ -159,6 +159,8 @@ class Country(models.Model):
     is_deprecated = models.BooleanField(
         default=False, help_text=_('Is this an active, valid country?')
     )
+    sovereign_state = models.ForeignKey('self', verbose_name=_('Country ID of the Sovereign State'), null=True, blank=True, default=None, on_delete=models.SET_NULL)
+    disputed = models.BooleanField(help_text=_('Is this country disputed?'), default=False)
 
     # Population Data From WB API
     wb_population = models.PositiveIntegerField(
