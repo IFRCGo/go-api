@@ -2,7 +2,6 @@ from modeltranslation.translator import register, TranslationOptions
 from .models import (
     FieldReport,
     ExternalPartner,
-    ExternalPartnerCategory,
     SupportedActivity,
     Action,
     ActionsTaken,
@@ -32,11 +31,6 @@ class FieldReportTO(TranslationOptions):
 
 @register(ExternalPartner)
 class ExternalPartnerTO(TranslationOptions):
-    fields = ('name',)
-
-
-@register(ExternalPartnerCategory)
-class ExternalPartnerCategoryTO(TranslationOptions):
     fields = ('name',)
 
 

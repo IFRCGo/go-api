@@ -954,19 +954,6 @@ class ExternalPartner(models.Model):
         return self.name
 
 
-class ExternalPartnerCategory(models.Model):
-    ''' Details options for ExternalPartners '''
-
-    name = models.CharField(verbose_name=_('name'), max_length=200)
-
-    class Meta:
-        verbose_name = _('external partner category')
-        verbose_name_plural = _('external partner caregories')
-
-    def __str__(self):
-        return self.name
-
-
 class SupportedActivity(models.Model):
     ''' Supported/partnered activities for COVID Field Reports '''
 
@@ -1141,9 +1128,6 @@ class FieldReport(models.Model):
 
     external_partners = models.ManyToManyField(
         ExternalPartner, verbose_name=_('external partners'), blank=True
-    )
-    external_partner_categories = models.ManyToManyField(
-        ExternalPartnerCategory, verbose_name=_('external partner categories'), blank=True
     )
     supported_activities = models.ManyToManyField(
         SupportedActivity, verbose_name=_('supported activities'), blank=True

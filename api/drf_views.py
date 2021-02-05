@@ -24,7 +24,6 @@ from per.models import Overview
 from .models import (
     DisasterType,
     ExternalPartner,
-    ExternalPartnerCategory,
     SupportedActivity,
 
     Region,
@@ -62,7 +61,6 @@ from .serializers import (
     ActionSerializer,
     DisasterTypeSerializer,
     ExternalPartnerSerializer,
-    ExternalPartnerCategorySerializer,
     SupportedActivitySerializer,
 
     RegionSerializer,
@@ -577,11 +575,6 @@ class ExternalPartnerViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ExternalPartnerSerializer
 
 
-class ExternalPartnerCategoryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = ExternalPartnerCategory.objects.all()
-    serializer_class = ExternalPartnerCategorySerializer
-
-
 class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SupportedActivity.objects.all()
     serializer_class = SupportedActivitySerializer
@@ -706,7 +699,6 @@ class GenericFieldReportView(GenericAPIView):
 
         mappings = [
             ('external_partners', ExternalPartner),
-            ('external_partner_categories', ExternalPartnerCategory),
             ('supported_activities', SupportedActivity)
         ]
 
@@ -737,12 +729,9 @@ class GenericFieldReportView(GenericAPIView):
     def save_partners_activities(self, instance, locations, is_update=False):
         if is_update:
             instance.external_partners.clear()
-            instance.external_partner_categories.clear()
             instance.supported_activities.clear()
         if 'external_partners' in locations:
             instance.external_partners.add(*locations['external_partners'])
-        if 'external_partner_categories' in locations:
-            instance.external_partner_categories.add(*locations['external_partner_categories'])
         if 'supported_activities' in locations:
             instance.supported_activities.add(*locations['supported_activities'])
 

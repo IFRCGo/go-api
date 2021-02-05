@@ -8,7 +8,6 @@ from lang.serializers import ModelSerializer
 from .models import (
     DisasterType,
     ExternalPartner,
-    ExternalPartnerCategory,
     SupportedActivity,
 
     Region,
@@ -721,12 +720,6 @@ class ExternalPartnerSerializer(ModelSerializer):
         fields = ('name', 'id')
 
 
-class ExternalPartnerCategorySerializer(ModelSerializer):
-    class Meta:
-        model = ExternalPartnerCategory
-        fields = ('name', 'id')
-
-
 class SupportedActivitySerializer(ModelSerializer):
     class Meta:
         model = SupportedActivity
@@ -916,7 +909,6 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     districts = MiniDistrictSerializer(many=True)
     external_partners = ExternalPartnerSerializer(many=True)
-    external_partner_categories = ExternalPartnerCategorySerializer(many=True)
     supported_activities = SupportedActivitySerializer(many=True)
 
     class Meta:
