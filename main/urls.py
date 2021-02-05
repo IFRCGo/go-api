@@ -70,7 +70,6 @@ from lang import views as lang_views
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset)
 router.register(r'external_partner', api_views.ExternalPartnerViewset)
-router.register(r'external_partner_category', api_views.ExternalPartnerCategoryViewset)
 router.register(r'supported_activity', api_views.SupportedActivityViewset)
 router.register(r'disaster_type', api_views.DisasterTypeViewset)
 router.register(r'region', api_views.RegionViewset, base_name='region')
