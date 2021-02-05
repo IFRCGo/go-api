@@ -47,7 +47,7 @@ class SupportedActivityTO(TranslationOptions):
 
 @register(Action)
 class ActionTO(TranslationOptions):
-    fields = ('name',)
+    fields = ('name', 'tooltip_text')
 
 
 @register(ActionsTaken)
