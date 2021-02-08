@@ -196,6 +196,8 @@ class Country(models.Model):
     wash_ndrt_trained = models.IntegerField(verbose_name=_('NDRT Trained'), null=True, blank=True)
     wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True, blank=True)
 
+    in_search = models.BooleanField(verbose_name=_('Include in Search'), default=True)
+
     def indexing(self):
         return {
             'id': self.id,
