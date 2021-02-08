@@ -47,7 +47,7 @@ class Command(BaseCommand):
         if model.__name__ == 'Event':
             query = model.objects.filter(parent_event__isnull=True)
         elif model.__name__ == 'Country':
-            query = model.objects.filter(society_name__isnull=False)
+            query = model.objects.filter(in_search=True)
         else:
             query = model.objects.all()
         data = [

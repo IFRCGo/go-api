@@ -134,6 +134,7 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
     model = instance.__class__.__name__
     if model == 'Event':
         curr_record = Event.objects.filter(id=instance.id).first()
+        # If new record, do nothing, index_and_notify should handle it
         if curr_record is None:
             return
 
@@ -143,34 +144,17 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
         elif curr_record.parent_event and instance.parent_event is None:
             # Add back ES record if Emergency became a parent (index_elasticsearch.py)
             create_es_index(instance)
-
-
-@receiver(post_save)
-def update_country_es(sender, instance, created, using, **kwargs):
-    ''' Handle Country Elasticsearch indexes '''
-    model = instance.__class__.__name__
-    if model == 'Country':
-        if instance.society_name:
-            if created:
+    elif model == 'Country':
+        curr_record = Country.objects.filter(id=instance.id).first()
+        if instance.in_search:
+            if not curr_record:
                 create_es_index(instance)
             else:
-                update_es_index(instance)
+                if not curr_record.in_search and instance.in_search:
+                    create_es_index(instance)
+                elif curr_record.in_search and not instance.in_search:
+                    delete_es_index(instance)
+                else:
+                    update_es_index(instance)
         else:
             delete_es_index(instance)
-
-        # curr_record = Country.objects.filter(id=instance.id).first()
-        # if curr_record:
-        #     if curr_record.society_name and not instance.society_name:
-        #         # Remove ES record if society_name is removed
-        #         delete_es_index(instance)
-        #     elif instance.name != curr_record.name \
-        #             or instance.society_name != curr_record.society_name:
-        #         # Check if the name or society name has been updated
-        #         if not curr_record.society_name:
-        #             create_es_index(instance)
-        #         else:
-        #             update_es_index(instance)
-        # else:
-        #     if instance.society_name:
-        #         # Only create an index if society_name is not empty
-        #         create_es_index(instance)
