@@ -6,8 +6,6 @@ from rest_framework import authentication, permissions
 
 from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -17,7 +15,6 @@ from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models.fields import IntegerField
 from django.db.models import Count, Sum, Q, F, Case, When
 from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
 
@@ -147,49 +144,98 @@ class EsPageSearch(APIView):
 class AggregateHeaderFigures(APIView):
     ''' Used mainly for the key-figures header and by FDRS '''
     def get(self, request):
+        iso3 = request.GET.get('iso3', None)
         now = timezone.now()
         appeal_conditions = (Q(atype=1) | Q(atype=2)) & Q(end_date__gt=now)
-        appeals_aggregated = Appeal.objects.annotate(
-            # Active Appeals with DREF type
-            actd=Count(Case(
-                When(Q(atype=0) & Q(end_date__gt=now), then=1),
-                output_field=IntegerField()
-            )),
-            # Active Appeals with type Emergency Appeal or International Appeal
-            acta=Count(Case(
-                When(appeal_conditions, then=1),
-                output_field=IntegerField()
-            )),
-            # Total Appeals count which are not DREF
-            tota=Count(Case(
-                When(Q(atype=1) | Q(atype=2), then=1),
-                output_field=IntegerField()
-            )),
-            # Active Appeals' target population
-            tarp=Sum(Case(
-                When(Q(end_date__gt=now), then=F('num_beneficiaries')),
-                output_field=IntegerField()
-            )),
-            # Active Appeals' requested amount, which are not DREF
-            amor=Case(
-                When(appeal_conditions, then=F('amount_requested')),
-                output_field=IntegerField()
-            ),
-            # Active Appeals' funded amount, which are not DREF
-            amof=Case(
-                When(appeal_conditions, then=F('amount_funded')),
-                output_field=IntegerField()
-            )
-        ).aggregate(
-            active_drefs=Sum('actd'),
-            active_appeals=Sum('acta'),
-            total_appeals=Sum('tota'),
-            target_population=Sum('tarp'),
-            amount_requested=Sum('amor'),
-            amount_funded=Sum('amof')
-        )
 
-        return JsonResponse(dict(appeals_aggregated))
+        # Duplicating code because otherwise we'd have to use Appeal.objects.all()
+        # and this way the actual queries are faster/cleaner (added in if: select_related, filter)
+        if iso3:
+            appeals_aggregated = Appeal.objects.select_related(
+                'country'
+            ).filter(
+                country__iso3__iexact=iso3
+            ).annotate(
+                # Active Appeals with DREF type
+                actd=Count(Case(
+                    When(Q(atype=0) & Q(end_date__gt=now), then=1),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals with type Emergency Appeal or International Appeal
+                acta=Count(Case(
+                    When(appeal_conditions, then=1),
+                    output_field=IntegerField()
+                )),
+                # Total Appeals count which are not DREF
+                tota=Count(Case(
+                    When(Q(atype=1) | Q(atype=2), then=1),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals' target population
+                tarp=Sum(Case(
+                    When(Q(end_date__gt=now), then=F('num_beneficiaries')),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals' requested amount, which are not DREF
+                amor=Case(
+                    When(appeal_conditions, then=F('amount_requested')),
+                    output_field=IntegerField()
+                ),
+                # Active Appeals' funded amount, which are not DREF
+                amof=Case(
+                    When(appeal_conditions, then=F('amount_funded')),
+                    output_field=IntegerField()
+                )
+            ).aggregate(
+                active_drefs=Sum('actd'),
+                active_appeals=Sum('acta'),
+                total_appeals=Sum('tota'),
+                target_population=Sum('tarp'),
+                amount_requested=Sum('amor'),
+                amount_funded=Sum('amof')
+            )
+        else:
+            appeals_aggregated = Appeal.objects.annotate(
+                # Active Appeals with DREF type
+                actd=Count(Case(
+                    When(Q(atype=0) & Q(end_date__gt=now), then=1),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals with type Emergency Appeal or International Appeal
+                acta=Count(Case(
+                    When(appeal_conditions, then=1),
+                    output_field=IntegerField()
+                )),
+                # Total Appeals count which are not DREF
+                tota=Count(Case(
+                    When(Q(atype=1) | Q(atype=2), then=1),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals' target population
+                tarp=Sum(Case(
+                    When(Q(end_date__gt=now), then=F('num_beneficiaries')),
+                    output_field=IntegerField()
+                )),
+                # Active Appeals' requested amount, which are not DREF
+                amor=Case(
+                    When(appeal_conditions, then=F('amount_requested')),
+                    output_field=IntegerField()
+                ),
+                # Active Appeals' funded amount, which are not DREF
+                amof=Case(
+                    When(appeal_conditions, then=F('amount_funded')),
+                    output_field=IntegerField()
+                )
+            ).aggregate(
+                active_drefs=Sum('actd'),
+                active_appeals=Sum('acta'),
+                total_appeals=Sum('tota'),
+                target_population=Sum('tarp'),
+                amount_requested=Sum('amor'),
+                amount_funded=Sum('amof')
+            )
+
+        return Response(dict(appeals_aggregated))
 
 
 class AreaAggregate(APIView):
