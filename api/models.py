@@ -1684,6 +1684,20 @@ class EmergencyOperationsFR(EmergencyOperationsBase):
         return self.raw_file_name
 
 
+class MainContact(models.Model):
+    ''' Contacts on the Resources page '''
+    extent = models.CharField(verbose_name=_('extent'), max_length=300)
+    name = models.CharField(verbose_name=_('name'), max_length=300)
+    email = models.CharField(verbose_name=_('email'), max_length=300)
+
+    class Meta:
+        verbose_name = _('main contact')
+        verbose_name_plural = _('main contacts')
+
+    def __str__(self):
+        return f'{self.extent} - {self.name} - {self.email}'
+
+
 class CronJobStatus(IntEnum):
     NEVER_RUN = -1
     SUCCESSFUL = 0

@@ -43,6 +43,7 @@ from .models import (
     Action,
     Source,
     FieldReport,
+    MainContact
 )
 from notifications.models import Subscription
 from deployments.models import Personnel
@@ -920,3 +921,10 @@ class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     class Meta:
         model = FieldReport
         fields = '__all__'
+
+
+class MainContactSerializer(ModelSerializer):
+    class Meta:
+        model = MainContact
+        fields = '__all__'
+

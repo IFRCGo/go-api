@@ -54,6 +54,7 @@ from .models import (
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
+    MainContact
 )
 
 from databank.serializers import CountryOverviewSerializer
@@ -98,6 +99,7 @@ from .serializers import (
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
+    MainContactSerializer,
 
     # Tableau Serializers
     AppealDocumentTableauSerializer,
@@ -878,3 +880,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
                 logger.error(str(error)[:200])
 
         return Response({'id': instance.id}, status=HTTP_200_OK)
+
+
+class MainContactViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MainContactSerializer
+    queryset = MainContact.objects.order_by('extent')

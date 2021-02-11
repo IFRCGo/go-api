@@ -122,6 +122,7 @@ router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'region-project', deployment_views.RegionProjectViewset, base_name='region-project')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)
+router.register(r'main_contact', api_views.MainContactViewset, base_name='main_contact')
 router.register(r'language', lang_views.LanguageViewSet, base_name='language')
 
 
