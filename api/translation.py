@@ -1,8 +1,5 @@
 from modeltranslation.translator import register, TranslationOptions
 from .models import (
-    FieldReport,
-    ExternalPartner,
-    SupportedActivity,
     Action,
     ActionsTaken,
     Appeal,
@@ -11,7 +8,10 @@ from .models import (
     CountrySnippet,
     DisasterType,
     Event,
+    ExternalPartner,
+    FieldReport,
     GDACSEvent,
+    MainContact,
     Region,
     RegionSnippet,
     RegionEmergencySnippet,
@@ -20,23 +20,8 @@ from .models import (
     SituationReport,
     SituationReportType,
     Snippet,
+    SupportedActivity
 )
-
-
-# Field Report Translation Options
-@register(FieldReport)
-class FieldReportTO(TranslationOptions):
-    fields = ('summary', 'description', 'actions_others', 'other_sources')
-
-
-@register(ExternalPartner)
-class ExternalPartnerTO(TranslationOptions):
-    fields = ('name',)
-
-
-@register(SupportedActivity)
-class SupportedActivityTO(TranslationOptions):
-    fields = ('name',)
 
 
 @register(Action)
@@ -79,9 +64,24 @@ class EventTO(TranslationOptions):
     fields = ('name', 'slug')
 
 
+@register(ExternalPartner)
+class ExternalPartnerTO(TranslationOptions):
+    fields = ('name',)
+
+
+@register(FieldReport)
+class FieldReportTO(TranslationOptions):
+    fields = ('summary', 'description', 'actions_others', 'other_sources')
+
+
 @register(GDACSEvent)
 class GDACSEventTO(TranslationOptions):
     fields = ('title', 'description', 'country_text')
+
+
+@register(MainContact)
+class MainContactTO(TranslationOptions):
+    fields = ('extent',)
 
 
 @register(Region)
@@ -118,3 +118,9 @@ class SituationReportTypeTO(TranslationOptions):
 @register(Snippet)
 class SnippetTO(TranslationOptions):
     fields = ('snippet',)
+
+
+@register(SupportedActivity)
+class SupportedActivityTO(TranslationOptions):
+    fields = ('name',)
+
