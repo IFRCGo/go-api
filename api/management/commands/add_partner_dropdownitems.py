@@ -1,8 +1,8 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from api.models import ExternalPartner, SupportedActivity
 from django.db import transaction
-from django.db.models import Q
 from api.logger import logger
+
 
 class Command(BaseCommand):
     help = 'Adds predefined tooltip texts to Actions (most probably one-time run only)'
