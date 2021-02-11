@@ -10,12 +10,47 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         contacts = [
-            # Area/field/extent, name, email
-            ['Africa Region', 'Elly NANDASABA MULAHA', 'Elly.MULAHA@ifrc.org'],
-            ['Americas Region', 'Luis FANOVICH', 'luis.fanovich@ifrc.org'],
-            ['Asia Pacific Region', 'Dedi JUNADI', 'dedi.junadi@ifrc.org'],
-            ['Europe Region', 'Anssi ANONEN', 'anssi.anonen@ifrc.org'],
-            ['MENA Region', 'Ahmad AL JAMAL', 'ahmad.aljamal@ifrc.org']
+            # Area/field/extent (en, fr, es, ar), name, email
+            [
+                'Africa Region',
+                'Région Afrique',
+                'Región de África',
+                'منطقة إفريقيا',
+                'Elly NANDASABA MULAHA',
+                'Elly.MULAHA@ifrc.org'
+            ],
+            [
+                'Americas Region',
+                'Région Amériques',
+                'Región de América',
+                'منطقة الأمريكتين',
+                'Luis FANOVICH',
+                'luis.fanovich@ifrc.org'
+            ],
+            [
+                'Asia Pacific Region',
+                'Région Asie-Pacifique',
+                'Región de Asia-Pacífico',
+                'منطقة آسيا والمحيط الهادئ',
+                'Dedi JUNADI',
+                'dedi.junadi@ifrc.org'
+            ],
+            [
+                'Europe Region',
+                'Région Europe',
+                'Región de Europa',
+                'منطقة أوروبا',
+                'Anssi ANONEN',
+                'anssi.anonen@ifrc.org'
+            ],
+            [
+                'MENA Region',
+                'Région MENA',
+                'Región de MENA',
+                'منطقة الشرق الأوسط وشمال أفريقيا',
+                'Ahmad AL JAMAL',
+                'ahmad.aljamal@ifrc.org'
+            ]
         ]
 
         error = False
@@ -27,8 +62,11 @@ class Command(BaseCommand):
                 contact = MainContact(
                     extent=con[0],
                     extent_en=con[0],
-                    name=con[1],
-                    email=con[2]
+                    extent_fr=con[1],
+                    extent_es=con[2],
+                    extent_ar=con[3],
+                    name=con[4],
+                    email=con[5]
                 )
                 c_to_add.append(contact)
 
