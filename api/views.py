@@ -21,7 +21,7 @@ from django.template.loader import render_to_string
 from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .esconnection import ES_CLIENT
-from .models import Appeal, Event, FieldReport, CronJob
+from .models import Appeal, AppealType, Event, FieldReport, CronJob
 from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
@@ -149,7 +149,7 @@ class AggregateHeaderFigures(APIView):
         region = request.GET.get('region', None)
 
         now = timezone.now()
-        appeal_conditions = (Q(atype=1) | Q(atype=2)) & Q(end_date__gt=now)
+        appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=now)
 
         all_appeals = Appeal.objects.all()
         if iso3:
@@ -162,7 +162,7 @@ class AggregateHeaderFigures(APIView):
         appeals_aggregated = all_appeals.annotate(
             # Active Appeals with DREF type
             actd=Count(Case(
-                When(Q(atype=0) & Q(end_date__gt=now), then=1),
+                When(Q(atype=AppealType.DREF) & Q(end_date__gt=now), then=1),
                 output_field=IntegerField()
             )),
             # Active Appeals with type Emergency Appeal or International Appeal
@@ -172,7 +172,7 @@ class AggregateHeaderFigures(APIView):
             )),
             # Total Appeals count which are not DREF
             tota=Count(Case(
-                When(Q(atype=1) | Q(atype=2), then=1),
+                When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1),
                 output_field=IntegerField()
             )),
             # Active Appeals' target population
