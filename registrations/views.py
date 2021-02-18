@@ -77,7 +77,7 @@ class NewRegistration(APIView):
     def post(self, request):
         required_fields = (
             'email',
-            'username',
+            # 'username',
             'password',
             'country',
             'organizationType',
@@ -91,7 +91,9 @@ class NewRegistration(APIView):
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
         email = request.data.get('email', None)
-        username = request.data.get('username', None)
+        # Since username is a required field we still need to fill it in
+        # but now only email is being used for new registrations
+        username = request.data.get('email', None)
         password = request.data.get('password', None)
         firstname = request.data.get('firstname', None)
         lastname = request.data.get('lastname', None)

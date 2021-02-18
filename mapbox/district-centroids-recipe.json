@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "go-district-centroids": {
+      "source": "mapbox://tileset-source/go-ifrc/go-district-centroids",
+      "minzoom": 8,
+      "maxzoom": 10
+    }
+  }
+}

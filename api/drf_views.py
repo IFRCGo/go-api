@@ -23,6 +23,8 @@ from per.models import Overview
 
 from .models import (
     DisasterType,
+    ExternalPartner,
+    SupportedActivity,
 
     Region,
     RegionKeyFigure,
@@ -52,12 +54,15 @@ from .models import (
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
+    MainContact
 )
 
 from databank.serializers import CountryOverviewSerializer
 from .serializers import (
     ActionSerializer,
     DisasterTypeSerializer,
+    ExternalPartnerSerializer,
+    SupportedActivitySerializer,
 
     RegionSerializer,
     RegionGeoSerializer,
@@ -94,6 +99,7 @@ from .serializers import (
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
+    MainContactSerializer,
 
     # Tableau Serializers
     AppealDocumentTableauSerializer,
@@ -566,6 +572,16 @@ class ActionViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ActionSerializer
 
 
+class ExternalPartnerViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = ExternalPartner.objects.all()
+    serializer_class = ExternalPartnerSerializer
+
+
+class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = SupportedActivity.objects.all()
+    serializer_class = SupportedActivitySerializer
+
+
 class GenericFieldReportView(GenericAPIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -683,7 +699,19 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data:
                 del data[prop]
 
-        return data, locations, meta
+        mappings = [
+            ('external_partners', ExternalPartner),
+            ('supported_activities', SupportedActivity)
+        ]
+
+        partners = {}
+        for (prop, model) in mappings:
+            if prop in data and hasattr(data[prop], '__iter__') and len(data[prop]):
+                partners[prop] = list(data[prop])
+            if prop in data:
+                del data[prop]
+
+        return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
         if is_update:
@@ -699,6 +727,15 @@ class GenericFieldReportView(GenericAPIView):
             instance.regions.add(*[country.region for country in countries if (
                 country.region is not None
             )])
+
+    def save_partners_activities(self, instance, locations, is_update=False):
+        if is_update:
+            instance.external_partners.clear()
+            instance.supported_activities.clear()
+        if 'external_partners' in locations:
+            instance.external_partners.add(*locations['external_partners'])
+        if 'supported_activities' in locations:
+            instance.supported_activities.add(*locations['supported_activities'])
 
     def save_meta(self, fieldreport, meta, is_update=False):
         if is_update:
@@ -755,7 +792,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
-        data, locations, meta = self.map_many_to_many_relations(data)
+        data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
             # TODO: Use serializer to create fieldreport
@@ -776,6 +813,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         errors = []
         try:
             self.save_locations(fieldreport, locations)
+            self.save_partners_activities(fieldreport, partners)
         except Exception as e:
             errors.append(e)
 
@@ -816,7 +854,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
-        data, locations, meta = self.map_many_to_many_relations(data)
+        data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
             serializer.save()
@@ -827,6 +865,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
         errors = []
         try:
             self.save_locations(instance, locations, is_update=True)
+            self.save_partners_activities(instance, partners, is_update=True)
         except Exception as e:
             errors.append(e)
 
@@ -841,3 +880,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
                 logger.error(str(error)[:200])
 
         return Response({'id': instance.id}, status=HTTP_200_OK)
+
+
+class MainContactViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MainContactSerializer
+    queryset = MainContact.objects.order_by('extent')
