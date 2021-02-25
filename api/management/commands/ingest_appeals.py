@@ -6,44 +6,16 @@ from datetime import datetime, timezone, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone as tz
-from api.models import AppealType, Appeal, Region, Country, DisasterType, Event, CronJobStatus
+from api.models import AppealType, Appeal, Region, Country, DisasterType, Event, CronJobStatus, GECCode
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 from api.logger import logger
 from api.create_cron import create_cron_record
 
+
 CRON_NAME = 'ingest_appeals'
 DTYPE_KEYS = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
-REGION_TO_COUNTRY = {
-    'JAK': 'ID',  # Jakarta Country Cluster Office: Indonesia
-    'SAM': 'AR',  # South Cone and Brazil Country Cluster Office: Argentina
-    'TEG': 'HN',  # Tegucigalpa Country Cluster Office: Honduras
-    'AFR': 'KE',  # Africa regional office: Kenya
-    'EAF': 'KE',  # Eastern Africa country cluster: Kenya
-    'CAF': 'CM',  # Central Africa country cluster: Cameroon
-    'SAF': 'ZA',  # Southern Africa country cluster: South Africa
-    'CAM': 'HN',  # Latin Caribbean Country Cluster Office: Honduras
-    'CAR': 'TT',  # Caribbean Country Cluster: Trinidad and Tobago
-    'NAM': 'PA',  # Americas regional office: Panama
-    'AME': 'PA',  # Americas regional office: Panama
-    'ASI': 'MY',  # Asia Pacific regional office / New Delhi country cluster: Malaysia
-    'EEU': 'HU',  # Europe Regional Office: Hungary
-    'EUR': 'HU',  # Europe Regional Office: Hungary
-    'WEU': 'CH',  # (Western) Europe regional office: Switzerland
-    'NAF': 'TN',  # MENA regional office / Tunis country cluster: Tunisia
-    'MEA': 'GE',  # MENA Regonal Office / Southern Caucasus country cluster: Georgia
-    'OCE': 'FJ',  # Suva Country Cluster Office: Fiji
-    'WAF': 'SN',  # Sahel country cluster: Senegal
-    'WRD': 'CH',  # IFRC Headquarters: Switzerland
-    'SAM': 'PE',  # Andean Country Cluster Office: Peru
-    'SEA': 'TH',  # Bangkok Country Cluster Office: Thailand
-    'SAS': 'IN',  # Southern Asia Country Cluster Office: India
-    'EAS': 'CN',  # Beijing Country Cluster Office: China
-    'CAS': 'KZ',  # Central Asia country cluster: Kazakhstan
-    'HK': 'CN',  # Hong Kong: China
-    'TW': 'CN',  # Taiwan: China
-    'XK': 'RS',  # Kosovo: Serbia
-}
+GEC_CODES = GECCode.objects.select_related('country').all()
 
 
 class Command(BaseCommand):
@@ -154,18 +126,24 @@ class Command(BaseCommand):
         dtype = DisasterType.objects.get(name=disaster_name)
         return dtype
 
-    def parse_country(self, iso_code, country_name):
-        if iso_code in REGION_TO_COUNTRY:
-            iso_code = REGION_TO_COUNTRY[iso_code]
+    def parse_country(self, gec_code, country_name):
+        # If gec_code has a mapping then we use that Country straight
+        gec = GEC_CODES.filter(code=gec_code).first()
+        if gec:
+            return gec.country
 
-        if len(iso_code) == 2:
+        # Otherwise gec_code must be an ISO code, but we're using country_name as a backup check
+        if len(gec_code) == 2:
             # Filter for 'Country' types only
-            country = Country.objects.filter(iso__iexact=iso_code, record_type=1).first()
+            country = Country.objects.filter(iso__iexact=gec_code, record_type=1).first()
 
             if country is None:
                 country = Country.objects.filter(name__iexact=country_name).first()
         else:
             country = Country.objects.filter(name__iexact=country_name).first()
+
+        if not country:
+            logger.warning(f'Could not find Country with: {gec_code} OR {country_name}')
 
         return country
 
@@ -178,9 +156,9 @@ class Command(BaseCommand):
         dtype = self.parse_disaster_name(dname)
 
         # get the country mapping
-        iso_code = r['GEC_code']
+        gec_code = r['GEC_code']
         country_name = r['OSC_name']
-        country = self.parse_country(iso_code, country_name)
+        country = self.parse_country(gec_code, country_name)
 
         # get the region mapping, using the country if possible
         if country is not None and country.region is not None:

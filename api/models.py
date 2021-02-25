@@ -1850,6 +1850,7 @@ def user_login_failed_callback(sender, credentials, **kwargs):
 
 from .triggers import *  # noqa: E402 F403 F401
 
+
 class GECCode(models.Model):
     code = models.CharField(verbose_name=_('3 letter GEC code'), max_length=3)
     country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING)
