@@ -204,3 +204,6 @@ Run ` python manage.py update-sovereign-and-disputed new_fields.csv` to update t
 
 ## Update Mapbox Tilesets
 To update GO countries and districts Mapbox tilesets, run the management command `python manage.py update-mapbox-tilesets`. This will export all country and district geometries to a GeoJSON file, and then upload them to Mapbox. The tilesets will take a while to process. The updated status can be viewed on the Mapbox Studio under tilesets. To run this management command, MAPBOX_ACCESS_TOKEN should be set in the environment.
+
+## Improt GEC codes
+To import GEC codes along with country ids, run `python manage.py import-gec-code appeal_ingest_match.csv`. The CSV should have the columns `'GST_code', 'GST_name', 'GO ID', 'ISO'`
