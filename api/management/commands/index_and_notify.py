@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.template.loader import render_to_string
 from elasticsearch.helpers import bulk
-from api.indexes import ES_PAGE_NAME
+from utils.elasticsearch import construct_es_data
 from api.esconnection import ES_CLIENT
 from api.models import Country, Appeal, Event, FieldReport, ActionsTaken, CronJob, CronJobStatus
 from api.logger import logger
@@ -649,21 +649,7 @@ class Command(BaseCommand):
                     logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
 
     def index_records(self, records, to_create=True):
-        self.bulk([self.convert_for_bulk(record, create=to_create) for record in list(records)])
-
-    def convert_for_bulk(self, record, create):
-        data = record.indexing()
-        metadata = {
-            '_op_type': 'create' if create else 'update',
-            '_index': ES_PAGE_NAME,
-            '_type': 'page',
-            '_id': record.es_id()
-        }
-        if (create):
-            metadata.update(**data)
-        else:
-            metadata['doc'] = data
-        return metadata
+        self.bulk([construct_es_data(record, is_create=to_create) for record in list(records)])
 
     def bulk(self, actions):
         try:
@@ -728,7 +714,8 @@ class Command(BaseCommand):
             diff=ExpressionWrapper(F('real_data_update') - F('created_at'), output_field=DurationField())
         ).filter(condR & cond2 & Q(diff__gt=timedelta(minutes=1)))
 
-        new_events = Event.objects.filter(cond1).exclude(condF)
+        all_new_events = Event.objects.filter(cond1)
+        new_events = all_new_events.exclude(condF)
         updated_events = Event.objects.annotate(
             diff=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
         ).filter(condU & cond2 & Q(diff__gt=timedelta(minutes=1)))
@@ -769,7 +756,7 @@ class Command(BaseCommand):
         logger.info('Indexing %s new appeals' % new_appeals.count())
         self.index_records(new_appeals)
         logger.info('Indexing %s new events' % new_events.count())
-        self.index_records(new_events)
+        self.index_records(all_new_events)
 
         logger.info('Indexing %s updated field reports' % updated_reports.count())
         self.index_records(updated_reports, to_create=False)

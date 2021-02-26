@@ -326,6 +326,14 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
         return actions
 
 
+class ExternalPartnerAdmin(CompareVersionAdmin, TranslationAdmin):
+    model = models.ExternalPartner
+
+
+class SupportedActivityAdmin(CompareVersionAdmin, TranslationAdmin):
+    model = models.SupportedActivity
+
+
 class ActionAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ActionForm
     list_display = ('__str__', 'field_report_types', 'organizations', 'category',)
@@ -647,6 +655,11 @@ class EmergencyOperationsEAAdmin(EmergencyOperationsBaseAdmin):
     document_type = 'ea'
 
 
+class MainContactAdmin(CompareVersionAdmin):
+    list_display = ('extent', 'name', 'email')
+    search_fields = ('name', 'email')
+
+
 # Global view of Revisions, not that informational, maybe needed in the future
 # class RevisionAdmin(admin.ModelAdmin):
 #     list_display = ('user', 'comment', 'date_created')
@@ -697,6 +710,8 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
+admin.site.register(models.ExternalPartner, ExternalPartnerAdmin)
+admin.site.register(models.SupportedActivity, SupportedActivityAdmin)
 admin.site.register(models.Action, ActionAdmin)
 admin.site.register(models.Profile, UserProfileAdmin)
 admin.site.register(models.SituationReport, SituationReportAdmin)
@@ -708,6 +723,7 @@ admin.site.register(models.EmergencyOperationsEA, EmergencyOperationsEAAdmin)
 admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.register(models.AuthLog, AuthLogAdmin)
 admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
+admin.site.register(models.MainContact, MainContactAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'

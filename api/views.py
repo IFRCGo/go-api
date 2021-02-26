@@ -6,23 +6,22 @@ from rest_framework import authentication, permissions
 
 from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
-from django.db.models import Count, Sum
+from django.db.models.fields import IntegerField
+from django.db.models import Count, Sum, Q, F, Case, When
 from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
 
 from rest_framework.authtoken.models import Token
 from .utils import pretty_request
 from .esconnection import ES_CLIENT
-from .models import Appeal, Event, FieldReport, CronJob
+from .models import Appeal, AppealType, Event, FieldReport, CronJob
 from .indexes import ES_PAGE_NAME
 from deployments.models import Heop
 from notifications.models import Subscription
@@ -140,6 +139,72 @@ class EsPageSearch(APIView):
             })
         )
         return JsonResponse(results['hits'])
+
+
+class AggregateHeaderFigures(APIView):
+    ''' Used mainly for the key-figures header and by FDRS '''
+    def get(self, request):
+        iso3 = request.GET.get('iso3', None)
+        country = request.GET.get('country', None)
+        region = request.GET.get('region', None)
+
+        now = timezone.now()
+        appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=now)
+
+        all_appeals = Appeal.objects.all()
+        if iso3:
+            all_appeals = all_appeals.filter(country__iso3__iexact=iso3)
+        if country:
+            all_appeals = all_appeals.filter(country__id=country)
+        if region:
+            all_appeals = all_appeals.filter(country__region__id=region)
+
+        appeals_aggregated = all_appeals.annotate(
+            # Active Appeals with DREF type
+            actd=Count(Case(
+                When(Q(atype=AppealType.DREF) & Q(end_date__gt=now), then=1),
+                output_field=IntegerField()
+            )),
+            # Active Appeals with type Emergency Appeal or International Appeal
+            acta=Count(Case(
+                When(appeal_conditions, then=1),
+                output_field=IntegerField()
+            )),
+            # Total Appeals count which are not DREF
+            tota=Count(Case(
+                When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1),
+                output_field=IntegerField()
+            )),
+            # Active Appeals' target population
+            tarp=Sum(Case(
+                When(Q(end_date__gt=now), then=F('num_beneficiaries')),
+                output_field=IntegerField()
+            )),
+            # Active Appeals' requested amount, which are not DREF
+            amor=Case(
+                When(appeal_conditions, then=F('amount_requested')),
+                output_field=IntegerField()
+            ),
+            amordref=Case(
+                When(Q(end_date__gt=now), then=F('amount_requested')),
+                output_field=IntegerField()
+            ),
+            # Active Appeals' funded amount, which are not DREF
+            amof=Case(
+                When(appeal_conditions, then=F('amount_funded')),
+                output_field=IntegerField()
+            )
+        ).aggregate(
+            active_drefs=Sum('actd'),
+            active_appeals=Sum('acta'),
+            total_appeals=Sum('tota'),
+            target_population=Sum('tarp'),
+            amount_requested=Sum('amor'),
+            amount_requested_dref_included=Sum('amordref'),
+            amount_funded=Sum('amof')
+        )
+
+        return Response(dict(appeals_aggregated))
 
 
 class AreaAggregate(APIView):
@@ -272,15 +337,9 @@ class GetAuthToken(APIView):
         password = request.data.get('password', None)
 
         if username is None or password is None:
-            return bad_request('Body must contain `username` and `password`')
+            return bad_request('Body must contain `email/username` and `password`')
 
-        # Get the case-correct username for authenticate()
-        casecorr_uname = User.objects.filter(username__iexact=username).values_list('username', flat=True).first()
-        if casecorr_uname is None:
-            return bad_request('Invalid username or password')  # definitely username issue
-
-        # User model's __str__ is its username
-        user = authenticate(username=casecorr_uname, password=password)
+        user = authenticate(username=username, password=password)
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
@@ -317,9 +376,13 @@ class ChangePassword(APIView):
         if username is None or (password is None and token is None):
             return bad_request('Must include a `username` and either a `password` or `token`')
 
-        # TODO validate password
         if new_pass is None:
             return bad_request('Must include a `new_password` property')
+        try:
+            validate_password(new_pass)
+        except Exception as exc:
+            ers = ' '.join(str(err) for err in exc)
+            return bad_request(ers)
 
         user = User.objects.filter(username__iexact=username).first()
         if user is None:
@@ -400,7 +463,10 @@ class ResendValidation(APIView):
         username = request.data.get('username', None)
 
         if username:
-            pending_user = Pending.objects.select_related('user').filter(user__username__iexact=username).first()
+            # Now we allow requesting with either email or username
+            pending_user = Pending.objects.select_related('user')\
+                                          .filter(Q(user__username__iexact=username) | Q(user__email__iexact=username))\
+                                          .first()
             if pending_user:
                 if pending_user.user.is_active is True:
                     return bad_request('Your registration is already active, \

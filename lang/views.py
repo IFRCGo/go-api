@@ -34,14 +34,17 @@ class LanguageViewSet(viewsets.ViewSet):
         })
 
     def retrieve(self, request, pk=None, version=None):
-        languages = settings.LANGUAGES
-        code, title = next((lang for lang in languages if lang[0] == pk), (None, None))
+        if pk == 'all':
+            obj = StringSerializer(String.objects.all(), many=True).data
+        else:
+            languages = settings.LANGUAGES
+            code, title = next((lang for lang in languages if lang[0] == pk), (None, None))
 
-        obj = {
-            'code': code,
-            'title': title,
-            'strings': StringSerializer(String.objects.filter(language=code), many=True).data,
-        }
+            obj = {
+                'code': code,
+                'title': title,
+                'strings': StringSerializer(String.objects.filter(language=code), many=True).data,
+            }
 
         return response.Response(obj)
 

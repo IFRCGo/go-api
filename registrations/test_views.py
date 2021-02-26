@@ -26,9 +26,10 @@ class TwoGatekeepersTest(APITestCase):
         # 1. Created two users to function as gatekeepers (with checkable email)
         # 2a. Making a request to views.NewRegistration with new user request
         country = Country.objects.get(name='country')
-        newusr = 'pe'
+        # We started to use the email as the username for new registrations
+        newusr = 'pe@doesnotexist.hu'
         body = {
-            'email': 'pe@doesnotexist.hu',
+            'email': newusr,
             'username': newusr,
             'password': '87654321',
             'country': country.pk,
@@ -91,9 +92,10 @@ class TwoGatekeepersTest(APITestCase):
     def test_official_email(self):
         # 2b. Making a request to views.NewRegistration with new user request
         country = Country.objects.get(name='country')
-        newusr = 'pet'
+        # We started to use the email as the username for new registrations
+        newusr = 'pet@voroskereszt.hu'
         body = {
-            'email': 'pet@voroskereszt.hu',
+            'email': newusr,
             'username': newusr,
             'password': '87654321',
             'country': country.pk,
