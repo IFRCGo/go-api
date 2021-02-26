@@ -8,7 +8,7 @@ Pygments==2.2.0
 Rx==1.6.0
 XML2Dict==0.2.2
 aiofiles==0.4.0
-aiohttp==3.3.2
+aiohttp==3.7.4
 asn1crypto==0.24.0
 azure-common==1.1.19
 azure-nspkg==3.0.2
