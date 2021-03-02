@@ -51,7 +51,7 @@ MODEL_TYPES = {
 
 
 def create_global_reversion_log(versions, revision):
-    for version in versionss:
+    for version in versions:
         ver_data = json.loads(version.serialized_data)
         # try to map model name coming from Reversion to more readable model names (dict above)
         model_name = MODEL_TYPES.get(ver_data[0]['model'], ver_data[0]['model'])
@@ -64,7 +64,7 @@ def create_global_reversion_log(versions, revision):
         ).first()
 
         # if the record already existed in the DB but didn't have an initial/previous reversion record
-        if not previous_verion and action_happened == 'Added':
+        if not previous_version and action_happened == 'Added':
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
