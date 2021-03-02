@@ -1,3 +1,4 @@
+from django.db.models.deletion import DO_NOTHING
 from django.utils.translation import ugettext_lazy as _
 # from django.db import models
 from django.contrib.gis.db import models
@@ -1854,3 +1855,13 @@ from .triggers import *  # noqa: E402 F403 F401
 class GECCode(models.Model):
     code = models.CharField(verbose_name=_('3 letter GEC code'), max_length=3)
     country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING)
+
+
+class ERPGUID(models.Model):
+    """ GUIDs stored from ERP POST responses, to be able to GET if info is needed """
+    created_at = models.DateTimeField(auto_now_add=True)
+    api_guid = models.CharField(
+        max_length=200,
+        help_text='Can be used to do a GET request to check on the microservice API side.'
+    )
+    field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=DO_NOTHING)

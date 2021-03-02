@@ -1,12 +1,14 @@
 import json
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.signals import pre_delete, pre_save, post_save
 from django.dispatch import receiver
 from reversion.models import Version
 from reversion.signals import post_revision_commit
-from api.models import ReversionDifferenceLog, Event, Country
+from api.models import ReversionDifferenceLog, Event, Country, FieldReport
 from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
+from utils.erp import push_fr_data
 from functools import wraps
 
 
@@ -49,7 +51,7 @@ MODEL_TYPES = {
 
 
 def create_global_reversion_log(versions, revision):
-    for version in versions:
+    for version in versionss:
         ver_data = json.loads(version.serialized_data)
         # try to map model name coming from Reversion to more readable model names (dict above)
         model_name = MODEL_TYPES.get(ver_data[0]['model'], ver_data[0]['model'])
@@ -62,7 +64,7 @@ def create_global_reversion_log(versions, revision):
         ).first()
 
         # if the record already existed in the DB but didn't have an initial/previous reversion record
-        if not previous_version and action_happened == 'Added':
+        if not previous_verion and action_happened == 'Added':
             ReversionDifferenceLog.objects.create(
                 action=action_happened,
                 username=revision.user.username if revision.user else '',
@@ -158,3 +160,28 @@ def remove_child_events_from_es(sender, instance, using, **kwargs):
                     update_es_index(instance)
         else:
             delete_es_index(instance)
+
+
+# Needs post_save because if a new Field Report is not mapped to an Emergency it will create one
+@receiver(post_save)
+def handle_fr_for_erp(sender, instance, using, **kwargs):
+    '''
+    If a Field Report is created/updated and Request for International
+    Assisstance is checked for any of the Event's Field Reports then
+    update ERP with the data, calling a middleware microservice
+    '''
+
+    model = instance.__class__.__name__
+    if model == 'FieldReport':
+        # TODO: maybe add a check, and only send request if anything has changed
+        if instance.ns_request_assistance:
+            push_fr_data(instance)
+            return
+
+        req_ass_exists = FieldReport.objects.filter(
+            Q(event_id=instance.event_id) & Q(ns_request_assistance=True)
+        ).exists()
+        if not instance.ns_request_assistance and req_ass_exists:
+            # If assistance request was dropped, set retired to yes
+            push_fr_data(instance, retired='Yes')
+            return
