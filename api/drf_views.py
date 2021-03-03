@@ -115,11 +115,11 @@ from .logger import logger
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
-    queryset = Event.objects.annotate(personnel__count=Count('personneldeployment__personnel')) \
-                            .prefetch_related('personneldeployment_set__personnel_set__country_from') \
-                            .filter(personnel__count__gt=0) \
+    queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .filter(personneldeployment__personnel__type=Personnel.RR) \
                             .filter(personneldeployment__personnel__end_date__gt=datetime.datetime.now()) \
+                            .annotate(personnel__count=Count('personneldeployment__personnel')) \
+                            .filter(personnel__count__gt=0) \
                             .order_by('-disaster_start_date')
 
 
