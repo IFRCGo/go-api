@@ -230,7 +230,7 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True,
+    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True, blank=True,
                                   validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
