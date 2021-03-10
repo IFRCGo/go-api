@@ -8,6 +8,7 @@ from api.models import ReversionDifferenceLog, Event, Country
 from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from functools import wraps
+from api.logger import logger
 
 
 MODEL_TYPES = {
