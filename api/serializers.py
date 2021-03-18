@@ -142,13 +142,13 @@ class DistrictSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id', 'is_deprecated',)
+        fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'is_deprecated',)
+        fields = ('name', 'code', 'id', 'is_enclave', 'is_deprecated',)
 
 
 class MiniDistrictGeoSerializer(ModelSerializer):
@@ -169,7 +169,7 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
+        fields = ('name', 'code', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class RegionKeyFigureSerializer(ModelSerializer):

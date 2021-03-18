@@ -320,11 +320,9 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'project_districts_detail': [
         {
             'code': 'gMWkIuuRZt',
-            'country_iso': 'rR',
-            'country_name': 'SSxgILwjaiHsxXFAvkgnjGomYJNSHITJSWZhADehibEwtSxiCMHWvlTtbVhoiSjSotinifBSWYhebXEWBcmgcYQGLdEhqcetQaWg',
             'id': 1,
-            'is_deprecated': True,
-            'is_enclave': True,
+            'is_deprecated': False,
+            'is_enclave': False,
             'name': 'faAOrAlJDTKWimlysJFctLtFJVDobYajqtOOEhPQsAlFSPpbhWrFeMVxLEKBqOREShxGUKbqkLdjuDSiwkdrxAOwdssHOeGmXOlW'
         }
     ],
@@ -495,8 +493,6 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'project_districts_detail': [
         {
             'code': 'FnQVDrOIZN',
-            'country_iso': 'XB',
-            'country_name': 'KUOdHmxDjpjVRWtBAueOnArsPkqRMpzphjmbpZtDFJBBPcmkribqYZrQJlPcUFYbdfuMteAxQQfzUiphKVGhHQLXHqFfpMhXZuvL',
             'id': 1,
             'is_deprecated': True,
             'is_enclave': False,

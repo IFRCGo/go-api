@@ -455,7 +455,7 @@ class RegionContactInline(admin.TabularInline):
 class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
-    search_fields = ('name', 'country_name',)
+    search_fields = ('name', 'country__name',)
     modifiable = True
 
 
