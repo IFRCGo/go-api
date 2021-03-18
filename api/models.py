@@ -253,7 +253,7 @@ class District(models.Model):
 
     def __str__(self):
         country_name = self.country.name if self.country else ''
-        return f'country_name - {self.name}'
+        return f'{country_name} - {self.name}'
 
 class CountryGeoms(models.Model):
     """ Admin0 geometries """
