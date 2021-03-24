@@ -16,7 +16,7 @@ def log_errors(errors):
 
 def push_fr_data(data, retired='No'):
     # Contacts
-    c_ifrc = data.contacts.filter(ctype__iexact='Fedaration')
+    c_ifrc = data.contacts.filter(ctype__iexact='Federation')
     c_ns = data.contacts.filter(ctype__iexact='NationalSociety')
 
     # Encode with base64 into bytes, then converting it back to strings for the JSON
