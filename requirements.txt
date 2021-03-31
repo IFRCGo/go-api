@@ -4,7 +4,7 @@ Markdown==2.6.11
 MarkupSafe==1.1.1
 Pillow==7.2.0
 PyPDF2==1.26.0
-Pygments==2.2.0
+Pygments==2.7.4
 Rx==1.6.0
 XML2Dict==0.2.2
 aiofiles==0.4.0
