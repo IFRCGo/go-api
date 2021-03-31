@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.317
+
+### Added
+ - Bumping up pygments, jinja2, pillow
+
 ## 1.1.316
 
 ### Added
@@ -1357,7 +1362,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.316...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.317...HEAD
+[1.1.317]: https://github.com/IFRCGo/go-api/compare/1.1.316...1.1.317
 [1.1.316]: https://github.com/IFRCGo/go-api/compare/1.1.315...1.1.316
 [1.1.315]: https://github.com/IFRCGo/go-api/compare/1.1.314...1.1.315
 [1.1.314]: https://github.com/IFRCGo/go-api/compare/1.1.313...1.1.314
