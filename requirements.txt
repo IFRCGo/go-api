@@ -60,7 +60,7 @@ ipython
 iso8601==0.1.12
 itypes==1.1.0
 jsmin==2.2.2
-lxml==4.6.2
+lxml==4.6.3
 pandas==0.23.4
 pdfminer.six==20191110
 pip==19.3.1
