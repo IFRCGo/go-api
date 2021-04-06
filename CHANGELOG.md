@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.318
 
 ### Added
- - Bump lxml from 4.6.2 to 4.6.3
+ - Bump lxml 4.6.2 > 4.6.3
 
 ## 1.1.317
 
