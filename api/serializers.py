@@ -508,7 +508,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.all():
+            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now()):
                 personnels.append(p)
         return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
 
