@@ -37,6 +37,7 @@ appealbilaterals.json
 
 # Personal / IDE / Editor stuff
 .vscode
+.vs
 .idea
 
 # media
