@@ -993,8 +993,8 @@ class FieldReport(models.Model):
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     status = models.IntegerField(verbose_name=_('status'), default=0)
-    request_assistance = models.BooleanField(verbose_name=_('request assistance'), default=False)
-    ns_request_assistance = models.BooleanField(verbose_name=_('NS request assistance'), default=False)
+    request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank = True)
+    ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank = True)
 
     num_injured = models.IntegerField(verbose_name=_('number of injured'), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_('number of dead'), null=True, blank=True)
