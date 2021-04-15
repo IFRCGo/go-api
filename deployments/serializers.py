@@ -99,7 +99,7 @@ class PersonnelCsvSerializer(ModelSerializer):
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
 
 
 class PartnerDeploymentActivitySerializer(ModelSerializer):

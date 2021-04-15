@@ -1,5 +1,6 @@
 import json
 import datetime
+from collections import defaultdict
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
@@ -128,7 +129,7 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
 class MicroCountrySerializer(ModelSerializer):
     class Meta:
         model = Country
-        fields = ('name', 'iso', 'id')
+        fields = ('id', 'name', 'iso', 'iso3', 'society_name')
 
 
 class RegoCountrySerializer(ModelSerializer):
@@ -506,39 +507,34 @@ class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers
     countries = serializers.SerializerMethodField()
     dtype_name = serializers.SerializerMethodField()
 
-    def get_countries(self, obj):
-        country_fields = {
-            'id': '',
-            'name': ''
+    @staticmethod
+    def _get_aggregated_data(items, fields):
+        data = defaultdict(list)
+        for item in items:
+            for field in fields:
+                value = getattr(item, field, None)
+                if value is not None:
+                    data[field].append(str(value))
+        return {
+            field: ', '.join(data[field])
+            for field in fields
         }
-        countries = obj.countries.all()
-        if countries.exists():
-            country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
-            country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
-        return country_fields
+
+    # NOTE: prefetched at deployments/drf_views.py::PersonnelViewset::get_queryset
+    def get_countries(self, obj):
+        fields = ['id', 'name', 'iso', 'iso3']
+        return self._get_aggregated_data(obj.countries.all(), fields)
 
     def get_field_reports(self, obj):
-        field_reports_fields = {
-            'id': ''
-        }
-        field_reports = obj.field_reports.all()
-        if len(field_reports) > 0:
-            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
-        return field_reports_fields
+        fields = ['id']
+        return self._get_aggregated_data(obj.field_reports.all(), fields)
 
     def get_appeals(self, obj):
-        appeals_fields = {
-            'id': ''
-        }
-        appeals = obj.appeals.all()
-        if len(appeals) > 0:
-            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
-        return appeals_fields
+        fields = ['id', 'status']
+        return self._get_aggregated_data(obj.appeals.all(), fields)
 
     def get_dtype_name(self, obj):
-        if obj.dtype:
-            return obj.dtype.name
-        return None
+        return obj.dtype and obj.dtype.name
 
     class Meta:
         model = Event
