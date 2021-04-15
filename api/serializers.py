@@ -466,7 +466,7 @@ class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers
 
     # NOTE: prefetched at deployments/drf_views.py::PersonnelViewset::get_queryset
     def get_countries(self, obj):
-        fields = ['id', 'name', 'iso', 'iso3']
+        fields = ['id', 'name', 'iso', 'iso3', 'society_name']
         return get_merged_items_by_fields(obj.countries.all(), fields)
 
     def get_field_reports(self, obj):

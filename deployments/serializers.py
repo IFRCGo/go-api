@@ -1,7 +1,17 @@
 from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
+
 from lang.serializers import ModelSerializer
+from api.serializers import (
+    DisasterTypeSerializer,
+    ListEventSerializer,
+    ListEventForPersonnelCsvSerializer,
+    MiniEventSerializer,
+    MiniCountrySerializer,
+    MicroCountrySerializer,
+    MiniDistrictSerializer,
+)
 
 from .models import (
     ERUOwner,
@@ -16,15 +26,6 @@ from .models import (
 
     OperationTypes,
     ProgrammeTypes,
-)
-from api.serializers import (
-    DisasterTypeSerializer,
-    ListEventSerializer,
-    ListEventForPersonnelCsvSerializer,
-    MiniEventSerializer,
-    MiniCountrySerializer,
-    MicroCountrySerializer,
-    MiniDistrictSerializer,
 )
 
 

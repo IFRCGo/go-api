@@ -12,11 +12,9 @@ from django.db.models import (
     Subquery,
     OuterRef,
     IntegerField,
-    CharField,
     Prefetch,
 )
-from django.db.models.functions import Coalesce, Cast
-from django.contrib.postgres.aggregates import StringAgg
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin

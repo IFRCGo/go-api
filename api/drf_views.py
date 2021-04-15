@@ -1,4 +1,5 @@
 import datetime
+
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -12,12 +13,15 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count
 from django.utils import timezone
+
+from main.utils import is_tableau
+from deployments.models import Personnel
+from databank.serializers import CountryOverviewSerializer
+
 from .event_sources import SOURCES
 from .exceptions import BadRequest
-from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
-from deployments.models import Personnel
 
 from .models import (
     DisasterType,
@@ -54,7 +58,6 @@ from .models import (
     MainContact
 )
 
-from databank.serializers import CountryOverviewSerializer
 from .serializers import (
     ActionSerializer,
     DisasterTypeSerializer,
