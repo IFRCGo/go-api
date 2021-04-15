@@ -1,5 +1,7 @@
 import requests
 import base64
+import pytz
+from datetime import datetime
 from api.models import RequestChoices, ERPGUID
 from api.logger import logger
 from django.conf import settings
@@ -35,7 +37,7 @@ def push_fr_data(data, retired='No'):
     try:
         disasterStartDate = data.event.disaster_start_date  # Emergency DisasterStartDate
     except AttributeError:
-        disasterStartDate = '-'
+        disasterStartDate = pytz.timezone("UTC").localize(datetime(1900, 1, 1, 1, 1, 1, 1))
 
 
     payload = {
@@ -44,9 +46,9 @@ def push_fr_data(data, retired='No'):
         "RequestTitle": requestTitle,  # Emergency name
         "CountryNames": countryNames,  # Country ISO2 codes, ; separated
         "DisasterTypeId": data.dtype_id,  # dtype ID
-        "NSRequestDate": data.created_at,
+        "NSRequestDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
         "NumberOfPeopleAffected": data.num_affected,
-        "DisasterStartDate": disasterStartDate,  # Emergency DisasterStartDate
+        "DisasterStartDate": disasterStartDate.strftime("%Y-%m-%d, %H:%M:%S"),  # Emergency DisasterStartDate
         '''
             If “Appeal” <> “No”, then “EA”.
             Else if “DREF” = “No”, then “DREF”
@@ -58,7 +60,7 @@ def push_fr_data(data, retired='No'):
         "NSFocalPoint": ",".join(con.name for con in c_ns),
         "InitialRequestAmount": data.appeal_amount,  # Field Report Appeal amount
         "Retired": retired,  # Not sure if this will be needed/used at all
-        "UpdatedDateTime": data.updated_at  # Field Report Updated at
+        "UpdatedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S")  # Field Report Updated at
     }
 
     # The response contains the GUID (res.text)
