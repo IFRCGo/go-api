@@ -6,6 +6,81 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.325
+
+### Added
+ - Django up to 2.2.20
+
+## 1.1.324
+
+### Added
+ - merge migrations
+
+## 1.1.323
+
+### Added
+ - modify to nullbooleanfields in field report
+
+## 1.1.322
+
+### Added
+ - Fix country uppercase migration issue
+
+## 1.1.321
+
+### Added
+ - country_from only in active deployments
+
+## 1.1.320
+
+### Added
+ - git ignore extended
+
+## 1.1.319
+
+### Added
+ - A short demo change
+
+## 1.1.318
+
+### Added
+ - Bump lxml 4.6.2 > 4.6.3
+
+## 1.1.317
+
+### Added
+ - Bumping up pygments, jinja2, pillow
+
+## 1.1.316
+
+### Added
+ - Add back molnix job
+
+## 1.1.315
+
+### Added
+ - Hotfix release v4.6.3
+
+## 1.1.314
+
+### Added
+ - Hotfix release v4.6.3
+
+## 1.1.313
+
+### Added
+ - Skip MDRMM016 Appeal ingestion
+
+## 1.1.312
+
+### Added
+ - Fix git tag
+
+## 1.1.311
+
+### Added
+ - Release v4.6.2
+
 ## 1.1.310
 
 ### Added
@@ -1327,45 +1402,60 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.2.310...HEAD
-[1.2.310]: https://github.com/IFRCGo/go-api/compare/1.2.309...1.1.310
-[1.2.309]: https://github.com/IFRCGo/go-api/compare/1.2.308...1.1.309
-[1.2.308]: https://github.com/IFRCGo/go-api/compare/1.2.307...1.1.308
-[1.2.307]: https://github.com/IFRCGo/go-api/compare/1.2.306...1.1.307
-[1.2.306]: https://github.com/IFRCGo/go-api/compare/1.2.305...1.1.306
-[1.2.305]: https://github.com/IFRCGo/go-api/compare/1.2.304...1.1.305
-[1.2.304]: https://github.com/IFRCGo/go-api/compare/1.2.303...1.1.304
-[1.2.303]: https://github.com/IFRCGo/go-api/compare/1.2.301...1.1.303
-[1.2.301]: https://github.com/IFRCGo/go-api/compare/1.2.300...1.1.301
-[1.2.300]: https://github.com/IFRCGo/go-api/compare/1.2.299...1.1.300
-[1.2.299]: https://github.com/IFRCGo/go-api/compare/1.2.298...1.1.299
-[1.2.298]: https://github.com/IFRCGo/go-api/compare/1.2.297...1.1.298
-[1.2.297]: https://github.com/IFRCGo/go-api/compare/1.2.296...1.1.297
-[1.2.296]: https://github.com/IFRCGo/go-api/compare/1.2.295...1.1.296
-[1.2.295]: https://github.com/IFRCGo/go-api/compare/1.2.294...1.1.295
-[1.2.294]: https://github.com/IFRCGo/go-api/compare/1.2.293...1.1.294
-[1.2.293]: https://github.com/IFRCGo/go-api/compare/1.2.292...1.1.293
-[1.2.292]: https://github.com/IFRCGo/go-api/compare/1.2.291...1.1.292
-[1.2.291]: https://github.com/IFRCGo/go-api/compare/1.2.290...1.1.291
-[1.2.290]: https://github.com/IFRCGo/go-api/compare/1.2.289...1.1.290
-[1.2.289]: https://github.com/IFRCGo/go-api/compare/1.2.288...1.1.289
-[1.2.288]: https://github.com/IFRCGo/go-api/compare/1.2.287...1.1.288
-[1.2.287]: https://github.com/IFRCGo/go-api/compare/1.2.286...1.1.287
-[1.2.286]: https://github.com/IFRCGo/go-api/compare/1.2.285...1.1.286
-[1.2.285]: https://github.com/IFRCGo/go-api/compare/1.2.284...1.1.285
-[1.2.284]: https://github.com/IFRCGo/go-api/compare/1.2.283...1.1.284
-[1.2.283]: https://github.com/IFRCGo/go-api/compare/1.2.282...1.1.283
-[1.2.282]: https://github.com/IFRCGo/go-api/compare/1.2.281...1.1.282
-[1.2.281]: https://github.com/IFRCGo/go-api/compare/1.2.280...1.1.281
-[1.2.280]: https://github.com/IFRCGo/go-api/compare/1.2.279...1.1.280
-[1.2.279]: https://github.com/IFRCGo/go-api/compare/1.2.278...1.1.279
-[1.2.278]: https://github.com/IFRCGo/go-api/compare/1.2.277...1.1.278
-[1.2.277]: https://github.com/IFRCGo/go-api/compare/1.2.275...1.1.277
-[1.2.276]: https://github.com/IFRCGo/go-api/compare/1.2.275...1.1.276
-[1.2.275]: https://github.com/IFRCGo/go-api/compare/1.2.274...1.1.275
-[1.2.274]: https://github.com/IFRCGo/go-api/compare/1.2.274...1.1.274
-[1.2.274]: https://github.com/IFRCGo/go-api/compare/1.2.273...1.1.274
-[1.2.273]: https://github.com/IFRCGo/go-api/compare/1.2.272...1.1.273
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.325...HEAD
+[1.1.325]: https://github.com/IFRCGo/go-api/compare/1.1.324...1.1.325
+[1.1.324]: https://github.com/IFRCGo/go-api/compare/1.1.323...1.1.324
+[1.1.323]: https://github.com/IFRCGo/go-api/compare/1.1.322...1.1.323
+[1.1.322]: https://github.com/IFRCGo/go-api/compare/1.1.321...1.1.322
+[1.1.321]: https://github.com/IFRCGo/go-api/compare/1.1.320...1.1.321
+[1.1.320]: https://github.com/IFRCGo/go-api/compare/1.1.319...1.1.320
+[1.1.319]: https://github.com/IFRCGo/go-api/compare/1.1.318...1.1.319
+[1.1.318]: https://github.com/IFRCGo/go-api/compare/1.1.317...1.1.318
+[1.1.317]: https://github.com/IFRCGo/go-api/compare/1.1.316...1.1.317
+[1.1.316]: https://github.com/IFRCGo/go-api/compare/1.1.315...1.1.316
+[1.1.315]: https://github.com/IFRCGo/go-api/compare/1.1.314...1.1.315
+[1.1.314]: https://github.com/IFRCGo/go-api/compare/1.1.313...1.1.314
+[1.1.313]: https://github.com/IFRCGo/go-api/compare/1.1.312...1.1.313
+[1.1.312]: https://github.com/IFRCGo/go-api/compare/1.1.311...1.1.312
+[1.1.311]: https://github.com/IFRCGo/go-api/compare/1.1.310...1.1.311
+[1.1.310]: https://github.com/IFRCGo/go-api/compare/1.1.309...1.1.310
+[1.1.309]: https://github.com/IFRCGo/go-api/compare/1.1.308...1.1.309
+[1.1.308]: https://github.com/IFRCGo/go-api/compare/1.1.307...1.1.308
+[1.1.307]: https://github.com/IFRCGo/go-api/compare/1.1.306...1.1.307
+[1.1.306]: https://github.com/IFRCGo/go-api/compare/1.1.305...1.1.306
+[1.1.305]: https://github.com/IFRCGo/go-api/compare/1.1.304...1.1.305
+[1.1.304]: https://github.com/IFRCGo/go-api/compare/1.1.303...1.1.304
+[1.1.303]: https://github.com/IFRCGo/go-api/compare/1.1.301...1.1.303
+[1.1.301]: https://github.com/IFRCGo/go-api/compare/1.1.300...1.1.301
+[1.1.300]: https://github.com/IFRCGo/go-api/compare/1.1.299...1.1.300
+[1.1.299]: https://github.com/IFRCGo/go-api/compare/1.1.298...1.1.299
+[1.1.298]: https://github.com/IFRCGo/go-api/compare/1.1.297...1.1.298
+[1.1.297]: https://github.com/IFRCGo/go-api/compare/1.1.296...1.1.297
+[1.1.296]: https://github.com/IFRCGo/go-api/compare/1.1.295...1.1.296
+[1.1.295]: https://github.com/IFRCGo/go-api/compare/1.1.294...1.1.295
+[1.1.294]: https://github.com/IFRCGo/go-api/compare/1.1.293...1.1.294
+[1.1.293]: https://github.com/IFRCGo/go-api/compare/1.1.292...1.1.293
+[1.1.292]: https://github.com/IFRCGo/go-api/compare/1.1.291...1.1.292
+[1.1.291]: https://github.com/IFRCGo/go-api/compare/1.1.290...1.1.291
+[1.1.290]: https://github.com/IFRCGo/go-api/compare/1.1.289...1.1.290
+[1.1.289]: https://github.com/IFRCGo/go-api/compare/1.1.288...1.1.289
+[1.1.288]: https://github.com/IFRCGo/go-api/compare/1.1.287...1.1.288
+[1.1.287]: https://github.com/IFRCGo/go-api/compare/1.1.286...1.1.287
+[1.1.286]: https://github.com/IFRCGo/go-api/compare/1.1.285...1.1.286
+[1.1.285]: https://github.com/IFRCGo/go-api/compare/1.1.284...1.1.285
+[1.1.284]: https://github.com/IFRCGo/go-api/compare/1.1.283...1.1.284
+[1.1.283]: https://github.com/IFRCGo/go-api/compare/1.1.282...1.1.283
+[1.1.282]: https://github.com/IFRCGo/go-api/compare/1.1.281...1.1.282
+[1.1.281]: https://github.com/IFRCGo/go-api/compare/1.1.280...1.1.281
+[1.1.280]: https://github.com/IFRCGo/go-api/compare/1.1.279...1.1.280
+[1.1.279]: https://github.com/IFRCGo/go-api/compare/1.1.278...1.1.279
+[1.1.278]: https://github.com/IFRCGo/go-api/compare/1.1.277...1.1.278
+[1.1.277]: https://github.com/IFRCGo/go-api/compare/1.1.275...1.1.277
+[1.1.276]: https://github.com/IFRCGo/go-api/compare/1.1.275...1.1.276
+[1.1.275]: https://github.com/IFRCGo/go-api/compare/1.1.274...1.1.275
+[1.1.274]: https://github.com/IFRCGo/go-api/compare/1.1.274...1.1.274
+[1.1.274]: https://github.com/IFRCGo/go-api/compare/1.1.273...1.1.274
+[1.1.273]: https://github.com/IFRCGo/go-api/compare/1.1.272...1.1.273
 [1.1.272]: https://github.com/IFRCGo/go-api/compare/1.1.271...1.1.272
 [1.1.271]: https://github.com/IFRCGo/go-api/compare/1.1.269...1.1.271
 [1.1.269]: https://github.com/IFRCGo/go-api/compare/1.1.268...1.1.269

@@ -10,6 +10,7 @@ from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from utils.erp import push_fr_data
 from functools import wraps
+from api.logger import logger
 
 
 MODEL_TYPES = {
@@ -134,32 +135,35 @@ def log_deletion(sender, instance, using, **kwargs):
 def remove_child_events_from_es(sender, instance, using, **kwargs):
     ''' Handle Emergency Elasticsearch indexes '''
     model = instance.__class__.__name__
-    if model == 'Event':
-        curr_record = Event.objects.filter(id=instance.id).first()
-        # If new record, do nothing, index_and_notify should handle it
-        if curr_record is None:
-            return
+    try:
+        if model == 'Event':
+            curr_record = Event.objects.filter(id=instance.id).first()
+            # If new record, do nothing, index_and_notify should handle it
+            if curr_record is None:
+                return
 
-        if curr_record.parent_event is None and instance.parent_event:
-            # Delete ES record if Emergency became a child
-            delete_es_index(instance)
-        elif curr_record.parent_event and instance.parent_event is None:
-            # Add back ES record if Emergency became a parent (index_elasticsearch.py)
-            create_es_index(instance)
-    elif model == 'Country':
-        curr_record = Country.objects.filter(id=instance.id).first()
-        if instance.in_search:
-            if not curr_record:
+            if curr_record.parent_event is None and instance.parent_event:
+                # Delete ES record if Emergency became a child
+                delete_es_index(instance)
+            elif curr_record.parent_event and instance.parent_event is None:
+                # Add back ES record if Emergency became a parent (index_elasticsearch.py)
                 create_es_index(instance)
-            else:
-                if not curr_record.in_search and instance.in_search:
+        elif model == 'Country':
+            curr_record = Country.objects.filter(id=instance.id).first()
+            if instance.in_search:
+                if not curr_record:
                     create_es_index(instance)
-                elif curr_record.in_search and not instance.in_search:
-                    delete_es_index(instance)
                 else:
-                    update_es_index(instance)
-        else:
-            delete_es_index(instance)
+                    if not curr_record.in_search and instance.in_search:
+                        create_es_index(instance)
+                    elif curr_record.in_search and not instance.in_search:
+                        delete_es_index(instance)
+                    else:
+                        update_es_index(instance)
+            else:
+                delete_es_index(instance)
+    except Exception as ex:
+        logger.error(f'Failed to index a Country, error: {str(ex)[:512]}')
 
 
 # Needs post_save because if a new Field Report is not mapped to an Emergency it will create one

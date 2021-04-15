@@ -142,13 +142,13 @@ class DistrictSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country', 'country_iso', 'country_name', 'id', 'is_deprecated',)
+        fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'is_deprecated',)
+        fields = ('name', 'code', 'id', 'is_enclave', 'is_deprecated',)
 
 
 class MiniDistrictGeoSerializer(ModelSerializer):
@@ -169,7 +169,7 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_iso', 'country_name', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
+        fields = ('name', 'code', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class RegionKeyFigureSerializer(ModelSerializer):
@@ -508,7 +508,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.all():
+            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now()):
                 personnels.append(p)
         return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
 

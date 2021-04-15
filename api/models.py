@@ -86,7 +86,7 @@ class Region(models.Model):
         return 'region-%s' % self.id
 
     def get_national_society_count(self):
-        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY).exclude(society_name_en='').count()
+        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY, independent=True).exclude(society_name_en='').count()
 
     def get_country_cluster_count(self):
         return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
@@ -231,9 +231,6 @@ class District(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=10)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
-    country_iso = models.CharField(verbose_name=_('country ISO2'), max_length=2, null=True,
-                                  validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
-    country_name = models.CharField(verbose_name=_('country name'), max_length=100)
     is_enclave = models.BooleanField(
         verbose_name=_('is enclave?'), default=False, help_text=_('Is it an enclave away from parent country?')
     )  # used to mark if the district is far away from the country
@@ -256,7 +253,8 @@ class District(models.Model):
         verbose_name_plural = _('districts')
 
     def __str__(self):
-        return '%s - %s' % (self.country_name, self.name)
+        country_name = self.country.name if self.country else ''
+        return f'{country_name} - {self.name}'
 
 class CountryGeoms(models.Model):
     """ Admin0 geometries """
@@ -996,8 +994,8 @@ class FieldReport(models.Model):
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     status = models.IntegerField(verbose_name=_('status'), default=0)
-    request_assistance = models.BooleanField(verbose_name=_('request assistance'), default=False)
-    ns_request_assistance = models.BooleanField(verbose_name=_('NS request assistance'), default=False)
+    request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank = True)
+    ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank = True)
 
     num_injured = models.IntegerField(verbose_name=_('number of injured'), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_('number of dead'), null=True, blank=True)

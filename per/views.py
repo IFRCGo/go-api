@@ -298,6 +298,7 @@ class CreatePerOverview(APIView):
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
+        assessment_number = request.data.get('assessment_number', None)
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -336,11 +337,12 @@ class CreatePerOverview(APIView):
             else:
                 return bad_request('You don\'t have permission to create an Overview for the selected Country.')
 
-        prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
+        # prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
         try:
             overview = Overview.objects.create(
-                assessment_number=prev_overview.assessment_number + 1 if prev_overview else 1,
+                # assessment_number=prev_overview.assessment_number + 1 if prev_overview else 1,
+                assessment_number=assessment_number,
                 branches_involved=branches_involved,
                 country_id=country_id,
                 date_of_assessment=date_of_assessment or None,
@@ -415,6 +417,7 @@ class UpdatePerOverview(APIView):
         if ov.is_finalized:
             return bad_request('Form is already finalized. Can\'t save any changes to it.')
 
+        assessment_number = request.data.get('assessment_number', None)
         branches_involved = request.data.get('branches_involved', None)
         country_id = request.data.get('country_id', None)
         date_of_assessment = request.data.get('date_of_assessment', None)
@@ -454,15 +457,14 @@ class UpdatePerOverview(APIView):
             else:
                 return bad_request('You don\'t have permission to update the Overview for the selected Country.')
 
-        prev_overview = None
-        if ov.country_id != country_id:
-            prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
+        # prev_overview = None
+        # if ov.country_id != country_id:
+        #     prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
 
         try:
-            # One-liner didn't work, ov.assessment_number would become a tuple "randomly"... 3 -> (3,)
-            # ov.assessment_number = prev_overview.assessment_number + 1 if prev_overview else ov.assessment_number
-            if prev_overview:
-                ov.assessment_number = prev_overview.assessment_number + 1
+            # if prev_overview:
+            #     ov.assessment_number = prev_overview.assessment_number + 1
+            ov.assessment_number = assessment_number
             ov.branches_involved = branches_involved
             ov.country_id = country_id
             ov.date_of_assessment = date_of_assessment

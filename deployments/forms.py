@@ -81,9 +81,8 @@ class ProjectImportForm(forms.Form):
     def generate_template(cls):
         country_districts = list(
             District.objects
-            .annotate(a_country_name=Coalesce('country__name', 'country_name'))
-            .values_list('a_country_name', 'name')
-            .order_by('a_country_name', 'name')
+            .values_list('country__name', 'name')
+            .order_by('country__name', 'name')
         )
         countries = Country.objects.values_list('name', flat=True)
         disaster_types = DisasterType.objects.values_list('name', flat=True)
@@ -211,10 +210,7 @@ class ProjectImportForm(forms.Form):
                     reduce(
                         lambda acc, item: acc | item,
                         [
-                            (
-                                Q(country_name__iexact=country_name) |
-                                Q(country__name__iexact=country_name)
-                            ) & Q(name__iexact=district_name)
+                            Q(country__name__iexact=country_name) & Q(name__iexact=district_name)
                             for district_name in district_names
                         ],
                     )
