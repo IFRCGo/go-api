@@ -22,15 +22,31 @@ def push_fr_data(data, retired='No'):
 
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     # TODO: check date formats and such when testing...
+    try:
+        requestTitle = data.event.name # Emergency name
+    except AttributeError:
+        requestTitle = '-'
+
+    try:
+        countryNames = ";".join(country.iso for country in data.event.countries) # Country ISO2 codes, ; separated
+    except AttributeError:
+        countryNames = '-'
+
+    try:
+        disasterStartDate = data.event.disaster_start_date  # Emergency DisasterStartDate
+    except AttributeError:
+        disasterStartDate = '-'
+
+
     payload = {
         "RequestId": data.event_id,  # Emergency ID
         "GORequestId": data.id,  # Field Report ID
-        "RequestTitle": data.event.name,  # Emergency name
-        "CountryNames": ";".join(country.iso for country in data.event.countries),  # Country ISO2 codes, ; separated
+        "RequestTitle": requestTitle,  # Emergency name
+        "CountryNames": countryNames,  # Country ISO2 codes, ; separated
         "DisasterTypeId": data.dtype_id,  # dtype ID
         "NSRequestDate": data.created_at,
         "NumberOfPeopleAffected": data.num_affected,
-        "DisasterStartDate": data.event.disaster_start_date,  # Emergency DisasterStartDate
+        "DisasterStartDate": disasterStartDate,  # Emergency DisasterStartDate
         '''
             If “Appeal” <> “No”, then “EA”.
             Else if “DREF” = “No”, then “DREF”

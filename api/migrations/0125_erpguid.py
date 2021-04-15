@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0121_geccode'),
+        ('api', '0124_merge_20210414_0714'),
     ]
 
     operations = [
