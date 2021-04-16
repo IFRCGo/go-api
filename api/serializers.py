@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from lang.serializers import ModelSerializer
+from lang.models import String
 from .models import (
     DisasterType,
     ExternalPartner,
@@ -33,7 +34,6 @@ from .models import (
     SituationReport,
 
     Appeal,
-    AppealType,
     AppealDocument,
 
     Profile,
@@ -275,10 +275,10 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     def get_national_society_count(self, obj):
         return obj.get_national_society_count()
-    
+
     def get_country_cluster_count(self, obj):
         return obj.get_country_cluster_count()
-        
+
     class Meta:
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
@@ -524,6 +524,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
             'id', 'name', 'personnel_count', 'organizations_from',
         )
 
+
 class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
@@ -538,8 +539,8 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'tab_two_title', 'tab_three_title',
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
-            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at', 'id', 'slug', 'tab_one_title',
-            'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
+            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
+            'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
         )
         lookup_field = 'slug'
 
@@ -683,10 +684,13 @@ class UserNameSerializer(UserSerializer):
 class UserMeSerializer(UserSerializer):
     is_admin_for_countries = serializers.SerializerMethodField()
     is_admin_for_regions = serializers.SerializerMethodField()
+    lang_permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = UserSerializer.Meta.fields + ('is_admin_for_countries', 'is_admin_for_regions')
+        fields = UserSerializer.Meta.fields + (
+            'is_admin_for_countries', 'is_admin_for_regions', 'lang_permissions'
+        )
 
     def get_is_admin_for_countries(self, user):
         return set([
@@ -699,6 +703,9 @@ class UserMeSerializer(UserSerializer):
             int(permission[17:]) for permission in user.get_all_permissions()
             if ('api.region_admin_' in permission and permission[17:].isdigit())
         ])
+
+    def get_lang_permissions(self, user):
+        return String.get_user_permissions_per_language(user)
 
 
 class ActionSerializer(ModelSerializer):
@@ -927,4 +934,3 @@ class MainContactSerializer(ModelSerializer):
     class Meta:
         model = MainContact
         fields = '__all__'
-
