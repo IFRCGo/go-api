@@ -1,4 +1,6 @@
 from django.db import transaction
+
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action as djaction
 from rest_framework import (
     viewsets,
@@ -6,21 +8,19 @@ from rest_framework import (
 )
 
 from django.conf import settings
-from main.permissions import ModifyBySuperAdminOnly
+from .permissions import LangStringPermission
 from .serializers import (
     StringSerializer,
     LanguageBulkActionSerializer,
     LanguageBulkActionsSerializer,
 )
-from .models import (
-    String,
-)
+from .models import String
 
 
 class LanguageViewSet(viewsets.ViewSet):
-    # TODO: Add permission level
     # TODO: Cache retrive response to file
-    permission_classes = (ModifyBySuperAdminOnly,)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (LangStringPermission,)
     lookup_url_kwarg = 'pk'
 
     def list(self, request, version=None):
@@ -50,7 +50,8 @@ class LanguageViewSet(viewsets.ViewSet):
 
     @transaction.atomic
     @djaction(
-        detail=True, url_path='bulk-action',
+        detail=True,
+        url_path='bulk-action',
         methods=('post',),
     )
     def bulk_action(self, request, pk=None, *args, **kwargs):
