@@ -10,16 +10,14 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q, Count
+from django.db.models import Prefetch, Count
 from django.utils import timezone
 from .event_sources import SOURCES
 from .exceptions import BadRequest
-from .utils import is_user_ifrc
 from main.utils import is_tableau
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 from deployments.models import Personnel
-from per.models import Overview
 
 from .models import (
     DisasterType,
@@ -36,7 +34,6 @@ from .models import (
 
     District,
 
-    Snippet,
     Event,
     Snippet,
     SituationReport,
@@ -64,13 +61,11 @@ from .serializers import (
     ExternalPartnerSerializer,
     SupportedActivitySerializer,
 
-    RegionSerializer,
     RegionGeoSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
     RegionRelationSerializer,
 
-    CountrySerializer,
     CountryGeoSerializer,
     MiniCountrySerializer,
     CountryKeyFigureSerializer,
@@ -78,7 +73,6 @@ from .serializers import (
     CountryRelationSerializer,
 
     DistrictSerializer,
-    MiniDistrictSerializer,
     MiniDistrictGeoSerializer,
 
     SnippetSerializer,
@@ -113,6 +107,7 @@ from .serializers import (
 )
 from .logger import logger
 
+
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
     queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
@@ -121,7 +116,6 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                             .annotate(personnel__count=Count('personneldeployment__personnel')) \
                             .filter(personnel__count__gt=0) \
                             .order_by('-disaster_start_date')
-
 
 
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
@@ -664,7 +658,7 @@ class GenericFieldReportView(GenericAPIView):
                     data[prop] = model.objects.get(pk=data[prop])
                 except Exception:
                     raise BadRequest('Valid %s is required' % prop)
-            elif prop is not 'event':
+            elif prop != 'event':
                 raise BadRequest('Valid %s is required' % prop)
 
         return data
