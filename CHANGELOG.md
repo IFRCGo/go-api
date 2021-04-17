@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.328
+
+### Added
+ - Bump djangorestframework from 3.9.1 to 3.11.2
+
 ## 1.1.327
 
 ### Added
@@ -1412,7 +1417,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.327...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.328...HEAD
+[1.1.328]: https://github.com/IFRCGo/go-api/compare/1.1.327...1.1.328
 [1.1.327]: https://github.com/IFRCGo/go-api/compare/1.1.326...1.1.327
 [1.1.326]: https://github.com/IFRCGo/go-api/compare/1.1.325...1.1.326
 [1.1.325]: https://github.com/IFRCGo/go-api/compare/1.1.324...1.1.325
