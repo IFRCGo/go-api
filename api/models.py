@@ -1852,7 +1852,7 @@ from .triggers import *  # noqa: E402 F403 F401
 
 class GECCode(models.Model):
     code = models.CharField(verbose_name=_('3 letter GEC code'), max_length=3)
-    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING)
+    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.CASCADE)
 
 
 class ERPGUID(models.Model):
@@ -1862,4 +1862,4 @@ class ERPGUID(models.Model):
         max_length=200,
         help_text='Can be used to do a GET request to check on the microservice API side.'
     )
-    field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=DO_NOTHING)
+    field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=models.CASCADE)

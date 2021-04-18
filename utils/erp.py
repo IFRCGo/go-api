@@ -30,37 +30,76 @@ def push_fr_data(data, retired='No'):
         requestTitle = '-'
 
     try:
-        countryNames = ";".join(country.iso for country in data.event.countries) # Country ISO2 codes, ; separated
+        countryNames = ";".join(country.iso for country in data.event.countries.all()) # Country ISO2 codes, ; separated
     except AttributeError:
-        countryNames = '-'
+        countryNames = '[]'
 
     try:
         disasterStartDate = data.event.disaster_start_date  # Emergency DisasterStartDate
     except AttributeError:
         disasterStartDate = pytz.timezone("UTC").localize(datetime(1900, 1, 1, 1, 1, 1, 1))
 
-
-    payload = {
-        "RequestId": data.event_id,  # Emergency ID
-        "GORequestId": data.id,  # Field Report ID
-        "RequestTitle": requestTitle,  # Emergency name
-        "CountryNames": countryNames,  # Country ISO2 codes, ; separated
-        "DisasterTypeId": data.dtype_id,  # dtype ID
-        "NSRequestDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
-        "NumberOfPeopleAffected": data.num_affected,
-        "DisasterStartDate": disasterStartDate.strftime("%Y-%m-%d, %H:%M:%S"),  # Emergency DisasterStartDate
         '''
+        InitialRequestType:
             If “Appeal” <> “No”, then “EA”.
             Else if “DREF” = “No”, then “DREF”
             Else “Empty”
             (if both DREF and Appeal, then the type must be EA)
         '''
-        "InitialRequestType": "EA" if data.appeal != RequestChoices.NO else ("DREF" if data.dref != RequestChoices.NO else ""),
-        "IFRCFocalPoint": ",".join(con.name for con in c_ifrc),
-        "NSFocalPoint": ",".join(con.name for con in c_ns),
-        "InitialRequestAmount": data.appeal_amount,  # Field Report Appeal amount
-        "Retired": retired,  # Not sure if this will be needed/used at all
-        "UpdatedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S")  # Field Report Updated at
+
+    payload0 = {
+    "Emergency": {
+            "EmergencyId": data.event_id,  # Emergency ID, RequestId
+            "EmergencyTitle": requestTitle,  # Emergency name, RequestTitle
+            "DisasterStartDate": disasterStartDate.strftime("%Y-%m-%d, %H:%M:%S"),  # Emergency DisasterStartDate
+            "DisasterTypeId": data.dtype_id,  # dtype ID
+            "DataAreaId": "ifrc",
+            "FieldReport": {
+                "RequestRetired": retired,  # Not sure if this will be needed/used at all
+                "FieldReportId": data.id,  # Field Report ID, GORequestId
+                "ReportedDateTime":  data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
+                "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
+                "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
+                "NumberOfPeopleAffected": data.num_affected,
+                "InitialRequestType": "EA" if data.appeal != RequestChoices.NO else ("DREF" if data.dref != RequestChoices.NO else ""),
+                "IFRCFocalPoint": ",".join(con.name for con in c_ifrc),
+                "NSFocalPoint": ",".join(con.name for con in c_ns),
+                "InitialRequestAmount": data.appeal_amount,  # Field Report Appeal amount
+            }
+        }
+    }
+
+    payload = {
+        "Emergency": {
+            "EmergencyId": "EM-6424247",
+            "EmergencyTitle": "Internal Demo crizis",
+            "DisasterStartDate": "2020-10-17",
+            "DisasterTypeId": "Complex Emergency",
+            "DataAreaId": "ifrc",
+            "FieldReport": {
+                "RequestRetired": False,
+                "FieldReportId": "420007",
+                "ReportedDateTime": "2021-01-07",
+                "RequestCreationDate": "2021-01-07",
+                "AffectedCountries": [
+                    "AR",
+                    "BI",
+                    "CL"
+                ],
+                "NumberOfPeopleAffected": 30000,
+                "InitialRequestType": "EA",
+                "IFRCFocalPoint": {
+                    "Name": "Jane Doe"
+                },
+                "NSFocalPoint": {
+                    "Name": "Hane Doe"
+                },
+                "InitialRequestAmount": {
+                    "Value": 12345678.00,
+                    "CurrencyCode": "CHF"
+                }
+            }
+        }
     }
 
     # The response contains the GUID (res.text)
