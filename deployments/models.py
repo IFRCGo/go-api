@@ -115,7 +115,7 @@ class PersonnelDeployment(models.Model):
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     previous_update = models.DateTimeField(verbose_name=_('previous update'), null=True, blank=True)
     comments = models.TextField(verbose_name=_('comments'), null=True, blank=True)
-    is_molnix = models.BooleanField(default=False) # Source is Molnix API
+    is_molnix = models.BooleanField(default=False)  # Source is Molnix API
 
     class Meta:
         verbose_name = _('Personnel Deployment')
@@ -128,7 +128,7 @@ class PersonnelDeployment(models.Model):
 class MolnixTag(models.Model):
     '''
     We store tags from molnix in its own model, to make m2m relations
-    from notifications.models.SurgeAlert and DeployedPerson        
+    from notifications.models.SurgeAlert and DeployedPerson
     '''
     molnix_id = models.IntegerField()
     name = models.CharField(max_length=255)
