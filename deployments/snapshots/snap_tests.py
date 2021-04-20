@@ -23,6 +23,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
         {
             'actual_expenditure': 0,
             'budget_amount': 0,
+            'current_status_display': 'Completed',
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
@@ -115,6 +116,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
         {
             'actual_expenditure': 0,
             'budget_amount': 0,
+            'current_status_display': 'Completed',
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
@@ -199,6 +201,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
         {
             'actual_expenditure': 0,
             'budget_amount': 0,
+            'current_status_display': 'Completed',
             'dtype': 6,
             'dtype_detail': {
                 'id': 6,
@@ -286,6 +289,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
 snapshots['TestProjectAPI::test_project_create 1'] = {
     'actual_expenditure': 0,
     'budget_amount': 0,
+    'current_status_display': 'Completed',
     'dtype': None,
     'dtype_detail': None,
     'end_date': '2008-01-01',
@@ -364,6 +368,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
 snapshots['TestProjectAPI::test_project_read 1'] = {
     'actual_expenditure': 0,
     'budget_amount': 0,
+    'current_status_display': 'Completed',
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
@@ -449,6 +454,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
 snapshots['TestProjectAPI::test_project_update 1'] = {
     'actual_expenditure': 0,
     'budget_amount': 0,
+    'current_status_display': 'Completed',
     'dtype': 3,
     'dtype_detail': {
         'id': 3,

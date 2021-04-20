@@ -18,10 +18,14 @@ from .factories.personnel import PersonnelFactory
 class TestProjectAPI(SnapshotTestCase):
     maxDiff = None
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
+    def setUp(self):
+        super().setUp()
+        self.patcher = mock.patch('django.utils.timezone.now')
+        self.patcher.start().return_value = datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC)
+
+    def tearDown(self):
+        self.patcher.stop()
+
     def test_project_list_zero(self):
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -30,10 +34,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assert_200(response)
         self.assertMatchSnapshot(json.loads(response.content))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_list_one(self):
         # create instance
         ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC)
@@ -45,10 +45,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assert_200(response)
         self.assertMatchSnapshot(json.loads(response.content))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_list_two(self):
         # create instances
         ProjectFactory.create_batch(2, visibility=VisibilityCharChoices.PUBLIC)
@@ -60,10 +56,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assert_200(response)
         self.assertMatchSnapshot(json.loads(response.content))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_create(self):
         # authenticate
         new_user = UserFactory.create()
@@ -101,10 +93,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_read(self):
         # create instance
         new_project = ProjectFactory.create(
@@ -118,10 +106,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assert_200(response)
         self.assertMatchSnapshot(json.loads(response.content))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_update(self):
         # create instance
         new_project = ProjectFactory.create(
@@ -152,10 +136,6 @@ class TestProjectAPI(SnapshotTestCase):
         self.assertMatchSnapshot(json.loads(response.content))
         self.assertTrue(Project.objects.get(name=new_project_name))
 
-    @mock.patch(
-        "django.utils.timezone.now",
-        lambda: datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC),
-    )
     def test_project_delete(self):
         # create instance
         new_project = ProjectFactory.create(
