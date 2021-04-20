@@ -3,6 +3,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
@@ -391,6 +392,16 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
+
+    @property
+    def current_status_display(self):
+        # TODO: Update self.status instead using background task after celery is used in production?
+        now = timezone.now().date()
+        if now < self.start_date:
+            return Statuses.PLANNED
+        if now > self.end_date:
+            return Statuses.COMPLETED
+        return Statuses.ONGOING
 
     def get_secondary_sectors_display(self):
         choices_dict = dict(make_hashable(SectorTags.choices()))

@@ -1,14 +1,15 @@
 import json
-import csv
-
-from django.conf import settings
+import datetime
+from unittest import mock
 
 from modeltranslation.utils import build_localized_fieldname
+from django.conf import settings
+
+from deployments.factories.project import ProjectFactory
 from api.models import Country, District, Region, DisasterType
 from main.test_case import APITestCase
 from api.models import VisibilityCharChoices
 
-from .factories.personnel import PersonnelFactory
 
 from .models import (
     Project,
@@ -373,17 +374,23 @@ class ProjectGetTest(APITestCase):
             'links': sorted(resp['links'], key=lambda item: dict_to_string(item)),
         })
 
-    def test_personnel_csv_api(self):
-        [PersonnelFactory() for i in range(10)]
-
-        url = '/api/v2/personnel/?format=csv'
-        resp = self.client.get(url)
-        self.assert_401(resp)
-
-        self.authenticate(self.user)
-        resp = self.client.get(url)
-        self.assert_200(resp)
-        list(csv.reader(resp.content.decode('utf-8').splitlines(), delimiter=','))
+    @mock.patch('deployments.models.timezone')
+    def test_project_current_status(self, mock_timezone):
+        project = ProjectFactory.create(
+            start_date=datetime.date(2012, 11, 12),
+            end_date=datetime.date(2012, 12, 13),
+            status=Statuses.PLANNED.value,
+        )
+        self.authenticate()
+        for now, current_status in [
+                (datetime.date(2011, 11, 11), Statuses.PLANNED),
+                (datetime.date(2012, 11, 15), Statuses.ONGOING),
+                (datetime.date(2012, 12, 14), Statuses.COMPLETED),
+        ]:
+            mock_timezone.now.return_value.date.return_value = now
+            response = self.client.get(f'/api/v2/project/{project.id}/')
+            self.assert_200(response)
+            self.assertEqual(response.data['current_status_display'], str(current_status))
 
 
 class TranslationTest(APITestCase):

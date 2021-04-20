@@ -1,18 +1,27 @@
+import snapshottest.django as django_snapshottest
+import factory.random
+
 from rest_framework.authtoken.models import Token
 from rest_framework import test, status
 
+from django.core import management
 from django.db import DEFAULT_DB_ALIAS, connections
-from django.contrib.auth.models import User
+
+from deployments.factories.user import UserFactory
 
 from lang.translation import AmazonTranslate
 
 
-class APITestCase(test.APITestCase):
+class GoAPITestMixin():
     """
     Base TestCase
     """
+    client_class = test.APIClient
+
     def setUp(self):
-        self.root_user = User.objects.create_user(
+        super().setUp()
+
+        self.root_user = UserFactory.create(
             username='root@test.com',
             first_name='Root',
             last_name='Toot',
@@ -22,7 +31,7 @@ class APITestCase(test.APITestCase):
             is_staff=True,
         )
 
-        self.user = User.objects.create_user(
+        self.user = UserFactory.create(
             username='jon@dave.com',
             first_name='Jon',
             last_name='Mon',
@@ -30,7 +39,7 @@ class APITestCase(test.APITestCase):
             email='jon@dave.com',
         )
 
-        self.ifrc_user = User.objects.create_user(
+        self.ifrc_user = UserFactory.create(
             username='jon@@ifrc.org',
             first_name='IFRC',
             last_name='GO',
@@ -40,7 +49,16 @@ class APITestCase(test.APITestCase):
         self.aws_translator = AmazonTranslate()
 
     def authenticate(self, user=None):
-        user = user or self.user
+        if user is None:
+            if not hasattr(self, 'user'):
+                self.user = UserFactory.create(
+                    username='jon@dave.com',
+                    first_name='Jon',
+                    last_name='Mon',
+                    password='test123',
+                    email='jon@dave.com',
+                )
+            user = self.user
         api_key, created = Token.objects.get_or_create(user=user)
         self.client.credentials(
             HTTP_AUTHORIZATION='Token {}'.format(api_key)
@@ -92,6 +110,16 @@ class APITestCase(test.APITestCase):
             resp = self.client.post(url, body)
         """
         return CaptureOnCommitCallbacksContext(using=using, execute=execute)
+
+
+class APITestCase(GoAPITestMixin, test.APITestCase):
+    pass
+
+
+class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
+    def setUp(self):
+        management.call_command("flush", "--no-input")
+        factory.random.reseed_random(42)
 
 
 class CaptureOnCommitCallbacksContext:
