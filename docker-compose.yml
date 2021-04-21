@@ -111,7 +111,7 @@ services:
 
   test:
     <<: *base_django_setup
-    command: python manage.py test -k
+    command: pytest --durations=10
 
   test_snapshot_update:
     <<: *base_django_setup

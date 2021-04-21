@@ -7,14 +7,6 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['TestProjectAPI::test_project_list_zero 1'] = {
-    'count': 0,
-    'next': None,
-    'previous': None,
-    'results': [
-    ]
-}
-
 snapshots['TestProjectAPI::test_project_list_one 1'] = {
     'count': 1,
     'next': None,
@@ -283,84 +275,6 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
     ]
 }
 
-snapshots['TestProjectAPI::test_project_create 1'] = {
-    'actual_expenditure': 0,
-    'budget_amount': 0,
-    'dtype': None,
-    'dtype_detail': None,
-    'end_date': '2008-01-01',
-    'event': None,
-    'event_detail': None,
-    'id': 1,
-    'modified_at': '2019-03-23T00:00:00.123456Z',
-    'name': 'Mock Project for Create API Test',
-    'operation_type': 1,
-    'operation_type_display': 'Emergency Operation',
-    'primary_sector': 6,
-    'primary_sector_display': 'Shelter',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
-    'project_country': 1,
-    'project_country_detail': {
-        'fdrs': None,
-        'id': 1,
-        'independent': None,
-        'is_deprecated': False,
-        'iso': 'IR',
-        'iso3': 'Zmi',
-        'name': 'HcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPi',
-        'record_type': 5,
-        'record_type_display': 'Representative Office',
-        'region': 1,
-        'society_name': 'tSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQKMtvfdgAlkRsNQSSMKYJlDVLxcfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXahRvvzUKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgHRin'
-    },
-    'project_districts': [
-        1
-    ],
-    'project_districts_detail': [
-        {
-            'code': 'gMWkIuuRZt',
-            'id': 1,
-            'is_deprecated': False,
-            'is_enclave': False,
-            'name': 'faAOrAlJDTKWimlysJFctLtFJVDobYajqtOOEhPQsAlFSPpbhWrFeMVxLEKBqOREShxGUKbqkLdjuDSiwkdrxAOwdssHOeGmXOlW'
-        }
-    ],
-    'reached_female': 0,
-    'reached_male': 0,
-    'reached_other': 0,
-    'reached_total': 0,
-    'regional_project': None,
-    'regional_project_detail': None,
-    'reporting_ns': 1,
-    'reporting_ns_detail': {
-        'fdrs': None,
-        'id': 1,
-        'independent': None,
-        'is_deprecated': False,
-        'iso': 'IR',
-        'iso3': 'Zmi',
-        'name': 'HcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPi',
-        'record_type': 5,
-        'record_type_display': 'Representative Office',
-        'region': 1,
-        'society_name': 'tSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQKMtvfdgAlkRsNQSSMKYJlDVLxcfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXahRvvzUKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgHRin'
-    },
-    'secondary_sectors': [
-    ],
-    'secondary_sectors_display': [
-    ],
-    'start_date': '2008-01-01',
-    'status': 1,
-    'status_display': 'Ongoing',
-    'target_female': 0,
-    'target_male': 0,
-    'target_other': 0,
-    'target_total': 0,
-    'user': 2,
-    'visibility': 'public'
-}
-
 snapshots['TestProjectAPI::test_project_read 1'] = {
     'actual_expenditure': 0,
     'budget_amount': 0,
@@ -438,6 +352,97 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'start_date': '2008-01-01',
     'status': 0,
     'status_display': 'Planned',
+    'target_female': 0,
+    'target_male': 0,
+    'target_other': 0,
+    'target_total': 0,
+    'user': 2,
+    'visibility': 'public'
+}
+
+snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''country_from,deployment.comments,deployment.country_deployed_to.id,deployment.country_deployed_to.iso,deployment.country_deployed_to.iso3,deployment.country_deployed_to.name,deployment.country_deployed_to.society_name,deployment.event_deployed_to,deployment.id,end_date,id,is_active,name,role,start_date,type\r
+,,10,go,obT,plfIgiUjOFBrwDSNpUHKDceuxcjMUOZgyGUfvOVtBzblVqUPVfBhYmKqtNGIYpSZdxKEnWBrVSXlrGQcMzlRsraAnbYAQirrDMYO,uoeNsUTMDLAOMvIyEJavvuwCjDVFnISkRyqzcQKfOFJwfnVHxtsWuCRDbjNLkNwKBAWbWsJVFpyIiyMhgznnhKslkXXVzJAwWnAMruXxOgQROWOuGIIzozFWDsCklzsaIvWDPlRgyLPAAAmObNoiNNGfMKUAbuNpkKOERfxbVMYPyJGmkDxUplETmuisebnKDDpRMCpYlDGPhZMvkpDUeaVcRRAHEyeYAqTIhTXMPITbCEUdsZzUXcxzTGOPCBYhgjqWLWYhUkxAQvjpYEnqgvPSeDTFWpWqvsSCvYCSqKrMcWijHsboxKxTstTkKOtETCRsjVZSijMsyqOobnLtjLaqxUGVHzENkwPjLGuHxyFPkHElEyaQevotnojrMXUYhPmwFDKOaVYYHoVmxQczOgvGerJIVIfZdCKHppqZVlSPpoSTDlcMrJrfVmUeiHtdnopLWLEDgIYduYOemEhCfEmgILnMFtKaLBhUCXPmLZONWDaqWAMr,,10,,10,True,,,,\r
+,,9,lu,gSC,CcwiDUDrakwGGnwTHyGelPjwPUKvDTYirYWQtzePEyEMQlKTGXQHqiSuLLwLNzecbUkogQgFREuWoXZUYpglUyWAedNqhcVeCWxM,yiOKJmmqFCRsomVkBHZYmfLbOQgncZiaxXAKIevlRUUPHFmnKEGwwNJiZeCBOyeKfiYHtghFodMIvbosqyTwekseIKpHNGtzNdIShLEqPbcvAqmvWdinJUvWQdpFeZKNSWZcweAMVNfJEirUcgcFGoPwBEtYobdbXYZmIMyRRVbJEdyXySiBSBJihChNxwmvBdpofLaoAVWZYIKcZaUpdediClscuwMPpsiMzEQhQeeqInFTVwoCTtxXJsPpHruSIGgdwATNFrfniHotVJnhxUYjcpSCPWDhbFcrrLytfdrNyFbyyCconylQBIdQtcIWwbMWvqZWLnWbvUNBBYUVWdZgJyURsIDBKUKXHqkyDVpiarZRrfpXIsvKzcNrxrQqYPZXMahtKQuqlCDbCaDcwEOJnAdLfrNJueClqXYrqFioOljNPdohPclRGCLucJTodTqqbRwITcMpwgeGChGepnuKxRAePBsjbuMYxvAPxEsNbkxcsjLb,,9,,9,True,,,,\r
+,,8,JX,yzM,vthgQaRJXivxVZxVXLHMxpPrnLyfgiOVMhcLPmmTCgeINvtUEWmIUjcimAJTqWJwxCOThBeEAHGYbkMrSiscKdYSmVzFRIGekCWG,rnlakKnLSaYGDGTUHqtosTrJhkocIpscOjrirYdPpnIhaPwOMxufTJqUiANsudOawoUrlqbIQXXLgUVSyPqOOMJnCournLOZWzjCoUUBxjEfFlDllmKFUlPsbtklzRMmejeBpDPzgUHiUWZaMgyybhaWPcipXfrjOMaYaYgIVvTfmiEWKCktvEjpdISrOIhbcgIsgGAjaoboByjwPsoRyRThFkhogsweNvhxfcMjlBHvMlRBjQRtNswgrFQxqZTZeYajXPjujyCUYYEehKBUrjfuilXywuFBESAMYOviZPpyAJFIIFIIoyfLTAHKXSZVoSfpxanbxJEihdwxXisDjJApnodVihSTjyUbSBxdSgQLeEMkbjxjfpeaKAjWlEViVHStEAUvCYPSashjdPcMWlGkazBRDJTqKGtToBkrfHyiVnzNdozlVJMeSDEuPPzykdZxPBmrggexMXvbpskIgenMaWtmJmOcprfKKcKYEcduftawWszG,,8,,8,True,,,,\r
+,,7,Wx,cbm,lpiZcditLBGPWwtLIXjjEtMvsxaHLQRjdpGJdBwmmOmYevmQESSDMSvLKvNtAvkgDYcFoaOoSoDNnpEVXvZVynzlaxaewbJhjsCm,msloqUlvJplmblqgbRiyPYhvntDpxZxQkHZNBTehjiYmmIySxuMBOpcWNLmIsYjupdOYriGLFnUfYEYQNekGyWPWGxFHDluTxHSETFErLzOYLPcnomCpzntByKkxqJfiWfsCHwoLcDGNvBCDBAxZFuryblCoqPewfsGGIPfYroghexcImvmRvqtVXRrmTMiWTVIqaXtswYzzLWPaEPGWjzooUVnEoHLYJWDUDvYfumBXSAnCCJbxiKitVaFZQwvoABRWzWXSItuLbKYcijvKOZMMKzynzeIymEgvKCOtfkgRJlcSMFblmeysnosQHeDdxHakuAzkhiIAEVeynintBTQEkMKtLmGTRDrmajCezMZpHvKFDDKcVfsPDwSTYtzNZlAplNUBDyQlSKgzScpkrOIsQeSUUnFAWJhxeWgGXXuACkqnGcDbeOSRVDyvVzmzcaqhTiuQVDFDefJQpTCiErkkbMglshIVzkeQWaRrjCwlnTcRInCS,,7,,7,True,,,,\r
+,,6,yC,uyC,CHQRfhjzzSLgVkexmvmMzhoBUFrWTXLLrWYZPzwEQMzFGrjXDghqFFoOibgVdeFRblyMRujtNNgWeQWHXFYDmsQFFGqIvZIIbWcB,DcclJQXtTkFBitTyFWhKRFQJRIKEEJkGdzqFLyNRwXsudbLcixwZVLbWOvygBwwAwdQpppPtLfSethvkbIucDQBKGArbSELbuyKyuKgZFgSRnvFGZWQvkNtxBmFOYeInsqdtKzZoNVfTLgLvreKZHEBnwYePtGZtBQIumAzqNGDQWJlbOTHlKFnQVDrOIZNXBKUOdHmxDjpjVRWtBAueOnArsPkqRMpzphjmbpZtDFJBBPcmkribqYZrQJlPcUFYbdfuMteAxQQfzUiphKVGhHQLXHqFfpMhXZuvLVyZVVpBnjglnrCAqLdFIxShuIBERprYjxETxtbPMcVQZdSYQpqJytOSxZRhIpCyazqtfWptnkCOuZXPAYcrfXFEVAvTBgkSqGewAMUJVuDSbWdPPlOCYPiazmOtuKfhkpHTXPWiMRAYuCEViqlRLuZsmfAxlzyKobbJPNOofDmqSkdzNBMqjfxkKhaTHBXDRFhoTnmYrsVFyiBn,,6,,6,True,,,,\r
+,,5,nS,nNd,AttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQKMtvfdgAlkRsNQSSMKYJlDVLxcfXtuxyeWBJesEihSrvHA,gKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXahRvvzUKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgHRinUcDyTHhatcRMfvDcgHXQVtbKWtOnummsrIuXCQhrjkrhaNJGgnIwJurjTZsKpketNvICdibERdgydfBzlTMLOSSCNwtvmTWQZIfWWDKifZSDgDtRPTXDEoojNqxzlSQvYuDFbeEhwEDksXwMKiGgzTYguJPeYtIDzLApNpJkEyevnSLBYBKYvISplQQeVTKFhLMDuJgCltzeMgRMXyuFPQdfniLWOZaWjQjCIsyNKCmnRutKYRtBTwfLaNGzisdxJdaTJwhsbpBSLzOuTyzyBInQlEimJyxAjsQiiaePbjUFQBifiPZADYSMBNlDGB,,5,,5,True,,,,\r
+,,4,aP,UNe,snWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRh,WVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyoHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLkiOGcKjdkqlHzMKObUUQsfnCMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiMIaXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHayPnSZuAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnGzYvZJNSRTdkyO,,4,,4,True,,,,\r
+,,3,nB,nFr,tcCqwfChXZpnZVLSwTNOBkNiYnnZdKwIrMIkuTssKrGRgiWYAdrPiSipjTupWRzFjKOrOAyCeOYXfzGVrSxDFuLaXUfUDOQSweYI,usvJKiKFYvRWdcgOYDbhkCDaBmSiPtkrfPxqfxQPkdzOtUSWoBPfTganEeiLoHRCaaSvhBSiEeoyfUZgguxtiyXWiPRjeHKaNPkCwUnOVjANRCnfgiWhLUywBuYiprPfpJMMUMsXSbQtnHMGmVzsPdYYpFyhpFOMeHaxuiyKAxIRlWEXebLeaqncdYzGsOTGXABSzfOIINjrftfGnZjIuzLOWPRPetSBUpdpfBhDNMdtQVQVlhaTiSakFwHHYUqkxiVXrUhXbvZBrHeqTKOeFDGxdFKkxkqXgKRUhoVGacapcExyjlcJZTVPAoupAUureKxhGRdloZHczeDsXtufJDaxmsKYtVNpDxLFXXmUIWYpjaAboIwOSavaWQyVUtgnHpAFdjTrfcoHASxDVfLgGiOzeLKdBQipsquZzSVuuCroemiXXLgjgkCDuAhIwXnCtDqhfkZRtTSMcnujfTpwzGdRtqlbzCJVJpgDgZYihadXoimzxROP,,3,,3,True,,,,\r
+,,2,tJ,yPY,ECOtYrLdwGetDCcdxsePfNMGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziMT,viQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGohmYipYFbxJKxDZJiNfetzTUEHAXAKeiuPeCDRHwiXJOLlXiBGdhHjtkkuTowHsfqmOJriOtNIfGPkLLjkQNUM,,2,,2,True,,,,\r
+,,1,kD,yrO,OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgfygwwMqZcUDIhyfJsONxKmTecQoXsfogyrDOxkxwnQrSRPeMOkI,SJoRuXXdocZuzrenKTunPFzPDjqipVJIqVLBLzxoiGFfWdhjOkYRBMeyyMDHqJaRUhRIWrXPvhsBkDaUUqGWlGgOtOGMmjxWkIXHaMuFbhxZtpdpKffUFeWIXiiQEJkqHMBnIWUSmTtzQPxCHChpoevbLJoLoaeTOdoecveGprQFnIiUKKEpYEZAmggQBwBADUdRPPgdzUvZgpmmICiBlrDpeCZJgdPIafWpkAFEnzdkyayqYYDsBSUYJQTFjmsndLVIdVuddLEGHkdGfleMeRpzhKpLMcNfAQLKHuqnQTupqziQPtDuWeaDNKgeInGqiwepxskCITtNZPHaQJtQgiqhgVJjrsMnTvnROqGFqdfOBrcavXiOqkVCJTBJaheSjIcxLJjBictxYcwnRpQgwXJANVjpkZZlAblVvYAZQVZprkYSgycEomDwtYoobQmzvreXrwPGzRIvbhqlLqcgMBwUYuBMGhyKmqcTBaHZIRUVVQmxBeQv,,1,,1,True,,,,\r
+'''
+
+snapshots['TestProjectAPI::test_project_create 1'] = {
+    'actual_expenditure': 0,
+    'budget_amount': 0,
+    'dtype': None,
+    'dtype_detail': None,
+    'end_date': '2008-01-01',
+    'event': None,
+    'event_detail': None,
+    'id': 1,
+    'modified_at': '2019-03-23T00:00:00.123456Z',
+    'name': 'Mock Project for Create API Test',
+    'operation_type': 1,
+    'operation_type_display': 'Emergency Operation',
+    'primary_sector': 6,
+    'primary_sector_display': 'Shelter',
+    'programme_type': 2,
+    'programme_type_display': 'Domestic',
+    'project_country': 1,
+    'project_country_detail': {
+        'fdrs': None,
+        'id': 1,
+        'independent': None,
+        'is_deprecated': False,
+        'iso': 'IR',
+        'iso3': 'Zmi',
+        'name': 'HcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPi',
+        'record_type': 5,
+        'record_type_display': 'Representative Office',
+        'region': 1,
+        'society_name': 'tSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQKMtvfdgAlkRsNQSSMKYJlDVLxcfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXahRvvzUKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgHRin'
+    },
+    'project_districts': [
+        1
+    ],
+    'project_districts_detail': [
+        {
+            'code': 'gMWkIuuRZt',
+            'id': 1,
+            'is_deprecated': False,
+            'is_enclave': False,
+            'name': 'faAOrAlJDTKWimlysJFctLtFJVDobYajqtOOEhPQsAlFSPpbhWrFeMVxLEKBqOREShxGUKbqkLdjuDSiwkdrxAOwdssHOeGmXOlW'
+        }
+    ],
+    'reached_female': 0,
+    'reached_male': 0,
+    'reached_other': 0,
+    'reached_total': 0,
+    'regional_project': None,
+    'regional_project_detail': None,
+    'reporting_ns': 1,
+    'reporting_ns_detail': {
+        'fdrs': None,
+        'id': 1,
+        'independent': None,
+        'is_deprecated': False,
+        'iso': 'IR',
+        'iso3': 'Zmi',
+        'name': 'HcqkdsmYSNrdDPaeyQrQQxgbsPyoyGTguFMIflmGDJTbcpHtvFzVkbwRwwOtpGrZdOqybJrojvzQifUyHRNORoApKjBtMvCIinPi',
+        'record_type': 5,
+        'record_type_display': 'Representative Office',
+        'region': 1,
+        'society_name': 'tSTHiBXjPKkueJIUhlujUbWuAAtCVOVrjXmgilbWNNrMKNoMooRbwfSXEiGMETPxlyFEikmocAWarAoVQmWnelCNFSuDpBzXcMVyUuzNVKMIHPTYcHgCDcpHIzVcJyHWOdmsCztXsDkBsNdSHjDPCfUGhlXLSIizAuCblDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwcjcQKMtvfdgAlkRsNQSSMKYJlDVLxcfXtuxyeWBJesEihSrvHAHnSnNdgKUOHfEUSMYTsBMuqHKNwiNKFHUOFFZlNoTsmahbDOYhVnZNAAcvwJZOnaOmSsqYettGJuXahRvvzUKNblmvvREEZcPiEjODIvDYAVdHtKURuJIbnKRvZYwejrbvyOIkKMylMhYWtTuTcrAfFpxCtnHtlhxYcXmfCGbZEGjmvEUHtXujXgHRin'
+    },
+    'secondary_sectors': [
+    ],
+    'secondary_sectors_display': [
+    ],
+    'start_date': '2008-01-01',
+    'status': 1,
+    'status_display': 'Ongoing',
     'target_female': 0,
     'target_male': 0,
     'target_other': 0,
@@ -540,3 +545,11 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
 }
 
 snapshots['TestProjectAPI::test_project_delete 1'] = b''
+
+snapshots['TestProjectAPI::test_project_list_zero 1'] = {
+    'count': 0,
+    'next': None,
+    'previous': None,
+    'results': [
+    ]
+}
