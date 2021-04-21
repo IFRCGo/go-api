@@ -1,6 +1,7 @@
 import json
 import datetime
 from unittest import mock
+from django.core import management
 
 from modeltranslation.utils import build_localized_fieldname
 from django.conf import settings
@@ -374,23 +375,28 @@ class ProjectGetTest(APITestCase):
             'links': sorted(resp['links'], key=lambda item: dict_to_string(item)),
         })
 
-    @mock.patch('deployments.models.timezone')
-    def test_project_current_status(self, mock_timezone):
+    def test_project_current_status(self):
+        Project.objects.all().delete()
         project = ProjectFactory.create(
             start_date=datetime.date(2012, 11, 12),
             end_date=datetime.date(2012, 12, 13),
             status=Statuses.PLANNED.value,
         )
         self.authenticate()
+
+        patcher = mock.patch('django.utils.timezone.now')
+        mock_timezone_now = patcher.start()
         for now, current_status in [
                 (datetime.date(2011, 11, 11), Statuses.PLANNED),
                 (datetime.date(2012, 11, 15), Statuses.ONGOING),
                 (datetime.date(2012, 12, 14), Statuses.COMPLETED),
         ]:
-            mock_timezone.now.return_value.date.return_value = now
+            mock_timezone_now.return_value.date.return_value = now
+            management.call_command('update_project_status')
             response = self.client.get(f'/api/v2/project/{project.id}/')
             self.assert_200(response)
-            self.assertEqual(response.data['current_status_display'], str(current_status))
+            self.assertEqual(response.data['status_display'], str(current_status))
+        patcher.stop()
 
 
 class TranslationTest(APITestCase):

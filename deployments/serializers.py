@@ -165,7 +165,6 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
-    current_status_display = serializers.CharField(read_only=True)
 
     class Meta:
         model = Project
