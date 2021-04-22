@@ -146,6 +146,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'middlewares.middlewares.RequestMiddleware',
+    'opencensus.ext.django.middleware.OpencensusMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -286,6 +287,17 @@ PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
+
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
+
+OPENCENSUS = {
+    'TRACE': {
+        'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
+        'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
+            connection_string="InstrumentationKey={}"
+        )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
+    }
+}
 
 LOGGING = {
     'version': 1,
