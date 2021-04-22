@@ -4,12 +4,28 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
-from django.db.models import Q, Sum, Count, Subquery, OuterRef, IntegerField
+
+from django.db.models import (
+    Q,
+    Sum,
+    Count,
+    Subquery,
+    OuterRef,
+    IntegerField,
+    Prefetch,
+)
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
 from main.utils import is_tableau
+
+from api.models import (
+    Country,
+    Region,
+    FieldReport,
+)
+from api.view_filters import ListFilter
 
 from .filters import ProjectFilter
 from .models import (
@@ -23,13 +39,12 @@ from .models import (
     RegionalProject,
     Project,
 )
-from api.models import Country, Region
-from api.view_filters import ListFilter
 from .serializers import (
     ERUOwnerSerializer,
     ERUSerializer,
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
+    PersonnelCsvSerializer,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
@@ -103,13 +118,32 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
-    serializer_class = PersonnelSerializer
     filter_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
-    def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset()
-        return qs.filter(is_active=True)
+    def get_queryset(self):
+        qs = super().get_queryset().filter(is_active=True).select_related(
+            'country_from',
+            'deployment__country_deployed_to',
+            'deployment__event_deployed_to',
+            'deployment__event_deployed_to__dtype'
+        ).prefetch_related(
+            'deployment__event_deployed_to__countries',
+            'deployment__event_deployed_to__appeals',
+        )
+
+        if self.request.GET.get('format') == 'csv':
+            return qs.prefetch_related(
+                Prefetch('deployment__event_deployed_to__field_reports', queryset=FieldReport.objects.only('id', 'event_id'))
+            )
+        return qs.prefetch_related('deployment__event_deployed_to__field_reports')
+
+    def get_serializer_class(self):
+        request_format_type = self.request.GET.get('format', 'json')
+        if request_format_type == 'csv':
+            return PersonnelCsvSerializer
+        return PersonnelSerializer
+
 
 class PartnerDeploymentFilterset(filters.FilterSet):
     parent_society = filters.NumberFilter(field_name='parent_society', lookup_expr='exact')

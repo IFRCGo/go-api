@@ -4,7 +4,10 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
+from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
+from lang.models import String
+
 from .models import (
     DisasterType,
     ExternalPartner,
@@ -33,7 +36,6 @@ from .models import (
     SituationReport,
 
     Appeal,
-    AppealType,
     AppealDocument,
 
     Profile,
@@ -123,6 +125,12 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
             'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
             'region', 'independent', 'is_deprecated', 'fdrs',
         )
+
+
+class MicroCountrySerializer(ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('id', 'name', 'iso', 'iso3', 'society_name')
 
 
 class RegoCountrySerializer(ModelSerializer):
@@ -275,10 +283,10 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     def get_national_society_count(self, obj):
         return obj.get_national_society_count()
-    
+
     def get_country_cluster_count(self, obj):
         return obj.get_country_cluster_count()
-        
+
     class Meta:
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
@@ -408,33 +416,13 @@ class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSe
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     def get_countries(self, obj):
-        country_fields = {}
-        countries = obj.countries.all()
-        if countries.exists():
-            country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
-            country_fields['name'] = ', '.join(countries.values_list('name', flat=True))
-        else:
-            country_fields['id'] = ''
-            country_fields['name'] = ''
-        return country_fields
+        return get_merged_items_by_fields(obj.countries.all(), ['id', 'name'])
 
     def get_field_reports(self, obj):
-        field_reports_fields = {}
-        field_reports = obj.field_reports.all()
-        if len(field_reports) > 0:
-            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
-        else:
-            field_reports_fields['id'] = ''
-        return field_reports_fields
+        return get_merged_items_by_fields(obj.field_reports.all(), ['id'])
 
     def get_appeals(self, obj):
-        appeals_fields = {}
-        appeals = obj.appeals.all()
-        if len(appeals) > 0:
-            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
-        else:
-            appeals_fields['id'] = ''
-        return appeals_fields
+        return get_merged_items_by_fields(obj.appeals.all(), ['id'])
 
     class Meta:
         model = Event
@@ -453,37 +441,13 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
     def get_countries(self, obj):
-        country_fields = {
-            'id': '',
-            'name': '',
-            'iso': '',
-            'iso3': ''
-        }
-        countries = obj.countries.all()
-        if countries.exists():
-            country_fields['id'] = ', '.join([str(id) for id in countries.values_list('id', flat=True)])
-            country_fields['name'] = ', '.join([country.name or '' for country in countries])
-            country_fields['iso'] = ', '.join([country.iso or '' for country in countries])
-            country_fields['iso3'] = ', '.join([country.iso3 or '' for country in countries])
-        return country_fields
+        return get_merged_items_by_fields(obj.countries.all(), ['id', 'name', 'iso', 'iso3', 'society_name'])
 
     def get_field_reports(self, obj):
-        field_reports_fields = {}
-        field_reports = obj.field_reports.all()
-        if len(field_reports) > 0:
-            field_reports_fields['id'] = ', '.join([str(field_reports.id) for field_reports in field_reports])
-        else:
-            field_reports_fields['id'] = ''
-        return field_reports_fields
+        return get_merged_items_by_fields(obj.field_reports.all(), ['id'])
 
     def get_appeals(self, obj):
-        appeals_fields = {}
-        appeals = obj.appeals.all()
-        if len(appeals) > 0:
-            appeals_fields['id'] = ', '.join([str(appeals.id) for appeals in appeals])
-        else:
-            appeals_fields['id'] = ''
-        return appeals_fields
+        return get_merged_items_by_fields(obj.appeals.all(), ['id'])
 
     class Meta:
         model = Event
@@ -491,6 +455,37 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
             'field_reports', 'updated_at', 'id', 'slug', 'parent_event',
+        )
+
+
+class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    appeals = serializers.SerializerMethodField()
+    field_reports = serializers.SerializerMethodField()
+    countries = serializers.SerializerMethodField()
+    dtype_name = serializers.SerializerMethodField()
+
+    # NOTE: prefetched at deployments/drf_views.py::PersonnelViewset::get_queryset
+    def get_countries(self, obj):
+        fields = ['id', 'name', 'iso', 'iso3', 'society_name']
+        return get_merged_items_by_fields(obj.countries.all(), fields)
+
+    def get_field_reports(self, obj):
+        fields = ['id']
+        return get_merged_items_by_fields(obj.field_reports.all(), fields)
+
+    def get_appeals(self, obj):
+        fields = ['id', 'status']
+        return get_merged_items_by_fields(obj.appeals.all(), fields)
+
+    def get_dtype_name(self, obj):
+        return obj.dtype and obj.dtype.name
+
+    class Meta:
+        model = Event
+        fields = (
+            'name', 'dtype_name', 'countries', 'summary', 'num_affected', 'ifrc_severity_level',
+            'glide', 'disaster_start_date', 'created_at', 'appeals',
+            'field_reports', 'updated_at', 'id', 'parent_event',
         )
 
 
@@ -524,6 +519,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
             'id', 'name', 'personnel_count', 'organizations_from',
         )
 
+
 class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
@@ -538,8 +534,8 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'name', 'dtype', 'countries', 'districts', 'summary', 'num_affected', 'tab_two_title', 'tab_three_title',
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
-            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at', 'id', 'slug', 'tab_one_title',
-            'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
+            'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
+            'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
         )
         lookup_field = 'slug'
 
@@ -683,10 +679,13 @@ class UserNameSerializer(UserSerializer):
 class UserMeSerializer(UserSerializer):
     is_admin_for_countries = serializers.SerializerMethodField()
     is_admin_for_regions = serializers.SerializerMethodField()
+    lang_permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = UserSerializer.Meta.fields + ('is_admin_for_countries', 'is_admin_for_regions')
+        fields = UserSerializer.Meta.fields + (
+            'is_admin_for_countries', 'is_admin_for_regions', 'lang_permissions'
+        )
 
     def get_is_admin_for_countries(self, user):
         return set([
@@ -699,6 +698,9 @@ class UserMeSerializer(UserSerializer):
             int(permission[17:]) for permission in user.get_all_permissions()
             if ('api.region_admin_' in permission and permission[17:].isdigit())
         ])
+
+    def get_lang_permissions(self, user):
+        return String.get_user_permissions_per_language(user)
 
 
 class ActionSerializer(ModelSerializer):
@@ -781,37 +783,13 @@ class ListFieldReportTableauSerializer(FieldReportEnumDisplayMixin, ModelSeriali
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
 
     def get_countries(self, obj):
-        country_fields = {
-            'id': '',
-            'name': ''
-        }
-        countries = obj.countries.all()
-        if len(countries) > 0:
-            country_fields['id'] = ', '.join([str(country.id) for country in countries])
-            country_fields['name'] = ', '.join([str(country.name) for country in countries])
-        return country_fields
+        return get_merged_items_by_fields(obj.countries.all(), ['id', 'name'])
 
     def get_districts(self, obj):
-        district_fields = {
-            'id': '',
-            'name': ''
-        }
-        districts = obj.districts.all()
-        if len(districts) > 0:
-            district_fields['id'] = ', '.join([str(district.id) for district in districts])
-            district_fields['name'] = ', '.join([str(district.name) for district in districts])
-        return district_fields
+        return get_merged_items_by_fields(obj.districts.all(), ['id', 'name'])
 
     def get_regions(self, obj):
-        region_fields = {
-            'id': '',
-            'region_name': ''
-        }
-        regions = obj.regions.all()
-        if len(regions) > 0:
-            region_fields['id'] = ', '.join([str(region.id) for region in regions])
-            region_fields['region_name'] = ', '.join([str(region.region_name) for region in regions])
-        return region_fields
+        return get_merged_items_by_fields(obj.regions.all(), ['id', 'region_name'])
 
     def get_actions_taken_for_organization(self, obj):
         actions_data = {}
@@ -843,41 +821,13 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
 
     def get_countries(self, obj):
-        country_fields = {
-            'id': '',
-            'name': '',
-            'iso': '',
-            'iso3': ''
-        }
-        countries = obj.countries.all()
-        if len(countries) > 0:
-            country_fields['id'] = ', '.join([str(country.id) for country in countries])
-            country_fields['name'] = ', '.join([country.name or '' for country in countries])
-            country_fields['iso'] = ', '.join([country.iso or '' for country in countries])
-            country_fields['iso3'] = ', '.join([country.iso3 or '' for country in countries])
-        return country_fields
+        return get_merged_items_by_fields(obj.countries.all(), ['id', 'name', 'iso', 'iso3', 'society_name'])
 
     def get_districts(self, obj):
-        district_fields = {
-            'id': '',
-            'name': ''
-        }
-        districts = obj.districts.all()
-        if len(districts) > 0:
-            district_fields['id'] = ', '.join([str(district.id) for district in districts])
-            district_fields['name'] = ', '.join([str(district.name) for district in districts])
-        return district_fields
+        return get_merged_items_by_fields(obj.districts.all(), ['id', 'name'])
 
     def get_regions(self, obj):
-        region_fields = {
-            'id': '',
-            'region_name': ''
-        }
-        regions = obj.regions.all()
-        if len(regions) > 0:
-            region_fields['id'] = ', '.join([str(region.id) for region in regions])
-            region_fields['region_name'] = ', '.join([str(region.region_name) for region in regions])
-        return region_fields
+        return get_merged_items_by_fields(obj.regions.all(), ['id', 'region_name'])
 
     def get_actions_taken_for_organization(self, obj):
         actions_data = {}
@@ -927,4 +877,3 @@ class MainContactSerializer(ModelSerializer):
     class Meta:
         model = MainContact
         fields = '__all__'
-
