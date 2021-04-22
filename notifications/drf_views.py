@@ -9,21 +9,25 @@ from .serializers import (
     SubscriptionSerializer,
 )
 
+
 class SurgeAlertFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
     category = filters.NumberFilter(field_name='category', lookup_expr='exact')
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+
     class Meta:
         model = SurgeAlert
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    queryset = SurgeAlert.objects.all()
+    queryset = SurgeAlert.objects.filter(is_active=True)
     filter_class = SurgeAlertFilter
     ordering_fields = ('created_at', 'atype', 'category', 'event',)
+
     def get_serializer_class(self):
         if self.request.user.is_authenticated:
             return SurgeAlertSerializer
@@ -33,5 +37,6 @@ class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return Subscription.objects.filter(user=self.request.user)

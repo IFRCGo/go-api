@@ -1,10 +1,11 @@
+from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
 from api.models import Country, Region, Event, DisasterType
-
+from deployments.models import MolnixTag
 
 class SurgeAlertType(IntEnum):
     FACT = 0
@@ -15,6 +16,15 @@ class SurgeAlertType(IntEnum):
     SURGE = 5
     RAPID_RESPONSE = 6
 
+    class Labels:
+        FACT = _('fact')
+        SIMS = _('SIMS')
+        ERU = _('ERU')
+        DHEOPS = _('DHEOPS')
+        HEOPS = _('HEOPS')
+        SURGE = _('surge')
+        RAPID_RESPONSE = _('rapid response')
+
 
 class SurgeAlertCategory(IntEnum):
     INFO = 0
@@ -23,22 +33,46 @@ class SurgeAlertCategory(IntEnum):
     SHELTER = 3
     STAND_DOWN = 4
 
+    class Labels:
+        INFO = _('information')
+        DEPLOYMENT = _('deployment')
+        ALERT = _('alert')
+        SHELTER = _('shelter')
+        STAND_DOWN = _('stand down')
+
 
 class SurgeAlert(models.Model):
-    """ Manually-entered surge alerts """
-    atype = EnumIntegerField(SurgeAlertType, default=0)
-    category = EnumIntegerField(SurgeAlertCategory, default=0)
-    operation = models.CharField(max_length=100)
-    message = models.TextField()
-    deployment_needed = models.BooleanField(default=False)
-    is_private = models.BooleanField(default=False)
-    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+
+    atype = EnumIntegerField(SurgeAlertType, verbose_name=_('alert type'), default=0)
+    category = EnumIntegerField(SurgeAlertCategory, verbose_name=_('category'), default=0)
+    operation = models.CharField(verbose_name=_('operation'), max_length=100)
+    message = models.TextField(verbose_name=_('message'))
+    deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
+    is_private = models.BooleanField(verbose_name=_('is private?'), default=False)
+    event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
+
+    # Fields specific to Molnix integration:
+    # ID in Molnix system, if parsed from Molnix.
+    molnix_id = models.IntegerField(blank=True, null=True)
+
+    # Status field from Molnix - `unfilled` denotes Stood-Down
+    molnix_status = models.CharField(blank=True, null=True, max_length=32)    
+    opens = models.DateTimeField(blank=True, null=True)
+    closes = models.DateTimeField(blank=True, null=True)
+    start = models.DateTimeField(blank=True, null=True)
+    end = models.DateTimeField(blank=True, null=True)
+    molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
+
+    # Set to inactive when position is no longer in Molnix
+    is_active = models.BooleanField(default=True)
 
     # Don't set `auto_now_add` so we can modify it on save
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(verbose_name=_('created at'))
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = _('Surge Alert')
+        verbose_name_plural = _('Surge Alerts')
 
     def save(self, *args, **kwargs):
         # On save, if `created` is not set, make it the current time
@@ -47,7 +81,10 @@ class SurgeAlert(models.Model):
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.operation
+        if self.operation and self.operation != '':
+            return self.operation
+        else:
+            return self.event.name
 
 
 class SubscriptionType(IntEnum):
@@ -55,12 +92,16 @@ class SubscriptionType(IntEnum):
     NEW = 0
     EDIT = 1
 
+    class Labels:
+        NEW = _('new')
+        EDIT = _('edit')
+
 
 class RecordType(IntEnum):
     """ Types of notifications a user can subscribe to """
     EVENT = 0        # will be obsolete, migrated to NEW_EMERGENCIES
     APPEAL = 1       # will be obsolete, migrated to                 NEW_OPERATIONS
-    FIELD_REPORT = 2 # will be obsolete, migrated to NEW_EMERGENCIES
+    FIELD_REPORT = 2  # will be obsolete, migrated to NEW_EMERGENCIES
     SURGE_ALERT = 3
     COUNTRY = 4
     REGION = 5
@@ -73,6 +114,24 @@ class RecordType(IntEnum):
     NEW_EMERGENCIES = 12
     NEW_OPERATIONS = 13
     GENERAL_ANNOUNCEMENTS = 14
+
+    class Labels:
+        EVENT = _('event')
+        APPEAL = _('appeal')
+        FIELD_REPORT = _('field report')
+        SURGE_ALERT = _('surge alert')
+        COUNTRY = _('country')
+        REGION = _('region')
+        DTYPE = _('disaster type')
+        PER_DUE_DATE = _('per due date')
+        FOLLOWED_EVENT = _('followed event')
+        SURGE_DEPLOYMENT_MESSAGES = _('surge deployment messages')
+        SURGE_APPROACHING_END_OF_MISSION = _('surge approaching end of mission')
+        WEEKLY_DIGEST = _('weekly digest')
+        NEW_EMERGENCIES = _('new emergencies')
+        NEW_OPERATIONS = _('new operations')
+        GENERAL_ANNOUNCEMENTS = _('general announcements')
+
 # Migration
 # update      notification_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
 # delete from notification_subscription                       where rtype=0; -- EVENT    > EMERGENCY
@@ -81,24 +140,30 @@ class RecordType(IntEnum):
 # update      notification_subscription set rtype=12, stype=0 where rtype=2; -- FIELDREP > EMERGENCY
 # delete from notification_subscription                       where rtype=2; -- FIELDREP > EMERGENCY
 
+
 class Subscription(models.Model):
     """ User subscriptions """
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        verbose_name=_('user'),
         on_delete=models.CASCADE,
         related_name='subscription',
     )
 
-    stype = EnumIntegerField(SubscriptionType, default=0)
-    rtype = EnumIntegerField(RecordType, default=0)
+    stype = EnumIntegerField(SubscriptionType, verbose_name=_('subscription type'), default=0)
+    rtype = EnumIntegerField(RecordType, verbose_name=_('record type'), default=0)
 
-    country = models.ForeignKey(Country, null=True, blank=True, on_delete=models.SET_NULL)
-    region = models.ForeignKey(Region, null=True, blank=True, on_delete=models.SET_NULL)
-    dtype = models.ForeignKey(DisasterType, null=True, blank=True, on_delete=models.SET_NULL)
-    event = models.ForeignKey(Event, null=True, blank=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, blank=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
+    event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
 
-    lookup_id = models.CharField(max_length=20, null=True, blank=True, editable=False)
+    lookup_id = models.CharField(verbose_name=_('lookup id'), max_length=20, null=True, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _('Subscription')
+        verbose_name_plural = _('Subscriptions')
 
     # Given a request containing new subscriptions, validate and
     # sync the subscriptions.
@@ -131,7 +196,7 @@ class Subscription(models.Model):
         errors = []
         for req in body:
             rtype = rtype_map.get(req['type'], None)
-            fields = { 'rtype': rtype, 'user': user }
+            fields = {'rtype': rtype, 'user': user}
             error = None
 
             if rtype in [RecordType.EVENT, RecordType.APPEAL, RecordType.FIELD_REPORT]:
@@ -163,7 +228,7 @@ class Subscription(models.Model):
                 if Subscription.objects.filter(user=user, lookup_id=lookup_id) and not deletePrevious:
                     # We check existence only when the previous subscriptions are not to be deleted (add only 1!)
                     # In this case there is no need to continue the for loop. See ¤ below.
-                    new = [] # Not needed in ordinary cases, just a defense for malicious "halfway set data" sending
+                    new = []  # Not needed in ordinary cases, just a defense for malicious "halfway set data" sending
                     break
                 else:
                     try:
@@ -248,3 +313,12 @@ class Subscription(models.Model):
 
     def __str__(self):
         return '%s %s (%s)' % (self.user.username, self.rtype, self.user.email)
+
+
+class NotificationGUID(models.Model):
+    """ Email GUIDs from the sender API """
+    created_at = models.DateTimeField(auto_now_add=True)
+    api_guid = models.CharField(max_length=200,
+                                help_text='Can be used to do a GET request to check on the email sender API side.')
+    email_type = models.CharField(max_length=600, null=True, blank=True)
+    to_list = models.TextField(null=True, blank=True)

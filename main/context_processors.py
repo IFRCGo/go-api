@@ -3,14 +3,12 @@ from api.models import CronJob, CronJobStatus
 
 
 def ifrc_go(request):
-    #| having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
-    #| ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
+    cron_error = CronJob.objects.filter(status=CronJobStatus.ERRONEOUS).order_by('-id').first()
     return {
         # Provide a variable to define current environment
         'PRODUCTION_URL': settings.PRODUCTION_URL,
         'IS_STAGING': True if settings.PRODUCTION_URL == 'dsgocdnapi.azureedge.net' else False,
-        'HAVING_INGEST_ISSUE': False, #| to be used later in api/templates/admin/base_site.html # True if len(having_ingest_issue) > 0 else False,
-        #|'INGEST_ISSUE_ID': ingest_issue_id,
+        # For header /_!_\ error symbol in base_site.html
+        'HAVING_INGEST_ISSUE': True if cron_error else False,
+        'INGEST_ISSUE_ID': cron_error.id if cron_error else None,
     }
-
-#| These can be uncommented if the IM Team decides to have the ! signal in case of ingestion issue on the backend top banner

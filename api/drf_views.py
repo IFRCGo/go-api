@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -9,17 +11,22 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Count
 from django.utils import timezone
+
+from main.utils import is_tableau
+from deployments.models import Personnel
+from databank.serializers import CountryOverviewSerializer
+
 from .event_sources import SOURCES
 from .exceptions import BadRequest
-from .utils import is_user_ifrc
 from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
-from deployments.models import Personnel
 
 from .models import (
     DisasterType,
+    ExternalPartner,
+    SupportedActivity,
 
     Region,
     RegionKeyFigure,
@@ -31,7 +38,6 @@ from .models import (
 
     District,
 
-    Snippet,
     Event,
     Snippet,
     SituationReport,
@@ -49,30 +55,35 @@ from .models import (
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
+    MainContact
 )
 
-from databank.serializers import CountryOverviewSerializer
 from .serializers import (
     ActionSerializer,
     DisasterTypeSerializer,
+    ExternalPartnerSerializer,
+    SupportedActivitySerializer,
 
-    RegionSerializer,
+    RegionGeoSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
     RegionRelationSerializer,
 
-    CountrySerializer,
+    CountryGeoSerializer,
+    MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
 
     DistrictSerializer,
-    MiniDistrictSerializer,
+    MiniDistrictGeoSerializer,
 
     SnippetSerializer,
     ListMiniEventSerializer,
     ListEventSerializer,
+    ListEventCsvSerializer,
     ListEventDeploymentsSerializer,
+    DeploymentsByEventSerializer,
     DetailEventSerializer,
     SituationReportSerializer,
     SituationReportTypeSerializer,
@@ -85,8 +96,29 @@ from .serializers import (
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
+    MainContactSerializer,
+
+    # Tableau Serializers
+    AppealDocumentTableauSerializer,
+    AppealTableauSerializer,
+    CountryTableauSerializer,
+    CountrySnippetTableauSerializer,
+    ListEventTableauSerializer,
+    ListFieldReportTableauSerializer,
+    RegionSnippetTableauSerializer,
+    SituationReportTableauSerializer
 )
 from .logger import logger
+
+
+class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DeploymentsByEventSerializer
+    queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
+                            .filter(personneldeployment__personnel__type=Personnel.RR) \
+                            .filter(personneldeployment__personnel__end_date__gt=datetime.datetime.now()) \
+                            .annotate(personnel__count=Count('personneldeployment__personnel')) \
+                            .filter(personnel__count__gt=0) \
+                            .order_by('-disaster_start_date')
 
 
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
@@ -94,34 +126,40 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Personnel.objects.filter(
-                end_date__gt=timezone.now(),
-            ).order_by().values(
-                'deployment__event_deployed_to', 'type',
-            ).annotate(
-                id=models.F('deployment__event_deployed_to'),
-                deployments=models.Count('type')
-            ).values('id', 'type', 'deployments')
+            end_date__gt=timezone.now(),
+        ).order_by().values(
+            'deployment__event_deployed_to', 'type',
+        ).annotate(
+            id=models.F('deployment__event_deployed_to'),
+            deployments=models.Count('type')
+        ).values('id', 'type', 'deployments')
 
 
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
     serializer_class = DisasterTypeSerializer
 
+
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.all()
+
     def get_serializer_class(self):
         if self.action == 'list':
-            return RegionSerializer
+            return RegionGeoSerializer
         return RegionRelationSerializer
+
 
 class CountryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    record_type = filters.NumberFilter(field_name='record_type', lookup_expr='exact')
+
     class Meta:
         model = Country
-        fields = ('region',)
+        fields = ('region', 'record_type',)
+
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Country.objects.all()
+    queryset = Country.objects.filter(is_deprecated=False)
     filter_class = CountryFilter
 
     def get_object(self):
@@ -140,8 +178,12 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
 
     def get_serializer_class(self):
+        if self.request.GET.get('mini', 'false').lower() == 'true':
+            return MiniCountrySerializer
+        if is_tableau(self.request) is True:
+            return CountryTableauSerializer
         if self.action == 'list':
-            return CountrySerializer
+            return CountryGeoSerializer
         return CountryRelationSerializer
 
     @action(
@@ -161,9 +203,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+
     class Meta:
         model = RegionKeyFigure
         fields = ('region',)
+
 
 class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -171,11 +215,14 @@ class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionKeyFigureFilter
     visibility_model_class = RegionKeyFigure
 
+
 class CountryKeyFigureFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+
     class Meta:
         model = CountryKeyFigure
         fields = ('country',)
+
 
 class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -183,11 +230,14 @@ class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     filter_class = CountryKeyFigureFilter
     visibility_model_class = CountryKeyFigure
 
+
 class RegionSnippetFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+
     class Meta:
         model = RegionSnippet
         fields = ('region',)
+
 
 class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -195,17 +245,31 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = RegionSnippetFilter
     visibility_model_class = RegionSnippet
 
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return RegionSnippetTableauSerializer
+        return RegionSnippetSerializer
+
+
 class CountrySnippetFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+
     class Meta:
         model = CountrySnippet
         fields = ('country',)
+
 
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountrySnippetSerializer
     filter_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return CountrySnippetTableauSerializer
+        return CountrySnippetSerializer
+
 
 class DistrictFilter(filters.FilterSet):
     class Meta:
@@ -214,12 +278,12 @@ class DistrictFilter(filters.FilterSet):
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.all()
+    queryset = District.objects.filter(is_deprecated=False)
     filter_class = DistrictFilter
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return MiniDistrictSerializer
+            return MiniDistrictGeoSerializer
         else:
             return DistrictSerializer
 
@@ -234,6 +298,7 @@ class EventFilter(filters.FilterSet):
     auto_generated_source = filters.ChoiceFilter(
         label='Auto generated source choices', choices=[(v, v) for v in SOURCES.values()],
     )
+
     class Meta:
         model = Event
         fields = {
@@ -250,14 +315,34 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).prefetch_related('dtype')
-        return Event.get_for(self.request.user).filter(parent_event__isnull=True)
+            return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+        return (
+            Event.objects.filter(parent_event__isnull=True)
+            .select_related('dtype')
+            .prefetch_related(
+                'regions',
+                Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
+                Prefetch('countries', queryset=Country.objects.select_related('region')),
+                Prefetch('districts', queryset=District.objects.select_related('country')),
+                Prefetch(
+                    'field_reports',
+                    queryset=FieldReport.objects.select_related('user', 'dtype', 'event')
+                                                .prefetch_related('districts', 'countries', 'regions', 'contacts')
+                ),
+            )
+        )
 
     def get_serializer_class(self):
         if self.action == 'mini_events':
             return ListMiniEventSerializer
         elif self.action == 'list':
-            return ListEventSerializer
+            request_format_type = self.request.GET.get('format', 'json')
+            if request_format_type == 'csv':
+                return ListEventCsvSerializer
+            elif is_tableau(self.request) is True:
+                return ListEventTableauSerializer
+            else:
+                return ListEventSerializer
         else:
             return DetailEventSerializer
 
@@ -285,9 +370,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
 
 class EventSnippetFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+
     class Meta:
         model = Snippet
         fields = ('event',)
+
 
 class EventSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -295,14 +382,17 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filter_class = EventSnippetFilter
     visibility_model_class = Snippet
 
+
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
     ordering_fields = ('type',)
 
+
 class SituationReportFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     type = filters.NumberFilter(field_name='type', lookup_expr='exact')
+
     class Meta:
         model = SituationReport
         fields = {
@@ -310,12 +400,19 @@ class SituationReportFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class SituationReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = SituationReportFilter
     visibility_model_class = SituationReport
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return SituationReportTableauSerializer
+        return SituationReportSerializer
+
 
 class AppealFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
@@ -325,6 +422,7 @@ class AppealFilter(filters.FilterSet):
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+
     class Meta:
         model = Appeal
         fields = {
@@ -332,11 +430,18 @@ class AppealFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.all()
+    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     serializer_class = AppealSerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
+    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+                       'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     filter_class = AppealFilter
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return AppealTableauSerializer
+        return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj['needs_confirmation']:
@@ -363,9 +468,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
+
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
     appeal__in = ListFilter(field_name='appeal__id')
+
     class Meta:
         model = AppealDocument
         fields = {
@@ -373,16 +480,23 @@ class AppealDocumentFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
-    serializer_class = AppealDocumentSerializer
     ordering_fields = ('created_at', 'name',)
     filter_class = AppealDocumentFilter
+
+    def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return AppealDocumentTableauSerializer
+        return AppealDocumentSerializer
+
 
 class ProfileViewset(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
     def get_queryset(self):
         return Profile.objects.filter(user=self.request.user)
 
@@ -412,12 +526,15 @@ class FieldReportFilter(filters.FilterSet):
     countries__in = ListFilter(field_name='countries__id')
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
+
     class Meta:
         model = FieldReport
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
+
 
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
@@ -429,8 +546,9 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
         return qset.prefetch_related('actions_taken', 'actions_taken__actions',
                                      'countries', 'districts', 'regions')
 
-
     def get_serializer_class(self):
+        if is_tableau(self.request) is True:
+            return ListFieldReportTableauSerializer
         if self.action == 'list':
             request_format_type = self.request.GET.get('format', 'json')
             if request_format_type == 'csv':
@@ -443,9 +561,21 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
     filter_class = FieldReportFilter
 
+
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Action.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
+
+
+class ExternalPartnerViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = ExternalPartner.objects.all()
+    serializer_class = ExternalPartnerSerializer
+
+
+class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = SupportedActivity.objects.all()
+    serializer_class = SupportedActivitySerializer
+
 
 class GenericFieldReportView(GenericAPIView):
     authentication_classes = (TokenAuthentication,)
@@ -527,9 +657,9 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data and data[prop] is not None:
                 try:
                     data[prop] = model.objects.get(pk=data[prop])
-                except:
+                except Exception:
                     raise BadRequest('Valid %s is required' % prop)
-            elif prop is not 'event':
+            elif prop != 'event':
                 raise BadRequest('Valid %s is required' % prop)
 
         return data
@@ -564,7 +694,19 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data:
                 del data[prop]
 
-        return data, locations, meta
+        mappings = [
+            ('external_partners', ExternalPartner),
+            ('supported_activities', SupportedActivity)
+        ]
+
+        partners = {}
+        for (prop, model) in mappings:
+            if prop in data and hasattr(data[prop], '__iter__') and len(data[prop]):
+                partners[prop] = list(data[prop])
+            if prop in data:
+                del data[prop]
+
+        return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
         if is_update:
@@ -581,6 +723,15 @@ class GenericFieldReportView(GenericAPIView):
                 country.region is not None
             )])
 
+    def save_partners_activities(self, instance, locations, is_update=False):
+        if is_update:
+            instance.external_partners.clear()
+            instance.supported_activities.clear()
+        if 'external_partners' in locations:
+            instance.external_partners.add(*locations['external_partners'])
+        if 'supported_activities' in locations:
+            instance.supported_activities.add(*locations['supported_activities'])
+
     def save_meta(self, fieldreport, meta, is_update=False):
         if is_update:
             ActionsTaken.objects.filter(field_report=fieldreport).delete()
@@ -588,10 +739,10 @@ class GenericFieldReportView(GenericAPIView):
             Source.objects.filter(field_report=fieldreport).delete()
 
         if 'actions_taken' in meta:
-            for action in meta['actions_taken']:
-                actions = action['actions']
-                del action['actions']
-                actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action)
+            for action_taken in meta['actions_taken']:
+                actions = action_taken['actions']
+                del action_taken['actions']
+                actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
                 actions_taken.actions.add(*actions)
 
         if 'contacts' in meta:
@@ -606,6 +757,7 @@ class GenericFieldReportView(GenericAPIView):
             Source.objects.bulk_create(
                 [Source(field_report=fieldreport, **fields) for fields in meta['sources']]
             )
+
 
 class CreateFieldReport(CreateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
@@ -630,30 +782,33 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         if not serializer.is_valid():
             try:
                 logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
-            except:
+            except Exception:
                 logger.error('Could not log create Field Report serializer errors')
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
-        data, locations, meta = self.map_many_to_many_relations(data)
+        data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
+            # TODO: Use serializer to create fieldreport
             fieldreport = FieldReport.objects.create(**data)
+            CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
                 err_msg = str(e)
-                logger.error('Could not create Field Report. Error: {}'.format(err_msg))
+                logger.error('Could not create Field Report.', exc_info=True)
                 raise BadRequest('Could not create Field Report. Error: {}'.format(err_msg))
-            except:
+            except Exception:
                 raise BadRequest('Could not create Field Report')
 
-        ### Creating relations ###
+        # ### Creating relations ###
         # These are *not* handled in a transaction block.
         # The data model for these is very permissive. We're more interested in the
         # Numerical data being there than not.
         errors = []
         try:
             self.save_locations(fieldreport, locations)
+            self.save_partners_activities(fieldreport, partners)
         except Exception as e:
             errors.append(e)
 
@@ -677,6 +832,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
+
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -693,16 +849,18 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
-        data, locations, meta = self.map_many_to_many_relations(data)
+        data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
             serializer.save()
-        except Exception as e:
+        except Exception:
+            logger.error('Faild to update field report', exc_info=True)
             raise BadRequest('Could not update field report')
 
         errors = []
         try:
             self.save_locations(instance, locations, is_update=True)
+            self.save_partners_activities(instance, partners, is_update=True)
         except Exception as e:
             errors.append(e)
 
@@ -717,3 +875,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
                 logger.error(str(error)[:200])
 
         return Response({'id': instance.id}, status=HTTP_200_OK)
+
+
+class MainContactViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MainContactSerializer
+    queryset = MainContact.objects.order_by('extent')

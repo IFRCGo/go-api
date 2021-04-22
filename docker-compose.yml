@@ -12,22 +12,46 @@ services:
       FRONTEND_URL: $FRONTEND_URL
       FDRS_CREDENTIAL: $FDRS_CREDENTIAL
       HPC_CREDENTIAL: $HPC_CREDENTIAL
+      AWS_TRANSLATE_ACCESS_KEY: $AWS_TRANSLATE_ACCESS_KEY
+      AWS_TRANSLATE_SECRET_KEY: $AWS_TRANSLATE_SECRET_KEY
+      AWS_TRANSLATE_REGION: $AWS_TRANSLATE_REGION
     volumes:
       - '.:/home/ifrc/go-api'
     depends_on:
       - db
+      - redis
     links:
       - db
+      - redis
 
   base:
     build: .
     image: ifrcgo/go-api:latest
+
+  db:
+    image: mdillon/postgis:9.6-alpine
+    environment:
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
+      POSTGRES_DB: test
+    volumes:
+      - './.tmp/pg:/var/lib/postgresql/data'
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis-data:/data
 
   serve:
     <<: *base_django_setup
     ports:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000
+
+  # For development only
+  celery:
+    <<: *base_django_setup
+    command: python manage.py run_celery_dev
 
   bash:
     <<: *base_django_setup
@@ -87,21 +111,27 @@ services:
 
   test:
     <<: *base_django_setup
-    command: python manage.py test -k
+    command: pytest --durations=10
+
+  test_snapshot_update:
+    <<: *base_django_setup
+    command: python manage.py test -k --snapshot-update
 
   coverage:
     <<: *base_django_setup
     command: coverage run --source='.' manage.py test -k
 
+  coverage_report:
+    <<: *base_django_setup
+    command: coverage report
+
+  coverage_html:
+    <<: *base_django_setup
+    command: coverage html
+
   triggers_to_db:
     <<: *base_django_setup
     command: python manage.py triggers_to_db
 
-  db:
-    image: postgres:9.6
-    environment:
-      POSTGRES_PASSWORD: test
-      POSTGRES_USER: test
-      POSTGRES_DB: test
-    volumes:
-      - './.tmp/pg:/var/lib/postgresql/data'
+volumes:
+  redis-data:

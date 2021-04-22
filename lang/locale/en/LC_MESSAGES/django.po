@@ -1,0 +1,47 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lang/apps.py:6
+msgid "lang"
+msgstr "lang"
+
+#: lang/models.py:7
+msgid "language"
+msgstr "language"
+
+#: lang/models.py:8
+msgid "key"
+msgstr "key"
+
+#: lang/models.py:10
+msgid "hash"
+msgstr "hash"
+
+#: lang/models.py:11
+msgid "value"
+msgstr "value"
+
+#: lang/models.py:15
+msgid "String"
+msgstr "String"
+
+#: lang/models.py:16
+msgid "Strings"
+msgstr "Strings"

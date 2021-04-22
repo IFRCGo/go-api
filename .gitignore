@@ -1,3 +1,6 @@
+# go file storage folder
+media
+
 # python virtual environment folder
 env
 
@@ -29,10 +32,18 @@ db.sqlite3-journal
 
 # Generated json file
 appeals.json
+appealbilaterals.json
 .tmp
 
 # Personal / IDE / Editor stuff
 .vscode
+.vs
+.idea
 
 # media
 project-imports/
+
+
+htmlcov
+country-key-documents/
+celerybeat-schedule

@@ -1,7 +1,7 @@
 from django.contrib import admin
-from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ugettext_lazy as _
 
+from .forms import CountryOverviewForm, SeasonalCalenderForm
 from .models import (
     Month,
     CountryOverview,
@@ -9,8 +9,14 @@ from .models import (
     SocialEvent,
     KeyClimateEvent,
     SeasonalCalender,
+
+    KeyDocumentGroup,
+    KeyDocument,
+    ExternalSource,
 )
-from .forms import CountryOverviewForm, SeasonalCalenderForm
+
+
+admin.site.register(KeyDocumentGroup)
 
 
 class SocialEventInline(admin.TabularInline):
@@ -27,13 +33,21 @@ class SeasonalCalenderInine(admin.TabularInline):
     form = SeasonalCalenderForm
 
 
+class KeyDocumentInine(admin.TabularInline):
+    model = KeyDocument
+
+
+class ExternalSourceInine(admin.TabularInline):
+    model = ExternalSource
+
+
 @admin.register(CountryOverview)
 class CountryOverviewAdmin(admin.ModelAdmin):
     autocomplete_fields = ('country',)
     search_fields = ('country__name',)
     list_display = ('country',)
     inlines = [
-        SocialEventInline, KeyClimateEventByInline, SeasonalCalenderInine,
+        SocialEventInline, KeyClimateEventByInline, SeasonalCalenderInine, KeyDocumentInine, ExternalSourceInine
     ]
     form = CountryOverviewForm
     fieldsets = (

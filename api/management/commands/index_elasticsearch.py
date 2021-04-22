@@ -4,10 +4,12 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 
+from utils.elasticsearch import construct_es_data
 from api.esconnection import ES_CLIENT
 from api.indexes import GenericMapping, GenericSetting, ES_PAGE_NAME
 from api.models import Region, Country, Event, Appeal, FieldReport
 from api.logger import logger
+
 
 class Command(BaseCommand):
     help = 'Create a new elasticsearch index and bulk-index existing objects'
@@ -41,26 +43,18 @@ class Command(BaseCommand):
                                    index=index_name,
                                    body=index_mapping)
 
-
     def push_table_to_index(self, model):
-        query = model.objects.all()
+        if model.__name__ == 'Event':
+            query = model.objects.filter(parent_event__isnull=True)
+        elif model.__name__ == 'Country':
+            query = model.objects.filter(in_search=True)
+        else:
+            query = model.objects.all()
         data = [
-            self.convert_for_bulk(s) for s in list(query)
+            construct_es_data(s, is_create=True) for s in list(query)
         ]
         created, errors = bulk(client=ES_CLIENT, actions=data)
         logger.info('Created %s records' % created)
         if len(errors):
             logger.error('Produced the following errors:')
             logger.error('[%s]' % ', '.join(map(str, errors)))
-
-
-    def convert_for_bulk(self, model_object):
-        data = model_object.indexing()
-        metadata = {
-            '_op_type': 'create',
-            '_index': ES_PAGE_NAME,
-            '_type': 'page',
-            '_id': model_object.es_id(),
-        }
-        data.update(**metadata)
-        return data

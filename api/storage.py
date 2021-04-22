@@ -1,13 +1,19 @@
 import mimetypes
 import datetime
+import os
 
 from azure.common import AzureMissingResourceHttpError
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob.models import ContentSettings
 
-from django.core.files.storage import Storage
+from django.core.files.storage import Storage, FileSystemStorage
 from django.conf import settings
 from django.utils.deconstruct import deconstructible
+
+
+def get_storage():
+    return AzureStorage() if os.environ.get('AZURE_STORAGE_ACCOUNT') else FileSystemStorage(location=settings.FILE_STORAGE.get('LOCATION'))
+
 
 @deconstructible
 class AzureStorage(Storage):
@@ -190,6 +196,7 @@ class AzureStorage(Storage):
         blob_url_args = {
             'container_name': self.container,
             'blob_name': name,
+            'protocol': 'https'
         }
 
         if self.cdn_host:

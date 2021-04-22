@@ -1,11 +1,9 @@
-import json
-from datetime import datetime
-from django.test import TestCase
-from rest_framework.test import APITestCase
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
+from django.conf import settings
+
+from main.test_case import APITestCase
 import api.models as models
-import api.drf_views as views
 
 
 class AuthTokenTest(APITestCase):
@@ -20,8 +18,7 @@ class AuthTokenTest(APITestCase):
             'password': '12345678',
         }
         headers = {'CONTENT_TYPE': 'application/json'}
-        response = self.client.post('/get_auth_token', body, format='json', headers=headers).content
-        response = json.loads(response)
+        response = self.client.post('/get_auth_token', body, format='json', headers=headers).json()
         self.assertIsNotNone(response.get('token'))
         self.assertIsNotNone(response.get('expires'))
 
@@ -35,21 +32,22 @@ class SituationReportTypeTest(APITestCase):
         type2 = models.SituationReportType.objects.create(type='Epic')
         dtype1 = models.DisasterType.objects.get(pk=1)
         event1 = models.Event.objects.create(name='disaster1', summary='test disaster1', dtype=dtype1)
-        report1 = models.SituationReport.objects.create(name='test1', event=event1, type=type1, visibility=3)
-        report2 = models.SituationReport.objects.create(name='test2', event=event1, type=type2, visibility=3)
-        report3 = models.SituationReport.objects.create(name='test3', event=event1, type=type2, visibility=3)
+
+        models.SituationReport.objects.create(name='test1', event=event1, type=type1, visibility=3)
+        models.SituationReport.objects.create(name='test2', event=event1, type=type2, visibility=3)
+        models.SituationReport.objects.create(name='test3', event=event1, type=type2, visibility=3)
 
         # Filter by event
         response = self.client.get('/api/v2/situation_report/?limit=100&event=%s' % event1.id)
         print(response)
         self.assertEqual(response.status_code, 200)
-        count = json.loads(response.content)['count']
+        count = response.json()['count']
         self.assertEqual(count, 3)
 
         # Filter by event and type
         response = self.client.get('/api/v2/situation_report/?limit=100&event=%s&type=%s' % (event1.id, type2.id))
         self.assertEqual(response.status_code, 200)
-        count = json.loads(response.content)['count']
+        count = response.json()['count']
         self.assertEqual(count, 2)
 
 
@@ -66,9 +64,10 @@ class FieldReportTest(APITestCase):
             'countries': [country1.id, country2.id],
             'dtype': 7,
             'summary': 'test',
+            'description': 'this is a test description',
             'bulletin': '3',
             'num_assisted': 100,
-            'visibility': 1,
+            'visibility': models.VisibilityChoices.IFRC,
             'sources': [
                 {'stype': 'Government', 'spec': 'A source'},
                 {'stype': 'Other', 'spec': 'Another source'},
@@ -84,8 +83,8 @@ class FieldReportTest(APITestCase):
             'user': user.id,
         }
         self.client.force_authenticate(user=user)
-        response = self.client.post('/api/v2/create_field_report/', body, format='json')
-        response = json.loads(response.content)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post('/api/v2/create_field_report/', body, format='json').json()
         created = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(created.countries.count(), 2)
@@ -104,23 +103,29 @@ class FieldReportTest(APITestCase):
         self.assertTrue(39 in actions)
 
         self.assertEqual(created.contacts.count(), 1)
-        self.assertEqual(created.visibility, 1)
+        self.assertEqual(created.visibility, models.VisibilityChoices.IFRC)
         self.assertEqual(created.dtype.id, 7)
         self.assertEqual(created.summary, 'test')
+        # Translated field test
+        self.assertEqual(created.summary_en, 'test')
+        self.assertEqual(
+            created.summary_es,
+            self.aws_translator._fake_translation('test', 'es', 'en')
+        )
 
         # created an emergency automatically
         self.assertEqual(created.event.name, 'test')
         event_pk = created.event.id
 
         body['countries'] = [country2.id]
+        body['summary'] = 'test [updated]'
         body['sources'] = [
             {'stype': 'Vanilla', 'spec': 'something'},
             {'stype': 'Chocolate', 'spec': 'other'},
         ]
         body['actions_taken'] = []
-        body['visibility'] = 2
-        response = self.client.put('/api/v2/update_field_report/%s/' % created.id, body, format='json')
-        response = json.loads(response.content)
+        body['visibility'] = models.VisibilityChoices.PUBLIC
+        response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
         updated = models.FieldReport.objects.get(pk=response['id'])
 
         self.assertEqual(updated.countries.count(), 1)
@@ -135,9 +140,37 @@ class FieldReportTest(APITestCase):
 
         self.assertEqual(updated.actions_taken.count(), 0)
         self.assertEqual(updated.contacts.count(), 1)
-        self.assertEqual(updated.visibility, 2)
+        self.assertEqual(updated.visibility, models.VisibilityChoices.PUBLIC)
         # emergency still attached
         self.assertEqual(updated.event.id, event_pk)
+        # Translated field test
+        # (Since with with self.capture_on_commit_callbacks(execute=True) is not used so translation has not been triggered)
+        self.assertEqual(updated.summary_en, 'test [updated]')
+        self.assertEqual(updated.description_en, 'this is a test description')
+        self.assertEqual(updated.summary_es, None)  # This has been reset
+        self.assertEqual(
+            updated.description_es,
+            self.aws_translator._fake_translation('this is a test description', 'es', 'en'),
+        )  # This has not been reset
+
+        body['summary'] = 'test [updated again]'
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
+        updated = models.FieldReport.objects.get(pk=response['id'])
+        self.assertEqual(updated.summary_en, 'test [updated again]')
+        self.assertEqual(
+            updated.summary_es,
+            self.aws_translator._fake_translation('test [updated again]', 'es', 'en'),
+        )
+
+        # Check with GET (with different accept-language)
+        for lang, _ in settings.LANGUAGES:
+            response = self.client.get(f'/api/v2/field_report/{created.id}/', HTTP_ACCEPT_LANGUAGE=lang)
+            self.assert_200(response)
+            self.assertEqual(
+                response.json()['summary'],
+                self.aws_translator._fake_translation(body['summary'], lang, 'en') if lang != 'en' else body['summary'],
+            )
 
 
 class VisibilityTest(APITestCase):
@@ -146,16 +179,14 @@ class VisibilityTest(APITestCase):
         # create membership and IFRC snippets
         models.CountrySnippet.objects.create(country=country, visibility=models.VisibilityChoices.MEMBERSHIP)
         models.CountrySnippet.objects.create(country=country, visibility=models.VisibilityChoices.IFRC)
-        response = self.client.get('/api/v2/country_snippet/')
-        response = json.loads(response.content)
+        response = self.client.get('/api/v2/country_snippet/').json()
         # no snippets available to anonymous user
         self.assertEqual(response['count'], 0)
 
         # perform the request with an authenticated user
         user = User.objects.create(username='foo')
         self.client.force_authenticate(user=user)
-        response = self.client.get('/api/v2/country_snippet/')
-        response = json.loads(response.content)
+        response = self.client.get('/api/v2/country_snippet/').json()
         # one snippets available to anonymous user
         self.assertEqual(response['count'], 1)
 
@@ -168,15 +199,13 @@ class VisibilityTest(APITestCase):
         )
         user2.user_permissions.add(ifrc_permission)
         self.client.force_authenticate(user=user2)
-        response = self.client.get('/api/v2/country_snippet/')
-        response = json.loads(response.content)
+        response = self.client.get('/api/v2/country_snippet/').json()
         self.assertEqual(response['count'], 2)
 
         # perform the request with a superuser
         super_user = User.objects.create_superuser(username='baz', email='foo@baz.com', password='12345678')
         self.client.force_authenticate(user=super_user)
-        response = self.client.get('/api/v2/country_snippet/')
-        response = json.loads(response.content)
+        response = self.client.get('/api/v2/country_snippet/').json()
         self.assertEqual(response['count'], 2)
 
         self.client.force_authenticate(user=None)
@@ -257,7 +286,7 @@ class ActionTestCase(APITestCase):
         NTLS = models.ActionOrg.NATIONAL_SOCIETY
         PNS = models.ActionOrg.FOREIGN_SOCIETY
 
-        action1 = models.Action.objects.create(
+        models.Action.objects.create(
             name='Test1',
             field_report_types=[EVENT, EARLY_WARNING],
             organizations=[
@@ -265,13 +294,12 @@ class ActionTestCase(APITestCase):
                 PNS
             ]
         )
-        action2 = models.Action.objects.create(
+        models.Action.objects.create(
             name='Test2',
             field_report_types=[EARLY_WARNING],
             organizations=[]
         )
-        response = self.client.get('/api/v2/action/')
-        response = json.loads(response.content)
+        response = self.client.get('/api/v2/action/').json()
         self.assertEqual(response['count'], 2)
         res1 = response['results'][0]
         self.assertEqual(res1['name'], 'Test1')

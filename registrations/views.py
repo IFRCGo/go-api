@@ -1,4 +1,3 @@
-import json
 import pytz
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -9,11 +8,10 @@ from django.utils.crypto import get_random_string
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
+from rest_framework.views import APIView
 from api.views import (
     bad_request,
     bad_http_request,
-    PublicJsonPostView,
-    PublicJsonRequestView,
 )
 from api.models import Country
 from .models import Pending, DomainWhitelist
@@ -25,10 +23,10 @@ def is_valid_domain(email):
     domain = email.lower().split('@')[1]
     is_allowed = (
         DomainWhitelist.objects
-            .filter(is_active=True)
-            .annotate(domain_name_lower=Lower('domain_name'))
-            .filter(domain_name_lower=domain)
-            .exists()
+                       .filter(is_active=True)
+                       .annotate(domain_name_lower=Lower('domain_name'))
+                       .filter(domain_name_lower=domain)
+                       .exists()
     )
 
     if is_allowed or domain in ['ifrc.org', 'arcs.org.af', 'voroskereszt.hu']:
@@ -39,77 +37,97 @@ def is_valid_domain(email):
 def get_valid_admins(contacts):
     if not type(contacts) is list:
         return False
-    emails = [admin.get('email', None) for admin in contacts]
-    if len(emails) < 1:
+    # Get the emails into an array, don't include None
+    emails = [admin.get('email', None) for admin in contacts if admin.get('email', None)]
+    # Currently we enforce 2 admins to validate
+    if len(emails) < 2:
         return False
-    admin_users = User.objects.filter(email__in=emails)
-    if admin_users.count() != len(emails):
+    is_admin1 = User.objects.filter(email__iexact=emails[0]).exists()
+    is_admin2 = User.objects.filter(email__iexact=emails[1]).exists()
+    if is_admin1 is False or is_admin2 is False:
         return False
     return emails
 
 
-def create_active_user(raw):
-    user = User.objects.create_user(username=raw['username'],
-                                    first_name=raw['firstname'],
-                                    last_name=raw['lastname'],
-                                    email=raw['email'],
-                                    password=raw['password'])
+def create_inactive_user(username, firstname, lastname, email, password):
+    user = User.objects.create_user(username=username,
+                                    first_name=firstname,
+                                    last_name=lastname,
+                                    email=email,
+                                    password=password,
+                                    is_active=False)
     return user
 
 
-def set_user_profile_inactive(user, raw):
-    user.is_active = False
-    user.profile.country = Country.objects.get(pk=raw['country'])
-    user.profile.org_type = raw['organizationType']
-    user.profile.org = raw['organization']
-    user.profile.city = raw['city'] if 'city' in raw else None
-    user.profile.department = raw['department'] if 'department' in raw else None
-    user.profile.position = raw['position'] if 'position' in raw else None
-    user.profile.phone_number = raw['phoneNumber'] if 'phoneNumber' in raw else None
+def set_user_profile(user, country, organization_type, organization, city, department, position, phone_number):
+    user.profile.country = Country.objects.get(pk=country)
+    user.profile.org_type = organization_type
+    user.profile.org = organization
+    user.profile.city = city
+    user.profile.department = department
+    user.profile.position = position
+    user.profile.phone_number = phone_number
     user.save()
     return user
 
 
-class NewRegistration(PublicJsonPostView):
-    def handle_post(self, request, *args, **kwargs):
-        body = json.loads(request.body.decode('utf-8'))
+class NewRegistration(APIView):
+    permission_classes = []
 
-        required_fields = [
+    def post(self, request):
+        required_fields = (
             'email',
-            'username',
+            # 'username',
             'password',
             'country',
             'organizationType',
             'organization',
             'firstname',
             'lastname',
-        ]
+        )
 
-        missing_fields = [field for field in required_fields if field not in body]
-        if len(missing_fields):
+        missing_fields = [field for field in required_fields if field not in request.data]
+        if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
 
-        is_staff = is_valid_domain(body['email'])
-        admins = True if is_staff else get_valid_admins(body['contact'])
+        email = request.data.get('email', None)
+        # Since username is a required field we still need to fill it in
+        # but now only email is being used for new registrations
+        username = request.data.get('email', None)
+        password = request.data.get('password', None)
+        firstname = request.data.get('firstname', None)
+        lastname = request.data.get('lastname', None)
+        country = request.data.get('country', None)
+        city = request.data.get('city', None)
+        organization_type = request.data.get('organizationType', None)
+        organization = request.data.get('organization', None)
+        department = request.data.get('department', None)
+        position = request.data.get('position', None)
+        phone_number = request.data.get('phoneNumber', None)
+        contact = request.data.get('contact', None)
+
+        is_staff = is_valid_domain(email)
+        admins = True if is_staff else get_valid_admins(contact)
         if not admins:
             return bad_request('Non-IFRC users must submit two valid admin emails.')
-        if User.objects.filter(email__iexact=body['email']).count() > 0:
+        if User.objects.filter(email__iexact=email).exists():
             return bad_request('A user with that email address already exists.')
-        if User.objects.filter(username__iexact=body['username']).count() > 0:
+        if User.objects.filter(username__iexact=username).exists():
             return bad_request('That username is taken, please choose a different one.')
-        if ' ' in body['username']:
+        if ' ' in username:
             return bad_request('Username can not contain spaces, please choose a different one.')
 
+        # Create the User object
         try:
-            user = create_active_user(body)
-        except:
+            user = create_inactive_user(username, firstname, lastname, email, password)
+        except Exception:
             return bad_request('Could not create user.')
 
+        # Set the User Profile properties
         try:
-            # Note, this also sets the user's active status to False
-            set_user_profile_inactive(user, body)
-        except:
-            User.objects.filter(username=body['username']).delete()
+            set_user_profile(user, country, organization_type, organization, city, department, position, phone_number)
+        except Exception:
+            User.objects.filter(username=username).delete()
             return bad_request('Could not create user profile.')
 
         pending = Pending.objects.create(user=user,
@@ -126,9 +144,9 @@ class NewRegistration(PublicJsonPostView):
 
         email_context = {
             'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-                settings.BASE_URL, # on PROD it should point to goadmin...
+                settings.BASE_URL,  # on PROD it should point to goadmin...
                 pending.token,
-                body['username'],
+                username,
             )
         }
 
@@ -139,35 +157,41 @@ class NewRegistration(PublicJsonPostView):
             template = 'email/registration/verify-outside-email.html'
 
         send_notification('Validate your account',
-                          [body['email']],
-                          render_to_string(template, email_context))
+                          [email],
+                          render_to_string(template, email_context),
+                          'Validate account - ' + username)
 
         return JsonResponse({'status': 'ok'})
 
 
-class VerifyEmail(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class VerifyEmail(APIView):
+    def get(self, request):
         token = request.GET.get('token', None)
         user = request.GET.get('user', None)
         if not token or not user:
             return bad_http_request('Credentials not found',
-                                    'The URL must include a token and user. Please check your verification email and try again. If this problem persists, contact a system administrator.')
+                                    'The URL must include a token and user. \
+                                    Please check your verification email and try again. \
+                                    If this problem persists, contact a system administrator.')
 
         try:
             pending_user = Pending.objects.get(token=token, user__username=user)
         except ObjectDoesNotExist:
             return bad_http_request('User not found, or token incorrect',
-                                    'We could not find a user and token that matched those supplied. Please contact your system administrator.')
+                                    'We could not find a user and token that matched those supplied. \
+                                    Please contact your system administrator.')
 
         if pending_user.user.is_active:
             return bad_http_request('%s is active' % user,
-                                    'The user is already active. If you need to reset your password, contact your system administrator.')
+                                    'The user is already active. If you need to reset your password, \
+                                    contact your system administrator.')
         if pending_user.email_verified:
             return bad_http_request('You have already verified your email',
                                     'A validation email has been sent to the administrators you listed.')
         if pending_user.created_at < datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(days=1):
             return bad_http_request('This link is expired',
-                                    'You must verify your email within 24 hours. Please contact your system administrator.')
+                                    'You must verify your email within 24 hours. \
+                                    Please contact your system administrator.')
 
         if is_valid_domain(pending_user.user.email):
             pending_user.user.is_active = True
@@ -183,7 +207,7 @@ class VerifyEmail(PublicJsonRequestView):
                 token = pending_user.admin_token_1 if idx == 0 else pending_user.admin_token_2
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
-                        settings.BASE_URL, # on PROD it should point to goadmin...
+                        settings.BASE_URL,  # on PROD it should point to goadmin...
                         token,
                         user,
                     ),
@@ -193,14 +217,15 @@ class VerifyEmail(PublicJsonRequestView):
                 }
                 send_notification('Reference to approve an account',
                                   [admin],
-                                  render_to_string('email/registration/validate.html', email_context))
+                                  render_to_string('email/registration/validate.html', email_context),
+                                  'Approve an account - ' + pending_user.user.username)
             pending_user.email_verified = True
             pending_user.save()
             return HttpResponse(render_to_string('registration/validation-sent.html'))
 
 
-class ValidateUser(PublicJsonRequestView):
-    def handle_get(self, request, *args, **kwargs):
+class ValidateUser(APIView):
+    def get(self, request):
         token = request.GET.get('token', None)
         user = request.GET.get('user', None)
         if not token or not user:
@@ -214,7 +239,8 @@ class ValidateUser(PublicJsonRequestView):
 
         if pending_user.user.is_active:
             return bad_http_request('%s is active' % user,
-                                    'The user is already active. You can modify user accounts any time using the admin interface.')
+                                    'The user is already active. \
+                                    You can modify user accounts any time using the admin interface.')
 
         # Determine which admin we're responding to.
         admin = '1' if token == pending_user.admin_token_1 else '2'
@@ -223,10 +249,10 @@ class ValidateUser(PublicJsonRequestView):
         if did_validate:
             return bad_http_request('Already confirmed',
                                     'You have already confirmed this user.')
-        else:
-            setattr(pending_user, 'admin_%s_validated' % admin, True)
-            setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
-            pending_user.save()
+
+        setattr(pending_user, 'admin_%s_validated' % admin, True)
+        setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
+        pending_user.save()
 
         if pending_user.admin_1_validated and pending_user.admin_2_validated:
             pending_user.user.is_active = True
@@ -236,7 +262,8 @@ class ValidateUser(PublicJsonRequestView):
             }
             send_notification('Your account has been approved',
                               [pending_user.user.email],
-                              render_to_string('email/registration/outside-email-success.html', email_context))
+                              render_to_string('email/registration/outside-email-success.html', email_context),
+                              'Approved account successfully - ' + pending_user.user.username)
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
         else:

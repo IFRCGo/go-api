@@ -6,6 +6,7 @@ from functools import reduce
 from itertools import zip_longest
 
 from django import forms
+from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
@@ -48,9 +49,9 @@ class ProjectForm(forms.ModelForm):
 
 
 class ProjectImportForm(forms.Form):
-    file = forms.FileField(widget=forms.FileInput(attrs={'accept': '.csv'}))
-    field_delimiter = forms.CharField(initial=';')
-    string_delimiter = forms.CharField(initial='"')
+    file = forms.FileField(label=_('file'), widget=forms.FileInput(attrs={'accept': '.csv'}))
+    field_delimiter = forms.CharField(label=_('file delimiter'), initial=';')
+    string_delimiter = forms.CharField(label=_('string delimiter'), initial='"')
 
     class Columns:
         # COLUMNS
@@ -80,9 +81,8 @@ class ProjectImportForm(forms.Form):
     def generate_template(cls):
         country_districts = list(
             District.objects
-            .annotate(a_country_name=Coalesce('country__name', 'country_name'))
-            .values_list('a_country_name', 'name')
-            .order_by('a_country_name', 'name')
+            .values_list('country__name', 'name')
+            .order_by('country__name', 'name')
         )
         countries = Country.objects.values_list('name', flat=True)
         disaster_types = DisasterType.objects.values_list('name', flat=True)
@@ -210,10 +210,7 @@ class ProjectImportForm(forms.Form):
                     reduce(
                         lambda acc, item: acc | item,
                         [
-                            (
-                                Q(country_name__iexact=country_name) |
-                                Q(country__name__iexact=country_name)
-                            ) & Q(name__iexact=district_name)
+                            Q(country__name__iexact=country_name) & Q(name__iexact=district_name)
                             for district_name in district_names
                         ],
                     )

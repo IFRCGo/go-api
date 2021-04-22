@@ -1,16 +1,24 @@
+from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
+
+from lang.serializers import ModelSerializer
+from api.serializers import (
+    DisasterTypeSerializer,
+    ListEventSerializer,
+    ListEventForPersonnelCsvSerializer,
+    MiniEventSerializer,
+    MiniCountrySerializer,
+    MicroCountrySerializer,
+    MiniDistrictSerializer,
+)
 
 from .models import (
     ERUOwner,
     ERU,
     PersonnelDeployment,
+    MolnixTag,
     Personnel,
-    Heop,
-    Fact,
-    FactPerson,
-    Rdrt,
-    RdrtPerson,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
     RegionalProject,
@@ -18,26 +26,19 @@ from .models import (
 
     OperationTypes,
     ProgrammeTypes,
-    Statuses,
-)
-from api.serializers import (
-    DisasterTypeSerializer,
-    ListEventSerializer,
-    MiniEventSerializer,
-    MiniCountrySerializer,
-    MiniDistrictSerializer,
 )
 
 
-class ERUSetSerializer(serializers.ModelSerializer):
+class ERUSetSerializer(EnumSupportSerializerMixin, ModelSerializer):
     deployed_to = MiniCountrySerializer()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class ERUOwnerSerializer(serializers.ModelSerializer):
+class ERUOwnerSerializer(ModelSerializer):
     eru_set = ERUSetSerializer(many=True)
     national_society_country = MiniCountrySerializer()
 
@@ -46,17 +47,18 @@ class ERUOwnerSerializer(serializers.ModelSerializer):
         fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
 
 
-class ERUSerializer(serializers.ModelSerializer):
+class ERUSerializer(EnumSupportSerializerMixin, ModelSerializer):
     deployed_to = MiniCountrySerializer()
     event = ListEventSerializer()
     eru_owner = ERUOwnerSerializer()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
-class PersonnelDeploymentSerializer(serializers.ModelSerializer):
+class PersonnelDeploymentSerializer(ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
     event_deployed_to = ListEventSerializer()
 
@@ -65,23 +67,73 @@ class PersonnelDeploymentSerializer(serializers.ModelSerializer):
         fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to', 'comments', 'id',)
 
 
-class PersonnelSerializer(serializers.ModelSerializer):
+class MolnixTagSerializer(ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'molnix_id', 'name', 'color', 'tag_type')
+        model = MolnixTag
+
+
+class PersonnelDeploymentCsvSerializer(ModelSerializer):
+    country_deployed_to = MicroCountrySerializer()
+    event_deployed_to = ListEventForPersonnelCsvSerializer()
+
+    class Meta:
+        model = PersonnelDeployment
+        fields = ('country_deployed_to', 'event_deployed_to', 'comments', 'id')
+
+
+class PersonnelSerializer(ModelSerializer):
     country_from = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
+    molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from',
+                  'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
 
 
-class PartnerDeploymentActivitySerializer(serializers.ModelSerializer):
+class PersonnelCsvSerializer(ModelSerializer):
+    country_from = MicroCountrySerializer()
+    deployment = PersonnelDeploymentCsvSerializer()
+
+    class Meta:
+        model = Personnel
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
+
+
+class PartnerDeploymentActivitySerializer(ModelSerializer):
 
     class Meta:
         model = PartnerSocietyActivities
         fields = ('activity', 'id',)
 
 
-class PartnerDeploymentSerializer(serializers.ModelSerializer):
+class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
+    parent_society = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer()
+    district_deployed_to = serializers.SerializerMethodField()
+    activity = PartnerDeploymentActivitySerializer()
+
+    def get_district_deployed_to(self, obj):
+        district_fields = {
+            'name': ''
+        }
+        district_deployed_to = obj.district_deployed_to.all()
+        if len(district_deployed_to) > 0:
+            district_fields['name'] = ', '.join([str(district.name) for district in district_deployed_to])
+        return district_fields
+
+    class Meta:
+        model = PartnerSocietyDeployment
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'parent_society', 'country_deployed_to',
+            'district_deployed_to', 'activity', 'id',
+        )
+
+
+class PartnerDeploymentSerializer(ModelSerializer):
     parent_society = MiniCountrySerializer()
     country_deployed_to = MiniCountrySerializer()
     district_deployed_to = MiniDistrictSerializer(many=True)
@@ -95,13 +147,13 @@ class PartnerDeploymentSerializer(serializers.ModelSerializer):
         )
 
 
-class RegionalProjectSerializer(serializers.ModelSerializer):
+class RegionalProjectSerializer(ModelSerializer):
     class Meta:
         model = RegionalProject
         fields = '__all__'
 
 
-class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
@@ -122,8 +174,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'target_total',
-                'project_districts',
+                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'project_districts',
             )
         }
 
@@ -134,16 +185,14 @@ class ProjectSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer)
             data['project_country'] = data['project_districts'][0].country
             for project in data['project_districts'][1:]:
                 if project.country != data['project_country']:
-                    raise serializers.ValidationError('Different country found for given districts')
-        if data['status'] == Statuses.COMPLETED and data.get('reached_total') is None:
-            raise serializers.ValidationError('Reached total should be provided if status is completed')
-        elif (
+                    raise serializers.ValidationError(ugettext('Different country found for given districts'))
+        if (
             data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
             data['programme_type'] == ProgrammeTypes.MULTILATERAL and
             data.get('event') is None
         ):
             raise serializers.ValidationError(
-                'Event should be provided if operation type is Emergency Operation and programme type is Multilateral'
+                ugettext('Event should be provided if operation type is Emergency Operation and programme type is Multilateral')
             )
         return data
 

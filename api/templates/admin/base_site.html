@@ -1,5 +1,7 @@
 {% extends "admin/base.html" %}
 
+{% load i18n %}
+
 {% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
 
 {% block branding %}
@@ -8,14 +10,34 @@
     <a href="{% url 'admin:index' %}">
         <img height="40" src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/go-logo-2020.png">
     </a>
-{% if HAVING_INGEST_ISSUE %}
-<span title="Ingest issue – please check erroneous api/CronJob item">
-    &nbsp;&nbsp;&nbsp;<a href="/api/cronjob/{{ INGEST_ISSUE_ID }}" style="color: red; font-size: larger">&#9888;</a></span>
-{% endif %}
+    {% if HAVING_INGEST_ISSUE and request.user.is_superuser %}
+        <span title="Ingest issue – please check erroneous api/CronJob item">
+            <a 
+                href="/api/cronjob/{{ INGEST_ISSUE_ID }}"
+                style="padding-left: 10px; color: red; font-size: 1.8rem; text-shadow: 0px 0px 16px #f40, 0px 0px 6px #f40;"
+            >&#9888;</a>
+        </span>
+    {% endif %}
 </h1>
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% block nav-global %}
+    <form action="{% url 'set_language' %}" method="post">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ redirect_to }}">
+        <select name="language" style="border: 1px solid rgba(34,36,38,.15);">
+            {% get_current_language as LANGUAGE_CODE %}
+            {% get_available_languages as LANGUAGES %}
+            {% get_language_info_list for LANGUAGES as languages %}
+            {% for language in languages %}
+                <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>
+                    {{ language.name_local }} ({{ language.code }})
+                </option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Go">
+    </form>
+{% endblock %}
 
 
 {% block extrastyle %}
