@@ -72,6 +72,8 @@ python3 manage.py compilemessages
 
 # Import/Export django static translation
 python3 manage.py static-translation-export path-to-export.csv
+# For specific languages or only new(empty) strings.
+python3 manage.py static-translation-export path-to-export.csv --only-new --languages en es
 python3 manage.py static-translation-import path-to-import.csv
 ```
 
