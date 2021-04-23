@@ -288,15 +288,14 @@ FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
 
-APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY', '01234567-89ab-cdef-ghij-klmnopqrstuv')
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
 
 OPENCENSUS = {
     'TRACE': {
         'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
         'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
             connection_string="InstrumentationKey={}"
-        )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY),
-        'EXCLUDELIST_HOSTNAMES': ['localhost', '127.0.0.1', '0.0.0.0'],
+        )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
     }
 }
 
