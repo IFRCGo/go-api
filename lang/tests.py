@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core import management
-from django.contrib.auth import get_permission_codename
 from django.contrib.auth.models import User, Permission
 from main.test_case import APITestCase
 

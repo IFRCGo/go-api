@@ -15,6 +15,7 @@ services:
       AWS_TRANSLATE_ACCESS_KEY: $AWS_TRANSLATE_ACCESS_KEY
       AWS_TRANSLATE_SECRET_KEY: $AWS_TRANSLATE_SECRET_KEY
       AWS_TRANSLATE_REGION: $AWS_TRANSLATE_REGION
+      APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: $APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
     volumes:
       - '.:/home/ifrc/go-api'
     depends_on:
@@ -111,7 +112,7 @@ services:
 
   test:
     <<: *base_django_setup
-    command: python manage.py test -k
+    command: pytest --durations=10
 
   test_snapshot_update:
     <<: *base_django_setup
