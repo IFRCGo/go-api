@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Added
+ - log incoming API requests to Azure
+
 ## 1.1.331
 
 ### Added
