@@ -6,12 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.332
+
 ### Added
- - log incoming API requests to Azure
+ - log incoming API requests to Azure (analytics)
 
 ## 1.1.331
 
 ### Added
+ - Fix broken /docs endpoint via Markdown bump
  - specify languages and string with empty values
 
 ## 1.1.330
@@ -1435,7 +1438,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.331...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.332...HEAD
+[1.1.332]: https://github.com/IFRCGo/go-api/compare/1.1.331...1.1.332
 [1.1.331]: https://github.com/IFRCGo/go-api/compare/1.1.330...1.1.331
 [1.1.330]: https://github.com/IFRCGo/go-api/compare/1.1.329...1.1.330
 [1.1.329]: https://github.com/IFRCGo/go-api/compare/1.1.328...1.1.329
