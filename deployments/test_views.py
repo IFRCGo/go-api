@@ -388,7 +388,9 @@ class ProjectGetTest(APITestCase):
         mock_timezone_now = patcher.start()
         for now, current_status in [
                 (datetime.date(2011, 11, 11), Statuses.PLANNED),
+                (datetime.date(2012, 11, 12), Statuses.ONGOING),
                 (datetime.date(2012, 11, 15), Statuses.ONGOING),
+                (datetime.date(2012, 12, 13), Statuses.ONGOING),
                 (datetime.date(2012, 12, 14), Statuses.COMPLETED),
         ]:
             mock_timezone_now.return_value.date.return_value = now
