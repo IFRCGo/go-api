@@ -359,4 +359,4 @@ MOLNIX_API_BASE = os.environ.get('MOLNIX_API_BASE', 'https://api.ifrc-staging.rp
 MOLNIX_USERNAME = os.environ.get('MOLNIX_USERNAME')
 MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
 
-ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintfn-go.azurewebsites.net/api/ExtractGoEmergency') # Not enough like this
+ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT')

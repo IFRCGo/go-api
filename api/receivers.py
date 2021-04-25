@@ -187,5 +187,5 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
         ).exists()
         if not instance.ns_request_assistance and req_ass_exists:
             # If assistance request was dropped, set retired to yes
-            push_fr_data(instance, retired='Yes')
+            push_fr_data(instance, retired=True)
             return
