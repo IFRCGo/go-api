@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
         for projects, new_status in [
                 (Project.objects.filter(start_date__gt=now), Statuses.PLANNED),
-                (Project.objects.filter(start_date__lt=now, end_date__gt=now), Statuses.ONGOING),
+                (Project.objects.filter(start_date__lte=now, end_date__gte=now), Statuses.ONGOING),
                 (Project.objects.filter(end_date__lt=now), Statuses.COMPLETED),
         ]:
             print(f'Total {str(new_status)} projects: {projects.count()}')
