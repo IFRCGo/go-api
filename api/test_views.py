@@ -2,6 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, Permission
 from django.conf import settings
 
+import json
+from datetime import datetime
 from main.test_case import APITestCase
 import api.models as models
 
@@ -211,68 +213,71 @@ class VisibilityTest(APITestCase):
         self.client.force_authenticate(user=None)
 
 
-# class FieldReportsVisibilityTestCase(APITestCase):
-#     fixtures = ['DisasterTypes',]
-#     def setUp(self):
-#         user = User.objects.create(username='foo')
-#         User.objects.create_superuser(username='bar', email='foo@bar.com', password='12345678')
-#         event = models.Event.objects.create(
-#             dtype=models.DisasterType.objects.get(pk=1),
-#             name='test event for FRs',
-#             disaster_start_date=datetime.now()
-#         )
-#         models.FieldReport.objects.create(
-#             dtype=models.DisasterType.objects.get(pk=1),
-#             summary='membership field report',
-#             bulletin='3',
-#             visibility=1, # MEMBERSHIP
-#             dref='2',
-#             user=user,
-#             event_id=event.id,
-#         )
-#         models.FieldReport.objects.create(
-#             dtype=models.DisasterType.objects.get(pk=1),
-#             summary='ifrc field report',
-#             bulletin='3',
-#             visibility=2, # IFRC
-#             dref='2',
-#             user=user,
-#             event_id=event.id,
-#         )
-#         models.FieldReport.objects.create(
-#             dtype=models.DisasterType.objects.get(pk=1),
-#             summary='public field report',
-#             bulletin='3',
-#             visibility=3, # PUBLIC
-#             dref='2',
-#             user=user,
-#             event_id=event.id,
-#         )
-
-#     def test_field_reports_visibility(self):
-#         user = User.objects.get(username='foo')
-#         user2 = User.objects.get(username='bar')
-
-#         # perform the request without a user
-#         # this user should see FRs with PUBLIC visibility
-#         response = self.client.get('/api/v2/event/6').json()
-
-#         self.assertEqual(len(response['field_reports']), 1)
-#         self.assertEqual(response['field_reports'][0]['summary'], 'public field report')
-
-#         # perform the request with an authenticated user
-#         # this user should see FRs with MEMBERSHIP and PUBLIC visibility
-#         self.client.force_authenticate(user=user)
-#         response = self.client.get('/api/v2/event/6').json()
-
-#         self.assertEqual(len(response['field_reports']), 2)
-
-#         # perform the request with a superuser
-#         # this user should see all FRs
-#         self.client.force_authenticate(user=user2)
-#         response = self.client.get('/api/v2/event/6').json()
-
-#         self.assertEqual(len(response['field_reports']), 3)
+class FieldReportsVisibilityTestCase(APITestCase):
+    fixtures = ['DisasterTypes',]
+    def setUp(self):
+        user = User.objects.create(username='foo')
+        User.objects.create_superuser(username='bar', email='foo@bar.com', password='12345678')
+        event = models.Event.objects.create(
+            dtype=models.DisasterType.objects.get(pk=1),
+            name='test event for FRs',
+            disaster_start_date=datetime.now()
+        )
+        models.FieldReport.objects.create(
+            dtype=models.DisasterType.objects.get(pk=1),
+            summary='membership field report',
+            bulletin='3',
+            visibility=1, # MEMBERSHIP
+            dref='2',
+            user=user,
+            event_id=event.id,
+        )
+        models.FieldReport.objects.create(
+            dtype=models.DisasterType.objects.get(pk=1),
+            summary='ifrc field report',
+            bulletin='3',
+            visibility=2, # IFRC
+            dref='2',
+            user=user,
+            event_id=event.id,
+        )
+        models.FieldReport.objects.create(
+            dtype=models.DisasterType.objects.get(pk=1),
+            summary='public field report',
+            bulletin='3',
+            visibility=3, # PUBLIC
+            dref='2',
+            user=user,
+            event_id=event.id,
+        )
+    
+#    def test_field_reports_visibility(self):
+#        user = User.objects.get(username='foo')
+#        user2 = User.objects.get(username='bar')
+#
+#        # perform the request without a user
+#        # this user should see FRs with PUBLIC visibility
+#        response = self.client.get('/api/v2/event/6')
+#        response = json.loads(response.content)
+#
+#        self.assertEqual(len(response['field_reports']), 1)
+#        self.assertEqual(response['field_reports'][0]['summary'], 'public field report')
+#
+#        # perform the request with an authenticated user
+#        # this user should see FRs with MEMBERSHIP and PUBLIC visibility
+#        self.client.force_authenticate(user=user)
+#        response = self.client.get('/api/v2/event/6')
+#        response = json.loads(response.content)
+#
+#        self.assertEqual(len(response['field_reports']), 2)
+#
+#        # perform the request with a superuser
+#        # this user should see all FRs
+#        self.client.force_authenticate(user=user2)
+#        response = self.client.get('/api/v2/event/6')
+#        response = json.loads(response.content)
+#
+#        self.assertEqual(len(response['field_reports']), 3)
 
 
 class ActionTestCase(APITestCase):

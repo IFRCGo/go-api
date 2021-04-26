@@ -350,13 +350,11 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
             try:
-                instance = Event.objects.get(pk=pk)
-                # instance = Event.get_for(request.user).get(pk=pk)
+                instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
         elif kwargs['slug']:
-            instance = Event.objects.filter(slug=kwargs['slug']).first()
-            # instance = Event.get_for(request.user).filter(slug=kwargs['slug']).first()
+            instance = Event.get_for(request.user).filter(slug=kwargs['slug']).first()
             if not instance:
                 raise Http404
         else:
