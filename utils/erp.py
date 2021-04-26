@@ -19,11 +19,8 @@ def log_errors(errors):
 
 def push_fr_data(data, retired=False):
     # Contacts
-    c_ifrc = data.contacts.filter(ctype__iexact='Federation')
-    c_ifrc_names = ",".join(con.name for con in c_ifrc) # normally there is only 1
-
-    c_ns = data.contacts.filter(ctype__iexact='NationalSociety')
-    c_ns_names = ",".join(con.name for con in c_ns) # normally there is only 1
+    c_ifrc_names = ",".join(data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True))  # normally there is only 1
+    c_ns_names = ",".join(data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True))  # normally there is only 1
 
     requestTitle = data.event.name if date.event else '-'  # Emergency name
 
