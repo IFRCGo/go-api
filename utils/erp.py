@@ -25,10 +25,7 @@ def push_fr_data(data, retired=False):
     c_ns = data.contacts.filter(ctype__iexact='NationalSociety')
     c_ns_names = ",".join(con.name for con in c_ns) # normally there is only 1
 
-    try:
-        requestTitle = data.event.name # Emergency name
-    except AttributeError:
-        requestTitle = '-'
+    requestTitle = data.event.name if date.event else '-'  # Emergency name
 
     try:
         countryNames = [country.iso for country in data.event.countries.all()] # Country ISO2 codes in emergency
