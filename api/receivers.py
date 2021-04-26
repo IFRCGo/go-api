@@ -175,8 +175,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
     update ERP with the data, calling a middleware microservice
     '''
 
-    model = instance.__class__.__name__
-    if model == 'FieldReport':
+    if isinstance(instance, FieldReport):
         # TODO: maybe add a check, and only send request if anything has changed
         if instance.ns_request_assistance:
             push_fr_data(instance)
