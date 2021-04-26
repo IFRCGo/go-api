@@ -10,12 +10,6 @@ from django.conf import settings
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
 
 
-def log_errors(errors):
-    if len(errors):
-        logger.error('Produced the following errors:')
-        logger.error('[%s]' % ', '.join(map(str, errors)))
-
-
 def push_fr_data(data, retired=False):
     # Contacts
     c_ifrc_names = ",".join(data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True))  # normally there is only 1
