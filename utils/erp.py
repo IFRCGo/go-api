@@ -7,7 +7,6 @@ from api.logger import logger
 from django.conf import settings
 
 
-# FIXME: this
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
 
 
