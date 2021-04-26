@@ -15,7 +15,7 @@ def push_fr_data(data, retired=False):
     c_ifrc_names = ",".join(data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True))  # normally there is only 1
     c_ns_names = ",".join(data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True))  # normally there is only 1
 
-    requestTitle = data.event.name if date.event else '-'  # Emergency name
+    requestTitle = data.event.name if data.event else '-'  # Emergency name
 
     try:
         countryNames = [country.iso for country in data.event.countries.all()] # Country ISO2 codes in emergency
