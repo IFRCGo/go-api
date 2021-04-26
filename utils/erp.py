@@ -50,7 +50,7 @@ def push_fr_data(data, retired=False):
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
                 "NumberOfPeopleAffected": 0 if data.num_affected is None else data.num_affected,
-                "InitialRequestType": "EA" if data.appeal != RequestChoices.NO else ("DREF" if data.dref != RequestChoices.NO else ""),
+                "InitialRequestType": "EA" if data.appeal != RequestChoices.NO else ("DREF" if data.dref != RequestChoices.NO else "Empty"),
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},
                 "InitialRequestAmount": {"Value": 0 if data.appeal_amount is None else data.appeal_amount, "CurrencyCode": "CHF"}  # Field Report Appeal amount
