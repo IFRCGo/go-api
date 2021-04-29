@@ -34,7 +34,7 @@ class Command(BaseCommand):
       print('Exporting district centroids...')
       subprocess.Popen(['rm', '/tmp/district-centroids.geojson'])
       # FIXME eventually should be name_en, name_es etc.
-      subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', connection_string, '-sql', 'select id, name, is_deprecated, is_enclave, country_iso, centroid from api_district where centroid is not null'])
+      subprocess.Popen(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', connection_string, '-sql', 'select d.id, d.name, d.is_deprecated, d.is_enclave, c.iso, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null'])
 
       print('Update Mapbox tileset source for countries...')
       subprocess.Popen(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-countries-src', '/tmp/countries.geojson'])
