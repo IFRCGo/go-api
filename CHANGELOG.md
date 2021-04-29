@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.336
+
+### Added
+ - Using dtype.name instead of id
+
 ## 1.1.335
 
 ### Added
@@ -1453,7 +1458,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.335...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.336...HEAD
+[1.1.336]: https://github.com/IFRCGo/go-api/compare/1.1.335...1.1.336
 [1.1.335]: https://github.com/IFRCGo/go-api/compare/1.1.334...1.1.335
 [1.1.334]: https://github.com/IFRCGo/go-api/compare/1.1.333...1.1.334
 [1.1.333]: https://github.com/IFRCGo/go-api/compare/1.1.332...1.1.333
