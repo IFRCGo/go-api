@@ -12,8 +12,6 @@ class DistrictFactory(factory.django.DjangoModelFactory):
     name = fuzzy.FuzzyText(length=100)
     code = fuzzy.FuzzyText(length=10)
     country = factory.SubFactory(country.CountryFactory)
-    country_iso = fuzzy.FuzzyText(length=2)
-    country_name = fuzzy.FuzzyText(length=100)
     is_enclave = fuzzy.FuzzyChoice([True, False])
     is_deprecated = fuzzy.FuzzyChoice([True, False])
     wb_population = fuzzy.FuzzyInteger(0)

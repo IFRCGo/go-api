@@ -17,7 +17,7 @@ from django.shortcuts import redirect
 from django.urls import path
 from django.utils.translation import get_language
 
-from middlewares.middlewares import get_signal_request
+# from middlewares.middlewares import get_signal_request
 
 from .translation import AVAILABLE_LANGUAGES
 from .serializers import TranslatedModelSerializerMixin

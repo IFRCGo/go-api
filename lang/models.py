@@ -17,3 +17,19 @@ class String(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.value, self.language)
+
+    @classmethod
+    def _get_permission_per_language_codename(cls, lang_code):
+        # NOTE: Make sure this is equivalent to the customly created permission code
+        return f"{cls._meta.app_label}.lang__string__maintain__{lang_code}"
+
+    @classmethod
+    def has_perm(cls, user, lang_code):
+        return user.has_perm(cls._get_permission_per_language_codename(lang_code))
+
+    @classmethod
+    def get_user_permissions_per_language(cls, user):
+        return {
+            lang_code: user.has_perm(cls._get_permission_per_language_codename(lang_code))
+            for lang_code, _ in settings.LANGUAGES
+        }
