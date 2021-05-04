@@ -11,6 +11,7 @@ ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
 
 
 def push_fr_data(data, retired=False):
+    return
 #    # Contacts
 #    c_ifrc_names = ",".join(data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True))  # normally there is only 1
 #    c_ns_names = ",".join(data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True))  # normally there is only 1

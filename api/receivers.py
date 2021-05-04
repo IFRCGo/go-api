@@ -174,7 +174,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
     Assisstance is checked for any of the Event's Field Reports then
     update ERP with the data, calling a middleware microservice
     '''
-
+    return
 #    if isinstance(instance, FieldReport):
 #        # TODO: maybe add a check, and only send request if anything has changed
 #        if instance.ns_request_assistance:
