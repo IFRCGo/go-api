@@ -59,26 +59,26 @@ def push_fr_data(data, retired=False):
         }
     }
 
-    # The response contains the GUID (res.text)
-    res = requests.post(ERP_API_ENDPOINT, json=payload)
-    res_text = res.text.replace('"', '')
-
-    if res.status_code == 200:
-        logger.info('Successfully posted to ERP')
-        logger.info('GUID: {}'.format(res_text))
-        # Saving GUID into a table so that the API can be queried with it to get info about
-        # if the actual sending has failed or not.
-        ERPGUID.objects.create(
-            api_guid=res_text,
-            field_report=data
-        )
-
-        logger.info('E-mails were sent successfully.')
-    elif res.status_code == 401 or res.status_code == 403:
-        logger.error(
-            f'Authorization/authentication failed with status code ({res.status_code}) to the ERP API. Field Report ID: {data.id}'
-        )
-    else:
-        logger.error(
-            f'Failed to post to the ERP API with status code ({res.status_code}). Field Report ID: {data.id}'
-        )
+#    # The response contains the GUID (res.text)
+#    res = requests.post(ERP_API_ENDPOINT, json=payload)
+#    res_text = res.text.replace('"', '')
+#
+#    if res.status_code == 200:
+#        logger.info('Successfully posted to ERP')
+#        logger.info('GUID: {}'.format(res_text))
+#        # Saving GUID into a table so that the API can be queried with it to get info about
+#        # if the actual sending has failed or not.
+#        ERPGUID.objects.create(
+#            api_guid=res_text,
+#            field_report=data
+#        )
+#
+#        logger.info('E-mails were sent successfully.')
+#    elif res.status_code == 401 or res.status_code == 403:
+#        logger.error(
+#            f'Authorization/authentication failed with status code ({res.status_code}) to the ERP API. Field Report ID: {data.id}'
+#        )
+#    else:
+#        logger.error(
+#            f'Failed to post to the ERP API with status code ({res.status_code}). Field Report ID: {data.id}'
+#        )
