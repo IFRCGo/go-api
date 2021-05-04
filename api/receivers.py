@@ -175,16 +175,16 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
     update ERP with the data, calling a middleware microservice
     '''
 
-    if isinstance(instance, FieldReport):
-        # TODO: maybe add a check, and only send request if anything has changed
-        if instance.ns_request_assistance:
-            push_fr_data(instance)
-            return
-
-        req_ass_exists = FieldReport.objects.filter(
-            Q(event_id=instance.event_id) & Q(ns_request_assistance=True)
-        ).exists()
-        if not instance.ns_request_assistance and req_ass_exists:
-            # If assistance request was dropped, set retired to yes
-            push_fr_data(instance, retired=True)
-            return
+#    if isinstance(instance, FieldReport):
+#        # TODO: maybe add a check, and only send request if anything has changed
+#        if instance.ns_request_assistance:
+#            push_fr_data(instance)
+#            return
+#
+#        req_ass_exists = FieldReport.objects.filter(
+#            Q(event_id=instance.event_id) & Q(ns_request_assistance=True)
+#        ).exists()
+#        if not instance.ns_request_assistance and req_ass_exists:
+#            # If assistance request was dropped, set retired to yes
+#            push_fr_data(instance, retired=True)
+#            return
