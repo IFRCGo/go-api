@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.338
+
+### Added
+ - Temporary disable ERP sending
+
 ## 1.1.337
 
 ### Added
- - Release v4.6.4
+ - Release v5.0.0
 
 ## 1.1.336
 
@@ -1463,7 +1468,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.337...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.338...HEAD
+[1.1.338]: https://github.com/IFRCGo/go-api/compare/1.1.337...1.1.338
 [1.1.337]: https://github.com/IFRCGo/go-api/compare/1.1.336...1.1.337
 [1.1.336]: https://github.com/IFRCGo/go-api/compare/1.1.335...1.1.336
 [1.1.335]: https://github.com/IFRCGo/go-api/compare/1.1.334...1.1.335
