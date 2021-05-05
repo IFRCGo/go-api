@@ -18,42 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lang/admin.py:61
-#, fuzzy
-#| msgid "language"
-msgid "hide all language"
-msgstr "language"
-
-#: lang/admin.py:61
-#, fuzzy
-#| msgid "language"
-msgid "show all language"
-msgstr "language"
-
-#: lang/apps.py:6
-msgid "lang"
-msgstr "lang"
-
-#: lang/models.py:7
-msgid "language"
-msgstr "language"
-
-#: lang/models.py:8
-msgid "key"
-msgstr "key"
-
-#: lang/models.py:10
-msgid "hash"
-msgstr "hash"
-
-#: lang/models.py:11
-msgid "value"
-msgstr "value"
-
-#: lang/models.py:15
-msgid "String"
-msgstr "String"
-
-#: lang/models.py:16
-msgid "Strings"
-msgstr "Strings"
+#: middlewares/middlewares.py:63
+#, python-format
+msgid "Currently %(method)s method is only allowed for non-English language."
+msgstr ""
