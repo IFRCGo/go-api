@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.341
+
+### Added
+ - Adding name to elasticsearch fields
+
 ## 1.1.340
 
 ### Added
@@ -1474,7 +1479,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.340...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.341...HEAD
+[1.1.341]: https://github.com/IFRCGo/go-api/compare/1.1.340...1.1.341
 [1.1.340]: https://github.com/IFRCGo/go-api/compare/1.1.339...1.1.340
 [1.1.339]: https://github.com/IFRCGo/go-api/compare/1.1.338...1.1.339
 [1.1.338]: https://github.com/IFRCGo/go-api/compare/1.1.337...1.1.338
