@@ -192,12 +192,7 @@ class VisibilityTest(APITestCase):
 
         # perform the request with an ifrc user
         user2 = User.objects.create(username='bar')
-        ifrc_permission = Permission.objects.create(
-            codename='ifrc_admin',
-            name='IFRC Admin',
-            content_type=ContentType.objects.get_for_model(models.Country),
-        )
-        user2.user_permissions.add(ifrc_permission)
+        user2.user_permissions.add(self.ifrc_permission)
         self.client.force_authenticate(user=user2)
         response = self.client.get('/api/v2/country_snippet/').json()
         self.assertEqual(response['count'], 2)
