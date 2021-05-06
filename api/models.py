@@ -266,6 +266,7 @@ class DistrictGeoms(models.Model):
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     district = models.OneToOneField(District, verbose_name=_('district'), on_delete=models.DO_NOTHING, primary_key=True)
 
+
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
     IFRC = 2
