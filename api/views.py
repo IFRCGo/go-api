@@ -107,7 +107,8 @@ class EsPageSearch(APIView):
         query = {
             'multi_match': {
                 'query': phrase,
-                'fields': ['keyword^3', 'body', 'name']
+                'fields': ['keyword^3', 'body', 'name'],
+                'operator': 'and'
             }
         }
 
