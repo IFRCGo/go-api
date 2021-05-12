@@ -11,7 +11,6 @@ from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from django.db.models.functions import Coalesce
 
 from api.models import (
     Country,
@@ -136,7 +135,7 @@ class ProjectImportForm(forms.Form):
         return rows
 
     def _handle_bulk_upload(self, user, file, delimiter, quotechar):
-        def get_error_message(row, custom_errors, validation_erorrs=None):
+        def _get_error_message(row, custom_errors, validation_erorrs=None):
             messages = ', '.join([
                 f"{field}: {', '.join(error_message)}"
                 for field, error_message in {
@@ -146,13 +145,13 @@ class ProjectImportForm(forms.Form):
             ])
             return f'ROW {row}: {str(messages)}'
 
-        def key_clean(string):
+        def _key_clean(string):
             return string.lower().strip()
 
-        def parse_date(date):
+        def _parse_date(date):
             return dateutil.parser.parse(date)
 
-        def parse_integer(integer):
+        def _parse_integer(integer):
             try:
                 if isinstance(integer, str):
                     # ALL are integer fields. Change this if not
@@ -219,6 +218,7 @@ class ProjectImportForm(forms.Form):
                 if len(project_districts) == len(district_names):
                     project_country = project_districts[0].country
                 else:
+                    project_country = None
                     # A validation error will be raised. This is just a custom message
                     row_errors['project_districts'] = ['Given districts/regions are not available.']
 
@@ -235,37 +235,37 @@ class ProjectImportForm(forms.Form):
                 dtype=disaster_type,
 
                 # Enum fields
-                operation_type=operation_types.get(key_clean(row[c.OPERATION_TYPE])),
-                programme_type=programme_types.get(key_clean(row[c.PROGRAMME_TYPE])),
-                primary_sector=sectors.get(key_clean(row[c.PRIMARY_SECTOR])),
+                operation_type=operation_types.get(_key_clean(row[c.OPERATION_TYPE])),
+                programme_type=programme_types.get(_key_clean(row[c.PROGRAMME_TYPE])),
+                primary_sector=sectors.get(_key_clean(row[c.PRIMARY_SECTOR])),
                 secondary_sectors=[
-                    sector_tags.get(key_clean(tag)) for tag in row[c.TAGS].split(',') if key_clean(tag) in sector_tags
+                    sector_tags.get(_key_clean(tag)) for tag in row[c.TAGS].split(',') if _key_clean(tag) in sector_tags
                 ],
-                status=statuses.get(key_clean(row[c.STATUS])),
+                status=statuses.get(_key_clean(row[c.STATUS])),
 
                 name=row[c.PROJECT_NAME],
-                start_date=parse_date(row[c.START_DATE]),
-                end_date=parse_date(row[c.END_DATE]),
-                budget_amount=parse_integer(row[c.BUDGET]),
+                start_date=_parse_date(row[c.START_DATE]),
+                end_date=_parse_date(row[c.END_DATE]),
+                budget_amount=_parse_integer(row[c.BUDGET]),
 
                 # Optional fields
-                target_male=parse_integer(row[c.TARGETED_MALES]),
-                target_female=parse_integer(row[c.TARGETED_FEMALES]),
-                target_other=parse_integer(row[c.TARGETED_OTHER]),
-                target_total=parse_integer(row[c.TARGETED_TOTAL]),
-                reached_male=parse_integer(row[c.REACHED_MALES]),
-                reached_female=parse_integer(row[c.REACHED_FEMALES]),
-                reached_other=parse_integer(row[c.REACHED_OTHERS]),
-                reached_total=parse_integer(row[c.REACHED_TOTAL]),
+                target_male=_parse_integer(row[c.TARGETED_MALES]),
+                target_female=_parse_integer(row[c.TARGETED_FEMALES]),
+                target_other=_parse_integer(row[c.TARGETED_OTHER]),
+                target_total=_parse_integer(row[c.TARGETED_TOTAL]),
+                reached_male=_parse_integer(row[c.REACHED_MALES]),
+                reached_female=_parse_integer(row[c.REACHED_FEMALES]),
+                reached_other=_parse_integer(row[c.REACHED_OTHERS]),
+                reached_total=_parse_integer(row[c.REACHED_TOTAL]),
             )
             try:
                 project.full_clean()
                 if len(row_errors) == 0:
                     projects.append([project, project_districts])
                 else:
-                    errors.append(get_error_message(row_number, row_errors))
+                    errors.append(_get_error_message(row_number, row_errors))
             except ValidationError as e:
-                errors.append(get_error_message(row_number, row_errors, e.message_dict))
+                errors.append(_get_error_message(row_number, row_errors, e.message_dict))
 
         if len(errors) != 0:
             errors_str = '\n'.join(errors)
@@ -294,11 +294,15 @@ class ProjectImportForm(forms.Form):
             project_import.status = ProjectImport.SUCCESS
             # Also show error in Admin Panel
             messages.add_message(request, messages.INFO, mark_safe(project_import.message))
-        except Exception:
+        except Exception as e:
             project_import.message = (
                 f"Importing <b>{file}</b> failed. Check file and try again!!<br />"
                 f"<pre>{traceback.format_exc()}</pre>"
             )
+            if isinstance(e, KeyError):
+                project_import.message += (
+                    "<pre>NOTE: Make sure to use correct <b>file delimiter</b> and <b>string delimiter!</b></pre>"
+                )
             messages.add_message(request, messages.ERROR, mark_safe(project_import.message))
             project_import.status = ProjectImport.FAILURE
         project_import.save()
