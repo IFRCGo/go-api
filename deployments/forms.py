@@ -1,7 +1,7 @@
 import io
-import dateutil.parser
 import traceback
 import csv
+import datetime
 from functools import reduce
 from itertools import zip_longest
 
@@ -148,8 +148,11 @@ class ProjectImportForm(forms.Form):
         def _key_clean(string):
             return string.lower().strip()
 
-        def _parse_date(date):
-            return dateutil.parser.parse(date)
+        def _parse_date(date, field, row_errors):
+            try:
+                return datetime.datetime.strptime(date, '%d/%m/%Y')
+            except ValueError as e:
+                row_errors[field] = [str(e)]
 
         def _parse_integer(integer):
             try:
@@ -181,7 +184,7 @@ class ProjectImportForm(forms.Form):
         # Extract from import csv file
         for row_number, row in enumerate(reader, start=2):
             district_names = [
-                d for d in row[c.DISTRICT].strip().split(';')
+                d.strip() for d in row[c.DISTRICT].split(',')
                 if d.lower() not in ['countrywide', '']
             ]
             reporting_ns_name = row[c.REPORTING_NS].strip()
@@ -244,8 +247,8 @@ class ProjectImportForm(forms.Form):
                 status=statuses.get(_key_clean(row[c.STATUS])),
 
                 name=row[c.PROJECT_NAME],
-                start_date=_parse_date(row[c.START_DATE]),
-                end_date=_parse_date(row[c.END_DATE]),
+                start_date=_parse_date(row[c.START_DATE], 'start_date', row_errors),
+                end_date=_parse_date(row[c.END_DATE], 'end_date', row_errors),
                 budget_amount=_parse_integer(row[c.BUDGET]),
 
                 # Optional fields
