@@ -148,22 +148,24 @@ class AggregateHeaderFigures(APIView):
         iso3 = request.GET.get('iso3', None)
         country = request.GET.get('country', None)
         region = request.GET.get('region', None)
-
+        
         now = timezone.now()
-        appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=now)
-
-        all_appeals = Appeal.objects.all()
+        date = request.GET.get('date', now)
+        appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=date) & Q(start_date__lt=date)
+        
+        all_appealhistory = AppealHistory.objects.select_related('appeal').filter(valid_from__lt=date, valid_to__gt=date)
+       
         if iso3:
-            all_appeals = all_appeals.filter(country__iso3__iexact=iso3)
+            all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
         if country:
-            all_appeals = all_appeals.filter(country__id=country)
+            all_appealhistory = all_appealhistory.filter(country__id=country)
         if region:
-            all_appeals = all_appeals.filter(country__region__id=region)
+            all_appealhistory = all_appealhistory.filter(country__region__id=region)
 
-        appeals_aggregated = all_appeals.annotate(
+        appeals_aggregated = all_appealhistory.annotate(
             # Active Appeals with DREF type
             actd=Count(Case(
-                When(Q(atype=AppealType.DREF) & Q(end_date__gt=now), then=1),
+                When(Q(atype=AppealType.DREF) & Q(end_date__gt=date) & Q(start_date__lt=date), then=1),
                 output_field=IntegerField()
             )),
             # Active Appeals with type Emergency Appeal or International Appeal
@@ -178,7 +180,7 @@ class AggregateHeaderFigures(APIView):
             )),
             # Active Appeals' target population
             tarp=Sum(Case(
-                When(Q(end_date__gt=now), then=F('num_beneficiaries')),
+                When(Q(end_date__gt=date) & Q(start_date__lt=date), then=F('num_beneficiaries')),
                 output_field=IntegerField()
             )),
             # Active Appeals' requested amount, which are not DREF
@@ -187,7 +189,7 @@ class AggregateHeaderFigures(APIView):
                 output_field=IntegerField()
             ),
             amordref=Case(
-                When(Q(end_date__gt=now), then=F('amount_requested')),
+                When(Q(end_date__gt=date) & Q(start_date__lt=date), then=F('amount_requested')),
                 output_field=IntegerField()
             ),
             # Active Appeals' funded amount, which are not DREF
