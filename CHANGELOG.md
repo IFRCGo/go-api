@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.347
+
+### Added
+ - Country info added to district API
+
 ## 1.1.346
 
 ### Added
@@ -1504,7 +1509,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.346...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.347...HEAD
+[1.1.347]: https://github.com/IFRCGo/go-api/compare/1.1.346...1.1.347
 [1.1.346]: https://github.com/IFRCGo/go-api/compare/1.1.345...1.1.346
 [1.1.345]: https://github.com/IFRCGo/go-api/compare/1.1.344...1.1.345
 [1.1.344]: https://github.com/IFRCGo/go-api/compare/1.1.343...1.1.344
