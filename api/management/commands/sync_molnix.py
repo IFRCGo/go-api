@@ -138,7 +138,10 @@ def sync_deployments(molnix_deployments):
         deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
-        personnel.is_active = True
+        if md['hidden'] == 1 or md['draft'] == 1:
+            personnel.is_active = False
+        else:
+            personnel.is_active = True
         personnel.type = Personnel.RR
         personnel.start_date = get_datetime(md['start'])
         personnel.end_date = get_datetime(md['end'])
