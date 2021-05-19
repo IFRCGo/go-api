@@ -399,15 +399,6 @@ class Project(models.Model):
             for value in self.secondary_sectors or []
         ]
 
-    @classmethod
-    def get_for(cls, user, queryset=None):
-        qs = cls.objects.all() if queryset is None else queryset
-        if user.is_authenticated:
-            if user.email and user.email.endswith('@ifrc.org'):
-                return qs
-            return qs.exclude(visibility=VisibilityCharChoices.IFRC)
-        return qs.filter(visibility=VisibilityCharChoices.PUBLIC)
-
 
 class ProjectImport(models.Model):
     """

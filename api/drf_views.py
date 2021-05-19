@@ -278,7 +278,7 @@ class DistrictFilter(filters.FilterSet):
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.filter(is_deprecated=False)
+    queryset = District.objects.select_related('country').filter(is_deprecated=False)
     filter_class = DistrictFilter
 
     def get_serializer_class(self):

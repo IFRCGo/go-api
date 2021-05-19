@@ -26,6 +26,7 @@ from api.models import (
     FieldReport,
 )
 from api.view_filters import ListFilter
+from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 from .filters import ProjectFilter
 from .models import (
@@ -178,7 +179,7 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
+class ProjectViewset(RevisionMixin, ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
     ).all()
@@ -195,33 +196,26 @@ class ProjectViewset(RevisionMixin, viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
-        # Public Project are viewable to unauthenticated or non-ifrc users
-        qs = super().get_queryset()
-        return Project.get_for(self.request.user, queryset=qs)
 
-
-class RegionProjectViewset(viewsets.ViewSet):
+class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
     def get_region(self):
         if not hasattr(self, '_region'):
             self._region = get_object_or_404(Region, pk=self.kwargs['pk'])
         return self._region
 
     def get_projects(self):
-        if self.action == 'global_national_society_activities':
-            # Region Filter will be applied using ProjectFilter if provided
-            qs = Project.objects.all()
-        else:
+        # Region Filter will be applied using ProjectFilter if provided
+        # Filter by visibility
+        qs = self.get_visibility_queryset(Project.objects.all())
+        if self.action != 'global_national_society_activities':
             region = self.get_region()
             # Filter by region (From URL Params)
-            qs = Project.objects.filter(
+            qs = qs.filter(
                 Q(project_country__region=region) |
                 Q(project_districts__country__region=region)
             ).distinct()
         # Filter by GET params
-        qs = ProjectFilter(self.request.query_params, queryset=qs).qs
-        # Filter by visibility
-        return Project.get_for(self.request.user, queryset=qs)
+        return ProjectFilter(self.request.query_params, queryset=qs).qs
 
     @action(detail=True, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
