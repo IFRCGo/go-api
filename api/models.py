@@ -918,6 +918,18 @@ class AppealDocument(models.Model):
     def __str__(self):
         return '%s - %s' % (self.appeal, self.name)
 
+class AppealFilter(models.Model):
+ 
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    value = models.CharField(verbose_name=_('value'), max_length=1000)
+
+    class Meta:
+        verbose_name = _('appeal filter')
+        verbose_name_plural = _('appeal filters')
+
+    def __str__(self):
+        return  self.name
+
 
 class RequestChoices(IntEnum):
     NO = 0

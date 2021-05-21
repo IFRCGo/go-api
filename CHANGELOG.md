@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.351
+
+### Added
+ - trim whitespace from ns names
+
 ## 1.1.350
 
 ### Added
@@ -1524,7 +1529,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.350...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.351...HEAD
+[1.1.351]: https://github.com/IFRCGo/go-api/compare/1.1.350...1.1.351
 [1.1.350]: https://github.com/IFRCGo/go-api/compare/1.1.349...1.1.350
 [1.1.349]: https://github.com/IFRCGo/go-api/compare/1.1.348...1.1.349
 [1.1.348]: https://github.com/IFRCGo/go-api/compare/1.1.347...1.1.348
