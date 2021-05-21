@@ -119,7 +119,9 @@ def sync_deployments(molnix_deployments):
                 p.country_deployed_to = p.event_deployed_to.countries.all()[0]
                 p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             else:
-                logger.error('Event id %d without country' % p.event_deployed_to.id)
+                warning = 'Event id %d without country' % p.event_deployed_to.id
+                logger.warn(warning)
+                warnings.append(warning)
                 continue
             
             p.is_molnix = True
@@ -158,7 +160,7 @@ def sync_deployments(molnix_deployments):
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
         try:
-            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'])
+            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'].strip())
         except:
             warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['secondment_incoming'],)
             logger.warn(warning)
