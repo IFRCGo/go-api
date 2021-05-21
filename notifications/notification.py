@@ -22,7 +22,7 @@ test_emails = os.environ.get('TEST_EMAILS')
 if test_emails:
     test_emails = test_emails.split(',')
 else:
-    test_emails = ['gergely.horvath@ifrc.org']
+    test_emails = ['im@ifrc.org']
 
 
 class SendMail(threading.Thread):
