@@ -5,10 +5,6 @@ from unittest import mock
 
 
 class ERPTest(TestCase):
-    def setUp(self):
-        pass
-        # Did not succeed to set up FieldReport here
-
     def mocked_requests_post0(*args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):

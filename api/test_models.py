@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
+from unittest import mock
 
 import api.models as models
 import api.drf_views as views
@@ -95,6 +96,29 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.countries.all()[0], country)
         self.assertEqual(obj.event, event)
         self.assertIsNotNone(obj.report_date)
+
+    def mocked_requests_post(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.text       = 'FindThisGUID'
+                self.status_code = status_code
+
+            def json(self):
+                return self.json_data
+
+        return MockResponse(None, 200)
+
+    @mock.patch('utils.erp.requests.post', side_effect=mocked_requests_post)
+    def test_ERP_related_field_report(self, mocked_requests_post):
+        dtype = models.DisasterType.objects.get(pk=1)
+        country = models.Country.objects.create(name='country', iso='CH')
+        event = models.Event.objects.create(name='disaster2', summary='test disaster 2', dtype=dtype)
+        event.countries.set([country])
+        report = models.FieldReport.objects.create(rid='test2', event=event, dtype=dtype, ns_request_assistance=True)
+        self.assertEqual(mocked_requests_post.called, True)
+        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
+        self.assertEqual(ERP.field_report_id, report.id)
 
 
 class ProfileTestDepartment(TestCase):
