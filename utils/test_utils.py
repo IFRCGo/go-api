@@ -44,7 +44,7 @@ class ERPTest(TestCase):
             event=event
         )
         result = erp.push_fr_data(report)
-        self.assertEqual(mocked_requests_post0.call_count, 1)
+        self.assertEqual(mocked_requests_post0.called, True)
 
     @mock.patch('requests.post', side_effect=mocked_requests_post1)
     def test_successful(self, mocked_requests_post1):
