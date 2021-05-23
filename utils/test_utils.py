@@ -5,7 +5,7 @@ from unittest import mock
 
 
 class ERPTest(TestCase):
-    def mocked_requests_post0(*args, **kwargs):
+    def mocked_requests_post(*args, **kwargs):
         class MockResponse:
             def __init__(self, json_data, status_code):
                 self.json_data = json_data
@@ -15,22 +15,12 @@ class ERPTest(TestCase):
             def json(self):
                 return self.json_data
 
-        return MockResponse(None, 400)
-
-    def mocked_requests_post1(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.text       = 'FindThisGUID'
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
+        if not kwargs['json']['Emergency']['FieldReport']['AffectedCountries']:
+            return MockResponse(None, 400)
         return MockResponse(None, 200)
 
-    @mock.patch('requests.post', side_effect=mocked_requests_post0)
-    def test_not_successful(self, mocked_requests_post0):
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_not_successful(self, mocked_requests_post):
         region = Region.objects.create(name=1)
         dtype = DisasterType.objects.create(name='d1', summary='foo')
         event = Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
@@ -40,10 +30,10 @@ class ERPTest(TestCase):
             event=event
         )
         result = erp.push_fr_data(report)
-        self.assertEqual(mocked_requests_post0.called, True)
+        self.assertEqual(mocked_requests_post.called, False)
 
-    @mock.patch('requests.post', side_effect=mocked_requests_post1)
-    def test_successful(self, mocked_requests_post1):
+    @mock.patch('requests.post', side_effect=mocked_requests_post)
+    def test_successful(self, mocked_requests_post):
         region = Region.objects.create(name=1)
         country1 = Country.objects.create(name='c1', iso='HU', region=region)
         country2 = Country.objects.create(name='c2', iso='CH')

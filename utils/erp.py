@@ -21,7 +21,10 @@ def push_fr_data(data, retired=False):
         countryNames = [country.iso for country in data.event.countries.all()] # Country ISO2 codes in emergency
         countryNames += [country.iso for country in data.countries.all()] # Country ISO2 codes in field report
     except AttributeError:
-        return # There is no use of empty countryNames = '[]', because on ERP side it is erroneous.
+        return
+
+    if not countryNames: # There is no use of empty countryNames = '[]', because on ERP side it is erroneous.
+        return
 
     try:
         disasterStartDate = data.event.disaster_start_date.strftime("%Y-%m-%d, %H:%M:%S")  # Emergency DisasterStartDate: sometimes date, sometimes string (!FIXME somewhere else)
