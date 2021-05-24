@@ -2,10 +2,14 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
-from unittest import mock
+from main.mock import erp_request_side_effect_mock
+from unittest.mock import patch
 
 import api.models as models
 import api.drf_views as views
+from api.factories import country as countryFactory
+from api.factories import event as eventFactory
+# from api.factories import field_report as fieldReportFactory
 
 
 class DisasterTypeTest(TestCase):
@@ -97,28 +101,17 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.event, event)
         self.assertIsNotNone(obj.report_date)
 
-    def mocked_requests_post(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.text       = 'FindThisGUID'
-                self.status_code = status_code
-
-            def json(self):
-                return self.json_data
-
-        return MockResponse(None, 200)
-
-    @mock.patch('utils.erp.requests.post', side_effect=mocked_requests_post)
+    @patch('requests.post', side_effect=erp_request_side_effect_mock)
     def test_ERP_related_field_report(self, mocked_requests_post):
         dtype = models.DisasterType.objects.get(pk=1)
-        country = models.Country.objects.create(name='country', iso='CH')
-        event = models.Event.objects.create(name='disaster2', summary='test disaster 2', dtype=dtype)
+        country = countryFactory.CountryFactory()
+        event = eventFactory.EventFactory(name='disaster2', summary='test disaster 2', dtype=dtype)
         event.countries.set([country])
+        # report = fieldReportFactory.FieldReportFactory(rid='test2', dtype=dtype, ns_request_assistance=True) # Didn't work via factory, it didn't call push_fr_data
         report = models.FieldReport.objects.create(rid='test2', event=event, dtype=dtype, ns_request_assistance=True)
-        self.assertEqual(mocked_requests_post.called, True)
         ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
         self.assertEqual(ERP.field_report_id, report.id)
+        self.assertEqual(mocked_requests_post.called, True)
 
 
 class ProfileTestDepartment(TestCase):
