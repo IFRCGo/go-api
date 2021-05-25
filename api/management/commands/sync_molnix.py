@@ -115,8 +115,15 @@ def sync_deployments(molnix_deployments):
             p.event_deployed_to = event
 
             # FIXME: check if country exists, etc.
-            p.country_deployed_to = p.event_deployed_to.countries.all()[0]
-            p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
+            if p.event_deployed_to.countries.all().count() > 0:
+                p.country_deployed_to = p.event_deployed_to.countries.all()[0]
+                p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
+            else:
+                warning = 'Event id %d without country' % p.event_deployed_to.id
+                logger.warn(warning)
+                warnings.append(warning)
+                continue
+            
             p.is_molnix = True
             p.save()
     
@@ -135,17 +142,25 @@ def sync_deployments(molnix_deployments):
             logger.warn(warning)
             warnings.append(warning)
             continue
-        deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
+        try:
+            deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
+        except:
+            logger.warn('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
+            continue
+
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
-        personnel.is_active = True
+        if md['hidden'] == 1 or md['draft'] == 1:
+            personnel.is_active = False
+        else:
+            personnel.is_active = True
         personnel.type = Personnel.RR
         personnel.start_date = get_datetime(md['start'])
         personnel.end_date = get_datetime(md['end'])
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
         try:
-            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'])
+            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'].strip())
         except:
             warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['secondment_incoming'],)
             logger.warn(warning)
