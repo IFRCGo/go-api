@@ -14,13 +14,14 @@ class ERPTest(TestCase):
     @patch('requests.post', side_effect=erp_request_side_effect_mock)
     def test_not_successful(self, erp_request_side_effect_mock):
         dtype = dtFactory.DisasterTypeFactory()
-        country = countryFactory.CountryFactory()
         event = eventFactory.EventFactory(name='disaster1', summary='test disaster', dtype=dtype)
         report = fieldReportFactory.FieldReportFactory.create(
             rid='test',
             dtype=dtype,
             event=event
         )
+        event.countries.set([])
+        report.countries.set([])
         result = erp.push_fr_data(report)
         self.assertEqual(erp_request_side_effect_mock.called, False)
 
