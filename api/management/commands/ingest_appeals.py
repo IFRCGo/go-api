@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone as tz
-from api.models import AppealType, Appeal, Region, Country, DisasterType, Event, CronJobStatus, GECCode
+from api.models import AppealType, Appeal, AppealFilter, Region, Country, DisasterType, Event, CronJobStatus, GECCode
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 from api.logger import logger
 from api.create_cron import create_cron_record
@@ -102,9 +102,15 @@ class Command(BaseCommand):
                 json.dump(records, outfile)
 
             codes = Appeal.objects.values_list('code', flat=True)
+
+            if AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter').count() > 0:
+                codes_skip = AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter')[0].split(",")
+            else:
+                codes_skip = []
+
             for r in records:
                 # Temporary filtering, the manual version should be kept:
-                if r['APP_code'] in ['MDR65002', 'MDR00001', 'MDR00004']:
+                if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
                 if r['APP_code'] not in codes:
                     new.append(r)
