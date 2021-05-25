@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+
 def erp_request_side_effect_mock(url, json):
     def _generate_mock(status_code, json):
         response_mock = Mock()

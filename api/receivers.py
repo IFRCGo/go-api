@@ -9,7 +9,6 @@ from api.models import ReversionDifferenceLog, Event, Country, FieldReport
 from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from utils.erp import push_fr_data
-from functools import wraps
 from api.logger import logger
 
 
