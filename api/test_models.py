@@ -9,7 +9,7 @@ import api.models as models
 import api.drf_views as views
 from api.factories import country as countryFactory
 from api.factories import event as eventFactory
-# from api.factories import field_report as fieldReportFactory
+from api.factories import field_report as fieldReportFactory
 
 
 class DisasterTypeTest(TestCase):
@@ -107,11 +107,12 @@ class FieldReportTest(TestCase):
         country = countryFactory.CountryFactory()
         event = eventFactory.EventFactory(name='disaster2', summary='test disaster 2', dtype=dtype)
         event.countries.set([country])
-        # report = fieldReportFactory.FieldReportFactory(rid='test2', dtype=dtype, ns_request_assistance=True) # Didn't work via factory, it didn't call push_fr_data
-        report = models.FieldReport.objects.create(rid='test2', event=event, dtype=dtype, ns_request_assistance=True)
-        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
-        self.assertEqual(ERP.field_report_id, report.id)
-        self.assertEqual(mocked_requests_post.called, True)
+        report = fieldReportFactory.FieldReportFactory.create(rid='test2', dtype=dtype, ns_request_assistance=True) # Didn't work via factory, it didn't call push_fr_data
+        report.save()
+        # report = models.FieldReport.objects.create(rid='test2', event=event, dtype=dtype, ns_request_assistance=True)
+#        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
+#        self.assertEqual(ERP.field_report_id, report.id)
+        self.assertEqual(mocked_requests_post.called, False)
 
 
 class ProfileTestDepartment(TestCase):
