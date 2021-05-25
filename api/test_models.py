@@ -1,10 +1,13 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase
+from main.mock import erp_request_side_effect_mock
+from unittest.mock import patch
 
 import api.models as models
-import api.drf_views as views
+from api.factories import country as countryFactory
+from api.factories import event as eventFactory
+from api.factories import field_report as fieldReportFactory
 
 
 class DisasterTypeTest(TestCase):
@@ -95,6 +98,22 @@ class FieldReportTest(TestCase):
         self.assertEqual(obj.countries.all()[0], country)
         self.assertEqual(obj.event, event)
         self.assertIsNotNone(obj.report_date)
+
+    @patch('requests.post', side_effect=erp_request_side_effect_mock)
+    def test_ERP_related_field_report(self, mocked_requests_post):
+        dtype = models.DisasterType.objects.get(pk=1)
+        country = countryFactory.CountryFactory()
+        event = eventFactory.EventFactory(name='disaster2', summary='test disaster 2', dtype=dtype)
+        event.countries.set([country])
+        report = fieldReportFactory.FieldReportFactory.create(
+            rid='test2',
+            event=event,
+            dtype=dtype,
+            ns_request_assistance=True,
+        )
+        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
+        self.assertEqual(ERP.field_report_id, report.id)
+        self.assertEqual(mocked_requests_post.called, True)
 
 
 class ProfileTestDepartment(TestCase):
