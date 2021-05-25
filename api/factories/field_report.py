@@ -147,47 +147,51 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     notes_ns = fuzzy.FuzzyText(length=50)
     notes_socioeco = fuzzy.FuzzyText(length=50)
 
-    @factory.post_generation
-    def districts(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for district in extracted:
-                self.districts.add(district)
-
-    @factory.post_generation
-    def countries(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for country in extracted:
-                self.countries.add(country)
-
-    @factory.post_generation
-    def regions(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for region in extracted:
-                self.regions.add(region)
-
-    @factory.post_generation
-    def external_partners(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for external_partner in extracted:
-                self.external_partners.add(external_partner)
-
-    @factory.post_generation
-    def supported_activities(self, create, extracted, **kwargs):
-        if not create:
-            return
-
-        if extracted:
-            for supported_activity in extracted:
-                self.supported_activities.add(supported_activity)
+# If we use the below ones, double save will occur – breaks tests.
+# See https://github.com/FactoryBoy/factory_boy/issues/316
+#
+#    @factory.post_generation
+#    def districts(self, create, extracted, **kwargs):
+#        if not create:
+#            return
+#
+#        if extracted:
+#            for district in extracted:
+#                self.districts.add(district)
+#
+#    @factory.post_generation
+#    def countries(self, create, extracted, **kwargs):
+#        if not create:
+#            return
+#
+#        if extracted:
+#            for country in extracted:
+#                self.countries.add(country)
+#
+#    @factory.post_generation
+#    def regions(self, create, extracted, **kwargs):
+#        if not create:
+#            return
+#
+#        if extracted:
+#            for region in extracted:
+#                self.regions.add(region)
+#
+#    @factory.post_generation
+#    def external_partners(self, create, extracted, **kwargs):
+#        if not create:
+#            return
+#
+#        if extracted:
+#            for external_partner in extracted:
+#                self.external_partners.add(external_partner)
+#
+#    @factory.post_generation
+#    def supported_activities(self, create, extracted, **kwargs):
+#        if not create:
+#            return
+#
+#        if extracted:
+#            for supported_activity in extracted:
+#                self.supported_activities.add(supported_activity)
+#

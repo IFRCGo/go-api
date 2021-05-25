@@ -4,14 +4,19 @@ from api.models import Event, FieldReport, Region, Country, DisasterType, ERPGUI
 from main.mock import erp_request_side_effect_mock
 from unittest.mock import patch
 
+from api.factories import disaster_type as dtFactory
+from api.factories import country as countryFactory
+from api.factories import event as eventFactory
+from api.factories import field_report as fieldReportFactory
+
 class ERPTest(TestCase):
 
     @patch('requests.post', side_effect=erp_request_side_effect_mock)
     def test_not_successful(self, erp_request_side_effect_mock):
-        region = Region.objects.create(name=1)
-        dtype = DisasterType.objects.create(name='d1', summary='foo')
-        event = Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
-        report = FieldReport.objects.create(
+        dtype = dtFactory.DisasterTypeFactory()
+        country = countryFactory.CountryFactory()
+        event = eventFactory.EventFactory(name='disaster1', summary='test disaster', dtype=dtype)
+        report = fieldReportFactory.FieldReportFactory.create(
             rid='test',
             dtype=dtype,
             event=event
@@ -21,12 +26,11 @@ class ERPTest(TestCase):
 
     @patch('requests.post', side_effect=erp_request_side_effect_mock)
     def test_successful(self, erp_request_side_effect_mock):
-        region = Region.objects.create(name=1)
-        country1 = Country.objects.create(name='c1', iso='HU', region=region)
-        country2 = Country.objects.create(name='c2', iso='CH')
-        dtype = DisasterType.objects.create(name='d1', summary='foo')
-        event = Event.objects.create(name='disaster1', summary='test disaster', dtype=dtype)
-        report = FieldReport.objects.create(
+        dtype = dtFactory.DisasterTypeFactory()
+        country1 = countryFactory.CountryFactory()
+        country2 = countryFactory.CountryFactory()
+        event = eventFactory.EventFactory(name='disaster1', summary='test disaster', dtype=dtype)
+        report = fieldReportFactory.FieldReportFactory.create(
             rid='test',
             dtype=dtype,
             event=event
