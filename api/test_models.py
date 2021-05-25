@@ -107,12 +107,11 @@ class FieldReportTest(TestCase):
         country = countryFactory.CountryFactory()
         event = eventFactory.EventFactory(name='disaster2', summary='test disaster 2', dtype=dtype)
         event.countries.set([country])
-        report = fieldReportFactory.FieldReportFactory.create(rid='test2', dtype=dtype, ns_request_assistance=True) # Didn't work via factory, it didn't call push_fr_data
-        report.save()
+        report = fieldReportFactory.FieldReportFactory.create(rid='test2', dtype=dtype, ns_request_assistance=True)
         # report = models.FieldReport.objects.create(rid='test2', event=event, dtype=dtype, ns_request_assistance=True)
-#        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
-#        self.assertEqual(ERP.field_report_id, report.id)
-        self.assertEqual(mocked_requests_post.called, False)
+        ERP = models.ERPGUID.objects.get(api_guid='FindThisGUID')
+        self.assertEqual(ERP.field_report_id, report.id)
+        self.assertEqual(mocked_requests_post.called, True)
 
 
 class ProfileTestDepartment(TestCase):
