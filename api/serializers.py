@@ -163,7 +163,8 @@ class MiniDistrictGeoSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     country_name = serializers.CharField(source='country.name', read_only=True)
-    country_iso = serializers.CharField(source='country.iso3', read_only=True)
+    country_iso = serializers.CharField(source='country.iso', read_only=True)
+    country_iso3 = serializers.CharField(source='country.iso3', read_only=True)
 
     def get_bbox(self, district):
         if district.bbox:
@@ -179,7 +180,7 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_name','country_iso', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
+        fields = ('name', 'code', 'country_name','country_iso','country_iso3', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class RegionKeyFigureSerializer(ModelSerializer):
