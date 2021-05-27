@@ -15,7 +15,6 @@ DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 
 class ERUType(IntEnum):
-    BASECAMP = 0
     TELECOM = 1
     LOGISTICS = 2
     EMERGENCY_HOSPITAL = 3
@@ -24,9 +23,16 @@ class ERUType(IntEnum):
     WASH_15 = 6
     WASH_20 = 7
     WASH_40 = 8
+    WATER_SUPPLY = 9
+    WATER_TREATMENT = 10
+    COLERA_MANAGEMENT = 11
+    BURIALS = 12
+    CBS = 13
+    BASECAMP_S = 14
+    BASECAMP_M = 15
+    BASECAMP_L = 16
 
     class Labels:
-        BASECAMP = _('Basecamp')
         TELECOM = _('IT & Telecom')
         LOGISTICS = _('Logistics')
         EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
@@ -35,6 +41,14 @@ class ERUType(IntEnum):
         WASH_15 = _('Wash M15')
         WASH_20 = _('Wash MSM20')
         WASH_40 = _('Wash M40')
+        WATER_SUPPLY = _('Water Supply and rehabilitation')
+        WATER_TREATMENT = _('Household Water Treatment and safe storage')
+        COLERA_MANAGEMENT = _('Cholera Case management at Community level')
+        BURIALS = _('Safe and Dignified Burials')
+        CBS = _('Community Based Surveillance')
+        BASECAMP_S = _('Base Camp – S')
+        BASECAMP_M = _('Base Camp – M')
+        BASECAMP_L = _('Base Camp – L')
 
 
 class ERUOwner(models.Model):
