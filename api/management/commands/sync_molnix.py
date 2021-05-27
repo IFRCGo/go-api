@@ -99,6 +99,8 @@ def add_tags_to_obj(obj, tags):
     
 
 def sync_deployments(molnix_deployments):
+    import json
+    print(json.dumps(molnix_deployments, indent=2))
     molnix_ids = [d['id'] for d in molnix_deployments]
     warnings = []
     messages = []
@@ -160,9 +162,9 @@ def sync_deployments(molnix_deployments):
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
         try:
-            personnel.country_from = Country.objects.get(society_name=md['secondment_incoming'].strip())
+            personnel.country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
         except:
-            warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['secondment_incoming'],)
+            warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
             logger.warn(warning)
             warnings.append(warning)
             personnel.country_from = None
