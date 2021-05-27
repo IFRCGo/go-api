@@ -15,6 +15,7 @@ DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 
 class ERUType(IntEnum):
+    BASECAMP = 0
     TELECOM = 1
     LOGISTICS = 2
     EMERGENCY_HOSPITAL = 3
@@ -33,6 +34,7 @@ class ERUType(IntEnum):
     BASECAMP_L = 16
 
     class Labels:
+        BASECAMP = _('Basecamp')
         TELECOM = _('IT & Telecom')
         LOGISTICS = _('Logistics')
         EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
