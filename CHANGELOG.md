@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.356
+
+### Added
+ - change in molnix api returning secondment incoming ns name
+
 ## 1.1.355
 
 ### Added
@@ -1549,7 +1554,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.355...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.356...HEAD
+[1.1.356]: https://github.com/IFRCGo/go-api/compare/1.1.355...1.1.356
 [1.1.355]: https://github.com/IFRCGo/go-api/compare/1.1.354...1.1.355
 [1.1.354]: https://github.com/IFRCGo/go-api/compare/1.1.353...1.1.354
 [1.1.353]: https://github.com/IFRCGo/go-api/compare/1.1.352...1.1.353
