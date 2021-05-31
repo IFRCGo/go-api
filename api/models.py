@@ -893,6 +893,32 @@ class Appeal(models.Model):
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
+class AppealHistory(models.Model):
+    """ AppealHistory results """
+    num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
+    amount_requested = models.DecimalField(verbose_name=_('amount requested'), max_digits=12, decimal_places=2, default=0.00)
+    amount_funded = models.DecimalField(verbose_name=_('amount funded'), max_digits=12, decimal_places=2, default=0.00)
+    valid_from = models.DateTimeField(verbose_name=_('valid_from'), null=True)
+    valid_to = models.DateTimeField(verbose_name=_('valid_to'), null=True)
+    aid = models.CharField(verbose_name=_('appeal ID'), max_length=20)
+    start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
+    end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
+    appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), null=True, on_delete=models.SET_NULL)
+    atype = EnumIntegerField(AppealType, verbose_name=_('appeal type'), default=0)
+    #name = models.CharField(verbose_name=_('name'), max_length=100)
+    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ('-start_date', '-end_date',)
+        verbose_name = _('appealhistory')
+        verbose_name_plural = _('appealhistories')
+
+    def record_type(self):
+        return 'APPEALHISTORY'
+    
+    def __str__(self):
+        return self.aid
 
 class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
