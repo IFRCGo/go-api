@@ -12,6 +12,7 @@ from utils.erp import push_fr_data
 from api.logger import logger
 from .models import Appeal,AppealHistory
 from django.utils import timezone
+from datetime import datetime
 
 
 MODEL_TYPES = {
@@ -205,6 +206,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
                                      amount_requested = instance.amount_requested,
                                      amount_funded = instance.amount_funded,
                                      valid_from = now,
+                                     valid_to = datetime(2200, 1, 1),
                                      start_date = instance.start_date,
                                      end_date = instance.end_date,
                                      appeal = instance,
@@ -216,22 +218,17 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
     else:  # Appeal Update
         appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
         for field in fields_watched:
-            print("Field: " + field + " Value: " + str(getattr(instance, field)))
-            print("Field: " + field + " Value: " + str(getattr(appeal_history, field)))
-            print("-----------")
+           
             if appeal_history and getattr(instance, field) != getattr(appeal_history, field):
             # Watched fields are not changed
-                print("There is a change")
                 changed = True
 
         print(getattr(appeal_history, field) for field in fields_watched)
 
-        import pdb; pdb.set_trace()
         if changed == False:
             # Watched fields are not changed
             return
 
-        import pdb; pdb.set_trace()
         appeal_history.valid_to = now
         appeal_history.save()
         
@@ -241,6 +238,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
                                      amount_requested = instance.amount_requested,
                                      amount_funded = instance.amount_funded,
                                      valid_from = now,
+                                     valid_to = datetime(2200, 1, 1),
                                      start_date = instance.start_date,
                                      end_date = instance.end_date,
                                      appeal = instance,
