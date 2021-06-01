@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.360
+
+### Added
+ - Changing ERP to Ocp-Apim authentication
+
 ## 1.1.359
 
 ### Added
@@ -14,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.358
 
 ### Added
- - appeal history
+ - appeal history (1.1.357 skipped)
 
 ## 1.1.356
 
@@ -1564,7 +1569,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.359...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.360...HEAD
+[1.1.360]: https://github.com/IFRCGo/go-api/compare/1.1.359...1.1.360
 [1.1.359]: https://github.com/IFRCGo/go-api/compare/1.1.358...1.1.359
 [1.1.358]: https://github.com/IFRCGo/go-api/compare/1.1.356...1.1.358
 [1.1.356]: https://github.com/IFRCGo/go-api/compare/1.1.355...1.1.356
