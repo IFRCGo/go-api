@@ -8,6 +8,7 @@ from django.conf import settings
 
 
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
+ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
 
 
 def push_fr_data(data, retired=False):
@@ -22,9 +23,10 @@ def push_fr_data(data, retired=False):
     requestTitle = data.event.name if data.event else '-'  # Emergency name
 
     try:
-        countryNames = [
+        countryNamesSet = set(
             country.iso for country in chain(data.event.countries.all(), data.countries.all())
-        ]  # Country ISO2 codes in emergency
+        )  # Country ISO2 codes in emergency
+        countryNames = list(countryNamesSet)
     except AttributeError:
         return
 
@@ -81,8 +83,9 @@ def push_fr_data(data, retired=False):
         }
     }
 
+    headers = {'Content-Type': 'application/json', 'Ocp-Apim-Trace': 'true', 'Ocp-Apim-Subscription-Key': ERP_API_SUBSCRIPTION_KEY}
     # The response contains the GUID (res.text)
-    res = requests.post(ERP_API_ENDPOINT, json=payload)
+    res = requests.post(ERP_API_ENDPOINT, json=payload, headers=headers)
 
     if res.status_code == 200:
         res_text = res.text.replace('"', '')
