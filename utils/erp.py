@@ -8,6 +8,7 @@ from django.conf import settings
 
 
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
+ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
 
 
 def push_fr_data(data, retired=False):
@@ -81,6 +82,7 @@ def push_fr_data(data, retired=False):
         }
     }
 
+    headers = {'Content-Type': 'application/json', 'Ocp-Apim-Trace': 'true', 'Ocp-Apim-Subscription-Key': ERP_API_SUBSCRIPTION_KEY}
     # The response contains the GUID (res.text)
     res = requests.post(ERP_API_ENDPOINT, json=payload)
 
