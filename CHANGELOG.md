@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.362
+
+### Added
+ - Removing duplicate from reqs, bump up urllib3
+
 ## 1.1.361
 
 ### Added
@@ -1574,7 +1579,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.361...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.362...HEAD
+[1.1.362]: https://github.com/IFRCGo/go-api/compare/1.1.361...1.1.362
 [1.1.361]: https://github.com/IFRCGo/go-api/compare/1.1.360...1.1.361
 [1.1.360]: https://github.com/IFRCGo/go-api/compare/1.1.359...1.1.360
 [1.1.359]: https://github.com/IFRCGo/go-api/compare/1.1.358...1.1.359
