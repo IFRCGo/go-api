@@ -5,8 +5,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework import test, status
 
 from django.core import management
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db import DEFAULT_DB_ALIAS, connections
 
+from api.models import Country
 from deployments.factories.user import UserFactory
 
 from lang.translation import AmazonTranslate
@@ -47,6 +50,13 @@ class GoAPITestMixin():
             email='jon@@ifrc.org',
         )
         self.aws_translator = AmazonTranslate()
+
+        self.ifrc_permission = Permission.objects.create(
+            codename='ifrc_admin',
+            content_type=ContentType.objects.get_for_model(Country),
+            name='IFRC Admin',
+        )
+        self.ifrc_user.user_permissions.add(self.ifrc_permission)
 
     def authenticate(self, user=None):
         if user is None:

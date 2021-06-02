@@ -403,6 +403,9 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('appeal')
 
+class AppealFilterAdmin(CompareVersionAdmin):
+    list_display = ('name', 'value')
+    search_fields = ('name', 'value')
 
 class CountryKeyFigureInline(admin.TabularInline):
     model = models.CountryKeyFigure
@@ -709,6 +712,7 @@ admin.site.register(models.Region, RegionAdmin)
 admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
+admin.site.register(models.AppealFilter, AppealFilterAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.ExternalPartner, ExternalPartnerAdmin)
 admin.site.register(models.SupportedActivity, SupportedActivityAdmin)

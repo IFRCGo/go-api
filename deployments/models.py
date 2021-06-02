@@ -24,6 +24,14 @@ class ERUType(IntEnum):
     WASH_15 = 6
     WASH_20 = 7
     WASH_40 = 8
+    WATER_SUPPLY = 9
+    WATER_TREATMENT = 10
+    COLERA_MANAGEMENT = 11
+    BURIALS = 12
+    CBS = 13
+    BASECAMP_S = 14
+    BASECAMP_M = 15
+    BASECAMP_L = 16
 
     class Labels:
         BASECAMP = _('Basecamp')
@@ -35,6 +43,14 @@ class ERUType(IntEnum):
         WASH_15 = _('Wash M15')
         WASH_20 = _('Wash MSM20')
         WASH_40 = _('Wash M40')
+        WATER_SUPPLY = _('Water Supply and rehabilitation')
+        WATER_TREATMENT = _('Household Water Treatment and safe storage')
+        COLERA_MANAGEMENT = _('Cholera Case management at Community level')
+        BURIALS = _('Safe and Dignified Burials')
+        CBS = _('Community Based Surveillance')
+        BASECAMP_S = _('Base Camp – S')
+        BASECAMP_M = _('Base Camp – M')
+        BASECAMP_L = _('Base Camp – L')
 
 
 class ERUOwner(models.Model):
@@ -398,15 +414,6 @@ class Project(models.Model):
             force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
             for value in self.secondary_sectors or []
         ]
-
-    @classmethod
-    def get_for(cls, user, queryset=None):
-        qs = cls.objects.all() if queryset is None else queryset
-        if user.is_authenticated:
-            if user.email and user.email.endswith('@ifrc.org'):
-                return qs
-            return qs.exclude(visibility=VisibilityCharChoices.IFRC)
-        return qs.filter(visibility=VisibilityCharChoices.PUBLIC)
 
 
 class ProjectImport(models.Model):

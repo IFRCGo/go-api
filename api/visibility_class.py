@@ -1,8 +1,31 @@
 from rest_framework import viewsets
-from .models import VisibilityChoices
+
+from deployments.models import Project
+from .models import VisibilityChoices, VisibilityCharChoices
 from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
 
 
+class ReadOnlyVisibilityViewsetMixin():
+    def get_visibility_queryset(self, queryset):
+        choices = VisibilityChoices
+
+        # TODO: Use VisibilityChoices (ENUM) on projects as well [Refactor]
+        if queryset.model == Project:
+            choices = VisibilityCharChoices
+
+        if self.request.user.is_authenticated:
+            if is_user_ifrc(self.request.user):
+                return queryset
+            else:
+                return queryset.exclude(visibility=choices.IFRC)
+        return queryset.filter(visibility=choices.PUBLIC)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return self.get_visibility_queryset(queryset)
+
+
+# TODO: Use ReadOnlyVisibilityViewsetMixin instead of ReadOnlyVisibilityViewset
 class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
     visibility_model_class = None
 

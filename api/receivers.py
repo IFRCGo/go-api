@@ -9,8 +9,10 @@ from api.models import ReversionDifferenceLog, Event, Country, FieldReport
 from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from utils.erp import push_fr_data
-from functools import wraps
 from api.logger import logger
+from .models import Appeal,AppealHistory
+from django.utils import timezone
+from datetime import datetime
 
 
 MODEL_TYPES = {
@@ -175,7 +177,6 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
     update ERP with the data, calling a middleware microservice
     '''
 
-    return # Temporary disabling on prod
     if isinstance(instance, FieldReport):
         # TODO: maybe add a check, and only send request if anything has changed
         if instance.ns_request_assistance:
@@ -189,3 +190,59 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
             # If assistance request was dropped, set retired to yes
             push_fr_data(instance, retired=True)
             return
+
+@receiver(post_save, sender=Appeal)
+def add_update_appeal_history(sender, instance, created, **kwargs):
+    fields_watched = [
+        field.name for field in AppealHistory._meta.get_fields()
+        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to']
+    ]
+    now = timezone.now()
+    changed = False
+
+    if created:  # Appeal Insert
+        AppealHistory.objects.create(aid = instance.aid, 
+                                     num_beneficiaries = instance.num_beneficiaries, 
+                                     amount_requested = instance.amount_requested,
+                                     amount_funded = instance.amount_funded,
+                                     valid_from = now,
+                                     valid_to = datetime(2200, 1, 1),
+                                     start_date = instance.start_date,
+                                     end_date = instance.end_date,
+                                     appeal = instance,
+                                     atype =instance.atype,
+                                     country = instance.country,
+                                     region = instance.region
+                                    )
+        
+    else:  # Appeal Update
+        appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
+        for field in fields_watched:
+           
+            if appeal_history and getattr(instance, field) != getattr(appeal_history, field):
+            # Watched fields are not changed
+                changed = True
+
+        print(getattr(appeal_history, field) for field in fields_watched)
+
+        if changed == False:
+            # Watched fields are not changed
+            return
+
+        appeal_history.valid_to = now
+        appeal_history.save()
+        
+        # Create a new appeal history if changed
+        AppealHistory.objects.create(aid = instance.aid, 
+                                     num_beneficiaries = instance.num_beneficiaries, 
+                                     amount_requested = instance.amount_requested,
+                                     amount_funded = instance.amount_funded,
+                                     valid_from = now,
+                                     valid_to = datetime(2200, 1, 1),
+                                     start_date = instance.start_date,
+                                     end_date = instance.end_date,
+                                     appeal = instance,
+                                     atype =instance.atype,
+                                     country = instance.country,
+                                     region = instance.region
+                                    )

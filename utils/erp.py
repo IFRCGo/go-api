@@ -1,6 +1,6 @@
 import requests
-import base64
 import pytz
+from itertools import chain
 from datetime import datetime
 from api.models import RequestChoices, ERPGUID
 from api.logger import logger
@@ -8,25 +8,40 @@ from django.conf import settings
 
 
 ERP_API_ENDPOINT = settings.ERP_API_ENDPOINT
+ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
 
 
 def push_fr_data(data, retired=False):
     # Contacts
-    c_ifrc_names = ",".join(data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True))  # normally there is only 1
-    c_ns_names = ",".join(data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True))  # normally there is only 1
+    c_ifrc_names = ",".join(
+        data.contacts.filter(ctype__iexact='Federation').values_list('name', flat=True)
+    )  # normally there is only 1
+    c_ns_names = ",".join(
+        data.contacts.filter(ctype__iexact='NationalSociety').values_list('name', flat=True)
+    )  # normally there is only 1
 
     requestTitle = data.event.name if data.event else '-'  # Emergency name
 
     try:
-        countryNames = [country.iso for country in data.event.countries.all()] # Country ISO2 codes in emergency
-        countryNames += [country.iso for country in data.countries.all()] # Country ISO2 codes in field report
+        countryNamesSet = set(
+            country.iso for country in chain(data.event.countries.all(), data.countries.all())
+        )  # Country ISO2 codes in emergency
+        countryNames = list(countryNamesSet)
     except AttributeError:
-        return # There is no use of empty countryNames = '[]', because on ERP side it is erroneous.
+        return
+
+    if not countryNames:  # There is no use of empty countryNames = '[]', because on ERP side it is erroneous.
+        return
 
     try:
-        disasterStartDate = data.event.disaster_start_date.strftime("%Y-%m-%d, %H:%M:%S")  # Emergency DisasterStartDate: sometimes date, sometimes string (!FIXME somewhere else)
+        # Emergency DisasterStartDate: sometimes date, sometimes string (!FIXME somewhere else)
+        disasterStartDate = data.event.disaster_start_date.strftime("%Y-%m-%d, %H:%M:%S")
     except AttributeError:
-        disasterStartDate = data.event.disaster_start_date if data.event else pytz.timezone("UTC").localize(datetime(1900, 1, 1, 1, 1, 1, 1)).strftime("%Y-%m-%d, %H:%M:%S")
+        disasterStartDate = (
+            data.event.disaster_start_date
+            if data.event
+            else pytz.timezone("UTC").localize(datetime(1900, 1, 1, 1, 1, 1, 1)).strftime("%Y-%m-%d, %H:%M:%S")
+        )
 
         '''
         InitialRequestType:
@@ -37,7 +52,7 @@ def push_fr_data(data, retired=False):
         '''
 
     payload = {
-    "Emergency": {
+        "Emergency": {
             "EmergencyId": 0 if data.event_id is None else data.event_id,  # Emergency ID, RequestId
             "EmergencyTitle": requestTitle,  # Emergency name, RequestTitle
             "DisasterStartDate": disasterStartDate,  # Emergency DisasterStartDate
@@ -46,22 +61,31 @@ def push_fr_data(data, retired=False):
             "FieldReport": {
                 "RequestRetired": retired,  # Not sure if this will be needed/used at all
                 "FieldReportId": data.id,  # Field Report ID, GORequestId
-                "ReportedDateTime":  data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
+                "ReportedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
                 "NumberOfPeopleAffected": 0 if data.num_affected is None else data.num_affected,
-                "InitialRequestType": "EA" if data.appeal != RequestChoices.NO else ("DREF" if data.dref != RequestChoices.NO else "Empty"),
+                "InitialRequestType": (
+                    "EA" if data.appeal != RequestChoices.NO
+                    else (  # FIXME: Avoid nested ternary operator
+                          "DREF" if data.dref != RequestChoices.NO
+                          else "Empty"
+                    )
+                ),
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},
-                "InitialRequestAmount": {"Value": 0 if data.appeal_amount is None else data.appeal_amount, "CurrencyCode": "CHF"}  # Field Report Appeal amount
+                "InitialRequestAmount": {
+                    "Value": 0 if data.appeal_amount is None else data.appeal_amount,
+                    "CurrencyCode": "CHF",
+                },  # Field Report Appeal amount
                 # ^ CurrencyCode can be different?
             }
         }
     }
 
-
+    headers = {'Content-Type': 'application/json', 'Ocp-Apim-Trace': 'true', 'Ocp-Apim-Subscription-Key': ERP_API_SUBSCRIPTION_KEY}
     # The response contains the GUID (res.text)
-    res = requests.post(ERP_API_ENDPOINT, json=payload)
+    res = requests.post(ERP_API_ENDPOINT, json=payload, headers=headers)
 
     if res.status_code == 200:
         res_text = res.text.replace('"', '')
