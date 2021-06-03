@@ -133,7 +133,7 @@ class Command(BaseCommand):
 
         if len(not_found):
             t = '%s documents without appeals in system' % len(not_found)
-            logger.warn(t)
+            logger.warning(t)
             body = { "name": "ingest_appeal_docs", "message": t, "num_result": len(not_found), "status": CronJobStatus.WARNED }
             CronJob.sync_cron(body)
 

@@ -28,7 +28,7 @@ def delete_es_index(instance):
             except Exception:
                 logger.error('Could not reach Elasticsearch server or index was already missing.')
         else:
-            logger.warn('instance does not have an es_id() method')
+            logger.warning('instance does not have an es_id() method')
 
 
 def construct_es_data(instance, is_create=False):
