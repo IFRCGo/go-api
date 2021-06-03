@@ -2,6 +2,7 @@ from django.utils.translation import ugettext
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
+from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from api.serializers import (
     DisasterTypeSerializer,
@@ -164,6 +165,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     programme_type_display = serializers.CharField(source='get_programme_type_display', read_only=True)
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
 
     class Meta:
@@ -201,3 +203,25 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         project.user = self.context['request'].user
         project.save()
         return project
+
+
+class ProjectCsvSerializer(ProjectSerializer):
+    secondary_sectors = serializers.SerializerMethodField()
+    secondary_sectors_display = serializers.SerializerMethodField()
+    project_districts_detail = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        exclude = ['project_districts']
+
+    def get_secondary_sectors(self, obj):
+        return ', '.join([str(sector.value) for sector in obj.secondary_sectors])
+
+    def get_secondary_sectors_display(self, obj):
+        return ', '.join(obj.get_secondary_sectors_display())
+
+    def get_project_districts_detail(self, obj):
+        return get_merged_items_by_fields(
+            obj.project_districts.all(),
+            ['name', 'code', 'id', 'is_enclave', 'is_deprecated']
+        )

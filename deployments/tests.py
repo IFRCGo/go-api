@@ -10,7 +10,7 @@ from deployments.factories.user import UserFactory
 from deployments.factories.project import ProjectFactory
 from api.factories import country, district
 
-from deployments.models import Project, VisibilityCharChoices
+from deployments.models import Project, VisibilityCharChoices, SectorTags
 
 from .factories.personnel import PersonnelFactory
 
@@ -126,6 +126,7 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["name"] = new_project_name
         new_project["reporting_ns"] = new_country.id
         new_project["project_country"] = new_country.id
+        new_project["event"] = new_project["event_id"]
         new_project["project_districts"] = [new_district.id]
 
         # submit update request
@@ -161,6 +162,22 @@ class TestProjectAPI(SnapshotTestCase):
         self.assert_401(resp)
 
         self.authenticate()
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.content.decode('utf-8'))
+
+    def test_project_csv_api(self):
+        _country = country.CountryFactory()
+        district1 = district.DistrictFactory(country=_country)
+        district2 = district.DistrictFactory(country=_country)
+        ProjectFactory.create_batch(
+            10,
+            project_districts=[district1, district2],
+            secondary_sectors=[SectorTags.WASH, SectorTags.PGI],
+            visibility=VisibilityCharChoices.PUBLIC
+        )
+
+        url = '/api/v2/project/?format=csv'
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.content.decode('utf-8'))

@@ -50,6 +50,7 @@ from .serializers import (
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
     ProjectSerializer,
+    ProjectCsvSerializer,
 )
 
 
@@ -183,10 +184,15 @@ class ProjectViewset(RevisionMixin, ReadOnlyVisibilityViewsetMixin, viewsets.Mod
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
     ).all()
-    # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
     filter_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
+
+    def get_serializer_class(self):
+        request_format_type = self.request.GET.get('format', 'json')
+        if request_format_type == 'csv':
+            return ProjectCsvSerializer
+        return super().get_serializer_class()
 
     def get_permissions(self):
         # Require authentication for unsafe methods only

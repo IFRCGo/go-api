@@ -4,14 +4,14 @@ import datetime
 import pytz
 
 from .. import models
-from . import country, disaster_type
+from . import disaster_type
 
 
 class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Event
 
-    name = fuzzy.FuzzyText(length=100)
+    name = fuzzy.FuzzyText(length=50, prefix='event-')
     slug = fuzzy.FuzzyText(length=50)
     dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
 
