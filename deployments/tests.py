@@ -21,7 +21,7 @@ class TestProjectAPI(SnapshotTestCase):
     def setUp(self):
         super().setUp()
         self.patcher = mock.patch('django.utils.timezone.now')
-        self.patcher.start().return_value = datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC)
+        self.patcher.start().return_value = datetime.datetime(2008, 1, 1, 0, 0, 0, 123456, tzinfo=pytz.UTC)
 
     def tearDown(self):
         self.patcher.stop()

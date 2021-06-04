@@ -3,6 +3,9 @@ import requests
 import base64
 import threading
 import smtplib
+
+from django.conf import settings
+
 from api.logger import logger
 from api.models import CronJob, CronJobStatus
 from django.utils.html import strip_tags
@@ -84,6 +87,8 @@ def send_notification(subject, recipients, html, mailtype=''):
             'Cannot send notifications.\n'
             'No username and/or API endpoint set as environment variables.'
         )
+        if settings.DEBUG:
+            print(f'subject={subject}\nrecipients={recipients}\nhtml={html}\nmailtype={mailtype}')
         return
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
