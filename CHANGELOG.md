@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.363
+
+### Added
+ - Add Custom CSV serializer for Project, fix test warnings
+
 ## 1.1.362
 
 ### Added
@@ -1579,7 +1584,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.362...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.363...HEAD
+[1.1.363]: https://github.com/IFRCGo/go-api/compare/1.1.362...1.1.363
 [1.1.362]: https://github.com/IFRCGo/go-api/compare/1.1.361...1.1.362
 [1.1.361]: https://github.com/IFRCGo/go-api/compare/1.1.360...1.1.361
 [1.1.360]: https://github.com/IFRCGo/go-api/compare/1.1.359...1.1.360
