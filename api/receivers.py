@@ -1,4 +1,5 @@
 import json
+from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.signals import pre_delete, pre_save, post_save
@@ -10,9 +11,8 @@ from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from utils.erp import push_fr_data
 from api.logger import logger
-from .models import Appeal,AppealHistory
+from .models import Appeal, AppealHistory
 from django.utils import timezone
-from datetime import datetime
 
 
 MODEL_TYPES = {
@@ -191,6 +191,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
             push_fr_data(instance, retired=True)
             return
 
+
 @receiver(post_save, sender=Appeal)
 def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
@@ -198,51 +199,53 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
         if field.name not in ['id', 'appeal', 'valid_from', 'valid_to']
     ]
     now = timezone.now()
+    valid_to = timezone.now() + relativedelta(years=+10)
     changed = False
 
     if created:  # Appeal Insert
-        AppealHistory.objects.create(aid = instance.aid, 
-                                     num_beneficiaries = instance.num_beneficiaries, 
-                                     amount_requested = instance.amount_requested,
-                                     amount_funded = instance.amount_funded,
-                                     valid_from = now,
-                                     valid_to = datetime(2200, 1, 1),
-                                     start_date = instance.start_date,
-                                     end_date = instance.end_date,
-                                     appeal = instance,
-                                     atype =instance.atype,
-                                     country = instance.country,
-                                     region = instance.region
-                                    )
-        
+        AppealHistory.objects.create(
+            aid=instance.aid,
+            num_beneficiaries=instance.num_beneficiaries,
+            amount_requested=instance.amount_requested,
+            amount_funded=instance.amount_funded,
+            valid_from=now,
+            # TODO: use coalesce to fill valid_to instead of defining here.
+            valid_to=valid_to,
+            start_date=instance.start_date,
+            end_date=instance.end_date,
+            appeal=instance,
+            atype=instance.atype,
+            country=instance.country,
+            region=instance.region
+        )
+
     else:  # Appeal Update
         appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
         for field in fields_watched:
-           
             if appeal_history and getattr(instance, field) != getattr(appeal_history, field):
-            # Watched fields are not changed
+                # Watched fields are not changed
                 changed = True
 
-        print(getattr(appeal_history, field) for field in fields_watched)
-
-        if changed == False:
+        if not changed:
             # Watched fields are not changed
             return
 
         appeal_history.valid_to = now
         appeal_history.save()
-        
+
         # Create a new appeal history if changed
-        AppealHistory.objects.create(aid = instance.aid, 
-                                     num_beneficiaries = instance.num_beneficiaries, 
-                                     amount_requested = instance.amount_requested,
-                                     amount_funded = instance.amount_funded,
-                                     valid_from = now,
-                                     valid_to = datetime(2200, 1, 1),
-                                     start_date = instance.start_date,
-                                     end_date = instance.end_date,
-                                     appeal = instance,
-                                     atype =instance.atype,
-                                     country = instance.country,
-                                     region = instance.region
-                                    )
+        AppealHistory.objects.create(
+            aid=instance.aid,
+            num_beneficiaries=instance.num_beneficiaries,
+            amount_requested=instance.amount_requested,
+            amount_funded=instance.amount_funded,
+            valid_from=now,
+            # TODO: use coalesce to fill valid_to instead of defining here.
+            valid_to=valid_to,
+            start_date=instance.start_date,
+            end_date=instance.end_date,
+            appeal=instance,
+            atype=instance.atype,
+            country=instance.country,
+            region=instance.region
+        )

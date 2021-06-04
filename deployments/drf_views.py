@@ -50,6 +50,7 @@ from .serializers import (
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
     ProjectSerializer,
+    ProjectCsvSerializer,
 )
 
 
@@ -79,7 +80,7 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
     # permission_classes = (IsAuthenticated,)
     queryset = ERU.objects.all()
     serializer_class = ERUSerializer
-    filter_class = ERUFilter
+    filterset_class = ERUFilter
     ordering_fields = ('type', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available',)
 
 
@@ -98,7 +99,7 @@ class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = PersonnelDeployment.objects.all()
     serializer_class = PersonnelDeploymentSerializer
-    filter_class = PersonnelDeploymentFilter
+    filterset_class = PersonnelDeploymentFilter
     ordering_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
 
 
@@ -119,7 +120,7 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
-    filter_class = PersonnelFilter
+    filterset_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
 
     def get_queryset(self):
@@ -165,7 +166,7 @@ class PartnerDeploymentFilterset(filters.FilterSet):
 class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = PartnerSocietyDeployment.objects.all()
     serializer_class = PartnerDeploymentSerializer
-    filter_class = PartnerDeploymentFilterset
+    filterset_class = PartnerDeploymentFilterset
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -183,10 +184,15 @@ class ProjectViewset(RevisionMixin, ReadOnlyVisibilityViewsetMixin, viewsets.Mod
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
     ).all()
-    # TODO: May require different permission for UNSAFE_METHODS (Also Country Level)
-    filter_class = ProjectFilter
+    filterset_class = ProjectFilter
     serializer_class = ProjectSerializer
     ordering_fields = ('name',)
+
+    def get_serializer_class(self):
+        request_format_type = self.request.GET.get('format', 'json')
+        if request_format_type == 'csv':
+            return ProjectCsvSerializer
+        return super().get_serializer_class()
 
     def get_permissions(self):
         # Require authentication for unsafe methods only

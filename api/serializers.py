@@ -147,7 +147,7 @@ class NotCountrySerializer(ModelSerializer):  # fake serializer for a short data
 
 class DistrictSerializer(ModelSerializer):
     country = MiniCountrySerializer()
- 
+
     class Meta:
         model = District
         fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
@@ -180,7 +180,10 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_name','country_iso','country_iso3', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
+        fields = (
+            'id', 'name', 'code', 'country_name', 'country_iso', 'country_iso3',
+            'is_enclave', 'bbox', 'centroid', 'is_deprecated',
+        )
 
 
 class RegionKeyFigureSerializer(ModelSerializer):

@@ -10,6 +10,6 @@ class RegionalProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.RegionalProject
 
-    name = fuzzy.FuzzyText(length=100)
+    name = fuzzy.FuzzyText(length=50, prefix='regional-project-')
     created_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
     modified_at = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))

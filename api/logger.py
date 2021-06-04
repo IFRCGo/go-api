@@ -26,4 +26,4 @@ if (os.environ.get('AZURE_STORAGE_ACCOUNT') is not None and
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 else:
-    logger.warn('No Azure credentials found, falling back to local logs.')
+    logger.warning('No Azure credentials found, falling back to local logs.')

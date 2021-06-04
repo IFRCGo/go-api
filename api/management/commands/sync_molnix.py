@@ -46,12 +46,12 @@ def get_go_event(tags):
             try:
                 event_id_int = int(event_id)
             except:
-                logger.warn('%s tag is not a valid OP- tag' % event_id)
+                logger.warning('%s tag is not a valid OP- tag' % event_id)
                 continue
             try:
                 event = Event.objects.get(id=event_id_int)
             except:
-                logger.warn('Emergency with ID %d not found' % event_id_int)
+                logger.warning('Emergency with ID %d not found' % event_id_int)
                 continue
             return event
     return event
@@ -122,7 +122,7 @@ def sync_deployments(molnix_deployments):
                 p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             else:
                 warning = 'Event id %d without country' % p.event_deployed_to.id
-                logger.warn(warning)
+                logger.warning(warning)
                 warnings.append(warning)
                 continue
             
@@ -141,13 +141,13 @@ def sync_deployments(molnix_deployments):
         event = get_go_event(md['tags'])
         if not event:
             warning = 'Deployment id %d does not have a valid Emergency tag.' % md['id']
-            logger.warn(warning)
+            logger.warning(warning)
             warnings.append(warning)
             continue
         try:
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         except:
-            logger.warn('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
+            logger.warning('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
             continue
 
         personnel.deployment = deployment
@@ -165,7 +165,7 @@ def sync_deployments(molnix_deployments):
             personnel.country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
         except:
             warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
-            logger.warn(warning)
+            logger.warning(warning)
             warnings.append(warning)
             personnel.country_from = None
         personnel.save()
@@ -206,7 +206,7 @@ def sync_open_positions(molnix_positions, molnix_api):
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = 'Position id %d does not have a valid Emergency tag.' % position['id']
-            logger.warn(warning)
+            logger.warning(warning)
             warnings.append(warning)
             continue
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position['id'])

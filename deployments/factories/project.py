@@ -2,7 +2,6 @@ import factory
 from factory import fuzzy
 import datetime
 import pytz
-from random import randrange
 
 from .. import models
 from . import user, regional_project
@@ -29,7 +28,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 
     event = factory.SubFactory(event.EventFactory)
     dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
-    name = fuzzy.FuzzyText(length=500)
+    name = fuzzy.FuzzyText(length=50, prefix='project-')
     programme_type = fuzzy.FuzzyChoice(models.ProgrammeTypes)
     primary_sector = fuzzy.FuzzyChoice(models.Sectors)
 
@@ -39,8 +38,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
             return
 
         if extracted:
-            for secondary_sector in extracted:
-                self.secondary_sectors.add(secondary_sector)
+            self.secondary_sectors = extracted
 
     operation_type = fuzzy.FuzzyChoice(models.OperationTypes)
     start_date = factory.LazyFunction(

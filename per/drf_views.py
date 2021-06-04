@@ -67,7 +67,7 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
-    filter_class = FormFilter
+    filterset_class = FormFilter
     # It is not checked whether this user is the same as the saver. Maybe (for helpers) it is not needed really.
 
     def get_queryset(self):
@@ -109,7 +109,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
-    filter_class = FormDataFilter
+    filterset_class = FormDataFilter
 
     def get_queryset(self):
         queryset = FormData.objects.all().select_related(
@@ -178,7 +178,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
-    filter_class = PERDocsFilter
+    filterset_class = PERDocsFilter
 
     def get_queryset(self):
         queryset = NiceDocument.objects.all()
@@ -379,7 +379,7 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     serializer_class = NSPhaseSerializer
-    filter_class = NSPhaseFilter
+    filterset_class = NSPhaseFilter
 
     def filter_queryset(self, queryset):
         for backend in list(self.filter_backends):
@@ -414,7 +414,7 @@ class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
     queryset = WorkPlan.objects.all()
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
-    filter_class = WorkPlanFilter
+    filterset_class = WorkPlanFilter
     serializer_class = WorkPlanSerializer
 
 
@@ -439,7 +439,7 @@ class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     )
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
-    filter_class = OverviewFilter
+    filterset_class = OverviewFilter
     serializer_class = OverviewSerializer
 
 
@@ -483,7 +483,7 @@ class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Areas Viewset """
     serializer_class = FormAreaSerializer
     queryset = FormArea.objects.all().order_by('area_num')
-    filter_class = FormAreaFilter
+    filterset_class = FormAreaFilter
 
 
 class FormComponentFilter(filters.FilterSet):
@@ -499,7 +499,7 @@ class FormComponentFilter(filters.FilterSet):
 class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Components Viewset """
     serializer_class = FormComponentSerializer
-    filter_class = FormComponentFilter
+    filterset_class = FormComponentFilter
     queryset = (
         FormComponent.objects
                      .all()
@@ -521,7 +521,7 @@ class FormQuestionFilter(filters.FilterSet):
 class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
     """ PER Form Questions Viewset """
     serializer_class = FormQuestionSerializer
-    filter_class = FormQuestionFilter
+    filterset_class = FormQuestionFilter
     queryset = (
         FormQuestion.objects
                     .all()

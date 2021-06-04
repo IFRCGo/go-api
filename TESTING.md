@@ -53,7 +53,7 @@ generate random values for each instance of `ExampleModel` created by
 
 ```
 class ExampleFactory(factory.django.DjangoModelFactory):
-    name = fuzzy.FuzzyText(length=10)
+    name = fuzzy.FuzzyText(length=10, prefix='example-')
     age = fuzzy.FuzzyInteger(0)
 ```
 
