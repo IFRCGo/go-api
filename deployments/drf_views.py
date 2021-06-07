@@ -5,16 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as filters
 
-from django.db.models import (
-    Q,
-    Sum,
-    Count,
-    Subquery,
-    OuterRef,
-    IntegerField,
-    Prefetch,
-)
-from django.db.models.functions import Coalesce
+from django.db import models
+from django.db.models.functions import Coalesce, Cast
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from reversion.views import RevisionMixin
@@ -36,7 +28,9 @@ from .models import (
     PersonnelDeployment,
     Personnel,
     PartnerSocietyDeployment,
+    ProgrammeTypes,
     Sectors,
+    SectorTags,
     Statuses,
     RegionalProject,
     Project,
@@ -137,7 +131,10 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
 
         if self.request.GET.get('format') == 'csv':
             return qs.prefetch_related(
-                Prefetch('deployment__event_deployed_to__field_reports', queryset=FieldReport.objects.only('id', 'event_id'))
+                models.Prefetch(
+                    'deployment__event_deployed_to__field_reports',
+                    queryset=FieldReport.objects.only('id', 'event_id')
+                )
             )
         return qs.prefetch_related('deployment__event_deployed_to__field_reports')
 
@@ -218,8 +215,8 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             region = self.get_region()
             # Filter by region (From URL Params)
             qs = qs.filter(
-                Q(project_country__region=region) |
-                Q(project_districts__country__region=region)
+                models.Q(project_country__region=region) |
+                models.Q(project_districts__country__region=region)
             ).distinct()
         # Filter by GET params
         return ProjectFilter(self.request.query_params, queryset=qs).qs
@@ -228,9 +225,9 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
     def overview(self, request, pk=None):
         projects = self.get_projects()
         aggregate_data = projects.aggregate(
-            total_budget=Sum('budget_amount'),
-            target_total=Sum('target_total'),
-            reached_total=Sum('reached_total'),
+            total_budget=models.Sum('budget_amount'),
+            target_total=models.Sum('target_total'),
+            reached_total=models.Sum('reached_total'),
         )
         return Response({
             'total_projects': projects.count(),
@@ -240,7 +237,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             'target_total': aggregate_data['target_total'],
             'reached_total': aggregate_data['reached_total'],
             'projects_by_status': projects.order_by().values('status').annotate(
-                count=Count('id', distinct=True)).values('status', 'count'),
+                count=models.Count('id', distinct=True)).values('status', 'count'),
         })
 
     @action(detail=True, url_path='movement-activities', methods=('get',))
@@ -250,7 +247,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         def _get_country_ns_sector_count():
             agg = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
             fields = ('project_country', 'reporting_ns', 'primary_sector')
-            qs = projects.order_by().values(*fields).annotate(count=Count('id', distinct=True)).values_list(
+            qs = projects.order_by().values(*fields).annotate(count=models.Count('id', distinct=True)).values_list(
                 *fields, 'project_country__name', 'reporting_ns__name', 'count')
             for country, ns, sector, country_name, ns_name, count in qs:
                 agg[country][ns][sector] = count
@@ -279,23 +276,23 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             ]
 
         region = self.get_region()
-        country_projects = projects.filter(project_country=OuterRef('pk'))
+        country_projects = projects.filter(project_country=models.OuterRef('pk'))
         countries = Country.objects.filter(region=region)
         country_annotate = {
-            f'{status_label.lower()}_projects_count': Coalesce(Subquery(
+            f'{status_label.lower()}_projects_count': Coalesce(models.Subquery(
                 country_projects.filter(status=status).values('project_country').annotate(
-                    count=Count('id', distinct=True)).values('count')[:1],
-                output_field=IntegerField(),
+                    count=models.Count('id', distinct=True)).values('count')[:1],
+                output_field=models.IntegerField(),
             ), 0) for status, status_label in Statuses.choices()
         }
 
         return Response({
             'total_projects': projects.count(),
             'countries_count': countries.annotate(
-                projects_count=Coalesce(Subquery(
-                    projects.filter(project_country=OuterRef('pk')).values('project_country').annotate(
-                        count=Count('id', distinct=True)).values('count')[:1],
-                    output_field=IntegerField(),
+                projects_count=Coalesce(models.Subquery(
+                    projects.filter(project_country=models.OuterRef('pk')).values('project_country').annotate(
+                        count=models.Count('id', distinct=True)).values('count')[:1],
+                    output_field=models.IntegerField(),
                 ), 0),
                 **country_annotate,
             ).values('id', 'name', 'iso', 'iso3', 'projects_count', *country_annotate.keys()),
@@ -303,7 +300,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             'supporting_ns': [
                 {'id': id, 'name': name, 'count': count}
                 for id, name, count in projects.order_by().values('reporting_ns').annotate(
-                    count=Count('id', distinct=True)
+                    count=models.Count('id', distinct=True)
                 ).values_list('reporting_ns', 'reporting_ns__name', 'count')
             ],
         })
@@ -320,14 +317,14 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                     for f, key in kwargs.items()
                 }
                 for p in projects.order_by().values(field).annotate(
-                    count=Count('id', distinct=True)
+                    count=models.Count('id', distinct=True)
                 ).values(field, *kwargs.values()).distinct()
             ]
 
         def _get_count(*fields):
             return list(
                 projects.order_by().values(*fields).annotate(
-                    count=Count('id', distinct=True)).values_list(*fields, 'count')
+                    count=models.Count('id', distinct=True)).values_list(*fields, 'count')
             )
 
         # Raw nodes
@@ -398,3 +395,99 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
     @action(detail=False, url_path='national-society-activities', methods=('get',))
     def global_national_society_activities(self, request, pk=None):
         return self.national_society_activities(request, pk)
+
+
+class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
+    def get_projects(self):
+        # Filter by visibility
+        qs = self.get_visibility_queryset(Project.objects.all())
+        # Filter by GET params
+        return ProjectFilter(self.request.query_params, queryset=qs).qs
+
+    @action(detail=False, url_path='overview', methods=('get',))
+    def overview(self, request, pk=None):
+        def _get_projects_per_enum_field(projects, EnumType, enum_field):
+            return [
+                {
+                    enum_field: enum_field_value,
+                    f'{enum_field}_display': EnumType(int(enum_field_value)).label,
+                    'count': count,
+                }
+                for enum_field_value, count in (
+                    projects.order_by().values(enum_field).annotate(count=models.Count('id')).values_list(
+                        enum_field, 'count',
+                    )
+                )
+            ]
+
+        projects = self.get_projects()
+        projects_unnest_tags = (
+            projects
+            # XXX: Without cast django throws 'int' is not iterable
+            .annotate(secondary_sector=Cast(
+                models.Func(models.F('secondary_sectors'), function='UNNEST'),
+                output_field=models.CharField(),
+            ))
+        )
+
+        target_total = projects.aggregate(target_total=models.Sum('target_total'))['target_total']
+        return Response({
+            'total_ongoing_projects': projects.filter(status=Statuses.ONGOING).count(),
+            'ns_with_ongoing_activities': (
+                projects.filter(status=Statuses.ONGOING)
+                .order_by('reporting_ns').values('reporting_ns').distinct().count()
+            ),
+            'target_total': target_total,
+            'projects_per_sector': _get_projects_per_enum_field(projects, Sectors, 'primary_sector'),
+            'projects_per_programme_type': _get_projects_per_enum_field(projects, ProgrammeTypes, 'programme_type'),
+            'projects_per_secondary_sectors': _get_projects_per_enum_field(
+                projects_unnest_tags,
+                SectorTags, 'secondary_sector'
+            ),
+        })
+
+    @action(detail=False, url_path='ns-ongoing-projects-stats', methods=('get',))
+    def ns_ongoing_projects_stats(self, request, pk=None):
+        projects = Project.objects.filter(
+            # To avoid duplicate rows
+            id__in=self.get_projects(),
+            status=Statuses.ONGOING,
+        )
+        ref_projects = projects.filter(reporting_ns=models.OuterRef('pk'))
+
+        project_per_sector = defaultdict(list)
+        for reporting_ns, primary_sector, count in (
+            projects.order_by('reporting_ns', 'primary_sector')
+            .values('reporting_ns', 'primary_sector')
+            .annotate(count=models.Count('id'))
+            .values_list('reporting_ns', 'primary_sector', 'count')
+        ):
+            project_per_sector[reporting_ns].append({
+                'primary_sector': primary_sector,
+                'primary_sector_display': Sectors(primary_sector).label,
+                'count': count,
+            })
+
+        return Response({
+            'results': [
+                {
+                    **ns_data,
+                    'projects_per_sector': project_per_sector.get(ns_data['id']),
+                }
+                for ns_data in Country.objects.annotate(
+                    ongoing_projects=Coalesce(models.Subquery(
+                        ref_projects.values('reporting_ns').annotate(
+                            count=models.Count('id')).values('count')[:1],
+                        output_field=models.IntegerField(),
+                    ), 0),
+                    target_total=Coalesce(models.Subquery(
+                        ref_projects.values('reporting_ns').annotate(
+                            target_total=models.Sum('target_total')).values('target_total')[:1],
+                        output_field=models.IntegerField(),
+                    ), 0),
+                ).filter(ongoing_projects__gt=0).values(
+                    'id', 'name', 'iso3', 'iso3', 'society_name',
+                    'ongoing_projects', 'target_total',
+                )
+            ]
+        })

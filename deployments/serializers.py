@@ -1,4 +1,5 @@
 from django.utils.translation import ugettext
+from django.db import models
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
@@ -27,6 +28,9 @@ from .models import (
 
     OperationTypes,
     ProgrammeTypes,
+    Statuses,
+    Sectors,
+    SectorTags,
 )
 
 
