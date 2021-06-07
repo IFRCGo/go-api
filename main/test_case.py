@@ -151,3 +151,10 @@ class CaptureOnCommitCallbacksContext:
         if exc_type is None and self.execute:
             for callback in self.callbacks:
                 callback()
+
+
+class GoApiGlobalTest(APITestCase):
+
+    def test_docs_api(self, **kwargs):
+        resp = self.client.get('/docs/')
+        self.assert_200(resp)

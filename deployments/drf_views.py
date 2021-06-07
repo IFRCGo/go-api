@@ -20,6 +20,7 @@ from rest_framework import viewsets
 from reversion.views import RevisionMixin
 from main.utils import is_tableau
 
+from main.serializers import CsvListMixin
 from api.models import (
     Country,
     Region,
@@ -180,19 +181,19 @@ class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class ProjectViewset(RevisionMixin, ReadOnlyVisibilityViewsetMixin, viewsets.ModelViewSet):
+class ProjectViewset(
+    RevisionMixin,
+    CsvListMixin,
+    ReadOnlyVisibilityViewsetMixin,
+    viewsets.ModelViewSet,
+):
     queryset = Project.objects.prefetch_related(
         'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
     ).all()
     filterset_class = ProjectFilter
     serializer_class = ProjectSerializer
+    csv_serializer_class = ProjectCsvSerializer
     ordering_fields = ('name',)
-
-    def get_serializer_class(self):
-        request_format_type = self.request.GET.get('format', 'json')
-        if request_format_type == 'csv':
-            return ProjectCsvSerializer
-        return super().get_serializer_class()
 
     def get_permissions(self):
         # Require authentication for unsafe methods only
