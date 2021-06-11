@@ -301,7 +301,6 @@ class Command(BaseCommand):
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
-            raise ex
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
