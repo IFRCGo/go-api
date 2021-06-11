@@ -6,12 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.367
+
+### Added
+ - Return from push_fr_data if ERP_ENDPOINT is 'x' (empty not good: broke tests)
+
 ## 1.1.366
 
 ### Added
  - Add country iso and name to district and district centroid tilesets
  - Bump django from 2.2.22 to 2.2.24
- - Create a return if ERP_ENDPOINT is empty
 
 ## 1.1.365
 
@@ -1601,7 +1605,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.366...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.367...HEAD
+[1.1.367]: https://github.com/IFRCGo/go-api/compare/1.1.366...1.1.367
 [1.1.366]: https://github.com/IFRCGo/go-api/compare/1.1.365...1.1.366
 [1.1.365]: https://github.com/IFRCGo/go-api/compare/1.1.364...1.1.365
 [1.1.364]: https://github.com/IFRCGo/go-api/compare/1.1.363...1.1.364

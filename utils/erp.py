@@ -12,7 +12,7 @@ ERP_API_SUBSCRIPTION_KEY = settings.ERP_API_SUBSCRIPTION_KEY
 
 
 def push_fr_data(data, retired=False):
-    if ERP_API_SUBSCRIPTION_KEY == '':
+    if ERP_API_ENDPOINT == 'x':
         return
     # Contacts
     c_ifrc_names = ",".join(
