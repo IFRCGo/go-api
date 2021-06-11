@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.368
+
+### Added
+ - Handle case where incoming value for personnel deployment from Molnix is null
+
 ## 1.1.367
 
 ### Added
@@ -1605,7 +1610,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.367...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.368...HEAD
+[1.1.368]: https://github.com/IFRCGo/go-api/compare/1.1.367...1.1.368
 [1.1.367]: https://github.com/IFRCGo/go-api/compare/1.1.366...1.1.367
 [1.1.366]: https://github.com/IFRCGo/go-api/compare/1.1.365...1.1.366
 [1.1.365]: https://github.com/IFRCGo/go-api/compare/1.1.364...1.1.365
