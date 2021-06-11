@@ -99,9 +99,10 @@ def add_tags_to_obj(obj, tags):
     
 
 def sync_deployments(molnix_deployments):
-    import json
-    print(json.dumps(molnix_deployments, indent=2))
+    #import json
+    #print(json.dumps(molnix_deployments, indent=2))
     molnix_ids = [d['id'] for d in molnix_deployments]
+
     warnings = []
     messages = []
     successful_creates = 0
@@ -161,13 +162,22 @@ def sync_deployments(molnix_deployments):
         personnel.end_date = get_datetime(md['end'])
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
-        try:
-            personnel.country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
-        except:
-            warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
+        country_from = None
+
+        # Sometimes the `incoming` value from Molnix is null.
+        if md['incoming']:
+            try:
+                country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
+            except:
+                warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
+                logger.warning(warning)
+                warnings.append(warning)
+        else:
+            warning = 'No data for secondment incoming from Molnix API - id %d' % md['id']
             logger.warning(warning)
             warnings.append(warning)
-            personnel.country_from = None
+
+        personnel.country_from = country_from
         personnel.save()
         add_tags_to_obj(personnel, md['tags'])
         if created:
@@ -291,7 +301,6 @@ class Command(BaseCommand):
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
-            raise ex
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
