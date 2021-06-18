@@ -485,7 +485,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                             target_total=models.Sum('target_total')).values('target_total')[:1],
                         output_field=models.IntegerField(),
                     ), 0),
-                ).filter(ongoing_projects__gt=0).values(
+                ).filter(ongoing_projects__gt=0).order_by('id').values(
                     'id', 'name', 'iso3', 'iso3', 'society_name',
                     'ongoing_projects', 'target_total',
                 )
