@@ -181,3 +181,38 @@ class TestProjectAPI(SnapshotTestCase):
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.content.decode('utf-8'))
+
+    def test_global_project_api(self):
+        country_1 = country.CountryFactory()
+        country_2 = country.CountryFactory()
+        ns_1 = country.CountryFactory()
+        ns_2 = country.CountryFactory()
+        c1_district1 = district.DistrictFactory(country=country_1)
+        c1_district2 = district.DistrictFactory(country=country_1)
+        c2_district1 = district.DistrictFactory(country=country_2)
+        c2_district2 = district.DistrictFactory(country=country_2)
+        [
+            ProjectFactory.create_batch(
+                2,
+                project_districts=project_districts,
+                secondary_sectors=secondary_sectors,
+                visibility=VisibilityCharChoices.PUBLIC,
+            )
+            for project_districts, secondary_sectors in [
+                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.PGI]),
+                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.RCCE]),
+                ([c2_district1, c2_district2], [SectorTags.LIVELIHOODS_AND_BASIC_NEEDS, SectorTags.PGI]),
+                ([c2_district1, c2_district2], [SectorTags.INTERNAL_DISPLACEMENT, SectorTags.RECOVERY]),
+            ]
+            for ns in [ns_1, ns_2]
+        ]
+
+        url = '/api/v2/global-project/overview/'
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.json())
+
+        url = '/api/v2/global-project/ns-ongoing-projects-stats/'
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.json())

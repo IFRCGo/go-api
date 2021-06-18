@@ -572,3 +572,195 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'visibility': 'public',
     'visibility_display': 'Public'
 }
+
+snapshots['TestProjectAPI::test_global_project_api 1'] = {
+    'ns_with_ongoing_activities': 6,
+    'projects_per_programme_type': [
+        {
+            'count': 6,
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral'
+        },
+        {
+            'count': 6,
+            'programme_type': 1,
+            'programme_type_display': 'Multilateral'
+        },
+        {
+            'count': 4,
+            'programme_type': 2,
+            'programme_type_display': 'Domestic'
+        }
+    ],
+    'projects_per_secondary_sectors': [
+        {
+            'count': 8,
+            'secondary_sector': '0',
+            'secondary_sector_display': 'WASH'
+        },
+        {
+            'count': 8,
+            'secondary_sector': '1',
+            'secondary_sector_display': 'PGI'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '10',
+            'secondary_sector_display': 'Recovery'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '11',
+            'secondary_sector_display': 'Internal displacement'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '14',
+            'secondary_sector_display': 'RCCE'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '9',
+            'secondary_sector_display': 'Livelihoods and basic needs'
+        }
+    ],
+    'projects_per_sector': [
+        {
+            'count': 2,
+            'primary_sector': 0,
+            'primary_sector_display': 'WASH'
+        },
+        {
+            'count': 2,
+            'primary_sector': 2,
+            'primary_sector_display': 'CEA'
+        },
+        {
+            'count': 2,
+            'primary_sector': 3,
+            'primary_sector_display': 'Migration'
+        },
+        {
+            'count': 1,
+            'primary_sector': 4,
+            'primary_sector_display': 'Health'
+        },
+        {
+            'count': 2,
+            'primary_sector': 5,
+            'primary_sector_display': 'DRR'
+        },
+        {
+            'count': 1,
+            'primary_sector': 6,
+            'primary_sector_display': 'Shelter'
+        },
+        {
+            'count': 2,
+            'primary_sector': 8,
+            'primary_sector_display': 'Education'
+        },
+        {
+            'count': 4,
+            'primary_sector': 9,
+            'primary_sector_display': 'Livelihoods and basic needs'
+        }
+    ],
+    'target_total': 0,
+    'total_ongoing_projects': 6
+}
+
+snapshots['TestProjectAPI::test_global_project_api 2'] = {
+    'results': [
+        {
+            'id': 9,
+            'iso3': 'hVr',
+            'name': 'country-tvTDQLHHKrWiuBxQjLVcVZyOdYmlajOcYpkzuaKEEwmOKzCnDN',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 2,
+                    'primary_sector_display': 'CEA'
+                }
+            ],
+            'society_name': 'society-name-PXGvvlqvZFXJDQgQvWHqeYxBPbIigoDhhJTsiwtCBJfGlzGmjR',
+            'target_total': 0
+        },
+        {
+            'id': 13,
+            'iso3': 'Nvo',
+            'name': 'country-YksnSVShNIoKisIsGeobatgVBMZZeauocjgxeyEUxWZTJySszT',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 6,
+                    'primary_sector_display': 'Shelter'
+                }
+            ],
+            'society_name': 'society-name-tJffaubhWrFAqXjFGZLYBhuEpJvuVWhiIXeCFvZgioLxWKFGgv',
+            'target_total': 0
+        },
+        {
+            'id': 19,
+            'iso3': 'NTS',
+            'name': 'country-PhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAkalhovT',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
+                }
+            ],
+            'society_name': 'society-name-kjQpKsaFfWCpQsoryydZNvqERdUQdAdYYpKHedCKXwgzmvieqO',
+            'target_total': 0
+        },
+        {
+            'id': 27,
+            'iso3': 'SWK',
+            'name': 'country-rWkcUCAxgZonvlKsMxEBdpTOWKASebIrYORKkWTLEdtXunHBIC',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
+                }
+            ],
+            'society_name': 'society-name-CAFyjhOmvtOuzWerUohwVmQGOmRtJPKLTxpeldcHXvKctdXblr',
+            'target_total': 0
+        },
+        {
+            'id': 31,
+            'iso3': 'Ece',
+            'name': 'country-ervxcfkMbqpfkHBIBBDCwyszNZGXQmypnWjcKsHVgAGwmfLLQM',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 3,
+                    'primary_sector_display': 'Migration'
+                }
+            ],
+            'society_name': 'society-name-WtyhGEdYOTkESoNirZyDIXoftSYyrkvXbGZHUlpjXqOmNAKBOU',
+            'target_total': 0
+        },
+        {
+            'id': 33,
+            'iso3': 'rZn',
+            'name': 'country-MLvoRjfavNEGPtQYlQIfZsPpOuhTPNPtSThNKDMYIfFApbQgMP',
+            'ongoing_projects': 1,
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 9,
+                    'primary_sector_display': 'Livelihoods and basic needs'
+                }
+            ],
+            'society_name': 'society-name-UhBSCdfQshatRJHibAqQwyjPObObNJmOlTFmBXxjPSQKnNDixO',
+            'target_total': 0
+        }
+    ]
+}
