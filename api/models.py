@@ -908,6 +908,11 @@ class AppealHistory(models.Model):
     #name = models.CharField(verbose_name=_('name'), max_length=100)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
+    dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
+    needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
+    status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
+    
+
 
     class Meta:
         ordering = ('-start_date', '-end_date',)

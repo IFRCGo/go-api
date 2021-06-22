@@ -37,7 +37,7 @@ from .models import (
 
     Appeal,
     AppealDocument,
-
+    AppealHistory,
     Profile,
 
     FieldReportContact,
@@ -593,6 +593,28 @@ class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSeria
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
+class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    event = MiniEventSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    code = serializers.CharField(source='appeal.code', read_only=True)
+    sector = serializers.CharField(source='appeal.sector', read_only=True)
+    created_at = serializers.CharField(source='appeal.created_at', read_only=True)
+    modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    event = serializers.CharField(source='appeal.event', read_only=True)
+    id = serializers.CharField(source='appeal.id', read_only=True)
+    name = serializers.CharField(source='appeal.name', read_only=True)
+
+    class Meta:
+        model = AppealHistory
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
+        )
 
 class MiniAppealSerializer(serializers.ModelSerializer):
     class Meta:
@@ -615,6 +637,27 @@ class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
+class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    code = serializers.CharField(source='appeal.code', read_only=True)
+    sector = serializers.CharField(source='appeal.sector', read_only=True)
+    created_at = serializers.CharField(source='appeal.created_at', read_only=True)
+    modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    event = serializers.CharField(source='appeal.event', read_only=True)
+    id = serializers.CharField(source='appeal.id', read_only=True)
+    name = serializers.CharField(source='appeal.name', read_only=True)
+
+    class Meta:
+        model = AppealHistory
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
+        )
 
 class AppealDocumentTableauSerializer(serializers.ModelSerializer):
     appeal = MiniAppealSerializer()

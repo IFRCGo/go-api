@@ -24,6 +24,7 @@ from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 
 from .models import (
+    AppealHistory,
     DisasterType,
     ExternalPartner,
     SupportedActivity,
@@ -88,6 +89,7 @@ from .serializers import (
     SituationReportSerializer,
     SituationReportTypeSerializer,
     AppealSerializer,
+    AppealHistorySerializer,
     AppealDocumentSerializer,
     UserSerializer,
     UserMeSerializer,
@@ -101,6 +103,7 @@ from .serializers import (
     # Tableau Serializers
     AppealDocumentTableauSerializer,
     AppealTableauSerializer,
+    AppealHistoryTableauSerializer,
     CountryTableauSerializer,
     CountrySnippetTableauSerializer,
     ListEventTableauSerializer,
@@ -432,18 +435,41 @@ class AppealFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
+class AppealHistoryFilter(filters.FilterSet):
+    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
+    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    code = filters.CharFilter(field_name='code', lookup_expr='exact')
+    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact')
+ 
+    class Meta:
+        model = AppealHistory
+        fields = {
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
 
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
-    serializer_class = AppealSerializer
+    #queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
+    queryset = AppealHistory.objects.select_related('appeal','dtype', 'country', 'region').all()
+    #serializer_class = AppealSerializer
+    serializer_class = AppealHistorySerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
-    filterset_class = AppealFilter
+    #filterset_class = AppealFilter
+    filterset_class = AppealHistoryFilter
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return AppealTableauSerializer
-        return AppealSerializer
+            return AppealHistoryTableauSerializer
+            #return AppealTableauSerializer
+        return AppealHistorySerializer
+        #return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj['needs_confirmation']:
@@ -467,6 +493,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+        
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
