@@ -211,7 +211,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             amount_funded=instance.amount_funded,
             valid_from=now,
             # TODO: use coalesce to fill valid_to instead of defining here.
-            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),#valid_to,
+            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),
             start_date=instance.start_date,
             end_date=instance.end_date,
             appeal=instance,
@@ -246,7 +246,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             amount_funded=instance.amount_funded,
             valid_from=now,
             # TODO: use coalesce to fill valid_to instead of defining here.
-            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),#valid_to,
+            valid_to=datetime(2200, 1, 1, tzinfo=timezone.utc),
             start_date=instance.start_date,
             end_date=instance.end_date,
             appeal=instance,
