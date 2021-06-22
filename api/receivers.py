@@ -216,7 +216,11 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             appeal=instance,
             atype=instance.atype,
             country=instance.country,
-            region=instance.region
+            region=instance.region,
+            dtype = instance.dtype,
+            needs_confirmation = instance.needs_confirmation,
+            status = instance.status,
+            code = instance.code
         )
 
     else:  # Appeal Update
@@ -247,5 +251,9 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             appeal=instance,
             atype=instance.atype,
             country=instance.country,
-            region=instance.region
+            region=instance.region,
+            dtype = instance.dtype,
+            needs_confirmation = instance.needs_confirmation,
+            status = instance.status,
+            code = instance.code
         )
