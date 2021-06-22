@@ -193,7 +193,7 @@ class Command(BaseCommand):
         DistrictGeom = DistrictGeoms.objects.get(district=district)
         DistrictGeom.geom = geom
         DistrictGeom.save()
-      except:
+      except ObjectDoesNotExist:
         DistrictGeom = DistrictGeoms()
         DistrictGeom.district = district
         DistrictGeom.geom = geom
