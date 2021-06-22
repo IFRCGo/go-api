@@ -1,14 +1,17 @@
 from collections import defaultdict
+
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework import viewsets
 from rest_framework.response import Response
-from django_filters import rest_framework as filters
 
+from django_filters import rest_framework as filters
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Coalesce, Cast
+from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
 from reversion.views import RevisionMixin
 from main.utils import is_tableau
 
@@ -23,17 +26,18 @@ from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 from .filters import ProjectFilter
 from .models import (
-    ERUOwner,
     ERU,
-    PersonnelDeployment,
-    Personnel,
+    ERUOwner,
+    OperationTypes,
     PartnerSocietyDeployment,
+    Personnel,
+    PersonnelDeployment,
     ProgrammeTypes,
-    Sectors,
-    SectorTags,
-    Statuses,
-    RegionalProject,
     Project,
+    RegionalProject,
+    SectorTags,
+    Sectors,
+    Statuses,
 )
 from .serializers import (
     ERUOwnerSerializer,
@@ -473,6 +477,10 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 {
                     **ns_data,
                     'projects_per_sector': project_per_sector.get(ns_data['id']),
+                    'operation_types_display': [
+                        OperationTypes(operation_type).label
+                        for operation_type in ns_data['operation_types']
+                    ]
                 }
                 for ns_data in Country.objects.annotate(
                     ongoing_projects=Coalesce(models.Subquery(
@@ -485,9 +493,19 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                             target_total=models.Sum('target_total')).values('target_total')[:1],
                         output_field=models.IntegerField(),
                     ), 0),
+                    budget_amount_total=Coalesce(models.Subquery(
+                        ref_projects.values('reporting_ns').annotate(
+                            budget_amount_total=models.Sum('budget_amount')).values('budget_amount_total')[:1],
+                        output_field=models.IntegerField(),
+                    ), 0),
+                    operation_types=Coalesce(models.Subquery(
+                        ref_projects.values('reporting_ns').annotate(
+                            operation_types=ArrayAgg('operation_type', distinct=True)).values('operation_types')[:1],
+                        output_field=ArrayField(models.IntegerField()),
+                    ), []),
                 ).filter(ongoing_projects__gt=0).order_by('id').values(
                     'id', 'name', 'iso3', 'iso3', 'society_name',
-                    'ongoing_projects', 'target_total',
+                    'ongoing_projects', 'target_total', 'budget_amount_total', 'operation_types',
                 )
             ]
         })
