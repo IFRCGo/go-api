@@ -1,5 +1,4 @@
 import subprocess
-import os
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
@@ -26,7 +25,7 @@ class Command(BaseCommand):
       subprocess.check_call(['touch', '/tmp/districts.geojson'])
       subprocess.check_call(['rm', '/tmp/districts.geojson'])
       # FIXME eventually should be name_en, name_es etc.
-      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=5', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated from api_districtgeoms cd, api_district c where cd.district_id = c.id and cd.geom is not null' ])
+      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=5', '-f', 'GeoJSON', '/tmp/districts.geojson', connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.country_id, c.is_enclave, c.is_deprecated, country.iso as country_iso, country.iso3 as country_iso3, country.name as country_name, country.name_es as country_name_es, country.name_fr as country_name_fr, country.name_ar as country_name_ar from api_districtgeoms cd, api_district c, api_country country where cd.district_id = c.id and cd.geom is not null and country.id=c.country_id' ])
       print('Districts written to /tmp/districts.geojson')
 
       print('Exporting country centroids...')
@@ -38,7 +37,7 @@ class Command(BaseCommand):
       subprocess.check_call(['touch', '/tmp/district-centroids.geojson'])
       subprocess.check_call(['rm', '/tmp/district-centroids.geojson'])
       # FIXME eventually should be name_en, name_es etc.
-      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', connection_string, '-sql', 'select d.id, d.name, d.is_deprecated, d.is_enclave, c.iso, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null'])
+      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', connection_string, '-sql', 'select d.id, d.name, d.is_deprecated, d.is_enclave, c.iso as country_iso, c.iso3 as country_iso3, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null'])
 
       print('Update Mapbox tileset source for countries...')
       subprocess.check_call(['tilesets', 'upload-source', '--replace', 'go-ifrc', 'go-countries-src', '/tmp/countries.geojson'])

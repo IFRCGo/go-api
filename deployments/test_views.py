@@ -47,8 +47,8 @@ class ProjectGetTest(APITestCase):
             programme_type=ProgrammeTypes.BILATERAL.value,
             primary_sector=Sectors.WASH.value,
             operation_type=OperationTypes.EMERGENCY_OPERATION.value,
-            start_date='2011-11-11',
-            end_date='2011-11-11',
+            start_date=datetime.date(2011, 11, 11),
+            end_date=datetime.date(2011, 11, 11),
             budget_amount=6000,
             status=Statuses.COMPLETED.value,
         )
@@ -62,8 +62,8 @@ class ProjectGetTest(APITestCase):
             primary_sector=Sectors.SHELTER.value,
             secondary_sectors=[SectorTags.WASH.value, SectorTags.RCCE.value],
             operation_type=OperationTypes.PROGRAMME.value,
-            start_date='2012-12-12',
-            end_date='2013-01-01',
+            start_date=datetime.date(2012, 12, 12),
+            end_date=datetime.date(2013, 1, 1),
             budget_amount=3000,
             status=Statuses.ONGOING.value,
         )
@@ -73,8 +73,8 @@ class ProjectGetTest(APITestCase):
         project = Project.objects.create(
             user=self.user,
             name='Project Name',
-            start_date='2011-11-11',
-            end_date='2011-11-11',
+            start_date=datetime.date(2011, 11, 11),
+            end_date=datetime.date(2011, 11, 11),
             reporting_ns=self.country1,
             programme_type=ProgrammeTypes.BILATERAL.value,
             primary_sector=Sectors.WASH.value,
@@ -171,7 +171,8 @@ class ProjectGetTest(APITestCase):
         p_ids = [p['id'] for p in resp.json()['results']]
         assert (public_project.pk in p_ids and private_project.pk in p_ids and ifrc_only_project.pk in p_ids)
 
-    def test_regional_project_get(self):
+    @mock.patch('django.utils.timezone.now')
+    def test_regional_project_get(self, mock_now):
         # Get/Create a region
         # NOTE: If this test fails make sure there no project create for below region
         region, _ = Region.objects.get_or_create(name=1)
@@ -188,53 +189,62 @@ class ProjectGetTest(APITestCase):
         district1a = District.objects.create(name='district1aa', country=country1)
         district2 = District.objects.create(name='district2', country=country2)
         district2a = District.objects.create(name='district2a', country=country2)
+
+        mock_now.return_value = datetime.datetime(2011, 11, 11)
         # Create new Projects
         for i, pdata in enumerate([
             (
                 rcountry1, [district1, district1a],
-                ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
+                ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME,
+                [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 6000, 1000, 2),
             (
                 rcountry1, [district1],
-                ProgrammeTypes.MULTILATERAL, Sectors.WASH, OperationTypes.EMERGENCY_OPERATION, Statuses.ONGOING,
+                ProgrammeTypes.MULTILATERAL, Sectors.WASH, OperationTypes.EMERGENCY_OPERATION,
+                [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                 1000, 2000, 2),
             (
                 rcountry1, [district2, district2a],
-                ProgrammeTypes.DOMESTIC, Sectors.CEA, OperationTypes.PROGRAMME, Statuses.ONGOING,
+                ProgrammeTypes.DOMESTIC, Sectors.CEA, OperationTypes.PROGRAMME,
+                [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                 4000, 3000, 1000),
             (
                 rcountry1, [district2],
-                ProgrammeTypes.BILATERAL, Sectors.HEALTH, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
+                ProgrammeTypes.BILATERAL, Sectors.HEALTH, OperationTypes.EMERGENCY_OPERATION,
+                [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 6000, 9000, 1000),
             (
                 rcountry2, [district1, district1a],
-                ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME, Statuses.PLANNED,
+                ProgrammeTypes.BILATERAL, Sectors.WASH, OperationTypes.PROGRAMME,
+                [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 86000, 6000, 3000),
             (
                 rcountry2, [district1],
-                ProgrammeTypes.MULTILATERAL, Sectors.EDUCATION, OperationTypes.EMERGENCY_OPERATION, Statuses.COMPLETED,
+                ProgrammeTypes.MULTILATERAL, Sectors.EDUCATION, OperationTypes.EMERGENCY_OPERATION,
+                [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 6000, 5000, 2000),
             (
                 rcountry2, [district2, district2a],
-                ProgrammeTypes.DOMESTIC, Sectors.DRR, OperationTypes.PROGRAMME, Statuses.PLANNED,
+                ProgrammeTypes.DOMESTIC, Sectors.DRR, OperationTypes.PROGRAMME,
+                [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 100, 4000, 2000),
             (
                 rcountry2, [district2],
-                ProgrammeTypes.BILATERAL, Sectors.MIGRATION, OperationTypes.PROGRAMME, Statuses.COMPLETED,
+                ProgrammeTypes.BILATERAL, Sectors.MIGRATION, OperationTypes.PROGRAMME,
+                [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 2, 1000, 50),
         ]):
             p = Project.objects.create(
                 user=self.user,
                 name=f'Project {i}',
-                start_date='2011-11-11',
-                end_date='2011-11-11',
+                start_date=pdata[5][0],
+                end_date=pdata[5][1],
                 # Dynamic values
-                project_country=pdata[1][0].country,
                 reporting_ns=pdata[0],
+                project_country=pdata[1][0].country,
                 programme_type=pdata[2],
                 primary_sector=pdata[3],
                 operation_type=pdata[4],
-                status=pdata[5],
                 budget_amount=pdata[6],
                 target_total=pdata[7],
                 reached_total=pdata[8],

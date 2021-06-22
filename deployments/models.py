@@ -3,6 +3,7 @@ from enumfields import EnumIntegerField
 from enumfields import IntEnum
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
@@ -194,8 +195,7 @@ class Personnel(DeployedPerson):
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
     molnix_id = models.IntegerField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
-    is_active = models.BooleanField(default=True) # Active in Molnix API
-
+    is_active = models.BooleanField(default=True)  # Active in Molnix API
 
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
@@ -414,6 +414,18 @@ class Project(models.Model):
             force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
             for value in self.secondary_sectors or []
         ]
+
+    def save(self, *args, **kwargs):
+        # Automatically assign status according to the start_date and end_date
+        # Cronjob will change the status automatically in future
+        now = timezone.now().date()
+        if self.start_date > now:
+            self.status = Statuses.PLANNED
+        elif self.start_date <= now <= self.end_date:
+            self.status = Statuses.ONGOING
+        else:
+            self.status = Statuses.COMPLETED
+        return super().save(*args, **kwargs)
 
 
 class ProjectImport(models.Model):
