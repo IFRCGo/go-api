@@ -481,7 +481,9 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
     # Overwrite retrieve, list to exclude the event if it requires confirmation
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        now = timezone.now()
+        date = request.GET.get('date', now)
+        queryset = self.filter_queryset(self.get_queryset()).filter(valid_from__lt=date, valid_to__gt=date)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
