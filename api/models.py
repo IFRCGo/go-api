@@ -911,6 +911,7 @@ class AppealHistory(models.Model):
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
+    code = models.CharField(verbose_name=_('code'), max_length=20, null=True, unique=True)
     
 
 

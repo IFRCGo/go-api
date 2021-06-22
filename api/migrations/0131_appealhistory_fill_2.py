@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql=[("UPDATE api_appealhistory SET dtype_id = api_appeal.dtype_id, status = api_appeal.status, needs_confirmation = api_appeal.needs_confirmation from api_appeal WHERE api_appeal.aid = api_appealhistory.aid")],
+            sql=[("UPDATE api_appealhistory SET dtype_id = api_appeal.dtype_id, status = api_appeal.status, needs_confirmation = api_appeal.needs_confirmation, code = api_appeal.code from api_appeal WHERE api_appeal.aid = api_appealhistory.aid")],
             reverse_sql=[("DELETE FROM api_appealhistory where valid_to = '2200-01-01'")],
         )
     ]

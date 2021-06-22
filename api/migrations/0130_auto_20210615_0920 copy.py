@@ -28,4 +28,9 @@ class Migration(migrations.Migration):
             name='status',
             field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.AppealStatus, verbose_name='status'),
         ),
+        migrations.AddField(
+            model_name='appealhistory',
+            name='code',
+            field=models.CharField(max_length=20, null=True, verbose_name='code'),
+        ),
     ]
