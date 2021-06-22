@@ -117,11 +117,17 @@ class Command(BaseCommand):
           country = Country.objects.get(iso=feature_iso2, record_type=1)
 
           if options['update_geom']:
-            # add geom
-            CountryGeom = CountryGeoms()
-            CountryGeom.country = country
-            CountryGeom.geom = geom.wkt
-            CountryGeom.save()
+            # check if this geom exists
+            try:
+              CountryGeom = CountryGeom.objects.get(country=country)
+              CountryGeom.geom = geom.wkt
+              CountryGeom.save()
+            except ObjectDoesNotExist:
+              # add geom
+              CountryGeom = CountryGeoms()
+              CountryGeom.country = country
+              CountryGeom.geom = geom.wkt
+              CountryGeom.save()
 
           if options['update_bbox']:
             # add bbox
