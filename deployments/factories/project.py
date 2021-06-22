@@ -45,7 +45,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
         datetime.datetime(2008, 1, 1, tzinfo=pytz.utc).date
     )
     end_date = factory.LazyFunction(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc).date)
-    budget_amount = fuzzy.FuzzyInteger(0)
+    budget_amount = fuzzy.FuzzyInteger(0, 10000000, step=10000)
     actual_expenditure = fuzzy.FuzzyInteger(0)
     status = fuzzy.FuzzyChoice(models.Statuses)
 
