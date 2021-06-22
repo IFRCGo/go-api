@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.372
+
+### Added
+ - Add email alert for project near complete status
+ - Feature/global project api additional fields
+
 ## 1.1.371
 
 ### Added
@@ -1625,7 +1631,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.371...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.372...HEAD
+[1.1.372]: https://github.com/IFRCGo/go-api/compare/1.1.371...1.1.372
 [1.1.371]: https://github.com/IFRCGo/go-api/compare/1.1.370...1.1.371
 [1.1.370]: https://github.com/IFRCGo/go-api/compare/1.1.369...1.1.370
 [1.1.369]: https://github.com/IFRCGo/go-api/compare/1.1.368...1.1.369
