@@ -183,7 +183,7 @@ def sync_deployments(molnix_deployments):
 
         # Sometimes the `incoming` value from Molnix is null.
         if md['incoming']:
-            incoming_name = md['incoming']['name']
+            incoming_name = md['incoming']['name'].strip()
 
             # We over-ride the matching for some NS names from Molnix
             if incoming_name in NS_MATCHING_OVERRIDES:
@@ -196,7 +196,7 @@ def sync_deployments(molnix_deployments):
                     warnings.append(warning)
             else:
                 try:
-                    country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
+                    country_from = Country.objects.get(society_name=incoming_name)
                 except:
                     warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
                     logger.warning(warning)
