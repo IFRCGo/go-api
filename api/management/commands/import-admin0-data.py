@@ -119,7 +119,7 @@ class Command(BaseCommand):
           if options['update_geom']:
             # check if this geom exists
             try:
-              CountryGeom = CountryGeom.objects.get(country=country)
+              CountryGeom = CountryGeoms.objects.get(country=country)
               CountryGeom.geom = geom.wkt
               CountryGeom.save()
             except ObjectDoesNotExist:
