@@ -182,20 +182,19 @@ class Command(BaseCommand):
       print('country does not exist', feature.get('ISO2'))
       pass
 
-    if (import_missing == 'all'):
+    if (import_missing == 'all') or (code in import_missing.keys()):
       print('importing', district.name)
       district.save()
       if (options['update_geom']):
         self.update_geom(district, geom)
-    elif (code in import_missing.keys()):
-      district.save()
-      if (options['update_geom']):
-        self.update_geom(district, geom)
-    else:
-      print('skipping', code)
 
   def update_geom(self, district, geom):
-      DistrictGeom = DistrictGeoms()
-      DistrictGeom.district = district
-      DistrictGeom.geom = geom
-      DistrictGeom.save()
+      try:
+        DistrictGeom = DistrictGeoms.objects.get(district=district)
+        DistrictGeom.geom = geom
+        DistrictGeom.save()
+      except ObjectDoesNotExist:
+        DistrictGeom = DistrictGeoms()
+        DistrictGeom.district = district
+        DistrictGeom.geom = geom
+        DistrictGeom.save()
