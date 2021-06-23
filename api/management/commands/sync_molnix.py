@@ -12,6 +12,23 @@ from api.create_cron import create_cron_record
 
 CRON_NAME = 'sync_molnix'
 
+'''
+    Some NS names coming from Molnix are mapped to "countries"
+    in the GO db via this mapping below, as the NS names do not line up.
+'''
+NS_MATCHING_OVERRIDES = {
+    'Red Cross Society of China-Hong Kong Branch': 'China',
+    'Macau Red Cross': 'China',
+    'Ifrc Headquarters': 'IFRC',
+    'Ifrc Mena': 'IFRC',
+    'Ifrc Asia Pacific': 'IFRC',
+    'Ifrc Africa': 'IFRC',
+    'Ifrc Americas': 'IFRC',
+    'Ifrc Europe': 'IFRC',
+    'IFRC': 'IFRC',
+    'Icrc Staff': 'ICRC'
+}
+
 def get_unique_tags(deployments, open_positions):
     tags = []
     tag_ids = []
@@ -166,12 +183,24 @@ def sync_deployments(molnix_deployments):
 
         # Sometimes the `incoming` value from Molnix is null.
         if md['incoming']:
-            try:
-                country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
-            except:
-                warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
-                logger.warning(warning)
-                warnings.append(warning)
+            incoming_name = md['incoming']['name'].strip()
+
+            # We over-ride the matching for some NS names from Molnix
+            if incoming_name in NS_MATCHING_OVERRIDES:
+                country_name = NS_MATCHING_OVERRIDES[incoming_name]
+                try:
+                    country_from = Country.objects.get(name_en=country_name)
+                except:
+                    warning = 'Mismatch in NS name: %s' % md['incoming']['name']
+                    logger.warning(warning)
+                    warnings.append(warning)
+            else:
+                try:
+                    country_from = Country.objects.get(society_name=incoming_name)
+                except:
+                    warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
+                    logger.warning(warning)
+                    warnings.append(warning)
         else:
             warning = 'No data for secondment incoming from Molnix API - id %d' % md['id']
             logger.warning(warning)
