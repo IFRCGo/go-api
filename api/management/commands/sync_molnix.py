@@ -189,15 +189,17 @@ def sync_deployments(molnix_deployments):
             if incoming_name in NS_MATCHING_OVERRIDES:
                 country_name = NS_MATCHING_OVERRIDES[incoming_name]
                 try:
-                    country_from = Country.objects.get(name_en=country_name)
+                    country_from = Country.objects.get(name_en=country_name, independent=True)
                 except:
                     warning = 'Mismatch in NS name: %s' % md['incoming']['name']
                     logger.warning(warning)
                     warnings.append(warning)
             else:
                 try:
-                    country_from = Country.objects.get(society_name=incoming_name)
+                    country_from = Country.objects.get(society_name=incoming_name, independent=True)
                 except:
+                    #FIXME: Catch possibility of .get() returning multiple records
+                    # even though that should ideally never happen
                     warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
                     logger.warning(warning)
                     warnings.append(warning)
