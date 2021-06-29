@@ -147,7 +147,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'middlewares.middlewares.RequestMiddleware',
-    'opencensus.ext.django.middleware.OpencensusMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -289,17 +288,6 @@ FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
 
-APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
-
-OPENCENSUS = {
-    'TRACE': {
-        'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
-        'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
-            connection_string="InstrumentationKey={}"
-        )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
-    }
-}
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -326,6 +314,19 @@ LOGGING = {
         },
     },
 }
+
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
+
+if APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
+    MIDDLEWARE += ['opencensus.ext.django.middleware.OpencensusMiddleware']
+    OPENCENSUS = {
+        'TRACE': {
+            'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
+            'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
+                connection_string="InstrumentationKey={}"
+            )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
+        }
+    }
 
 # AWS Translate Credentials
 AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
