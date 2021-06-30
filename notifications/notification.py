@@ -88,7 +88,9 @@ def send_notification(subject, recipients, html, mailtype=''):
             'No username and/or API endpoint set as environment variables.'
         )
         if settings.DEBUG:
+            print('-' * 22, 'EMAIL START', '-' * 22)
             print(f'subject={subject}\nrecipients={recipients}\nhtml={html}\nmailtype={mailtype}')
+            print('-' * 22, 'EMAIL END -', '-' * 22)
         return
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
