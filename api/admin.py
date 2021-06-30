@@ -176,11 +176,15 @@ class SituationReportInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.SituationReport
 
 
+class EventFeaturedDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
+    model = models.EventFeaturedDocument
+
+
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
-    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline]
+    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline, EventFeaturedDocumentInline]
     list_display = ('name', 'ifrc_severity_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter]
     search_fields = ('name', 'countries__name', 'dtype__name',)
@@ -403,9 +407,11 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('appeal')
 
+
 class AppealFilterAdmin(CompareVersionAdmin):
     list_display = ('name', 'value')
     search_fields = ('name', 'value')
+
 
 class CountryKeyFigureInline(admin.TabularInline):
     model = models.CountryKeyFigure
@@ -424,20 +430,24 @@ class RegionSnippetInline(admin.TabularInline, TranslationInlineModelAdmin):
     verbose_name_plural = 'Regional Snippets shown in Additional Tab'
     extra = 1
 
+
 class RegionEmergencySnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
     model = models.RegionEmergencySnippet
     verbose_name_plural = 'Snippets shown in Operations / Emergencies Tab'
     extra = 1
+
 
 class RegionProfileSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
     model = models.RegionProfileSnippet
     verbose_name_plural = 'Snippets shown in Regional Profile Tab'
     extra = 1
 
+
 class RegionPreparednessSnippetInline(admin.StackedInline, TranslationInlineModelAdmin):
     model = models.RegionPreparednessSnippet
     verbose_name_plural = 'Snippets shown in Preparedness Tab'
     extra = 1
+
 
 class CountryLinkInline(admin.TabularInline):
     model = models.CountryLink

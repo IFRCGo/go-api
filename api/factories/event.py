@@ -78,3 +78,12 @@ class EventFactory(factory.django.DjangoModelFactory):
     tab_one_title = fuzzy.FuzzyText(length=50)
     tab_two_title = fuzzy.FuzzyText(length=50)
     tab_three_title = fuzzy.FuzzyText(length=50)
+
+
+class EventFeaturedDocumentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.EventFeaturedDocument
+
+    event = factory.SubFactory(models.Event)
+    title = fuzzy.FuzzyText(length=50, prefix='event-featured-document-title-')
+    description = fuzzy.FuzzyText(length=100, prefix='event-featured-document-description-')

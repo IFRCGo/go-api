@@ -34,6 +34,7 @@ from .models import (
     Event,
     SituationReportType,
     SituationReport,
+    EventFeaturedDocument,
 
     Appeal,
     AppealDocument,
@@ -382,6 +383,12 @@ class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
+class EventFeaturedDocumentSerializer(ModelSerializer):
+    class Meta:
+        model = EventFeaturedDocument
+        fields = ('id', 'title', 'description', 'thumbnail', 'file',)
+
+
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
@@ -534,6 +541,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
+    featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
@@ -542,6 +550,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
+            'featured_documents',
         )
         lookup_field = 'slug'
 
@@ -593,6 +602,7 @@ class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSeria
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
+
 class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
@@ -616,6 +626,7 @@ class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.Mod
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
+
 class MiniAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
@@ -636,6 +647,7 @@ class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
+
 
 class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
     country = MiniCountrySerializer()
@@ -658,6 +670,7 @@ class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
             'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
+
 
 class AppealDocumentTableauSerializer(serializers.ModelSerializer):
     appeal = MiniAppealSerializer()
