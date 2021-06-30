@@ -35,6 +35,7 @@ from .models import (
     SituationReportType,
     SituationReport,
     EventFeaturedDocument,
+    EventLink,
 
     Appeal,
     AppealDocument,
@@ -389,6 +390,12 @@ class EventFeaturedDocumentSerializer(ModelSerializer):
         fields = ('id', 'title', 'description', 'thumbnail', 'file',)
 
 
+class EventLinkSerializer(ModelSerializer):
+    class Meta:
+        model = EventLink
+        fields = ('id', 'title', 'description', 'url',)
+
+
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
@@ -542,6 +549,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
     featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
+    links = EventLinkSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
@@ -550,7 +558,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
-            'featured_documents',
+            'featured_documents', 'links',
         )
         lookup_field = 'slug'
 

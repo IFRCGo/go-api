@@ -8,7 +8,8 @@ import api.models as models
 
 from api.factories.event import (
     EventFactory,
-    EventFeaturedDocumentFactory
+    EventFeaturedDocumentFactory,
+    EventLinkFactory,
 )
 
 
@@ -31,8 +32,15 @@ class AuthTokenTest(APITestCase):
 
 class EventSnaphostTest(SnapshotTestCase):
     def test_event_featured_document_api(self):
-        event = EventFactory(name='disaster2', summary='test disaster 2')
-        EventFeaturedDocumentFactory.create_batch(10, event=event)
+        event = EventFactory()
+        EventFeaturedDocumentFactory.create_batch(5, event=event)
+        resp = self.client.get(f'/api/v2/event/{event.id}/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertMatchSnapshot(json.loads(resp.content))
+
+    def test_event_link_api(self):
+        event = EventFactory()
+        EventLinkFactory.create_batch(5, event=event)
         resp = self.client.get(f'/api/v2/event/{event.id}/')
         self.assertEqual(resp.status_code, 200)
         self.assertMatchSnapshot(json.loads(resp.content))

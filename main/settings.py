@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
-from celery.schedules import crontab
+# from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')

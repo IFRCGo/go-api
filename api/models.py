@@ -665,6 +665,22 @@ class EventFeaturedDocument(models.Model):
     )
 
 
+class EventLink(models.Model):
+    """
+    Used in emergency overview.
+    """
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_('event'),
+        on_delete=models.CASCADE,
+        related_name="links",
+        related_query_name="link",
+    )
+    title = models.CharField(verbose_name=_('title'), max_length=200)
+    description = models.TextField(verbose_name=_('description'))
+    url = models.URLField(verbose_name=_('url'))
+
+
 class EventContact(models.Model):
     """ Contact for event """
 

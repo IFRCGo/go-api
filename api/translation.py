@@ -22,6 +22,7 @@ from .models import (
     Snippet,
     SupportedActivity,
     EventFeaturedDocument,
+    EventLink,
 )
 
 
@@ -132,4 +133,9 @@ class SupportedActivityTO(TranslationOptions):
 
 @register(EventFeaturedDocument)
 class EventFeaturedDocumentTO(TranslationOptions):
+    fields = ('title', 'description')
+
+
+@register(EventLink)
+class EventLinkTO(TranslationOptions):
     fields = ('title', 'description')

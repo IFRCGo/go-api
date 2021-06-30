@@ -3,17 +3,23 @@ from factory import fuzzy
 import datetime
 import pytz
 
-from .. import models
-from . import disaster_type
+from ..models import (
+    AlertLevel,
+
+    Event,
+    EventFeaturedDocument,
+    EventLink,
+)
+from .disaster_type import DisasterTypeFactory
 
 
 class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.Event
+        model = Event
 
     name = fuzzy.FuzzyText(length=50, prefix='event-')
     slug = fuzzy.FuzzyText(length=50)
-    dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
+    dtype = factory.SubFactory(DisasterTypeFactory)
 
     @factory.post_generation
     def districts(self, create, extracted, **kwargs):
@@ -54,7 +60,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     num_affected = fuzzy.FuzzyInteger(0)
     num_displaced = fuzzy.FuzzyInteger(0)
 
-    ifrc_severity_level = fuzzy.FuzzyChoice(models.AlertLevel)
+    ifrc_severity_level = fuzzy.FuzzyChoice(AlertLevel)
     glide = fuzzy.FuzzyText(length=18)
 
     disaster_start_date = fuzzy.FuzzyDateTime(
@@ -82,8 +88,17 @@ class EventFactory(factory.django.DjangoModelFactory):
 
 class EventFeaturedDocumentFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.EventFeaturedDocument
+        model = EventFeaturedDocument
 
-    event = factory.SubFactory(models.Event)
+    event = factory.SubFactory(Event)
     title = fuzzy.FuzzyText(length=50, prefix='event-featured-document-title-')
     description = fuzzy.FuzzyText(length=100, prefix='event-featured-document-description-')
+
+
+class EventLinkFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EventLink
+
+    event = factory.SubFactory(Event)
+    title = fuzzy.FuzzyText(length=50, prefix='event-link-title-')
+    description = fuzzy.FuzzyText(length=100, prefix='event-link-description-')

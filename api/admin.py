@@ -180,11 +180,18 @@ class EventFeaturedDocumentInline(admin.TabularInline, TranslationInlineModelAdm
     model = models.EventFeaturedDocument
 
 
+class EventLinkInline(admin.TabularInline, TranslationInlineModelAdmin):
+    model = models.EventLink
+
+
 class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
     region_in = 'regions__pk__in'
 
-    inlines = [KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline, EventFeaturedDocumentInline]
+    inlines = [
+        KeyFigureInline, SnippetInline, EventContactInline, SituationReportInline,
+        EventFeaturedDocumentInline, EventLinkInline,
+    ]
     list_display = ('name', 'ifrc_severity_level', 'glide', 'auto_generated', 'auto_generated_source',)
     list_filter = [IsFeaturedFilter, EventSourceFilter]
     search_fields = ('name', 'countries__name', 'dtype__name',)
