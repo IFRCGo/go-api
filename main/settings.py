@@ -270,6 +270,10 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
+
 # Email config
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')

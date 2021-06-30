@@ -13,10 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
 from django.conf import settings
 from django.urls import path
 from django.contrib import admin
+from django.conf.urls import static
+from django.views.static import serve
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
 from django.conf.urls.i18n import i18n_patterns
@@ -179,11 +182,11 @@ if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         url('__debug__/', include(debug_toolbar.urls)),
-
         # For django versions before 2.0:
         # url(r'^__debug__/', include(debug_toolbar.urls)),
-
-    ] + urlpatterns
+    ] + urlpatterns + static.static(
+        settings.MEDIA_URL, view=xframe_options_exempt(serve), document_root=settings.MEDIA_ROOT,
+    )
 
 # API With language URL patterns
 urlpatterns += i18n_patterns(
