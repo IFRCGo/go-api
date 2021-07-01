@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.376
+
+### Added
+ - Covid page related update
+
 ## 1.1.373
 
 ### Added
@@ -1637,7 +1642,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.373...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.376...HEAD
+[1.1.376]: https://github.com/IFRCGo/go-api/compare/1.1.373...1.1.376
 [1.1.373]: https://github.com/IFRCGo/go-api/compare/1.1.372...1.1.373
 [1.1.372]: https://github.com/IFRCGo/go-api/compare/1.1.371...1.1.372
 [1.1.371]: https://github.com/IFRCGo/go-api/compare/1.1.370...1.1.371
