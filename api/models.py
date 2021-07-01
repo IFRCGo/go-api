@@ -1,4 +1,3 @@
-from django.db.models.deletion import DO_NOTHING
 from django.utils.translation import ugettext_lazy as _
 # from django.db import models
 from django.contrib.gis.db import models
@@ -86,7 +85,10 @@ class Region(models.Model):
         return 'region-%s' % self.id
 
     def get_national_society_count(self):
-        return Country.objects.filter(region=self, record_type=CountryType.COUNTRY, independent=True).exclude(society_name_en='').count()
+        return Country.objects\
+            .filter(region=self, record_type=CountryType.COUNTRY, independent=True)\
+            .exclude(society_name_en='')\
+            .count()
 
     def get_country_cluster_count(self):
         return Country.objects.filter(region=self, record_type=CountryType.CLUSTER).count()
@@ -136,10 +138,12 @@ class Country(models.Model):
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
     record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
-    iso = models.CharField(verbose_name=_('ISO'), max_length=2, null=True, blank=True,
-                                         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
-    iso3 = models.CharField(verbose_name=_('ISO3'), max_length=3, null=True, blank=True,
-                                          validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
+    iso = models.CharField(
+        verbose_name=_('ISO'), max_length=2, null=True, blank=True,
+        validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
+    iso3 = models.CharField(
+        verbose_name=_('ISO3'), max_length=3, null=True, blank=True,
+        validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
     society_url = models.URLField(blank=True, verbose_name=_('URL - Society'))
@@ -160,7 +164,10 @@ class Country(models.Model):
     is_deprecated = models.BooleanField(
         default=False, help_text=_('Is this an active, valid country?')
     )
-    sovereign_state = models.ForeignKey('self', verbose_name=_('Country ID of the Sovereign State'), null=True, blank=True, default=None, on_delete=models.SET_NULL)
+    sovereign_state = models.ForeignKey(
+        'self', verbose_name=_('Country ID of the Sovereign State'),
+        null=True, blank=True, default=None, on_delete=models.SET_NULL
+    )
     disputed = models.BooleanField(help_text=_('Is this country disputed?'), default=False)
 
     # Population Data From WB API
@@ -181,9 +188,11 @@ class Country(models.Model):
     nsi_youth = models.IntegerField(verbose_name=_('Youth - 6-19 Yrs'), blank=True, null=True)
     nsi_trained_in_first_aid = models.IntegerField(verbose_name=_('Trained in First Aid'), blank=True, null=True)
     nsi_gov_financial_support = models.NullBooleanField(verbose_name=_('Gov Financial Support'), blank=True, null=True)
-    nsi_domestically_generated_income = models.NullBooleanField(verbose_name=_('>50% Domestically Generated Income'), blank=True, null=True) 
+    nsi_domestically_generated_income = models.NullBooleanField(
+        verbose_name=_('>50% Domestically Generated Income'), blank=True, null=True)
     nsi_annual_fdrs_reporting = models.NullBooleanField(verbose_name=_('Annual Reporting to FDRS'), blank=True, null=True)
-    nsi_policy_implementation = models.NullBooleanField(verbose_name=_('Your Policy / Programme Implementation'), blank=True, null=True)
+    nsi_policy_implementation = models.NullBooleanField(
+        verbose_name=_('Your Policy / Programme Implementation'), blank=True, null=True)
     nsi_risk_management_framework = models.NullBooleanField(verbose_name=_('Risk Management Framework'), blank=True, null=True)
     nsi_cmc_dashboard_compliance = models.NullBooleanField(verbose_name=_('Complying with CMC Dashboard'), blank=True, null=True)
 
@@ -256,10 +265,12 @@ class District(models.Model):
         country_name = self.country.name if self.country else ''
         return f'{country_name} - {self.name}'
 
+
 class CountryGeoms(models.Model):
     """ Admin0 geometries """
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
+
 
 class DistrictGeoms(models.Model):
     """ Admin1 geometries """
@@ -413,7 +424,7 @@ class RegionProfileSnippet(models.Model):
         verbose_name_plural = _('region profile snippets')
 
     def __str__(self):
-        return self.snippet    
+        return self.snippet
 
 # class RegionAdditionalLink(models.Model):
 #     region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
@@ -423,6 +434,7 @@ class RegionProfileSnippet(models.Model):
 
 #     def __str__(self):
 #         return self.title
+
 
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
@@ -630,6 +642,43 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class EventFeaturedDocument(models.Model):
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_('event'),
+        on_delete=models.CASCADE,
+        related_name="featured_documents",
+        related_query_name="featured_document",
+    )
+    title = models.CharField(verbose_name=_('title'), max_length=200)
+    description = models.TextField(verbose_name=_('description'))
+    thumbnail = models.ImageField(
+        verbose_name=_('thumbnail'), upload_to='event-featured-documents/thumbnail/',
+        help_text=_('Image should be portrait (3:4 aspect ratio) and scaled down to as close to 96x128 as the image size'),
+        storage=get_storage()
+    )
+    file = models.FileField(
+        verbose_name=_('file'), upload_to='event-featured-documents/file/',
+        storage=get_storage()
+    )
+
+
+class EventLink(models.Model):
+    """
+    Used in emergency overview.
+    """
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_('event'),
+        on_delete=models.CASCADE,
+        related_name="links",
+        related_query_name="link",
+    )
+    title = models.CharField(verbose_name=_('title'), max_length=200)
+    description = models.TextField(verbose_name=_('description'))
+    url = models.URLField(verbose_name=_('url'))
 
 
 class EventContact(models.Model):
@@ -893,6 +942,7 @@ class Appeal(models.Model):
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
+
 class AppealHistory(models.Model):
     """ AppealHistory results """
     num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
@@ -905,15 +955,13 @@ class AppealHistory(models.Model):
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), null=True, on_delete=models.SET_NULL)
     atype = EnumIntegerField(AppealType, verbose_name=_('appeal type'), default=0)
-    #name = models.CharField(verbose_name=_('name'), max_length=100)
+    # name = models.CharField(verbose_name=_('name'), max_length=100)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True, unique=True)
-    
-
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -922,9 +970,10 @@ class AppealHistory(models.Model):
 
     def record_type(self):
         return 'APPEALHISTORY'
-    
+
     def __str__(self):
         return self.aid
+
 
 class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
@@ -950,17 +999,18 @@ class AppealDocument(models.Model):
     def __str__(self):
         return '%s - %s' % (self.appeal, self.name)
 
+
 class AppealFilter(models.Model):
-    
     name = models.CharField(verbose_name=_('name'), max_length=100)
     value = models.CharField(verbose_name=_('value'), max_length=1000)
-    
+
     class Meta:
         verbose_name = _('appeal filter')
         verbose_name_plural = _('appeal filters')
 
     def __str__(self):
         return self.name
+
 
 class RequestChoices(IntEnum):
     NO = 0
@@ -1038,8 +1088,8 @@ class FieldReport(models.Model):
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     status = models.IntegerField(verbose_name=_('status'), default=0)
-    request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank = True)
-    ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank = True)
+    request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
+    ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
     num_injured = models.IntegerField(verbose_name=_('number of injured'), null=True, blank=True)
     num_dead = models.IntegerField(verbose_name=_('number of dead'), null=True, blank=True)

@@ -1,9 +1,6 @@
-import datetime
-import pytz
 import pydash
 
 import json
-from unittest import mock
 
 from main.test_case import SnapshotTestCase
 from deployments.factories.user import UserFactory
@@ -16,16 +13,6 @@ from .factories.personnel import PersonnelFactory
 
 
 class TestProjectAPI(SnapshotTestCase):
-    maxDiff = None
-
-    def setUp(self):
-        super().setUp()
-        self.patcher = mock.patch('django.utils.timezone.now')
-        self.patcher.start().return_value = datetime.datetime(2008, 1, 1, 0, 0, 0, 123456, tzinfo=pytz.UTC)
-
-    def tearDown(self):
-        self.patcher.stop()
-
     def test_project_list_zero(self):
         # submit list request
         response = self.client.get("/api/v2/project/")

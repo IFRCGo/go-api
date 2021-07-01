@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
-from celery.schedules import crontab
+# from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
@@ -269,6 +269,10 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
 
 # Email config
 EMAIL_HOST = os.environ.get('EMAIL_HOST')

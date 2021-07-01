@@ -1,9 +1,16 @@
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, Permission
+import json
+
+from django.contrib.auth.models import User
 from django.conf import settings
 
-from main.test_case import APITestCase
+from main.test_case import APITestCase, SnapshotTestCase
 import api.models as models
+
+from api.factories.event import (
+    EventFactory,
+    EventFeaturedDocumentFactory,
+    EventLinkFactory,
+)
 
 
 class AuthTokenTest(APITestCase):
@@ -21,6 +28,22 @@ class AuthTokenTest(APITestCase):
         response = self.client.post('/get_auth_token', body, format='json', headers=headers).json()
         self.assertIsNotNone(response.get('token'))
         self.assertIsNotNone(response.get('expires'))
+
+
+class EventSnaphostTest(SnapshotTestCase):
+    def test_event_featured_document_api(self):
+        event = EventFactory()
+        EventFeaturedDocumentFactory.create_batch(5, event=event)
+        resp = self.client.get(f'/api/v2/event/{event.id}/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertMatchSnapshot(json.loads(resp.content))
+
+    def test_event_link_api(self):
+        event = EventFactory()
+        EventLinkFactory.create_batch(5, event=event)
+        resp = self.client.get(f'/api/v2/event/{event.id}/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertMatchSnapshot(json.loads(resp.content))
 
 
 class SituationReportTypeTest(APITestCase):
