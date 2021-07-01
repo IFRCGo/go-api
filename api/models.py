@@ -654,9 +654,9 @@ class EventFeaturedDocument(models.Model):
     )
     title = models.CharField(verbose_name=_('title'), max_length=200)
     description = models.TextField(verbose_name=_('description'))
-    thumbnail = models.FileField(
+    thumbnail = models.ImageField(
         verbose_name=_('thumbnail'), upload_to='event-featured-documents/thumbnail/',
-        help_text=_('Please maintain aspect ratio (9:16) of image while uploading'),
+        help_text=_('Please maintain aspect ratio (3:4) of image while uploading'),
         storage=get_storage()
     )
     file = models.FileField(
