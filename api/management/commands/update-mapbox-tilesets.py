@@ -18,7 +18,7 @@ class Command(BaseCommand):
       print('Exporting countries...')
       subprocess.check_call(['touch', '/tmp/countries.geojson'])
       subprocess.check_call(['rm', '/tmp/countries.geojson'])
-      subprocess.check_call(['ogr2ogr', '-f', 'GeoJSON', '/tmp/countries.geojson', connection_string, '-sql', 'select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1' ])
+      subprocess.check_call(['ogr2ogr', '-f', 'GeoJSON', '/tmp/countries.geojson', connection_string, '-sql', 'select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.disputed, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1' ])
       print('Countries written to /tmp/countries.geojson')
 
       print('Exporting districts...')
@@ -31,7 +31,7 @@ class Command(BaseCommand):
       print('Exporting country centroids...')
       subprocess.check_call(['touch', '/tmp/country-centroids.geojson'])
       subprocess.check_call(['rm', '/tmp/country-centroids.geojson'])
-      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id, name_en, name_ar, name_es, name_fr, independent, is_deprecated, iso, iso3, record_type, centroid from api_country where centroid is not null'])
+      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id, name_en, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, centroid from api_country where centroid is not null'])
 
       print('Exporting district centroids...')
       subprocess.check_call(['touch', '/tmp/district-centroids.geojson'])
