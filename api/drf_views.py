@@ -456,7 +456,7 @@ class AppealHistoryFilter(filters.FilterSet):
 
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
-    queryset = AppealHistory.objects.select_related('appeal', 'dtype', 'country', 'region').all()
+    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
