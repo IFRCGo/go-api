@@ -406,7 +406,13 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         # Filter by visibility
         qs = self.get_visibility_queryset(Project.objects.all())
         # Filter by GET params
-        return ProjectFilter(self.request.query_params, queryset=qs).qs
+        projects = ProjectFilter(self.request.query_params, queryset=qs).qs
+        return Project.objects.filter(
+            # To avoid duplicate rows
+            id__in=projects,
+            # NOTE: Only process ongoing projects in global project view
+            status=Statuses.ONGOING,
+        )
 
     @action(detail=False, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
@@ -452,11 +458,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
 
     @action(detail=False, url_path='ns-ongoing-projects-stats', methods=('get',))
     def ns_ongoing_projects_stats(self, request, pk=None):
-        projects = Project.objects.filter(
-            # To avoid duplicate rows
-            id__in=self.get_projects(),
-            status=Statuses.ONGOING,
-        )
+        projects = self.get_projects()
         ref_projects = projects.filter(reporting_ns=models.OuterRef('pk'))
 
         project_per_sector = defaultdict(list)
