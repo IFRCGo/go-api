@@ -283,7 +283,10 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
 # second  2000, was not enouch for Global COVID Emergency
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
+
+See: https://github.com/IFRCGo/go-api/issues/1127
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
 timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
@@ -379,3 +382,6 @@ MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
 
 ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency')
 ERP_API_SUBSCRIPTION_KEY = os.environ.get('ERP_API_SUBSCRIPTION_KEY', 'abcdef')
+
+# See https://github.com/IFRCGo/go-api/issues/1127
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
