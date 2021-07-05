@@ -284,7 +284,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
 # second  2000, was not enouch for Global COVID Emergency
 
-See: https://github.com/IFRCGo/go-api/issues/1127
+# See: https://github.com/IFRCGo/go-api/issues/1127
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 timezone = pytz.timezone("Europe/Zurich")
