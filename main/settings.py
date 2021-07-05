@@ -332,6 +332,19 @@ LOGGING = {
     },
 }
 
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
+
+if APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
+    MIDDLEWARE += ['opencensus.ext.django.middleware.OpencensusMiddleware']
+    OPENCENSUS = {
+        'TRACE': {
+            'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
+            'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
+                connection_string="InstrumentationKey={}"
+            )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
+        }
+    }
+
 # AWS Translate Credentials
 AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
 AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
