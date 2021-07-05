@@ -34,10 +34,12 @@ from .models import (
     Event,
     SituationReportType,
     SituationReport,
+    EventFeaturedDocument,
+    EventLink,
 
     Appeal,
     AppealDocument,
-
+    AppealHistory,
     Profile,
 
     FieldReportContact,
@@ -147,7 +149,7 @@ class NotCountrySerializer(ModelSerializer):  # fake serializer for a short data
 
 class DistrictSerializer(ModelSerializer):
     country = MiniCountrySerializer()
- 
+
     class Meta:
         model = District
         fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
@@ -180,7 +182,10 @@ class MiniDistrictGeoSerializer(ModelSerializer):
 
     class Meta:
         model = District
-        fields = ('name', 'code', 'country_name','country_iso','country_iso3', 'id', 'is_enclave', 'bbox', 'centroid', 'is_deprecated',)
+        fields = (
+            'id', 'name', 'code', 'country_name', 'country_iso', 'country_iso3',
+            'is_enclave', 'bbox', 'centroid', 'is_deprecated',
+        )
 
 
 class RegionKeyFigureSerializer(ModelSerializer):
@@ -379,6 +384,18 @@ class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
+class EventFeaturedDocumentSerializer(ModelSerializer):
+    class Meta:
+        model = EventFeaturedDocument
+        fields = ('id', 'title', 'description', 'thumbnail', 'file',)
+
+
+class EventLinkSerializer(ModelSerializer):
+    class Meta:
+        model = EventLink
+        fields = ('id', 'title', 'description', 'url',)
+
+
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
@@ -531,6 +548,8 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
+    featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
+    links = EventLinkSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
@@ -539,6 +558,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
+            'featured_documents', 'links',
         )
         lookup_field = 'slug'
 
@@ -591,6 +611,30 @@ class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSeria
         )
 
 
+class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    event = MiniEventSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    code = serializers.CharField(source='appeal.code', read_only=True)
+    sector = serializers.CharField(source='appeal.sector', read_only=True)
+    created_at = serializers.CharField(source='appeal.created_at', read_only=True)
+    modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    event = serializers.CharField(source='appeal.event', read_only=True)
+    id = serializers.CharField(source='appeal.id', read_only=True)
+    name = serializers.CharField(source='appeal.name', read_only=True)
+
+    class Meta:
+        model = AppealHistory
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
+        )
+
+
 class MiniAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
@@ -606,6 +650,29 @@ class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Appeal
+        fields = (
+            'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
+        )
+
+
+class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
+    country = MiniCountrySerializer()
+    dtype = DisasterTypeSerializer()
+    region = RegionSerializer()
+    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    code = serializers.CharField(source='appeal.code', read_only=True)
+    sector = serializers.CharField(source='appeal.sector', read_only=True)
+    created_at = serializers.CharField(source='appeal.created_at', read_only=True)
+    modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    event = serializers.CharField(source='appeal.event', read_only=True)
+    id = serializers.CharField(source='appeal.id', read_only=True)
+    name = serializers.CharField(source='appeal.name', read_only=True)
+
+    class Meta:
+        model = AppealHistory
         fields = (
             'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
             'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',

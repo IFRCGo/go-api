@@ -6,6 +6,84 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.379
+
+### Added
+ - PROD deploy
+
+## 1.1.378
+
+### Added
+ - Merged changes
+
+## 1.1.377
+
+### Added
+ - Use ongoing projects for global project Endpoint
+
+## 1.1.376
+
+### Added
+ - Covid page related update
+
+## 1.1.373
+
+### Added
+ - Over-ride matching for NS names from Molnix
+ - Update geom if it exists instead of adding new
+
+## 1.1.372
+
+### Added
+ - Add email alert for project near complete status
+ - Feature/global project api additional fields
+
+## 1.1.371
+
+### Added
+ - appealHistory list API fix
+
+## 1.1.370
+
+### Added
+ - appealHistory list API
+
+## 1.1.369
+
+### Added
+ - Add global project api endpoints
+
+## 1.1.368
+
+### Added
+ - Handle case where incoming value for personnel deployment from Molnix is null
+
+## 1.1.367
+
+### Added
+ - Return from push_fr_data if ERP_ENDPOINT is 'x' (empty not good: broke tests)
+
+## 1.1.366
+
+### Added
+ - Add country iso and name to district and district centroid tilesets
+ - Bump django from 2.2.22 to 2.2.24
+
+## 1.1.365
+
+### Added
+ - Bump django from 2.2.21 to 2.2.22
+
+## 1.1.364
+
+### Added
+ - fix API docs
+
+## 1.1.363
+
+### Added
+ - Add Custom CSV serializer for Project, fix test warnings
+
 ## 1.1.362
 
 ### Added
@@ -1579,7 +1657,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.362...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.379...HEAD
+[1.1.379]: https://github.com/IFRCGo/go-api/compare/1.1.378...1.1.379
+[1.1.378]: https://github.com/IFRCGo/go-api/compare/1.1.377...1.1.378
+[1.1.377]: https://github.com/IFRCGo/go-api/compare/1.1.376...1.1.377
+[1.1.376]: https://github.com/IFRCGo/go-api/compare/1.1.373...1.1.376
+[1.1.373]: https://github.com/IFRCGo/go-api/compare/1.1.372...1.1.373
+[1.1.372]: https://github.com/IFRCGo/go-api/compare/1.1.371...1.1.372
+[1.1.371]: https://github.com/IFRCGo/go-api/compare/1.1.370...1.1.371
+[1.1.370]: https://github.com/IFRCGo/go-api/compare/1.1.369...1.1.370
+[1.1.369]: https://github.com/IFRCGo/go-api/compare/1.1.368...1.1.369
+[1.1.368]: https://github.com/IFRCGo/go-api/compare/1.1.367...1.1.368
+[1.1.367]: https://github.com/IFRCGo/go-api/compare/1.1.366...1.1.367
+[1.1.366]: https://github.com/IFRCGo/go-api/compare/1.1.365...1.1.366
+[1.1.365]: https://github.com/IFRCGo/go-api/compare/1.1.364...1.1.365
+[1.1.364]: https://github.com/IFRCGo/go-api/compare/1.1.363...1.1.364
+[1.1.363]: https://github.com/IFRCGo/go-api/compare/1.1.362...1.1.363
 [1.1.362]: https://github.com/IFRCGo/go-api/compare/1.1.361...1.1.362
 [1.1.361]: https://github.com/IFRCGo/go-api/compare/1.1.360...1.1.361
 [1.1.360]: https://github.com/IFRCGo/go-api/compare/1.1.359...1.1.360

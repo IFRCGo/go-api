@@ -100,6 +100,6 @@ class Command(BaseCommand):
                 errors = errors + f'Could not find: {tip[0]}\n'
 
         if errors:
-            logger.warn(f'Errors when adding tooltips!\n\n{errors}')
+            logger.warning(f'Errors when adding tooltips!\n\n{errors}')
         else:
             logger.info('Successfully added all Action tooltips.')

@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 
 from django.utils.translation import ugettext_lazy as _
-from celery.schedules import crontab
+# from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 
 PRODUCTION_URL = os.environ.get('API_FQDN')
@@ -270,6 +270,10 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
+
 # Email config
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
@@ -287,6 +291,19 @@ PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
 FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
 HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
+
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
+
+if APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
+    MIDDLEWARE.append('opencensus.ext.django.middleware.OpencensusMiddleware')
+    OPENCENSUS = {
+        'TRACE': {
+            'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
+            'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
+                connection_string="InstrumentationKey={}"
+            )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
+        }
+    }
 
 LOGGING = {
     'version': 1,

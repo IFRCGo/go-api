@@ -8,5 +8,5 @@ class DisasterTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.DisasterType
 
-    name = fuzzy.FuzzyText(length=100)
+    name = fuzzy.FuzzyText(length=50, prefix='disaster-type-')
     summary = fuzzy.FuzzyText(length=500)

@@ -12,6 +12,23 @@ from api.create_cron import create_cron_record
 
 CRON_NAME = 'sync_molnix'
 
+'''
+    Some NS names coming from Molnix are mapped to "countries"
+    in the GO db via this mapping below, as the NS names do not line up.
+'''
+NS_MATCHING_OVERRIDES = {
+    'Red Cross Society of China-Hong Kong Branch': 'China',
+    'Macau Red Cross': 'China',
+    'Ifrc Headquarters': 'IFRC',
+    'Ifrc Mena': 'IFRC',
+    'Ifrc Asia Pacific': 'IFRC',
+    'Ifrc Africa': 'IFRC',
+    'Ifrc Americas': 'IFRC',
+    'Ifrc Europe': 'IFRC',
+    'IFRC': 'IFRC',
+    'Icrc Staff': 'ICRC'
+}
+
 def get_unique_tags(deployments, open_positions):
     tags = []
     tag_ids = []
@@ -46,12 +63,12 @@ def get_go_event(tags):
             try:
                 event_id_int = int(event_id)
             except:
-                logger.warn('%s tag is not a valid OP- tag' % event_id)
+                logger.warning('%s tag is not a valid OP- tag' % event_id)
                 continue
             try:
                 event = Event.objects.get(id=event_id_int)
             except:
-                logger.warn('Emergency with ID %d not found' % event_id_int)
+                logger.warning('Emergency with ID %d not found' % event_id_int)
                 continue
             return event
     return event
@@ -99,9 +116,10 @@ def add_tags_to_obj(obj, tags):
     
 
 def sync_deployments(molnix_deployments):
-    import json
-    print(json.dumps(molnix_deployments, indent=2))
+    #import json
+    #print(json.dumps(molnix_deployments, indent=2))
     molnix_ids = [d['id'] for d in molnix_deployments]
+
     warnings = []
     messages = []
     successful_creates = 0
@@ -122,7 +140,7 @@ def sync_deployments(molnix_deployments):
                 p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             else:
                 warning = 'Event id %d without country' % p.event_deployed_to.id
-                logger.warn(warning)
+                logger.warning(warning)
                 warnings.append(warning)
                 continue
             
@@ -141,13 +159,13 @@ def sync_deployments(molnix_deployments):
         event = get_go_event(md['tags'])
         if not event:
             warning = 'Deployment id %d does not have a valid Emergency tag.' % md['id']
-            logger.warn(warning)
+            logger.warning(warning)
             warnings.append(warning)
             continue
         try:
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         except:
-            logger.warn('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
+            logger.warning('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
             continue
 
         personnel.deployment = deployment
@@ -161,13 +179,36 @@ def sync_deployments(molnix_deployments):
         personnel.end_date = get_datetime(md['end'])
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
-        try:
-            personnel.country_from = Country.objects.get(society_name=md['incoming']['name'].strip())
-        except:
-            warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
-            logger.warn(warning)
+        country_from = None
+
+        # Sometimes the `incoming` value from Molnix is null.
+        if md['incoming']:
+            incoming_name = md['incoming']['name'].strip()
+
+            # We over-ride the matching for some NS names from Molnix
+            if incoming_name in NS_MATCHING_OVERRIDES:
+                country_name = NS_MATCHING_OVERRIDES[incoming_name]
+                try:
+                    country_from = Country.objects.get(name_en=country_name, independent=True)
+                except:
+                    warning = 'Mismatch in NS name: %s' % md['incoming']['name']
+                    logger.warning(warning)
+                    warnings.append(warning)
+            else:
+                try:
+                    country_from = Country.objects.get(society_name=incoming_name, independent=True)
+                except:
+                    #FIXME: Catch possibility of .get() returning multiple records
+                    # even though that should ideally never happen
+                    warning = 'NS Name not found for Deployment ID: %d with secondment_incoming %s' % (md['id'], md['incoming']['name'],)
+                    logger.warning(warning)
+                    warnings.append(warning)
+        else:
+            warning = 'No data for secondment incoming from Molnix API - id %d' % md['id']
+            logger.warning(warning)
             warnings.append(warning)
-            personnel.country_from = None
+
+        personnel.country_from = country_from
         personnel.save()
         add_tags_to_obj(personnel, md['tags'])
         if created:
@@ -206,7 +247,7 @@ def sync_open_positions(molnix_positions, molnix_api):
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = 'Position id %d does not have a valid Emergency tag.' % position['id']
-            logger.warn(warning)
+            logger.warning(warning)
             warnings.append(warning)
             continue
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position['id'])
@@ -291,7 +332,6 @@ class Command(BaseCommand):
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
-            raise ex
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)

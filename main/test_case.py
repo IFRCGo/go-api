@@ -1,3 +1,7 @@
+import datetime
+import pytz
+from unittest import mock
+
 import snapshottest.django as django_snapshottest
 import factory.random
 
@@ -127,9 +131,16 @@ class APITestCase(GoAPITestMixin, test.APITestCase):
 
 
 class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         management.call_command("flush", "--no-input")
         factory.random.reseed_random(42)
+        self.patcher = mock.patch('django.utils.timezone.now')
+        self.patcher.start().return_value = datetime.datetime(2008, 1, 1, 0, 0, 0, 123456, tzinfo=pytz.UTC)
+
+    def tearDown(self):
+        self.patcher.stop()
 
 
 class CaptureOnCommitCallbacksContext:
@@ -151,3 +162,10 @@ class CaptureOnCommitCallbacksContext:
         if exc_type is None and self.execute:
             for callback in self.callbacks:
                 callback()
+
+
+class GoApiGlobalTest(APITestCase):
+
+    def test_docs_api(self, **kwargs):
+        resp = self.client.get('/docs/')
+        self.assert_200(resp)

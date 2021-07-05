@@ -1,31 +1,18 @@
-import datetime
-import pytz
 import pydash
 
 import json
-from unittest import mock
 
 from main.test_case import SnapshotTestCase
 from deployments.factories.user import UserFactory
 from deployments.factories.project import ProjectFactory
 from api.factories import country, district
 
-from deployments.models import Project, VisibilityCharChoices
+from deployments.models import Project, VisibilityCharChoices, SectorTags
 
 from .factories.personnel import PersonnelFactory
 
 
 class TestProjectAPI(SnapshotTestCase):
-    maxDiff = None
-
-    def setUp(self):
-        super().setUp()
-        self.patcher = mock.patch('django.utils.timezone.now')
-        self.patcher.start().return_value = datetime.datetime(2019, 3, 23, 0, 0, 0, 123456, tzinfo=pytz.UTC)
-
-    def tearDown(self):
-        self.patcher.stop()
-
     def test_project_list_zero(self):
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -126,6 +113,7 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["name"] = new_project_name
         new_project["reporting_ns"] = new_country.id
         new_project["project_country"] = new_country.id
+        new_project["event"] = new_project["event_id"]
         new_project["project_districts"] = [new_district.id]
 
         # submit update request
@@ -164,3 +152,54 @@ class TestProjectAPI(SnapshotTestCase):
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.content.decode('utf-8'))
+
+    def test_project_csv_api(self):
+        _country = country.CountryFactory()
+        district1 = district.DistrictFactory(country=_country)
+        district2 = district.DistrictFactory(country=_country)
+        ProjectFactory.create_batch(
+            10,
+            project_districts=[district1, district2],
+            secondary_sectors=[SectorTags.WASH, SectorTags.PGI],
+            visibility=VisibilityCharChoices.PUBLIC
+        )
+
+        url = '/api/v2/project/?format=csv'
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.content.decode('utf-8'))
+
+    def test_global_project_api(self):
+        country_1 = country.CountryFactory()
+        country_2 = country.CountryFactory()
+        ns_1 = country.CountryFactory()
+        ns_2 = country.CountryFactory()
+        c1_district1 = district.DistrictFactory(country=country_1)
+        c1_district2 = district.DistrictFactory(country=country_1)
+        c2_district1 = district.DistrictFactory(country=country_2)
+        c2_district2 = district.DistrictFactory(country=country_2)
+        [
+            ProjectFactory.create_batch(
+                2,
+                project_districts=project_districts,
+                secondary_sectors=secondary_sectors,
+                visibility=VisibilityCharChoices.PUBLIC,
+            )
+            for project_districts, secondary_sectors in [
+                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.PGI]),
+                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.RCCE]),
+                ([c2_district1, c2_district2], [SectorTags.LIVELIHOODS_AND_BASIC_NEEDS, SectorTags.PGI]),
+                ([c2_district1, c2_district2], [SectorTags.INTERNAL_DISPLACEMENT, SectorTags.RECOVERY]),
+            ]
+            for ns in [ns_1, ns_2]
+        ]
+
+        url = '/api/v2/global-project/overview/'
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.json())
+
+        url = '/api/v2/global-project/ns-ongoing-projects-stats/'
+        resp = self.client.get(url)
+        self.assert_200(resp)
+        self.assertMatchSnapshot(resp.json())

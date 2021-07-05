@@ -122,4 +122,4 @@ class Command(BaseCommand):
 #                    created.append(doc[0])
         logger.info('%s Deployments created' % len(created))
         logger.info('%s existing Deployments' % len(existing))
-        logger.warn('%s documents without appeals in system' % len(not_found))
+        logger.warning('%s documents without appeals in system' % len(not_found))

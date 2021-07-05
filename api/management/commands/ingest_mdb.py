@@ -61,7 +61,7 @@ def get_dbfile():
     if ftphost is None or ftpuser is None or ftppass is None:
         if os.path.exists('URLs.mdb'):
             logger.info('No credentials in env, using local MDB database file')
-            logger.warn('If this occurs outside development, contact an administrator')
+            logger.warning('If this occurs outside development, contact an administrator')
             return 'URLs.mdb'
         else:
             raise Exception('FTP credentials not provided (GO_FTPHOST, GO_FTPUSER, GO_FTPPASS)')
@@ -250,7 +250,7 @@ class Command(BaseCommand):
             try:
                 country = Country.objects.select_related().get(pk=report['CountryID'])
             except ObjectDoesNotExist:
-                logger.warn('Could not find a matching country for %s' % report['CountryID'])
+                logger.warning('Could not find a matching country for %s' % report['CountryID'])
                 country = None
 
             if country is not None:

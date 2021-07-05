@@ -3,6 +3,9 @@ import requests
 import base64
 import threading
 import smtplib
+
+from django.conf import settings
+
 from api.logger import logger
 from api.models import CronJob, CronJobStatus
 from django.utils.html import strip_tags
@@ -80,8 +83,14 @@ def construct_msg(subject, html):
 def send_notification(subject, recipients, html, mailtype=''):
     """ Generic email sending method, handly only HTML emails currently """
     if not EMAIL_USER or not EMAIL_API_ENDPOINT:
-        logger.warn('Cannot send notifications.')
-        logger.warn('No username and/or API endpoint set as environment variables.')
+        logger.warning(
+            'Cannot send notifications.\n'
+            'No username and/or API endpoint set as environment variables.'
+        )
+        if settings.DEBUG:
+            print('-' * 22, 'EMAIL START', '-' * 22)
+            print(f'subject={subject}\nrecipients={recipients}\nhtml={html}\nmailtype={mailtype}')
+            print('-' * 22, 'EMAIL END -', '-' * 22)
         return
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var

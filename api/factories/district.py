@@ -9,7 +9,7 @@ class DistrictFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.District
 
-    name = fuzzy.FuzzyText(length=100)
+    name = fuzzy.FuzzyText(length=50, prefix='district-')
     code = fuzzy.FuzzyText(length=10)
     country = factory.SubFactory(country.CountryFactory)
     is_enclave = fuzzy.FuzzyChoice([True, False])

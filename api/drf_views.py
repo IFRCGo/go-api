@@ -1,5 +1,3 @@
-import datetime
-
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -24,6 +22,7 @@ from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 
 from .models import (
+    AppealHistory,
     DisasterType,
     ExternalPartner,
     SupportedActivity,
@@ -87,7 +86,8 @@ from .serializers import (
     DetailEventSerializer,
     SituationReportSerializer,
     SituationReportTypeSerializer,
-    AppealSerializer,
+    # AppealSerializer,
+    AppealHistorySerializer,
     AppealDocumentSerializer,
     UserSerializer,
     UserMeSerializer,
@@ -100,7 +100,8 @@ from .serializers import (
 
     # Tableau Serializers
     AppealDocumentTableauSerializer,
-    AppealTableauSerializer,
+    # AppealTableauSerializer,
+    AppealHistoryTableauSerializer,
     CountryTableauSerializer,
     CountrySnippetTableauSerializer,
     ListEventTableauSerializer,
@@ -160,7 +161,7 @@ class CountryFilter(filters.FilterSet):
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False)
-    filter_class = CountryFilter
+    filterset_class = CountryFilter
 
     def get_object(self):
         pk = self.kwargs['pk']
@@ -212,7 +213,7 @@ class RegionKeyFigureFilter(filters.FilterSet):
 class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = RegionKeyFigureSerializer
-    filter_class = RegionKeyFigureFilter
+    filterset_class = RegionKeyFigureFilter
     visibility_model_class = RegionKeyFigure
 
 
@@ -227,7 +228,7 @@ class CountryKeyFigureFilter(filters.FilterSet):
 class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountryKeyFigureSerializer
-    filter_class = CountryKeyFigureFilter
+    filterset_class = CountryKeyFigureFilter
     visibility_model_class = CountryKeyFigure
 
 
@@ -242,7 +243,7 @@ class RegionSnippetFilter(filters.FilterSet):
 class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = RegionSnippetSerializer
-    filter_class = RegionSnippetFilter
+    filterset_class = RegionSnippetFilter
     visibility_model_class = RegionSnippet
 
     def get_serializer_class(self):
@@ -262,7 +263,7 @@ class CountrySnippetFilter(filters.FilterSet):
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountrySnippetSerializer
-    filter_class = CountrySnippetFilter
+    filterset_class = CountrySnippetFilter
     visibility_model_class = CountrySnippet
 
     def get_serializer_class(self):
@@ -279,7 +280,7 @@ class DistrictFilter(filters.FilterSet):
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.select_related('country').filter(is_deprecated=False)
-    filter_class = DistrictFilter
+    filterset_class = DistrictFilter
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -311,7 +312,7 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = (
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
-    filter_class = EventFilter
+    filterset_class = EventFilter
 
     def get_queryset(self):
         if self.action == 'mini_events':
@@ -381,7 +382,7 @@ class EventSnippetFilter(filters.FilterSet):
 class EventSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = SnippetSerializer
-    filter_class = EventSnippetFilter
+    filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
 
 
@@ -407,7 +408,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
-    filter_class = SituationReportFilter
+    filterset_class = SituationReportFilter
     visibility_model_class = SituationReport
 
     def get_serializer_class(self):
@@ -433,17 +434,42 @@ class AppealFilter(filters.FilterSet):
         }
 
 
+class AppealHistoryFilter(filters.FilterSet):
+    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
+    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
+    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    code = filters.CharFilter(field_name='code', lookup_expr='exact')
+    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
+    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact')
+
+    class Meta:
+        model = AppealHistory
+        fields = {
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }
+
+
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
-    serializer_class = AppealSerializer
+    # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
+    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
+    # serializer_class = AppealSerializer
+    serializer_class = AppealHistorySerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
-    filter_class = AppealFilter
+    # filterset_class = AppealFilter
+    filterset_class = AppealHistoryFilter
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
-            return AppealTableauSerializer
-        return AppealSerializer
+            return AppealHistoryTableauSerializer
+            # return AppealTableauSerializer
+        return AppealHistorySerializer
+        # return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
         if obj['needs_confirmation']:
@@ -455,7 +481,9 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
     # Overwrite retrieve, list to exclude the event if it requires confirmation
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        now = timezone.now()
+        date = request.GET.get('date', now)
+        queryset = self.filter_queryset(self.get_queryset()).filter(valid_from__lt=date, valid_to__gt=date)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -467,6 +495,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
+
         serializer = self.get_serializer(instance)
         return Response(self.remove_unconfirmed_event(serializer.data))
 
@@ -486,7 +515,7 @@ class AppealDocumentFilter(filters.FilterSet):
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     ordering_fields = ('created_at', 'name',)
-    filter_class = AppealDocumentFilter
+    filterset_class = AppealDocumentFilter
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -561,7 +590,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
             return DetailFieldReportSerializer
 
     ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
-    filter_class = FieldReportFilter
+    filterset_class = FieldReportFilter
 
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):

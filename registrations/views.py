@@ -1,7 +1,8 @@
-import pytz
+from datetime import timedelta
+
 from django.db.models import Q
 from django.db.models.functions import Lower
-from datetime import timedelta, datetime
+from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.crypto import get_random_string
@@ -188,7 +189,7 @@ class VerifyEmail(APIView):
         if pending_user.email_verified:
             return bad_http_request('You have already verified your email',
                                     'A validation email has been sent to the administrators you listed.')
-        if pending_user.created_at < datetime.utcnow().replace(tzinfo=pytz.utc) - timedelta(days=1):
+        if pending_user.created_at < timezone.now() - timedelta(days=1):
             return bad_http_request('This link is expired',
                                     'You must verify your email within 24 hours. \
                                     Please contact your system administrator.')
@@ -251,7 +252,7 @@ class ValidateUser(APIView):
                                     'You have already confirmed this user.')
 
         setattr(pending_user, 'admin_%s_validated' % admin, True)
-        setattr(pending_user, 'admin_%s_validated_date' % admin, datetime.now())
+        setattr(pending_user, 'admin_%s_validated_date' % admin, timezone.now())
         pending_user.save()
 
         if pending_user.admin_1_validated and pending_user.admin_2_validated:

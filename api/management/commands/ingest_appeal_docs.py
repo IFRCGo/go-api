@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 from urllib.request import urlopen
-import json
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
@@ -24,7 +23,7 @@ class Command(BaseCommand):
         result = []
         allrows = table.findAll('tr')
         for row in allrows:
-            url=''
+            url = ''
             for a in row.find_all('a', href=True):
                 url = a['href']
             result.append([url])
@@ -48,10 +47,13 @@ class Command(BaseCommand):
         smoke_response = urlopen(baseurl)
         joy_to_the_world = False
         if smoke_response.code == 200:
-            joy_to_the_world = True # We log the success later, when we know the numeric results.
+            joy_to_the_world = True  # We log the success later, when we know the numeric results.
         else:
-            body = { "name": "ingest_appeal_docs", "message": 'Error ingesting appeals_docs on url '
-                + baseurl + ', error_code: ' + smoke_response.code, "status": CronJobStatus.ERRONEOUS }
+            body = {
+                "name": "ingest_appeal_docs",
+                "message": f'Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.code}',
+                "status": CronJobStatus.ERRONEOUS
+            }
             CronJob.sync_cron(body)
         # ^ smoke test
 
@@ -64,7 +66,7 @@ class Command(BaseCommand):
             now = datetime.now()
             three_months_ago = now - relativedelta(months=3)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
-            #qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
+            # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
             qset = Appeal.objects.filter(end_date__gt=three_months_ago)
 
         # First get all Appeal Codes
@@ -76,10 +78,10 @@ class Command(BaseCommand):
         page_not_found = []
         for code in appeal_codes:
             code = code.replace(' ', '')
-            docs_url = baseurl + '?ac='+code+'&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            docs_url = f'{baseurl}?ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
             try:
                 response = urlopen(docs_url)
-            except: # if we get an error fetching page for an appeal, we ignore it
+            except Exception:  # if we get an error fetching page for an appeal, we ignore it
                 page_not_found.append(code)
                 continue
 
@@ -104,14 +106,15 @@ class Command(BaseCommand):
             existing_docs = list(appeal.appealdocument_set.all())
             docs = [a for a in output if a[2] == code]
             for doc in docs:
-                doc[0] = 'https://www.ifrc.org' + doc[0] if doc[0].startswith('/docs') else doc[0] # href only contains relative path to the document if it's available at the ifrc.org site
+                # href only contains relative path to the document if it's available at the ifrc.org site
+                doc[0] = f'https://www.ifrc.org{doc[0]}' if doc[0].startswith('/docs') else doc[0]
                 exists = len([a for a in existing_docs if a.document_url == doc[0]]) > 0
                 if exists:
                     existing.append(doc[0])
                 else:
                     try:
                         created_at = self.parse_date(doc[5])
-                    except:
+                    except Exception:
                         created_at = None
 
                     AppealDocument.objects.create(
@@ -121,7 +124,7 @@ class Command(BaseCommand):
                         appeal=appeal,
                     )
                     created.append(doc[0])
-        text_to_log=[]
+        text_to_log = []
         text_to_log.append('%s appeal documents created' % len(created))
         text_to_log.append('%s existing appeal documents' % len(existing))
         text_to_log.append('%s pages not found for appeal' % len(page_not_found))
@@ -133,12 +136,25 @@ class Command(BaseCommand):
 
         if len(not_found):
             t = '%s documents without appeals in system' % len(not_found)
-            logger.warn(t)
-            body = { "name": "ingest_appeal_docs", "message": t, "num_result": len(not_found), "status": CronJobStatus.WARNED }
+            logger.warning(t)
+            body = {
+                "name": "ingest_appeal_docs",
+                "message": t,
+                "num_result": len(not_found),
+                "status": CronJobStatus.WARNED
+            }
             CronJob.sync_cron(body)
 
         if (joy_to_the_world):
-            body = { "name": "ingest_appeal_docs", "message": 'Done ingesting appeals_docs on url ' + baseurl +
-             ', %s appeal document(s) were created, %s already exist, %s not found' % (len(created), len(existing), len(page_not_found)),
-              "num_result": len(created), "status": CronJobStatus.SUCCESSFUL }
+            body = {
+                "name": "ingest_appeal_docs",
+                "message": (
+                    f'Done ingesting appeals_docs on url {baseurl},'
+                    f' {len(created)} appeal document(s) were created,'
+                    f' {len(existing)} already exist,'
+                    f' {len(page_not_found)} not found'
+                ),
+                "num_result": len(created),
+                "status": CronJobStatus.SUCCESSFUL
+            }
             CronJob.sync_cron(body)
