@@ -87,7 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.362
 
 ### Added
- - Removing duplicate from reqs, bump up urllib3
+ - Removing duplicate from reqs, bump up urllib3 
 
 ## 1.1.361
 
