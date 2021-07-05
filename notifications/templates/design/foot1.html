@@ -10,9 +10,11 @@
                           <td class="text-default td-smaller-font-style text-right pl-10 pr-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;border-right:1px solid #000;font-size: 16px;text-align: right;padding-left: 10px;padding-right: 10px;">
                             <a href="https://go.ifrc.org/login" target="_blank" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">Login to IFRC GO</a>
                           </td>
+{% if not hide_preferences %}
                           <td class="text-default td-smaller-font-style pl-10 pr-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-size: 16px;padding-left: 10px;padding-right: 10px;">
                             <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">Unsubscribe</a>
                           </td>
+{% endif %}
                         </tr>
                       </table>
                     </td>
