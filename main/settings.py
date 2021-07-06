@@ -382,6 +382,3 @@ MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
 
 ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency')
 ERP_API_SUBSCRIPTION_KEY = os.environ.get('ERP_API_SUBSCRIPTION_KEY', 'abcdef')
-
-# See https://github.com/IFRCGo/go-api/issues/1127
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
