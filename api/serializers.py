@@ -667,7 +667,7 @@ class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
     sector = serializers.CharField(source='appeal.sector', read_only=True)
     created_at = serializers.CharField(source='appeal.created_at', read_only=True)
     modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
-    event = serializers.CharField(source='appeal.event', read_only=True)
+    event = serializers.IntegerField(source='appeal.event_id', read_only=True)
     id = serializers.CharField(source='appeal.id', read_only=True)
     name = serializers.CharField(source='appeal.name', read_only=True)
 
