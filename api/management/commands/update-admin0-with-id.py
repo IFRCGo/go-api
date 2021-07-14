@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import MultiPolygon
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import transaction
 from api.models import Country
 from api.models import CountryGeoms
@@ -37,16 +37,24 @@ class Command(BaseCommand):
                         # update if geometry exists
                         CountryGeom = CountryGeoms.objects.get(country=country)
                         CountryGeom.geom = geom.wkt
-                        print('Updating %s' feature_id)
+                        print('Updating geometry for %s' feature_id)
                         CountryGeom.save()
                     except ObjectDoesNotExist:
                         # add geom
                         CountryGeom = CountryGeoms()
                         CountryGeom.country = country
                         CountryGeom.geom = geom.wkt
-                        print('Creating %s' feature_id)
+                        print('Creating geometry for %s' feature_id)
                         CountryGeom.save()
                 except ObjectDoesNotExist:
                     print('%s does not exist' %feature_id)
+                except MultipleObjectsReturned:
+                    print('%s has more than one geometry, will delete and create a new one')
+                    CountryGeom.objects.filter(country=country).delete()
+                    CountryGeom = CountryGeoms()
+                    CountryGeom.country = country
+                    CountryGeom.geom = geom.wkt
+                    print('Creating geometry for %s' feature_id)
+                    CountryGeom.save()
 
         print('Done!')
