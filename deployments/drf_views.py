@@ -1,5 +1,6 @@
 from collections import defaultdict
 import datetime
+from datetime import date
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from rest_framework.views import APIView
 from django_filters import rest_framework as filters
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count
 from django.db.models.functions import Coalesce, Cast
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.shortcuts import get_object_or_404
@@ -202,6 +204,30 @@ class DeploymentsByMonth(APIView):
             deployment_counts[month_string] = count
         return Response(deployment_counts)            
 
+class DeploymentsByNS(APIView):
+    
+    def get(self, request):
+        '''Returns count of Personnel Deployments
+            by National Society, for the current year.
+        '''
+        limit = request.GET.get('limit', '5')
+        limit = int(limit)
+        now = datetime.datetime.now()
+        first_day_of_year = date(now.year, 1, 1)
+        last_day_of_year = date(now.year, 12, 31)
+        societies = Country.objects.filter(
+            personnel_deployments__start_date__date__lte=last_day_of_year,
+            personnel_deployments__end_date__date__gte=first_day_of_year
+        ).annotate(
+            deployments_count=Count('personnel_deployments')
+        ).order_by(
+            '-deployments_count'
+        ).values(
+            'id',
+            'society_name',
+            'deployments_count'
+        )[0:limit]
+        return Response(societies)
 
 
 class PartnerDeploymentFilterset(filters.FilterSet):
