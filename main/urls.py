@@ -141,6 +141,9 @@ urlpatterns = [
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
     url(r'^api/v1/aggregate_area/', AreaAggregate.as_view()),
     url(r'^api/v2/appeal/aggregated', AggregateHeaderFigures.as_view()),
+    url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
+    url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
+
     url(r'^api/v2/create_field_report/', api_views.CreateFieldReport.as_view()),
     url(r'^api/v2/update_field_report/(?P<pk>\d+)/', api_views.UpdateFieldReport.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),

@@ -115,6 +115,7 @@ from .logger import logger
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
     queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
+                            .filter(personneldeployment__personnel__is_active=True) \
                             .filter(personneldeployment__personnel__type=Personnel.RR) \
                             .filter(personneldeployment__personnel__end_date__gt=timezone.now()) \
                             .annotate(personnel__count=Count('personneldeployment__personnel')) \
