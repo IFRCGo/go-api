@@ -37,14 +37,14 @@ class Command(BaseCommand):
                         # update if geometry exists
                         CountryGeom = CountryGeoms.objects.get(country=country)
                         CountryGeom.geom = geom.wkt
-                        print('Updating geometry for %s' feature_id)
+                        print('Updating geometry for %s' %feature_id)
                         CountryGeom.save()
                     except ObjectDoesNotExist:
                         # add geom
                         CountryGeom = CountryGeoms()
                         CountryGeom.country = country
                         CountryGeom.geom = geom.wkt
-                        print('Creating geometry for %s' feature_id)
+                        print('Creating geometry for %s' %feature_id)
                         CountryGeom.save()
                 except ObjectDoesNotExist:
                     print('%s does not exist' %feature_id)
@@ -54,7 +54,7 @@ class Command(BaseCommand):
                     CountryGeom = CountryGeoms()
                     CountryGeom.country = country
                     CountryGeom.geom = geom.wkt
-                    print('Creating geometry for %s' feature_id)
+                    print('Creating geometry for %s' %feature_id)
                     CountryGeom.save()
 
         print('Done!')
