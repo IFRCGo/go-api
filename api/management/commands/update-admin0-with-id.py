@@ -12,6 +12,8 @@ class Command(BaseCommand):
 
     missing_args_message = "Filename is missing."
 
+    def add_arguments(self, parser):
+        parser.add_argument('filename', nargs='+', type=str)
 
     @transaction.atomic
     def handle(self, *args, **options):
