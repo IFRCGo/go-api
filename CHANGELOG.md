@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.383
+
+### Added
+ - maptile - import shapefile by id arg fix
+
 ## 1.1.382
 
 ### Added
@@ -1672,7 +1677,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.382...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.383...HEAD
+[1.1.383]: https://github.com/IFRCGo/go-api/compare/1.1.382...1.1.383
 [1.1.382]: https://github.com/IFRCGo/go-api/compare/1.1.381...1.1.382
 [1.1.381]: https://github.com/IFRCGo/go-api/compare/1.1.380...1.1.381
 [1.1.380]: https://github.com/IFRCGo/go-api/compare/1.1.379...1.1.380
