@@ -1,14 +1,17 @@
 from collections import defaultdict
-
+import datetime
+from datetime import date
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from django_filters import rest_framework as filters
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count
 from django.db.models.functions import Coalesce, Cast
 from django.contrib.postgres.aggregates.general import ArrayAgg
 from django.shortcuts import get_object_or_404
@@ -25,6 +28,7 @@ from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 from .filters import ProjectFilter
+from .utils import get_previous_months
 from .models import (
     ERU,
     ERUOwner,
@@ -147,6 +151,83 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         if request_format_type == 'csv':
             return PersonnelCsvSerializer
         return PersonnelSerializer
+
+
+class AggregateDeployments(APIView):
+    '''
+        Get aggregated data for personnel deployments
+    '''
+    def get(self, request):
+        now = datetime.datetime.now()
+        deployments_qset = Personnel.objects.filter(is_active=True)
+        eru_qset = ERU.objects.all()
+        if request.GET.get('event'):
+            event_id = request.GET.get('event')
+            deployments_qset = deployments_qset.filter(personneldeployment__event_deployed_to=event_id)
+            eru_qset = eru_qset.filter(event=event_id)
+        active_deployments = deployments_qset.filter(
+            start_date__lt=now,
+            end_date__gt=now
+        ).count()
+        active_erus = eru_qset.filter(
+            start_date__lt=now,
+            end_date__gt=now
+        ).count()
+        deployments_this_year = deployments_qset.filter(
+            is_active=True,
+            start_date__year__lte=now.year,
+            end_date__year__gte=now.year
+        ).count()
+        return Response({
+            'active_deployments': active_deployments,
+            'active_erus': active_erus,
+            'deployments_this_year': deployments_this_year 
+        })
+
+class DeploymentsByMonth(APIView):
+    
+    def get(self, request):
+        '''Returns count of Personnel Deployments
+            for last 12 months, aggregated by month.
+        '''
+        now = datetime.datetime.now()
+        months = get_previous_months(now, 12)
+        deployment_counts = {}
+        for month in months:
+            month_string = month[0]
+            first_day = month[1]
+            last_day = month[2]
+            count = Personnel.objects.filter(
+                start_date__date__lte=last_day,
+                end_date__date__gte=first_day
+            ).count()
+            deployment_counts[month_string] = count
+        return Response(deployment_counts)            
+
+class DeploymentsByNS(APIView):
+    
+    def get(self, request):
+        '''Returns count of Personnel Deployments
+            by National Society, for the current year.
+        '''
+        limit = request.GET.get('limit', '5')
+        limit = int(limit)
+        now = datetime.datetime.now()
+        first_day_of_year = date(now.year, 1, 1)
+        last_day_of_year = date(now.year, 12, 31)
+        societies = Country.objects.filter(
+            personnel_deployments__start_date__date__lte=last_day_of_year,
+            personnel_deployments__end_date__date__gte=first_day_of_year
+        ).annotate(
+            deployments_count=Count('personnel_deployments')
+        ).order_by(
+            '-deployments_count'
+        ).values(
+            'id',
+            'society_name',
+            'deployments_count'
+        )[0:limit]
+        return Response(societies)
 
 
 class PartnerDeploymentFilterset(filters.FilterSet):
