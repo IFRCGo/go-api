@@ -189,7 +189,7 @@ def sync_deployments(molnix_deployments):
             if incoming_name in NS_MATCHING_OVERRIDES:
                 country_name = NS_MATCHING_OVERRIDES[incoming_name]
                 try:
-                    country_from = Country.objects.get(name_en=country_name, independent=True)
+                    country_from = Country.objects.get(name_en=country_name)
                 except:
                     warning = 'Mismatch in NS name: %s' % md['incoming']['name']
                     logger.warning(warning)
