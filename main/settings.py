@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'deployments',
     'databank',
     'lang',
+    'dref',
 
     # Utils Apps
     'tinymce',

@@ -69,6 +69,7 @@ from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
 from lang import views as lang_views
+from dref import views as dref_views
 
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset, basename='action')
@@ -130,7 +131,10 @@ router.register(r'situation_report_type', api_views.SituationReportTypeViewset, 
 router.register(r'subscription', notification_views.SubscriptionViewset, basename='subscription')
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
-
+router.register(r'dref', dref_views.DrefViewSet, basename='dref')
+router.register(r'planned', dref_views.PlannedInterventionViewSet, basename='planned')
+router.register(r'national-society', dref_views.NationalSocietyActionViewSet, basename='national-society')
+router.register(r'idenrified-need', dref_views.IdentifiedNeedViewSet, basename='idenrified-need')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
