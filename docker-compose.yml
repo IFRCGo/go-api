@@ -3,6 +3,7 @@ version: '2'
 services:
   base_django_setup: &base_django_setup
     image: ifrcgo/go-api:latest
+    platform: linux/amd64
     environment:
       DJANGO_DB_NAME: test
       DJANGO_SECRET_KEY: test
@@ -30,9 +31,11 @@ services:
   base:
     build: .
     image: ifrcgo/go-api:latest
+    platform: linux/amd64
 
   db:
     image: mdillon/postgis:9.6-alpine
+    platform: linux/amd64
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
@@ -42,6 +45,7 @@ services:
 
   redis:
     image: redis:latest
+    platform: linux/amd64
     volumes:
       - redis-data:/data
 
