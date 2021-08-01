@@ -15,12 +15,14 @@ from dref.serializers import (
     PlannedInterventionSerializer,
     IdentifiedNeedSerializer
 )
+from dref.filter_set import DrefFilter
 
 
 class DrefViewSet(viewsets.ModelViewSet):
+    # TODO: Need to add permission to delete
     serializer_class = DrefSerializer
     permission_class = [permissions.IsAuthenticated]
-    # TODO: Add filtersetclass
+    filterset_class = DrefFilter
 
     def get_queryset(self):
         return Dref.objects.prefetch_related(

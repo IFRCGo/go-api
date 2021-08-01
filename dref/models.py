@@ -18,17 +18,29 @@ class NationalSocietyAction(models.Model):
     title = models.CharField(verbose_name=_('title'), max_length=255)
     description = models.TextField(verbose_name=_('description'), blank=True)
 
+    class Meta:
+        verbose_name = _('national society action')
+        verbose_name_plural = _('national society actions')
+
 
 class IdentifiedNeed(models.Model):
 
     title = models.CharField(verbose_name=_('title'), max_length=255, help_text=_('Title of identified needs'))
     description = models.TextField(verbose_name=_('description'), blank=True)
 
+    class Meta:
+        verbose_name = _('identified need')
+        verbose_name_plural = _('identified needs')
+
 
 class PlannedIntervention(models.Model):
     title = models.CharField(verbose_name=_('title'), max_length=255, help_text=_('Title of identified needs'))
     description = models.TextField(verbose_name=_('description'), blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('planned intervention')
+        verbose_name_plural = _('planned interventions')
 
 
 class Dref(models.Model):
@@ -55,6 +67,14 @@ class Dref(models.Model):
             ORANGE = _('Orange')
             RED = _('Red')
 
+    class Status(IntEnum):
+        IN_PROGESS = 0
+        COMPLETED = 1
+
+        class Labels:
+            IN_PROGESS = _('In Progress')
+            COMPLETED = _('Completed')
+
     title = models.CharField(verbose_name=_('title'), max_length=255)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
@@ -66,6 +86,7 @@ class Dref(models.Model):
         on_delete=models.SET_NULL)
     type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'))
     disaster_category_level = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category level'))
+    status = EnumIntegerField(Status, verbose_name=_('status'))
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
@@ -76,8 +97,27 @@ class Dref(models.Model):
     disaster_date = models.DateField(verbose_name=_('disaster date'), null=True, blank=True)
     ns_respond_date = models.DateField(verbose_name=_('ns respond date'), null=True, blank=True)
     ns_respond_text = models.TextField(verbose_name=_('ns respond text'), blank=True)
+    affect_same_population = models.BooleanField(
+        default=False, help_text=_('Has a similar event affected the same population?')
+    )
+    affect_same_communities = models.BooleanField(
+        default=False, help_text=_('Did it affect the same communities?')
+    )
+    affect_same_communities_text = models.CharField(
+        max_length=255,
+        blank=True, null=True,
+        verbose_name=_('affect same communities text')
+    )
+    ns_respond = models.BooleanField(
+        default=False, help_text=_('Did NS respond')
+    )
     ns_request = models.BooleanField(
-        default=False, help_text=_('Has NS requested Dref?')
+        default=False, help_text=_('Did NS request a Dref?')
+    )
+    ns_request_text = models.CharField(
+        max_length=255,
+        blank=True, null=True,
+        verbose_name=_('ns request text')
     )
     lessons_learned = models.TextField(verbose_name=_('lessons learned'), blank=True)
     event_description = models.TextField(verbose_name=_('event description'), blank=True)
@@ -100,7 +140,7 @@ class Dref(models.Model):
         default=False, help_text=_('Has government requested assistance')
     )
     government_requested_assistance_date = models.DateField(
-        verbose_name=_('government requested assiatance date'),
+        verbose_name=_('government requested assistance date'),
         null=True, blank=True
     )
     national_authorities = models.TextField(verbose_name=_('national authorities'), blank=True)
@@ -134,7 +174,7 @@ class Dref(models.Model):
     women = models.IntegerField(verbose_name=_('women'), blank=True, null=True)
     men = models.IntegerField(verbose_name=_('men'), blank=True, null=True)
     girls = models.IntegerField(
-        verbose_name=_('girls'), help_text=_('Grils under 18'),
+        verbose_name=_('girls'), help_text=_('Girls under 18'),
         blank=True, null=True
     )
     boys = models.IntegerField(
@@ -171,7 +211,7 @@ class Dref(models.Model):
     date_of_approval = models.DateField(verbose_name=_('date of approval'), null=True, blank=True)
     start_date = models.DateField(verbose_name=_('start date'), null=True, blank=True)
     end_date = models.DateField(verbose_name=_('end date'), null=True, blank=True)
-    publishing_date = models.DateField(verbose_name=_('end date'), null=True, blank=True)
+    publishing_date = models.DateField(verbose_name=_('publishing date'), null=True, blank=True)
     operation_timeframe = models.IntegerField(verbose_name=_('operation timeframe'), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_('appeal code'), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_('glide number'), max_length=255, null=True, blank=True)
@@ -191,12 +231,12 @@ class Dref(models.Model):
         verbose_name=_('project manager email'), max_length=255,
         null=True, blank=True
     )
-    national_scoiety_contact_name = models.CharField(
-        verbose_name=_('national scoiety contact name'), max_length=255,
+    national_society_contact_name = models.CharField(
+        verbose_name=_('national society contact name'), max_length=255,
         null=True, blank=True
     )
-    national_scoiety_contact_email = models.CharField(
-        verbose_name=_('national scoiety contact email'), max_length=255,
+    national_society_contact_email = models.CharField(
+        verbose_name=_('national society contact email'), max_length=255,
         null=True, blank=True
     )
     media_contact_name = models.CharField(
@@ -215,6 +255,25 @@ class Dref(models.Model):
         verbose_name=_('ifrc emergency email'), max_length=255,
         null=True, blank=True
     )
+    requestor_name = models.CharField(
+        verbose_name=_('requestor name'), max_length=255,
+        null=True, blank=True
+    )
+    requestor_email = models.CharField(
+        verbose_name=_('requestor email'), max_length=255,
+        null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = _('dref')
+        verbose_name_plural = _('drefs')
+
+    def save(self, *args, **kwargs):
+        if self.date_of_approval:
+            self.status = Dref.Status.COMPLETED
+        elif not self.date_of_approval:
+            self.status = Dref.Status.IN_PROGESS
+        return super().save(*args, **kwargs)
 
 
 class DrefCountryDistrict(models.Model):
