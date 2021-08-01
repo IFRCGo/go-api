@@ -131,8 +131,8 @@ router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='
 router.register(r'user', api_views.UserViewset, basename='user')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'planned', dref_views.PlannedInterventionViewSet, basename='planned')
-router.register(r'national-society', dref_views.NationalSocietyActionViewSet, basename='national-society')
-router.register(r'idenrified-need', dref_views.IdentifiedNeedViewSet, basename='idenrified-need')
+router.register(r'national-society-action', dref_views.NationalSocietyActionViewSet, basename='national-society')
+router.register(r'identified-need', dref_views.IdentifiedNeedViewSet, basename='identified-need')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

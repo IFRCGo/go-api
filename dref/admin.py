@@ -11,17 +11,17 @@ from .models import (
 
 @admin.register(PlannedIntervention)
 class PlannedInterventionAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('title',)
 
 
 @admin.register(IdentifiedNeed)
 class IdentifiedNeedAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('title',)
 
 
 @admin.register(NationalSocietyAction)
 class NationalSocietyActiondAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('title',)
 
 
 class DrefCountryDistrictAdminInline(admin.TabularInline):
@@ -33,7 +33,7 @@ class DrefCountryDistrictAdminInline(admin.TabularInline):
 class DrefAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     list_display = ('title', 'national_society', 'disaster_type',
-                    'ns_request_date', 'submission_to_geneva')
+                    'ns_request_date', 'submission_to_geneva', 'status')
     inlines = [DrefCountryDistrictAdminInline]
 
     def get_queryset(self, request):
