@@ -52,6 +52,7 @@ printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 (crontab -l 2>/dev/null; echo '0 3 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py update_project_status >> /home/ifrc/logs/update_project_status.log 2>&1') | crontab -
 service cron start
 
+
 tail -n 0 -f $HOME/logs/*.log &
 
 echo Starting nginx
