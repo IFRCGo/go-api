@@ -507,7 +507,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 for enum_field_value, count in (
                     projects.order_by().values(enum_field).annotate(count=models.Count('id')).values_list(
                         enum_field, 'count',
-                    )
+                    ).order_by(enum_field)
                 )
             ]
 
