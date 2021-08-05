@@ -594,24 +594,24 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     ],
     'projects_per_secondary_sectors': [
         {
-            'count': 4,
-            'secondary_sector': '10',
-            'secondary_sector_display': 'Recovery'
-        },
-        {
             'count': 8,
             'secondary_sector': '0',
             'secondary_sector_display': 'WASH'
         },
         {
-            'count': 4,
-            'secondary_sector': '11',
-            'secondary_sector_display': 'Internal displacement'
-        },
-        {
             'count': 8,
             'secondary_sector': '1',
             'secondary_sector_display': 'PGI'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '10',
+            'secondary_sector_display': 'Recovery'
+        },
+        {
+            'count': 4,
+            'secondary_sector': '11',
+            'secondary_sector_display': 'Internal displacement'
         },
         {
             'count': 4,
@@ -622,7 +622,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'count': 4,
             'secondary_sector': '9',
             'secondary_sector_display': 'Livelihoods and basic needs'
-        }
+        },
     ],
     'projects_per_sector': [
         {
