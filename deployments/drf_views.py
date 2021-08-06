@@ -181,11 +181,12 @@ class AggregateDeployments(APIView):
         return Response({
             'active_deployments': active_deployments,
             'active_erus': active_erus,
-            'deployments_this_year': deployments_this_year 
+            'deployments_this_year': deployments_this_year
         })
 
+
 class DeploymentsByMonth(APIView):
-    
+
     def get(self, request):
         '''Returns count of Personnel Deployments
             for last 12 months, aggregated by month.
@@ -202,10 +203,11 @@ class DeploymentsByMonth(APIView):
                 end_date__date__gte=first_day
             ).count()
             deployment_counts[month_string] = count
-        return Response(deployment_counts)            
+        return Response(deployment_counts)
+
 
 class DeploymentsByNS(APIView):
-    
+
     def get(self, request):
         '''Returns count of Personnel Deployments
             by National Society, for the current year.
