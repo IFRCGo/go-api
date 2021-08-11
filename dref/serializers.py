@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext
+
 from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
@@ -6,6 +8,8 @@ from dref.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
+from api.serializers import UserNameSerializer
+
 from dref.models import (
     Dref,
     PlannedIntervention,
@@ -41,6 +45,16 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         fields = ('id', 'country', 'district')
         read_only_fields = ('dref',)
 
+    def validate(sel, data):
+        districts = data['district']
+        if isinstance(districts, list) and len(districts):
+            for district in districts:
+                if district.country != data['country']:
+                    raise serializers.ValidationError({
+                        'district': ugettext('Different districts found for given country')
+                    })
+        return data
+
 
 class DrefSerializer(
     EnumSupportSerializerMixin,
@@ -55,7 +69,24 @@ class DrefSerializer(
     type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
     disaster_category_level_display = serializers.CharField(source='get_disaster_category_level_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
 
     class Meta:
         model = Dref
         fields = '__all__'
+        read_only_fields = ('modified_by',)
+
+    def validate(self, data):
+        event_date = data.get('event_date', None)
+        if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
+            raise serializers.ValidationError({
+                'event_date': ugettext('Cannot add event_date if onset type not in {} or {}')
+                .format(Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label)
+            })
+        return data
+
+    def update(self, instance, validated_data):
+        dref = super().update(instance, validated_data)
+        dref.modified_by = self.context['request'].user
+        dref.save(update_fields=['modified_by'])
+        return dref

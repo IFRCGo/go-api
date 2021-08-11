@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from enumfields import IntEnum, EnumIntegerField
 
@@ -8,6 +9,7 @@ from api.models import (
     District
 )
 from api.storage import get_storage
+from .enums import TextChoices
 
 
 def dref_document_path(instance, filename):
@@ -15,8 +17,31 @@ def dref_document_path(instance, filename):
 
 
 class NationalSocietyAction(models.Model):
-    title = models.CharField(verbose_name=_('title'), max_length=255)
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
+    class Title(TextChoices):
+        NS_READINESS = 'ns_readiness', _('Ns Readiness')
+        ASSESSMENT = 'assessment', _('Assessment')
+        COORDINATION = 'coordination', _('Coordination')
+        RESOURCE_MOBILIZATION = 'resource_mobilization', _('Resource Mobilization')
+        ACTIVATION_OF_CONTINGENCY = 'activation_of_contingency', _('Activation Of Contingency')
+        NATIONAL_SOCIETY_EOC = 'national_society_eoc', _('National Society Eoc')
+        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        LIVELIHOODS = 'livelihoods', _('Livelihoods')
+        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
+        HEALTH = 'health', _('Health')
+        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
+        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        EDUCATION = 'education', _('Education')
+        MIGRATION = 'migration', _('Migration')
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
+            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction Climate Adaptation And Recovery')
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
+            'community_engagement_and _accountability', _('Community Engagement And Accountability')
+        ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
+        OTHER = 'other', _('Other')
+
+    title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
+    description = models.CharField(max_length=300, verbose_name=_('description'), blank=True)
 
     class Meta:
         verbose_name = _('national society action')
@@ -24,9 +49,24 @@ class NationalSocietyAction(models.Model):
 
 
 class IdentifiedNeed(models.Model):
+    class Title(TextChoices):
+        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        LIVELIHOODS = 'livelihoods', _('Livelihoods')
+        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
+        HEALTH = 'health', _('Health')
+        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
+        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        EDUCATION = 'education', _('Education')
+        MIGRATION = 'migration', _('Migration')
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
+            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction Climate Adaptation And Recovery')
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
+            'community_engagement_and _accountability', _('Community Engagement And Accountability')
+        ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
+        SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
 
-    title = models.CharField(verbose_name=_('title'), max_length=255, help_text=_('Title of identified needs'))
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
+    description = models.CharField(max_length=300, verbose_name=_('description'), blank=True)
 
     class Meta:
         verbose_name = _('identified need')
@@ -34,9 +74,25 @@ class IdentifiedNeed(models.Model):
 
 
 class PlannedIntervention(models.Model):
-    title = models.CharField(verbose_name=_('title'), max_length=255, help_text=_('Title of identified needs'))
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    class Title(TextChoices):
+        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        LIVELIHOODS = 'livelihoods', _('Livelihoods')
+        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
+        HEALTH = 'health', _('Health')
+        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
+        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        EDUCATION = 'education', _('Education')
+        MIGRATION = 'migration', _('Migration')
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
+            'risk_reduction_climate_adaptation_and_recovery_', _('Risk Reduction Climate Adaptation And Recovery')
+        SECRETARIAT_SERVICES = 'secretariat_services', _('Secretariat Services')
+        NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
+
+    title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
+    description = models.CharField(verbose_name=_('description'), blank=True, max_length=300)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
+    person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
+    # TODO: Add indicator
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -49,13 +105,13 @@ class Dref(models.Model):
         ANTICIPATORY = 0
         IMMINENT = 1
         SLOW = 2
-        SUDDEN_ONSET = 3
+        SUDDEN = 3
 
         class Labels:
             ANTICIPATORY = _('Anticipatory')
             IMMINENT = _('Imminent')
             SLOW = _('Slow')
-            SUDDEN_ONSET = _('Sudden Onset')
+            SUDDEN = _('Sudden')
 
     class DisasterCategory(IntEnum):
         YELLOW = 0
@@ -74,7 +130,11 @@ class Dref(models.Model):
         class Labels:
             IN_PROGESS = _('In Progress')
             COMPLETED = _('Completed')
-
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('modified by'), on_delete=models.SET_NULL, null=True,
+    )
     title = models.CharField(verbose_name=_('title'), max_length=255)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
@@ -85,51 +145,63 @@ class Dref(models.Model):
         blank=True, null=True,
         on_delete=models.SET_NULL)
     type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'))
-    disaster_category_level = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category level'))
-    status = EnumIntegerField(Status, verbose_name=_('status'))
+    disaster_category = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category'))
+    status = EnumIntegerField(Status, verbose_name=_('status'), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
     emergency_appeal_planned = models.BooleanField(verbose_name=_('emergency appeal planned '), default=False)
-    document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=dref_document_path, storage=get_storage()
+    event_map = models.FileField(
+        verbose_name=_('event map'), null=True, blank=True,
+        upload_to=dref_document_path, storage=get_storage(),
+        help_text=_('Map and other images of the event')
     )
-    disaster_date = models.DateField(verbose_name=_('disaster date'), null=True, blank=True)
-    ns_respond_date = models.DateField(verbose_name=_('ns respond date'), null=True, blank=True)
-    ns_respond_text = models.TextField(verbose_name=_('ns respond text'), blank=True)
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+        help_text=_('Date of event/Approximate date of impact')
+    )
+    event_text = models.CharField(max_length=500, verbose_name=_('event text'), blank=True)
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+        help_text=_('NS anticipatory actions started/NS response')
+    )
+    affect_same_area = models.BooleanField(
+        default=False, help_text=_('Has a similar event affected the same areas in the past?')
+    )
     affect_same_population = models.BooleanField(
-        default=False, help_text=_('Has a similar event affected the same population?')
+        default=False, help_text=_('Did it affect the same population?')
     )
-    affect_same_communities = models.BooleanField(
-        default=False, help_text=_('Did it affect the same communities?')
-    )
-    affect_same_communities_text = models.CharField(
+    affect_same_population_text = models.CharField(
         max_length=255,
         blank=True, null=True,
-        verbose_name=_('affect same communities text')
+        verbose_name=_('affect same population text')
     )
     ns_respond = models.BooleanField(
         default=False, help_text=_('Did NS respond')
     )
-    ns_request = models.BooleanField(
-        default=False, help_text=_('Did NS request a Dref?')
+    ns_request_fund = models.BooleanField(
+        default=False, help_text=_('Did the NS request funding from DREF?')
     )
     ns_request_text = models.CharField(
-        max_length=255,
+        max_length=10,
         blank=True, null=True,
         verbose_name=_('ns request text')
     )
-    lessons_learned = models.TextField(verbose_name=_('lessons learned'), blank=True)
-    event_description = models.TextField(verbose_name=_('event description'), blank=True)
+    lessons_learned = models.CharField(max_length=500, verbose_name=_('lessons learned'), blank=True)
+    event_description = models.CharField(max_length=800, verbose_name=_('event description'), blank=True)
     image = models.ImageField(
         verbose_name=_('image'), null=True, blank=True, upload_to='dref/%Y/%m/%d/', storage=get_storage()
     )
-    anticipatory_actions = models.TextField(
-        verbose_name=_('anaticipatory actions'), blank=True,
+    anticipatory_actions = models.CharField(
+        max_length=800, blank=True,
+        verbose_name=_('anaticipatory actions'),
         help_text=_('Description of anticipatory actions or imminent disaster')
     )
-    event_scope = models.TextField(
-        verbose_name=_('event scope'), blank=True,
+    event_scope = models.CharField(
+        max_length=800, blank=True,
+        verbose_name=_('event scope'),
         help_text=_('Scope and scale of event')
     )
     national_society_actions = models.ManyToManyField(
@@ -143,28 +215,30 @@ class Dref(models.Model):
         verbose_name=_('government requested assistance date'),
         null=True, blank=True
     )
-    national_authorities = models.TextField(verbose_name=_('national authorities'), blank=True)
-    rcrc_partners = models.TextField(verbose_name=_('rcrc partners'), blank=True)
-    icrc = models.TextField(verbose_name=_('icrc'), blank=True)
-    un_or_other = models.TextField(verbose_name=_('un or other'), blank=True)
-    major_coordination_mechanism = models.TextField(
-        verbose_name=_('major coordination mechanism'), blank=True,
+    national_authorities = models.CharField(max_length=300, verbose_name=_('national authorities'), blank=True)
+    ifrc = models.CharField(max_length=300, verbose_name=_('ifrc'), blank=True)
+    icrc = models.CharField(max_length=300, verbose_name=_('icrc'), blank=True)
+    partner_national_society = models.CharField(max_length=300, verbose_name=_('partner national society'), blank=True)
+    un_or_other_actor = models.CharField(max_length=300, verbose_name=_('un or other'), blank=True)
+    major_coordination_mechanism = models.CharField(
+        max_length=300, blank=True,
+        verbose_name=_('major coordination mechanism'),
         help_text=_('List major coordination mechanisms in place'))
     needs_identified = models.ManyToManyField(
         IdentifiedNeed, verbose_name=_('needs identified'),
         blank=True
     )
-    identified_gaps = models.TextField(
-        verbose_name=_('identified gaps'), blank=True,
+    identified_gaps = models.CharField(
+        verbose_name=_('identified gaps'), blank=True, max_length=300,
         help_text=_('Any identified gaps/limitations in the assessment')
     )
-    people_assisted = models.TextField(verbose_name=_('people assisted'), blank=True)
-    selection_criteria = models.TextField(
-        verbose_name=_('selection criteria'), blank=True,
+    people_assisted = models.CharField(max_length=300, verbose_name=_('people assisted'), blank=True)
+    selection_criteria = models.CharField(
+        verbose_name=_('selection criteria'), blank=True, max_length=300,
         help_text=_('Selection criteria for affected people')
     )
-    entity_affected = models.TextField(
-        verbose_name=_('entity affected'), blank=True,
+    entity_affected = models.CharField(
+        verbose_name=_('entity affected'), blank=True, max_length=300,
         help_text=_('Protection, gender, Inclusion affected in this process')
     )
     community_involved = models.TextField(
@@ -186,26 +260,33 @@ class Dref(models.Model):
         blank=True, null=True,
         max_digits=3, decimal_places=1
     )
-    people_per = models.DecimalField(
-        verbose_name=_('people per'), help_text=_('Estimated % people Urban/Rural'),
+    people_per_urban_local = models.DecimalField(
+        verbose_name=_('people per urban local'), help_text=_('Estimated % people Urban/Rural'),
         blank=True, null=True,
         max_digits=3, decimal_places=1
+    )
+    people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_('people targeted with early actions'),
+        help_text=_('Number of persons targeted with early actions'),
+        blank=True, null=True
     )
     displaced_people = models.IntegerField(
         verbose_name=_('displaced people'), help_text=_('Estimated number of displaced people'),
         blank=True, null=True
     )
-    operation_objective = models.TextField(
+    operation_objective = models.CharField(
         verbose_name=_('operation objective'), help_text=_('Overall objective of the operation'),
-        blank=True
+        blank=True, max_length=400
     )
-    response_strategy = models.TextField(verbose_name=_('response strategy'), blank=True)
+    response_strategy = models.CharField(
+        verbose_name=_('response strategy'),
+        blank=True, max_length=200
+    )
     planned_interventions = models.ManyToManyField(
         PlannedIntervention,
         verbose_name=_('planned intervention'), blank=True
     )
-    secretariat_service = models.TextField(verbose_name=_('secretariat service'), blank=True)
-    national_society_strengthening = models.TextField(verbose_name=_('nationa society strengthening'), blank=True)
+    go_field_report_date = models.DateField(verbose_name=_('go field report date'), null=True, blank=True)
     ns_request_date = models.DateField(verbose_name=_('ns request date'), null=True, blank=True)
     submission_to_geneva = models.DateField(verbose_name=_('submission to geneva'), null=True, blank=True)
     date_of_approval = models.DateField(verbose_name=_('date of approval'), null=True, blank=True)
@@ -215,20 +296,20 @@ class Dref(models.Model):
     operation_timeframe = models.IntegerField(verbose_name=_('operation timeframe'), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_('appeal code'), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_('glide number'), max_length=255, null=True, blank=True)
-    appeal_manager_name = models.CharField(
-        verbose_name=_('appeal manager name'), max_length=255,
+    ifrc_appeal_manager_name = models.CharField(
+        verbose_name=_('ifrc appeal manager name'), max_length=255,
         null=True, blank=True
     )
-    appeal_manager_email = models.CharField(
-        verbose_name=_('appeal manager email'), max_length=255,
+    ifrc_appeal_manager_email = models.CharField(
+        verbose_name=_('ifrc appeal manager email'), max_length=255,
         null=True, blank=True
     )
-    project_manager_name = models.CharField(
-        verbose_name=_('project manager name'), max_length=255,
+    ifrc_project_manager_name = models.CharField(
+        verbose_name=_('ifrc project manager name'), max_length=255,
         null=True, blank=True
     )
-    project_manager_email = models.CharField(
-        verbose_name=_('project manager email'), max_length=255,
+    ifrc_project_manager_email = models.CharField(
+        verbose_name=_('ifrc project manager email'), max_length=255,
         null=True, blank=True
     )
     national_society_contact_name = models.CharField(
@@ -255,13 +336,43 @@ class Dref(models.Model):
         verbose_name=_('ifrc emergency email'), max_length=255,
         null=True, blank=True
     )
-    requestor_name = models.CharField(
-        verbose_name=_('requestor name'), max_length=255,
+    originator_name = models.CharField(
+        verbose_name=_('originator name'), max_length=255,
         null=True, blank=True
     )
-    requestor_email = models.CharField(
-        verbose_name=_('requestor email'), max_length=255,
+    originator_email = models.CharField(
+        verbose_name=_('originator email'), max_length=255,
         null=True, blank=True
+    )
+    human_resource = models.CharField(
+        max_length=300, blank=True,
+        verbose_name=_('human resource'),
+        help_text=_('how many volunteers and staff involved in the response?')
+    )
+    surge_personnel_deployed = models.CharField(
+        max_length=500, blank=True,
+        verbose_name=_('surge personnel deployed'),
+        help_text=_('Will a Surge personnel be deployed?')
+    )
+    logistic_capacity_of_ns = models.CharField(
+        max_length=500, blank=True,
+        verbose_name=_('logistic capacity of ns'),
+        help_text=_('what is the logistics capacity of the National Society?')
+    )
+    safety_concerns = models.CharField(
+        max_length=500, blank=True,
+        verbose_name=_('safety concerns'),
+        help_text=_('Are there any safety/security concerns which may impact the implementation of this operation?')
+    )
+    pmer = models.CharField(
+        max_length=500, blank=True,
+        verbose_name=_('pmer'),
+        help_text=_('Does the NS have PMER capacity?')
+    )
+    communication = models.CharField(
+        max_length=500, blank=True,
+        verbose_name=_('organization'),
+        help_text=_('Does the NS have Communications capacity?')
     )
 
     class Meta:
@@ -280,10 +391,10 @@ class DrefCountryDistrict(models.Model):
     dref = models.ForeignKey(Dref, verbose_name=_('dref'),
                              on_delete=models.CASCADE)
     country = models.ForeignKey(Country, verbose_name=_('country'),
-                                on_delete=models.CASCADE)
-    district = models.ForeignKey(District, verbose_name=_('district'),
-                                 blank=True, null=True,
-                                 on_delete=models.SET_NULL)
+                                on_delete=models.CASCADE,
+                                help_text=_('Affected County'))
+    district = models.ManyToManyField(District, blank=True,
+                                      verbose_name=_('district'))
 
     class Meta:
-        unique_together = ('country', 'district')
+        unique_together = ('dref', 'country')

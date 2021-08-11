@@ -15,7 +15,7 @@ class DrefFactory(factory.django.DjangoModelFactory):
 
     title = fuzzy.FuzzyText(length=50, prefix='title-')
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
-    disaster_category_level = fuzzy.FuzzyChoice(Dref.DisasterCategory)
+    disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     status = fuzzy.FuzzyChoice(Dref.Status)
 
     @factory.post_generation
@@ -50,18 +50,18 @@ class PlannedInterventionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PlannedIntervention
 
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyChoice(PlannedIntervention.Title)
 
 
 class IdentifiedNeedFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = IdentifiedNeed
 
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyChoice(IdentifiedNeed.Title)
 
 
 class NationalSocietyActionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = NationalSocietyAction
 
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyChoice(NationalSocietyAction.Title)
