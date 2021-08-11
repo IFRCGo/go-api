@@ -132,9 +132,6 @@ router.register(r'subscription', notification_views.SubscriptionViewset, basenam
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
-router.register(r'planned', dref_views.PlannedInterventionViewSet, basename='planned')
-router.register(r'national-society-action', dref_views.NationalSocietyActionViewSet, basename='national-society')
-router.register(r'identified-need', dref_views.IdentifiedNeedViewSet, basename='identified-need')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
@@ -174,6 +171,7 @@ urlpatterns = [
     url(r'^show_username', ShowUsername.as_view()),
     url(r'^resend_validation', ResendValidation.as_view()),
     url(r'^api/v2/', include(router.urls)),
+    url(r'^api/v2/dref-options/', dref_views.DrefOptionsView.as_view()),
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
