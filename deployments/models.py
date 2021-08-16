@@ -345,6 +345,12 @@ class RegionalProject(models.Model):
 
 class Project(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('modified by'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='project_modified_by'
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project
