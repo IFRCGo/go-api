@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.389
+
+### Added
+ - Add field modified_by in project model
+
 ## 1.1.388
 
 ### Added
@@ -1702,7 +1707,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.388...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.389...HEAD
+[1.1.389]: https://github.com/IFRCGo/go-api/compare/1.1.388...1.1.389
 [1.1.388]: https://github.com/IFRCGo/go-api/compare/1.1.387...1.1.388
 [1.1.387]: https://github.com/IFRCGo/go-api/compare/1.1.386...1.1.387
 [1.1.386]: https://github.com/IFRCGo/go-api/compare/1.1.385...1.1.386
