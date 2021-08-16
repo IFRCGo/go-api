@@ -214,10 +214,8 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         return project
 
     def update(self, instance, validated_data):
-        project = super().update(instance, validated_data)
-        project.modified_by = self.context['request'].user
-        project.save(update_fields=['modified_by'])
-        return project
+        validated_data['modified_by'] = self.context['request'].user
+        return super().update(instance, validated_data)
 
 
 class ProjectCsvSerializer(ProjectSerializer):
