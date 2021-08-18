@@ -73,6 +73,15 @@ def get_go_event(tags):
             return event
     return event
 
+def get_go_country(countries, country_id):
+    '''
+        Given a Molnix country ID, returns GO country id
+    '''
+    if not country_id in countries:
+        return None
+    iso = countries[country_id]
+    country = Country.objects.get(iso=iso, independent=True)
+    return country
 
 def get_datetime(datetime_string):
     '''
@@ -235,7 +244,7 @@ def sync_deployments(molnix_deployments):
     return messages, warnings, successful_creates
 
 
-def sync_open_positions(molnix_positions, molnix_api):
+def sync_open_positions(molnix_positions, molnix_api, countries):
     molnix_ids = [p['id'] for p in molnix_positions]
     warnings = []
     messages = []
@@ -244,6 +253,12 @@ def sync_open_positions(molnix_positions, molnix_api):
     
     for position in molnix_positions:
         event = get_go_event(position['tags'])
+        country = get_go_country(countries, position['country_id'])
+        if not country:
+            warning = 'Position id %d does not have a valid Country (countryid = %d)' % (position['id'], position['country_id'])
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = 'Position id %d does not have a valid Emergency tag.' % position['id']
@@ -259,6 +274,7 @@ def sync_open_positions(molnix_positions, molnix_api):
         go_alert.message = position['name']
         go_alert.molnix_status = position['status']
         go_alert.event = event
+        go_alert.country = country
         go_alert.opens = get_datetime(position['opens'])
         go_alert.closes = get_datetime(position['closes'])
         go_alert.start = get_datetime(position['start'])
@@ -317,7 +333,7 @@ class Command(BaseCommand):
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
         try:
-            # tags = molnix.get_tags()
+            countries = molnix.get_countries()
             deployments = molnix.get_deployments()
             open_positions = molnix.get_open_positions()
         except Exception as ex:
@@ -329,7 +345,7 @@ class Command(BaseCommand):
         try:    
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags)
-            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix)
+            positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
         except Exception as ex:
             msg = 'Unknown Error occurred: %s' % str(ex)
