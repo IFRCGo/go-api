@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.390
+
+### Added
+ - Store country as separate field on surge alerts, import from molnix
+
+## 1.1.389
+ - Import Country for Surge Alert from Molnix
+
 ## 1.1.388
 
 ### Added
@@ -1702,7 +1710,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.388...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.390...HEAD
+[1.1.390]: https://github.com/IFRCGo/go-api/compare/1.1.389...1.1.390
+[1.1.389]: https://github.com/IFRCGo/go-api/compare/1.1.388...1.1.389
 [1.1.388]: https://github.com/IFRCGo/go-api/compare/1.1.387...1.1.388
 [1.1.387]: https://github.com/IFRCGo/go-api/compare/1.1.386...1.1.387
 [1.1.386]: https://github.com/IFRCGo/go-api/compare/1.1.385...1.1.386
