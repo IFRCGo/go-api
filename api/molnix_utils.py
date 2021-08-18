@@ -84,6 +84,14 @@ class MolnixApi:
         except:
             return None
 
+    def get_countries(self):
+        countries = self.call_api(path='countries')
+        countries_list = countries['countries']
+        countries_dict = {}
+        for country in countries_list:
+            countries_dict[country['id']] = country['code']
+        return countries_dict
+
     def logout(self):
         self.call_api('logout')
         return True
