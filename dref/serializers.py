@@ -83,10 +83,14 @@ class DrefSerializer(
                 'event_date': ugettext('Cannot add event_date if onset type not in {} or {}')
                 .format(Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label)
             })
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        if start_date and end_date and start_date > end_date:
+            raise serializers.ValidationError(
+                {'end_date': 'End date must occur after start date'}
+            )
         return data
 
     def update(self, instance, validated_data):
-        dref = super().update(instance, validated_data)
-        dref.modified_by = self.context['request'].user
-        dref.save(update_fields=['modified_by'])
-        return dref
+        validated_data['modified_by'] = self.context['request'].user
+        return super().update(instance, validated_data)

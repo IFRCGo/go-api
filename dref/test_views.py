@@ -63,7 +63,7 @@ class DrefTestCase(APITestCase):
             "submission_to_geneva": "2021-07-01",
             "date_of_approval": "2021-07-01",
             "start_date": "2021-07-01",
-            "end_date": "2021-07-01",
+            "end_date": "2021-07-05",
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
             "appeal_code": "J7876",
