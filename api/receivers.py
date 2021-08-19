@@ -225,7 +225,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
         )
 
     else:  # Appeal Update
-        appeal = Appeal.objects.filter(code=instance.code).first()
+        appeal = Appeal.objects.get(code=instance.code)
         appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
         for field in fields_watched:
             if appeal_history and getattr(appeal, field) != getattr(appeal_history, field):
