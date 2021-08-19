@@ -197,7 +197,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
 def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
         field.name for field in AppealHistory._meta.get_fields()
-        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to']
+        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to','aid']
     ]
     now = timezone.now()
     valid_to = timezone.now() + relativedelta(years=+10)
@@ -225,9 +225,10 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
         )
 
     else:  # Appeal Update
+        appeal = Appeal.objects.filter(code=instance.code).first()
         appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
         for field in fields_watched:
-            if appeal_history and getattr(instance, field) != getattr(appeal_history, field):
+            if appeal_history and getattr(appeal, field) != getattr(appeal_history, field):
                 # Watched fields are not changed
                 changed = True
 
