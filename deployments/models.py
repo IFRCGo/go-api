@@ -290,6 +290,7 @@ class SectorTags(IntEnum):
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
     COVID_19 = 13
+    RRCE = 14
 
     class Labels:
         WASH = _('WASH')
@@ -306,6 +307,7 @@ class SectorTags(IntEnum):
         HEALTH_PUBLIC = _('Health (public)')
         HEALTH_CLINICAL = _('Health (clinical)')
         COVID_19 = _('COVID-19')
+        RCCE = _('RCCE')
 
 
 class Statuses(IntEnum):
