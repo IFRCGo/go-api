@@ -630,8 +630,8 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
         },
         {
             'count': 4,
-            'secondary_sector': '14',
-            'secondary_sector_display': 'RCCE'
+            'secondary_sector': '3',
+            'secondary_sector_display': 'Migration'
         },
         {
             'count': 4,

@@ -60,7 +60,7 @@ class ProjectGetTest(APITestCase):
             name='bbb',
             programme_type=ProgrammeTypes.MULTILATERAL.value,
             primary_sector=Sectors.SHELTER.value,
-            secondary_sectors=[SectorTags.WASH.value, SectorTags.RCCE.value],
+            secondary_sectors=[SectorTags.WASH.value, SectorTags.MIGRATION.value],
             operation_type=OperationTypes.PROGRAMME.value,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),

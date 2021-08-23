@@ -187,7 +187,7 @@ class TestProjectAPI(SnapshotTestCase):
             )
             for project_districts, secondary_sectors in [
                 ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.PGI]),
-                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.RCCE]),
+                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.MIGRATION]),
                 ([c2_district1, c2_district2], [SectorTags.LIVELIHOODS_AND_BASIC_NEEDS, SectorTags.PGI]),
                 ([c2_district1, c2_district2], [SectorTags.INTERNAL_DISPLACEMENT, SectorTags.RECOVERY]),
             ]
