@@ -6,7 +6,6 @@ Pillow==8.2.0
 PyPDF2==1.26.0
 Pygments==2.7.4
 Rx==1.6.0
-XML2Dict==0.2.2
 aiofiles==0.4.0
 aiohttp==3.7.4
 asn1crypto==0.24.0
