@@ -1,6 +1,6 @@
 import requests
 import datetime as dt
-from encoder import XML2Dict
+import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from api.models import Country, Event, GDACSEvent, CronJob, CronJobStatus
@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info('Starting GDACs ingest')
         # get latest
-        nspace = '{http://www.gdacs.org}'
+        nspace = 'gdacs:'  # not '{http://www.gdacs.org}' any more according to the xml parser
         url = 'http://www.gdacs.org/xml/rss_7d.xml'
         response = requests.get(url)
         if response.status_code != 200:
@@ -25,21 +25,21 @@ class Command(BaseCommand):
             CronJob.sync_cron(body)
             raise Exception('Error querying GDACS')
 
-        # get as XML
-        xml2dict = XML2Dict()
-        results = xml2dict.parse(response.content)
+        # get as XML, but then do not use the obsolate xml2dict = XML2Dict(), but xmltodict
+        results = xmltodict.parse(response.content)
         levels = {'Orange': 1, 'Red': 2}
         added = 0
+        import pdb;pdb.set_trace()
         for alert in results['rss']['channel']['item']:
-            alert_level = alert['%salertlevel' % nspace].decode('utf-8')
+            alert_level = alert['%salertlevel' % nspace]
             if alert_level in levels.keys():
-                latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
+                latlon = alert['georss:point'].split()  # no more alert['{http://www.georss.org/georss}point'].split()
                 eid = alert.pop(nspace + 'eventid')
                 alert_score = alert[nspace + 'alertscore'] if (nspace + 'alertscore') in alert else None
                 data = {
                     'title': alert.pop('title'),
                     'description': alert.pop('description'),
-                    'image': alert.pop('enclosure'),
+                    'image': alert['enclosure']['@url'],
                     'report': alert.pop('link'),
                     'publication_date': parse(alert.pop('pubDate')),
                     'year': alert.pop(nspace + 'year'),
@@ -48,12 +48,12 @@ class Command(BaseCommand):
                     'event_type': alert.pop(nspace + 'eventtype'),
                     'alert_level': levels[alert_level],
                     'alert_score': alert_score,
-                    'severity': alert.pop(nspace + 'severity'),
-                    'severity_unit': alert['@' + nspace + 'severity']['unit'],
-                    'severity_value': alert['@' + nspace + 'severity']['value'],
-                    'population_unit': alert['@' + nspace + 'population']['unit'],
-                    'population_value': alert['@' + nspace + 'population']['value'],
-                    'vulnerability': alert['@' + nspace + 'vulnerability']['value'],
+                    'severity': alert[nspace + 'severity']['#text'],
+                    'severity_unit': alert[nspace + 'severity']['@unit'],
+                    'severity_value': alert[nspace + 'severity']['@value'],
+                    'population_unit': alert[nspace + 'population']['@unit'],
+                    'population_value': alert[nspace + 'population']['@value'],
+                    'vulnerability': alert[nspace + 'vulnerability']['@value'],
                     'country_text': alert.pop(nspace + 'country'),
                 }
 
@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 for key in ['event_type', 'alert_score', 'severity_unit', 'severity_value', 'population_unit', 'population_value']:
                     if len(data[key]) > 16:
                         data[key] = data[key][:16]
-                data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
+                data = {k: v if isinstance(v, bytes) else v for k, v in data.items()}
                 gdacsevent, created = GDACSEvent.objects.get_or_create(eventid=eid, defaults=data)
                 if created:
                     added += 1
