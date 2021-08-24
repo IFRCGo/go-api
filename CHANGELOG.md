@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.394
+
+### Added
+ - Change migrations logic for RCCE tag
+ - Using xmltodict instead of XML2Dict==0.2.2 due to security reasons
+
 ## 1.1.393
 
 ### Added
@@ -1727,7 +1733,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.393...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.394...HEAD
+[1.1.394]: https://github.com/IFRCGo/go-api/compare/1.1.393...1.1.394
 [1.1.393]: https://github.com/IFRCGo/go-api/compare/1.1.392...1.1.393
 [1.1.392]: https://github.com/IFRCGo/go-api/compare/1.1.391...1.1.392
 [1.1.391]: https://github.com/IFRCGo/go-api/compare/1.1.390...1.1.391
