@@ -7,6 +7,9 @@ def remove_rcce_tag(apps, schema_editor):
     """
     Remove RCCE tag and change it to combination of CEA and HEALTH_PUBLIC
     """
+    # NOTE: This is broken, keeping it as it is already deployed to staging.
+    return
+
     # Hardcode enum value present this time
     RCCE = 14
     HEALTH_PUBLIC = 4
@@ -19,6 +22,7 @@ def remove_rcce_tag(apps, schema_editor):
         project.secondary_sectors.remove(RCCE)
         project.secondary_sectors.extend([HEALTH_PUBLIC, CEA])
         project.save(update_fields=['secondary_sectors'])
+
 
 class Migration(migrations.Migration):
 
