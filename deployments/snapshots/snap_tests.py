@@ -511,7 +511,10 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'modified_at': '2008-01-01T00:00:00.123456Z',
     'modified_by': 3,
     'modified_by_detail': {
+        'email': 'jon@dave.com',
+        'first_name': 'Jon',
         'id': 3,
+        'last_name': 'Mon',
         'username': 'jon@dave.com'
     },
     'name': 'Mock Project for Update API Test',
