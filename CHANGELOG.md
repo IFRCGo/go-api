@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.396
+
+### Added
+ - Add more fields in MiniUserSerializer
+
 ## 1.1.395
 
 ### Added
@@ -1738,7 +1743,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.395...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.396...HEAD
+[1.1.396]: https://github.com/IFRCGo/go-api/compare/1.1.395...1.1.396
 [1.1.395]: https://github.com/IFRCGo/go-api/compare/1.1.394...1.1.395
 [1.1.394]: https://github.com/IFRCGo/go-api/compare/1.1.393...1.1.394
 [1.1.393]: https://github.com/IFRCGo/go-api/compare/1.1.392...1.1.393
