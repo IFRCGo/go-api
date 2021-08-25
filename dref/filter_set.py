@@ -9,7 +9,8 @@ class DrefFilter(filters.FilterSet):
         choices=Dref.Status.choices(),
         widget=filters.widgets.CSVWidget,
     )
-    national_society = filters.ModelMultipleChoiceFilter(
+    country = filters.ModelMultipleChoiceFilter(
+        field_name='drefcountrydistrict__country',
         queryset=Country.objects.all()
     )
 
