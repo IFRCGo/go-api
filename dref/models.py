@@ -13,7 +13,11 @@ from .enums import TextChoices
 
 
 def dref_document_path(instance, filename):
-    return 'dref/%s/%s' % (instance.iso, filename)
+    return f'dref/event/{filename}'
+
+
+def image_path(instance, filename):
+    return f'dref-images/{filename}'
 
 
 class NationalSocietyAction(models.Model):
@@ -191,9 +195,6 @@ class Dref(models.Model):
     )
     lessons_learned = models.CharField(max_length=500, verbose_name=_('lessons learned'), blank=True)
     event_description = models.CharField(max_length=800, verbose_name=_('event description'), blank=True)
-    image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='dref/%Y/%m/%d/', storage=get_storage()
-    )
     anticipatory_actions = models.CharField(
         max_length=800, blank=True,
         verbose_name=_('anaticipatory actions'),
@@ -398,3 +399,16 @@ class DrefCountryDistrict(models.Model):
 
     class Meta:
         unique_together = ('dref', 'country')
+
+
+class DrefImage(models.Model):
+    """
+    Multiple images are uploaded
+    """
+    dref = models.ForeignKey(Dref, verbose_name=_('dref'),
+                             on_delete=models.CASCADE)
+    image = models.FileField(
+        verbose_name=_('image'), null=True, blank=True,
+        upload_to=image_path, storage=get_storage(),
+        help_text=_('Images of the event')
+    )

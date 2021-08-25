@@ -15,7 +15,8 @@ from dref.models import (
     PlannedIntervention,
     NationalSocietyAction,
     IdentifiedNeed,
-    DrefCountryDistrict
+    DrefCountryDistrict,
+    DrefImage
 )
 
 
@@ -56,6 +57,13 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         return data
 
 
+class DrefImgaeSerializer(ModelSerializer):
+    class Meta:
+        model = DrefImage
+        fields = ('id', 'image')
+        read_only_fields = ('dref',)
+
+
 class DrefSerializer(
     EnumSupportSerializerMixin,
     NestedUpdateMixin,
@@ -70,6 +78,7 @@ class DrefSerializer(
     disaster_category_level_display = serializers.CharField(source='get_disaster_category_level_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
+    images = DrefImgaeSerializer(source='drefimage_set', many=True, required=False)
 
     class Meta:
         model = Dref
