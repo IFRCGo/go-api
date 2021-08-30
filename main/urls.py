@@ -130,6 +130,8 @@ router.register(r'subscription', notification_views.SubscriptionViewset, basenam
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
+router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
+
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

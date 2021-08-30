@@ -1,13 +1,14 @@
-from os import stat
 from rest_framework import (
     views,
     viewsets,
     response,
-    permissions
+    permissions,
+    status
 )
-
+from rest_framework.decorators import action
 from dref.models import (
     Dref,
+    DrefFile,
     NationalSocietyAction,
     PlannedIntervention,
     IdentifiedNeed
@@ -16,7 +17,8 @@ from dref.serializers import (
     DrefSerializer,
     NationalSocietyActionSerializer,
     PlannedInterventionSerializer,
-    IdentifiedNeedSerializer
+    IdentifiedNeedSerializer,
+    DrefFileSerializer
 )
 from dref.filter_set import DrefFilter
 
@@ -97,3 +99,38 @@ class IdentifiedNeedViewSet(viewsets.ModelViewSet):
     serializer_class = IdentifiedNeedSerializer
     permission_class = [permissions.IsAuthenticated]
     queryset = IdentifiedNeed.objects.all()
+
+
+class DrefFileViewSet(viewsets.ModelViewSet):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefFileSerializer
+    queryset = DrefFile.objects.all()
+
+    @action(
+        detail=False,
+        url_path='multiple',
+        methods=['POST'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def multiple_file(self, request, pk=None, version=None):
+        def modify_input_for_multiple_files(file):
+            dict = {}
+            dict['file'] = file
+            return dict
+        # converts querydict to original dict
+        files = dict((request.data).lists())['file']
+        flag = 1
+        arr = []
+        for file in files:
+            modified_data = modify_input_for_multiple_files(file)
+            file_serializer = DrefFileSerializer(data=modified_data)
+            if file_serializer.is_valid():
+                file_serializer.save()
+                arr.append(file_serializer.data)
+            else:
+                flag = 0
+
+        if flag == 1:
+            return response.Response(arr, status=status.HTTP_201_CREATED)
+        else:
+            return response.Response(arr, status=status.HTTP_400_BAD_REQUEST)
