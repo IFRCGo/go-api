@@ -8,10 +8,10 @@ from rest_framework import (
 from rest_framework.decorators import action
 from dref.models import (
     Dref,
-    DrefFile,
     NationalSocietyAction,
     PlannedIntervention,
-    IdentifiedNeed
+    IdentifiedNeed,
+    DrefFile
 )
 from dref.serializers import (
     DrefSerializer,
@@ -113,24 +113,12 @@ class DrefFileViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def multiple_file(self, request, pk=None, version=None):
-        def modify_input_for_multiple_files(file):
-            dict = {}
-            dict['file'] = file
-            return dict
         # converts querydict to original dict
         files = dict((request.data).lists())['file']
-        flag = 1
-        arr = []
-        for file in files:
-            modified_data = modify_input_for_multiple_files(file)
-            file_serializer = DrefFileSerializer(data=modified_data)
-            if file_serializer.is_valid():
-                file_serializer.save()
-                arr.append(file_serializer.data)
-            else:
-                flag = 0
-
-        if flag == 1:
-            return response.Response(arr, status=status.HTTP_201_CREATED)
+        data = [{'file': file} for file in files]
+        file_serializer = DrefFileSerializer(data=data, context={'request': request}, many=True)
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
-            return response.Response(arr, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

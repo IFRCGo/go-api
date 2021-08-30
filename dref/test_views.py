@@ -5,7 +5,7 @@ from django.conf import settings
 from main.test_case import APITestCase
 from dref.models import Dref, DrefFile
 
-from dref.factories.dref import DrefFactory
+from dref.factories.dref import DrefFactory, DrefFileFactory
 
 from api.models import Country, DisasterType
 
@@ -39,6 +39,18 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data, format='multipart')
         self.assert_201(response)
         self.assertEqual(DrefFile.objects.count(), file_count + 3)
+
+    def test_upload_invalid_files(self):
+        file_count = DrefFile.objects.count()
+        url = '/api/v2/dref-files/multiple/'
+        data = {
+            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb'), "test_string"]
+        }
+
+        self.authenticate()
+        response = self.client.post(url, data, format='multipart')
+        self.assert_400(response)
+        self.assertEqual(DrefFile.objects.count(), file_count)  # no new files to be created
 
     def test_get_dref(self):
         DrefFactory.create_batch(5)
@@ -240,6 +252,35 @@ class DrefTestCase(APITestCase):
         }
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, 400)
+
+    def test_update_dref_image(self):
+        file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
+        file4 = DrefFileFactory.create(created_by=self.ifrc_user)
+        dref = DrefFactory.create()
+        dref.images.add(file5.id)
+        url = f'/api/v2/dref/{dref.id}/'
+        data = {
+            "images": [file1.id, file2.id, file3.id]
+        }
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data)
+        self.assert_200(response)
+
+        # now remove one file and add one file by `self.ifrc_user`
+        data = {
+            "images": [file1.id, file2.id, file4.id]
+        }
+        self.client.force_authenticate(self.ifrc_user)
+        response = self.client.patch(url, data)
+        self.assert_200(response)
+
+        # add from another user
+        data = {
+            "images": [file4.id]
+        }
+        self.client.force_authenticate(self.ifrc_user)
+        response = self.client.patch(url, data)
+        self.assert_200(response)
 
     def test_filter_dref_status(self):
         """

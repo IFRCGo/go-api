@@ -58,9 +58,16 @@ class DrefCountryDistrictSerializer(ModelSerializer):
 
 
 class DrefFileSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+
     class Meta:
         model = DrefFile
         fields = '__all__'
+        read_only_fields = ('created_by',)
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class DrefSerializer(
@@ -69,6 +76,7 @@ class DrefSerializer(
     NestedCreateMixin,
     ModelSerializer
 ):
+    MAX_NUMBER_OF_IMAGES = 6
     country_district = DrefCountryDistrictSerializer(source='drefcountrydistrict_set', many=True, required=False)
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
@@ -77,7 +85,7 @@ class DrefSerializer(
     disaster_category_level_display = serializers.CharField(source='get_disaster_category_level_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    event_map_details = serializers.CharField(source='event_map', read_only=True)
+    event_map_details = DrefFileSerializer(source='event_map', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
 
     class Meta:
@@ -101,9 +109,21 @@ class DrefSerializer(
         return data
 
     def validate_images(self, images):
-        MAX_NUMBER_OF_IMAGES = 6
-        if images and len(images) > MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(ugettext('Can add atmost {} images').format(MAX_NUMBER_OF_IMAGES))
+        if self.instance and images:
+            current_images = Dref.objects.filter(id=self.instance.id, images__isnull=False)
+            if current_images:
+                current_images_id = [image.id for current_image in current_images for image in current_image.images.all()]
+                current_images_file = [image.file for current_image in current_images for image in current_image.images.all()]
+                for image in images:
+                    if image.id in current_images_id:
+                        if image.file in current_images_file:
+                            continue
+                    elif image.created_by != self.context['request'].user:
+                        raise serializers.ValidationError(ugettext(
+                            'Only image owner can attach image id: {}').format(image.id)
+                        )
+        if len(images) > self.MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(ugettext('Can add utmost {} images').format(self.MAX_NUMBER_OF_IMAGES))
         return images
 
     def update(self, instance, validated_data):

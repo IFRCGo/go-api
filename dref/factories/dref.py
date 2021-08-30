@@ -5,7 +5,8 @@ from dref.models import (
     Dref,
     PlannedIntervention,
     IdentifiedNeed,
-    NationalSocietyAction
+    NationalSocietyAction,
+    DrefFile
 )
 
 
@@ -44,6 +45,11 @@ class DrefFactory(factory.django.DjangoModelFactory):
         if extracted:
             for national_society_action in extracted:
                 self.national_society_actions.add(national_society_action)
+
+
+class DrefFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = DrefFile
 
 
 class PlannedInterventionFactory(factory.django.DjangoModelFactory):
