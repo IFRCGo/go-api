@@ -3,7 +3,8 @@ from rest_framework import (
     viewsets,
     response,
     permissions,
-    status
+    status,
+    mixins
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -101,10 +102,16 @@ class IdentifiedNeedViewSet(viewsets.ModelViewSet):
     queryset = IdentifiedNeed.objects.all()
 
 
-class DrefFileViewSet(viewsets.ModelViewSet):
+class DrefFileViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = DrefFileSerializer
-    queryset = DrefFile.objects.all()
+
+    def get_queryset(self):
+        return DrefFile.objects.filter(created_by=self.request.user)
 
     @action(
         detail=False,
