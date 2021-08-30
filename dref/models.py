@@ -374,12 +374,12 @@ class Dref(models.Model):
         'DrefFile', on_delete=models.SET_NULL,
         null=True, blank=True,
         verbose_name=_('event map'),
-        related_name=_('event_map')
+        related_name='event_map_dref'
     )
     images = models.ManyToManyField(
         'DrefFile', blank=True,
         verbose_name=_('images'),
-        related_name=_('images')
+        related_name='image_dref'
     )
 
     class Meta:
@@ -407,14 +407,14 @@ class DrefCountryDistrict(models.Model):
         unique_together = ('dref', 'country')
 
 
-def dref_path(instance, filename):
-    return f'dref/{filename}'
-
-
 class DrefFile(models.Model):
     file = models.FileField(
-        blank=True, null=True, verbose_name=_('file'), upload_to=dref_path,
-        storage=get_storage()
+        blank=True, null=True, verbose_name=_('file'),
+        upload_to='dref/images/',
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('created_by'),
+        on_delete=models.SET_NULL, null=True,
     )
 
     class Meta:
