@@ -52,6 +52,29 @@ class DrefTestCase(APITestCase):
         self.assert_400(response)
         self.assertEqual(DrefFile.objects.count(), file_count)  # no new files to be created
 
+    def test_dref_file(self):
+        file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
+        file4 = DrefFileFactory.create(created_by=self.ifrc_user)
+        url = '/api/v2/dref-files/'
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data['results']), 4)
+        self.assertEqual(
+            set(file['id'] for file in response.data['results']),
+            set([file1.id, file2.id, file3.id, file5.id])
+        )
+
+        # authenticate with another user
+        self.client.force_authenticate(self.ifrc_user)
+        response = self.client.get(url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(
+            set(file['id'] for file in response.data['results']),
+            set([file4.id])
+        )
+
     def test_get_dref(self):
         DrefFactory.create_batch(5)
         url = '/api/v2/dref/'
@@ -257,7 +280,6 @@ class DrefTestCase(APITestCase):
         file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
         file4 = DrefFileFactory.create(created_by=self.ifrc_user)
         dref = DrefFactory.create()
-        dref.images.add(file5.id)
         url = f'/api/v2/dref/{dref.id}/'
         data = {
             "images": [file1.id, file2.id, file3.id]
@@ -281,6 +303,14 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
         self.assert_200(response)
+
+        # add file created_by another user
+        data = {
+            "images": [file5.id]
+        }
+        self.client.force_authenticate(self.ifrc_user)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
 
     def test_filter_dref_status(self):
         """

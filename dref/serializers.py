@@ -109,21 +109,26 @@ class DrefSerializer(
         return data
 
     def validate_images(self, images):
-        if self.instance and images:
-            current_images = Dref.objects.filter(id=self.instance.id, images__isnull=False)
-            if current_images:
-                current_images_id = [image.id for current_image in current_images for image in current_image.images.all()]
-                current_images_file = [image.file for current_image in current_images for image in current_image.images.all()]
-                for image in images:
-                    if image.id in current_images_id:
-                        if image.file in current_images_file:
-                            continue
-                    elif image.created_by != self.context['request'].user:
-                        raise serializers.ValidationError(ugettext(
-                            'Only image owner can attach image id: {}').format(image.id)
-                        )
+        # Validate if images are provided
+        if images:
+            # Fetch current images
+            current_images_map = {
+                image.pk: image.file
+                for image in (self.instance and self.instance.images.all()) or []
+            }
+            for image in images:
+                # Ignore for current images (if file is not changed)
+                if image.id is not None and image.id in current_images_map and image.file == current_images_map[image.id]:
+                    continue
+                elif image.created_by != self.context['request'].user:
+                    raise serializers.ValidationError(
+                        ugettext('Only image owner can attach image(id: %s)' % image.id)
+                    )
+        # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
-            raise serializers.ValidationError(ugettext('Can add utmost {} images').format(self.MAX_NUMBER_OF_IMAGES))
+            raise serializers.ValidationError(
+                ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
+            )
         return images
 
     def update(self, instance, validated_data):
