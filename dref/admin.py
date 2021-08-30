@@ -6,7 +6,6 @@ from .models import (
     IdentifiedNeed,
     NationalSocietyAction,
     DrefCountryDistrict,
-    DrefImage,
 )
 
 
@@ -30,16 +29,12 @@ class DrefCountryDistrictAdminInline(admin.TabularInline):
     extra = 0
 
 
-class DrefImageAdminInline(admin.StackedInline):
-    model = DrefImage
-
-
 @admin.register(Dref)
 class DrefAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     list_display = ('title', 'national_society', 'disaster_type',
                     'ns_request_date', 'submission_to_geneva', 'status')
-    inlines = [DrefCountryDistrictAdminInline, DrefImageAdminInline]
+    inlines = [DrefCountryDistrictAdminInline]
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related(

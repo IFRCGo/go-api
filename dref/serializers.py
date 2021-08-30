@@ -16,7 +16,7 @@ from dref.models import (
     NationalSocietyAction,
     IdentifiedNeed,
     DrefCountryDistrict,
-    DrefImage
+    DrefFile
 )
 
 
@@ -57,11 +57,10 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         return data
 
 
-class DrefImgaeSerializer(ModelSerializer):
+class DrefFileSerializer(ModelSerializer):
     class Meta:
-        model = DrefImage
-        fields = ('id', 'image')
-        read_only_fields = ('dref',)
+        model = DrefFile
+        fields = '__all__'
 
 
 class DrefSerializer(
@@ -78,7 +77,8 @@ class DrefSerializer(
     disaster_category_level_display = serializers.CharField(source='get_disaster_category_level_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    images = DrefImgaeSerializer(source='drefimage_set', many=True, required=False)
+    event_map_details = serializers.CharField(source='event_map', read_only=True)
+    images_details = DrefFileSerializer(source='images', many=True, read_only=True)
 
     class Meta:
         model = Dref
@@ -99,6 +99,12 @@ class DrefSerializer(
                 {'end_date': 'End date must occur after start date'}
             )
         return data
+
+    def validate_images(self, images):
+        MAX_NUMBER_OF_IMAGES = 6
+        if images and len(images) > MAX_NUMBER_OF_IMAGES:
+            raise serializers.ValidationError(ugettext('Can add atmost {} images').format(MAX_NUMBER_OF_IMAGES))
+        return images
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user

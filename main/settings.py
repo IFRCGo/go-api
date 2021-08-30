@@ -384,3 +384,5 @@ MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
 
 ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency')
 ERP_API_SUBSCRIPTION_KEY = os.environ.get('ERP_API_SUBSCRIPTION_KEY', 'abcdef')
+
+TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')

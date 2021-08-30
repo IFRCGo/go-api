@@ -155,11 +155,6 @@ class Dref(models.Model):
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
     emergency_appeal_planned = models.BooleanField(verbose_name=_('emergency appeal planned '), default=False)
-    event_map = models.FileField(
-        verbose_name=_('event map'), null=True, blank=True,
-        upload_to=dref_document_path, storage=get_storage(),
-        help_text=_('Map and other images of the event')
-    )
     event_date = models.DateField(
         verbose_name=_('event date'),
         null=True, blank=True,
@@ -375,6 +370,17 @@ class Dref(models.Model):
         verbose_name=_('organization'),
         help_text=_('Does the NS have Communications capacity?')
     )
+    event_map = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('event map'),
+        related_name=_('event_map')
+    )
+    images = models.ManyToManyField(
+        'DrefFile', blank=True,
+        verbose_name=_('images'),
+        related_name=_('images')
+    )
 
     class Meta:
         verbose_name = _('dref')
@@ -401,14 +407,16 @@ class DrefCountryDistrict(models.Model):
         unique_together = ('dref', 'country')
 
 
-class DrefImage(models.Model):
-    """
-    Multiple images are uploaded
-    """
-    dref = models.ForeignKey(Dref, verbose_name=_('dref'),
-                             on_delete=models.CASCADE)
-    image = models.FileField(
-        verbose_name=_('image'), null=True, blank=True,
-        upload_to=image_path, storage=get_storage(),
-        help_text=_('Images of the event')
+def dref_path(instance, filename):
+    return f'dref/{filename}'
+
+
+class DrefFile(models.Model):
+    file = models.FileField(
+        blank=True, null=True, verbose_name=_('file'), upload_to=dref_path,
+        storage=get_storage()
     )
+
+    class Meta:
+        verbose_name = _('dref file')
+        verbose_name_plural = _('dref files')

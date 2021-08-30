@@ -1,5 +1,9 @@
+import os
+
+from django.conf import settings
+
 from main.test_case import APITestCase
-from dref.models import Dref
+from dref.models import Dref, DrefFile
 
 from dref.factories.dref import DrefFactory
 
@@ -7,6 +11,34 @@ from api.models import Country, DisasterType
 
 
 class DrefTestCase(APITestCase):
+    def setUp(self):
+        super().setUp()
+
+        path = os.path.join(settings.TEST_DIR, 'documents')
+        self.file = os.path.join(path, 'go.png')
+
+    def test_upload_file(self):
+        file_count = DrefFile.objects.count()
+        url = '/api/v2/dref-files/'
+        data = {
+            'file': open(self.file, 'rb'),
+        }
+        self.authenticate()
+        response = self.client.post(url, data, format='multipart')
+        self.assert_201(response)
+        self.assertEqual(DrefFile.objects.count(), file_count + 1)
+
+    def test_upload_multiple_file(self):
+        file_count = DrefFile.objects.count()
+        url = '/api/v2/dref-files/multiple/'
+        data = {
+            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
+        }
+
+        self.authenticate()
+        response = self.client.post(url, data, format='multipart')
+        self.assert_201(response)
+        self.assertEqual(DrefFile.objects.count(), file_count + 3)
 
     def test_get_dref(self):
         DrefFactory.create_batch(5)
