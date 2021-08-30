@@ -511,12 +511,12 @@ class CountryContact(AdminContact):
 
 
 class AlertLevel(IntEnum):
-    GREEN = 0
+    YELLOW = 0
     ORANGE = 1
     RED = 2
 
     class Labels:
-        GREEN = _('Green')
+        YELLOW = _('Yellow')
         ORANGE = _('Orange')
         RED = _('Red')
 

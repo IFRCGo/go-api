@@ -442,6 +442,9 @@ msgstr "contactos de país"
 msgid "Green"
 msgstr "Verde"
 
+msgid "Yellow"
+msgstr "Amarillo"
+
 #: api/models.py:385
 msgid "Orange"
 msgstr "Naranja"
