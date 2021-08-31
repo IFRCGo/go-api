@@ -19,12 +19,13 @@ class SurgeAlertFilter(filters.FilterSet):
         model = SurgeAlert
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'is_active': ('exact',)
         }
 
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    queryset = SurgeAlert.objects.filter(is_active=True)
+    queryset = SurgeAlert.objects.all()
     filterset_class = SurgeAlertFilter
     ordering_fields = ('created_at', 'atype', 'category', 'event',)
 
