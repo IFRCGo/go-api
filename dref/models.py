@@ -96,7 +96,7 @@ class PlannedIntervention(models.Model):
     description = models.CharField(verbose_name=_('description'), blank=True, max_length=300)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
-    # TODO: Add indicator
+    indicator = models.CharField(verbose_name=_('indicator'), blank=True, max_length=300)
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -106,13 +106,11 @@ class PlannedIntervention(models.Model):
 class Dref(models.Model):
 
     class OnsetType(IntEnum):
-        ANTICIPATORY = 0
-        IMMINENT = 1
-        SLOW = 2
-        SUDDEN = 3
+        IMMINENT = 0
+        SLOW = 1
+        SUDDEN = 2
 
         class Labels:
-            ANTICIPATORY = _('Anticipatory')
             IMMINENT = _('Imminent')
             SLOW = _('Slow')
             SUDDEN = _('Sudden')
@@ -134,6 +132,7 @@ class Dref(models.Model):
         class Labels:
             IN_PROGESS = _('In Progress')
             COMPLETED = _('Completed')
+
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
     modified_by = models.ForeignKey(

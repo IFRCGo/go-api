@@ -270,7 +270,7 @@ class DrefTestCase(APITestCase):
         id = response.data['id']
         url = f'/api/v2/dref/{id}/'
         data = {
-            "type_of_onset": Dref.OnsetType.ANTICIPATORY.value,
+            "type_of_onset": Dref.OnsetType.IMMINENT.value,
             "event_date": "2020-10-10"
         }
         response = self.client.patch(url, data)
