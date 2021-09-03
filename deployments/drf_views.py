@@ -163,7 +163,7 @@ class AggregateDeployments(APIView):
         eru_qset = ERU.objects.all()
         if request.GET.get('event'):
             event_id = request.GET.get('event')
-            deployments_qset = deployments_qset.filter(country_from__personneldeployment__event_deployed_to=event_id)
+            deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
             start_date__lt=now,
