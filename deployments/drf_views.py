@@ -170,8 +170,7 @@ class AggregateDeployments(APIView):
             end_date__gt=now
         ).count()
         active_erus = eru_qset.filter(
-            start_date__lt=now,
-            end_date__gt=now
+            deployed_to__isnull=False
         ).count()
         deployments_this_year = deployments_qset.filter(
             is_active=True,
