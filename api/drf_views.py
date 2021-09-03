@@ -120,7 +120,7 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                                     'personneldeployment__personnel',
                                     filter=Q(
                                         personneldeployment__personnel__is_active=True,
-                                        personneldeployment__personnel__type=Personnel.RR,    
+                                        personneldeployment__personnel__type=Personnel.RR,
                                         personneldeployment__personnel__end_date__gt=timezone.now(),
                                         personneldeployment__personnel__start_date__lt=timezone.now()
                                     )

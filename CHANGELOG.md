@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.399
+
+### Added
+ - Deployments, Surge page Key Figures and tables:
+   - Show only unique organization names at Deployments
+   - Use correct personnel_count variable to show counts
+   - Deployment counts on Emergency pages
+   - ERUs Deployed counts in aggregate
+   - Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
+   - Fix ERU count to show count of all ERUs with a deployed_to country
+   - Surge alerts: by default show all, add filter to show only active
+   - Fixing event-specific failure of AggregateDeployments
+
 ## 1.1.398
 
 ### Added
@@ -1753,7 +1766,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.398...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.399...HEAD
+[1.1.399]: https://github.com/IFRCGo/go-api/compare/1.1.398...1.1.399
 [1.1.398]: https://github.com/IFRCGo/go-api/compare/1.1.397...1.1.398
 [1.1.397]: https://github.com/IFRCGo/go-api/compare/1.1.396...1.1.397
 [1.1.396]: https://github.com/IFRCGo/go-api/compare/1.1.395...1.1.396
