@@ -118,6 +118,7 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                             .filter(personneldeployment__personnel__is_active=True) \
                             .filter(personneldeployment__personnel__type=Personnel.RR) \
                             .filter(personneldeployment__personnel__end_date__gt=timezone.now()) \
+                            .filter(personneldeployment__personnel__start_date__lt=timezone.now()) \
                             .annotate(personnel__count=Count('personneldeployment__personnel')) \
                             .filter(personnel__count__gt=0) \
                             .order_by('-disaster_start_date')
