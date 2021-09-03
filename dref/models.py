@@ -6,7 +6,8 @@ from enumfields import IntEnum, EnumIntegerField
 from api.models import (
     Country,
     DisasterType,
-    District
+    District,
+    FieldReport
 )
 from api.storage import get_storage
 from .enums import TextChoices
@@ -138,15 +139,22 @@ class Dref(models.Model):
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('modified by'), on_delete=models.SET_NULL, null=True,
     )
+    field_report = models.ForeignKey(
+        FieldReport, verbose_name=_('field report'),
+        on_delete=models.SET_NULL, null=True,
+        related_name='field_report_dref'
+    )
     title = models.CharField(verbose_name=_('title'), max_length=255)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
         blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL
+    )
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_('disaster type'),
         blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL
+    )
     type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'))
     disaster_category = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category'))
     status = EnumIntegerField(Status, verbose_name=_('status'), null=True, blank=True)

@@ -8,7 +8,7 @@ from dref.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
-from api.serializers import UserNameSerializer
+from api.serializers import UserNameSerializer, MiniFieldReportSerializer
 
 from dref.models import (
     Dref,
@@ -87,6 +87,7 @@ class DrefSerializer(
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     event_map_details = DrefFileSerializer(source='event_map', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
+    field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
 
     class Meta:
         model = Dref
