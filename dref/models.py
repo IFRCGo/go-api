@@ -28,18 +28,17 @@ class NationalSocietyAction(models.Model):
         ASSESSMENT = 'assessment', _('Assessment')
         COORDINATION = 'coordination', _('Coordination')
         RESOURCE_MOBILIZATION = 'resource_mobilization', _('Resource Mobilization')
-        ACTIVATION_OF_CONTINGENCY = 'activation_of_contingency', _('Activation Of Contingency')
-        NATIONAL_SOCIETY_EOC = 'national_society_eoc', _('National Society Eoc')
+        ACTIVATION_OF_CONTINGENCY_PLANS = 'activation_of_contingency_plans', _('Activation Of Contingency Plans')
+        NATIONAL_SOCIETY_EOC = 'national_society_eoc', _('National Society EOC')
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
-        LIVELIHOODS = 'livelihoods', _('Livelihoods')
-        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
+        LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
-        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
-        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
+        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
-            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction Climate Adaptation And Recovery')
+            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction, Climate Adaptation And Recovery')
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
@@ -56,15 +55,15 @@ class NationalSocietyAction(models.Model):
 class IdentifiedNeed(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
-        LIVELIHOODS = 'livelihoods', _('Livelihoods')
+        LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
         HEALTH = 'health', _('Health')
-        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
-        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
+        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
-            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction Climate Adaptation And Recovery')
+            'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction, Climate Adaptation And Recovery')
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
@@ -81,15 +80,14 @@ class IdentifiedNeed(models.Model):
 class PlannedIntervention(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
-        LIVELIHOODS = 'livelihoods', _('Livelihoods')
-        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
+        LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
-        WATER_SANITATION_HYGIENE = 'water_sanitation_hygiene', _('Water Sanitation Hygiene')
-        PROTECTION_GENDER_INCULSION = 'protection_gender_inculsion', _('Protection Gender Inculsion')
+        WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
+        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
-            'risk_reduction_climate_adaptation_and_recovery_', _('Risk Reduction Climate Adaptation And Recovery')
+            'risk_reduction_climate_adaptation_and_recovery_', _('Risk Reduction, Climate Adaptation And Recovery')
         SECRETARIAT_SERVICES = 'secretariat_services', _('Secretariat Services')
         NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
 
