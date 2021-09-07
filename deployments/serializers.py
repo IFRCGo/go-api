@@ -1,4 +1,6 @@
 from django.utils.translation import ugettext
+from django.contrib.auth.models import User
+
 from rest_framework import serializers
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
@@ -28,6 +30,18 @@ from .models import (
     OperationTypes,
     ProgrammeTypes,
 )
+
+
+class MiniUserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name'
+        )
 
 
 class ERUSetSerializer(EnumSupportSerializerMixin, ModelSerializer):
@@ -167,11 +181,12 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
+    modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
 
     class Meta:
         model = Project
         fields = '__all__'
-        read_only_fields = ('user',)
+        read_only_fields = ('user', 'modified_by')
         extra_kwargs = {
             field: {
                 'allow_null': False, 'required': True,
@@ -203,6 +218,10 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         project.user = self.context['request'].user
         project.save()
         return project
+
+    def update(self, instance, validated_data):
+        validated_data['modified_by'] = self.context['request'].user
+        return super().update(instance, validated_data)
 
 
 class ProjectCsvSerializer(ProjectSerializer):

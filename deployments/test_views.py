@@ -60,7 +60,7 @@ class ProjectGetTest(APITestCase):
             name='bbb',
             programme_type=ProgrammeTypes.MULTILATERAL.value,
             primary_sector=Sectors.SHELTER.value,
-            secondary_sectors=[SectorTags.WASH.value, SectorTags.RCCE.value],
+            secondary_sectors=[SectorTags.WASH.value, SectorTags.MIGRATION.value],
             operation_type=OperationTypes.PROGRAMME.value,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
@@ -409,6 +409,55 @@ class ProjectGetTest(APITestCase):
             self.assert_200(response)
             self.assertEqual(response.data['status_display'], str(current_status))
         patcher.stop()
+
+    def test_modified_by_field(self):
+        district = District.objects.create()
+        project = ProjectFactory.create(
+            start_date=datetime.date(2012, 11, 12),
+            end_date=datetime.date(2012, 12, 13),
+            status=Statuses.PLANNED.value,
+        )
+        data = {
+            'name': 'CreateMePls',
+            'project_districts': [district.id],
+            'programme_type': ProgrammeTypes.BILATERAL.value,
+            'primary_sector': Sectors.WASH.value,
+            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+            'start_date': '2012-11-12',
+            'end_date': '2013-11-13',
+            'budget_amount': 7000,
+            'target_total': 100,
+            'status': Statuses.PLANNED.value,
+        }
+        self.authenticate(self.user)
+        response = self.client.patch(f'/api/v2/project/{project.id}/', data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['modified_by'], self.user.id)
+
+        # let another user get the project
+        self.authenticate(self.ifrc_user)
+        response = self.client.get(f'/api/v2/project/{project.id}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['modified_by'], self.user.id)
+
+        # let this user update the project
+        data = {
+            'name': 'CreateMeNot',
+            'project_districts': [district.id],
+            'programme_type': ProgrammeTypes.BILATERAL.value,
+            'primary_sector': Sectors.WASH.value,
+            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+            'start_date': '2012-10-15',
+            'end_date': '2013-12-13',
+            'budget_amount': 7000,
+            'target_total': 100,
+            'status': Statuses.PLANNED.value,
+        }
+        response = self.client.patch(f'/api/v2/project/{project.id}/', data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['modified_by'], self.ifrc_user.id)
 
 
 class TranslationTest(APITestCase):

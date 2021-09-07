@@ -1,6 +1,6 @@
 import requests
 import datetime as dt
-from encoder import XML2Dict
+import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
 from api.models import Country, Region, Event, CronJob, CronJobStatus
@@ -32,75 +32,27 @@ class Command(BaseCommand):
                 CronJob.sync_cron(body)
                 raise Exception('Error querying WHO')
 
-            # get as XML
-            xml2dict = XML2Dict()
-            results = xml2dict.parse(response.content)
+            # get as XML, but then do not use the obsolate xml2dict = XML2Dict(), but xmltodict
+            results = xmltodict.parse(response.content)
             added = 0
-            lastBuildDate = results['rss']['channel']['lastBuildDate']
-            managingEditor =  results['rss']['channel']['managingEditor']
-
+            # lastBuildDate = results['rss']['channel']['lastBuildDate']
+            # managingEditor = results['rss']['channel']['managingEditor']
             for row in results['rss']['channel']['item']:
                 data = {
                     'title': row.pop('title'),
                     'link': row.pop('link'),
                     'description': row.pop('description'),
-                    'guid': row.pop('guid'),
-#                   '@guid': row.pop('@guid'),  #can not be popped twice
-                    'isPermaLink': row.pop('@guid').pop('isPermaLink'),
+                    'guid': row['guid']['#text'],
+                    'isPermaLink': row['guid']['@isPermaLink'],
                     'category': row.pop('category'),
                     'pubDate': row.pop('pubDate'),
                 }
-                if data['guid'].decode("utf-8") in guids:
+                if data['guid'] in guids:
                     continue
-                if data['guid'].decode("utf-8") in ['WeDontWantThis', 'NeitherThis']:
+                if data['guid'] in ['WeDontWantThis', 'NeitherThis']:
                     continue
 
-#                alert_level = alert['%salertlevel' % nspace].decode('utf-8')
-#                if alert_level in levels.keys():
-#                    latlon = alert['{http://www.georss.org/georss}point'].decode('utf-8').split()
-#                    eid = alert.pop(nspace + 'eventid')
-#                    alert_score = alert[nspace + 'alertscore'] if (nspace + 'alertscore') in alert else None
-#                    data = {
-#                        'title': alert.pop('title'),
-#                        'description': alert.pop('description'),
-#                        'image': alert.pop('enclosure'),
-#                        'report': alert.pop('link'),
-#                        'publication_date': parse(alert.pop('pubDate')),
-#                        'year': alert.pop(nspace + 'year'),
-#                        'lat': latlon[0],
-#                        'lon': latlon[1],
-#                        'event_type': alert.pop(nspace + 'eventtype'),
-#                        'alert_level': levels[alert_level],
-#                        'alert_score': alert_score,
-#                        'severity': alert.pop(nspace + 'severity'),
-#                        'severity_unit': alert['@' + nspace + 'severity']['unit'],
-#                        'severity_value': alert['@' + nspace + 'severity']['value'],
-#                        'population_unit': alert['@' + nspace + 'population']['unit'],
-#                        'population_value': alert['@' + nspace + 'population']['value'],
-#                        'vulnerability': alert['@' + nspace + 'vulnerability']['value'],
-#                        'country_text': alert.pop(nspace + 'country'),
-#                    }
-#
-#                    # do some length checking
-#                    for key in ['event_type', 'alert_score', 'severity_unit', 'severity_value', 'population_unit', 'population_value']:
-#                        if len(data[key]) > 16:
-#                            data[key] = data[key][:16]
-#                    data = {k: v.decode('utf-8') if isinstance(v, bytes) else v for k, v in data.items()}
-#                    gdacsevent, created = GDACSEvent.objects.get_or_create(eventid=eid, defaults=data)
-#                    if created:
-#                        added += 1
-#                        for c in data['country_text'].split(','):
-#                            country = Country.objects.filter(name=c.strip())
-#                            if country.count() == 1:
-#                                gdacsevent.countries.add(country[0])
-#
-#                        title_elements = ['GDACS %s:' % alert_level]
-#                        for field in ['country_text', 'event_type', 'severity']:
-#                            if data[field] is not None:
-#                                title_elements.append(str(data[field]))
-#                        title = (' ').join(title_elements)
-#
-                title = data['title'].decode("utf-8") # for csr link
+                title = data['title'] # for csr link
                 short = title.replace(' (ex-China)','')
                 pos = short.find(' – ')
                 region = None
@@ -119,8 +71,10 @@ class Command(BaseCommand):
                     country = 'Panama'
                 elif country == 'Islamic Republic of Pakistan':
                     country = 'Pakistan'
+                elif country[:4] == 'the ':
+                    country = country[4:]
                 elif index == 1: # for 'hac' category. See link for 'hac' above
-                    hac_category = data['category'].decode("utf-8")
+                    hac_category = data['category']
 
                     # Searching for the given country
                     end = hac_category.find('[country]')
@@ -150,8 +104,8 @@ class Command(BaseCommand):
                 # make sure we don't exceed the 100 character limit
                 if len(title) > 99:
                     title = '%s...' % title[:99]
-                date = parse(data['pubDate'].decode("utf-8"))
-                if data['category'].decode("utf-8") == 'news':
+                date = parse(data['pubDate'])
+                if data['category'] == 'news':
                     alert_level = 1
                 else:
                     alert_level = 2
@@ -160,17 +114,17 @@ class Command(BaseCommand):
                 elif index == 1:
                     alert_level=0
 
-                if data['category'].decode("utf-8") == 'news':
-                    summary = data['description'].decode("utf-8")
+                if data['category'] == 'news':
+                    summary = data['description']
                 else:
-                    summary = data['description'].decode("utf-8") + ' (' + data['category'].decode("utf-8")+ ')'
+                    summary = data['description'] + ' (' + data['category']+ ')'
 
                 fields = {
                     'name': title,
                     'summary': summary,
                     'disaster_start_date': date,
                     'auto_generated': True,
-                    'auto_generated_source': data['guid'].decode("utf-8"),
+                    'auto_generated_source': data['guid'],
                     'ifrc_severity_level': alert_level,
                 }
                 # TODO: fields['name'] sometimes exceeds 100 maxlength, so will need some altering if this will be used

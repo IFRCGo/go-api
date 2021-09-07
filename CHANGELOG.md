@@ -6,10 +6,64 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.400
+
+### Added
+ - Fixing appeal-docs scraper for the new ifrc.org
+
+## 1.1.399
+
+### Added
+ - Deployments, Surge page Key Figures and tables:
+   - Show only unique organization names at Deployments
+   - Use correct personnel_count variable to show counts
+   - Deployment counts on Emergency pages
+   - ERUs Deployed counts in aggregate
+   - Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
+   - Fix ERU count to show count of all ERUs with a deployed_to country
+   - Surge alerts: by default show all, add filter to show only active
+   - Fixing event-specific failure of AggregateDeployments
+
+## 1.1.398
+
+### Added
+ - Emergency severity color change 2
+
+## 1.1.397
+
+### Added
+ - Emergency severity color change
+
+## 1.1.396
+
+### Added
+ - Add more fields in MiniUserSerializer
+
+## 1.1.395
+
+### Added
+ - Delete RCCE tag
+
 ## 1.1.394
 
 ### Added
- - Appeal history Hotfix
+ - Change migrations logic for RCCE tag
+ - Using xmltodict instead of XML2Dict==0.2.2 due to security reasons
+
+## 1.1.393
+
+### Added
+ - Remove RCCE tag and change it to combination of CEA and HEALTH_PUBLIC
+
+## 1.1.392
+
+### Added
+ - Appeal receiver fix (ingest issue) - 2
+
+## 1.1.391
+
+### Added
+ - Appeal receiver fix (ingest issue)
 
 ## 1.1.390
 
@@ -17,7 +71,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Store country as separate field on surge alerts, import from molnix
 
 ## 1.1.389
- - Import Country for Surge Alert from Molnix
+
+### Added
+ - Add field modified_by in project model
 
 ## 1.1.388
 
@@ -1715,8 +1771,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.394...HEAD
-[1.1.394]: https://github.com/IFRCGo/go-api/compare/1.1.390...1.1.394
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.400...HEAD
+[1.1.400]: https://github.com/IFRCGo/go-api/compare/1.1.399...1.1.400
+[1.1.399]: https://github.com/IFRCGo/go-api/compare/1.1.398...1.1.399
+[1.1.398]: https://github.com/IFRCGo/go-api/compare/1.1.397...1.1.398
+[1.1.397]: https://github.com/IFRCGo/go-api/compare/1.1.396...1.1.397
+[1.1.396]: https://github.com/IFRCGo/go-api/compare/1.1.395...1.1.396
+[1.1.395]: https://github.com/IFRCGo/go-api/compare/1.1.394...1.1.395
+[1.1.394]: https://github.com/IFRCGo/go-api/compare/1.1.393...1.1.394
+[1.1.393]: https://github.com/IFRCGo/go-api/compare/1.1.392...1.1.393
+[1.1.392]: https://github.com/IFRCGo/go-api/compare/1.1.391...1.1.392
+[1.1.391]: https://github.com/IFRCGo/go-api/compare/1.1.390...1.1.391
 [1.1.390]: https://github.com/IFRCGo/go-api/compare/1.1.389...1.1.390
 [1.1.389]: https://github.com/IFRCGo/go-api/compare/1.1.388...1.1.389
 [1.1.388]: https://github.com/IFRCGo/go-api/compare/1.1.387...1.1.388
@@ -1755,29 +1820,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [1.1.352]: https://github.com/IFRCGo/go-api/compare/1.1.351...1.1.352
 [1.1.351]: https://github.com/IFRCGo/go-api/compare/1.1.350...1.1.351
 [1.1.350]: https://github.com/IFRCGo/go-api/compare/1.1.349...1.1.350
-[1.1.349]: https://github.com/IFRCGo/go-api/compare/1.1.348...1.1.349
-[1.1.348]: https://github.com/IFRCGo/go-api/compare/1.1.347...1.1.348
-[1.1.347]: https://github.com/IFRCGo/go-api/compare/1.1.346...1.1.347
-[1.1.346]: https://github.com/IFRCGo/go-api/compare/1.1.345...1.1.346
-[1.1.345]: https://github.com/IFRCGo/go-api/compare/1.1.344...1.1.345
-[1.1.344]: https://github.com/IFRCGo/go-api/compare/1.1.343...1.1.344
-[1.1.343]: https://github.com/IFRCGo/go-api/compare/1.1.342...1.1.343
-[1.1.342]: https://github.com/IFRCGo/go-api/compare/1.1.341...1.1.342
-[1.1.341]: https://github.com/IFRCGo/go-api/compare/1.1.340...1.1.341
-[1.1.340]: https://github.com/IFRCGo/go-api/compare/1.1.339...1.1.340
-[1.1.339]: https://github.com/IFRCGo/go-api/compare/1.1.338...1.1.339
-[1.1.338]: https://github.com/IFRCGo/go-api/compare/1.1.337...1.1.338
-[1.1.337]: https://github.com/IFRCGo/go-api/compare/1.1.336...1.1.337
-[1.1.336]: https://github.com/IFRCGo/go-api/compare/1.1.335...1.1.336
-[1.1.335]: https://github.com/IFRCGo/go-api/compare/1.1.334...1.1.335
-[1.1.334]: https://github.com/IFRCGo/go-api/compare/1.1.333...1.1.334
-[1.1.333]: https://github.com/IFRCGo/go-api/compare/1.1.332...1.1.333
-[1.1.332]: https://github.com/IFRCGo/go-api/compare/1.1.331...1.1.332
-[1.1.331]: https://github.com/IFRCGo/go-api/compare/1.1.330...1.1.331
-[1.1.330]: https://github.com/IFRCGo/go-api/compare/1.1.329...1.1.330
-[1.1.329]: https://github.com/IFRCGo/go-api/compare/1.1.328...1.1.329
-[1.1.328]: https://github.com/IFRCGo/go-api/compare/1.1.327...1.1.328
-[1.1.327]: https://github.com/IFRCGo/go-api/compare/1.1.326...1.1.327
-[1.1.326]: https://github.com/IFRCGo/go-api/compare/1.1.325...1.1.326
-[1.1.325]: https://github.com/IFRCGo/go-api/compare/1.1.324...1.1.325
-[1.1.324]: https://github.com/IFRCGo/go-api/compare/1.1.323...1.1.324

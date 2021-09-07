@@ -290,7 +290,6 @@ class SectorTags(IntEnum):
     HEALTH_PUBLIC = 4
     HEALTH_CLINICAL = 12
     COVID_19 = 13
-    RCCE = 14
 
     class Labels:
         WASH = _('WASH')
@@ -307,7 +306,6 @@ class SectorTags(IntEnum):
         HEALTH_PUBLIC = _('Health (public)')
         HEALTH_CLINICAL = _('Health (clinical)')
         COVID_19 = _('COVID-19')
-        RCCE = _('RCCE')
 
 
 class Statuses(IntEnum):
@@ -345,6 +343,12 @@ class RegionalProject(models.Model):
 
 class Project(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('modified by'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='project_modified_by'
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project

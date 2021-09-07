@@ -163,15 +163,14 @@ class AggregateDeployments(APIView):
         eru_qset = ERU.objects.all()
         if request.GET.get('event'):
             event_id = request.GET.get('event')
-            deployments_qset = deployments_qset.filter(personneldeployment__event_deployed_to=event_id)
+            deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
             start_date__lt=now,
             end_date__gt=now
         ).count()
         active_erus = eru_qset.filter(
-            start_date__lt=now,
-            end_date__gt=now
+            deployed_to__isnull=False
         ).count()
         deployments_this_year = deployments_qset.filter(
             is_active=True,
@@ -181,11 +180,12 @@ class AggregateDeployments(APIView):
         return Response({
             'active_deployments': active_deployments,
             'active_erus': active_erus,
-            'deployments_this_year': deployments_this_year 
+            'deployments_this_year': deployments_this_year
         })
 
+
 class DeploymentsByMonth(APIView):
-    
+
     def get(self, request):
         '''Returns count of Personnel Deployments
             for last 12 months, aggregated by month.
@@ -202,10 +202,11 @@ class DeploymentsByMonth(APIView):
                 end_date__date__gte=first_day
             ).count()
             deployment_counts[month_string] = count
-        return Response(deployment_counts)            
+        return Response(deployment_counts)
+
 
 class DeploymentsByNS(APIView):
-    
+
     def get(self, request):
         '''Returns count of Personnel Deployments
             by National Society, for the current year.

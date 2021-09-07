@@ -516,22 +516,16 @@ class ListEventDeploymentsSerializer(serializers.Serializer):
 
 
 class DeploymentsByEventSerializer(ModelSerializer):
-    personnel_count = serializers.SerializerMethodField()
     organizations_from = serializers.SerializerMethodField()
+    personnel_count = serializers.IntegerField()
 
     def get_organizations_from(self, obj):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now()):
+            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now(), is_active=True):
                 personnels.append(p)
-        return [p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']
-
-    def get_personnel_count(self, obj):
-        return Personnel.objects.filter(type=Personnel.RR) \
-                                .filter(deployment__event_deployed_to=obj.id)\
-                                .filter(end_date__gte=datetime.datetime.now())\
-                                .count()
+        return list(set([p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']))
 
     class Meta:
         model = Event
