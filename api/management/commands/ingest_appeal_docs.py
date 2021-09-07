@@ -31,19 +31,20 @@ class Command(BaseCommand):
             for col in allcols:
                 thestrings = [s.strip() for s in col.findAll(text=True)]
                 thetext = ''.join(thestrings)
-                result[-1].append(thetext)
+                if len(thetext) > 1:
+                    result[-1].append(thetext)
         return result
 
     def parse_date(self, date_string):
-        # 21Dec2017
-        timeformat = '%d%b%Y'
+        # 21 Dec 2017
+        timeformat = '%d %b %Y'
         return datetime.strptime(date_string.strip(), timeformat).replace(tzinfo=timezone.utc)
 
     def handle(self, *args, **options):
         logger.info('Starting appeal document ingest')
 
         # v smoke test
-        baseurl = 'https://www.ifrc.org/en/publications-and-reports/appeals/'
+        baseurl = 'https://www.ifrc.org/appeals/'  # no more ...en/publications-and-reports...
         smoke_response = urlopen(baseurl)
         joy_to_the_world = False
         if smoke_response.code == 200:
@@ -63,7 +64,7 @@ class Command(BaseCommand):
             qset = Appeal.objects.all()
         else:
             # By default, only check appeals for the past 3 months where Appeal Documents is 0
-            now = datetime.now()
+            now = datetime.now().replace(tzinfo=timezone.utc)
             three_months_ago = now - relativedelta(months=3)
             # This was the original qset, but it wouldn't get newer docs for the same Appeals
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
@@ -78,7 +79,7 @@ class Command(BaseCommand):
         page_not_found = []
         for code in appeal_codes:
             code = code.replace(' ', '')
-            docs_url = f'{baseurl}?ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            docs_url = f'{baseurl}?appeal_code={code}'  # no more ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo=
             try:
                 response = urlopen(docs_url)
             except Exception:  # if we get an error fetching page for an appeal, we ignore it
@@ -86,7 +87,7 @@ class Command(BaseCommand):
                 continue
 
             soup = BeautifulSoup(response.read(), "lxml")
-            div = soup.find('div', id='cw_content')
+            div = soup.find('div', class_='row appeals-view__row')
             for t in div.findAll('tbody'):
                 output = output + self.makelist(t)
 
