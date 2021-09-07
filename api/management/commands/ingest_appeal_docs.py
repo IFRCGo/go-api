@@ -43,7 +43,8 @@ class Command(BaseCommand):
         logger.info('Starting appeal document ingest')
 
         # v smoke test
-        baseurl = 'https://www.ifrc.org/en/publications-and-reports/appeals/'
+        # baseurl = 'https://www.ifrc.org/en/publications-and-reports/appeals/'
+        baseurl = 'https://www.ifrc.org/appeals/'
         smoke_response = urlopen(baseurl)
         joy_to_the_world = False
         if smoke_response.code == 200:
@@ -78,7 +79,8 @@ class Command(BaseCommand):
         page_not_found = []
         for code in appeal_codes:
             code = code.replace(' ', '')
-            docs_url = f'{baseurl}?ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            # docs_url = f'{baseurl}?ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo='
+            docs_url = f'{baseurl}?appeal_code={code}'
             try:
                 response = urlopen(docs_url)
             except Exception:  # if we get an error fetching page for an appeal, we ignore it
