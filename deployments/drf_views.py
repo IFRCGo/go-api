@@ -1,6 +1,7 @@
 from collections import defaultdict
 import datetime
 from datetime import date
+from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -158,7 +159,7 @@ class AggregateDeployments(APIView):
         Get aggregated data for personnel deployments
     '''
     def get(self, request):
-        now = datetime.datetime.now()
+        now = timezone.now()
         deployments_qset = Personnel.objects.filter(is_active=True)
         eru_qset = ERU.objects.all()
         if request.GET.get('event'):
@@ -166,6 +167,7 @@ class AggregateDeployments(APIView):
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
+            type=Personnel.RR,
             start_date__lt=now,
             end_date__gt=now
         ).count()
