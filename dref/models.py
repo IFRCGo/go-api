@@ -56,7 +56,6 @@ class IdentifiedNeed(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
-        MULTIPURPOSE_CASH = 'multipurpose_cash', _('Multipurpose Cash')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
         PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
