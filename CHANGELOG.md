@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.401
+
+### Added
+ - Fixing different RR key figures to be in pair
+ - Fixing scrape-pdfs temporarily with episerver
+
 ## 1.1.400
 
 ### Added
@@ -1771,7 +1777,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.400...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.401...HEAD
+[1.1.401]: https://github.com/IFRCGo/go-api/compare/1.1.400...1.1.401
 [1.1.400]: https://github.com/IFRCGo/go-api/compare/1.1.399...1.1.400
 [1.1.399]: https://github.com/IFRCGo/go-api/compare/1.1.398...1.1.399
 [1.1.398]: https://github.com/IFRCGo/go-api/compare/1.1.397...1.1.398
