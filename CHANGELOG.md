@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.402
+
+### Added
+ - Description field to molnixTags
+
 ## 1.1.401
 
 ### Added
@@ -1777,7 +1782,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.401...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.402...HEAD
+[1.1.402]: https://github.com/IFRCGo/go-api/compare/1.1.401...1.1.402
 [1.1.401]: https://github.com/IFRCGo/go-api/compare/1.1.400...1.1.401
 [1.1.400]: https://github.com/IFRCGo/go-api/compare/1.1.399...1.1.400
 [1.1.399]: https://github.com/IFRCGo/go-api/compare/1.1.398...1.1.399
