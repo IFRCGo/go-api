@@ -85,7 +85,7 @@ class PersonnelDeploymentSerializer(ModelSerializer):
 class MolnixTagSerializer(ModelSerializer):
 
     class Meta:
-        fields = ('id', 'molnix_id', 'name', 'color', 'tag_type')
+        fields = ('id', 'molnix_id', 'name', 'description', 'color', 'tag_type')
         model = MolnixTag
 
 
