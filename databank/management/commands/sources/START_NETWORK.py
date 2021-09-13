@@ -38,6 +38,8 @@ def prefetch():
 
     CronJobSum = 0
     for row in csv.DictReader(rs):
+        if 'Alert' not in row and 'Alert type' not in row:  # without these we are poor
+            continue
         # Some value are like `Congo [DRC]`
         country = get_country_by_name(row['Country'].split('[')[0].strip())
         date = parse_alert_date(row['Alert date'])
@@ -49,7 +51,7 @@ def prefetch():
             'alert': row['Alert'],
             'alert_type': row['Alert type'],
             'amount_awarded': parse_amount(row['Amount Awarded']) if 'Amount Awarded' in row else 0,
-            'crisis_type': row['Crisis Type'],
+            'crisis_type': row['Crisis Type'] if 'Crisis Type' in row else '',
         }
 
         if data.get(iso2) is None:
