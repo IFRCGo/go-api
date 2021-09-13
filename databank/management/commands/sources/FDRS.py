@@ -37,6 +37,8 @@ FDRS_DATA_API_ENDPOINT = f'https://data-api.ifrc.org/api/data?apiKey={settings.F
 @catch_error('Error occured while fetching from FDRS API.')
 def prefetch():
     fdrs_entities = requests.get(FDRS_NS_API_ENDPOINT)
+    if fdrs_entities.status_code != 200:
+        return
     fdrs_entities.raise_for_status()
     fdrs_entities = fdrs_entities.json()
 
@@ -60,7 +62,7 @@ def prefetch():
 
 @catch_error()
 def load(country, overview, fdrs_data):
-    if fdrs_data is None:
+    if country.iso is None or fdrs_data is None:
         return
 
     for fdrs_indicator, field in FDRS_INDICATORS_FIELD_MAP:
