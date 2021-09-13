@@ -31,6 +31,8 @@ def parse_alert_date(date):
 def prefetch():
     data = {}
     rs = requests.get(API_ENDPOINT)
+    if rs.status_code != 200:
+        return
     rs.raise_for_status()
     rs = rs.text.splitlines()
 
@@ -46,7 +48,7 @@ def prefetch():
             'date': date.isoformat(),
             'alert': row['Alert'],
             'alert_type': row['Alert type'],
-            'amount_awarded': parse_amount(row['Amount Awarded']),
+            'amount_awarded': parse_amount(row['Amount Awarded']) if 'Amount Awarded' in row else 0,
             'crisis_type': row['Crisis Type'],
         }
 
