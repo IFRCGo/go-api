@@ -31,7 +31,7 @@ class Command(BaseCommand):
       print('Exporting country centroids...')
       subprocess.check_call(['touch', '/tmp/country-centroids.geojson'])
       subprocess.check_call(['rm', '/tmp/country-centroids.geojson'])
-      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id as country_id, name_en, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null'])
+      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id as country_id, name_en as name, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null'])
 
       print('Exporting district centroids...')
       subprocess.check_call(['touch', '/tmp/district-centroids.geojson'])
