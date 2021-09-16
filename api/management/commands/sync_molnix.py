@@ -336,6 +336,7 @@ class Command(BaseCommand):
             countries = molnix.get_countries()
             deployments = molnix.get_deployments()
             open_positions = molnix.get_open_positions()
+            import pdb; pdb.set_trace()
         except Exception as ex:
             msg = 'Failed to fetch data from Molnix API: %s' % str(ex)
             logger.error(msg)
