@@ -41,6 +41,8 @@ def prefetch():
 
 @catch_error()
 def load(country, overview, gho_data):
+    if country.iso is None or gho_data is None:
+        return
     pcountry = get_country_by_iso2(country.iso)
     if pcountry is None:
         return

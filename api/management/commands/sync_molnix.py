@@ -122,7 +122,7 @@ def add_tags_to_obj(obj, tags):
         obj.molnix_tags.add(t)
     obj.save()
 
-    
+
 
 def sync_deployments(molnix_deployments):
     #import json
@@ -152,10 +152,10 @@ def sync_deployments(molnix_deployments):
                 logger.warning(warning)
                 warnings.append(warning)
                 continue
-            
+
             p.is_molnix = True
             p.save()
-    
+
     # Create Personnel objects
     for md in molnix_deployments:
         try:
@@ -250,7 +250,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     messages = []
     successful_creates = 0
     successful_updates = 0
-    
+
     for position in molnix_positions:
         event = get_go_event(position['tags'])
         country = get_go_country(countries, position['country_id'])
@@ -268,7 +268,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         go_alert, created = SurgeAlert.objects.get_or_create(molnix_id=position['id'])
         # We set all Alerts coming from Molnix to RR / Alert
         go_alert.atype = SurgeAlertType.RAPID_RESPONSE
-        go_alert.category = SurgeAlertCategory.ALERT        
+        go_alert.category = SurgeAlertCategory.ALERT
         # print(json.dumps(position, indent=2))
         go_alert.molnix_id = position['id']
         go_alert.message = position['name']
@@ -305,7 +305,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         else:
             alert.is_active = False
         alert.save()
-    
+
     marked_inactive = len(inactive_alerts)
     messages = [
         'Successfully created: %d' % successful_creates,
@@ -342,7 +342,7 @@ class Command(BaseCommand):
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
 
-        try:    
+        try:
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags)
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
@@ -355,7 +355,7 @@ class Command(BaseCommand):
 
         msg = get_status_message(positions_messages, deployments_messages, positions_warnings, deployments_warnings)
         num_records = positions_created + deployments_created
-        has_warnings = len(positions_warnings) > 0 or len(deployments_warnings) > 0    
+        has_warnings = len(positions_warnings) > 0 or len(deployments_warnings) > 0
         cron_status = CronJobStatus.WARNED if has_warnings else CronJobStatus.SUCCESSFUL
         create_cron_record(CRON_NAME, msg, cron_status, num_result=num_records)
         molnix.logout()

@@ -31,11 +31,15 @@ def parse_alert_date(date):
 def prefetch():
     data = {}
     rs = requests.get(API_ENDPOINT)
+    if rs.status_code != 200:
+        return
     rs.raise_for_status()
     rs = rs.text.splitlines()
 
     CronJobSum = 0
     for row in csv.DictReader(rs):
+        if 'Alert' not in row and 'Alert type' not in row:  # without these we are poor
+            continue
         # Some value are like `Congo [DRC]`
         country = get_country_by_name(row['Country'].split('[')[0].strip())
         date = parse_alert_date(row['Alert date'])
@@ -46,8 +50,8 @@ def prefetch():
             'date': date.isoformat(),
             'alert': row['Alert'],
             'alert_type': row['Alert type'],
-            'amount_awarded': parse_amount(row['Amount Awarded']),
-            'crisis_type': row['Crisis Type'],
+            'amount_awarded': parse_amount(row['Amount Awarded']) if 'Amount Awarded' in row else 0,
+            'crisis_type': row['Crisis Type'] if 'Crisis Type' in row else '',
         }
 
         if data.get(iso2) is None:
