@@ -111,7 +111,7 @@ class ERU(models.Model):
 
 class PersonnelDeployment(models.Model):
     country_deployed_to = models.ForeignKey(Country, verbose_name=_('country deployed to'), on_delete=models.CASCADE)
-    region_deployed_to = models.ForeignKey(Region, verbose_name=_('region deployed to'), on_delete=models.CASCADE)
+    region_deployed_to = models.ForeignKey(Region, verbose_name=_('region deployed to'), null=True, on_delete=models.SET_NULL)
     event_deployed_to = models.ForeignKey(
         Event, verbose_name=_('event deployed to'), null=True, blank=True, on_delete=models.SET_NULL
     )
