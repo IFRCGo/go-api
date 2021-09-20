@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.404
+
+### Added
+ - Allowing null in region_deployed_to
+ - Three sleeps into map tile updater
+
 ## 1.1.403
 
 ### Added
@@ -1788,7 +1794,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.403...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.404...HEAD
+[1.1.404]: https://github.com/IFRCGo/go-api/compare/1.1.403...1.1.404
 [1.1.403]: https://github.com/IFRCGo/go-api/compare/1.1.402...1.1.403
 [1.1.402]: https://github.com/IFRCGo/go-api/compare/1.1.401...1.1.402
 [1.1.401]: https://github.com/IFRCGo/go-api/compare/1.1.400...1.1.401
