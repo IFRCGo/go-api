@@ -97,6 +97,7 @@ from .serializers import (
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
     MainContactSerializer,
+    NsSerializer,
 
     # Tableau Serializers
     AppealDocumentTableauSerializer,
@@ -918,3 +919,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = MainContactSerializer
     queryset = MainContact.objects.order_by('extent')
+
+class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NsSerializer
+    queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')

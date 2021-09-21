@@ -941,3 +941,9 @@ class MainContactSerializer(ModelSerializer):
     class Meta:
         model = MainContact
         fields = '__all__'
+
+
+class NsSerializer(ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('url_ifrc',)
