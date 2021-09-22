@@ -904,6 +904,8 @@ class Appeal(models.Model):
     influence_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
+    #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+
     class Meta:
         ordering = ('-start_date', '-end_date',)
         verbose_name = _('appeal')
@@ -937,8 +939,7 @@ class Appeal(models.Model):
 
     def __str__(self):
         return self.code
-
-
+    
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
@@ -961,7 +962,8 @@ class AppealHistory(models.Model):
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
-    code = models.CharField(verbose_name=_('code'), max_length=20, null=True, unique=True)
+    code = models.CharField(verbose_name=_('code'), max_length=20, null=True)
+    #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
