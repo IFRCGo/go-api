@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.406
+
+### Added
+ - Showing tab titles in API emergency listing (#1204)
+ - Better appeal deletion
+ - Endpoint for getting outer NS links (for checking).
+
 ## 1.1.405
  - Allowing null in region_deployed_to
 
@@ -1796,7 +1803,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.405...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.406...HEAD
+[1.1.406]: https://github.com/IFRCGo/go-api/compare/1.1.405...1.1.406
 [1.1.405]: https://github.com/IFRCGo/go-api/compare/1.1.404...1.1.405
 [1.1.404]: https://github.com/IFRCGo/go-api/compare/1.1.403...1.1.404
 [1.1.403]: https://github.com/IFRCGo/go-api/compare/1.1.402...1.1.403
