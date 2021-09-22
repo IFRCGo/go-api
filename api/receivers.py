@@ -2,7 +2,7 @@ import json
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
 from django.db.models import Q
-from django.db.models.signals import pre_delete, pre_save, post_save
+from django.db.models.signals import pre_delete, pre_save, post_save, post_delete
 from django.dispatch import receiver
 from reversion.models import Version
 from reversion.signals import post_revision_commit
@@ -11,7 +11,7 @@ from middlewares.middlewares import get_username
 from utils.elasticsearch import create_es_index, update_es_index, delete_es_index
 from utils.erp import push_fr_data
 from api.logger import logger
-from .models import Appeal, AppealHistory
+from .models import Appeal, AppealHistory, AppealFilter
 from django.utils import timezone
 from datetime import datetime, timedelta
 
@@ -222,6 +222,7 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             needs_confirmation = instance.needs_confirmation,
             status = instance.status,
             code = instance.code
+            #deleted_at = instance.deleted_at
         )
 
     else:  # Appeal Update
@@ -258,4 +259,17 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             needs_confirmation = instance.needs_confirmation,
             status = instance.status,
             code = instance.code
+            #deleted_at = instance.deleted_at
         )
+
+
+@receiver(post_delete, sender=Appeal)
+def remove_appeal_filter(sender, instance, using, **kwargs):
+    appealFilter = AppealFilter.objects.get(name='ingestAppealFilter')
+    lstCodesToSkip = appealFilter.value.split(",")
+    if instance.code not in lstCodesToSkip: 
+            lstCodesToSkip.append(instance.code)
+
+    appealFilter.value = ",".join(lstCodesToSkip)
+        #appealFilter.value = ",".join(appealFilter.value.split(",").remove(self.code))
+    appealFilter.save()

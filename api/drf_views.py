@@ -97,6 +97,7 @@ from .serializers import (
     DetailFieldReportSerializer,
     CreateFieldReportSerializer,
     MainContactSerializer,
+    NsSerializer,
 
     # Tableau Serializers
     AppealDocumentTableauSerializer,
@@ -464,6 +465,7 @@ class AppealHistoryFilter(filters.FilterSet):
 class AppealViewset(viewsets.ReadOnlyModelViewSet):
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
+    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
     ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
@@ -918,3 +920,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = MainContactSerializer
     queryset = MainContact.objects.order_by('extent')
+
+class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NsSerializer
+    queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')

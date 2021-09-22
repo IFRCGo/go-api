@@ -91,6 +91,7 @@ router.register(r'external_partner', api_views.ExternalPartnerViewset, basename=
 router.register(r'language', lang_views.LanguageViewSet, basename='language')
 router.register(r'latest_country_overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
+router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='pertner_deployment')
 router.register(r'per', per_views.FormViewset, basename='per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
