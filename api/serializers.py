@@ -424,7 +424,7 @@ class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
-            'field_reports', 'updated_at', 'id', 'slug', 'parent_event',
+            'field_reports', 'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
         )
 
 
