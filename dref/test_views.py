@@ -6,6 +6,7 @@ from main.test_case import APITestCase
 from dref.models import Dref, DrefFile
 
 from dref.factories.dref import DrefFactory, DrefFileFactory
+from deployments.factories.user import UserFactory
 
 from api.models import Country, DisasterType
 
@@ -76,12 +77,30 @@ class DrefTestCase(APITestCase):
         )
 
     def test_get_dref(self):
-        DrefFactory.create_batch(5)
+        """
+        This test includes  dref to be viewed by user who create is or shared with other user
+        """
+        # create a dref
+        dref_1 = DrefFactory.create(created_by=self.user)
+        dref_1.users.add(self.ifrc_user)
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.data['results']), 5)
+        self.assertEqual(len(resp.data['results']), 1)
+
+        # authenticate with another user and try to view the dref
+        self.client.force_authenticate(self.ifrc_user)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['results']), 1)
+
+        # try to get the dref by user who neither created nor has access to dref
+        user = UserFactory.create()
+        self.client.force_authenticate(user)
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.data['results']), 0)
 
     def test_post_dref_creation(self):
         old_count = Dref.objects.count()
@@ -119,8 +138,8 @@ class DrefTestCase(APITestCase):
             "men": 5666,
             "girls": 22,
             "boys": 344,
-            "disability_people_per": "12.4",
-            "people_per": "10.3",
+            "disability_people_per": "12.45",
+            "people_per": "10.35",
             "displaced_people": 234243,
             "operation_objective": "Test script",
             "response_strategy": "Test script",
@@ -213,8 +232,8 @@ class DrefTestCase(APITestCase):
             "men": 5666,
             "girls": 22,
             "boys": 344,
-            "disability_people_per": "12.4",
-            "people_per": "10.3",
+            "disability_people_per": "12.45",
+            "people_per": "10.35",
             "displaced_people": 234243,
             "operation_objective": "Test script",
             "response_strategy": "Test script",

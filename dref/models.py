@@ -24,7 +24,7 @@ def image_path(instance, filename):
 class NationalSocietyAction(models.Model):
     # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
     class Title(TextChoices):
-        NS_READINESS = 'ns_readiness', _('Ns Readiness')
+        NATIONAL_SOCIETY_READINESS = 'national_society_readiness', _('National Society Readiness')
         ASSESSMENT = 'assessment', _('Assessment')
         COORDINATION = 'coordination', _('Coordination')
         RESOURCE_MOBILIZATION = 'resource_mobilization', _('Resource Mobilization')
@@ -133,8 +133,17 @@ class Dref(models.Model):
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('created by'), on_delete=models.SET_NULL,
+        null=True, related_name='created_by_dref'
+    )
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('modified by'), on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL, verbose_name=_('modified by'), on_delete=models.SET_NULL,
+        null=True, related_name='modified_by_dref'
+    )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref'
     )
     field_report = models.ForeignKey(
         FieldReport, verbose_name=_('field report'),
@@ -192,6 +201,7 @@ class Dref(models.Model):
         blank=True, null=True,
         verbose_name=_('ns request text')
     )
+    dref_recurrent_text = models.CharField(max_length=300, verbose_name=_('dref recurrent text'), blank=True)
     lessons_learned = models.CharField(max_length=500, verbose_name=_('lessons learned'), blank=True)
     event_description = models.CharField(max_length=800, verbose_name=_('event description'), blank=True)
     anticipatory_actions = models.CharField(
@@ -258,12 +268,12 @@ class Dref(models.Model):
     disability_people_per = models.DecimalField(
         verbose_name=_('disability people per'), help_text=_('Estimated % people disability'),
         blank=True, null=True,
-        max_digits=3, decimal_places=1
+        max_digits=5, decimal_places=2
     )
     people_per_urban_local = models.DecimalField(
         verbose_name=_('people per urban local'), help_text=_('Estimated % people Urban/Rural'),
         blank=True, null=True,
-        max_digits=3, decimal_places=1
+        max_digits=5, decimal_places=2
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_('people targeted with early actions'),

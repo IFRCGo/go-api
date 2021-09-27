@@ -88,11 +88,13 @@ class DrefSerializer(
     event_map_details = DrefFileSerializer(source='event_map', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
     field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    users_details = UserNameSerializer(source='users', many=True, read_only=True)
 
     class Meta:
         model = Dref
         fields = '__all__'
-        read_only_fields = ('modified_by',)
+        read_only_fields = ('modified_by', 'created_by')
 
     def validate(self, data):
         event_date = data.get('event_date', None)
@@ -131,6 +133,10 @@ class DrefSerializer(
                 ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
         return images
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user

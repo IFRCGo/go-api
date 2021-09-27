@@ -1,3 +1,5 @@
+from django.db import models
+
 from rest_framework import (
     views,
     viewsets,
@@ -31,9 +33,17 @@ class DrefViewSet(viewsets.ModelViewSet):
     filterset_class = DrefFilter
 
     def get_queryset(self):
-        return Dref.objects.prefetch_related(
-            'planned_interventions', 'needs_identified', 'national_society_actions'
-        )
+        return Dref.objects\
+            .filter(
+                models.Q(created_by=self.request.user) |
+                models.Q(users=self.request.user)
+            )\
+            .prefetch_related(
+                'planned_interventions',
+                'needs_identified',
+                'national_society_actions',
+                'users'
+            )
 
 
 class DrefOptionsView(views.APIView):
