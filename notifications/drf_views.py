@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from .models import SurgeAlert, Subscription
 from .serializers import (
     SurgeAlertSerializer,
-    UnauthenticatedSurgeAlertSerializer,
+#   UnauthenticatedSurgeAlertSerializer,
     SubscriptionSerializer,
 )
 
@@ -30,10 +30,10 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ('created_at', 'atype', 'category', 'event',)
 
     def get_serializer_class(self):
-        if self.request.user.is_authenticated:
-            return SurgeAlertSerializer
-        return UnauthenticatedSurgeAlertSerializer
-
+        # if self.request.user.is_authenticated:
+        #     return SurgeAlertSerializer
+        # return UnauthenticatedSurgeAlertSerializer
+        return SurgeAlertSerializer
 
 class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer

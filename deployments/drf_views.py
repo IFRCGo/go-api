@@ -50,6 +50,8 @@ from .serializers import (
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
     PersonnelCsvSerializer,
+    PersonnelSerializerAnon,
+    PersonnelCsvSerializerAnon,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
@@ -122,7 +124,8 @@ class PersonnelFilter(filters.FilterSet):
 
 class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Some figures are shown on the home page also, and not only authenticated users should see them.
+    # permission_classes = (IsAuthenticated,)
     queryset = Personnel.objects.all()
     filterset_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
@@ -150,8 +153,8 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         request_format_type = self.request.GET.get('format', 'json')
         if request_format_type == 'csv':
-            return PersonnelCsvSerializer
-        return PersonnelSerializer
+            return PersonnelCsvSerializerAnon if self.request.user.is_anonymous else PersonnelCsvSerializer
+        return PersonnelSerializerAnon if self.request.user.is_anonymous else PersonnelSerializer
 
 
 class AggregateDeployments(APIView):
