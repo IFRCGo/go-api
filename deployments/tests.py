@@ -1,3 +1,5 @@
+import pdb
+
 import pydash
 
 import json
@@ -198,9 +200,9 @@ class TestProjectAPI(SnapshotTestCase):
         url = '/api/v2/global-project/overview/'
         resp = self.client.get(url)
         self.assert_200(resp)
-        # self.assertMatchSnapshot(resp.json()) # TODO FIXME!
+        self.assertMatchSnapshot(resp.json())
 
         url = '/api/v2/global-project/ns-ongoing-projects-stats/'
         resp = self.client.get(url)
         self.assert_200(resp)
-        # self.assertMatchSnapshot(resp.json()) # TODO FIXME!
+        self.assertMatchSnapshot(resp.json())

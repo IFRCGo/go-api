@@ -649,12 +649,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'WASH'
         },
         {
-            'count': 2,
+            'count': 1,
             'primary_sector': 2,
             'primary_sector_display': 'CEA'
         },
         {
-            'count': 2,
+            'count': 3,
             'primary_sector': 3,
             'primary_sector_display': 'Migration'
         },
@@ -735,7 +735,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 8870000,
+            'budget_amount_total': 1200000,
             'id': 9,
             'iso3': 'hVr',
             'name': 'country-tvTDQLHHKrWiuBxQjLVcVZyOdYmlajOcYpkzuaKEEwmOKzCnDN',
@@ -749,8 +749,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 2,
-                    'primary_sector_display': 'CEA'
+                    'primary_sector': 3,
+                    'primary_sector_display': 'Migration'
                 }
             ],
             'society_name': 'society-name-PXGvvlqvZFXJDQgQvWHqeYxBPbIigoDhhJTsiwtCBJfGlzGmjR',
@@ -869,8 +869,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         {
             'budget_amount_total': 1340000,
             'id': 21,
-            'iso3': 'Nqq',
-            'name': 'country-WJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKzFbF',
+            'iso3': 'WNq',
+            'name': 'country-FWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKzFb',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -885,7 +885,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'Shelter'
                 }
             ],
-            'society_name': 'society-name-JTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjDn',
+            'society_name': 'society-name-qJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjD',
             'target_total': 0
         },
         {
