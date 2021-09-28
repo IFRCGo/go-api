@@ -24,17 +24,17 @@ class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class UnauthenticatedSurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
-    event = MiniEventSerializer()
-    atype_display = serializers.CharField(source='get_atype_display', read_only=True)
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
-
-    class Meta:
-        model = SurgeAlert
-        fields = (
-            'operation', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
-            'atype', 'atype_display', 'category', 'category_display', 'is_active',
-        )
+# class UnauthenticatedSurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
+#     event = MiniEventSerializer()
+#     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+#     category_display = serializers.CharField(source='get_category_display', read_only=True)
+#
+#     class Meta:
+#         model = SurgeAlert
+#         fields = (
+#             'operation', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
+#             'atype', 'atype_display', 'category', 'category_display', 'is_active',
+#         )
 
 
 class SubscriptionSerializer(EnumSupportSerializerMixin, ModelSerializer):
