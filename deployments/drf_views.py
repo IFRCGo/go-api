@@ -62,7 +62,8 @@ from .serializers import (
 
 class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # Also unauthenticated users should reach Surge page content. 2021.09.28:
+    # permission_classes = (IsAuthenticated,)
     queryset = ERUOwner.objects.all()
     serializer_class = ERUOwnerSerializer
     ordering_fields = ('created_at', 'updated_at',)
