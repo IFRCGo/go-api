@@ -27,7 +27,8 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = SurgeAlert.objects.all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ('created_at', 'atype', 'category', 'event',)
+    ordering_fields = ('molnix_status', 'created_at', 'atype', 'category', 'event',)
+    # molnix status can be active (open) or unfilled (stood down) or none
 
     def get_serializer_class(self):
         # if self.request.user.is_authenticated:
