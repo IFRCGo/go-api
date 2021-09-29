@@ -7,6 +7,7 @@ from api.models import Country
 class DrefFilter(filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         choices=Dref.Status.choices(),
+        lookup_expr='in',
         widget=filters.widgets.CSVWidget,
     )
     country = filters.ModelMultipleChoiceFilter(

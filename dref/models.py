@@ -95,6 +95,11 @@ class PlannedIntervention(models.Model):
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
     indicator = models.CharField(verbose_name=_('indicator'), blank=True, max_length=300)
+    budget_file = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('budget file'),
+    )
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -265,6 +270,10 @@ class Dref(models.Model):
         verbose_name=_('boys'), help_text=_('Boys under 18'),
         blank=True, null=True
     )
+    total_targated_population = models.IntegerField(
+        verbose_name=_('total targated population'), help_text=_('Estimated number of targated people'),
+        blank=True, null=True
+    )
     disability_people_per = models.DecimalField(
         verbose_name=_('disability people per'), help_text=_('Estimated % people disability'),
         blank=True, null=True,
@@ -300,7 +309,6 @@ class Dref(models.Model):
     ns_request_date = models.DateField(verbose_name=_('ns request date'), null=True, blank=True)
     submission_to_geneva = models.DateField(verbose_name=_('submission to geneva'), null=True, blank=True)
     date_of_approval = models.DateField(verbose_name=_('date of approval'), null=True, blank=True)
-    start_date = models.DateField(verbose_name=_('start date'), null=True, blank=True)
     end_date = models.DateField(verbose_name=_('end date'), null=True, blank=True)
     publishing_date = models.DateField(verbose_name=_('publishing date'), null=True, blank=True)
     operation_timeframe = models.IntegerField(verbose_name=_('operation timeframe'), null=True, blank=True)

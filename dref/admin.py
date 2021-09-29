@@ -6,7 +6,13 @@ from .models import (
     IdentifiedNeed,
     NationalSocietyAction,
     DrefCountryDistrict,
+    DrefFile
 )
+
+
+@admin.register(DrefFile)
+class DrefFileAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(PlannedIntervention)

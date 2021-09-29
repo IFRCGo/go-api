@@ -148,7 +148,6 @@ class DrefTestCase(APITestCase):
             "ns_request_date": "2021-07-01",
             "submission_to_geneva": "2021-07-01",
             "date_of_approval": "2021-07-01",
-            "start_date": "2021-07-01",
             "end_date": "2021-07-05",
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
@@ -242,7 +241,6 @@ class DrefTestCase(APITestCase):
             "ns_request_date": "2021-07-01",
             "submission_to_geneva": "2021-07-01",
             "date_of_approval": "2021-07-01",
-            "start_date": "2021-07-01",
             "end_date": "2021-07-01",
             "publishing_date": "2021-08-01",
             "operation_timeframe": 4,
@@ -298,7 +296,8 @@ class DrefTestCase(APITestCase):
     def test_update_dref_image(self):
         file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
         file4 = DrefFileFactory.create(created_by=self.ifrc_user)
-        dref = DrefFactory.create()
+        dref = DrefFactory.create(created_by=self.user)
+        dref.users.add(self.ifrc_user)
         url = f'/api/v2/dref/{dref.id}/'
         data = {
             "images": [file1.id, file2.id, file3.id]
@@ -335,19 +334,18 @@ class DrefTestCase(APITestCase):
         """
         Test to filter dref status
         """
-        DrefFactory.create(title='test', status=Dref.Status.COMPLETED, date_of_approval='2020-10-10')
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10')
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10')
-        DrefFactory.create(status=Dref.Status.IN_PROGESS)
-        DrefFactory.create(status=Dref.Status.IN_PROGESS)
+        DrefFactory.create(title='test', status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
+        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
+        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
+        DrefFactory.create(status=Dref.Status.IN_PROGESS, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.IN_PROGESS, created_by=self.user)
 
         # filter by `In Progress`
         url = f'/api/v2/dref/?status={Dref.Status.IN_PROGESS.value}'
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['results'][0]['status'], 0)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_dref_options(self):
         """

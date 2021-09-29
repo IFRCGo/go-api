@@ -96,6 +96,16 @@ class DrefSerializer(
         fields = '__all__'
         read_only_fields = ('modified_by', 'created_by')
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        disability_people_per = data.get('disability_people_per', '')
+        people_per_urban_local = data.get('people_per_urban_local', '')
+        if disability_people_per and len(disability_people_per.split('.')[0]) == 3:
+            data['disability_people_per'] = disability_people_per.split('.')[0]
+        if people_per_urban_local and len(people_per_urban_local.split('.')[0]) == 3:
+            data['people_per_urban_local'] = people_per_urban_local.split('.')[0]
+        return data
+
     def validate(self, data):
         event_date = data.get('event_date', None)
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
@@ -103,12 +113,6 @@ class DrefSerializer(
                 'event_date': ugettext('Cannot add event_date if onset type not in {} or {}')
                 .format(Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label)
             })
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
-        if start_date and end_date and start_date > end_date:
-            raise serializers.ValidationError(
-                {'end_date': 'End date must occur after start date'}
-            )
         return data
 
     def validate_images(self, images):
