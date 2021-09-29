@@ -48,10 +48,17 @@ def push_fr_data(data, retired=False):
         '''
         InitialRequestType:
             If “Appeal” <> “No”, then “EA”.
-            Else if “DREF” = “No”, then “DREF”
+            Else if “DREF” <> “No”, then “DREF”
             Else “Empty”
             (if both DREF and Appeal, then the type must be EA)
         '''
+
+    if data.appeal != RequestChoices.NO:
+        InitialRequestType, InitialRequestValue =  "EA", data.appeal_amount
+    elif data.dref != RequestChoices.NO:
+        InitialRequestType, InitialRequestValue =  "DREF", data.dref_amount
+    else:
+        InitialRequestType, InitialRequestValue =  "Empty", 0
 
     payload = {
         "Emergency": {
@@ -67,19 +74,13 @@ def push_fr_data(data, retired=False):
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
                 "NumberOfPeopleAffected": 0 if data.num_affected is None else data.num_affected,
-                "InitialRequestType": (
-                    "EA" if data.appeal != RequestChoices.NO
-                    else (  # FIXME: Avoid nested ternary operator
-                          "DREF" if data.dref != RequestChoices.NO
-                          else "Empty"
-                    )
-                ),
+                "InitialRequestType": InitialRequestType,
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},
                 "InitialRequestAmount": {
-                    "Value": 0 if data.appeal_amount is None else data.appeal_amount,
+                    "Value": InitialRequestValue,
                     "CurrencyCode": "CHF",
-                },  # Field Report Appeal amount
+                },  # Value: Field Report Appeal amount OR Field Report DREF amount (so not from Appeal table)
                 # ^ CurrencyCode can be different?
             }
         }
