@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 from api.logger import logger
-
+# If there are issues with the found links, check these rows: ¤
 
 class Command(BaseCommand):
     help = 'Ingest existing appeal documents'
@@ -70,6 +70,7 @@ class Command(BaseCommand):
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
             qset = Appeal.objects.filter(end_date__gt=three_months_ago)
 
+
         # First get all Appeal Codes
         appeal_codes = [a.code for a in qset]
 
@@ -96,7 +97,7 @@ class Command(BaseCommand):
         existing = []
         created = []
 
-        acodes = list(set([a[2] for a in output]))
+        acodes = list(set([a[3] for a in output]))  # This 3 was 2 in the past. It can change! Also here: ¤
         for code in acodes:
             try:
                 appeal = Appeal.objects.get(code=code)
@@ -105,7 +106,7 @@ class Command(BaseCommand):
                 continue
 
             existing_docs = list(appeal.appealdocument_set.all())
-            docs = [a for a in output if a[2] == code]
+            docs = [a for a in output if a[3] == code]  # This 3 was 2 in the past. It can change! Also here: ¤
             for doc in docs:
                 # href only contains relative path to the document if it's available at the ifrc.org site
                 doc[0] = f'https://www.ifrc.org{doc[0]}' if doc[0].startswith('/docs') else doc[0]
