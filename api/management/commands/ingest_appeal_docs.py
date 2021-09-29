@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 from api.logger import logger
-# If there are issues with the found links, check these rows: ¤
+# If there are issues with the found links, check this: ¤
 
 class Command(BaseCommand):
     help = 'Ingest existing appeal documents'
@@ -34,6 +34,14 @@ class Command(BaseCommand):
                 if len(thetext) > 1:
                     result[-1].append(thetext)
         return result
+
+    def choose(self, s):
+        if s[2][:1] == 'M' and s[2][-1:].isnumeric():
+            return s[2]
+        if s[3][:1] == 'M' and s[3][-1:].isnumeric():
+            return s[3]
+        if s[4][:1] == 'M' and s[4][-1:].isnumeric():
+            return s[4]
 
     def parse_date(self, date_string):
         # 21 Dec 2017
@@ -97,7 +105,7 @@ class Command(BaseCommand):
         existing = []
         created = []
 
-        acodes = list(set([a[3] for a in output]))  # This 3 was 2 in the past. It can change! Also here: ¤
+        acodes = list(set([self.choose(a) for a in output]))  # ¤ It can change, which a[] field == acode. Can be 2, 3, 4.
         for code in acodes:
             try:
                 appeal = Appeal.objects.get(code=code)
@@ -106,7 +114,7 @@ class Command(BaseCommand):
                 continue
 
             existing_docs = list(appeal.appealdocument_set.all())
-            docs = [a for a in output if a[3] == code]  # This 3 was 2 in the past. It can change! Also here: ¤
+            docs = [a for a in output if code in a]
             for doc in docs:
                 # href only contains relative path to the document if it's available at the ifrc.org site
                 doc[0] = f'https://www.ifrc.org{doc[0]}' if doc[0].startswith('/docs') else doc[0]
