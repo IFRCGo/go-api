@@ -42,7 +42,7 @@ class Command(BaseCommand):
             return s[3]
         if s[4][:1] == 'M' and s[4][-1:].isnumeric():
             return s[4]
-        return ''  # should not happen
+        return 'x'  # should not happen. If happens, should not find such appeal code.
 
     def parse_date(self, date_string):
         # 21 Dec 2017
