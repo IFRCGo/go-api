@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.408
+
+### Added
+ - Fixing ERP interface: Appeal/DREF Value
+ - Following the changed structure of appeals web page (ingest_appeal_docs)
+
 ## 1.1.407
 
 ### Added
@@ -22,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Showing tab titles in API emergency listing (#1204)
- - Better appeal deletion
+ - Better appeal deletion with automatic exclusion filter setting
  - Endpoint for getting outer NS links (for checking).
 
 ## 1.1.405
@@ -1815,7 +1821,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.407...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.408...HEAD
+[1.1.408]: https://github.com/IFRCGo/go-api/compare/1.1.407...1.1.408
 [1.1.407]: https://github.com/IFRCGo/go-api/compare/1.1.406...1.1.407
 [1.1.406]: https://github.com/IFRCGo/go-api/compare/1.1.405...1.1.406
 [1.1.405]: https://github.com/IFRCGo/go-api/compare/1.1.404...1.1.405
