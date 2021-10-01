@@ -6,11 +6,34 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.409
+
+### Added
+ - Appeal documents ingesting is more reliable
+
+## 1.1.408
+
+### Added
+ - Fixing ERP interface: Appeal/DREF Value
+ - Following the changed structure of appeals web page (ingest_appeal_docs)
+
+## 1.1.407
+
+### Added
+  - Surge email notification improvements (links to #surge tab of emergency)
+  - Appeal ingest fixes
+    · modified_at = time of appeal ingest run
+    · real_data_update = max(APD_modify_time) from the appeals API
+  - More possibilities for unauthenticated users:
+    · the surge (/deployments) page is visible
+    · the single emergency-related #surge tab is visible, except persons' name.
+    · changed snapshot tests due to the aboves
+
 ## 1.1.406
 
 ### Added
  - Showing tab titles in API emergency listing (#1204)
- - Better appeal deletion
+ - Better appeal deletion with automatic exclusion filter setting
  - Endpoint for getting outer NS links (for checking).
 
 ## 1.1.405
@@ -47,14 +70,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Deployments, Surge page Key Figures and tables:
-   - Show only unique organization names at Deployments
-   - Use correct personnel_count variable to show counts
-   - Deployment counts on Emergency pages
-   - ERUs Deployed counts in aggregate
-   - Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
-   - Fix ERU count to show count of all ERUs with a deployed_to country
-   - Surge alerts: by default show all, add filter to show only active
-   - Fixing event-specific failure of AggregateDeployments
+   · Show only unique organization names at Deployments
+   · Use correct personnel_count variable to show counts
+   · Deployment counts on Emergency pages
+   · ERUs Deployed counts in aggregate
+   · Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
+   · Fix ERU count to show count of all ERUs with a deployed_to country
+   · Surge alerts: by default show all, add filter to show only active
+   · Fixing event-specific failure of AggregateDeployments
 
 ## 1.1.398
 
@@ -1803,7 +1826,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.406...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.409...HEAD
+[1.1.409]: https://github.com/IFRCGo/go-api/compare/1.1.408...1.1.409
+[1.1.408]: https://github.com/IFRCGo/go-api/compare/1.1.407...1.1.408
+[1.1.407]: https://github.com/IFRCGo/go-api/compare/1.1.406...1.1.407
 [1.1.406]: https://github.com/IFRCGo/go-api/compare/1.1.405...1.1.406
 [1.1.405]: https://github.com/IFRCGo/go-api/compare/1.1.404...1.1.405
 [1.1.404]: https://github.com/IFRCGo/go-api/compare/1.1.403...1.1.404

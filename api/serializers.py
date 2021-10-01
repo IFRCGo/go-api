@@ -600,7 +600,7 @@ class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSeria
         model = Appeal
         fields = (
             'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
-            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date','real_data_update', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
@@ -616,6 +616,7 @@ class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.Mod
     sector = serializers.CharField(source='appeal.sector', read_only=True)
     created_at = serializers.CharField(source='appeal.created_at', read_only=True)
     modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    real_data_update =  serializers.CharField(source='appeal.real_data_update', read_only=True)
     event = serializers.CharField(source='appeal.event', read_only=True)
     id = serializers.CharField(source='appeal.id', read_only=True)
     name = serializers.CharField(source='appeal.name', read_only=True)
@@ -624,7 +625,7 @@ class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.Mod
         model = AppealHistory
         fields = (
             'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
-            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date','real_data_update', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
@@ -646,7 +647,7 @@ class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Appeal
         fields = (
             'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
-            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date','real_data_update', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 
@@ -661,6 +662,7 @@ class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
     sector = serializers.CharField(source='appeal.sector', read_only=True)
     created_at = serializers.CharField(source='appeal.created_at', read_only=True)
     modified_at = serializers.CharField(source='appeal.modified_at', read_only=True)
+    real_data_update =  serializers.CharField(source='appeal.real_data_update', read_only=True)
     event = serializers.IntegerField(source='appeal.event_id', read_only=True)
     id = serializers.CharField(source='appeal.id', read_only=True)
     name = serializers.CharField(source='appeal.name', read_only=True)
@@ -669,7 +671,7 @@ class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = AppealHistory
         fields = (
             'aid', 'name', 'dtype', 'atype', 'atype_display', 'status', 'status_display', 'code', 'sector',
-            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date', 'created_at',
+            'num_beneficiaries', 'amount_requested', 'amount_funded', 'start_date', 'end_date','real_data_update', 'created_at',
             'modified_at', 'event', 'needs_confirmation', 'country', 'region', 'id',
         )
 

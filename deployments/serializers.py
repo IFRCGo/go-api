@@ -118,6 +118,26 @@ class PersonnelCsvSerializer(ModelSerializer):
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
 
 
+class PersonnelSerializerAnon(ModelSerializer):
+    country_from = MiniCountrySerializer()
+    deployment = PersonnelDeploymentSerializer()
+    molnix_tags = MolnixTagSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Personnel
+        fields = ('start_date', 'end_date', 'role', 'type', 'country_from',
+                  'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
+
+
+class PersonnelCsvSerializerAnon(ModelSerializer):
+    country_from = MicroCountrySerializer()
+    deployment = PersonnelDeploymentCsvSerializer()
+
+    class Meta:
+        model = Personnel
+        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
+
+
 class PartnerDeploymentActivitySerializer(ModelSerializer):
 
     class Meta:

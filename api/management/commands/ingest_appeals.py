@@ -43,17 +43,50 @@ class Command(BaseCommand):
         if use_local_file:
             # read from static file for development
             logger.info('Using local appeals.json file')
+
+            codes = Appeal.objects.values_list('code', flat=True)
+            if AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter').count() > 0:
+                codes_skip = AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter')[0].split(",")
+            else:
+                codes_skip = []
+           
             with open('appeals.json') as f:
-                modified = json.loads(f.read())
+                #modified = json.loads(f.read())
+                records = json.loads(f.read())
+                                
+                for r in records:
+                # Temporary filtering, the manual version should be kept:
+                    if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
+                        continue
+                    if r['APP_code'] not in codes:
+                        new.append(r)
+                    else:
+                    # We use all records, do NOT check if last_modified > since_last_checked
+                        #import pdb; pdb.set_trace();
+                        if len(r['Details']) == 1:
+                            detail = r['Details'][0]   
+                        else:
+                            details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
+                            detail = details[0]
+
+                       
+                    apd_modify_time = self.parse_date(detail['APD_modifyTime'])
+                    app_modify_time = self.parse_date(r['APP_modifyTime'])
+                    api_appeal_modify_time = Appeal.objects.get(code=r['APP_code']).modified_at
+
+                    if (api_appeal_modify_time < apd_modify_time or api_appeal_modify_time < app_modify_time):
+                        modified.append(r)
+
             logger.info('Using local appealbilaterals.json file')
             with open('appealbilaterals.json') as f:
                 records = json.loads(f.read())
                 bilaterals = self.create_bilaterals_dict(records)
         else:
             # get latest BILATERALS
-            logger.info('Querying appeals API for new appeals data')
+            logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
-            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            #auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            auth = ('gotestuser','123456')
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount('http://', adapter)
@@ -116,7 +149,24 @@ class Command(BaseCommand):
                     new.append(r)
                 else:
                     # We use all records, do NOT check if last_modified > since_last_checked
-                    modified.append(r)
+                    if len(r['Details']) == 1:
+                        detail = r['Details'][0]   
+                    else:
+                        details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
+                        detail = details[0]
+
+                    apd_modify_time = self.parse_date(detail['APD_modifyTime'])
+                    app_modify_time = self.parse_date(r['APP_modifyTime'])
+                    appeal = Appeal.objects.get(code=r['APP_code'])
+
+                    if appeal:
+                        api_appeal_modify_time = appeal.modified_at
+                    else:
+                        api_appeal_modify_time = apd_modify_time
+                               
+                    if (api_appeal_modify_time < apd_modify_time or api_appeal_modify_time < app_modify_time):
+                        modified.append(r)
+                        #print(r['APP_code'])
 
         return new, modified, bilaterals
 
@@ -216,6 +266,11 @@ class Command(BaseCommand):
                              .first()
             )
 
+        if detail['APD_modifyTime'] > r['APP_modifyTime']:
+            modify_time = self.parse_date(detail['APD_modifyTime'])
+        else:
+            modify_time = self.parse_date(r['APP_modifyTime'])
+
         fields = {
             'aid': r['APP_Id'],
             'name': r['APP_name'],
@@ -231,6 +286,7 @@ class Command(BaseCommand):
             'num_beneficiaries': detail['APD_noBeneficiaries'],
             'amount_requested': detail['APD_amountCHF'],
             'amount_funded': amount_funded,
+            'real_data_update': modify_time,
         }
 
         if event is not None:
