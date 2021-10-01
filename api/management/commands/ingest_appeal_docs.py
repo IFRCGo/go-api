@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 from api.logger import logger
-# If there are issues with the found links, check this: ¤
+from collections import defaultdict
 
 class Command(BaseCommand):
     help = 'Ingest existing appeal documents'
@@ -23,26 +23,22 @@ class Command(BaseCommand):
         result = []
         allrows = table.findAll('tr')
         for row in allrows:
-            url = ''
+            rowData, url = defaultdict(list), ''
             for a in row.find_all('a', href=True):
                 url = a['href']
-            result.append([url])
-            allcols = row.findAll('td')
-            for col in allcols:
+
+            rowData['url'] = url
+            allCols = row.findAll('td')
+            for col in allCols:
                 thestrings = [s.strip() for s in col.findAll(text=True)]
                 thetext = ''.join(thestrings)
-                if len(thetext) > 1:
-                    result[-1].append(thetext)
+                if len(thetext) > 1 and 'data-label' in col.attrs:
+                    key = col.attrs['data-label'].lower().replace(" ", "")
+                    # key can be: url (above), name, location, appealcode, disastertype, appealtype, date
+                    # Example values: "Severe winter", "Grok", "MD...2", "Cold Wave", "DREF Operation Update", "21 Dec 2017"
+                    rowData[key] = thetext
+            result.append(rowData)
         return result
-
-    def choose(self, s):
-        if s[2][:1] == 'M' and s[2][-1:].isnumeric():
-            return s[2]
-        if s[3][:1] == 'M' and s[3][-1:].isnumeric():
-            return s[3]
-        if s[4][:1] == 'M' and s[4][-1:].isnumeric():
-            return s[4]
-        return 'x'  # should not happen. If happens, should not find such appeal code.
 
     def parse_date(self, date_string):
         # 21 Dec 2017
@@ -79,7 +75,7 @@ class Command(BaseCommand):
             # qset = Appeal.objects.filter(appealdocument__isnull=True).filter(end_date__gt=three_months_ago)
             qset = Appeal.objects.filter(end_date__gt=three_months_ago)
 
-
+        # qset = Appeal.objects.filter(code='Something')  # could help debug
         # First get all Appeal Codes
         appeal_codes = [a.code for a in qset]
 
@@ -106,7 +102,7 @@ class Command(BaseCommand):
         existing = []
         created = []
 
-        acodes = list(set([self.choose(a) for a in output]))  # ¤ It can change, which a[] field == acode. Can be 2, 3, 4.
+        acodes = list(set([a['appealcode'] for a in output]))
         for code in acodes:
             try:
                 appeal = Appeal.objects.get(code=code)
@@ -115,26 +111,27 @@ class Command(BaseCommand):
                 continue
 
             existing_docs = list(appeal.appealdocument_set.all())
-            docs = [a for a in output if code in a]
+            docs = [a for a in output if code == a['appealcode']]
             for doc in docs:
-                # href only contains relative path to the document if it's available at the ifrc.org site
-                doc[0] = f'https://www.ifrc.org{doc[0]}' if doc[0].startswith('/docs') else doc[0]
-                exists = len([a for a in existing_docs if a.document_url == doc[0]]) > 0
+                if doc['url'].startswith('/docs'):
+                    doc['url'] = f'https://www.ifrc.org{doc["url"]}'
+                    # href only contains relative path to the document if it's available at the ifrc.org site
+                exists = len([a for a in existing_docs if a.document_url == doc['url']]) > 0
                 if exists:
-                    existing.append(doc[0])
+                    existing.append(doc['url'])
                 else:
                     try:
-                        created_at = self.parse_date(doc[5])
+                        created_at = self.parse_date(doc['date'])
                     except Exception:
                         created_at = None
 
                     AppealDocument.objects.create(
-                        document_url=doc[0],
-                        name=doc[4],
+                        document_url=doc['url'],
+                        name=doc['appealtype'],  # not ['name'], because this is the appeal's name
                         created_at=created_at,
                         appeal=appeal,
                     )
-                    created.append(doc[0])
+                    created.append(doc['url'])
         text_to_log = []
         text_to_log.append('%s appeal documents created' % len(created))
         text_to_log.append('%s existing appeal documents' % len(existing))
