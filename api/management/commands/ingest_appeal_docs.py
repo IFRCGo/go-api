@@ -64,7 +64,7 @@ class Command(BaseCommand):
         # ^ smoke test
 
         if options['fullscan']:
-            # If the `--fullscan` option is passed, check ALL appeals
+            # If the `--fullscan` option is passed (at the end of command), check ALL appeals. Runs an hour!
             print('Doing a full scan of all Appeals')
             qset = Appeal.objects.all()
         else:
