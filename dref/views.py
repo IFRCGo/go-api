@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from rest_framework import (
     views,
@@ -89,6 +90,15 @@ class DrefOptionsView(views.APIView):
                     'key': action[0],
                     'value': action[1]
                 } for action in NationalSocietyAction.Title.choices
+            ],
+            'users': [
+                {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name
+                } for user in User.objects.all()
             ]
         }
         return response.Response(options)

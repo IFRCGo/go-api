@@ -45,7 +45,7 @@ class NationalSocietyAction(models.Model):
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.CharField(max_length=300, verbose_name=_('description'), blank=True)
+    description = models.TextField(verbose_name=_('description'), blank=True)
 
     class Meta:
         verbose_name = _('national society action')
@@ -69,7 +69,7 @@ class IdentifiedNeed(models.Model):
         SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.CharField(max_length=300, verbose_name=_('description'), blank=True)
+    description = models.TextField(verbose_name=_('description'), blank=True)
 
     class Meta:
         verbose_name = _('identified need')
@@ -91,10 +91,10 @@ class PlannedIntervention(models.Model):
         NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.CharField(verbose_name=_('description'), blank=True, max_length=300)
+    description = models.TextField(verbose_name=_('description'), blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
-    indicator = models.CharField(verbose_name=_('indicator'), blank=True, max_length=300)
+    indicator = models.TextField(verbose_name=_('indicator'), blank=True)
     budget_file = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -178,7 +178,7 @@ class Dref(models.Model):
         null=True, blank=True,
         help_text=_('Date of event/Approximate date of impact')
     )
-    event_text = models.CharField(max_length=500, verbose_name=_('event text'), blank=True)
+    event_text = models.TextField(verbose_name=_('event text'), blank=True)
     ns_respond_date = models.DateField(
         verbose_name=_('ns respond date'),
         null=True, blank=True,
@@ -190,8 +190,7 @@ class Dref(models.Model):
     affect_same_population = models.BooleanField(
         default=False, help_text=_('Did it affect the same population?')
     )
-    affect_same_population_text = models.CharField(
-        max_length=255,
+    affect_same_population_text = models.TextField(
         blank=True, null=True,
         verbose_name=_('affect same population text')
     )
@@ -201,21 +200,20 @@ class Dref(models.Model):
     ns_request_fund = models.BooleanField(
         default=False, help_text=_('Did the NS request funding from DREF?')
     )
-    ns_request_text = models.CharField(
-        max_length=10,
+    ns_request_text = models.TextField(
         blank=True, null=True,
         verbose_name=_('ns request text')
     )
-    dref_recurrent_text = models.CharField(max_length=300, verbose_name=_('dref recurrent text'), blank=True)
-    lessons_learned = models.CharField(max_length=500, verbose_name=_('lessons learned'), blank=True)
-    event_description = models.CharField(max_length=800, verbose_name=_('event description'), blank=True)
-    anticipatory_actions = models.CharField(
-        max_length=800, blank=True,
+    dref_recurrent_text = models.TextField(verbose_name=_('dref recurrent text'), blank=True)
+    lessons_learned = models.TextField(verbose_name=_('lessons learned'), blank=True)
+    event_description = models.TextField(verbose_name=_('event description'), blank=True)
+    anticipatory_actions = models.TextField(
+        blank=True,
         verbose_name=_('anaticipatory actions'),
         help_text=_('Description of anticipatory actions or imminent disaster')
     )
-    event_scope = models.CharField(
-        max_length=800, blank=True,
+    event_scope = models.TextField(
+        blank=True,
         verbose_name=_('event scope'),
         help_text=_('Scope and scale of event')
     )
@@ -230,30 +228,30 @@ class Dref(models.Model):
         verbose_name=_('government requested assistance date'),
         null=True, blank=True
     )
-    national_authorities = models.CharField(max_length=300, verbose_name=_('national authorities'), blank=True)
-    ifrc = models.CharField(max_length=300, verbose_name=_('ifrc'), blank=True)
-    icrc = models.CharField(max_length=300, verbose_name=_('icrc'), blank=True)
-    partner_national_society = models.CharField(max_length=300, verbose_name=_('partner national society'), blank=True)
-    un_or_other_actor = models.CharField(max_length=300, verbose_name=_('un or other'), blank=True)
-    major_coordination_mechanism = models.CharField(
-        max_length=300, blank=True,
+    national_authorities = models.TextField(verbose_name=_('national authorities'), blank=True)
+    ifrc = models.TextField(verbose_name=_('ifrc'), blank=True)
+    icrc = models.TextField(verbose_name=_('icrc'), blank=True)
+    partner_national_society = models.TextField(verbose_name=_('partner national society'), blank=True)
+    un_or_other_actor = models.TextField(verbose_name=_('un or other'), blank=True)
+    major_coordination_mechanism = models.TextField(
+        blank=True,
         verbose_name=_('major coordination mechanism'),
         help_text=_('List major coordination mechanisms in place'))
     needs_identified = models.ManyToManyField(
         IdentifiedNeed, verbose_name=_('needs identified'),
         blank=True
     )
-    identified_gaps = models.CharField(
-        verbose_name=_('identified gaps'), blank=True, max_length=300,
+    identified_gaps = models.TextField(
+        verbose_name=_('identified gaps'), blank=True,
         help_text=_('Any identified gaps/limitations in the assessment')
     )
-    people_assisted = models.CharField(max_length=300, verbose_name=_('people assisted'), blank=True)
-    selection_criteria = models.CharField(
-        verbose_name=_('selection criteria'), blank=True, max_length=300,
+    people_assisted = models.TextField(verbose_name=_('people assisted'), blank=True)
+    selection_criteria = models.TextField(
+        verbose_name=_('selection criteria'), blank=True,
         help_text=_('Selection criteria for affected people')
     )
-    entity_affected = models.CharField(
-        verbose_name=_('entity affected'), blank=True, max_length=300,
+    entity_affected = models.TextField(
+        verbose_name=_('entity affected'), blank=True,
         help_text=_('Protection, gender, Inclusion affected in this process')
     )
     community_involved = models.TextField(
@@ -293,13 +291,13 @@ class Dref(models.Model):
         verbose_name=_('displaced people'), help_text=_('Estimated number of displaced people'),
         blank=True, null=True
     )
-    operation_objective = models.CharField(
+    operation_objective = models.TextField(
         verbose_name=_('operation objective'), help_text=_('Overall objective of the operation'),
-        blank=True, max_length=400
+        blank=True
     )
-    response_strategy = models.CharField(
+    response_strategy = models.TextField(
         verbose_name=_('response strategy'),
-        blank=True, max_length=200
+        blank=True,
     )
     planned_interventions = models.ManyToManyField(
         PlannedIntervention,
@@ -362,33 +360,33 @@ class Dref(models.Model):
         verbose_name=_('originator email'), max_length=255,
         null=True, blank=True
     )
-    human_resource = models.CharField(
-        max_length=300, blank=True,
+    human_resource = models.TextField(
+        blank=True,
         verbose_name=_('human resource'),
         help_text=_('how many volunteers and staff involved in the response?')
     )
-    surge_personnel_deployed = models.CharField(
-        max_length=500, blank=True,
+    surge_personnel_deployed = models.TextField(
+        blank=True,
         verbose_name=_('surge personnel deployed'),
         help_text=_('Will a Surge personnel be deployed?')
     )
-    logistic_capacity_of_ns = models.CharField(
-        max_length=500, blank=True,
+    logistic_capacity_of_ns = models.TextField(
+        blank=True,
         verbose_name=_('logistic capacity of ns'),
         help_text=_('what is the logistics capacity of the National Society?')
     )
-    safety_concerns = models.CharField(
-        max_length=500, blank=True,
+    safety_concerns = models.TextField(
+        blank=True,
         verbose_name=_('safety concerns'),
         help_text=_('Are there any safety/security concerns which may impact the implementation of this operation?')
     )
-    pmer = models.CharField(
-        max_length=500, blank=True,
+    pmer = models.TextField(
+        blank=True,
         verbose_name=_('pmer'),
         help_text=_('Does the NS have PMER capacity?')
     )
-    communication = models.CharField(
-        max_length=500, blank=True,
+    communication = models.TextField(
+        blank=True,
         verbose_name=_('organization'),
         help_text=_('Does the NS have Communications capacity?')
     )
