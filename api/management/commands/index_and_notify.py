@@ -137,7 +137,7 @@ class Command(BaseCommand):
             lookups = dtypes + countries + regions
             if len(lookups):
                 subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups, is_active=True).values('email')).distinct()
-        emails = [subscriber['email'] for subscriber in subscribers]
+        emails = list(set([subscriber['email'] for subscriber in subscribers]))
         return emails
 
     def get_template(self, rtype=99):
