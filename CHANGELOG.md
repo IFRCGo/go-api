@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.410
+
+### Added
+ - No more emails for more surge alerts
+ - Appeal-documents: better ingest (they can be on /sites/... too)
+
 ## 1.1.409
 
 ### Added
@@ -1826,7 +1832,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.409...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.410...HEAD
+[1.1.410]: https://github.com/IFRCGo/go-api/compare/1.1.409...1.1.410
 [1.1.409]: https://github.com/IFRCGo/go-api/compare/1.1.408...1.1.409
 [1.1.408]: https://github.com/IFRCGo/go-api/compare/1.1.407...1.1.408
 [1.1.407]: https://github.com/IFRCGo/go-api/compare/1.1.406...1.1.407
