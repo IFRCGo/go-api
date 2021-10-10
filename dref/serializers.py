@@ -20,7 +20,21 @@ from dref.models import (
 )
 
 
+class DrefFileSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+
+    class Meta:
+        model = DrefFile
+        fields = '__all__'
+        read_only_fields = ('created_by',)
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+
 class PlannedInterventionSerializer(ModelSerializer):
+    budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
 
     class Meta:
         model = PlannedIntervention
@@ -55,19 +69,6 @@ class DrefCountryDistrictSerializer(ModelSerializer):
                         'district': ugettext('Different districts found for given country')
                     })
         return data
-
-
-class DrefFileSerializer(ModelSerializer):
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-
-    class Meta:
-        model = DrefFile
-        fields = '__all__'
-        read_only_fields = ('created_by',)
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)
 
 
 class DrefSerializer(
