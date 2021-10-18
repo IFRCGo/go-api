@@ -231,7 +231,7 @@ def sync_deployments(molnix_deployments):
     # Mark Personnel entries no longer in Molnix as inactive:
 
     for id in inactive_ids:
-        personnel = Personnel.objects.get(pk=id)
+        personnel = Personnel.objects.get(molnix_id=id)
         personnel.is_active = False
         personnel.save()
 
