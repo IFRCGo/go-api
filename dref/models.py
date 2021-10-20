@@ -95,11 +95,6 @@ class PlannedIntervention(models.Model):
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
     indicator = models.TextField(verbose_name=_('indicator'), blank=True)
-    budget_file = models.ForeignKey(
-        'DrefFile', on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name=_('budget file'),
-    )
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -320,12 +315,28 @@ class Dref(models.Model):
         verbose_name=_('ifrc appeal manager email'), max_length=255,
         null=True, blank=True
     )
+    ifrc_appeal_manager_title = models.CharField(
+        verbose_name=_('ifrc appeal manager title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_appeal_manager_phone_number = models.CharField(
+        verbose_name=_('ifrc appeal manager phone number'), max_length=100,
+        null=True, blank=True
+    )
     ifrc_project_manager_name = models.CharField(
         verbose_name=_('ifrc project manager name'), max_length=255,
         null=True, blank=True
     )
     ifrc_project_manager_email = models.CharField(
         verbose_name=_('ifrc project manager email'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_project_manager_title = models.CharField(
+        verbose_name=_('ifrc project manager title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_project_manager_phone_number = models.CharField(
+        verbose_name=_('ifrc project manager phone number'), max_length=100,
         null=True, blank=True
     )
     national_society_contact_name = models.CharField(
@@ -336,12 +347,28 @@ class Dref(models.Model):
         verbose_name=_('national society contact email'), max_length=255,
         null=True, blank=True
     )
+    national_society_contact_title = models.CharField(
+        verbose_name=_('national society contact title'), max_length=255,
+        null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_('national society contact phone number'), max_length=100,
+        null=True, blank=True
+    )
     media_contact_name = models.CharField(
         verbose_name=_('media contact name'), max_length=255,
         null=True, blank=True
     )
     media_contact_email = models.CharField(
         verbose_name=_('media contact email'), max_length=255,
+        null=True, blank=True
+    )
+    media_contact_title = models.CharField(
+        verbose_name=_('media contact title'), max_length=255,
+        null=True, blank=True
+    )
+    media_contact_phone_number = models.CharField(
+        verbose_name=_('media_contact phone number'), max_length=100,
         null=True, blank=True
     )
     ifrc_emergency_name = models.CharField(
@@ -352,12 +379,28 @@ class Dref(models.Model):
         verbose_name=_('ifrc emergency email'), max_length=255,
         null=True, blank=True
     )
+    ifrc_emergency_title = models.CharField(
+        verbose_name=_('ifrc emergency title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_emergency_phone_number = models.CharField(
+        verbose_name=_('ifrc emergency phone number'), max_length=100,
+        null=True, blank=True
+    )
     originator_name = models.CharField(
         verbose_name=_('originator name'), max_length=255,
         null=True, blank=True
     )
     originator_email = models.CharField(
         verbose_name=_('originator email'), max_length=255,
+        null=True, blank=True
+    )
+    originator_title = models.CharField(
+        verbose_name=_('originator title'), max_length=255,
+        null=True, blank=True
+    )
+    originator_phone_number = models.CharField(
+        verbose_name=_('originator phone number'), max_length=100,
         null=True, blank=True
     )
     human_resource = models.TextField(
@@ -400,6 +443,12 @@ class Dref(models.Model):
         'DrefFile', blank=True,
         verbose_name=_('images'),
         related_name='image_dref'
+    )
+    budget_file = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('budget file'),
+        related_name='budget_file_dref'
     )
 
     class Meta:
