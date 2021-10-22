@@ -272,8 +272,13 @@ class Dref(models.Model):
         blank=True, null=True,
         max_digits=5, decimal_places=2
     )
-    people_per_urban_local = models.DecimalField(
-        verbose_name=_('people per urban local'), help_text=_('Estimated % people Urban/Rural'),
+    people_per_urban = models.DecimalField(
+        verbose_name=_('people per urban'), help_text=_('Estimated % people Urban'),
+        blank=True, null=True,
+        max_digits=5, decimal_places=2
+    )
+    people_per_local = models.DecimalField(
+        verbose_name=_('people per local'), help_text=_('Estimated % people Rural'),
         blank=True, null=True,
         max_digits=5, decimal_places=2
     )

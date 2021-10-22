@@ -91,6 +91,7 @@ class DrefSerializer(
     field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
+    budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
 
     class Meta:
         model = Dref
@@ -100,11 +101,15 @@ class DrefSerializer(
     def to_representation(self, instance):
         data = super().to_representation(instance)
         disability_people_per = data.get('disability_people_per', '')
-        people_per_urban_local = data.get('people_per_urban_local', '')
         if disability_people_per and len(disability_people_per.split('.')[0]) == 3:
             data['disability_people_per'] = disability_people_per.split('.')[0]
-        if people_per_urban_local and len(people_per_urban_local.split('.')[0]) == 3:
-            data['people_per_urban_local'] = people_per_urban_local.split('.')[0]
+        # TODO: Why are we doing this?
+        people_per_urban = data.get('people_per_urban', '')
+        people_per_local = data.get('people_per_local', '')
+        if people_per_urban and len(people_per_urban.split('.')[0]) == 3:
+            data['people_per_urban'] = people_per_urban.split('.')[0]
+        if people_per_local and len(people_per_local.split('.')[0]) == 3:
+            data['people_per_local'] = people_per_local.split('.')[0]
         return data
 
     def validate(self, data):
