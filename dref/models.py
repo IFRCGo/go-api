@@ -93,7 +93,7 @@ class PlannedIntervention(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
-    person_targated = models.IntegerField(verbose_name=_('person targated'), blank=True, null=True)
+    person_targeted = models.IntegerField(verbose_name=_('person targeted'), blank=True, null=True)
     indicator = models.TextField(verbose_name=_('indicator'), blank=True)
 
     class Meta:
