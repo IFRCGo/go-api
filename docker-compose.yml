@@ -32,13 +32,14 @@ services:
     image: ifrcgo/go-api:latest
 
   db:
-    image: mdillon/postgis:9.6-alpine
+    image: postgis/postgis:11-3.1-alpine
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      - './.tmp/pg:/var/lib/postgresql/data'
+# Database migration should be done manually, so .tmp -> .db:
+      - './.db/pg:/var/lib/postgresql/data'
 
   redis:
     image: redis:latest
