@@ -49,11 +49,13 @@ class SurgeAlert(models.Model):
     message = models.TextField(verbose_name=_('message'))
     deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
     is_private = models.BooleanField(verbose_name=_('is private?'), default=False)
+    is_stood_down = models.BooleanField(verbose_name=_('is stood down?'), default=False)
     event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     # Fields specific to Molnix integration:
     # ID in Molnix system, if parsed from Molnix.
     molnix_id = models.IntegerField(blank=True, null=True)
+
 
     # Status field from Molnix - `unfilled` denotes Stood-Down
     molnix_status = models.CharField(blank=True, null=True, max_length=32)    
