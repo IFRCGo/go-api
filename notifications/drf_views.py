@@ -27,7 +27,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = SurgeAlert.objects.all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ('created_at', 'atype', 'category', 'event',)
+    ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down',)
 
     def get_serializer_class(self):
         # if self.request.user.is_authenticated:

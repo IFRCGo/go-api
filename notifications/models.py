@@ -49,7 +49,6 @@ class SurgeAlert(models.Model):
     message = models.TextField(verbose_name=_('message'))
     deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
     is_private = models.BooleanField(verbose_name=_('is private?'), default=False)
-    is_stood_down = models.BooleanField(verbose_name=_('is stood down?'), default=False)
     event = models.ForeignKey(Event, verbose_name=_('event'), null=True, blank=True, on_delete=models.SET_NULL)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     # Fields specific to Molnix integration:
@@ -58,6 +57,9 @@ class SurgeAlert(models.Model):
 
     # Status field from Molnix - `unfilled` denotes Stood-Down
     molnix_status = models.CharField(blank=True, null=True, max_length=32)    
+
+    # It depends on molnix_status. Check "save" method below.
+    is_stood_down = models.BooleanField(verbose_name=_('is stood down?'), default=False)
     opens = models.DateTimeField(blank=True, null=True)
     closes = models.DateTimeField(blank=True, null=True)
     start = models.DateTimeField(blank=True, null=True)
@@ -79,6 +81,7 @@ class SurgeAlert(models.Model):
         # On save, if `created` is not set, make it the current time
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
+        self.is_stood_down = self.molnix_status == 'unfilled'
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
