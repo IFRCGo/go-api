@@ -80,7 +80,7 @@ python3 manage.py static-translation-import path-to-import.csv
 ## Note for Django Model translations
 
 ```
-# Use this to copy the data from original field to it's default lanauage.
+# Use this to copy the data from original field to it's default language.
 # For eg: if the field `name` is registred for translation then
 # this command will copy value from `name` to `name_en` if en is the default language.
 python manage.py update_translation_fields
