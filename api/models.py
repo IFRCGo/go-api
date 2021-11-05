@@ -1015,7 +1015,7 @@ class AppealFilter(models.Model):
 
 
 def general_document_path(instance, filename):
-    return 'documents/%s/%s' % (instance.name, filename)
+    return ('documents/%s/%s' % (instance.name, filename)).replace(' ','_')
 
 class GeneralDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
@@ -1037,7 +1037,7 @@ class GeneralDocument(models.Model):
         return super(GeneralDocument, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return ('%s' % self.document)[10:] # 10 = len('documents/')
 
 
 class RequestChoices(IntEnum):
