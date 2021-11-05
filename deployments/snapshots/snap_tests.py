@@ -600,12 +600,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 5,
+            'count': 6,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 4,
+            'count': 3,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
