@@ -161,8 +161,8 @@ class Dref(models.Model):
         blank=True, null=True,
         on_delete=models.SET_NULL
     )
-    type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'))
-    disaster_category = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category'))
+    type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'), null=True, blank=True)
+    disaster_category = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category'), null=True, blank=True)
     status = EnumIntegerField(Status, verbose_name=_('status'), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
@@ -231,7 +231,8 @@ class Dref(models.Model):
     major_coordination_mechanism = models.TextField(
         blank=True,
         verbose_name=_('major coordination mechanism'),
-        help_text=_('List major coordination mechanisms in place'))
+        help_text=_('List major coordination mechanisms in place')
+    )
     needs_identified = models.ManyToManyField(
         IdentifiedNeed, verbose_name=_('needs identified'),
         blank=True
@@ -461,6 +462,7 @@ class Dref(models.Model):
         verbose_name_plural = _('drefs')
 
     def save(self, *args, **kwargs):
+        # TODO: Need to remove this if not required later
         if self.date_of_approval:
             self.status = Dref.Status.COMPLETED
         elif not self.date_of_approval:
