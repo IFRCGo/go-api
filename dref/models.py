@@ -45,7 +45,7 @@ class NationalSocietyAction(models.Model):
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('national society action')
@@ -69,7 +69,7 @@ class IdentifiedNeed(models.Model):
         SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('identified need')
@@ -91,10 +91,10 @@ class PlannedIntervention(models.Model):
         NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    description = models.TextField(verbose_name=_('description'), blank=True)
+    description = models.TextField(verbose_name=_('description'), blank=True, null=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_('person targeted'), blank=True, null=True)
-    indicator = models.TextField(verbose_name=_('indicator'), blank=True)
+    indicator = models.TextField(verbose_name=_('indicator'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -153,8 +153,7 @@ class Dref(models.Model):
     title = models.CharField(verbose_name=_('title'), max_length=255)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
-        blank=True, null=True,
-        on_delete=models.SET_NULL
+        on_delete=models.CASCADE,
     )
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_('disaster type'),
@@ -167,48 +166,55 @@ class Dref(models.Model):
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
-    emergency_appeal_planned = models.BooleanField(verbose_name=_('emergency appeal planned '), default=False)
+    emergency_appeal_planned = models.BooleanField(
+        verbose_name=_('emergency appeal planned '),
+        null=True, blank=True
+    )
     event_date = models.DateField(
         verbose_name=_('event date'),
         null=True, blank=True,
         help_text=_('Date of event/Approximate date of impact')
     )
-    event_text = models.TextField(verbose_name=_('event text'), blank=True)
+    event_text = models.TextField(verbose_name=_('event text'), blank=True, null=True)
     ns_respond_date = models.DateField(
         verbose_name=_('ns respond date'),
         null=True, blank=True,
         help_text=_('NS anticipatory actions started/NS response')
     )
     affect_same_area = models.BooleanField(
-        default=False, help_text=_('Has a similar event affected the same areas in the past?')
+        null=True, blank=True,
+        help_text=_('Has a similar event affected the same areas in the past?')
     )
     affect_same_population = models.BooleanField(
-        default=False, help_text=_('Did it affect the same population?')
+        null=True, blank=True,
+        help_text=_('Did it affect the same population?')
     )
     affect_same_population_text = models.TextField(
         blank=True, null=True,
         verbose_name=_('affect same population text')
     )
     ns_respond = models.BooleanField(
+        null=True, blank=True,
         default=False, help_text=_('Did NS respond')
     )
     ns_request_fund = models.BooleanField(
+        null=True, blank=True,
         default=False, help_text=_('Did the NS request funding from DREF?')
     )
     ns_request_text = models.TextField(
         blank=True, null=True,
         verbose_name=_('ns request text')
     )
-    dref_recurrent_text = models.TextField(verbose_name=_('dref recurrent text'), blank=True)
-    lessons_learned = models.TextField(verbose_name=_('lessons learned'), blank=True)
-    event_description = models.TextField(verbose_name=_('event description'), blank=True)
+    dref_recurrent_text = models.TextField(verbose_name=_('dref recurrent text'), blank=True, null=True)
+    lessons_learned = models.TextField(verbose_name=_('lessons learned'), blank=True, null=True)
+    event_description = models.TextField(verbose_name=_('event description'), blank=True, null=True)
     anticipatory_actions = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('anaticipatory actions'),
         help_text=_('Description of anticipatory actions or imminent disaster')
     )
     event_scope = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('event scope'),
         help_text=_('Scope and scale of event')
     )
@@ -217,19 +223,20 @@ class Dref(models.Model):
         blank=True
     )
     government_requested_assistance = models.BooleanField(
-        default=False, help_text=_('Has government requested assistance')
+        null=True, blank=True,
+        help_text=_('Has government requested assistance')
     )
     government_requested_assistance_date = models.DateField(
         verbose_name=_('government requested assistance date'),
         null=True, blank=True
     )
-    national_authorities = models.TextField(verbose_name=_('national authorities'), blank=True)
-    ifrc = models.TextField(verbose_name=_('ifrc'), blank=True)
-    icrc = models.TextField(verbose_name=_('icrc'), blank=True)
-    partner_national_society = models.TextField(verbose_name=_('partner national society'), blank=True)
-    un_or_other_actor = models.TextField(verbose_name=_('un or other'), blank=True)
+    national_authorities = models.TextField(verbose_name=_('national authorities'), blank=True, null=True)
+    ifrc = models.TextField(verbose_name=_('ifrc'), blank=True, null=True)
+    icrc = models.TextField(verbose_name=_('icrc'), blank=True, null=True)
+    partner_national_society = models.TextField(verbose_name=_('partner national society'), blank=True, null=True)
+    un_or_other_actor = models.TextField(verbose_name=_('un or other'), blank=True, null=True)
     major_coordination_mechanism = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('major coordination mechanism'),
         help_text=_('List major coordination mechanisms in place')
     )
@@ -238,20 +245,20 @@ class Dref(models.Model):
         blank=True
     )
     identified_gaps = models.TextField(
-        verbose_name=_('identified gaps'), blank=True,
+        verbose_name=_('identified gaps'), blank=True, null=True,
         help_text=_('Any identified gaps/limitations in the assessment')
     )
-    people_assisted = models.TextField(verbose_name=_('people assisted'), blank=True)
+    people_assisted = models.TextField(verbose_name=_('people assisted'), blank=True, null=True)
     selection_criteria = models.TextField(
-        verbose_name=_('selection criteria'), blank=True,
+        verbose_name=_('selection criteria'), blank=True, null=True,
         help_text=_('Selection criteria for affected people')
     )
     entity_affected = models.TextField(
-        verbose_name=_('entity affected'), blank=True,
+        verbose_name=_('entity affected'), blank=True, null=True,
         help_text=_('Protection, gender, Inclusion affected in this process')
     )
     community_involved = models.TextField(
-        verbose_name=_('community involved'), blank=True,
+        verbose_name=_('community involved'), blank=True, null=True,
         help_text=_('Community been involved in the analysis of the process')
     )
     women = models.IntegerField(verbose_name=_('women'), blank=True, null=True)
@@ -294,11 +301,11 @@ class Dref(models.Model):
     )
     operation_objective = models.TextField(
         verbose_name=_('operation objective'), help_text=_('Overall objective of the operation'),
-        blank=True
+        blank=True, null=True,
     )
     response_strategy = models.TextField(
         verbose_name=_('response strategy'),
-        blank=True,
+        blank=True, null=True,
     )
     planned_interventions = models.ManyToManyField(
         PlannedIntervention,
@@ -410,32 +417,32 @@ class Dref(models.Model):
         null=True, blank=True
     )
     human_resource = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('human resource'),
         help_text=_('how many volunteers and staff involved in the response?')
     )
     surge_personnel_deployed = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('surge personnel deployed'),
         help_text=_('Will a Surge personnel be deployed?')
     )
     logistic_capacity_of_ns = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('logistic capacity of ns'),
         help_text=_('what is the logistics capacity of the National Society?')
     )
     safety_concerns = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('safety concerns'),
         help_text=_('Are there any safety/security concerns which may impact the implementation of this operation?')
     )
     pmer = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('pmer'),
         help_text=_('Does the NS have PMER capacity?')
     )
     communication = models.TextField(
-        blank=True,
+        blank=True, null=True,
         verbose_name=_('organization'),
         help_text=_('Does the NS have Communications capacity?')
     )
@@ -446,7 +453,7 @@ class Dref(models.Model):
         related_name='event_map_dref'
     )
     images = models.ManyToManyField(
-        'DrefFile', blank=True,
+        'DrefFile', blank=True, null=True,
         verbose_name=_('images'),
         related_name='image_dref'
     )
