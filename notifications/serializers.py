@@ -20,7 +20,7 @@ class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'operation', 'country', 'message', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
             'atype', 'atype_display', 'category', 'category_display', 'molnix_id', 'molnix_tags',
-            'molnix_status', 'opens', 'closes', 'start', 'end', 'is_active',
+            'molnix_status', 'opens', 'closes', 'start', 'end', 'is_active', 'is_stood_down'
         )
 
 
