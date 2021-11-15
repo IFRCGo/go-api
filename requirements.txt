@@ -65,7 +65,7 @@ opencensus-ext-azure==1.0.7
 opencensus-ext-django==0.7.4
 pandas==0.23.4
 pdfminer.six==20191110
-pip==19.3.1
+pip==21.1
 polib==1.1.0
 promise==2.1
 psycopg2==2.7.3.2
