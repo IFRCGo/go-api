@@ -30,6 +30,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SurgeAlert.objects.all()
     filterset_class = SurgeAlertFilter
     ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down',)
+    search_fields = ('operation', 'message', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
         # if self.request.user.is_authenticated:
@@ -48,6 +49,7 @@ class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+    search_fields = ('user__username', 'rtype')  # for /docs
 
     def get_queryset(self):
         return Subscription.objects.filter(user=self.request.user)
