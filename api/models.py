@@ -282,11 +282,13 @@ class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
     IFRC = 2
     PUBLIC = 3
+    IFRC_NS = 4
 
     class Labels:
         MEMBERSHIP = _('Membership')
         IFRC = _('IFRC Only')
         PUBLIC = _('Public')
+        IFRC_NS = _('IFRC_NS')
 
 
 class VisibilityCharChoices():
@@ -294,11 +296,13 @@ class VisibilityCharChoices():
     MEMBERSHIP = 'logged_in_user'
     IFRC = 'ifrc_only'
     PUBLIC = 'public'
+    IFRC_NS = 'ifrc_ns'
 
     CHOICES = (
         (MEMBERSHIP, _('Membership')),
         (IFRC, _('IFRC Only')),
         (PUBLIC, _('Public')),
+        (IFRC_NS, _('IFRC_NS')),
     )
 
 
@@ -583,6 +587,9 @@ class Event(models.Model):
     )
     tab_two_title = models.CharField(verbose_name=_('tab two title'), max_length=50, null=True, blank=True)
     tab_three_title = models.CharField(verbose_name=_('tab three title'), max_length=50, null=True, blank=True)
+
+    # visibility
+    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=1)
 
     class Meta:
         ordering = ('-disaster_start_date',)
@@ -1063,6 +1070,25 @@ class SupportedActivity(models.Model):
     def __str__(self):
         return self.name
 
+class UserCountry(models.Model):
+    """ Connects User, role and Country """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='userName',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+
+    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.CASCADE)
+    #countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    #role = models.IntegerField(verbose_name=_('role'))
+
+    class Meta:
+        verbose_name = _('User Country')
+        verbose_name_plural = _('User Countries')
+
+    def __str__(self):
+        #import pdb; pdb.set_trace();
+        return self.user.get_username()
 
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
@@ -1286,6 +1312,14 @@ class FieldReport(models.Model):
 
     def to_dict(self):
         return to_dict(self)
+    
+    # def get_for(cls, user, queryset=None):
+    #     _queryset = queryset
+    #     if queryset is None:
+    #         _queryset = cls.objects
+    #     import pdb; pdb.set_trace();
+    #     return _queryset.filter(user=user)
+
 
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
