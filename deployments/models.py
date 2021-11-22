@@ -9,8 +9,9 @@ from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
+from django.db.models import Q
 
-from api.models import District, Country, Region, Event, DisasterType, Appeal, VisibilityCharChoices
+from api.models import District, Country, Region, Event, DisasterType, Appeal, VisibilityCharChoices, Profile, UserCountry,VisibilityChoices, VisibilityCharChoices
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
@@ -431,6 +432,10 @@ class Project(models.Model):
             self.status = Statuses.COMPLETED
         return super().save(*args, **kwargs)
 
+    def get_for(user, queryset=None):
+        _queryset = queryset
+        retval = _queryset.exclude(Q(visibility=VisibilityCharChoices.IFRC_NS) & (~Q(project_country_id__in=UserCountry.objects.filter(user=user.id).values_list('country',flat=True).union(Profile.objects.filter(user=user.id).values_list('country',flat=True))))  & ~Q(reporting_ns_id__in=UserCountry.objects.filter(user=user.id).values_list('country',flat=True).union(Profile.objects.filter(user=user.id).values_list('country',flat=True))))
+        return retval
 
 class ProjectImport(models.Model):
     """

@@ -19,7 +19,7 @@ from databank.serializers import CountryOverviewSerializer
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
-from .visibility_class import ReadOnlyVisibilityViewset
+from .visibility_class import ReadOnlyVisibilityViewsetMixin, ReadOnlyVisibilityViewset
 
 from .models import (
     AppealHistory,
@@ -319,18 +319,24 @@ class EventFilter(filters.FilterSet):
         }
 
 
-class EventViewset(viewsets.ReadOnlyModelViewSet):
+class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filterset_class = EventFilter
+    visibility_model_class = Event
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
+    visibility_model_class = Event
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
+        #import pdb; pdb.set_trace();
+        qset = super().get_queryset(*args, **kwargs)
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
-            Event.objects.filter(parent_event__isnull=True)
+            #Event.objects.filter(parent_event__isnull=True)
+            qset.filter(parent_event__isnull=True)
             .select_related('dtype')
             .prefetch_related(
                 'regions',
@@ -639,6 +645,8 @@ class GenericFieldReportView(GenericAPIView):
             data['visibility'] = VisibilityChoices.IFRC
         elif data['visibility'] == 3 or data['visibility'] == '3':
             data['visibility'] = VisibilityChoices.PUBLIC
+        elif data['visibility'] == 4 or data['visibility'] == '4':
+            data['visibility'] = VisibilityChoices.IFRC_NS    
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
 
@@ -821,6 +829,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             disaster_start_date=report.start_date,
             auto_generated=True,
             auto_generated_source=SOURCES['new_report'],
+            visibility=report.visibility,
         )
         report.event = event
         report.save()

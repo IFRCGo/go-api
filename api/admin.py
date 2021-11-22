@@ -423,6 +423,10 @@ class AppealFilterAdmin(CompareVersionAdmin):
     list_display = ('name', 'value')
     search_fields = ('name', 'value')
 
+class UserCountryAdmin(CompareVersionAdmin):
+    list_display = ('user','country')
+    #search_fields = ('user','country')
+    model = models.UserCountry
 
 class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     search_fields = ('name',)
@@ -754,6 +758,7 @@ admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.register(models.AuthLog, AuthLogAdmin)
 admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
 admin.site.register(models.MainContact, MainContactAdmin)
+admin.site.register(models.UserCountry, UserCountryAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
