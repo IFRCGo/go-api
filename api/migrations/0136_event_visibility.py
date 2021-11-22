@@ -8,7 +8,7 @@ import enumfields.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0134_usercountry'),
+        ('api', '0135_usercountry'),
     ]
 
     operations = [

@@ -40,8 +40,8 @@ services:
     volumes:
 # Database migration should be done manually, so .tmp -> .db:
       - './.db/pg:/var/lib/postgresql/data'
-    ports:
-      - 5432:5432
+   # ports:
+   #   - 5432:5432
   redis:
     image: redis:latest
     volumes:

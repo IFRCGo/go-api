@@ -816,8 +816,8 @@ class GenericFieldReportView(GenericAPIView):
 
 
 class CreateFieldReport(CreateAPIView, GenericFieldReportView):
-    #authentication_classes = (TokenAuthentication,)
-    #permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = FieldReport.objects.all()
     serializer_class = CreateFieldReportSerializer
 
