@@ -4,6 +4,7 @@ from .models import (
     ActionsTaken,
     Appeal,
     AppealDocument,
+    GeneralDocument,
     Country,
     CountrySnippet,
     DisasterType,
@@ -43,6 +44,11 @@ class AppealTO(TranslationOptions):
 
 @register(AppealDocument)
 class AppealDocumentTO(TranslationOptions):
+    fields = ('name',)
+
+
+@register(GeneralDocument)
+class GeneralDocumentTO(TranslationOptions):
     fields = ('name',)
 
 

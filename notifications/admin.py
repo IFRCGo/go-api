@@ -12,7 +12,7 @@ class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdm
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
     search_fields = ('operation', 'message', 'event__name',)
-    readonly_fields = ('molnix_id',)
+    readonly_fields = ('molnix_id', 'is_stood_down')
 
 
 class SubscriptionAdmin(CompareVersionAdmin):

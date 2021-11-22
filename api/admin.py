@@ -354,6 +354,10 @@ class AppealDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.AppealDocument
 
 
+class GeneralDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
+    model = models.GeneralDocument
+
+
 class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'country__pk__in'
     region_in = 'region__pk__in'
@@ -423,6 +427,10 @@ class UserCountryAdmin(CompareVersionAdmin):
     list_display = ('user','country')
     #search_fields = ('user','country')
     model = models.UserCountry
+
+class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    search_fields = ('name',)
+
 
 class CountryKeyFigureInline(admin.TabularInline):
     model = models.CountryKeyFigure
@@ -734,6 +742,7 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.AppealFilter, AppealFilterAdmin)
+admin.site.register(models.GeneralDocument, GeneralDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.ExternalPartner, ExternalPartnerAdmin)
 admin.site.register(models.SupportedActivity, SupportedActivityAdmin)

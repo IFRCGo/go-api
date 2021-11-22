@@ -57,6 +57,9 @@ class SurgeAlert(models.Model):
 
     # Status field from Molnix - `unfilled` denotes Stood-Down
     molnix_status = models.CharField(blank=True, null=True, max_length=32)    
+
+    # It depends on molnix_status. Check "save" method below.
+    is_stood_down = models.BooleanField(verbose_name=_('is stood down?'), default=False)
     opens = models.DateTimeField(blank=True, null=True)
     closes = models.DateTimeField(blank=True, null=True)
     start = models.DateTimeField(blank=True, null=True)
@@ -78,6 +81,7 @@ class SurgeAlert(models.Model):
         # On save, if `created` is not set, make it the current time
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
+        self.is_stood_down = self.molnix_status == 'unfilled'
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):
