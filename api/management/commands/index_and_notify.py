@@ -207,7 +207,14 @@ class Command(BaseCommand):
         elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
         elif rtype == RecordType.SURGE_ALERT:
-            sendMe = record.message
+            if record.country:
+                if f"{record.country}" in f"{record.event}":
+                    sendMe = f"{record.event}"
+                else:
+                    sendMe = f"{record.event} – {record.country}"
+            else:
+                sendMe = f"{record.event}"
+            sendMe += f"||{record.start}|{record.end}||{(record.end-record.start).days}"
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             sendMe = record.comments
         else:
@@ -468,6 +475,13 @@ class Command(BaseCommand):
                 'latest_deployments': self.get_weekly_digest_latest_deployments(),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
+        elif rtype == RecordType.SURGE_ALERT:
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                'content': shortened,
+        }
         else:  # The default (old) template
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
