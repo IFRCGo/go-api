@@ -1021,6 +1021,32 @@ class AppealFilter(models.Model):
         return self.name
 
 
+def general_document_path(instance, filename):
+    return ('documents/%s/%s' % (instance.name, filename)).replace(' ','_')
+
+class GeneralDocument(models.Model):
+    # Don't set `auto_now_add` so we can modify it on save
+    created_at = models.DateTimeField(verbose_name=_('created at'))
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    document = models.FileField(
+        verbose_name=_('document'), null=True, blank=True, upload_to=general_document_path, storage=get_storage()
+    )
+    document_url = models.URLField(verbose_name=_('document url'), blank=True)
+
+    class Meta:
+        verbose_name = _('general document')
+        verbose_name_plural = _('general documents')
+
+    def save(self, *args, **kwargs):
+        # On save, if `created` is not set, make it the current time
+        if not self.id and not self.created_at:
+            self.created_at = timezone.now()
+        return super(GeneralDocument, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return ('%s' % self.document)[10:] # 10 = len('documents/')
+
+
 class RequestChoices(IntEnum):
     NO = 0
     REQUESTED = 1

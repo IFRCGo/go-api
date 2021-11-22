@@ -67,6 +67,7 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
     queryset = ERUOwner.objects.all()
     serializer_class = ERUOwnerSerializer
     ordering_fields = ('created_at', 'updated_at',)
+    search_fields = ('national_society_country__name',)  # for /docs
 
 
 class ERUFilter(filters.FilterSet):
@@ -108,6 +109,7 @@ class PersonnelDeploymentViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = PersonnelDeploymentSerializer
     filterset_class = PersonnelDeploymentFilter
     ordering_fields = ('country_deployed_to', 'region_deployed_to', 'event_deployed_to',)
+    search_fields = ('country_deployed_to__name', 'region_deployed_to__label', 'event_deployed_to__name')  #
 
 
 class PersonnelFilter(filters.FilterSet):
@@ -130,6 +132,7 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Personnel.objects.all()
     filterset_class = PersonnelFilter
     ordering_fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment',)
+    search_fields = ('name', 'role', 'type',)  # for /docs
 
     def get_queryset(self):
         qs = super().get_queryset().filter(is_active=True).select_related(
@@ -267,7 +270,7 @@ class PartnerDeploymentViewset(viewsets.ReadOnlyModelViewSet):
 class RegionalProjectViewset(viewsets.ReadOnlyModelViewSet):
     queryset = RegionalProject.objects.all()
     serializer_class = RegionalProjectSerializer
-    search_fields = ('name',)
+    search_fields = ('name',)  # for /docs
 
 
 class ProjectViewset(
@@ -283,6 +286,7 @@ class ProjectViewset(
     serializer_class = ProjectSerializer
     csv_serializer_class = ProjectCsvSerializer
     ordering_fields = ('name',)
+    search_fields = ('name',)  # for /docs
 
     def get_permissions(self):
         # Require authentication for unsafe methods only

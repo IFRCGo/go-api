@@ -147,6 +147,7 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
     serializer_class = DisasterTypeSerializer
+    search_fields = ('name',)  # for /docs
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
@@ -170,6 +171,7 @@ class CountryFilter(filters.FilterSet):
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False)
     filterset_class = CountryFilter
+    search_fields = ('name',)  # for /docs
 
     def get_object(self):
         pk = self.kwargs['pk']
@@ -289,6 +291,7 @@ class DistrictFilter(filters.FilterSet):
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.select_related('country').filter(is_deprecated=False)
     filterset_class = DistrictFilter
+    search_fields = ('name', 'country__name',)  # for /docs
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -321,6 +324,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filterset_class = EventFilter
+    search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
     visibility_model_class = Event
 
     def get_queryset(self, *args, **kwargs):
@@ -403,6 +407,7 @@ class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
     ordering_fields = ('type',)
+    search_fields = ('type',)  # for /docs
 
 
 class SituationReportFilter(filters.FilterSet):
@@ -423,6 +428,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     ordering_fields = ('created_at', 'name',)
     filterset_class = SituationReportFilter
     visibility_model_class = SituationReport
+    search_fields = ('name', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -477,6 +483,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
+    search_fields = ('appeal__name', 'code',)  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -530,6 +537,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     ordering_fields = ('created_at', 'name',)
     filterset_class = AppealDocumentFilter
+    search_fields = ('name', 'appeal__code', 'appeal__name')  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -584,6 +592,7 @@ class FieldReportFilter(filters.FilterSet):
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
+    search_fields = ('countries__name', 'regions__name', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
         qset = super().get_queryset(*args, **kwargs)
@@ -928,6 +937,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = MainContactSerializer
     queryset = MainContact.objects.order_by('extent')
+    search_fields = ('name', 'email')  # for /docs
 
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer
