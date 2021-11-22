@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - New content-visibility level (IFRC_NS: FR, Proj, event)
+ - Longer date interval for appeal doc scraper
+ - Bump up elasticsearch to 6.3.0, urllib3 to 1.26.7
+ - Fixing .dockerignore, bump up pip to 21.1
+ - Search parameter for most of /docs endpoints
+ - Handle Stand-Downs on Surge page
+ - GeneralDocument for general document upload
+ - Local development env change: psql 9.6 to 11
+ - Molnix_id as read only field
+ - Use molnix_id instead of pk while marking deployments inactive
+
 ## 1.1.410
 
 ### Added
