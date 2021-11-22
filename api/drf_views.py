@@ -324,6 +324,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filterset_class = EventFilter
+    visibility_model_class = Event
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
     visibility_model_class = Event
 
