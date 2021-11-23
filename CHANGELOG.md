@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - Enhancements in surge alert notifications
  - New content-visibility level (IFRC_NS: FR, Proj, event)
  - Longer date interval for appeal doc scraper
  - Bump up elasticsearch to 6.3.0, urllib3 to 1.26.7
