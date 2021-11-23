@@ -191,7 +191,14 @@ class Command(BaseCommand):
                     sendMe = sendMe + ' (' + country + ')'
             return sendMe
         elif rtype == RecordType.SURGE_ALERT:
-            return record.operation + ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
+            duration = (record.end-record.start).days
+            if duration > 29:
+                durationMonth = (record.end - record.start).days // 30
+                duration = f"{durationMonth} month{'s' if durationMonth > 1 else ''}"
+            else:
+                duration = f"{(record.end - record.start).days} days"
+            return f"{record.operation}, {duration} starting on {record.start.date()}"
+            # go-frontend/issues/2041: del ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)
         else:
@@ -207,7 +214,13 @@ class Command(BaseCommand):
         elif rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT:
             sendMe = record.summary
         elif rtype == RecordType.SURGE_ALERT:
-            sendMe = record.message
+            if record.country:
+                if record.country.name in record.event.name:
+                    sendMe = record.event.name
+                else:
+                    sendMe = f"{record.event.name} – {record.country.name}"
+            else:
+                sendMe = record.event.name
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             sendMe = record.comments
         else:
@@ -468,6 +481,13 @@ class Command(BaseCommand):
                 'latest_deployments': self.get_weekly_digest_latest_deployments(),
                 'latest_field_reports': self.get_weekly_latest_frs(),
             }
+        elif rtype == RecordType.SURGE_ALERT:
+            rec_obj = {
+                'resource_uri': self.get_resource_uri(record, rtype),
+                'admin_uri': self.get_admin_uri(record, rtype),
+                'title': self.get_record_title(record, rtype),
+                'content': shortened,
+        }
         else:  # The default (old) template
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -538,6 +558,15 @@ class Command(BaseCommand):
                 record_count,
                 record_type,
             )
+
+        if rtype == RecordType.SURGE_ALERT and record_count == 1:  # go-frontend/issues/2041
+            if record.country:
+                if record.country.name in record.event.name:
+                    subject += f": {record.event.name}"
+                else:
+                    subject += f": {record.event.name}, {record.country.name}"
+            else:
+                subject += f": {record.event.name}"
 
         if self.is_daily_checkup_time():
             subject += ' [daily followup]'
