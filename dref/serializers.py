@@ -8,7 +8,13 @@ from dref.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
-from api.serializers import UserNameSerializer, MiniFieldReportSerializer
+from api.serializers import (
+    UserNameSerializer,
+    MiniFieldReportSerializer,
+    DisasterTypeSerializer,
+    CountrySerializer,
+    MiniDistrictSerializer,
+)
 
 from dref.models import (
     Dref,
@@ -55,9 +61,12 @@ class IdentifiedNeedSerializer(ModelSerializer):
 
 
 class DrefCountryDistrictSerializer(ModelSerializer):
+    country_details = CountrySerializer(source='country', read_only=True)
+    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+
     class Meta:
         model = DrefCountryDistrict
-        fields = ('id', 'country', 'district')
+        fields = ('id', 'country', 'district', 'country_details', 'district_details')
         read_only_fields = ('dref',)
 
     def validate(sel, data):
@@ -83,7 +92,7 @@ class DrefSerializer(
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
     type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
-    disaster_category_level_display = serializers.CharField(source='get_disaster_category_level_display', read_only=True)
+    disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     event_map_details = DrefFileSerializer(source='event_map', read_only=True)
@@ -92,6 +101,7 @@ class DrefSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
+    disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
 
     class Meta:
         model = Dref
