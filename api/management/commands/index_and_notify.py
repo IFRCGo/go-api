@@ -191,7 +191,14 @@ class Command(BaseCommand):
                     sendMe = sendMe + ' (' + country + ')'
             return sendMe
         elif rtype == RecordType.SURGE_ALERT:
-            return record.operation + ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
+            duration = (record.end-record.start).days
+            if duration > 29:
+                durationMonth = (record.end - record.start).days // 30
+                duration = f"{durationMonth} month{'s' if durationMonth > 1 else ''}"
+            else:
+                duration = f"{(record.end - record.start).days} days"
+            return f"{record.operation}, {duration} starting on {record.start.date()}"
+            # go-frontend/issues/2041: del ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)
         else:
@@ -208,13 +215,12 @@ class Command(BaseCommand):
             sendMe = record.summary
         elif rtype == RecordType.SURGE_ALERT:
             if record.country:
-                if f"{record.country}" in f"{record.event}":
-                    sendMe = f"{record.event}"
+                if record.country.name in record.event.name:
+                    sendMe = record.event.name
                 else:
-                    sendMe = f"{record.event} – {record.country}"
+                    sendMe = f"{record.event.name} – {record.country.name}"
             else:
-                sendMe = f"{record.event}"
-            sendMe += f"||{record.start}|{record.end}||{(record.end-record.start).days}"
+                sendMe = record.event.name
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             sendMe = record.comments
         else:
@@ -552,6 +558,15 @@ class Command(BaseCommand):
                 record_count,
                 record_type,
             )
+
+        if rtype == RecordType.SURGE_ALERT and record_count == 1:  # go-frontend/issues/2041
+            if record.country:
+                if record.country.name in record.event.name:
+                    subject += f": {record.event.name}"
+                else:
+                    subject += f": {record.event.name}, {record.country.name}"
+            else:
+                subject += f": {record.event.name}"
 
         if self.is_daily_checkup_time():
             subject += ' [daily followup]'
