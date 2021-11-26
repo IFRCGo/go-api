@@ -54,7 +54,8 @@ from .models import (
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
-    MainContact
+    MainContact,
+    UserCountry
 )
 
 from .serializers import (
@@ -364,12 +365,18 @@ class EventViewset(ReadOnlyVisibilityViewset):
                 return ListEventSerializer
         else:
             return DetailEventSerializer
-
+    
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
             try:
-                instance = Event.objects.get(pk=pk)
+                if self.request.user.is_authenticated:
+                    if self.request.user.is_superuser:
+                        instance = Event.objects.get(pk=pk)
+                    else:
+                        instance = Event.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True)))).get(pk=pk)
+                else:
+                    instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
@@ -403,7 +410,7 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
 
-
+   
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
