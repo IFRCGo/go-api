@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.411
+
+### Added
  - Enhancements in surge alert notifications
  - New content-visibility level (IFRC_NS: FR, Proj, event)
  - Longer date interval for appeal doc scraper
@@ -1844,7 +1847,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.410...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.411...HEAD
+[1.1.411]: https://github.com/IFRCGo/go-api/compare/1.1.410...1.1.411
 [1.1.410]: https://github.com/IFRCGo/go-api/compare/1.1.409...1.1.410
 [1.1.409]: https://github.com/IFRCGo/go-api/compare/1.1.408...1.1.409
 [1.1.408]: https://github.com/IFRCGo/go-api/compare/1.1.407...1.1.408
