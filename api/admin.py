@@ -354,6 +354,10 @@ class AppealDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.AppealDocument
 
 
+class GeneralDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
+    model = models.GeneralDocument
+
+
 class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'country__pk__in'
     region_in = 'region__pk__in'
@@ -418,6 +422,14 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
 class AppealFilterAdmin(CompareVersionAdmin):
     list_display = ('name', 'value')
     search_fields = ('name', 'value')
+
+class UserCountryAdmin(CompareVersionAdmin):
+    list_display = ('user','country')
+    #search_fields = ('user','country')
+    model = models.UserCountry
+
+class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    search_fields = ('name',)
 
 
 class CountryKeyFigureInline(admin.TabularInline):
@@ -730,6 +742,7 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.AppealFilter, AppealFilterAdmin)
+admin.site.register(models.GeneralDocument, GeneralDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)
 admin.site.register(models.ExternalPartner, ExternalPartnerAdmin)
 admin.site.register(models.SupportedActivity, SupportedActivityAdmin)
@@ -745,6 +758,7 @@ admin.site.register(models.CronJob, CronJobAdmin)
 admin.site.register(models.AuthLog, AuthLogAdmin)
 admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
 admin.site.register(models.MainContact, MainContactAdmin)
+admin.site.register(models.UserCountry, UserCountryAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'

@@ -19,7 +19,7 @@ from databank.serializers import CountryOverviewSerializer
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
-from .visibility_class import ReadOnlyVisibilityViewset
+from .visibility_class import ReadOnlyVisibilityViewsetMixin, ReadOnlyVisibilityViewset
 
 from .models import (
     AppealHistory,
@@ -54,7 +54,8 @@ from .models import (
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
-    MainContact
+    MainContact,
+    UserCountry
 )
 
 from .serializers import (
@@ -147,6 +148,7 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
     serializer_class = DisasterTypeSerializer
+    search_fields = ('name',)  # for /docs
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
@@ -170,6 +172,7 @@ class CountryFilter(filters.FilterSet):
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False)
     filterset_class = CountryFilter
+    search_fields = ('name',)  # for /docs
 
     def get_object(self):
         pk = self.kwargs['pk']
@@ -289,6 +292,7 @@ class DistrictFilter(filters.FilterSet):
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.select_related('country').filter(is_deprecated=False)
     filterset_class = DistrictFilter
+    search_fields = ('name', 'country__name',)  # for /docs
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -316,17 +320,24 @@ class EventFilter(filters.FilterSet):
         }
 
 
-class EventViewset(viewsets.ReadOnlyModelViewSet):
+class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filterset_class = EventFilter
+    visibility_model_class = Event
+    search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
+    visibility_model_class = Event
 
-    def get_queryset(self):
+    def get_queryset(self, *args, **kwargs):
+        #import pdb; pdb.set_trace();
+        qset = super().get_queryset(*args, **kwargs)
         if self.action == 'mini_events':
-            return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
-            Event.objects.filter(parent_event__isnull=True)
+            #Event.objects.filter(parent_event__isnull=True)
+            qset.filter(parent_event__isnull=True)
             .select_related('dtype')
             .prefetch_related(
                 'regions',
@@ -354,12 +365,18 @@ class EventViewset(viewsets.ReadOnlyModelViewSet):
                 return ListEventSerializer
         else:
             return DetailEventSerializer
-
+    
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
             try:
-                instance = Event.objects.get(pk=pk)
+                if self.request.user.is_authenticated:
+                    if self.request.user.is_superuser:
+                        instance = Event.objects.get(pk=pk)
+                    else:
+                        instance = Event.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True)))).get(pk=pk)
+                else:
+                    instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
@@ -393,11 +410,12 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
 
-
+   
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
     ordering_fields = ('type',)
+    search_fields = ('type',)  # for /docs
 
 
 class SituationReportFilter(filters.FilterSet):
@@ -418,6 +436,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     ordering_fields = ('created_at', 'name',)
     filterset_class = SituationReportFilter
     visibility_model_class = SituationReport
+    search_fields = ('name', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -472,6 +491,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
+    search_fields = ('appeal__name', 'code',)  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -525,6 +545,7 @@ class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
     ordering_fields = ('created_at', 'name',)
     filterset_class = AppealDocumentFilter
+    search_fields = ('name', 'appeal__code', 'appeal__name')  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -579,6 +600,7 @@ class FieldReportFilter(filters.FilterSet):
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
+    search_fields = ('countries__name', 'regions__name', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
         qset = super().get_queryset(*args, **kwargs)
@@ -630,6 +652,8 @@ class GenericFieldReportView(GenericAPIView):
             data['visibility'] = VisibilityChoices.IFRC
         elif data['visibility'] == 3 or data['visibility'] == '3':
             data['visibility'] = VisibilityChoices.PUBLIC
+        elif data['visibility'] == 4 or data['visibility'] == '4':
+            data['visibility'] = VisibilityChoices.IFRC_NS    
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
 
@@ -812,6 +836,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             disaster_start_date=report.start_date,
             auto_generated=True,
             auto_generated_source=SOURCES['new_report'],
+            visibility=report.visibility,
         )
         report.event = event
         report.save()
@@ -920,6 +945,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = MainContactSerializer
     queryset = MainContact.objects.order_by('extent')
+    search_fields = ('name', 'email')  # for /docs
 
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer

@@ -84,6 +84,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     tab_one_title = fuzzy.FuzzyText(length=50)
     tab_two_title = fuzzy.FuzzyText(length=50)
     tab_three_title = fuzzy.FuzzyText(length=50)
+    visibility = 3
 
 
 class EventFeaturedDocumentFactory(factory.django.DjangoModelFactory):

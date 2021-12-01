@@ -40,6 +40,7 @@ class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     region_in = 'country_from__region__in'
     search_fields = ('name', 'role', 'type',)
     list_display = ('name', 'role', 'start_date', 'end_date', 'country_from', 'deployment',)
+    readonly_fields = ('molnix_id',)
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
@@ -53,6 +54,7 @@ class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
 class PersonnelInline(admin.TabularInline):
     model = models.Personnel
     autocomplete_fields = ('country_from',)
+    readonly_fields = ('molnix_id',)
 
 
 class PersonnelDeploymentAdmin(CompareVersionAdmin, TranslationAdmin):

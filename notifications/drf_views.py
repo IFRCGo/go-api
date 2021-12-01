@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -27,7 +29,8 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
     queryset = SurgeAlert.objects.all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ('created_at', 'atype', 'category', 'event',)
+    ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down',)
+    search_fields = ('operation', 'message', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
         # if self.request.user.is_authenticated:
@@ -35,10 +38,18 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         # return UnauthenticatedSurgeAlertSerializer
         return SurgeAlertSerializer
 
+    def get_queryset(self):
+        limit = 14  # days
+        cond1 = Q(is_stood_down=True)
+        cond2 = Q(end__lt=datetime.now()-timedelta(days=limit))
+        return SurgeAlert.objects.exclude(cond1 & cond2)
+
+
 class SubscriptionViewset(viewsets.ModelViewSet):
     serializer_class = SubscriptionSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+    search_fields = ('user__username', 'rtype')  # for /docs
 
     def get_queryset(self):
         return Subscription.objects.filter(user=self.request.user)

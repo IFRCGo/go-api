@@ -1,8 +1,10 @@
 from rest_framework import viewsets
 
 from deployments.models import Project
-from .models import VisibilityChoices, VisibilityCharChoices
+from .models import VisibilityChoices, VisibilityCharChoices, UserCountry, Profile
 from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
+from django.db.models import Count, Sum, Q, F, Case, When
+from itertools import chain
 
 
 class ReadOnlyVisibilityViewsetMixin():
@@ -17,7 +19,8 @@ class ReadOnlyVisibilityViewsetMixin():
             if is_user_ifrc(self.request.user):
                 return queryset
             else:
-                return queryset.exclude(visibility=choices.IFRC)
+                return queryset.model.get_for(self.request.user, queryset=queryset).exclude(visibility=choices.IFRC)
+
         return queryset.filter(visibility=choices.PUBLIC)
 
     def get_queryset(self):
@@ -36,5 +39,9 @@ class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
             if is_user_ifrc(self.request.user):
                 return self.visibility_model_class.objects.all()
             else:
-                return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC)
+                if self.visibility_model_class.__name__=='FieldReport' or self.visibility_model_class.__name__=='Event' :
+                    return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True))))
+                else:
+                    return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC)
+        
         return self.visibility_model_class.objects.filter(visibility=VisibilityChoices.PUBLIC)
