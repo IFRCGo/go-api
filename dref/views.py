@@ -44,7 +44,7 @@ class DrefViewSet(viewsets.ModelViewSet):
                 'needs_identified',
                 'national_society_actions',
                 'users'
-            ).distinct()
+            ).order_by('-created_at').distinct()
 
 
 class DrefOptionsView(views.APIView):
