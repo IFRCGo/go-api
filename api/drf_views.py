@@ -600,7 +600,7 @@ class FieldReportFilter(filters.FilterSet):
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
-    search_fields = ('countries__name', 'regions__name', 'summary',)  # for /docs
+    search_fields = ('countries__name', 'regions__label', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
         qset = super().get_queryset(*args, **kwargs)
