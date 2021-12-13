@@ -197,7 +197,7 @@ class Command(BaseCommand):
                 duration = f"{durationMonth} month{'s' if durationMonth > 1 else ''}"
             else:
                 duration = f"{(record.end - record.start).days} days"
-            return f"{record.operation}, {duration} starting on {record.start.date()}"
+            return f"{record.operation if record.operation_en else record.event.name}, {duration} starting on {record.start.date()}"
             # go-frontend/issues/2041: del ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)

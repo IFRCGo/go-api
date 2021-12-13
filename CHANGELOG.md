@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.412
+
+### Added
+ - Django to 2.2.25
+ - ESearch:6.8.2 (to be friendly with the new, log4j-fixed ESearch image, 6.8.21)
+ - Appeal Ingest - process all appeals regardless of the modify time
+ - Using regions label instead of the numeric name
+ - Using event name when no operation name in SurgeAlert
+
 ## 1.1.411
 
 ### Added
@@ -1847,7 +1856,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.411...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.412...HEAD
+[1.1.412]: https://github.com/IFRCGo/go-api/compare/1.1.411...1.1.412
 [1.1.411]: https://github.com/IFRCGo/go-api/compare/1.1.410...1.1.411
 [1.1.410]: https://github.com/IFRCGo/go-api/compare/1.1.409...1.1.410
 [1.1.409]: https://github.com/IFRCGo/go-api/compare/1.1.408...1.1.409

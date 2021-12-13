@@ -287,7 +287,7 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     inlines = [ActionsTakenInline, SourceInline, FieldReportContactInline]
     list_display = ('summary', 'event', 'visibility',)
     list_select_related = ('event',)
-    search_fields = ('countries__name', 'regions__name', 'summary',)
+    search_fields = ('countries__name', 'regions__label', 'summary',)
     autocomplete_fields = ('user', 'dtype', 'event', 'countries', 'districts',)
     readonly_fields = ('report_date', 'created_at', 'updated_at')
     list_filter = [MembershipFilter]
