@@ -61,7 +61,7 @@ ipython
 iso8601==0.1.12
 itypes==1.1.0
 jsmin==2.2.2
-lxml==4.6.3
+lxml==4.6.5
 opencensus-ext-azure==1.0.7
 opencensus-ext-django==0.7.4
 pandas==0.23.4
