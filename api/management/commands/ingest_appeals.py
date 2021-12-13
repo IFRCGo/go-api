@@ -85,8 +85,8 @@ class Command(BaseCommand):
             # get latest BILATERALS
             logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
-            #auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            auth = ('gotestuser','123456')
+            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            #auth = ('gotestuser','123456')
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount('http://', adapter)
@@ -149,24 +149,8 @@ class Command(BaseCommand):
                     new.append(r)
                 else:
                     # We use all records, do NOT check if last_modified > since_last_checked
-                    if len(r['Details']) == 1:
-                        detail = r['Details'][0]   
-                    else:
-                        details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
-                        detail = details[0]
-
-                    apd_modify_time = self.parse_date(detail['APD_modifyTime'])
-                    app_modify_time = self.parse_date(r['APP_modifyTime'])
-                    appeal = Appeal.objects.get(code=r['APP_code'])
-
-                    if appeal:
-                        api_appeal_modify_time = appeal.modified_at
-                    else:
-                        api_appeal_modify_time = apd_modify_time
-                               
-                    if (api_appeal_modify_time < apd_modify_time or api_appeal_modify_time < app_modify_time):
-                        modified.append(r)
-                        #print(r['APP_code'])
+                    modified.append(r)
+                      
 
         return new, modified, bilaterals
 
