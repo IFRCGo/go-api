@@ -18,6 +18,7 @@
                       >{{ op.title }}</span>
                     </td>
                   </tr>
+                  {% if record.follow_url %}
                   <tr>
                     <td class="text-center text-default pb-50" style="padding-bottom: 50px;text-align: center;">
                       <a href="{{ record.follow_url }}" class="button button-red" style="font-weight: 500;font-size: 14px;line-height: 21px;padding: 4px 16px;text-align: center;letter-spacing: 0.5px;white-space: nowrap;vertical-align: middle;background: none;text-decoration: none;border: 1px solid #F5333F;border-radius: 20px;background-color: #F5333F;color: #FFF">
@@ -25,6 +26,7 @@
                       </a>
                     </td>
                   </tr>
+                  {% endif %}
                   {% if op.situation_overview %}
                   <tr>
                     <td class="text-default table-heading-title pt-10" style="padding-top: 10px;padding-left: 20px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
@@ -120,7 +122,7 @@
                             <span style="font-weight: 300;font-size: 12px;line-height: 18px;color: #6F6F6F;">{{ fr.updated_at|date:'d-m-Y' }}
                           </td>
                           <td style="margin-top: 0.4rem;text-align: right; width: 10%">
-                            <a href="https://go.ifrc.org/reports/{{ fr.id }}" class="button button-red" style="font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;padding: 2px 16px;white-space: nowrap;vertical-align: middle;text-decoration: none;border: 1px solid #F5333F;border-radius: 20px;background-color: #F5333F; color: #FFF"
+                            <a href="{{ record.frontend_url }}/reports/{{ fr.id }}" class="button button-red" style="font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;padding: 2px 16px;white-space: nowrap;vertical-align: middle;text-decoration: none;border: 1px solid #F5333F;border-radius: 20px;background-color: #F5333F; color: #FFF"
                             >View Full Report
                             </a>
                           </td>
@@ -134,7 +136,7 @@
                   <tr>
                     <td class="text-default pt-40 pl-20" style="padding-top: 40px; padding-left: 20px;font-style: normal;font-weight: 300;font-size: 12px;line-height: 18px"
                        >You are receiving this update based on your selected preferences. &nbsp;
-                       <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
+                       <a href="{{ record.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
                        >Update your preferences
                       </a>
                     </td>
