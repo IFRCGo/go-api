@@ -466,10 +466,15 @@ class Command(BaseCommand):
                     local_staff += int(f.num_localstaff or 0)
                     volunteers += int(f.num_volunteers or 0)
                     delegates += int(f.num_expats_delegates or 0)
-            rec_obj = {
-                'resource_uri': self.get_resource_uri(record, rtype) + '#overview',
+            resource_uri, follow_url = self.get_resource_uri(record, rtype), None
+            if resource_uri != frontend_url:
                 # instead of '{}/account#notifications'.format(frontend_url):
-                'follow_url': self.get_resource_uri(record, rtype) + '/follow',
+                follow_url = resource_uri + '/follow'
+                resource_uri += '#overview'
+            rec_obj = {
+                'frontend_url': frontend_url,
+                'resource_uri': resource_uri,
+                'follow_url': follow_url,
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else '',
