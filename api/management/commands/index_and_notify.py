@@ -455,7 +455,8 @@ class Command(BaseCommand):
             }
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
-                'follow_url': '{}/account#notifications'.format(frontend_url),
+                # instead of '{}/account#notifications'.format(frontend_url):
+                'follow_url': self.get_resource_uri(record, rtype) + '/follow',
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else '',

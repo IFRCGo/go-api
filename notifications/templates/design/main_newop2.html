@@ -1,0 +1,139 @@
+  <!-- Main -->
+{% load humanize %}
+
+{% if records|length %}
+  {% for op in records %}
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+      <tr>
+        <td align="center" class="pb-30" style="padding-bottom:30px;">
+          <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+            <tr>
+              <td class="td td-shell" style="width: 650px;min-width: 650px;padding: 0;margin: 0;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td class="text-center text-default pb-30" style="padding-bottom: 30px;text-align: center;">
+                      <span style="font-style: normal;font-weight: normal;font-size: 14px;line-height: 21px;color: #525252;"
+                      >New Operation</span><br/>
+                      <span style="font-style: normal;font-weight: normal;font-size: 18px;line-height: 27px;text-align: center;color: #000000;"
+                      >{{ op.title }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-center text-default pb-50" style="padding-bottom: 50px;text-align: center;">
+                      <a href="{{ record.follow_url }}" class="button button-red" style="font-weight: 500;font-size: 14px;line-height: 21px;padding: 4px 16px;text-align: center;letter-spacing: 0.5px;white-space: nowrap;vertical-align: middle;background: none;text-decoration: none;border: 1px solid #F5333F;border-radius: 20px;background-color: #F5333F;color: #FFF">
+                        Follow This Operation
+                      </a>
+                    </td>
+                  </tr>
+                  {% if op.situation_overview %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-10" style="padding-top: 10px;padding-left: 20px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
+                    >Situational Overview
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title" style="width: 100%; border-bottom: 2px solid #E0E0E0">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title">&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light pb-40" style="padding: 0 10px 40px 20px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: normal;font-size: 12px;line-height: 18px;color: #000000;">
+                      {% autoescape off %}
+                        {{ op.situation_overview }}
+                      {% endautoescape %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td class="td text-default" style="background: #FDFDFD;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.08);border-radius: 4px;">
+                      <table width="100%" border="0" cellspacing="0" cellpadding="5" class="pb-10 pt-10" style="font-family: Poppins, Arial, sans-serif; padding: 10px 0 10px 0; font-size: 14px">
+                        <tr>
+                          <td colspan="4" class="text-default table-heading-title pb-15" style="padding-bottom: 15px; text-transform: uppercase;font-weight: bold;text-align: center; border-bottom: 2px solid #E0E0E0">
+                            Key Figures
+                          </td>
+                        </tr>
+                        <tr><td colspan="4" style="height: 1.2rem"> </td></tr>
+                        <tr>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">People Targeted</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.people_targeted|floatformat:"1"|intcomma|slice:":-2" }}</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap;">Local Staff</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Funding Requirements</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.funding_req|floatformat:"1"|intcomma|slice:":-2" }} CHF</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Volunteers</td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.volunteers }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Appeal Code</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.appeal_code }}</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Delegates</td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.expat_delegates }}</td>
+                        </tr>
+                        <tr>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Start Date</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap"></td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;"></td>
+                        </tr>
+                        <tr>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">End Date</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap"></td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">({{ op.operation_type }})</td>
+                        </tr>
+                        <tr><td colspan="4" style="height: 0.2rem"> </td></tr>
+                      </table>
+                    </td>
+                  </tr>
+                  {% if op.field_reports|length %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-40" style="padding-top: 40px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
+                    >Field Reports
+                    </td>
+                  </tr>
+                  {% for fr in op.field_reports %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-20" style="padding-top: 20px;padding-bottom: 20px;">
+                      <div style="width:100%; height:1px; background: #E0E0E0;"></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="background: #F2F2F2;mix-blend-mode: normal;opacity: 0.9;border-radius: 8px;font-family: Poppins, Arial, sans-serif;font-style: normal; padding: 10px;padding-left: 20px">
+                      <table>
+                        <tr>
+                          <td style="font-weight: 500;font-size: 14px;line-height: 21px;color: #000000">Field Report: {{ fr.summary }}<br/>
+                            <span style="font-weight: 300;font-size: 12px;line-height: 18px;color: #6F6F6F;">{{ fr.updated_at|date:'d-m-Y' }}
+                          </td>
+                          <td style="margin-top: 0.4rem;text-align: right; width: 10%">
+                            <a href="https://go.ifrc.org/reports/{{ fr.id }}" class="button button-red" style="font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;padding: 2px 16px;white-space: nowrap;vertical-align: middle;text-decoration: none;border: 1px solid #F5333F;border-radius: 20px;background-color: #F5333F; color: #FFF"
+                            >View Full Report
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr><td>&nbsp;</td></tr>
+                  {% endfor %}
+                  {% endif %}
+                  <tr>
+                    <td class="text-default pt-40 pl-20" style="padding-top: 40px; padding-left: 20px;font-style: normal;font-weight: 300;font-size: 12px;line-height: 18px"
+                       >You are receiving this update based on your selected preferences. &nbsp;
+                       <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
+                       >Update your preferences
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  {% endfor %}
+{% endif %}
+  <!-- END Main -->
