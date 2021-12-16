@@ -157,7 +157,7 @@ class Command(BaseCommand):
         elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
-            resource_uri = '%s/emergencies/%s#overview' % (frontend_url, record.event.id)
+            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
         elif rtype != RecordType.APPEAL:
             # One-by-one followed or globally subscribed emergencies
             resource_uri = '%s/%s/%s' % (
@@ -458,8 +458,17 @@ class Command(BaseCommand):
                 1: 'EA',
                 2: 'IA',
             }
+            local_staff = volunteers = delegates = None
+            field_reports = list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None
+            if field_reports:
+                local_staff = volunteers = delegates = 0
+                for f in field_reports:
+                    pass
+                    local_staff += int(f.num_localstaff or 0)
+                    volunteers += int(f.num_volunteers or 0)
+                    delegates += int(f.num_expats_delegates or 0)
             rec_obj = {
-                'resource_uri': self.get_resource_uri(record, rtype),
+                'resource_uri': self.get_resource_uri(record, rtype) + '#overview',
                 # instead of '{}/account#notifications'.format(frontend_url):
                 'follow_url': self.get_resource_uri(record, rtype) + '/follow',
                 'admin_uri': self.get_admin_uri(record, rtype),
@@ -471,10 +480,13 @@ class Command(BaseCommand):
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
+                    'local_staff': local_staff,
+                    'volunteers': volunteers,
+                    'delegates': delegates,
                 },
                 'operation_type': optypes[record.atype],
                 'operation_type_short': optypeShort[record.atype],
-                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None,
+                'field_reports': field_reports,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
