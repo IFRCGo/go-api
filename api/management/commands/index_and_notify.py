@@ -463,7 +463,6 @@ class Command(BaseCommand):
             if field_reports:
                 local_staff = volunteers = delegates = 0
                 for f in field_reports:
-                    pass
                     local_staff += int(f.num_localstaff or 0)
                     volunteers += int(f.num_volunteers or 0)
                     delegates += int(f.num_expats_delegates or 0)
