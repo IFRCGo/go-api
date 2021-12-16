@@ -1,4 +1,4 @@
-  <!-- Main -->
+<!-- Main -->
 {% load humanize %}
 
 {% if records|length %}
@@ -81,7 +81,7 @@
                         <tr>
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">End Date</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
-                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap"></td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Operation Type</td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">({{ op.operation_type }})</td>
                         </tr>
                         <tr><td colspan="4" style="height: 0.2rem"> </td></tr>
@@ -136,4 +136,4 @@
     </table>
   {% endfor %}
 {% endif %}
-  <!-- END Main -->
+<!-- END Main -->
