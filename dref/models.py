@@ -463,6 +463,12 @@ class Dref(models.Model):
         verbose_name=_('budget file'),
         related_name='budget_file_dref'
     )
+    cover_image = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('cover image'),
+        related_name='cover_image_dref'
+    )
 
     class Meta:
         verbose_name = _('dref')

@@ -1,3 +1,5 @@
+import os
+
 from django.utils.translation import ugettext
 
 from rest_framework import serializers
@@ -87,6 +89,7 @@ class DrefSerializer(
     ModelSerializer
 ):
     MAX_NUMBER_OF_IMAGES = 6
+    ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     country_district = DrefCountryDistrictSerializer(source='drefcountrydistrict_set', many=True, required=False)
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
@@ -101,6 +104,7 @@ class DrefSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
+    cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
 
     class Meta:
@@ -153,6 +157,18 @@ class DrefSerializer(
                 ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
         return images
+
+    def validate_extension(self, filename):
+        extension = os.path.splitext(filename)[1].replace(".", "")
+        if extension.lower() not in self.ALLOWED_BUDGET_FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file type: {filename}, Supported only PDF Files'
+            )
+
+    def validate_budget_file(self, budget_file):
+        if budget_file:
+            self.validate_extension(os.path.basename(budget_file.file.name))
+        return budget_file
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
