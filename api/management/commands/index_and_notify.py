@@ -453,6 +453,11 @@ class Command(BaseCommand):
                 1: 'Emergency Appeal',
                 2: 'International Appeal',
             }
+            optypeShort = {
+                0: 'DREF',
+                1: 'EA',
+                2: 'IA',
+            }
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 # instead of '{}/account#notifications'.format(frontend_url):
@@ -468,6 +473,7 @@ class Command(BaseCommand):
                     'end_date': record.end_date,
                 },
                 'operation_type': optypes[record.atype],
+                'operation_type_short': optypeShort[record.atype],
                 'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
