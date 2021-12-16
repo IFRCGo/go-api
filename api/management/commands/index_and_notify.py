@@ -452,12 +452,15 @@ class Command(BaseCommand):
                 0: 'DREF',
                 1: 'Emergency Appeal',
                 2: 'International Appeal',
+                3: 'Forecast Based Action',
             }
             optypeShort = {
                 0: 'DREF',
                 1: 'EA',
                 2: 'IA',
+                3: 'FBA',
             }
+            # If you augment these lists ^, do not forget about api/models.py - AppealType
             local_staff = volunteers = delegates = None
             field_reports = list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None
             if field_reports:
