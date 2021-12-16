@@ -57,20 +57,32 @@
                         <tr>
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">People Targeted</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.people_targeted|floatformat:"1"|intcomma|slice:":-2" }}</td>
+                          {% if op.field_reports|length %}
                           <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap;">Local Staff</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
+                          {% else %}
+                          <td colspan="2" class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap;">(No field report)</td>
+                          {% endif %}
                         </tr>
                         <tr>
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Funding Requirements</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.funding_req|floatformat:"1"|intcomma|slice:":-2" }} CHF</td>
+                          {% if op.field_reports|length %}
                           <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Volunteers</td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.volunteers }}</td>
+                          {% else %}
+                          <td colspan="2" style="border-left: 2px solid #E0E0E0; padding-left: 20px"></td>
+                          {% endif %}
                         </tr>
                         <tr>
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Appeal Code</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.appeal_code }}</td>
+                          {% if op.field_reports|length %}
                           <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Delegates</td>
-                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.expat_delegates }}</td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.delegates }}</td>
+                          {% else %}
+                          <td colspan="2" style="border-left: 2px solid #E0E0E0; padding-left: 20px"></td>
+                          {% endif %}
                         </tr>
                         <tr>
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Start Date</td>
@@ -82,7 +94,7 @@
                           <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">End Date</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
                           <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Operation Type</td>
-                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">({{ op.operation_type_short }})</td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.operation_type_short }}</td>
                         </tr>
                         <tr><td colspan="4" style="height: 0.2rem"> </td></tr>
                       </table>
@@ -91,15 +103,15 @@
                   {% if op.field_reports|length %}
                   <tr>
                     <td class="text-default table-heading-title pt-40" style="padding-top: 40px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
-                    >Field Reports
+                    >Field Report{% if op.field_reports|length > 1 %}s{% endif %}
                     </td>
                   </tr>
-                  {% for fr in op.field_reports %}
                   <tr>
                     <td class="text-default table-heading-title pt-20 pb-20" style="padding-top: 20px;padding-bottom: 20px;">
                       <div style="width:100%; height:1px; background: #E0E0E0;"></div>
                     </td>
                   </tr>
+                  {% for fr in op.field_reports %}
                   <tr>
                     <td style="background: #F2F2F2;mix-blend-mode: normal;opacity: 0.9;border-radius: 8px;font-family: Poppins, Arial, sans-serif;font-style: normal; padding: 10px;padding-left: 20px">
                       <table>
