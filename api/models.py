@@ -828,6 +828,7 @@ class AppealType(IntEnum):
         APPEAL = _('Emergency Appeal')
         INTL = _('International Appeal')
         FBA = _('Forecast Based Action')
+# If you augment these lists ^, do not forget about index_and_notify: optypes
 
 
 class AppealStatus(IntEnum):
