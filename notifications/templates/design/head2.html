@@ -414,7 +414,7 @@
                               <tr>
 {% for record in records|slice:":1" %}
                                 <td class="text-header text-default text-center" style="font-family:Poppins, Arial, sans-serif ;display:block;float:right;width: 9rem;line-height: 21px;border: 1px solid #F5333F;box-sizing: border-box;border-radius: 12.5px;">
-                                  <a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: none ;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;color: #F5333F"
+                                  <a href="https://{{ record.resource_uri }}" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: none ;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;color: #F5333F"
                                   >Open in GO</a>
                                 </td>
 {% endfor %}
