@@ -11,9 +11,11 @@
                             <a href="https://go.ifrc.org/login" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;">Login to IFRC GO</a>
                           </td>
 {% if not hide_preferences %}
+{% for record in records|slice:":1" %}
                           <td class="text-default pl-10" style="padding-left: 10px;font-style: normal;font-weight: 300;font-size: 12px;line-height: 18px">
-                            <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;">Unsubscribe</a>
+                            <a href="https://{{ record.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;">Unsubscribe</a>
                           </td>
+{% endfor %}
 {% endif %}
                         </tr>
                       </table>
