@@ -18,7 +18,6 @@ from .utils import (
     # is_user_ifrc,
 )
 
-
 # Write model properties to dictionary
 def to_dict(instance):
     opts = instance._meta
@@ -1377,11 +1376,13 @@ class ActionOrg:
     NATIONAL_SOCIETY = 'NTLS'
     FOREIGN_SOCIETY = 'PNS'
     FEDERATION = 'FDRN'
+    GOVERNMENT = 'GOV'
 
     CHOICES = (
         (NATIONAL_SOCIETY, _('National Society')),
         (FOREIGN_SOCIETY, _('Foreign Society')),
         (FEDERATION, _('Federation')),
+        (GOVERNMENT, _('Government')),
     )
 
 
