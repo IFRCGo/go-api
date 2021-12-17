@@ -1,0 +1,108 @@
+[
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "27",
+      "fields": {
+        "name": "Damage/Needs assessment"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "28",
+      "fields": {
+        "name": "Search & Rescue"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "29",
+      "fields": {
+        "name": "Water & Sanitation"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "30",
+      "fields": {
+        "name": "Food aid"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "31",
+      "fields": {
+        "name": "Health"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "32",
+      "fields": {
+        "name": "Shelter"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "33",
+      "fields": {
+        "name": "Camp management"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "34",
+      "fields": {
+        "name": "Psychosocial support services"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "35",
+      "fields": {
+        "name": "RFL"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "36",
+      "fields": {
+        "name": "Evacuation"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "37",
+      "fields": {
+        "name": "First Aid"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "38",
+      "fields": {
+        "name": "Relief/Supply distribution"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "39",
+      "fields": {
+        "name": "Other"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "40",
+      "fields": {
+        "name": "Human remains management and identification"
+      }
+    },
+    {
+      "model": "informal_update.InformalAction",
+      "pk": "41",
+      "fields": {
+        "name": "CVA/Basic needs"
+      }
+    }
+  ]
+  
