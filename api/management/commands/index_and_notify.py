@@ -157,7 +157,7 @@ class Command(BaseCommand):
         elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
-            resource_uri = '%s/emergencies/%s#overview' % (frontend_url, record.event.id)
+            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
         elif rtype != RecordType.APPEAL:
             # One-by-one followed or globally subscribed emergencies
             resource_uri = '%s/%s/%s' % (
@@ -452,10 +452,32 @@ class Command(BaseCommand):
                 0: 'DREF',
                 1: 'Emergency Appeal',
                 2: 'International Appeal',
+                3: 'Forecast Based Action',
             }
+            optypeShort = {
+                0: 'DREF',
+                1: 'EA',
+                2: 'IA',
+                3: 'FBA',
+            }
+            # If you augment these lists ^, do not forget about api/models.py - AppealType
+            local_staff = volunteers = delegates = None
+            field_reports = list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None
+            if field_reports:
+                local_staff = volunteers = delegates = 0
+                for f in field_reports:
+                    local_staff += int(f.num_localstaff or 0)
+                    volunteers += int(f.num_volunteers or 0)
+                    delegates += int(f.num_expats_delegates or 0)
+            resource_uri, follow_url = self.get_resource_uri(record, rtype), None
+            if resource_uri != frontend_url:
+                # instead of '{}/account#notifications'.format(frontend_url):
+                follow_url = resource_uri + '/follow'
+                resource_uri += '#overview'
             rec_obj = {
-                'resource_uri': self.get_resource_uri(record, rtype),
-                'follow_url': '{}/account#notifications'.format(frontend_url),
+                'frontend_url': frontend_url,
+                'resource_uri': resource_uri,
+                'follow_url': follow_url,
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else '',
@@ -465,9 +487,13 @@ class Command(BaseCommand):
                     'appeal_code': record.code,
                     'start_date': record.start_date,
                     'end_date': record.end_date,
+                    'local_staff': local_staff,
+                    'volunteers': volunteers,
+                    'delegates': delegates,
                 },
                 'operation_type': optypes[record.atype],
-                'field_reports': list(FieldReport.objects.filter(event_id=record.event_id)) if record.event_id is not None else None,
+                'operation_type_short': optypeShort[record.atype],
+                'field_reports': field_reports,
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {

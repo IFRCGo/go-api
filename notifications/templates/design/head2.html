@@ -16,7 +16,7 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="x-apple-disable-message-reformatting" />
       <!--[if !mso]><!-->
-    <link href="https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
       <!--<![endif]-->
     <title>Email Template</title>
     <!--[if gte mso 9]>
@@ -157,7 +157,7 @@
         margin-top: 30px;
       }
       .link {
-        font-family: 'Lato', Arial, sans-serif;
+        font-family: Poppins, Arial, sans-serif;
         text-decoration: underline;
         color: #000;
       }
@@ -205,10 +205,10 @@
       }
       .text-default {
         color: #000000;
-        font-family:'Lato', Arial, sans-serif;
+        font-family: Poppins, Arial, sans-serif;
       }
       .text-red {
-        color: #C02C2C !important;
+        color: #F5333F !important;
       }
       .td-global-font-style {
         font-weight: 300;
@@ -253,8 +253,8 @@
         background-color: #FFF;
       }
       .button-red {
-        background-color: #C02C2C;
-        border-color: #C02C2C;
+        background-color: #F5333F;
+        border-color: #F5333F;
         color: #FFF;
         font-weight: 400 !important;
       }
@@ -386,8 +386,8 @@
       }
     </style>
   </head>
-  <body style="padding-top: 0 !important;padding-bottom: 0 !important;padding-right: 0 !important;padding-left: 0 !important;margin-top: 0 !important;margin-bottom: 0 !important;margin-right: 0 !important;margin-left: 0 !important;display: block !important;min-width: 100% !important;width: 100% !important;background-color: #ffffff;background-image: none;background-repeat: repeat;background-position: top left;background-attachment: scroll;font-size: 18px;color: #000;font-weight: 300;-webkit-text-size-adjust: none;line-height: 1.4;">
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+  <body style="font-family: Poppins, Arial, sans-serif; padding-top: 0 !important;padding-bottom: 0 !important;padding-right: 0 !important;padding-left: 0 !important;margin-top: 0 !important;margin-bottom: 0 !important;margin-right: 0 !important;margin-left: 0 !important;display: block !important;min-width: 100% !important;width: 100% !important;background-color: #ffffff;background-image: none;background-repeat: repeat;background-position: top left;background-attachment: scroll;font-size: 18px;color: #000;font-weight: 300;-webkit-text-size-adjust: none;line-height: 1.4;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="font-family: Poppins, Arial, sans-serif">
       <tr>
         <td align="center" valign="top">
           <!-- Header -->
@@ -413,8 +413,9 @@
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
 {% for record in records|slice:":1" %}
-                                <td class="text-header text-default text-right" style="text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                  <a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
+                                <td class="text-header text-default text-center" style="font-family:Poppins, Arial, sans-serif ;display:block;float:right;width: 9rem;line-height: 21px;border: 1px solid #F5333F;box-sizing: border-box;border-radius: 12.5px;">
+                                  <a href="https://{{ record.resource_uri }}" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: none ;font-style: normal;font-weight: 500;font-size: 14px;letter-spacing: 0.5px;color: #F5333F"
+                                  >Open in GO</a>
                                 </td>
 {% endfor %}
                               </tr>
@@ -428,4 +429,4 @@
               </td>
             </tr>
           </table>
-          <!-- END Header -->
+<!-- END Header -->

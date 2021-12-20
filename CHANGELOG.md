@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.414
+
+### Added
+ - Reverting email layout of new operations (Outlook discrepancies)
+
+## 1.1.413
+
+### Added
+ - Improved email layout for new operations (=appeals)
+ - Ingest appeals - process all, regardless the modify time
+
 ## 1.1.412
 
 ### Added
@@ -1856,7 +1867,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.412...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.414...HEAD
+[1.1.414]: https://github.com/IFRCGo/go-api/compare/1.1.413...1.1.414
+[1.1.413]: https://github.com/IFRCGo/go-api/compare/1.1.412...1.1.413
 [1.1.412]: https://github.com/IFRCGo/go-api/compare/1.1.411...1.1.412
 [1.1.411]: https://github.com/IFRCGo/go-api/compare/1.1.410...1.1.411
 [1.1.410]: https://github.com/IFRCGo/go-api/compare/1.1.409...1.1.410

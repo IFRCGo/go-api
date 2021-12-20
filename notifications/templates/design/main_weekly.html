@@ -64,7 +64,7 @@
                                 <p class="text-light" style="padding: 0;margin: 0;font-weight: 300;">Last update: {{ op.hl_last_update|date:'d-m-Y' }}</p>
                               </td>
                               <td class="text-default text-right" style="vertical-align: top;text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #C02C2C;">
+                                <a href="https://go.ifrc.org/emergencies/{{ op.hl_id }}" class="link text-red" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #C02C2C;">
                                   Follow
                                 </a>
                               </td>
@@ -119,7 +119,7 @@
                           {% for lo in rec.latest_ops %}
                             <tr class="table-annce" style="background: #f8f8f8;">
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                                <a href="https://go.ifrc.org/emergencies/{{ lo.op_event_id }}" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">
                                   <!-- {{ lo.op_country }}: -->
                                   {{ lo.op_name }}
                                 </a>
@@ -162,7 +162,7 @@
                                 {{ ld.type }}
                               </td> -->
                               <td class="text-default td-white-border p-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding: 10px;">
-                                <a href="{{ ld.event_url }}" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                                <a href="{{ ld.event_url }}" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">
                                   {{ ld.operation }}
                                 </a>
                               </td>
@@ -231,7 +231,7 @@
                   {% endif %}
                   <tr>
                     <td class="text-default td-global-font-style text-italic pt-20 pb-10" colspan="2" style="padding-top: 20px;padding-bottom: 10px;font-style: italic;color: #000000;font-family:'Lato', Arial, sans-serif; font-weight: 300;font-size: 18px;">
-                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sand-serif;text-decoration: underline;color: #000;">
+                      You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">
                         Update your preferences
                       </a>
                     </td>
