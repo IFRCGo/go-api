@@ -1,6 +1,11 @@
+import os
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.templatetags.static import static
+from django.http import request
+
 from enumfields import IntEnum, EnumIntegerField
 
 from api.models import (
@@ -45,11 +50,27 @@ class NationalSocietyAction(models.Model):
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
+    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('national society action')
         verbose_name_plural = _('national society actions')
+
+    @staticmethod
+    def get_image_map(title, request):
+        title_static_map = {
+            NationalSocietyAction.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
+            NationalSocietyAction.Title.HEALTH: 'health.png',
+            NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
+            NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            NationalSocietyAction.Title.EDUCATION: 'education.png',
+            NationalSocietyAction.Title.MIGRATION: 'migration.png',
+            NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
+            NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png'
+        }
+        return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
 class IdentifiedNeed(models.Model):
@@ -69,11 +90,27 @@ class IdentifiedNeed(models.Model):
         SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
+    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('identified need')
         verbose_name_plural = _('identified needs')
+
+    @staticmethod
+    def get_image_map(title, request):
+        title_static_map = {
+            IdentifiedNeed.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            IdentifiedNeed.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
+            IdentifiedNeed.Title.HEALTH: 'health.png',
+            IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
+            IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            IdentifiedNeed.Title.EDUCATION: 'education.png',
+            IdentifiedNeed.Title.MIGRATION: 'migration.png',
+            IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
+            IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png'
+        }
+        return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
 class PlannedIntervention(models.Model):
@@ -95,10 +132,25 @@ class PlannedIntervention(models.Model):
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_('person targeted'), blank=True, null=True)
     indicator = models.TextField(verbose_name=_('indicator'), blank=True, null=True)
+    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('planned intervention')
         verbose_name_plural = _('planned interventions')
+
+    @staticmethod
+    def get_image_map(title, request):
+        title_static_map = {
+            PlannedIntervention.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
+            PlannedIntervention.Title.HEALTH: 'health.png',
+            PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
+            PlannedIntervention.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            PlannedIntervention.Title.EDUCATION: 'education.png',
+            PlannedIntervention.Title.MIGRATION: 'migration.png',
+            PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
+        }
+        return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
 class Dref(models.Model):
@@ -462,6 +514,11 @@ class Dref(models.Model):
         null=True, blank=True,
         verbose_name=_('budget file'),
         related_name='budget_file_dref'
+    )
+    budget_file_preview = models.FileField(
+        verbose_name=_('budget file preview'),
+        null=True, blank=True,
+        upload_to='dref/images/'
     )
     cover_image = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,

@@ -26,6 +26,7 @@ from dref.models import (
     DrefCountryDistrict,
     DrefFile
 )
+from dref.scripts import pdf_image_extractor
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -48,18 +49,49 @@ class PlannedInterventionSerializer(ModelSerializer):
         model = PlannedIntervention
         fields = '__all__'
 
+    def create(self, validated_data):
+        title = validated_data.get('title')
+        request = self.context['request']
+        if title:
+            validated_data['image_url'] = PlannedIntervention.get_image_map(title, request)
+        return super().create(validated_data)
+
 
 class NationalSocietyActionSerializer(ModelSerializer):
 
     class Meta:
         model = NationalSocietyAction
-        fields = '__all__'
+        fields = (
+            'id',
+            'title',
+            'description',
+            'image_url',
+        )
+
+    def create(self, validated_data):
+        title = validated_data.get('title')
+        request = self.context['request']
+        if title:
+            validated_data['image_url'] = NationalSocietyAction.get_image_map(title, request)
+        return super().create(validated_data)
 
 
 class IdentifiedNeedSerializer(ModelSerializer):
     class Meta:
         model = IdentifiedNeed
-        fields = '__all__'
+        fields = (
+            'id',
+            'title',
+            'description',
+            'image_url',
+        )
+
+    def create(self, validated_data):
+        title = validated_data.get('title')
+        request = self.context['request']
+        if title:
+            validated_data['image_url'] = IdentifiedNeed.get_image_map(title, request)
+        return super().create(validated_data)
 
 
 class DrefCountryDistrictSerializer(ModelSerializer):
@@ -110,7 +142,7 @@ class DrefSerializer(
     class Meta:
         model = Dref
         fields = '__all__'
-        read_only_fields = ('modified_by', 'created_by')
+        read_only_fields = ('modified_by', 'created_by', 'budget_file_preview')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -172,6 +204,9 @@ class DrefSerializer(
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
+        budget_file = validated_data.get('budget_file', None)
+        if budget_file:
+            validated_data['budget_file_preview'] = pdf_image_extractor(budget_file.file.path)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
