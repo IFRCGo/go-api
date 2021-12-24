@@ -68,7 +68,15 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.EDUCATION: 'education.png',
             NationalSocietyAction.Title.MIGRATION: 'migration.png',
             NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
-            NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png'
+            NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
+            NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS: 'favicon.ico',
+            NationalSocietyAction.Title.ASSESSMENT: 'favicon.ico',
+            NationalSocietyAction.Title.COORDINATION: 'favicon.ico',
+            NationalSocietyAction.Title.RESOURCE_MOBILIZATION: 'favicon.ico',
+            NationalSocietyAction.Title.ACTIVATION_OF_CONTINGENCY_PLANS: 'favicon.ico',
+            NationalSocietyAction.Title.NATIONAL_SOCIETY_EOC: 'favicon.ico',
+            NationalSocietyAction.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'favicon.ico',
+            NationalSocietyAction.Title.OTHER: 'favicon.ico',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -108,7 +116,9 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.EDUCATION: 'education.png',
             IdentifiedNeed.Title.MIGRATION: 'migration.png',
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
-            IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png'
+            IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
+            IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'favicon.ico',
+            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'favicon.ico'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -149,6 +159,8 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.EDUCATION: 'education.png',
             PlannedIntervention.Title.MIGRATION: 'migration.png',
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
+            PlannedIntervention.Title.SECRETARIAT_SERVICES: 'favicon.ico',
+            PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'favicon.ico',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
