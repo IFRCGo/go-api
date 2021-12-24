@@ -255,7 +255,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         event = get_go_event(position['tags'])
         country = get_go_country(countries, position['country_id'])
         if not country:
-            warning = 'Position id %d does not have a valid Country (countryid = %d)' % (position['id'], position['country_id'])
+            warning = 'Position id %d does not have a valid Country' % (position['id'])
             logger.warning(warning)
             warnings.append(warning)
             continue
