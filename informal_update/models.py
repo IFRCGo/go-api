@@ -38,8 +38,13 @@ class ShareChoices(IntEnum):
 
     class Labels:
         IFRC = _('IFRC Secretariat')
+<<<<<<< HEAD
         RCRC = _('RCRC Network')
         IFRC_DONOR = _('RCRC Network and Donors')
+=======
+        PUBLIC = _('RCRC Network')
+        IFRC_NS = _('RCRC Network and Donors')
+>>>>>>> 5ffe57fac3234dc5657c02b356ba81d3d0ce6753
 
 
 class InformalUpdate(models.Model):
@@ -82,7 +87,10 @@ class InformalUpdate(models.Model):
     # Share with
     visibility = EnumIntegerField(ShareChoices, verbose_name=_('share with'), default=1)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5ffe57fac3234dc5657c02b356ba81d3d0ce6753
 class GraphicMap(models.Model):
     class GraphicMapType(IntEnum):
         MAP = 0
@@ -113,7 +121,11 @@ class InformalAction(models.Model):
     )
     informal_update_types = ArrayField(
         models.CharField(choices=ActionType.CHOICES, max_length=16),
+<<<<<<< HEAD
         verbose_name=_('types'), default=list,
+=======
+        verbose_name=_('informal update types'), default=list,
+>>>>>>> 5ffe57fac3234dc5657c02b356ba81d3d0ce6753
     )
     category = models.CharField(
         max_length=255, verbose_name=_('category'), choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL
