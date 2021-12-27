@@ -3,11 +3,20 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 
+from api.models import (
+    Country,
+    District,
+    DisasterType,
+    ActionOrg,
+    ActionType,
+    ActionCategory,
+)
+
+from .enums import TextChoices
 from enumfields import IntEnum, EnumIntegerField
 from api.storage import get_storage
 
 
-# Create your models here.
 class ReferenceUrls(models.Model):
     url = models.URLField()
 
@@ -17,29 +26,37 @@ class InformalReferences(models.Model):
     source_description = models.CharField(verbose_name=_('Name or Source Description'), max_length=225, blank=True)
     url = models.ManyToManyField(ReferenceUrls, verbose_name=_('Add url'), blank=True)
 
+    class Meta:
+        verbose_name = _('informal reference')
+        verbose_name_plural = _('informal references')
+
+    def __str__(self):
+        return self.source_description
+
 
 class InformalCountryDistrict(models.Model):
-    from api.models import Country, District
-
     countries = models.ForeignKey(
-        Country, verbose_name=_('countries'), on_delete=models.CASCADE,
+        Country, verbose_name=_('country'), on_delete=models.CASCADE,
         related_name='informal_country'
     )
     districts = models.ForeignKey(
-        District, verbose_name=_('districts'), on_delete=models.CASCADE,
+        District, verbose_name=_('district'), on_delete=models.CASCADE,
         related_name='informal_district'
     )
 
+    class Meta:
+        unique_together = ('countries', 'districts')
+        verbose_name = _('informal country district')
+        verbose_name_plural = _('informal countries districts')
 
-class ShareChoices(IntEnum):
-    IFRC = 1
-    RCRC = 2
-    RCRC_DONOR = 3
+    def __str__(self):
+        return f'{self.countries}-{self.districts}'
 
-    class Labels:
-        IFRC = _('IFRC Secretariat')
-        PUBLIC = _('RCRC Network')
-        IFRC_NS = _('RCRC Network and Donors')
+
+class InformalShareChoices(TextChoices):
+    IFRC = 'ifrc', _('IFRC Secretariat')
+    RCRC = 'rcrc', _('RCRC Network')
+    IFRC_DONOR = 'ifrc_donor', _('RCRC Network and Donors')
 
 
 class InformalUpdate(models.Model):
@@ -47,7 +64,6 @@ class InformalUpdate(models.Model):
     This is a base model for Informal Update
 
     '''
-    from api.models import DisasterType
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='informal_update_created_by',
@@ -69,18 +85,28 @@ class InformalUpdate(models.Model):
     situational_overview = models.TextField(verbose_name=_('Situational Overview'))
 
     # Focal Point
-    originator_name = models.CharField(verbose_name=_('name'), max_length=100)
-    originator_title = models.CharField(verbose_name=_('title'), max_length=300)
-    originator_email = models.CharField(verbose_name=_('email'), max_length=300)
-    originator_phone = models.CharField(verbose_name=_('phone'), max_length=50, blank=True)
+    originator_name = models.CharField(verbose_name=_('name'), max_length=100, null=True, blank=True)
+    originator_title = models.CharField(verbose_name=_('title'), max_length=300, null=True, blank=True)
+    originator_email = models.CharField(verbose_name=_('email'), max_length=300, null=True, blank=True)
+    originator_phone = models.CharField(verbose_name=_('phone'), max_length=50, null=True, blank=True)
 
-    ifrc_name = models.CharField(verbose_name=_('name'), max_length=100)
-    ifrc_title = models.CharField(verbose_name=_('title'), max_length=300)
-    ifrc_email = models.CharField(verbose_name=_('email'), max_length=300)
-    ifrc_phone = models.CharField(verbose_name=_('phone'), max_length=50, blank=True)
+    ifrc_name = models.CharField(verbose_name=_('name'), max_length=100, null=True, blank=True)
+    ifrc_title = models.CharField(verbose_name=_('title'), max_length=300, null=True, blank=True)
+    ifrc_email = models.CharField(verbose_name=_('email'), max_length=300, null=True, blank=True)
+    ifrc_phone = models.CharField(verbose_name=_('phone'), max_length=50, null=True, blank=True)
 
     # Share with
-    visibility = EnumIntegerField(ShareChoices, verbose_name=_('share with'), default=1)
+    share_with = models.CharField(
+        max_length=10, choices=InformalShareChoices.choices,
+        default=InformalShareChoices.IFRC, verbose_name=_('share with')
+    )
+
+    class Meta:
+        verbose_name = _('Informal update')
+        verbose_name_plural = _('Informal updates')
+
+    def __str__(self):
+        return f'{self.title}'
 
 class GraphicMap(models.Model):
     class GraphicMapType(IntEnum):
@@ -100,10 +126,13 @@ class GraphicMap(models.Model):
     caption = models.CharField(max_length=225, blank=True)
     file_type = EnumIntegerField(GraphicMapType, verbose_name=_('File type'))
 
+    class Meta:
+        verbose_name = _('informal ghaphic map')
+        verbose_name_plural = _('informal graphic maps')
+
 
 class InformalAction(models.Model):
     """ Action taken for Informal Update """
-    from api.models import ActionOrg, ActionType, ActionCategory
 
     name = models.CharField(verbose_name=_('name'), max_length=400)
     organizations = ArrayField(
@@ -130,7 +159,6 @@ class InformalAction(models.Model):
 
 class InformalActionsTaken(models.Model):
     """ All the actions taken by an organization in Informal Update """
-    from api.models import ActionOrg
 
     organization = models.CharField(
         choices=ActionOrg.CHOICES,
