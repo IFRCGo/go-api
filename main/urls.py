@@ -69,6 +69,7 @@ from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
 from lang import views as lang_views
+from informal_update import views as informal_views
 
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset, basename='action')
@@ -129,6 +130,8 @@ router.register(r'situation_report_type', api_views.SituationReportTypeViewset, 
 router.register(r'subscription', notification_views.SubscriptionViewset, basename='subscription')
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
+router.register(r'informal-update', informal_views.InformalUpdateViewSet, basename='informal_update')
+router.register(r'informal-file', informal_views.InformalUpdateFileViewSet, basename='informal_file')
 
 
 admin.site.site_header = 'IFRC Go administration'
