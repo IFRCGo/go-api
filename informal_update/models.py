@@ -13,8 +13,6 @@ from api.models import (
 )
 
 from .enums import TextChoices
-from enumfields import IntEnum, EnumIntegerField
-from api.storage import get_storage
 
 
 class ReferenceUrls(models.Model):
@@ -31,38 +29,36 @@ class InformalReferences(models.Model):
         verbose_name_plural = _('informal references')
 
     def __str__(self):
-        return self.source_description
+        return f'{self.source_description} - {self.date}'
 
 
-class InformalCountryDistrict(models.Model):
-    countries = models.ForeignKey(
-        Country, verbose_name=_('country'), on_delete=models.CASCADE,
-        related_name='informal_country'
+class InformalGraphicMap(models.Model):
+
+    file = models.FileField(
+        verbose_name=_('file'),
+        null=True, blank=True,
+        upload_to='informal_update/images/'
     )
-    districts = models.ForeignKey(
-        District, verbose_name=_('district'), on_delete=models.CASCADE,
-        related_name='informal_district'
+    caption = models.CharField(max_length=225, blank=True, null=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('created_by'),
+        on_delete=models.SET_NULL, null=True,
     )
 
     class Meta:
-        unique_together = ('countries', 'districts')
-        verbose_name = _('informal country district')
-        verbose_name_plural = _('informal countries districts')
-
-    def __str__(self):
-        return f'{self.countries}-{self.districts}'
-
-
-class InformalShareChoices(TextChoices):
-    IFRC = 'ifrc', _('IFRC Secretariat')
-    RCRC = 'rcrc', _('RCRC Network')
-    IFRC_DONOR = 'ifrc_donor', _('RCRC Network and Donors')
+        verbose_name = _('informal graphic map')
+        verbose_name_plural = _('informal graphic maps')
 
 
 class InformalUpdate(models.Model):
     '''
     This is a base model for Informal Update
     '''
+
+    class InformalShareWith(TextChoices):
+        IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
+        RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
+        RCRC_NETWORK_AND_DONORS = 'rcrc_network_and_donors', _('RCRC Network and Donors')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='informal_update_created_by',
@@ -83,21 +79,39 @@ class InformalUpdate(models.Model):
     title = models.CharField(max_length=300)
     situational_overview = models.TextField(verbose_name=_('Situational Overview'))
 
-    # Focal Point
-    originator_name = models.CharField(verbose_name=_('name'), max_length=100, null=True, blank=True)
-    originator_title = models.CharField(verbose_name=_('title'), max_length=300, null=True, blank=True)
-    originator_email = models.CharField(verbose_name=_('email'), max_length=300, null=True, blank=True)
-    originator_phone = models.CharField(verbose_name=_('phone'), max_length=50, null=True, blank=True)
+    # map/graphics
+    map = models.ForeignKey(
+        InformalGraphicMap, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('map'),
+        related_name='informal_map'
+    )
+    graphics = models.ForeignKey(
+        InformalGraphicMap, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('graphics'),
+        related_name='informal_graphics'
+    )
 
-    ifrc_name = models.CharField(verbose_name=_('name'), max_length=100, null=True, blank=True)
-    ifrc_title = models.CharField(verbose_name=_('title'), max_length=300, null=True, blank=True)
-    ifrc_email = models.CharField(verbose_name=_('email'), max_length=300, null=True, blank=True)
-    ifrc_phone = models.CharField(verbose_name=_('phone'), max_length=50, null=True, blank=True)
+    # Focal Point
+    originator_name = models.CharField(verbose_name=_('originator_name'), max_length=100, null=True, blank=True)
+    originator_title = models.CharField(verbose_name=_('originator_title'), max_length=300, null=True, blank=True)
+    originator_email = models.CharField(verbose_name=_('originator_email'), max_length=300, null=True, blank=True)
+    originator_phone = models.CharField(verbose_name=_('originator_phone'), max_length=50, null=True, blank=True)
+
+    ifrc_name = models.CharField(verbose_name=_('ifrc_name'), max_length=100, null=True, blank=True)
+    ifrc_title = models.CharField(verbose_name=_('ifrc_title'), max_length=300, null=True, blank=True)
+    ifrc_email = models.CharField(verbose_name=_('ifrc_email'), max_length=300, null=True, blank=True)
+    ifrc_phone = models.CharField(verbose_name=_('ifrc_phone'), max_length=50, null=True, blank=True)
 
     # Share with
     share_with = models.CharField(
-        max_length=10, choices=InformalShareChoices.choices,
-        default=InformalShareChoices.IFRC, verbose_name=_('share with')
+        max_length=50, choices=InformalShareWith.choices,
+        default=InformalShareWith.IFRC_SECRETARIAT, verbose_name=_('share with')
+    )
+    references = models.ManyToManyField(
+        InformalReferences, blank=True,
+        verbose_name=_('references')
     )
 
     class Meta:
@@ -108,27 +122,27 @@ class InformalUpdate(models.Model):
         return f'{self.title}'
 
 
-class GraphicMap(models.Model):
-    class GraphicMapType(IntEnum):
-        MAP = 0
-        IMAGE = 1
-
-        class Labels:
-            MAP = _('Map')
-            IMAGE = _('Image')
-
+class InformalCountryDistrict(models.Model):
     informal_update = models.ForeignKey(
-        InformalUpdate, verbose_name=_('Informal Update'), related_name='informal_graphic_map',
-        on_delete=models.CASCADE)
-    file = models.FileField(
-        verbose_name=_('file'), null=True, blank=True, upload_to='graphic_map/%Y/%m/%d/', storage=get_storage()
+        InformalUpdate, on_delete=models.CASCADE,
+        verbose_name=_('informal update')
     )
-    caption = models.CharField(max_length=225, blank=True)
-    file_type = EnumIntegerField(GraphicMapType, verbose_name=_('File type'))
+    country = models.ForeignKey(
+        Country, verbose_name=_('country'), on_delete=models.CASCADE,
+        related_name='informal_country'
+    )
+    district = models.ForeignKey(
+        District, verbose_name=_('district'), on_delete=models.CASCADE,
+        related_name='informal_district'
+    )
 
     class Meta:
-        verbose_name = _('informal ghaphic map')
-        verbose_name_plural = _('informal graphic maps')
+        unique_together = ('informal_update', 'country')
+        verbose_name = _('informal country district')
+        verbose_name_plural = _('informal countries districts')
+
+    def __str__(self):
+        return f'{self.country} - {self.district}'
 
 
 class InformalAction(models.Model):
@@ -175,5 +189,4 @@ class InformalActionsTaken(models.Model):
         verbose_name_plural = _('all actions taken informal')
 
     def __str__(self):
-        return '%s: %s' % (self.get_organization_display(), self.summary)
-
+        return f'{self.organization} - {self.actions}'
