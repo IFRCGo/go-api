@@ -6,8 +6,6 @@ from rest_framework import (
     mixins
 )
 
-from django_filters import rest_framework as filters
-
 from informal_update.models import (
     InformalUpdate,
     InformalGraphicMap,
@@ -19,17 +17,8 @@ from informal_update.serializers import (
     InformalGraphicMapSerializer
 )
 
+from .filter_set import InformalUpdateFilter
 from api.serializers import ActionSerializer
-
-
-class InformalUpdateFilter(filters.FilterSet):
-    hazayd_type = filters.NumberFilter(field_name='hazard_type', lookup_expr='exact')
-
-    class Meta:
-        model = InformalUpdate
-        fields = {
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
-        }
 
 
 class InformalUpdateViewSet(viewsets.ModelViewSet):
@@ -62,23 +51,13 @@ class InformalActionViewset(viewsets.ReadOnlyModelViewSet):
 
 class InformalUpdateOptions(views.APIView):
     def get(self, request, format=None):
-        options = dict()
-        options["share_with_opts"] = [
-            {
-                "key": InformalUpdate.InformalShareWith.IFRC_SECRETARIAT,
-                "value": "IFRC Secretariat"
-
-            },
-            {
-                "key": InformalUpdate.InformalShareWith.RCRC_NETWORK,
-                "value": "RCRC Network"
-
-            },
-            {
-                "key": InformalUpdate.InformalShareWith.RCRC_NETWORK_AND_DONORS,
-                "value": "RCRC Network and Donors"
-
-            },
-        ]
+        options = {
+            'share_with_options': [
+                {
+                    'key': share_with[0],
+                    'value': share_with[1]
+                } for share_with in InformalUpdate.InformalShareWith.choices
+            ]
+        }
         return Response(options)
 

@@ -58,7 +58,7 @@ from per.views import (
     DeletePerOverview,
     DelWorkPlan
 )
-from informal_update.views import InformalUpdateOptions
+
 from databank.views import CountryOverviewViewSet
 
 # DRF routes
@@ -157,7 +157,7 @@ urlpatterns = [
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
-    url(r'^api/v2/informal_options/', InformalUpdateOptions.as_view()),
+    url(r'^api/v2/informal_options/', informal_views.InformalUpdateOptions.as_view()),
     url(r'^register', NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),

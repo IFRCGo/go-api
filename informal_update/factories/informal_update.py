@@ -1,10 +1,40 @@
 import factory
+import datetime
+import pytz
 from factory import fuzzy
 
+from django.core.files.base import ContentFile
+
 from api.factories import disaster_type
-from .informal_graphic_map import InformalGraphicMapFactory
-from .informal_refrences import InformalRefrenceFactory
-from informal_update.models import InformalUpdate
+from informal_update.models import InformalUpdate, InformalGraphicMap, ReferenceUrls, InformalReferences
+
+
+class ReferenceUrlsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ReferenceUrls
+
+    url = factory.Sequence(lambda n: f'https://{n}@xyz.com')
+
+
+class InformalRefrenceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = InformalReferences
+
+    date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
+    source_description = fuzzy.FuzzyText(length=50)
+
+
+class InformalGraphicMapFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = InformalGraphicMap
+
+    file = factory.LazyAttribute(
+        lambda _: ContentFile(
+            factory.django.ImageField()._make_data({"width": 32, "height": 32}),
+            "file.png",
+        )
+    )
+    caption = fuzzy.FuzzyText(length=50)
 
 
 class InformalUpdateFactory(factory.django.DjangoModelFactory):

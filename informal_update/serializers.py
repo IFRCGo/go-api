@@ -19,6 +19,7 @@ from informal_update.models import (
     InformalActionsTaken,
     ReferenceUrls,
 )
+
 from informal_update.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
@@ -85,13 +86,12 @@ class InformalCountryDistrictSerializer(serializers.ModelSerializer):
         read_only_fields = ('informal_update',)
 
     def validate(sel, data):
-        districts = data['district']
-        if isinstance(districts, list) and len(districts):
-            for district in districts:
-                if district.country != data['country']:
-                    raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
-                    })
+        district = data['district']
+        if district:
+            if district.country != data['country']:
+                raise serializers.ValidationError({
+                    'district': ugettext('Different districts found for given country')
+                })
         return data
 
 
