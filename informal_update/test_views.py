@@ -2,7 +2,6 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from rest_framework.serializers import ValidationError
 
 from main.test_case import APITestCase
 import api.models as models
@@ -84,7 +83,6 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-            print(response)
         created = InformalUpdate.objects.get(pk=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
@@ -149,11 +147,11 @@ class InformalUpdateTest(APITestCase):
         created = InformalUpdate.objects.get(pk=response1['id'])
         data = {'title': 'test title patched'}
         response2 = self.client.patch(f'/api/v2/informal-update/{created.id}/', data=data, format='json').json()
-        patched = InformalUpdate.objects.get(pk=response2['id'])
-        self.assertEqual(patched.modified_by, user)
+        informal_id = InformalUpdate.objects.get(pk=response2['id'])
+        self.assertEqual(informal_id.modified_by, user)
         self.assertNotEqual(response1['title'], response2['title'])
         self.assertEqual(response1['id'], response2['id'])
-        self.assertEqual(patched.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
+        self.assertEqual(informal_id.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
 
     def test_get_informal_update(self):
         user1 = User.objects.create(username='abc')
@@ -212,19 +210,16 @@ class InformalUpdateTest(APITestCase):
 
     def test_validations(self):
         # validate if district passed belongs to respective country
-        country1 = models.Country.objects.create(name='country 1')
-        country2 = models.Country.objects.create(name='country 2')
-        district2 = models.District.objects.create(name='test district12', country=country2)
         self.body["country_district"] = [
                 {
-                    'country': str(country1.id),
-                    'district': str(district2.id)
+                    'country': str(self.country1.id),
+                    'district': str(self.district2.id)
                 }
             ]
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-        self.assertRaises(ValidationError)
+        self.assert_400(response)
 
     def test_upload_informal_file(self):
         user = User.objects.create(username='informal_user')

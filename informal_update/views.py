@@ -11,12 +11,10 @@ from informal_update.models import (
     InformalGraphicMap,
     InformalAction
 )
-
 from informal_update.serializers import (
     InformalUpdateSerializer,
     InformalGraphicMapSerializer
 )
-
 from .filter_set import InformalUpdateFilter
 from api.serializers import ActionSerializer
 

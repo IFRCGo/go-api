@@ -32,4 +32,6 @@ class InformalCountryDistrictAdminInline(admin.TabularInline):
 @admin.register(InformalUpdate)
 class InformalUpdateAdmin(admin.ModelAdmin):
     inlines = [InformalCountryDistrictAdminInline]
+    search_fields = ('title',)
     list_filter = ('hazard_type', 'share_with', 'informalcountrydistrict__country',)
+

@@ -3,7 +3,7 @@ from .models import InformalUpdate
 
 
 class InformalUpdateFilter(filters.FilterSet):
-    hazayd_type = filters.NumberFilter(field_name='hazard_type', lookup_expr='exact')
+    hazard_type = filters.NumberFilter(field_name='hazard_type', lookup_expr='exact')
 
     class Meta:
         model = InformalUpdate

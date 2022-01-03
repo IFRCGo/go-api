@@ -6,7 +6,12 @@ from factory import fuzzy
 from django.core.files.base import ContentFile
 
 from api.factories import disaster_type
-from informal_update.models import InformalUpdate, InformalGraphicMap, ReferenceUrls, InformalReferences
+from informal_update.models import (
+    InformalUpdate,
+    InformalGraphicMap,
+    ReferenceUrls,
+    InformalReferences
+)
 
 
 class ReferenceUrlsFactory(factory.django.DjangoModelFactory):
