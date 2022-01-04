@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from main.test_case import APITestCase
 import api.models as models
 from informal_update.models import InformalUpdate
-from factories.informal_update import (
+from informal_update.factories.informal_update import (
     InformalUpdateFactory,
     ReferenceUrlsFactory,
     InformalGraphicMapFactory
