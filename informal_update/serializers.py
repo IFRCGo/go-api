@@ -86,6 +86,8 @@ class InformalCountryDistrictSerializer(serializers.ModelSerializer):
         read_only_fields = ('informal_update',)
 
     def validate(sel, data):
+        if len(data) > 10:
+            raise serializers.ValidationError("Number of countries selected should be less than 10")
         district = data['district']
         if district:
             if district.country != data['country']:

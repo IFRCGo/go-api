@@ -39,7 +39,7 @@ class InformalUpdateTest(APITestCase):
                 {
                     'country': str(self.country2.id),
                     'district': str(self.district2.id)
-                }
+                },
             ],
             "references": [
                 {
