@@ -5,8 +5,15 @@ from .models import (
     InformalGraphicMap,
     InformalReferences,
     InformalAction,
-    InformalCountryDistrict
+    InformalActionsTaken,
+    InformalCountryDistrict,
+    ReferenceUrls
 )
+
+
+@admin.register(ReferenceUrls)
+class ReferenceUrlsAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(InformalGraphicMap)
@@ -24,9 +31,15 @@ class InformalActionAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(InformalActionsTaken)
+class InformalActionTakenAdmin(admin.ModelAdmin):
+    pass
+
+
 class InformalCountryDistrictAdminInline(admin.TabularInline):
     model = InformalCountryDistrict
     extra = 0
+    autocomplete_fields = ('country', 'district',)
 
 
 @admin.register(InformalUpdate)

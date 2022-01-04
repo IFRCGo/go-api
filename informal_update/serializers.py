@@ -51,10 +51,11 @@ class InformalActionsTakenSerializer(
     serializers.ModelSerializer
 ):
     actions = InformalActionSerializer(many=True)
+    organization_display = serializers.CharField(source='get_organization_display', read_only=True)
 
     class Meta:
         model = InformalActionsTaken
-        fields = ('organization', 'actions', 'summary', 'id',)
+        fields = ('organization', 'organization_display', 'actions', 'summary', 'id',)
         read_only_fields = ('informal_update',)
 
 
@@ -105,7 +106,7 @@ class InformalUpdateSerializer(
 ):
     country_district = InformalCountryDistrictSerializer(source='informalcountrydistrict_set', many=True, required=False)
     references = InformalReferencesSerializer(many=True, required=False)
-    actions_taken = InformalActionsTakenSerializer(source='actions_taken_informal_set', many=True, required=False)
+    actions_taken = InformalActionsTakenSerializer(source='actions_taken_informal', many=True, required=False)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='hazard_type', read_only=True)
     share_with_display = serializers.CharField(source='get_share_with_display', read_only=True)
@@ -118,7 +119,8 @@ class InformalUpdateSerializer(
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)
+        response = super().create(validated_data)
+        return response
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user

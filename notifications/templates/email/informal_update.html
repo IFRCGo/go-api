@@ -1,0 +1,40 @@
+<p>{% include "includes/logo.html" %}</p>
+<h1> Informal Update</h1>
+<h2>{{title}}</h2>
+<h2>{{situational_overview}}</h2>
+<h2>{{map}}</h2>
+<h2>{{graphic}}</h2>
+
+{% for action in actions_taken %}
+    {% for key, value in action.items %}
+        {% if key == "actions" %}
+            {% for obj in value %}
+                {% for item_key, item_value in obj.items %}
+                    {% if item_key == "name" %}
+                    <p>{{ item_key }} : {{item_value}}</p>
+                    {% endif %}
+                {% endfor %}
+            {%endfor%}
+        {% else %}
+            <p>{{key}}:{{value}} </p>
+        {%endif%}
+    {% endfor %}
+{% endfor %}
+
+
+
+{% for resource in resources %}
+    {% for key, value in resource.items %}
+        {% if key == "url" %}
+            {% for obj in value %}
+                {% for item_key, item_value in obj.items %}
+                    {% if item_key == "url" %}
+                    <p>{{ item_key }} : {{item_value}}</p>
+                    {% endif %}
+                {% endfor %}
+            {%endfor%}
+        {% else %}
+            <p>{{key}}:{{value}} </p>
+        {%endif%}
+    {% endfor %}
+{% endfor %}

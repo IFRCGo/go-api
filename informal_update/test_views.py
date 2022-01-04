@@ -218,7 +218,7 @@ class InformalUpdateTest(APITestCase):
             ]
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
-            response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
+            response = self.client.post('/api/v2/informal-update/', self.body, format='json')
         self.assert_400(response)
 
     def test_upload_informal_file(self):
@@ -233,3 +233,4 @@ class InformalUpdateTest(APITestCase):
         self.assert_201(response)
         response = response.json()
         self.assertEqual(response['created_by'], user.id)
+
