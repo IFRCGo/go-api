@@ -11,12 +11,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 7,
+            'count': 9,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 6,
+            'count': 4,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
@@ -60,14 +60,14 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     ],
     'projects_per_sector': [
         {
-            'count': 2,
+            'count': 3,
             'primary_sector': 0,
             'primary_sector_display': 'WASH'
         },
         {
             'count': 1,
-            'primary_sector': 2,
-            'primary_sector_display': 'CEA'
+            'primary_sector': 1,
+            'primary_sector_display': 'PGI'
         },
         {
             'count': 3,
@@ -75,27 +75,27 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'Migration'
         },
         {
-            'count': 1,
-            'primary_sector': 4,
-            'primary_sector_display': 'Health'
-        },
-        {
-            'count': 2,
+            'count': 3,
             'primary_sector': 5,
             'primary_sector_display': 'DRR'
         },
         {
-            'count': 2,
+            'count': 1,
             'primary_sector': 6,
             'primary_sector_display': 'Shelter'
         },
         {
-            'count': 2,
+            'count': 1,
+            'primary_sector': 7,
+            'primary_sector_display': 'NS Strengthening'
+        },
+        {
+            'count': 3,
             'primary_sector': 8,
             'primary_sector_display': 'Education'
         },
         {
-            'count': 3,
+            'count': 1,
             'primary_sector': 9,
             'primary_sector_display': 'Livelihoods and basic needs'
         }
@@ -686,4 +686,361 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'user': 2,
     'visibility': 'public',
     'visibility_display': 'Public'
+}
+
+snapshots['TestProjectAPI::test_global_project_api 2'] = {
+    'results': [
+        {
+            'budget_amount_total': 9560000,
+            'id': 5,
+            'iso3': 'Pug',
+            'name': 'country-XLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyE',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 9,
+                    'primary_sector_display': 'Livelihoods and basic needs'
+                }
+            ],
+            'society_name': 'society-name-THOrVqLIKlyPyxLPeHqyoHzwwFYEMaGiCkoeGPrnjlkxMThQoA',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 9100000,
+            'id': 7,
+            'iso3': 'nId',
+            'name': 'country-oGLTaobNWhtpVBWpNfdixFsmjynPcpUMCVviruPYWcHYAPsWbo',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 5,
+                    'primary_sector_display': 'DRR'
+                }
+            ],
+            'society_name': 'society-name-QpZRSUoMyHulCOaeFemdOjniflLJYnpGfBUDtkUmpBlMptsKCO',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 1200000,
+            'id': 9,
+            'iso3': 'hVr',
+            'name': 'country-tvTDQLHHKrWiuBxQjLVcVZyOdYmlajOcYpkzuaKEEwmOKzCnDN',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 3,
+                    'primary_sector_display': 'Migration'
+                }
+            ],
+            'society_name': 'society-name-PXGvvlqvZFXJDQgQvWHqeYxBPbIigoDhhJTsiwtCBJfGlzGmjR',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 150000,
+            'id': 11,
+            'iso3': 'Ixy',
+            'name': 'country-HivaKQuijMsyibLmSxwUyYeZVVPaZnTQKMwiXSLFbXgoDhjrmB',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 8,
+                    'primary_sector_display': 'Education'
+                }
+            ],
+            'society_name': 'society-name-tWinbqeVXjbjEdBhxNkEoJFrdkMNdCUUfBBLbAoiisHPgvuqkR',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 7060000,
+            'id': 13,
+            'iso3': 'Nvo',
+            'name': 'country-YksnSVShNIoKisIsGeobatgVBMZZeauocjgxeyEUxWZTJySszT',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 6,
+                    'primary_sector_display': 'Shelter'
+                }
+            ],
+            'society_name': 'society-name-tJffaubhWrFAqXjFGZLYBhuEpJvuVWhiIXeCFvZgioLxWKFGgv',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 460000,
+            'id': 15,
+            'iso3': 'tHB',
+            'name': 'country-iuvNEEDjBuMFysbJmJxVIbubeTshXCgXyvEJLmKeiLwzwZfIIC',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 5,
+                    'primary_sector_display': 'DRR'
+                }
+            ],
+            'society_name': 'society-name-cdPxXcaTMlqrMTOlHCJFwODdOoPbXjLmbhgUjvOaePGzOcFrkK',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 6050000,
+            'id': 17,
+            'iso3': 'PJN',
+            'name': 'country-VeiQGOKHLNUoaRFrygVhVpUKMWOEKMiDgOvSzdYonHRFVIHRwj',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 3,
+                    'primary_sector_display': 'Migration'
+                }
+            ],
+            'society_name': 'society-name-GzGPgIXXqXpKDzSpdTKaPaEpFLsNLNYUPtYruDRPQqZtrhcCzL',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 8290000,
+            'id': 19,
+            'iso3': 'NTS',
+            'name': 'country-PhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAkalhovT',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
+                }
+            ],
+            'society_name': 'society-name-kjQpKsaFfWCpQsoryydZNvqERdUQdAdYYpKHedCKXwgzmvieqO',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 5920000,
+            'id': 21,
+            'iso3': 'WNq',
+            'name': 'country-FWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKzFb',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 8,
+                    'primary_sector_display': 'Education'
+                }
+            ],
+            'society_name': 'society-name-qJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjD',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 5040000,
+            'id': 23,
+            'iso3': 'dFd',
+            'name': 'country-pLvNPspuCIVYPruNbVEnSUhjHkeOgYelztOjgQGfuqqXFJGLnX',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
+                }
+            ],
+            'society_name': 'society-name-xbCbNxPUbOziyQnlCzlqTQWmiBvCjaXFMHdqVFcEGNYVPpCMHF',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 810000,
+            'id': 25,
+            'iso3': 'fYO',
+            'name': 'country-rXPYckUybVlHPtYAwUvLjfTHLuyIGZzqNKnmQLCrwmMeIcloIs',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
+                }
+            ],
+            'society_name': 'society-name-ttqoUToQRXCoyXPPcNdGvCvoXVDMtCzWngHTnPqlTKbaksLkPF',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 7560000,
+            'id': 27,
+            'iso3': 'Bdp',
+            'name': 'country-VniWFQHzzHBIQMKHtjbbolyZvdPoduiqggrWkcUCAxgZonvlKs',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 1,
+                    'primary_sector_display': 'PGI'
+                }
+            ],
+            'society_name': 'society-name-TOWKASebIrYORKkWTLEdtXunHBICzejSWKCAFyjhOmvtOuzWer',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 8060000,
+            'id': 29,
+            'iso3': 'ELL',
+            'name': 'country-QTqbSLbvtPttKBkPVxjhAwpJNDXZVnYLYRdDzyVzFwSjqPtlap',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 7,
+                    'primary_sector_display': 'NS Strengthening'
+                }
+            ],
+            'society_name': 'society-name-FazwYJegirxWdYECJoBoucRZNAVGdgKijDhWXAAknMPowlAafD',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 6730000,
+            'id': 31,
+            'iso3': 'IBB',
+            'name': 'country-TtOYzaCmFldtcpOlRYtastbgkeCJvBTOnPWtmzervxcfkMbqpf',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 8,
+                    'primary_sector_display': 'Education'
+                }
+            ],
+            'society_name': 'society-name-DCwyszNZGXQmypnWjcKsHVgAGwmfLLQMaSHEceWtyhGEdYOTkE',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 5220000,
+            'id': 33,
+            'iso3': 'hNK',
+            'name': 'country-lFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPpOuhTPN',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 5,
+                    'primary_sector_display': 'DRR'
+                }
+            ],
+            'society_name': 'society-name-DMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyjPObObN',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 3510000,
+            'id': 35,
+            'iso3': 'Bnz',
+            'name': 'country-NUBFklsXHvwhvOCcmqmsYKfCZeQddoPOvFOcvIoPoPYtLrpOFs',
+            'ongoing_projects': 1,
+            'operation_types': [
+                1
+            ],
+            'operation_types_display': [
+                'Emergency Operation'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 3,
+                    'primary_sector_display': 'Migration'
+                }
+            ],
+            'society_name': 'society-name-JvnKNSlGzUnyLPRoqRfeZxiwArYgPzwdBsnTobwsdWUzKBxgrG',
+            'target_total': 0
+        }
+    ]
 }
