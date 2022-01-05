@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+- Adding ordering (by id) to events KeyFigures
+
 ## 1.1.414
 
 ### Added
