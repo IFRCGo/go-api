@@ -5,13 +5,13 @@
 <h2>{{map}}</h2>
 <h2>{{graphic}}</h2>
 
-{% for action in actions_taken %}
-    {% for key, value in action.items %}
+{% for act_taken in actions_taken %}
+    {% for key, value in act_taken.items %}
         {% if key == "actions" %}
-            {% for obj in value %}
-                {% for item_key, item_value in obj.items %}
-                    {% if item_key == "name" %}
-                    <p>{{ item_key }} : {{item_value}}</p>
+            {% for action in value %}
+                {% for key, value in action.items %}
+                    {% if key == "name" %}
+                    <p>{{ key }} : {{value}}</p>
                     {% endif %}
                 {% endfor %}
             {%endfor%}
@@ -26,10 +26,10 @@
 {% for resource in resources %}
     {% for key, value in resource.items %}
         {% if key == "url" %}
-            {% for obj in value %}
-                {% for item_key, item_value in obj.items %}
-                    {% if item_key == "url" %}
-                    <p>{{ item_key }} : {{item_value}}</p>
+            {% for url_item in value %}
+                {% for key, value in url_item.items %}
+                    {% if key == "url" %}
+                    <p>{{ key }} : {{value}}</p>
                     {% endif %}
                 {% endfor %}
             {%endfor%}

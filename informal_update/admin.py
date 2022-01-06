@@ -10,6 +10,13 @@ from .models import (
     ReferenceUrls
 )
 
+from .forms import ActionForm
+
+
+class InformalActionAdmin(admin.ModelAdmin):
+    form = ActionForm
+    list_display = ('__str__', 'informal_update_types', 'organizations', 'category',)
+
 
 @admin.register(ReferenceUrls)
 class ReferenceUrlsAdmin(admin.ModelAdmin):
@@ -26,14 +33,9 @@ class InformalReferencesAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(InformalAction)
-class InformalActionAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(InformalActionsTaken)
-class InformalActionTakenAdmin(admin.ModelAdmin):
-    pass
+class InformalActionTakenAdminInline(admin.TabularInline):
+    model = InformalActionsTaken
+    extra = 0
 
 
 class InformalCountryDistrictAdminInline(admin.TabularInline):
@@ -44,7 +46,9 @@ class InformalCountryDistrictAdminInline(admin.TabularInline):
 
 @admin.register(InformalUpdate)
 class InformalUpdateAdmin(admin.ModelAdmin):
-    inlines = [InformalCountryDistrictAdminInline]
+    inlines = [InformalCountryDistrictAdminInline, InformalActionTakenAdminInline]
     search_fields = ('title',)
     list_filter = ('hazard_type', 'share_with', 'informalcountrydistrict__country',)
 
+
+admin.site.register(InformalAction, InformalActionAdmin)

@@ -19,19 +19,6 @@ class ReferenceUrls(models.Model):
     url = models.URLField()
 
 
-class InformalReferences(models.Model):
-    date = models.DateTimeField(verbose_name=_('date'), blank=True)
-    source_description = models.CharField(verbose_name=_('Name or Source Description'), max_length=225, blank=True)
-    url = models.ManyToManyField(ReferenceUrls, verbose_name=_('Add url'), blank=True)
-
-    class Meta:
-        verbose_name = _('informal reference')
-        verbose_name_plural = _('informal references')
-
-    def __str__(self):
-        return f'{self.source_description} - {self.date}'
-
-
 class InformalGraphicMap(models.Model):
 
     file = models.FileField(
@@ -48,6 +35,25 @@ class InformalGraphicMap(models.Model):
     class Meta:
         verbose_name = _('informal graphic map')
         verbose_name_plural = _('informal graphic maps')
+
+
+class InformalReferences(models.Model):
+    date = models.DateTimeField(verbose_name=_('date'), blank=True)
+    source_description = models.CharField(verbose_name=_('Name or Source Description'), max_length=225, blank=True)
+    url = models.ManyToManyField(ReferenceUrls, verbose_name=_('Add url'), blank=True)
+    document = models.ForeignKey(
+        InformalGraphicMap, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('document'),
+        related_name='informal_document'
+    )
+
+    class Meta:
+        verbose_name = _('informal reference')
+        verbose_name_plural = _('informal references')
+
+    def __str__(self):
+        return f'{self.source_description} - {self.date}'
 
 
 class InformalUpdate(models.Model):

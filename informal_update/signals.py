@@ -26,7 +26,6 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
             'actions_taken': data['actions_taken'],
             'resources': data['references'],
         }
-        print(email_context)
         send_notification(
             'Informal Update',
             list(users_emails),

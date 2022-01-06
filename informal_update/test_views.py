@@ -24,6 +24,7 @@ class InformalUpdateTest(APITestCase):
         self.refrence_urls = ReferenceUrlsFactory.create_batch(3)
         self.informal_map = InformalGraphicMapFactory()
         self.informal_graphics = InformalGraphicMapFactory()
+        self.document = InformalGraphicMapFactory()
         self.hazard_type = models.DisasterType.objects.create(name="test earthquake")
         self.hazard_type_updated = models.DisasterType.objects.create(name="test flood")
 
@@ -48,7 +49,8 @@ class InformalUpdateTest(APITestCase):
                     'url': [
                         {"url": str(self.refrence_urls[0].url)},
                         {"url": str(self.refrence_urls[1].url)}
-                    ]
+                    ],
+                    'document': str(self.document.id)
                 }
             ],
             'actions_taken': [

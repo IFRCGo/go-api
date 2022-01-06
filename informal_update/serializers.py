@@ -71,6 +71,7 @@ class InformalReferencesSerializer(
     serializers.ModelSerializer
 ):
     url = InformalReferenceUrls(many=True)
+    document_details = InformalGraphicMapSerializer(source='document', read_only=True)
 
     class Meta:
         model = InformalReferences
