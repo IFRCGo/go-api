@@ -715,6 +715,7 @@ class KeyFigure(models.Model):
     class Meta:
         verbose_name = _('key figure')
         verbose_name_plural = _('key figures')
+        ordering = ('id',)
 
 
 def snippet_image_path(instance, filename):

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.415
+
+### Added
+ - Adding ordering (by id) to events KeyFigures
+ - Fixing moved snapshot tests
+
 ## 1.1.414
 
 ### Added
@@ -1867,7 +1873,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.414...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.415...HEAD
+[1.1.415]: https://github.com/IFRCGo/go-api/compare/1.1.414...1.1.415
 [1.1.414]: https://github.com/IFRCGo/go-api/compare/1.1.413...1.1.414
 [1.1.413]: https://github.com/IFRCGo/go-api/compare/1.1.412...1.1.413
 [1.1.412]: https://github.com/IFRCGo/go-api/compare/1.1.411...1.1.412
