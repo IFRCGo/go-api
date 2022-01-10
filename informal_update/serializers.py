@@ -25,6 +25,8 @@ from informal_update.writable_nested_serializers import (
     NestedUpdateMixin
 )
 
+from lang.serializers import ModelSerializer
+
 
 class InformalGraphicMapSerializer(serializers.ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)

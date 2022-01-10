@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from lang.admin import TranslationAdmin
+
 from .models import (
     InformalUpdate,
     InformalGraphicMap,
@@ -45,7 +47,7 @@ class InformalCountryDistrictAdminInline(admin.TabularInline):
 
 
 @admin.register(InformalUpdate)
-class InformalUpdateAdmin(admin.ModelAdmin):
+class InformalUpdateAdmin(TranslationAdmin):
     inlines = [InformalCountryDistrictAdminInline, InformalActionTakenAdminInline]
     search_fields = ('title',)
     list_filter = ('hazard_type', 'share_with', 'informalcountrydistrict__country',)
