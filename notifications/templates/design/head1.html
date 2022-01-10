@@ -414,7 +414,7 @@
                               <tr>
 {% for record in records|slice:":1" %}
                                 <td class="text-header text-default text-right" style="text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                  <a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
+                                  <a href="https://{{ record.resource_uri }}" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
                                 </td>
 {% endfor %}
                               </tr>
