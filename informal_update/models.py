@@ -20,7 +20,6 @@ class ReferenceUrls(models.Model):
 
 
 class InformalGraphicMap(models.Model):
-
     file = models.FileField(
         verbose_name=_('file'),
         null=True, blank=True,
@@ -86,15 +85,13 @@ class InformalUpdate(models.Model):
     situational_overview = models.TextField(verbose_name=_('Situational Overview'))
 
     # map/graphics
-    map = models.ForeignKey(
-        InformalGraphicMap, on_delete=models.SET_NULL,
-        null=True, blank=True,
+    map = models.ManyToManyField(
+        InformalGraphicMap, blank=True,
         verbose_name=_('map'),
         related_name='informal_map'
     )
-    graphics = models.ForeignKey(
-        InformalGraphicMap, on_delete=models.SET_NULL,
-        null=True, blank=True,
+    graphics = models.ManyToManyField(
+        InformalGraphicMap, blank=True,
         verbose_name=_('graphics'),
         related_name='informal_graphics'
     )

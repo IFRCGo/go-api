@@ -22,9 +22,9 @@ class InformalUpdateTest(APITestCase):
         self.district1 = models.District.objects.create(name='test district1', country=self.country1)
         self.district2 = models.District.objects.create(name='test district12', country=self.country2)
         self.refrence_urls = ReferenceUrlsFactory.create_batch(3)
-        self.informal_map = InformalGraphicMapFactory()
-        self.informal_graphics = InformalGraphicMapFactory()
-        self.document = InformalGraphicMapFactory()
+        map1, map2, map3, map5 = InformalGraphicMapFactory.create_batch(4, created_by=self.user)
+        graphic1, graphic2 = InformalGraphicMapFactory.create_batch(2, created_by=self.user)
+        documents1, documents1 = InformalGraphicMapFactory.create_batch(2, created_by=self.user)
         self.hazard_type = models.DisasterType.objects.create(name="test earthquake")
         self.hazard_type_updated = models.DisasterType.objects.create(name="test flood")
 
@@ -50,7 +50,7 @@ class InformalUpdateTest(APITestCase):
                         {"url": str(self.refrence_urls[0].url)},
                         {"url": str(self.refrence_urls[1].url)}
                     ],
-                    'document': str(self.document.id)
+                    'document': documents1.id,
                 }
             ],
             'actions_taken': [
@@ -63,7 +63,7 @@ class InformalUpdateTest(APITestCase):
                     ]
                 },
             ],
-            "title": "test",
+            "title": "test informal update",
             "situational_overview": "test situational overview",
             "originator_name": "test originator_name",
             "originator_title": "test originator_title",
@@ -73,11 +73,11 @@ class InformalUpdateTest(APITestCase):
             "ifrc_title": "test ",
             "ifrc_email": "test_ifrc@ifrc.com",
             "ifrc_phone": "9858585858",
-            "share_with": InformalUpdate.InformalShareWith.IFRC_SECRETARIAT,
+            "share_with": InformalUpdate.InformalShareWith.RCRC_NETWORK.value,
             "created_by": str(self.user.id),
             "hazard_type": str(self.hazard_type.id),
-            "map": str(self.informal_map.id),
-            "graphics": str(self.informal_graphics.id)
+            "map": [map1.id, map2.id, map3.id, map5.id],
+            "graphics": [graphic1.id, graphic2.id]
         }
         super().setUp()
 
@@ -88,10 +88,9 @@ class InformalUpdateTest(APITestCase):
         created = InformalUpdate.objects.get(pk=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
-        self.assertEqual(created.map, self.informal_map)
         self.assertEqual(response['references'][0]['url'][0]['url'], self.refrence_urls[0].url)
         self.assertEqual(response['country_district'][0]['country'], self.country1.id)
-        self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
+        self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
         self.assertEqual(created.actions_taken_informal.count(), 1)
 
         # update
@@ -153,7 +152,7 @@ class InformalUpdateTest(APITestCase):
         self.assertEqual(informal_id.modified_by, user)
         self.assertNotEqual(response1['title'], response2['title'])
         self.assertEqual(response1['id'], response2['id'])
-        self.assertEqual(informal_id.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
+        self.assertEqual(informal_id.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
 
     def test_get_informal_update(self):
         user1 = User.objects.create(username='abc')
@@ -223,7 +222,7 @@ class InformalUpdateTest(APITestCase):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json')
         self.assert_400(response)
 
-    def test_upload_informal_file(self):
+    def test_upload_file(self):
         user = User.objects.create(username='informal_user')
         url = '/api/v2/informal-file/'
         data = {
@@ -235,4 +234,3 @@ class InformalUpdateTest(APITestCase):
         self.assert_201(response)
         response = response.json()
         self.assertEqual(response['created_by'], user.id)
-

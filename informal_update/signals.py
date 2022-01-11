@@ -21,8 +21,8 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
         email_context = {
             'title': data['title'],
             'situational_overview': data['situational_overview'],
-            'map': data['map_details']['file'],
-            'graphic': data['graphics_details']['file'],
+            'map': data['map_details'],
+            'graphic': data['graphics_details'],
             'actions_taken': data['actions_taken'],
             'resources': data['references'],
         }
@@ -32,3 +32,4 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
             render_to_string('email/informal_update.html', email_context),
             'Informal Update'
         )
+

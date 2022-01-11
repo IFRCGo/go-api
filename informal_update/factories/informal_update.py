@@ -33,13 +33,13 @@ class InformalGraphicMapFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = InformalGraphicMap
 
-    file = factory.LazyAttribute(
-        lambda _: ContentFile(
-            factory.django.ImageField()._make_data({"width": 32, "height": 32}),
-            "file.png",
-        )
-    )
-    caption = fuzzy.FuzzyText(length=50)
+    # file = factory.LazyAttribute(
+    #     lambda _: ContentFile(
+    #         factory.django.ImageField()._make_data({"width": 32, "height": 32}),
+    #         "file.png",
+    #     )
+    # )
+    # caption = fuzzy.FuzzyText(length=50)
 
 
 class InformalUpdateFactory(factory.django.DjangoModelFactory):
@@ -49,8 +49,6 @@ class InformalUpdateFactory(factory.django.DjangoModelFactory):
     hazard_type = factory.SubFactory(disaster_type.DisasterTypeFactory)
     title = fuzzy.FuzzyText(length=300)
     situational_overview = fuzzy.FuzzyText(length=200)
-    map = factory.SubFactory(InformalGraphicMapFactory)
-    graphics = factory.SubFactory(InformalGraphicMapFactory)
     originator_name = fuzzy.FuzzyText(length=50)
     originator_title = fuzzy.FuzzyText(length=50)
     originator_email = fuzzy.FuzzyText(length=50)
@@ -63,10 +61,43 @@ class InformalUpdateFactory(factory.django.DjangoModelFactory):
 
     share_with = fuzzy.FuzzyChoice(InformalUpdate.InformalShareWith)
 
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        references = InformalRefrenceFactory.create_batch(3)
-        informal_update = super()._create(model_class, *args, **kwargs)
-        for obj in references:
-            informal_update.references.add(obj)
-        return informal_update
+    @factory.post_generation
+    def references(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for reference in extracted:
+                self.references.add(reference)
+
+    @factory.post_generation
+    def map(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for map in extracted:
+                self.map.add(map)
+
+    @factory.post_generation
+    def graphics(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for graphic in extracted:
+                self.graphics.add(graphic)
+
+    # @classmethod
+    # def _create(cls, model_class, *args, **kwargs):
+    #     references = InformalRefrenceFactory.create_batch(3)
+    #     map = InformalGraphicMapFactory.create_batch(3)
+    #     graphics = InformalGraphicMapFactory.create_batch(3)
+    #     informal_update = super()._create(model_class, *args, **kwargs)
+    #     for obj in references:
+    #         informal_update.references.add(obj)
+    #     for obj in map:
+    #         informal_update.map.add(obj)
+    #     for obj in graphics:
+    #         informal_update.graphics.add(obj)
+    #     return informal_update

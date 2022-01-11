@@ -25,7 +25,7 @@ from informal_update.writable_nested_serializers import (
     NestedUpdateMixin
 )
 
-from lang.serializers import ModelSerializer
+#from lang.serializers import ModelSerializer
 
 
 class InformalGraphicMapSerializer(serializers.ModelSerializer):
@@ -105,7 +105,7 @@ class InformalUpdateSerializer(
     EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
-    serializers.ModelSerializer
+    serializers.ModelSerializer,
 ):
     country_district = InformalCountryDistrictSerializer(source='informalcountrydistrict_set', many=True, required=False)
     references = InformalReferencesSerializer(many=True, required=False)
@@ -113,17 +113,18 @@ class InformalUpdateSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='hazard_type', read_only=True)
     share_with_display = serializers.CharField(source='get_share_with_display', read_only=True)
-    map_details = InformalGraphicMapSerializer(source='map', read_only=True)
-    graphics_details = InformalGraphicMapSerializer(source='graphics', read_only=True)
+    map_details = InformalGraphicMapSerializer(source='map', many=True, required=False, read_only=True)
+    graphics_details = InformalGraphicMapSerializer(source='graphics', many=True, required=False, read_only=True)
 
     class Meta:
         model = InformalUpdate
         fields = '__all__'
 
     def create(self, validated_data):
+        print("validated_datas:", validated_data)
         validated_data['created_by'] = self.context['request'].user
-        response = super().create(validated_data)
-        return response
+        informal_update = super().create(validated_data)
+        return informal_update
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
