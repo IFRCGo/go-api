@@ -159,8 +159,8 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.EDUCATION: 'education.png',
             PlannedIntervention.Title.MIGRATION: 'migration.png',
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
-            PlannedIntervention.Title.SECRETARIAT_SERVICES: 'favicon.png',
-            PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'favicon.png',
+            PlannedIntervention.Title.SECRETARIAT_SERVICES: 'work.png',
+            PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'independence.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
