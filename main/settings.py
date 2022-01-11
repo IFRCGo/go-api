@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    'django_celery_beat',
+    # 'django_celery_beat',
 
     # Logging
     'reversion',
