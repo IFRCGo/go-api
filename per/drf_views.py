@@ -492,7 +492,7 @@ class FormComponentFilter(filters.FilterSet):
     class Meta:
         model = FormComponent
         fields = {
-            'area_id': ('exact',)
+            'area': ('exact',)
         }
 
 
