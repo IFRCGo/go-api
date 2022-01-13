@@ -1,6 +1,6 @@
 import os
 #ς import celery
-#ς : this greek sigma (ς) shows the celery-comments everywhere
+#ς : this greek sigma (ς) shows the (searchable) celery-comments everywhere
 
 
 #ς class Celery(celery.Celery):

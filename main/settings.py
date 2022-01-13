@@ -86,7 +86,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    # 'django_celery_beat',
+    #ς 'django_celery_beat',
 
     # Logging
     'reversion',
@@ -355,12 +355,12 @@ AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
 
 TEST_RUNNER = 'snapshottest.django.TestRunner'
 
-# CELERY CONFIG
-CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
-CELERY_BROKER_URL = CELERY_REDIS_URL
-CELERY_RESULT_BACKEND = CELERY_REDIS_URL
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ACKS_LATE = True
+#ς # CELERY CONFIG
+#ς CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
+#ς CELERY_BROKER_URL = CELERY_REDIS_URL
+#ς CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+#ς CELERY_TIMEZONE = TIME_ZONE
+#ς CELERY_ACKS_LATE = True
 
 # CELERY_BEAT_SCHEDULE = {
 #     'translate_remaining_models_fields': {
