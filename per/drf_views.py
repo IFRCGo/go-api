@@ -514,7 +514,7 @@ class FormQuestionFilter(filters.FilterSet):
     class Meta:
         model = FormQuestion
         fields = {
-            'area': ('exact',)
+            'component': ('exact',)
         }
 
 
