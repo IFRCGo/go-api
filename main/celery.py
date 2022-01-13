@@ -1,24 +1,25 @@
 import os
-import celery
+#ς import celery
+#ς : this greek sigma (ς) shows the (searchable) celery-comments everywhere
 
 
-class Celery(celery.Celery):
-    pass
+#ς class Celery(celery.Celery):
+#ς     pass
 
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
 
-app = Celery('main')
+#ς app = Celery('main')
 
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
-# - namespace='CELERY' means all celery-related configuration keys
-#   should have a `CELERY_` prefix.
-app.config_from_object('django.conf:settings', namespace='CELERY')
+#ς # Using a string here means the worker doesn't have to serialize
+#ς # the configuration object to child processes.
+#ς # - namespace='CELERY' means all celery-related configuration keys
+#ς #   should have a `CELERY_` prefix.
+#ς app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Load task modules from all registered Django app configs.
-app.autodiscover_tasks()
+#ς # Load task modules from all registered Django app configs.
+#ς app.autodiscover_tasks()
 
 
 class Queues():
@@ -33,6 +34,6 @@ class Queues():
     )
 
 
-@app.task(bind=True)
-def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
+#ς @app.task(bind=True)
+#ς def debug_task(self):
+#ς     print('Request: {0!r}'.format(self.request))
