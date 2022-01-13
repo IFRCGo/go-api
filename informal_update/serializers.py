@@ -25,8 +25,6 @@ from informal_update.writable_nested_serializers import (
     NestedUpdateMixin
 )
 
-#from lang.serializers import ModelSerializer
-
 
 class InformalGraphicMapSerializer(serializers.ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
@@ -121,7 +119,6 @@ class InformalUpdateSerializer(
         fields = '__all__'
 
     def create(self, validated_data):
-        print("validated_datas:", validated_data)
         validated_data['created_by'] = self.context['request'].user
         informal_update = super().create(validated_data)
         return informal_update

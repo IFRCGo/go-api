@@ -14,8 +14,8 @@ from informal_update.serializers import InformalUpdateSerializer
 def send_email_when_informal_update_created(sender, instance, created, **kwargs):
     if created:
         share_with_group = instance.share_with
-        group, created = Group.objects.get_or_create(name=share_with_group)
-        users_emails = User.objects.filter(groups__name=group).values_list('email', flat=True)
+        # group, created = Group.objects.get_or_create(name=share_with_group)
+        # users_emails = User.objects.filter(groups__name=group).values_list('email', flat=True)
         informal_update = InformalUpdateSerializer(instance)
         data = json.loads(json.dumps(informal_update.data))
         email_context = {
@@ -26,10 +26,10 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
             'actions_taken': data['actions_taken'],
             'resources': data['references'],
         }
-        send_notification(
-            'Informal Update',
-            list(users_emails),
-            render_to_string('email/informal_update.html', email_context),
-            'Informal Update'
-        )
-
+        # send_notification(
+        #     'Informal Update',
+        #     list(users_emails),
+        #     render_to_string('email/informal_update.html', email_context),
+        #     'Informal Update'
+        # )
+        return email_context

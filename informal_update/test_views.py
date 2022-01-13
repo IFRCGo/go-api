@@ -9,7 +9,8 @@ from informal_update.models import InformalUpdate
 from informal_update.factories.informal_update import (
     InformalUpdateFactory,
     ReferenceUrlsFactory,
-    InformalGraphicMapFactory
+    InformalGraphicMapFactory,
+    InformalActionFactory
 )
 
 
@@ -27,6 +28,7 @@ class InformalUpdateTest(APITestCase):
         documents1, documents1 = InformalGraphicMapFactory.create_batch(2, created_by=self.user)
         self.hazard_type = models.DisasterType.objects.create(name="test earthquake")
         self.hazard_type_updated = models.DisasterType.objects.create(name="test flood")
+        actions1, actions2, self.actions3, self.actions4 = InformalActionFactory.create_batch(4)
 
         path = os.path.join(settings.TEST_DIR, 'informal_files')
         self.file = os.path.join(path, 'ifrc.png')
@@ -92,6 +94,8 @@ class InformalUpdateTest(APITestCase):
         self.assertEqual(response['country_district'][0]['country'], self.country1.id)
         self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
         self.assertEqual(created.actions_taken_informal.count(), 1)
+        action_taken = created.actions_taken_informal.first()
+        self.assertEqual(action_taken.actions.count(), 2)
 
         # update
         data = self.body
@@ -116,14 +120,20 @@ class InformalUpdateTest(APITestCase):
                 'organization': 'NTLS',
                 'summary': 'actions taken updated',
                 'actions': [
-                    {"id": '37', "name": "First Aid"},
+                    {
+                        "id": self.actions3.id,
+                        "name": self.actions3.name
+                    },
                 ]
             },
             {
                 'organization': 'FDRN',
                 'summary': 'actions taken updated',
                 'actions': [
-                    {"id": '30', "name": "Relief/Supply distribution"}
+                    {
+                        "id": self.actions4.id,
+                        "name": self.actions4.name
+                    },
                 ]
             }
         ]
@@ -212,11 +222,11 @@ class InformalUpdateTest(APITestCase):
     def test_validations(self):
         # validate if district passed belongs to respective country
         self.body["country_district"] = [
-                {
-                    'country': str(self.country1.id),
-                    'district': str(self.district2.id)
-                }
-            ]
+            {
+                'country': str(self.country1.id),
+                'district': str(self.district2.id)
+            }
+        ]
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json')
@@ -234,3 +244,19 @@ class InformalUpdateTest(APITestCase):
         self.assert_201(response)
         response = response.json()
         self.assertEqual(response['created_by'], user.id)
+
+    def test_send_email(self):
+        from informal_update.signals import send_email_when_informal_update_created
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
+        instance = InformalUpdate.objects.get(pk=response['id'])
+        email_data = send_email_when_informal_update_created(InformalUpdate, instance, created=True)
+        self.assertEqual(email_data['title'], instance.title)
+        self.assertEqual(email_data['situational_overview'], instance.situational_overview)
+        self.assertIn(email_data['map'][0]['id'], [data['id'] for data in instance.map.all().values('id')])
+        self.assertIn(email_data['graphic'][0]['id'], [data['id'] for data in instance.graphics.all().values('id')])
+        self.assertIn(
+            email_data['actions_taken'][0]['id'],
+            [data['id'] for data in instance.actions_taken_informal.all().values('id')]
+        )
+

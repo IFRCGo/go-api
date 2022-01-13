@@ -3,14 +3,18 @@ import datetime
 import pytz
 from factory import fuzzy
 
-from django.core.files.base import ContentFile
-
 from api.factories import disaster_type
+from api.models import (
+    ActionOrg,
+    ActionType,
+    ActionCategory
+)
 from informal_update.models import (
     InformalUpdate,
     InformalGraphicMap,
     ReferenceUrls,
-    InformalReferences
+    InformalReferences,
+    InformalAction
 )
 
 
@@ -33,13 +37,16 @@ class InformalGraphicMapFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = InformalGraphicMap
 
-    # file = factory.LazyAttribute(
-    #     lambda _: ContentFile(
-    #         factory.django.ImageField()._make_data({"width": 32, "height": 32}),
-    #         "file.png",
-    #     )
-    # )
-    # caption = fuzzy.FuzzyText(length=50)
+
+class InformalActionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = InformalAction
+
+    name = fuzzy.FuzzyText(length=50)
+    organizations = fuzzy.FuzzyChoice(ActionOrg.CHOICES)
+    informal_update_types = fuzzy.FuzzyChoice(ActionType.CHOICES)
+    category = fuzzy.FuzzyChoice(ActionCategory.CHOICES)
+    tooltip_text = fuzzy.FuzzyText(length=50)
 
 
 class InformalUpdateFactory(factory.django.DjangoModelFactory):
