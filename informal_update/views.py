@@ -42,23 +42,6 @@ class InformalUpdateFileViewSet(
     permission_class = [permissions.IsAuthenticated]
     serializer_class = InformalGraphicMapSerializer
 
-    @action(
-        detail=False,
-        url_path='multiple',
-        methods=['POST'],
-        permission_classes=[permissions.IsAuthenticated],
-    )
-    def multiple_file(self, request, pk=None, version=None):
-        # converts querydict to original dict
-        files = dict((request.data).lists())['file']
-        data = [{'file': file} for file in files]
-        file_serializer = InformalGraphicMapSerializer(data=data, context={'request': request}, many=True)
-        if file_serializer.is_valid():
-            file_serializer.save()
-            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     def get_queryset(self):
         return InformalGraphicMap.objects.filter(created_by=self.request.user)
 

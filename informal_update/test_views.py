@@ -1,17 +1,18 @@
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 from main.test_case import APITestCase
 import api.models as models
-from informal_update.models import InformalUpdate
+from informal_update.models import InformalUpdate, InformalEmailSubscriptions
 from informal_update.factories.informal_update import (
     InformalUpdateFactory,
     ReferenceUrlsFactory,
     InformalGraphicMapFactory,
     InformalActionFactory
 )
+from informal_update.signals import send_email_when_informal_update_created
 
 
 class InformalUpdateTest(APITestCase):
@@ -29,6 +30,8 @@ class InformalUpdateTest(APITestCase):
         self.hazard_type = models.DisasterType.objects.create(name="test earthquake")
         self.hazard_type_updated = models.DisasterType.objects.create(name="test flood")
         actions1, actions2, self.actions3, self.actions4 = InformalActionFactory.create_batch(4)
+        for key, value in InformalUpdate.InformalShareWith.choices:
+            InformalEmailSubscriptions.objects.create(share_with=key)
 
         path = os.path.join(settings.TEST_DIR, 'informal_files')
         self.file = os.path.join(path, 'ifrc.png')
@@ -75,7 +78,7 @@ class InformalUpdateTest(APITestCase):
             "ifrc_title": "test ",
             "ifrc_email": "test_ifrc@ifrc.com",
             "ifrc_phone": "9858585858",
-            "share_with": InformalUpdate.InformalShareWith.RCRC_NETWORK.value,
+            "share_with": InformalUpdate.InformalShareWith.IFRC_SECRETARIAT.value,
             "created_by": str(self.user.id),
             "hazard_type": str(self.hazard_type.id),
             "map": [map1.id, map2.id, map3.id, map5.id],
@@ -92,7 +95,7 @@ class InformalUpdateTest(APITestCase):
         self.assertEqual(created.hazard_type, self.hazard_type)
         self.assertEqual(response['references'][0]['url'][0]['url'], self.refrence_urls[0].url)
         self.assertEqual(response['country_district'][0]['country'], self.country1.id)
-        self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
+        self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
         self.assertEqual(created.actions_taken_informal.count(), 1)
         action_taken = created.actions_taken_informal.first()
         self.assertEqual(action_taken.actions.count(), 2)
@@ -162,7 +165,7 @@ class InformalUpdateTest(APITestCase):
         self.assertEqual(informal_id.modified_by, user)
         self.assertNotEqual(response1['title'], response2['title'])
         self.assertEqual(response1['id'], response2['id'])
-        self.assertEqual(informal_id.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
+        self.assertEqual(informal_id.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
 
     def test_get_informal_update(self):
         user1 = User.objects.create(username='abc')
@@ -246,7 +249,13 @@ class InformalUpdateTest(APITestCase):
         self.assertEqual(response['created_by'], user.id)
 
     def test_send_email(self):
-        from informal_update.signals import send_email_when_informal_update_created
+        group = Group.objects.create(name="informal_email_member")
+        email_suscription = InformalEmailSubscriptions.objects.get(
+            share_with=InformalUpdate.InformalShareWith.IFRC_SECRETARIAT
+        )
+        email_suscription.group = group
+        email_suscription.save()
+
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
         instance = InformalUpdate.objects.get(pk=response['id'])

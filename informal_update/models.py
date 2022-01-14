@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth.models import Group
 
 from api.models import (
     Country,
@@ -193,3 +194,15 @@ class InformalActionsTaken(models.Model):
 
     def __str__(self):
         return f'{self.organization} - {self.actions}'
+
+
+class InformalEmailSubscriptions(models.Model):
+    share_with = models.CharField(
+        max_length=50, choices=InformalUpdate.InformalShareWith.choices,
+        default=InformalUpdate.InformalShareWith.IFRC_SECRETARIAT,
+        verbose_name=_('share with')
+    )
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True, related_name='informal_email_group')
+
+    def __str__(self):
+        return self.share_with

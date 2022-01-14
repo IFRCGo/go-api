@@ -9,7 +9,8 @@ from .models import (
     InformalAction,
     InformalActionsTaken,
     InformalCountryDistrict,
-    ReferenceUrls
+    ReferenceUrls,
+    InformalEmailSubscriptions
 )
 
 from .forms import ActionForm
@@ -32,6 +33,11 @@ class InformalGraphicMapAdmin(admin.ModelAdmin):
 
 @admin.register(InformalReferences)
 class InformalReferencesAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(InformalEmailSubscriptions)
+class InformalEmailSubscriptionsAdmin(admin.ModelAdmin):
     pass
 
 
