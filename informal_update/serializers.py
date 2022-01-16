@@ -16,8 +16,7 @@ from informal_update.models import (
     InformalCountryDistrict,
     InformalGraphicMap,
     InformalAction,
-    InformalActionsTaken,
-    ReferenceUrls,
+    InformalActionsTaken
 )
 
 from informal_update.writable_nested_serializers import (
@@ -50,27 +49,18 @@ class InformalActionsTakenSerializer(
     NestedCreateMixin,
     serializers.ModelSerializer
 ):
-    actions = InformalActionSerializer(many=True)
+    action_details = InformalActionSerializer(source='actions', many=True, required=False, read_only=True)
     organization_display = serializers.CharField(source='get_organization_display', read_only=True)
 
     class Meta:
         model = InformalActionsTaken
-        fields = ('organization', 'organization_display', 'actions', 'summary', 'id',)
+        fields = ('organization', 'organization_display', 'actions', 'action_details', 'summary', 'id',)
         read_only_fields = ('informal_update',)
 
 
-class InformalReferenceUrls(serializers.ModelSerializer):
-    class Meta:
-        model = ReferenceUrls
-        fields = '__all__'
-
-
 class InformalReferencesSerializer(
-    NestedUpdateMixin,
-    NestedCreateMixin,
     serializers.ModelSerializer
 ):
-    url = InformalReferenceUrls(many=True)
     document_details = InformalGraphicMapSerializer(source='document', read_only=True)
 
     class Meta:

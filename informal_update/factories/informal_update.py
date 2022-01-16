@@ -1,6 +1,4 @@
 import factory
-import datetime
-import pytz
 from factory import fuzzy
 
 from api.factories import disaster_type
@@ -12,25 +10,8 @@ from api.models import (
 from informal_update.models import (
     InformalUpdate,
     InformalGraphicMap,
-    ReferenceUrls,
-    InformalReferences,
     InformalAction
 )
-
-
-class ReferenceUrlsFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = ReferenceUrls
-
-    url = factory.Sequence(lambda n: f'https://{n}@xyz.com')
-
-
-class InformalRefrenceFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = InformalReferences
-
-    date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=pytz.utc))
-    source_description = fuzzy.FuzzyText(length=50)
 
 
 class InformalGraphicMapFactory(factory.django.DjangoModelFactory):
@@ -94,17 +75,3 @@ class InformalUpdateFactory(factory.django.DjangoModelFactory):
         if extracted:
             for graphic in extracted:
                 self.graphics.add(graphic)
-
-    # @classmethod
-    # def _create(cls, model_class, *args, **kwargs):
-    #     references = InformalRefrenceFactory.create_batch(3)
-    #     map = InformalGraphicMapFactory.create_batch(3)
-    #     graphics = InformalGraphicMapFactory.create_batch(3)
-    #     informal_update = super()._create(model_class, *args, **kwargs)
-    #     for obj in references:
-    #         informal_update.references.add(obj)
-    #     for obj in map:
-    #         informal_update.map.add(obj)
-    #     for obj in graphics:
-    #         informal_update.graphics.add(obj)
-    #     return informal_update

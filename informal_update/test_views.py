@@ -8,7 +8,6 @@ import api.models as models
 from informal_update.models import InformalUpdate, InformalEmailSubscriptions
 from informal_update.factories.informal_update import (
     InformalUpdateFactory,
-    ReferenceUrlsFactory,
     InformalGraphicMapFactory,
     InformalActionFactory
 )
@@ -23,7 +22,6 @@ class InformalUpdateTest(APITestCase):
         self.country2 = models.Country.objects.create(name='xyz')
         self.district1 = models.District.objects.create(name='test district1', country=self.country1)
         self.district2 = models.District.objects.create(name='test district12', country=self.country2)
-        self.refrence_urls = ReferenceUrlsFactory.create_batch(3)
         map1, map2, map3, map5 = InformalGraphicMapFactory.create_batch(4, created_by=self.user)
         graphic1, graphic2 = InformalGraphicMapFactory.create_batch(2, created_by=self.user)
         documents1, documents1 = InformalGraphicMapFactory.create_batch(2, created_by=self.user)
@@ -49,12 +47,9 @@ class InformalUpdateTest(APITestCase):
             ],
             "references": [
                 {
-                    'date': '2021-02-02 00:00:00',
+                    'date': '2021-02-02',
                     'source_description': 'A source',
-                    'url': [
-                        {"url": str(self.refrence_urls[0].url)},
-                        {"url": str(self.refrence_urls[1].url)}
-                    ],
+                    "url": "https://youtube.com/",
                     'document': documents1.id,
                 }
             ],
@@ -62,10 +57,7 @@ class InformalUpdateTest(APITestCase):
                 {
                     'organization': 'NTLS',
                     'summary': 'actions taken',
-                    'actions': [
-                        {"id": '37', "name": "First Aid"},
-                        {"id": '30', "name": "Relief/Supply distribution"}
-                    ]
+                    'actions': [actions1.id, actions2.id]
                 },
             ],
             "title": "test informal update",
@@ -90,10 +82,10 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
+            print(response)
         created = InformalUpdate.objects.get(pk=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
-        self.assertEqual(response['references'][0]['url'][0]['url'], self.refrence_urls[0].url)
         self.assertEqual(response['country_district'][0]['country'], self.country1.id)
         self.assertEqual(created.share_with, InformalUpdate.InformalShareWith.IFRC_SECRETARIAT)
         self.assertEqual(created.actions_taken_informal.count(), 1)
@@ -110,34 +102,21 @@ class InformalUpdateTest(APITestCase):
         ]
         data['references'] = [
             {
-                'date': '2021-01-01 00:00:00',
+                'date': '2021-01-01',
                 'source_description': 'A source',
-                'url': [
-                    {"url": str(self.refrence_urls[0].url)},
-                    {"url": str(self.refrence_urls[2].url)}
-                ]
+                'url': "https://youtube.com/"
             }
         ]
         data['actions_taken'] = [
             {
                 'organization': 'NTLS',
                 'summary': 'actions taken updated',
-                'actions': [
-                    {
-                        "id": self.actions3.id,
-                        "name": self.actions3.name
-                    },
-                ]
+                'actions': [self.actions3.id, self.actions4.id]
             },
             {
                 'organization': 'FDRN',
                 'summary': 'actions taken updated',
-                'actions': [
-                    {
-                        "id": self.actions4.id,
-                        "name": self.actions4.name
-                    },
-                ]
+                'actions': [self.actions3.id, self.actions4.id]
             }
         ]
 

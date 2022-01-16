@@ -13,7 +13,6 @@ from informal_update.serializers import InformalUpdateSerializer
 @receiver(post_save, sender=InformalUpdate)
 def send_email_when_informal_update_created(sender, instance, created, **kwargs):
     if created:
-        print("***************Created****************")
         share_with_group = instance.share_with
         email_subscription = InformalEmailSubscriptions.objects.get(
             share_with=str(share_with_group)

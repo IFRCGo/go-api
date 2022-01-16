@@ -9,7 +9,6 @@ from .models import (
     InformalAction,
     InformalActionsTaken,
     InformalCountryDistrict,
-    ReferenceUrls,
     InformalEmailSubscriptions
 )
 
@@ -19,11 +18,6 @@ from .forms import ActionForm
 class InformalActionAdmin(admin.ModelAdmin):
     form = ActionForm
     list_display = ('__str__', 'informal_update_types', 'organizations', 'category',)
-
-
-@admin.register(ReferenceUrls)
-class ReferenceUrlsAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(InformalGraphicMap)
@@ -38,7 +32,7 @@ class InformalReferencesAdmin(admin.ModelAdmin):
 
 @admin.register(InformalEmailSubscriptions)
 class InformalEmailSubscriptionsAdmin(admin.ModelAdmin):
-    pass
+    autocomplete_fields = ('group',)
 
 
 class InformalActionTakenAdminInline(admin.TabularInline):

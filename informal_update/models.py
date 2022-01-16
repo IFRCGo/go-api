@@ -16,10 +16,6 @@ from api.models import (
 from .enums import TextChoices
 
 
-class ReferenceUrls(models.Model):
-    url = models.URLField()
-
-
 class InformalGraphicMap(models.Model):
     file = models.FileField(
         verbose_name=_('file'),
@@ -38,9 +34,9 @@ class InformalGraphicMap(models.Model):
 
 
 class InformalReferences(models.Model):
-    date = models.DateTimeField(verbose_name=_('date'), blank=True)
+    date = models.DateField(verbose_name=_('date'), blank=True)
     source_description = models.CharField(verbose_name=_('Name or Source Description'), max_length=225, blank=True)
-    url = models.ManyToManyField(ReferenceUrls, verbose_name=_('Add url'), blank=True)
+    url = models.TextField(blank=True)
     document = models.ForeignKey(
         InformalGraphicMap, on_delete=models.SET_NULL,
         null=True, blank=True,
