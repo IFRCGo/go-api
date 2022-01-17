@@ -1,1 +1,0 @@
-# Email templates go here
