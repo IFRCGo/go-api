@@ -271,7 +271,11 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
 if DEBUG:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
+else: # fix media file issue in productions.
     MEDIA_URL = '/media/'
     MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
 
