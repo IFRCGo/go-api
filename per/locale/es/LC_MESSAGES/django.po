@@ -1,0 +1,400 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: per/apps.py:6
+msgid "per"
+msgstr "por"
+
+#: per/models.py:37
+msgid "baseline"
+msgstr "linea base"
+
+#: per/models.py:38
+msgid "orientation"
+msgstr "orientación"
+
+#: per/models.py:39
+msgid "assessment"
+msgstr "evaluación"
+
+#: per/models.py:40 per/models.py:209
+msgid "prioritization"
+msgstr "priorización"
+
+#: per/models.py:41
+msgid "plan of action"
+msgstr "plan de acción"
+
+#: per/models.py:42
+msgid "action and accountability"
+msgstr "acción y responsabilidad"
+
+#: per/models.py:54
+msgid "NS PER Process Phase"
+msgstr "Fase proceso de PER de la SN"
+
+#: per/models.py:55
+msgid "NS-es PER Process Phase"
+msgstr "SN de fase del proceso de PER "
+
+#: per/models.py:76
+msgid "no"
+msgstr "no"
+
+#: per/models.py:77
+msgid "yes"
+msgstr "sí"
+
+#: per/models.py:78
+msgid "not reviewed"
+msgstr "no revisado"
+
+#: per/models.py:79
+msgid "does not exist"
+msgstr "no existe"
+
+#: per/models.py:80
+msgid "partially exists"
+msgstr "existe parcialmente"
+
+#: per/models.py:81 per/models.py:202
+msgid "need improvements"
+msgstr "necesita mejoras"
+
+#: per/models.py:82
+msgid "exist could be strengthened"
+msgstr "existe pero podría reforzarse"
+
+#: per/models.py:83
+msgid "high performance"
+msgstr "alto rendimiento"
+
+#: per/models.py:92
+msgid "spanish"
+msgstr "español"
+
+#: per/models.py:93
+msgid "french"
+msgstr "francés"
+
+#: per/models.py:94
+msgid "english"
+msgstr "inglés"
+
+#: per/models.py:99 per/models.py:120 per/models.py:219
+msgid "code"
+msgstr "código"
+
+#: per/models.py:100 per/models.py:123 per/models.py:221 per/models.py:259
+msgid "user"
+msgstr "usuario"
+
+#: per/models.py:101
+msgid "data"
+msgstr "datos"
+
+#: per/models.py:102 per/models.py:124 per/models.py:218 per/models.py:256
+#: per/models.py:316
+msgid "country"
+msgstr "país"
+
+#: per/models.py:103 per/models.py:128 per/models.py:309
+msgid "created at"
+msgstr "creado el"
+
+#: per/models.py:107
+msgid "Draft Form"
+msgstr "Borrador del formulario"
+
+#: per/models.py:108
+msgid "Draft Forms"
+msgstr "Borrador de los formularios"
+
+#: per/models.py:121 per/models.py:310
+msgid "name"
+msgstr "nombre"
+
+#: per/models.py:122
+msgid "language"
+msgstr "idioma"
+
+#: per/models.py:126
+msgid "NS"
+msgstr "SN"
+
+#: per/models.py:129
+msgid "updated at"
+msgstr "actualizado el"
+
+#: per/models.py:130
+msgid "submitted at"
+msgstr "enviado el"
+
+#: per/models.py:131
+msgid "started at"
+msgstr "comenzado el"
+
+#: per/models.py:132
+msgid "ended at"
+msgstr "finalizado el"
+
+#: per/models.py:133
+msgid "finalized"
+msgstr "finalizado"
+
+#: per/models.py:134
+msgid "validated"
+msgstr "validado"
+
+#: per/models.py:135
+msgid "IP address"
+msgstr "dirección IP"
+
+#: per/models.py:136
+msgid "unique id"
+msgstr "id única"
+
+#: per/models.py:137
+msgid "comment"
+msgstr "comentar"
+
+#: per/models.py:141
+msgid "Form"
+msgstr "Formulario"
+
+#: per/models.py:142
+msgid "Forms"
+msgstr "Formularios"
+
+#: per/models.py:159
+msgid "form"
+msgstr "formulario"
+
+#: per/models.py:160 per/models.py:220
+msgid "question id"
+msgstr "id de la pregunta"
+
+#: per/models.py:161
+msgid "selected option"
+msgstr "opción seleccionada"
+
+#: per/models.py:162
+msgid "notes"
+msgstr "notas"
+
+#: per/models.py:166 per/models.py:167
+msgid "Form Data"
+msgstr "Datos del formulario"
+
+#: per/models.py:180
+msgid "low"
+msgstr "bajo"
+
+#: per/models.py:181
+msgid "medium"
+msgstr "medio"
+
+#: per/models.py:182
+msgid "high"
+msgstr "alto"
+
+#: per/models.py:197
+msgid "standby"
+msgstr "en espera"
+
+#: per/models.py:198
+msgid "ongoing"
+msgstr "en marcha"
+
+#: per/models.py:199
+msgid "cancelled"
+msgstr "cancelado"
+
+#: per/models.py:200
+msgid "delayed"
+msgstr "atrasado"
+
+#: per/models.py:201
+msgid "pending"
+msgstr "pendiente"
+
+#: per/models.py:203
+msgid "finished"
+msgstr "finalizado"
+
+#: per/models.py:204
+msgid "approved"
+msgstr "aprobado "
+
+#: per/models.py:205
+msgid "closed"
+msgstr "cerrado"
+
+#: per/models.py:210
+msgid "components"
+msgstr "componente"
+
+#: per/models.py:211
+msgid "benchmark"
+msgstr "referencia"
+
+#: per/models.py:212
+msgid "actions"
+msgstr "medidas"
+
+#: per/models.py:213
+msgid "comments"
+msgstr "comentarios"
+
+#: per/models.py:214
+msgid "timeline"
+msgstr "calendario"
+
+#: per/models.py:215
+msgid "status"
+msgstr "estado"
+
+#: per/models.py:216
+msgid "support required"
+msgstr "se necesita apoyo"
+
+#: per/models.py:217
+msgid "focal point"
+msgstr "punto de coordinación"
+
+#: per/models.py:225
+msgid "PER Work Plan"
+msgstr "Plan de trabajo de PER"
+
+#: per/models.py:226
+msgid "PER Work Plans"
+msgstr "Planes de trabajo de PER"
+
+#: per/models.py:247
+msgid "self assessment"
+msgstr "autoevaluación"
+
+#: per/models.py:248
+msgid "simulation"
+msgstr "simulación"
+
+#: per/models.py:249
+msgid "operational"
+msgstr "operacional"
+
+#: per/models.py:250
+msgid "post operational"
+msgstr "posoperacional"
+
+#: per/models.py:260
+msgid "date of current capacity assessment"
+msgstr "fecha de inicio de la evaluación de capacidad actual"
+
+#: per/models.py:262
+msgid "type of capacity assessment"
+msgstr "tipo de evaluación de capacidad"
+
+#: per/models.py:265
+msgid "date of last capacity assessment"
+msgstr "fecha de la última evaluación de capacidad"
+
+#: per/models.py:268
+msgid "type of last capacity assessment"
+msgstr "tipo de la última evaluación de capacidad"
+
+#: per/models.py:270
+msgid "branch involved"
+msgstr "rama involucrada"
+
+#: per/models.py:271
+msgid "focal point name"
+msgstr "nombre del punto de coordinación"
+
+#: per/models.py:272
+msgid "focal point email"
+msgstr "correo electrónico de punto de coordinación"
+
+#: per/models.py:273
+msgid "had previous assessment"
+msgstr "ha sido anteriormente evaluado"
+
+#: per/models.py:274
+msgid "focus"
+msgstr "foco"
+
+#: per/models.py:275
+msgid "facilitated by"
+msgstr "facilitado por"
+
+#: per/models.py:276
+msgid "facilitated email"
+msgstr "correo electrónico facilitado"
+
+#: per/models.py:277
+msgid "phone number"
+msgstr "número de teléfono"
+
+#: per/models.py:278
+msgid "skype address"
+msgstr "dirección de skype"
+
+#: per/models.py:279
+msgid "date of mid term review"
+msgstr "fecha de revisión de mitad de periodo"
+
+#: per/models.py:280
+msgid "approximate date next capacity assessment"
+msgstr "fecha aproximada de la siguiente evaluación de capacidad"
+
+#: per/models.py:284
+msgid "PER General Overview"
+msgstr "Resumen general de PER"
+
+#: per/models.py:285
+msgid "PER General Overviews"
+msgstr "Resúmenes generales de PER"
+
+#: per/models.py:300
+msgid "hidden"
+msgstr "ocultar"
+
+#: per/models.py:301
+msgid "visible"
+msgstr "visible"
+
+#: per/models.py:312
+msgid "document"
+msgstr "documento"
+
+#: per/models.py:314
+msgid "document url"
+msgstr "url del documento"
+
+#: per/models.py:318
+msgid "visibility"
+msgstr "visibilidad"
+
+#: per/models.py:322
+msgid "PER Document"
+msgstr "Documento de PER"
+
+#: per/models.py:323
+msgid "PER Documents"
+msgstr "Documentos de PER"

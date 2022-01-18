@@ -1,0 +1,50 @@
+# go file storage folder
+media/**
+
+# python virtual environment folder
+env
+
+# secret settings env variables
+.env*
+
+# python stuff
+*.pyc
+__pycache__/
+pip-log.txt
+
+# django stuff
+*.log
+*.pot
+
+# local test db
+db.sqlite3
+
+# vim files
+*.swp
+
+# local development files
+static
+URLs*
+db.sqlite3-journal
+
+# test and coverage artifacts
+.coverage
+
+# Generated json file
+appeals.json
+appealbilaterals.json
+.tmp
+.db
+
+# Personal / IDE / Editor stuff
+.vscode
+.vs
+.idea
+
+# media
+project-imports/
+
+
+htmlcov
+country-key-documents/
+celerybeat-schedule

@@ -1,0 +1,170 @@
+[
+  {
+    "model": "api.DisasterType",
+    "pk": "1",
+    "fields": {
+      "name": "Epidemic"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "2",
+    "fields": {
+      "name": "Earthquake"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "4",
+    "fields": {
+      "name": "Cyclone"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "5",
+    "fields": {
+      "name": "Population Movement"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "6",
+    "fields": {
+      "name": "Complex Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "7",
+    "fields": {
+      "name": "Civil Unrest"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "8",
+    "fields": {
+      "name": "Volcanic Eruption"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "11",
+    "fields": {
+      "name": "Tsunami"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "12",
+    "fields": {
+      "name": "Flood"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "13",
+    "fields": {
+      "name": "Other"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "14",
+    "fields": {
+      "name": "Cold Wave"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "15",
+    "fields": {
+      "name": "Fire"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "19",
+    "fields": {
+      "name": "Heat Wave"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "20",
+    "fields": {
+      "name": "Drought"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "23",
+    "fields": {
+      "name": "Storm Surge"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "24",
+    "fields": {
+      "name": "Landslide"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "27",
+    "fields": {
+      "name": "Pluvial/Flash Flood"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "54",
+    "fields": {
+      "name": "Transport Accident"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "57",
+    "fields": {
+      "name": "Chemical Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "62",
+    "fields": {
+      "name": "Insect Infestation"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "66",
+    "fields": {
+      "name": "Biological Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "67",
+    "fields": {
+      "name": "Radiological Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "68",
+    "fields": {
+      "name": "Transport Emergency"
+    }
+  },
+  {
+    "model": "api.DisasterType",
+    "pk": "21",
+    "fields": {
+      "name": "Food Insecurity"
+    }
+  }
+]

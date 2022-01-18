@@ -1,0 +1,261 @@
+model,pk,name,iso,region,society_name,society_url
+api.Country,1,Ukraine,ua,3,Ukrainian Red Cross Society,http://www.redcross.org.ua/
+api.Country,2,United Arab Emirates,ae,4,Red Crescent Society of the United Arab Emirates,http://www.rcuae.ae/
+api.Country,3,United Kingdom,gb,3,British Red Cross,http://www.redcross.org.uk/
+api.Country,4,United States,us,1,American Red Cross,http://www.uruguay.cruzroja.org/
+api.Country,5,Uruguay,uy,1,Uruguayan Red Cross,http://www.uruguay.cruzroja.org/
+api.Country,6,Uzbekistan,uz,3,Red Crescent Society of Uzbekistan,http://www.redcrescent.uz/
+api.Country,7,Vanuatu,vu,2,Vanuatu Red Cross Society,
+api.Country,8,"Venezuela, RB",ve,1,Venezuelan Red Cross,http://www.cruzrojavenezolana.org/
+api.Country,10,"Yemen, Rep.",ye,4,Yemen Red Crescent Society,
+api.Country,11,"Serbia and Montenegro",cs,3,
+api.Country,12,Zambia,zm,0,Zambia Red Cross Society,
+api.Country,13,Zimbabwe,zw,0,Zimbabwe Red Cross Society,http://www.redcrosszim.org.zw/
+api.Country,14,Afghanistan,af,2,Afghan Red Crescent,http://www.arcs.org.af/
+api.Country,15,Albania,al,3,Albanian Red Cross,
+api.Country,16,Algeria,dz,4,Algerian Red Crescent,
+api.Country,17,Andorra,ad,3,Andorran Red Cross,http://www.creuroja.ad/
+api.Country,18,Angola,ao,0,Angola Red Cross,http://www.creuroja.ad/
+api.Country,19,Antigua and Barbuda,ag,1,Antigua and Barbuda Red Cross,
+api.Country,20,Argentina,ar,1,Argentine Red Cross,http://www.cruzroja.org.ar/
+api.Country,21,Armenia,am,3,Armenian Red Cross Society,http://www.redcross.am/
+api.Country,22,Australia,au,2,Australian Red Cross,http://www.redcross.org.au/
+api.Country,23,Austria,at,3,Austrian Red Cross,http://www.roteskreuz.at/
+api.Country,25,"Bahamas, The",bs,1,The Bahamas Red Cross Society,http://www.caribbeanredcross.org/
+api.Country,26,Bahrain,bh,4,Bahrain Red Crescent Society,http://www.rcsbahrain.org/
+api.Country,27,Bangladesh,bd,2,Bangladesh Red Crescent Society,http://www.bdrcs.org/
+api.Country,28,Barbados,bb,1,The Barbados Red Cross Society,
+api.Country,29,Belarus,by,3,Belarus Red Cross,http://www.redcross.by/
+api.Country,30,Belgium,be,3,Belgian Red Cross,http://www.redcross.be/
+api.Country,31,Belize,bz,1,Belize Red Cross Society,http://www.caribbeanredcross.org/
+api.Country,33,Bolivia,bo,1,Bolivian Red Cross,http://www.cruzrojaboliviana.org/
+api.Country,34,Botswana,bw,0,Botswana Red Cross Society,http://www.botswanaredcross.org/
+api.Country,35,Brazil,br,1,Brazilian Red Cross,http://www.cruzvermelha.org.br/
+api.Country,36,Brunei Darussalam,bn,2,Brunei Darussalam Red Crescent Society,
+api.Country,37,Bulgaria,bg,3,Bulgarian Red Cross,http://www.redcross.bg/
+api.Country,39,Burundi,bi,0,Burundi Red Cross,
+api.Country,40,Cambodia,kh,2,Cambodian Red Cross,http://www.redcross.org.kh/
+api.Country,41,Cameroon,cm,0,Cameroon Red Cross Society,
+api.Country,42,Canada,ca,1,Canadian Red Cross,http://www.redcross.ca/
+api.Country,43,Cape Verde,cv,0,Red Cross of Cape Verde,
+api.Country,44,Central African Republic,cf,0,Central African Red Cross Society,
+api.Country,45,Chad,td,0,Red Cross of Chad,
+api.Country,46,Chile,cl,1,Chilean Red Cross,http://www.cruzroja.cl/
+api.Country,47,China,cn,2,Red Cross Society of China,http://www.redcross.org.cn/
+api.Country,48,Colombia,co,1,Colombian Red Cross Society,http://www.cruzrojacolombiana.org/
+api.Country,51,Costa Rica,cr,1,Costa Rican Red Cross,http://www.cruzroja.or.cr/
+api.Country,53,Croatia,hr,3,Croatian Red Cross,http://www.hck.hr/
+api.Country,54,Cuba,cu,1,Cuban Red Cross,http://www.sld.cu/
+api.Country,55,Czech Republic,cz,3,Czech Red Cross,http://www.cck-cr.cz/
+api.Country,56,Denmark,dk,3,Danish Red Cross,http://www.drk.dk/
+api.Country,57,Djibouti,dj,0,Djibouti Red Crescent Society,http://www.cr-djib.org/
+api.Country,58,Dominica,dm,1,Dominica Red Cross Society,
+api.Country,59,Dominican Republic,do,1,Dominican Red Cross,
+api.Country,60,Ecuador,ec,1,Ecuadorian Red Cross,http://www.cruzroja.org.ec/
+api.Country,61,"Egypt, Arab Rep.",eg,4,Egyptian Red Crescent Society,http://www.egyptianrc.org/
+api.Country,62,El Salvador,sv,1,Salvadorean Red Cross Society,http://www.cruzrojasal.org.sv/
+api.Country,63,Equatorial Guinea,gq,0,Red Cross of Equatorial Guinea,
+api.Country,64,Estonia,ee,3,Estonia Red Cross,http://www.redcross.ee/
+api.Country,65,Ethiopia,et,0,Ethiopia Red Cross,http://www.redcrosseth.org/
+api.Country,66,Fiji,fj,2,The Fiji Red Cross Society,http://www.redcross.com.fj/
+api.Country,67,Finland,fi,3, The Finnish Red Cross,http://www.redcross.fi/
+api.Country,68,France,fr,3,French Red Cross,http://www.croix-rouge.fr/
+api.Country,69,Gabon,ga,0,Gabonese Red Cross Society,
+api.Country,70,"Gambia, The",gm,0,The Gambia Red Cross Society,
+api.Country,71,Georgia,ge,3,Georgia Red Cross Society,http://www.redcross.ge/
+api.Country,72,Germany,de,3,German Red Cross,http://www.drk.de/
+api.Country,73,Ghana,gh,0,Ghana Red Cross Society,
+api.Country,74,Greece,gr,3,Hellenic Red Cross,http://www.redcross.gr/
+api.Country,75,Grenada,gd,1,Grenada Red Cross Society,http://www.caribbeanredcross.org/
+api.Country,76,Guatemala,gt,1,Guatemalan Red Cross,http://www.guatemala.cruzroja.org/
+api.Country,77,Guinea,gn,0,Red Cross Society of Guinea,
+api.Country,79,Guyana,gy,1,The Guyana Red Cross Society,
+api.Country,80,Haiti,ht,1,Haitian Red Cross,http://www.croixrouge.ht/
+api.Country,81,Honduras,hn,1,Honduran Red Cross,http://www.honduras.cruzroja.org/
+api.Country,82,Hungary,hu,3,Hungarian Red Cross,http://www.voroskereszt.hu/
+api.Country,83,Iceland,is,3,Icelandic Red Cross,http://www.redcross.is/
+api.Country,84,India,in,2,Indian Red Cross Society,http://www.indianredcross.org/
+api.Country,85,Indonesia,id,2,Indonesian Red Cross Society,http://www.pmi.or.id/ina/
+api.Country,87,Iraq,iq,4,Iraqi Red Crescent Society,
+api.Country,88,Ireland,ie,3,Irish Red Cross Society,http://www.redcross.ie/
+api.Country,89,Italy,it,3,Italian Red Cross,http://www.cri.it/
+api.Country,90,Jamaica,jm,1,Jamaican Red Cross,http://www.jamaicaredcross.org/new/
+api.Country,91,Japan,jp,2,Japanese Red Cross Society,http://www.jrc.or.jp/
+api.Country,92,Jordan,jo,4,Jordan National Red Crescent Society,http://www.jordanredcrescent.org/
+api.Country,93,Kenya,ke,0,Kenya Red Cross Society,http://www.kenyaredcross.org/
+api.Country,94,Kiribati,ki,2,Kiribati Red Cross Society,
+api.Country,97,Kuwait,kw,4,Kuwait Red Crescent Society,http://www.krcs.org.kw/
+api.Country,98,Kyrgyz Republic,kg,3,Red Crescent Society of Kyrgyzstan,http://www.krc.kg/
+api.Country,99,Lao PDR,la,2,Lao Red Cross,http://www.laoredcross.org.la/
+api.Country,100,Latvia,lv,3,Latvian Red Cross,http://www.redcross.lv/lv/
+api.Country,101,Lebanon,lb,4,Lebanese Red Cross,http://www.redcross.org.lb/
+api.Country,102,Lesotho,ls,0,Lesotho Red Cross Society,
+api.Country,103,Liberia,lr,0,Liberian Red Cross Society,
+api.Country,105,Liechtenstein,li,3,Liechtenstein Red Cross,http://www.roteskreuz.li/
+api.Country,106,Lithuania,lt,3,Lithuanian Red Cross Society,http://www.redcross.lt/
+api.Country,107,Luxembourg,lu,3,Luxembourg Red Cross,http://www.croix-rouge.lu/
+api.Country,108,"Macedonia, FYR",mk,3,The Red Cross of The Former Yugoslav Republic of Macedonia,
+api.Country,109,Madagascar,mg,0,Malagasy Red Cross Society,http://www.croixrougemada.blogspot.com/
+api.Country,110,Malawi,mw,0,Malawi Red Cross Society,
+api.Country,111,Malaysia,my,2,Malaysian Red Crescent Society,http://www.redcrescent.org.my/
+api.Country,112,Mali,ml,0,Mali Red Cross,
+api.Country,113,Malta,mt,3,Malta Red Cross Society,http://www.redcross.org.mt/
+api.Country,114,Mauritania,mr,0,Mauritanian Red Crescent,http://www.mauritiusredcross.com/
+api.Country,115,Mauritius,mu,0,Mauritius Red Cross Society,http://www.cruzrojamexicana.org.mx/
+api.Country,116,Mexico,mx,1,Mexican Red Cross,http://www.cruzrojamexicana.org.mx/
+api.Country,117,Monaco,mc,3,Red Cross of Monaco,http://www.croix-rouge.mc/
+api.Country,119,Morocco,ma,4,Moroccan Red Crescent,
+api.Country,120,Mozambique,mz,0,Mozambique Red Cross Society,
+api.Country,121,Myanmar,mm,2,Myanmar Red Cross Society,http://www.myanmarredcrosssociety.org/
+api.Country,122,Namibia,na,0,Namibia Red Cross,http://www.redcross.org.na/
+api.Country,123,Nepal,np,2,Nepal Red Cross Society,http://www.nrcs.org/
+api.Country,124,Netherlands,nl,3,The Netherlands Red Cross,http://www.rodekruis.nl/
+api.Country,125,New Zealand,nz,2,New Zealand Red Cross,http://www.redcross.org.nz/
+api.Country,126,Nicaragua,ni,1,Nicaraguan Red Cross,http://www.nicaragua.cruzroja.org/
+api.Country,127,Niger,ne,0,Red Cross Society of Niger,
+api.Country,128,Nigeria,ng,0,Nigerian Red Cross Society,http://www.nrcsng.org/
+api.Country,129,Norway,no,3,Norwegian Red Cross,http://www.redcross.no/
+api.Country,130,Palau,pw,2,Palau Red Cross Society,
+api.Country,131,Pakistan,pk,2,Pakistan Red Crescent,http://www.prcs.org.pk/
+api.Country,132,Panama,pa,1,Red Cross Society of Panama,http://www.panama.cruzroja.org/
+api.Country,133,Papua New Guinea,pg,2,Papua New Guinea Red Cross Society,
+api.Country,134,Paraguay,py,1,Paraguayan Red Cross,http://www.cruzroja.org.py/
+api.Country,135,Peru,pe,1,Peruvian Red Cross,http://www.cruzroja.org.pe/
+api.Country,136,Philippines,ph,2,Philippine Red Cross,http://www.redcross.org.ph/
+api.Country,138,Portugal,pt,3,Portuguese Red Cross,http://www.cruzvermelha.pt/
+api.Country,139,Qatar,qa,4,Qatar Red Crescent Society,http://www.qrcs.org.qa/
+api.Country,141,Romania,ro,3,Romanian Red Cross,http://www.crucearosie.ro/
+api.Country,142,Russian Federation,ru,3,The Russian Red Cross Society,http://www.redcross.ru/
+api.Country,143,Rwanda,rw,0,Rwandan Red Cross,
+api.Country,147,Samoa,ws,2,Samoa Red Cross Society,http://www.redcross.org.ws/
+api.Country,149,Saudi Arabia,sa,4,Saudi Red Crescent Authority,http://www.srcs.org.sa/
+api.Country,150,Senegal,sn,0,Senegalese Red Cross Society,http://www.croix-rouge.sn/
+api.Country,151,Seychelles,sc,0,Seychelles Red Cross Society,
+api.Country,152,Sierra Leone,sl,0,Sierra Leone Red Cross Society,http://www.sierraleoneredcross.net/
+api.Country,153,Singapore,sg,2,Singapore Red Cross Society,http://www.redcross.org.sg/
+api.Country,154,Slovakia,sk,3,Slovak Red Cross,http://www.redcross.sk/
+api.Country,155,Slovenia,si,3,Slovenian Red Cross,http://www.rks.si/
+api.Country,156,Solomon Islands,sb,2,The Solomon Islands Red Cross,
+api.Country,157,Somalia,so,0,Somali Red Crescent Society,http://www.bishacas-srcs.org/
+api.Country,158,South Africa,za,0,The South African Red Cross Society,http://www.redcross.org.za/
+api.Country,159,Spain,es,3,Spanish Red Cross,http://www.cruzroja.es/
+api.Country,160,Sri Lanka,lk,2,The Sri Lanka Red Cross Society,http://www.redcross.lk/
+api.Country,161,Sudan,sd,0,The Sudanese Red Crescent,http://www.srcs.sd/
+api.Country,163,Swaziland,sz,0,Baphalali Swaziland Red Cross Society,
+api.Country,164,Sweden,se,3,Swedish Red Cross,http://www.redcross.se/
+api.Country,165,Switzerland,ch,3,Swiss Red Cross,http://www.redcross.ch/
+api.Country,167,Tajikistan,tj,3,Red Crescent Society of Tajikistan,http://www.redcrescent.tj/
+api.Country,169,Thailand,th,2,The Thai Red Cross Society,http://www.redcross.or.th/
+api.Country,170,Togo,tg,0,Togolese Red Cross,
+api.Country,171,Tonga,to,2,Tonga Red Cross Society,
+api.Country,172,Trinidad and Tobago,tt,1,The Trinidad and Tobago Red Cross Society,http://www.caribbeanredcross.org/
+api.Country,173,Tunisia,tn,4,Tunisian Red Crescent,
+api.Country,174,Turkey,tr,3,Turkish Red Crescent Society,http://www.kizilay.org.tr/
+api.Country,175,Turkmenistan,tm,3,Red Crescent Society of Turkmenistan,
+api.Country,176,Uganda,ug,0,The Uganda Red Cross Society,http://www.redcrossug.org/
+api.Country,177,St. Kitts and Nevis,kn,1,Saint Kitts and Nevis Red Cross Society,
+api.Country,178,St. Lucia,lc,1,Saint Lucia Red Cross,
+api.Country,179,St. Vincent and the Grenadines,vc,1,Saint Vincent and the Grenadines Red Cross,
+api.Country,180,Suriname,sr,1,Suriname Red Cross,
+api.Country,181,Burkina Faso,bf,0,Burkinabe Red Cross Society,
+api.Country,182,Côte d'Ivoire,ci,0,Red Cross Society of Côte d'Ivoire,http://www.croixrouge.ci/
+api.Country,183,Guinea-Bissau,gw,0,Red Cross Society of Guinea-Bissau,
+api.Country,184,"Congo, Rep.",cg,0,Congolese Red Cross,
+api.Country,185,Sao Tomé and Principe,st,0,Sao Tome and Principe Red Cross,
+api.Country,186,Comoros,km,0,The Comoros Red Crescent,
+api.Country,187,"Congo, Dem. Rep.",cd,0,Red Cross of the Democratic Republic of the Congo,
+api.Country,188,Eritrea,er,0,Red Cross Society of Eritrea,
+api.Country,189,"Tanzania, United Republic of",tz,0,Tanzania Red Cross National Society,
+api.Country,191,Viet Nam,vn,2,Vietnam Red Cross Society,http://www.redcross.org.vn/
+api.Country,192,"Korea, Rep.",kr,2,The Republic of Korea National Red Cross,http://www.redcross.or.kr/
+api.Country,193,"Korea, Dem. Rep.",KP,2,Red Cross Society of the Democratic People's Republic of Korea,
+api.Country,194,Mongolia,mn,2,Mongolian Red Cross Society,http://www.redcross.mn/
+api.Country,195,"Micronesia, Fed. Sts.",fm,2,Micronesia Red Cross,
+api.Country,197,Bosnia and Herzegovina,ba,3,The Red Cross Society of Bosnia and Herzegovina,
+api.Country,199,Poland,pl,3,Polish Red Cross,http://www.pck.org.pl/
+api.Country,200,Azerbaijan,az,3,Red Crescent Society of Azerbaijan,http://www.redcrescent.az/
+api.Country,201,Kazakhstan,kz,3,Kazakh Red Crescent,http://www.redcrescent.kz/
+api.Country,202,Moldova,md,3,Red Cross Society of the Republic of Moldova,http://www.redcross.md/
+api.Country,203,"Iran, Islamic Rep.",ir,4,Red Crescent Society of the Islamic Republic of Iran,http://www.rcs.ir/
+api.Country,204,Libyan Arab Jamahiriya,ly,4,Libyan Red Crescent,
+api.Country,205,Palestinian territories,ps,4,The Palestine Red Crescent Society,http://www.palestinercs.org/
+api.Country,206,Syrian Arab Republic,sy,4,Syrian Arab Red Crescent,http://www.sarc.sy/
+api.Country,209,Benin,bj,0,Red Cross of Benin,
+api.Country,210,Timor-Leste,tl,2,Timor-Leste Red Cross Society,http://www.redcross.tl/
+api.Country,211,Cook Islands,ck,2,Cook Islands Red Cross Society,
+api.Country,212,Marshall Islands,mh,,,
+api.Country,213,Tuvalu,tv,2,Tuvalu Red Cross Society,
+api.Country,215,British Indian Overseas Territories,io,,,
+api.Country,216,Montserrat,ms,,,
+api.Country,217,Anguilla,ai,,,
+api.Country,218,"Virgin Islands, British",vg,,,
+api.Country,219,Turks and Caicos Islands,tc,,,
+api.Country,220,Cayman Islands,ky,,,
+api.Country,222,Israel,il,4,Magen David Adom in Israel,http://www.mdais.org/
+api.Country,223,Netherlands Antilles,an,,,
+api.Country,224,French Guiana,gf,,,
+api.Country,225,Guadeloupe,gp,,,
+api.Country,226,Martinique,mq,,,
+api.Country,227,Maldives,mv,2,Maldivian Red Crescent,http://www.redcrescent.org.mv/
+api.Country,228,Cyprus,CY,3,Cyprus Red Cross Society,http://www.redcross.org.cy/
+api.Country,229,American Samoa,as,,,
+api.Country,230,Antarctica,aq,,,
+api.Country,231,Aruba,aw,,,
+api.Country,232,Baker Island,um,,,
+api.Country,233,Bermuda,bm,,,
+api.Country,234,Bhutan,bt,,,
+api.Country,235,"Christmas Island, Territory of",cx,,,
+api.Country,236,"Cocos Islands, Territory of",cc,,,
+api.Country,237,Falkland Islands (Malvinas),fk,,,
+api.Country,238,Faroe Islands,fo,,,
+api.Country,239,French Polynesia,pf,,,
+api.Country,240,French Southern and Antarctic Lands,tf,,,
+api.Country,241,Gibraltar,gi,,,
+api.Country,242,Greenland,gl,,,
+api.Country,243,Guam,gu,,,
+api.Country,244,Heard I. & McDonald Is.,HM,,,
+api.Country,245,Howland Island,um,,,
+api.Country,247,Jarvis Island,um,,,
+api.Country,248,Johnston Atoll,um,,,
+api.Country,249,Mayotte,yt,,,
+api.Country,250,Midway Island,um,,,
+api.Country,251,Nauru,nr,,,
+api.Country,252,New Caledonia,nc,,,
+api.Country,253,Niue,nu,,,
+api.Country,254,Norkolk Island,nf,,,
+api.Country,255,Northern Mariana Island,mp,,,
+api.Country,256,Pitcairn,pn,,,
+api.Country,257,Puerto Rico,pr,,,
+api.Country,258,Oman,om,,,
+api.Country,259,Reunion,re,,,
+api.Country,260,"San Marino, Republic of",sm,,,
+api.Country,261,South Georgia and the South Sandwich Is.,gs,,,
+api.Country,262,Saint Helena,sh,,,
+api.Country,263,St. Pierre et Miquelon,pm,,,
+api.Country,264,Svalbard and Jan Mayen,sj,,,
+api.Country,265,Tokelau,tk,,,
+api.Country,266,"Virgin Islands, US",vi,,,
+api.Country,267,Wake Island,um,,,
+api.Country,268,Wallis and Futuna,wf,,,
+api.Country,269,Western Sahara,eh,,,
+api.Country,270,Montenegro,me,3,Red Cross of Montenegro,http://www.ckcg.co.me/
+api.Country,271,Serbia,rs,3,The Red Cross of Serbia,http://www.redcross.org.rs/
+api.Country,272,Guernesey,gg,,,
+api.Country,273,Jersey,je,,,
+api.Country,274,Holy See (Vatican City State),va,,,
+api.Country,275,Hong Kong (China),hk,2,Hong Kong Red Cross,http://www.redcross.org.hk/
+api.Country,276,Isle of Man,im,,,
+api.Country,277,Aland Island,AX,,,
+api.Country,278,Bouvet Island,BV,,,
+api.Country,279,Macao,MO,2,Macau Red Cross,http://www.redcross.org.mo/
+api.Country,280,St. Martin (French part),MF,,,
+api.Country,281,Republic of China (Taiwan),TW,2,The Red Cross Society of the Republic of China,
+api.Country,282,Zone Americas,,,,
+api.Country,283,Zone Asia-Pacific,,,,
+api.Country,284,Zone Central and West Africa,,,,
+api.Country,285,Zone Eastern Africa,,,,
+api.Country,286,Zone Europe,,,,
+api.Country,287,Zone MENA,,,,
+api.Country,288,Zone Southern Africa,,,,
+api.Country,289,Zone GLOBAL,,,,
+api.Country,290,"South Sudan, Rep. Of",ss,0,South Sudan Red Cross,

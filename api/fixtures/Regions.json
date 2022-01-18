@@ -1,0 +1,37 @@
+[
+  {
+    "model": "api.Region",
+    "pk": "0",
+    "fields": {
+      "name": 0
+    }
+  },
+  {
+    "model": "api.Region",
+    "pk": "1",
+    "fields": {
+      "name": 1
+    }
+  },
+  {
+    "model": "api.Region",
+    "pk": "2",
+    "fields": {
+      "name": 2
+    }
+  },
+  {
+    "model": "api.Region",
+    "pk": "3",
+    "fields": {
+      "name": 3
+    }
+  },
+  {
+    "model": "api.Region",
+    "pk": "4",
+    "fields": {
+      "name": 4
+    }
+  }
+]

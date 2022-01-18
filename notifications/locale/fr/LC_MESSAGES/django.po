@@ -1,0 +1,200 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: notifications/apps.py:6
+msgid "notifications"
+msgstr "notifications"
+
+#: notifications/models.py:20
+msgid "fact"
+msgstr "fait"
+
+#: notifications/models.py:21
+msgid "SIMS"
+msgstr "SIMS"
+
+#: notifications/models.py:22
+msgid "ERU"
+msgstr "ERU"
+
+#: notifications/models.py:23
+msgid "DHEOPS"
+msgstr "DHEOPS"
+
+#: notifications/models.py:24
+msgid "HEOPS"
+msgstr "HEOPS"
+
+#: notifications/models.py:25
+msgid "surge"
+msgstr "Surge"
+
+#: notifications/models.py:26
+msgid "rapid response"
+msgstr "intervention rapide"
+
+#: notifications/models.py:37
+msgid "information"
+msgstr "informations"
+
+#: notifications/models.py:38
+msgid "deployment"
+msgstr "déploiement"
+
+#: notifications/models.py:39
+msgid "alert"
+msgstr "alerte"
+
+#: notifications/models.py:40
+msgid "shelter"
+msgstr "refuge"
+
+#: notifications/models.py:41
+msgid "stand down"
+msgstr "trêve"
+
+#: notifications/models.py:46
+msgid "alert type"
+msgstr "Type d’alerte"
+
+#: notifications/models.py:47
+msgid "category"
+msgstr "catégorie"
+
+#: notifications/models.py:48
+msgid "operation"
+msgstr "opération"
+
+#: notifications/models.py:49
+msgid "message"
+msgstr "message"
+
+#: notifications/models.py:50
+msgid "deployment needed"
+msgstr "déploiement nécessaire"
+
+#: notifications/models.py:51
+msgid "is private?"
+msgstr "est confidentiel ?"
+
+#: notifications/models.py:52 notifications/models.py:101
+#: notifications/models.py:141
+msgid "event"
+msgstr "évènement"
+
+#: notifications/models.py:55
+msgid "created at"
+msgstr "créé à"
+
+#: notifications/models.py:59
+msgid "Surge Alert"
+msgstr "Alerte Surge"
+
+#: notifications/models.py:60
+msgid "Surge Alerts"
+msgstr "Alertes Surge"
+
+#: notifications/models.py:78
+msgid "new"
+msgstr "nouveau"
+
+#: notifications/models.py:79
+msgid "edit"
+msgstr "modifier"
+
+#: notifications/models.py:102
+msgid "appeal"
+msgstr "appel"
+
+#: notifications/models.py:103
+msgid "field report"
+msgstr "rapport de terrain"
+
+#: notifications/models.py:104
+msgid "surge alert"
+msgstr "Alerte Surge"
+
+#: notifications/models.py:105 notifications/models.py:138
+msgid "country"
+msgstr "pays"
+
+#: notifications/models.py:106 notifications/models.py:139
+msgid "region"
+msgstr "région"
+
+#: notifications/models.py:107 notifications/models.py:140
+msgid "disaster type"
+msgstr "Type de catastrophe"
+
+#: notifications/models.py:108
+msgid "per due date"
+msgstr "Échéance du PIE"
+
+#: notifications/models.py:109
+msgid "followed event"
+msgstr "événement suivi"
+
+#: notifications/models.py:110
+msgid "surge deployment messages"
+msgstr "Messages de déploiement Surge"
+
+#: notifications/models.py:111
+msgid "surge approaching end of mission"
+msgstr "La fin de la mission Surge est proche"
+
+#: notifications/models.py:112
+msgid "weekly digest"
+msgstr "Sélection hebdomadaire"
+
+#: notifications/models.py:113
+msgid "new emergencies"
+msgstr "nouvelles Urgences"
+
+#: notifications/models.py:114
+msgid "new operations"
+msgstr "nouvelles opérations"
+
+#: notifications/models.py:115
+msgid "general announcements"
+msgstr "annonces générales"
+
+#: notifications/models.py:130
+msgid "user"
+msgstr "utilisateur"
+
+#: notifications/models.py:135
+msgid "subscription type"
+msgstr "type d'abonnement"
+
+#: notifications/models.py:136
+msgid "record type"
+msgstr "type d'enregistrement"
+
+#: notifications/models.py:143
+msgid "lookup id"
+msgstr "Identifiant de recherche"
+
+#: notifications/models.py:146
+msgid "Subscription"
+msgstr "abonnement"
+
+#: notifications/models.py:147
+msgid "Subscriptions"
+msgstr "abonnements"

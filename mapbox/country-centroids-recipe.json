@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "go-country-centroids": {
+      "source": "mapbox://tileset-source/go-ifrc/go-country-centroids",
+      "minzoom": 0,
+      "maxzoom": 10
+    }
+  }
+}

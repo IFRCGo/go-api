@@ -1,0 +1,410 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: per/apps.py:6
+msgid "per"
+msgstr "لكل"
+
+#: per/models.py:37
+msgid "baseline"
+msgstr "تقييم"
+
+#: per/models.py:38
+msgid "orientation"
+msgstr "إتّجاه ; إعْداد ; تَأهِيل ; تَيّار ; مَنْحىً ; نَزْعَة"
+
+#: per/models.py:39
+msgid "assessment"
+msgstr "خط الأساس"
+
+#: per/models.py:40 per/models.py:209
+msgid "prioritization"
+msgstr "تَحْدِيْدُ الأَوْلَوِيَّات"
+
+#: per/models.py:41
+msgid "plan of action"
+msgstr "خُطَّةُ العَمَل"
+
+#: per/models.py:42
+msgid "action and accountability"
+msgstr "العمل والمساءلة"
+
+#: per/models.py:54
+msgid "NS PER Process Phase"
+msgstr "NS PER مرحلة العملية"
+
+#: per/models.py:55
+msgid "NS-es PER Process Phase"
+msgstr "NS-es PER مرحلة العملية"
+
+#: per/models.py:76
+msgid "no"
+msgstr "لا"
+
+#: per/models.py:77
+msgid "yes"
+msgstr "نعم"
+
+#: per/models.py:78
+msgid "not reviewed"
+msgstr "لم تتم المراجعة"
+
+#: per/models.py:79
+msgid "does not exist"
+msgstr "غير موجود"
+
+#: per/models.py:80
+msgid "partially exists"
+msgstr "موجود جزئيا"
+
+#: per/models.py:81 per/models.py:202
+msgid "need improvements"
+msgstr "بحاجة إلى تحسينات"
+
+#: per/models.py:82
+msgid "exist could be strengthened"
+msgstr "يمكن تعزيز وجودها"
+
+#: per/models.py:83
+msgid "high performance"
+msgstr "أداء عال"
+
+#: per/models.py:92
+msgid "spanish"
+msgstr "الإسبانية"
+
+#: per/models.py:93
+msgid "french"
+msgstr "الفرنسية"
+
+#: per/models.py:94
+msgid "english"
+msgstr "الإنجليزية"
+
+#: per/models.py:99 per/models.py:120 per/models.py:219
+msgid "code"
+msgstr "الرمز"
+
+#: per/models.py:100 per/models.py:123 per/models.py:221 per/models.py:259
+msgid "user"
+msgstr "المستعمل"
+
+#: per/models.py:101
+msgid "data"
+msgstr "البيانات"
+
+#: per/models.py:102 per/models.py:124 per/models.py:218 per/models.py:256
+#: per/models.py:316
+msgid "country"
+msgstr "البلد"
+
+#: per/models.py:103 per/models.py:128 per/models.py:309
+msgid "created at"
+msgstr "أنشئت في"
+
+#: per/models.py:107
+msgid "Draft Form"
+msgstr "مشروع استمارة"
+
+#: per/models.py:108
+msgid "Draft Forms"
+msgstr "نماذج المسودة"
+
+#: per/models.py:121 per/models.py:310
+msgid "name"
+msgstr "الأب"
+
+#: per/models.py:122
+msgid "language"
+msgstr "اللغة"
+
+#: per/models.py:126
+msgid "NS"
+msgstr "NS"
+
+#: per/models.py:129
+msgid "updated at"
+msgstr "تم التحديث في"
+
+#: per/models.py:130
+msgid "submitted at"
+msgstr "تمت الإضافة في"
+
+#: per/models.py:131
+msgid "started at"
+msgstr "بدأ"
+
+#: per/models.py:132
+msgid "ended at"
+msgstr "انتهت في"
+
+#: per/models.py:133
+msgid "finalized"
+msgstr ""
+"تامّ ; كامِل ; مَفْرُوغ مِنْه ; مَقْضِيّ ; مُتَمّم ; مُكَمّل ; مُنْجَز"
+
+#: per/models.py:134
+msgid "validated"
+msgstr "تم التحقق منها"
+
+#: per/models.py:135
+msgid "IP address"
+msgstr "عنوان بروتوكول الإنترنت (IP)"
+
+#: per/models.py:136
+msgid "unique id"
+msgstr "id مُعرف فريد"
+
+#: per/models.py:137
+msgid "comment"
+msgstr "التعليق"
+
+#: per/models.py:141
+msgid "Form"
+msgstr "نموذج"
+
+#: per/models.py:142
+msgid "Forms"
+msgstr "النماذج:"
+
+#: per/models.py:159
+msgid "form"
+msgstr "استمارة"
+
+#: per/models.py:160 per/models.py:220
+msgid "question id"
+msgstr "معرف السؤال"
+
+#: per/models.py:161
+msgid "selected option"
+msgstr "الخيار المحدد"
+
+#: per/models.py:162
+msgid "notes"
+msgstr "ملاحظاته:"
+
+#: per/models.py:166 per/models.py:167
+msgid "Form Data"
+msgstr "بيانات النموذج"
+
+#: per/models.py:180
+msgid "low"
+msgstr "منخفض"
+
+#: per/models.py:181
+msgid "medium"
+msgstr "متوسط"
+
+#: per/models.py:182
+msgid "high"
+msgstr "عالي"
+
+#: per/models.py:197
+msgid "standby"
+msgstr "وضع الاستعداد"
+
+#: per/models.py:198
+msgid "ongoing"
+msgstr "جاري"
+
+#: per/models.py:199
+msgid "cancelled"
+msgstr "مُلغى"
+
+#: per/models.py:200
+msgid "delayed"
+msgstr "آجِل ; مُرْجَأ ; مُعَاق ; مُعَوّق ; مُؤَجّل ; مُؤَخّر"
+
+#: per/models.py:201
+msgid "pending"
+msgstr "قيد الانتظار"
+
+#: per/models.py:203
+msgid "finished"
+msgstr "مكتمل"
+
+#: per/models.py:204
+msgid "approved"
+msgstr "موافق عليه"
+
+#: per/models.py:205
+msgid "closed"
+msgstr "مغلقة"
+
+#: per/models.py:210
+msgid "components"
+msgstr "مكوِّنات"
+
+#: per/models.py:211
+msgid "benchmark"
+msgstr "قياس الأداء"
+
+#: per/models.py:212
+msgid "actions"
+msgstr "عَجَلَة ; مُعَجّل ; عاجِل"
+
+#: per/models.py:213
+msgid "comments"
+msgstr "تعليقات"
+
+#: per/models.py:214
+msgid "timeline"
+msgstr "مخطط زمني"
+
+#: per/models.py:215
+msgid "status"
+msgstr ""
+"بال ; حال ; حالَة ; دَرَجَة ; رُتْبَة ; سُدّة ; طَوْر ; مَرْكَز ; مَقَام ; "
+"مَكَانَة ; مَنْزِلَة ; مَنْصِب ; مَوْقِف ; وَضْع"
+
+#: per/models.py:216
+msgid "support required"
+msgstr "الدعم المطلوب"
+
+#: per/models.py:217
+msgid "focal point"
+msgstr "بُؤْرَة ; مِحْرَق"
+
+#: per/models.py:225
+msgid "PER Work Plan"
+msgstr "لكل خطة عمل"
+
+#: per/models.py:226
+msgid "PER Work Plans"
+msgstr "خطط العمل"
+
+#: per/models.py:247
+msgid "self assessment"
+msgstr "تقيم ذاتي"
+
+#: per/models.py:248
+msgid "simulation"
+msgstr "إدّعَاء ; تَظَاهُر"
+
+#: per/models.py:249
+msgid "operational"
+msgstr "تشغيلي"
+
+#: per/models.py:250
+msgid "post operational"
+msgstr "بعد التشغيل"
+
+#: per/models.py:260
+msgid "date of current capacity assessment"
+msgstr "تاريخ تقييم القدرات الحالي"
+
+#: per/models.py:262
+msgid "type of capacity assessment"
+msgstr "نوع تقييم القدرات"
+
+#: per/models.py:265
+msgid "date of last capacity assessment"
+msgstr "تاريخ آخر تقييم للقدرات"
+
+#: per/models.py:268
+msgid "type of last capacity assessment"
+msgstr "نوع آخر تقييم القدرات"
+
+#: per/models.py:270
+msgid "branch involved"
+msgstr "فرع مشارك"
+
+#: per/models.py:271
+msgid "focal point name"
+msgstr "مركز تنسيق المعلومات"
+
+#: per/models.py:272
+msgid "focal point email"
+msgstr "البريد الإلكتروني نقطة الاتصال"
+
+#: per/models.py:273
+msgid "had previous assessment"
+msgstr ""
+"|||UNTRANSLATED_CONTENT_START|||had previous "
+"assessment|||UNTRANSLATED_CONTENT_END|||"
+
+#: per/models.py:274
+msgid "focus"
+msgstr "يرتكز على"
+
+#: per/models.py:275
+msgid "facilitated by"
+msgstr "بتأطير من------------------------------"
+
+#: per/models.py:276
+msgid "facilitated email"
+msgstr "البريد الإلكتروني الميسر"
+
+#: per/models.py:277
+msgid "phone number"
+msgstr "رقم الهاتف"
+
+#: per/models.py:278
+msgid "skype address"
+msgstr "عنواني على سكايب"
+
+#: per/models.py:279
+msgid "date of mid term review"
+msgstr "تاريخ استعراض"
+
+#: per/models.py:280
+msgid "approximate date next capacity assessment"
+msgstr "التاريخ التقريبي تقييم القدرات التالي"
+
+#: per/models.py:284
+msgid "PER General Overview"
+msgstr "لمحة عامة"
+
+#: per/models.py:285
+msgid "PER General Overviews"
+msgstr "نظرة عامة على PER"
+
+#: per/models.py:300
+msgid "hidden"
+msgstr ""
+"أُخْفِيَ ; بُيّتَ ; باطِنِيّ ; خَفِيّ ; دَفِين ; سِرّيّ ; ضِمْنِيّ ; عُمّيَ "
+"; غَيْبِيّ ; غائِب ; كَنِين ; كامِن ; مَحْجُوب ; مَخْبُوء ; مَخْفِيّ ; "
+"مَسْتُور"
+
+#: per/models.py:301
+msgid "visible"
+msgstr ""
+"بَيّن ; بادٍ ; بادِي ; جَلِيّ ; ظاهِر ; مَرْئِيّ ; مَنْظُور ; مُشَاهَد ; "
+"واضِح"
+
+#: per/models.py:312
+msgid "document"
+msgstr "وَثيقَة[ج:وَثائِق]"
+
+#: per/models.py:314
+msgid "document url"
+msgstr "رابط الوثيقة"
+
+#: per/models.py:318
+msgid "visibility"
+msgstr "وُضُوح"
+
+#: per/models.py:322
+msgid "PER Document"
+msgstr "للمستند"
+
+#: per/models.py:323
+msgid "PER Documents"
+msgstr "مستندات PER"

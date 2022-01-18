@@ -1,0 +1,42 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+version: 2
+
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: build docker base image
+          command: docker-compose build
+      - run:
+          name: Run tests
+          command: |
+            docker-compose run --rm migrate
+            docker-compose run --rm loaddata
+            docker-compose run --rm test
+
+      - run:
+          name: Push image to Docker Hub
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ] || [ "${CIRCLE_BRANCH}" == "develop" ]; then
+              {
+                if [ "${CIRCLE_BRANCH}" == "develop" ]; then
+                  LATEST_GIT_TAG=develop &&
+                  echo $LATEST_GIT_TAG
+                else
+                  LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
+                  echo $LATEST_GIT_TAG
+                  git checkout tags/$LATEST_GIT_TAG -b latest_git_tag
+                fi
+
+                docker-compose build
+                docker login -u $DOCKER_USER -p $DOCKER_PASS
+                docker tag ifrcgo/go-api:latest ifrcgo/go-api:$LATEST_GIT_TAG
+                docker push ifrcgo/go-api:$LATEST_GIT_TAG
+              } || {
+                echo 'No tag matching the condition found'
+              }
+            fi

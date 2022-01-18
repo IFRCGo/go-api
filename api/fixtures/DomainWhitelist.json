@@ -1,0 +1,1264 @@
+[
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "1",
+        "fields": {
+            "domain_name": "ifrc.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "2",
+        "fields": {
+            "domain_name": "apdisasterresilience.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "3",
+        "fields": {
+            "domain_name": "arabrcrc.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "4",
+        "fields": {
+            "domain_name": "arcs.org.af"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "5",
+        "fields": {
+            "domain_name": "bdrcs.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "6",
+        "fields": {
+            "domain_name": "brcs.bt"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "7",
+        "fields": {
+            "domain_name": "cck-cr.cz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "8",
+        "fields": {
+            "domain_name": "ckcg.me"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "9",
+        "fields": {
+            "domain_name": "ckrm.org.mk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "10",
+        "fields": {
+            "domain_name": "climatecentre.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "11",
+        "fields": {
+            "domain_name": "creuroja.ad"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "12",
+        "fields": {
+            "domain_name": "cri.it"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "13",
+        "fields": {
+            "domain_name": "croix-rouge.be"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "14",
+        "fields": {
+            "domain_name": "croix-rouge.fr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "15",
+        "fields": {
+            "domain_name": "croix-rouge.lu"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "16",
+        "fields": {
+            "domain_name": "croix-rouge.mc"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "17",
+        "fields": {
+            "domain_name": "croixrouge.ht"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "18",
+        "fields": {
+            "domain_name": "croixrouge-mali.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "19",
+        "fields": {
+            "domain_name": "croixrougesenegal.com"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "20",
+        "fields": {
+            "domain_name": "crucearosie.ro"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "21",
+        "fields": {
+            "domain_name": "cruzroja.cl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "22",
+        "fields": {
+            "domain_name": "cruzroja.es"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "23",
+        "fields": {
+            "domain_name": "cruzroja.gt"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "24",
+        "fields": {
+            "domain_name": "cruzroja.or.cr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "25",
+        "fields": {
+            "domain_name": "cruzroja.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "26",
+        "fields": {
+            "domain_name": "cruzroja.org.ar"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "27",
+        "fields": {
+            "domain_name": "cruzroja.org.ec"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "28",
+        "fields": {
+            "domain_name": "cruzroja.org.hn"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "29",
+        "fields": {
+            "domain_name": "cruzroja.org.pa"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "30",
+        "fields": {
+            "domain_name": "cruzroja.org.pe"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "31",
+        "fields": {
+            "domain_name": "cruzroja.org.py"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "32",
+        "fields": {
+            "domain_name": "cruzroja.org.uy"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "33",
+        "fields": {
+            "domain_name": "cruzrojaboliviana.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "34",
+        "fields": {
+            "domain_name": "cruzrojacolombiana.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "35",
+        "fields": {
+            "domain_name": "cruzrojamexicana.org.mx"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "36",
+        "fields": {
+            "domain_name": "cruzrojanicaraguense.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "37",
+        "fields": {
+            "domain_name": "cruzrojasal.org.sv"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "38",
+        "fields": {
+            "domain_name": "cruzrojauruguaya.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "39",
+        "fields": {
+            "domain_name": "cruzrojavenezolana.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "40",
+        "fields": {
+            "domain_name": "cruzvermelha.org.br"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "41",
+        "fields": {
+            "domain_name": "cruzvermelha.org.pt"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "42",
+        "fields": {
+            "domain_name": "drk.de"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "43",
+        "fields": {
+            "domain_name": "drk.dk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "44",
+        "fields": {
+            "domain_name": "egyptianrc.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "45",
+        "fields": {
+            "domain_name": "fijiredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "46",
+        "fields": {
+            "domain_name": "germanredcross.de"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "47",
+        "fields": {
+            "domain_name": "grsproadsafety.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "48",
+        "fields": {
+            "domain_name": "guatemala.cruzroja.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "49",
+        "fields": {
+            "domain_name": "hck.hr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "50",
+        "fields": {
+            "domain_name": "honduras.cruzroja.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "51",
+        "fields": {
+            "domain_name": "icrc.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "52",
+        "fields": {
+            "domain_name": "indianredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "53",
+        "fields": {
+            "domain_name": "jamaicaredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "54",
+        "fields": {
+            "domain_name": "jnrcs.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "55",
+        "fields": {
+            "domain_name": "jrc.or.jp"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "56",
+        "fields": {
+            "domain_name": "kenyaredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "57",
+        "fields": {
+            "domain_name": "kizilay.org.tr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "58",
+        "fields": {
+            "domain_name": "kksh.org.al"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "59",
+        "fields": {
+            "domain_name": "krc.kg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "60",
+        "fields": {
+            "domain_name": "krcs.org.kw"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "61",
+        "fields": {
+            "domain_name": "laoredcross.org.la"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "62",
+        "fields": {
+            "domain_name": "livelihoodscentre.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "63",
+        "fields": {
+            "domain_name": "mauritiusredcross.com"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "64",
+        "fields": {
+            "domain_name": "mdais.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "65",
+        "fields": {
+            "domain_name": "mda.org.il"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "66",
+        "fields": {
+            "domain_name": "nrcs.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "67",
+        "fields": {
+            "domain_name": "palauredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "68",
+        "fields": {
+            "domain_name": "palestinercs.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "69",
+        "fields": {
+            "domain_name": "pck.org.pl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "70",
+        "fields": {
+            "domain_name": "pck.pl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "71",
+        "fields": {
+            "domain_name": "pmi.or.id"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "72",
+        "fields": {
+            "domain_name": "prcs.org.pk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "73",
+        "fields": {
+            "domain_name": "pscentre.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "74",
+        "fields": {
+            "domain_name": "qrcs.org.qa"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "75",
+        "fields": {
+            "domain_name": "rcs.ir"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "76",
+        "fields": {
+            "domain_name": "rcsbahrain.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "77",
+        "fields": {
+            "domain_name": "rcsbh.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "78",
+        "fields": {
+            "domain_name": "rcuae.ae"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "79",
+        "fields": {
+            "domain_name": "redcrescent.az"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "80",
+        "fields": {
+            "domain_name": "redcrescent.kg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "81",
+        "fields": {
+            "domain_name": "redcrescent.kz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "82",
+        "fields": {
+            "domain_name": "redcrescent.org.mv"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "83",
+        "fields": {
+            "domain_name": "redcrescent.org.my"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "84",
+        "fields": {
+            "domain_name": "redcrescent.tj"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "85",
+        "fields": {
+            "domain_name": "redcrescent.uz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "86",
+        "fields": {
+            "domain_name": "redcross-eu.net"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "87",
+        "fields": {
+            "domain_name": "redcross.am"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "88",
+        "fields": {
+            "domain_name": "redcross.be"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "89",
+        "fields": {
+            "domain_name": "redcross.bg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "90",
+        "fields": {
+            "domain_name": "redcross.by"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "91",
+        "fields": {
+            "domain_name": "redcross.ca"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "92",
+        "fields": {
+            "domain_name": "redcross.ch"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "93",
+        "fields": {
+            "domain_name": "redcross.com.fj"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "94",
+        "fields": {
+            "domain_name": "redcross.dm"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "95",
+        "fields": {
+            "domain_name": "redcross.ee"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "96",
+        "fields": {
+            "domain_name": "redcross.fi"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "97",
+        "fields": {
+            "domain_name": "redcross.ge"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "98",
+        "fields": {
+            "domain_name": "redcross.gr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "99",
+        "fields": {
+            "domain_name": "redcross.ie"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "100",
+        "fields": {
+            "domain_name": "redcross.int"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "101",
+        "fields": {
+            "domain_name": "redcross.is"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "102",
+        "fields": {
+            "domain_name": "redcross.lk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "103",
+        "fields": {
+            "domain_name": "redcross.lt"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "104",
+        "fields": {
+            "domain_name": "redcross.lv"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "105",
+        "fields": {
+            "domain_name": "redcross.md"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "106",
+        "fields": {
+            "domain_name": "redcross.mn"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "107",
+        "fields": {
+            "domain_name": "redcross.no"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "108",
+        "fields": {
+            "domain_name": "redcross.or.ke"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "109",
+        "fields": {
+            "domain_name": "redcross.or.kr"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "110",
+        "fields": {
+            "domain_name": "redcross.or.th"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "111",
+        "fields": {
+            "domain_name": "redcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "112",
+        "fields": {
+            "domain_name": "redcross.org.au"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "113",
+        "fields": {
+            "domain_name": "redcross.org.ck"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "114",
+        "fields": {
+            "domain_name": "redcross.org.cn"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "115",
+        "fields": {
+            "domain_name": "redcross.org.cy"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "116",
+        "fields": {
+            "domain_name": "redcross.org.hk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "117",
+        "fields": {
+            "domain_name": "redcross.org.jm"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "118",
+        "fields": {
+            "domain_name": "redcross.org.kh"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "119",
+        "fields": {
+            "domain_name": "redcross.org.lb"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "120",
+        "fields": {
+            "domain_name": "redcross.org.mk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "121",
+        "fields": {
+            "domain_name": "redcross.org.mm"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "122",
+        "fields": {
+            "domain_name": "redcross.org.mo"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "123",
+        "fields": {
+            "domain_name": "redcross.org.mt"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "124",
+        "fields": {
+            "domain_name": "redcross.org.mz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "125",
+        "fields": {
+            "domain_name": "redcross.org.na"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "126",
+        "fields": {
+            "domain_name": "redcross.org.nz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "127",
+        "fields": {
+            "domain_name": "redcross.org.pg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "128",
+        "fields": {
+            "domain_name": "redcross.org.ph"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "129",
+        "fields": {
+            "domain_name": "redcross.org.rs"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "130",
+        "fields": {
+            "domain_name": "redcross.org.sb"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "131",
+        "fields": {
+            "domain_name": "redcross.org.sg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "132",
+        "fields": {
+            "domain_name": "redcross.org.ua"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "133",
+        "fields": {
+            "domain_name": "redcross.org.uk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "134",
+        "fields": {
+            "domain_name": "redcross.org.vn"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "135",
+        "fields": {
+            "domain_name": "redcross.org.za"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "136",
+        "fields": {
+            "domain_name": "redcross.org.zm"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "137",
+        "fields": {
+            "domain_name": "redcross.ru"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "138",
+        "fields": {
+            "domain_name": "redcross.se"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "139",
+        "fields": {
+            "domain_name": "redcross.sk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "140",
+        "fields": {
+            "domain_name": "redcross.tl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "141",
+        "fields": {
+            "domain_name": "redcrossghana.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "142",
+        "fields": {
+            "domain_name": "redcrosseth.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "143",
+        "fields": {
+            "domain_name": "redcrossmuseum.ch"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "144",
+        "fields": {
+            "domain_name": "redcrossnigeria.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "145",
+        "fields": {
+            "domain_name": "redcrossseychelles.sc"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "146",
+        "fields": {
+            "domain_name": "redcrossug.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "147",
+        "fields": {
+            "domain_name": "redcrossvanuatu.com"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "148",
+        "fields": {
+            "domain_name": "redcrosszim.org.zw"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "149",
+        "fields": {
+            "domain_name": "rks.si"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "150",
+        "fields": {
+            "domain_name": "rmiredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "151",
+        "fields": {
+            "domain_name": "rodekruis.be"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "152",
+        "fields": {
+            "domain_name": "roteskreuz.be"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "153",
+        "fields": {
+            "domain_name": "rodekors.dk"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "154",
+        "fields": {
+            "domain_name": "rodekruis.nl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "155",
+        "fields": {
+            "domain_name": "redcross.nl"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "156",
+        "fields": {
+            "domain_name": "roteskreuz.at"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "157",
+        "fields": {
+            "domain_name": "st.roteskreuz.at",
+            "description": "Steiermark (Styria)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "158",
+        "fields": {
+            "domain_name": "s.roteskreuz.at",
+            "description": "Salzburg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "159",
+        "fields": {
+            "domain_name": "b.roteskreuz.at",
+            "description": "Burgenland"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "160",
+        "fields": {
+            "domain_name": "t.roteskreuz.at",
+            "description": "Tirol (Tyrol)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "161",
+        "fields": {
+            "domain_name": "w.roteskreuz.at",
+            "description": "Wien (Vienna)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "162",
+        "fields": {
+            "domain_name": "v.roteskreuz.at",
+            "description": "Vorarlberg"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "163",
+        "fields": {
+            "domain_name": "k.roteskreuz.at",
+            "description": "Kaernten (Carinthia)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "164",
+        "fields": {
+            "domain_name": "n.roteskreuz.at",
+            "description": "Niederoesterreich (lower Austria)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "165",
+        "fields": {
+            "domain_name": "o.roteskreuz.at",
+            "description": "Oberoesterreich (upper Austria)"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "166",
+        "fields": {
+            "domain_name": "roteskreuz-innsbruck.at"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "167",
+        "fields": {
+            "domain_name": "roteskreuz.li"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "168",
+        "fields": {
+            "domain_name": "rwandaredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "169",
+        "fields": {
+            "domain_name": "sarc.sy"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "170",
+        "fields": {
+            "domain_name": "sarc-sy.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "171",
+        "fields": {
+            "domain_name": "sierraleoneredcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "172",
+        "fields": {
+            "domain_name": "srcs.sd"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "173",
+        "fields": {
+            "domain_name": "standcom.ch"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "174",
+        "fields": {
+            "domain_name": "tgymj.gov.tm"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "175",
+        "fields": {
+            "domain_name": "tongaredcross.to"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "176",
+        "fields": {
+            "domain_name": "trcs.or.tz"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "177",
+        "fields": {
+            "domain_name": "ttrcs.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "178",
+        "fields": {
+            "domain_name": "vanuaturedcross.org"
+        }
+    },
+    {
+        "model": "registrations.DomainWhitelist",
+        "pk": "179",
+        "fields": {
+            "domain_name": "voroskereszt.hu"
+        }
+    }
+]
