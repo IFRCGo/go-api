@@ -6,17 +6,17 @@ from rest_framework import (
     mixins
 )
 
-from informal_update.models import (
+from api.serializers import ActionSerializer
+from .models import (
     InformalUpdate,
     InformalGraphicMap,
     InformalAction
 )
-from informal_update.serializers import (
+from .serializers import (
     InformalUpdateSerializer,
     InformalGraphicMapSerializer
 )
 from .filter_set import InformalUpdateFilter
-from api.serializers import ActionSerializer
 
 
 class InformalUpdateViewSet(viewsets.ModelViewSet):
@@ -52,8 +52,8 @@ class InformalUpdateOptions(views.APIView):
         options = {
             'share_with_options': [
                 {
-                    'key': share_with[0],
-                    'value': share_with[1]
+                    'value': share_with[0],
+                    'label': share_with[1]
                 } for share_with in InformalUpdate.InformalShareWith.choices
             ]
         }

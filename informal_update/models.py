@@ -13,7 +13,7 @@ from api.models import (
     ActionCategory,
 )
 
-from .enums import TextChoices
+from main.enums import TextChoices
 
 
 class InformalGraphicMap(models.Model):
@@ -60,7 +60,6 @@ class InformalUpdate(models.Model):
     class InformalShareWith(TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
         RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
-        RCRC_NETWORK_AND_DONORS = 'rcrc_network_and_donors', _('RCRC Network and Donors')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='informal_update_created_by',
@@ -202,3 +201,14 @@ class InformalEmailSubscriptions(models.Model):
 
     def __str__(self):
         return self.share_with
+
+
+class Donors(models.Model):
+    organization_name = models.CharField(max_length=500, blank=True, null=True)
+    first_name = models.CharField(max_length=300, blank=True, null=True)
+    last_name = models.CharField(max_length=300, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    position = models.CharField(max_length=300, blank=True, null=True)
+
+    def __str__(self):
+        return self.organization_name
