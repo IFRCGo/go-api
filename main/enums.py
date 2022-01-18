@@ -1,3 +1,5 @@
+#  Note: This is already implemented in the newer version of Django and need to use that instead of this only upgrade is done.
+
 import enum
 from types import DynamicClassAttribute
 

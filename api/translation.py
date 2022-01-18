@@ -26,8 +26,6 @@ from .models import (
     EventLink,
 )
 
-from informal_update.models import InformalUpdate
-
 
 @register(Action)
 class ActionTO(TranslationOptions):

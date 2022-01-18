@@ -9,7 +9,8 @@ from .models import (
     InformalAction,
     InformalActionsTaken,
     InformalCountryDistrict,
-    InformalEmailSubscriptions
+    InformalEmailSubscriptions,
+    Donors
 )
 
 from .forms import ActionForm
@@ -38,6 +39,11 @@ class InformalEmailSubscriptionsAdmin(admin.ModelAdmin):
 class InformalActionTakenAdminInline(admin.TabularInline):
     model = InformalActionsTaken
     extra = 0
+
+
+@admin.register(Donors)
+class DonorsAdmin(admin.ModelAdmin):
+    pass
 
 
 class InformalCountryDistrictAdminInline(admin.TabularInline):

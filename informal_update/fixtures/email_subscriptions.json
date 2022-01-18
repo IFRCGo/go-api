@@ -12,12 +12,5 @@
         "fields": {
             "share_with": "rcrc_network"
         }
-    },
-    {
-        "model": "informal_update.informalemailsubscriptions",
-        "pk": 3,
-        "fields": {
-            "share_with": "rcrc_network_and_donors"
-        }
     }
 ]

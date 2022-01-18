@@ -19,7 +19,7 @@ from informal_update.models import (
     InformalActionsTaken
 )
 
-from informal_update.writable_nested_serializers import (
+from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
@@ -81,11 +81,10 @@ class InformalCountryDistrictSerializer(serializers.ModelSerializer):
         if len(data) > 10:
             raise serializers.ValidationError("Number of countries selected should be less than 10")
         district = data['district']
-        if district:
-            if district.country != data['country']:
-                raise serializers.ValidationError({
-                    'district': ugettext('Different districts found for given country')
-                })
+        if district and district.country != data['country']:
+            raise serializers.ValidationError({
+                'district': ugettext('Different districts found for given country')
+            })
         return data
 
 

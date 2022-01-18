@@ -289,6 +289,10 @@
         background-repeat: no-repeat;
         margin: auto !important;
       }
+      .img-infromal {
+              width: 120px;
+              height: 120px;
+          }
       .img-dref {
         background-image: url("./images/rc.svg");
       }
@@ -412,9 +416,10 @@
                           <th class="column">
                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
                               <tr>
+
 {% for record in records|slice:":1" %}
                                 <td class="text-header text-default text-right" style="text-align: right;color: #000000;font-family:'Lato', Arial, sans-serif;">
-                                  <a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
+                                <a href="{{ record.resource_uri }}" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">Open in GO</a>
                                 </td>
 {% endfor %}
                               </tr>

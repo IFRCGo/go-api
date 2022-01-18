@@ -72,6 +72,7 @@ from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
 from lang import views as lang_views
 
+
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset, basename='action')
 router.register(r'informal_action', informal_views.InformalActionViewset, basename='informal-action')
