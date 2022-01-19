@@ -69,8 +69,7 @@ pdfminer.six==20191110
 pip==21.1
 polib==1.1.0
 promise==2.1
-#psycopg2==2.7.3.2
-psycopg2==2.9.3
+psycopg2==2.8.6
 pycountry==19.8.18
 pycparser==2.19
 pydash==4.8.0
