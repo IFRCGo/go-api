@@ -1,5 +1,6 @@
 import json
 import datetime
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
@@ -523,7 +524,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now(), is_active=True):
+            for p in d.personnel_set.filter(end_date__gte=timezone.now(), is_active=True):
                 personnels.append(p)
         return list(set([p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']))
 
