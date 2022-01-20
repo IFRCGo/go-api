@@ -6,10 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.416
+
+### Added
  - Using https before resource_uri
  - Bump up the necessary packages to use python 3.8 due to Pillow must-upgrade:
      Pillow 9.0.0, boto3==1.20.38, ipython==8.0.0, pandas==1.3.5, psycopg2==2.8.6 (!),
      python-Levenshtein==0.12.1, requests==2.27.1, urllib3==1.26.8
+ - Timezone into end_date comparison (personnel_by_event)
 
 ## 1.1.415
 
@@ -1878,7 +1882,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.415...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.416...HEAD
+[1.1.416]: https://github.com/IFRCGo/go-api/compare/1.1.415...1.1.416
 [1.1.415]: https://github.com/IFRCGo/go-api/compare/1.1.414...1.1.415
 [1.1.414]: https://github.com/IFRCGo/go-api/compare/1.1.413...1.1.414
 [1.1.413]: https://github.com/IFRCGo/go-api/compare/1.1.412...1.1.413
