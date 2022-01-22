@@ -57,7 +57,7 @@ graphql-core==2.0
 graphql-relay==0.4.5
 gunicorn==19.7.1
 idna==2.8
-ipython==8.0.0
+ipython==8.0.1
 iso8601==0.1.12
 itypes==1.1.0
 jsmin==2.2.2
