@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='personnel',
             name='country_to',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='personnel_deployments_to', to='api.Country', verbose_name='country_to'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='personnel_deployments_to', to='api.Country', verbose_name='country to'),
         ),
     ]
