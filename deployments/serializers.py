@@ -100,42 +100,46 @@ class PersonnelDeploymentCsvSerializer(ModelSerializer):
 
 class PersonnelSerializer(ModelSerializer):
     country_from = MiniCountrySerializer()
+    country_to = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from',
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to',
                   'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
 
 
 class PersonnelCsvSerializer(ModelSerializer):
     country_from = MicroCountrySerializer()
+    country_to = MicroCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',)
 
 
 class PersonnelSerializerAnon(ModelSerializer):
     country_from = MiniCountrySerializer()
+    country_to = MiniCountrySerializer()
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'role', 'type', 'country_from',
+        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
                   'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
 
 
 class PersonnelCsvSerializerAnon(ModelSerializer):
     country_from = MicroCountrySerializer()
+    country_to = MiniCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'deployment', 'id', 'is_active',)
+        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',)
 
 
 class PartnerDeploymentActivitySerializer(ModelSerializer):
