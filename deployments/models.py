@@ -194,7 +194,7 @@ class Personnel(DeployedPerson):
         Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
     )
     country_to = models.ForeignKey(
-        Country, verbose_name=('country_to'), related_name='personnel_deployments_to', null=True, on_delete=models.SET_NULL
+        Country, verbose_name=('country to'), related_name='personnel_deployments_to', null=True, on_delete=models.SET_NULL
     )
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
     molnix_id = models.IntegerField(blank=True, null=True)
