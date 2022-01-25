@@ -7,7 +7,7 @@ import enumfields.fields
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('api', '0130_auto_20210615_0920 copy'),
+        ('api', '0130_auto_20210615_0920'),
     ]
 
     operations = [
