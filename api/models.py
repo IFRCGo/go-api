@@ -1118,6 +1118,26 @@ class UserCountry(models.Model):
         #import pdb; pdb.set_trace();
         return self.user.get_username()
 
+class UserRegion(models.Model):
+    """ Connects User, role and Country """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='userRegionName',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.CASCADE)
+    #countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    #role = models.IntegerField(verbose_name=_('role'))
+
+    class Meta:
+        verbose_name = _('Regional Admin')
+        verbose_name_plural = _('Regional Admins')
+
+    def __str__(self):
+        #import pdb; pdb.set_trace();
+        return self.user.get_username()
+
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
