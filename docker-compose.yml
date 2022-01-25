@@ -90,6 +90,10 @@ services:
     <<: *base_django_setup
     command: python manage.py ingest_appeal_docs
 
+  ingest_appeal_docs:
+    <<: *base_django_setup
+    command: python manage.py user_registration_reminder
+
   ingest_appeal_docs_fullscan:
     <<: *base_django_setup
     command: python manage.py ingest_appeal_docs --fullscan
