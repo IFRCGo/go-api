@@ -17,16 +17,18 @@ class Pending(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     token = models.CharField(verbose_name=_('token'), max_length=32, editable=False)
 
-    admin_contact_1 = models.EmailField(verbose_name=_('admin contact 1'), blank=True, null=True)
-    admin_contact_2 = models.EmailField(verbose_name=_('admin contact 2'), blank=True, null=True)
+    admin_contact_1 = models.EmailField(verbose_name=_('admin contact 1'), blank=True, null=True, editable=False)
+    admin_contact_2 = models.EmailField(verbose_name=_('admin contact 2'), blank=True, null=True, editable=False)
     admin_token_1 = models.CharField(verbose_name=_('admin token 1'), max_length=32, null=True, editable=False)
     admin_token_2 = models.CharField(verbose_name=_('admin token 2'), max_length=32, null=True, editable=False)
     admin_1_validated = models.BooleanField(verbose_name=_('admin 1 validated'), default=False, editable=False)
     admin_2_validated = models.BooleanField(verbose_name=_('admin 2 validated'), default=False, editable=False)
     admin_1_validated_date = models.DateTimeField(verbose_name=_('admin 1 validated date'), null=True, blank=True, editable=False)
     admin_2_validated_date = models.DateTimeField(verbose_name=_('admin 2 validated date'), null=True, blank=True, editable=False)
-
     email_verified = models.BooleanField(verbose_name=_('email verified?'), default=False, editable=False)
+    justification = models.CharField(verbose_name=_('justification'), max_length=500, blank=True, null=True)
+    reminder_sent_to_admin = models.BooleanField(verbose_name=_('reminder sent to admin?'), default=False, editable=False)
+
 
     class Meta:
         verbose_name = _('Pending user')
