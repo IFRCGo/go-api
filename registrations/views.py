@@ -207,7 +207,7 @@ class VerifyEmail(APIView):
             
             admins = getRegionalAdmins(pending_user.user_id)
                        
-            for idx, admin in enumerate(admins):
+            for admin in admins:
                 token = pending_user.admin_token_1 
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
