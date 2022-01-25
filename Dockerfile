@@ -1,4 +1,4 @@
-FROM python:3.6.11-buster
+FROM python:3.8.12-buster
 
 EXPOSE 80
 EXPOSE 443
