@@ -13,6 +13,7 @@ class PendingAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'user__email', 'admin_contact_1', 'admin_contact_2')
     list_display = ('get_username_and_mail', 'created_at', 'email_verified', 'user_is_active')
     actions = ('activate_users',)
+    list_filter = ['email_verified']
     
     # Get the 'user' objects with a JOIN query
     def get_queryset(self, request):
