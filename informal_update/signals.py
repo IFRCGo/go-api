@@ -28,15 +28,17 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
             map_list = []
             for map in data['map_details']:
                 maps = dict()
-                map_url = settings.BASE_URL + map['file']
-                maps['image'] = map_url
+                if map['file']:
+                    map_url = settings.BASE_URL + map['file']
+                    maps['image'] = map_url
                 maps['caption'] = map['caption']
                 map_list.append(maps)
             graphics_list = []
             for graphic in data['graphics_details']:
                 graphics = dict()
-                graphics_url = settings.BASE_URL + graphic['file']
-                graphics['image'] = graphics_url
+                if graphic['file']:
+                    graphics_url = settings.BASE_URL + graphic['file']
+                    graphics['image'] = graphics_url
                 graphics['caption'] = graphic['caption']
                 graphics_list.append(graphics)
 
@@ -56,10 +58,10 @@ def send_email_when_informal_update_created(sender, instance, created, **kwargs)
                 render_to_string('email/informal_update.html', email_context),
                 'Informal Update'
             )
-            send_notification(
-                'Informal Update',
-                donors_emails,
-                render_to_pdf('email/informal_email_pdf.html', email_context),
-                'Informal Update'
-            )
+            # send_notification(
+            #     'Informal Update',
+            #     donors_emails,
+            #     render_to_pdf('email/informal_email_pdf.html', email_context),
+            #     'Informal Update'
+            # )
             return email_context

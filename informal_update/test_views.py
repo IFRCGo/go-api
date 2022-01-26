@@ -5,7 +5,7 @@ from django.contrib.auth.models import User, Group
 
 from main.test_case import APITestCase
 import api.models as models
-from informal_update.models import InformalUpdate, InformalEmailSubscriptions
+from informal_update.models import InformalUpdate, InformalEmailSubscriptions, InformalGraphicMap
 from informal_update.factories.informal_update import (
     InformalUpdateFactory,
     InformalGraphicMapFactory,
@@ -82,7 +82,6 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-            print(response)
         created = InformalUpdate.objects.get(pk=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
@@ -227,6 +226,18 @@ class InformalUpdateTest(APITestCase):
         response = response.json()
         self.assertEqual(response['created_by'], user.id)
 
+    def test_upload_multiple_file(self):
+        file_count = InformalGraphicMap.objects.count()
+        url = '/api/v2/informal-file/multiple/'
+        data = {
+            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
+        }
+
+        self.authenticate()
+        response = self.client.post(url, data, format='multipart')
+        self.assert_201(response)
+        self.assertEqual(InformalGraphicMap.objects.count(), file_count + 3)
+
     def test_send_email(self):
         group = Group.objects.create(name="informal_email_member")
         email_suscription = InformalEmailSubscriptions.objects.get(
@@ -241,8 +252,6 @@ class InformalUpdateTest(APITestCase):
         email_data = send_email_when_informal_update_created(InformalUpdate, instance, created=True)
         self.assertEqual(email_data['title'], instance.title)
         self.assertEqual(email_data['situational_overview'], instance.situational_overview)
-        self.assertIn(email_data['map'][0]['id'], [data['id'] for data in instance.map.all().values('id')])
-        self.assertIn(email_data['graphic'][0]['id'], [data['id'] for data in instance.graphics.all().values('id')])
         self.assertIn(
             email_data['actions_taken'][0]['id'],
             [data['id'] for data in instance.actions_taken_informal.all().values('id')]
