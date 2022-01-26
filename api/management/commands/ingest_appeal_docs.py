@@ -53,7 +53,6 @@ class Command(BaseCommand):
         http = PoolManager()  # stackoverflow.com/questions/36516183/what-should-i-use-to-open-a-url-instead-of-urlopen-in-urllib3
         smoke_response = http.request('GET', baseurl)
         joy_to_the_world = False
-        import pdb; pdb.set_trace()
         if smoke_response.status == 200:
             joy_to_the_world = True  # We log the success later, when we know the numeric results.
         else:
