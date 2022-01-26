@@ -197,7 +197,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
 def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
         field.name for field in AppealHistory._meta.get_fields()
-        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to','aid']
+        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to','aid','amount_funded']
     ]
     now = timezone.now()
     valid_to = timezone.now() + relativedelta(years=+10)
@@ -221,7 +221,8 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             dtype = instance.dtype,
             needs_confirmation = instance.needs_confirmation,
             status = instance.status,
-            code = instance.code
+            code = instance.code,
+            triggering_amount = instance.triggering_amount
             #deleted_at = instance.deleted_at
         )
 
@@ -258,7 +259,8 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             dtype = instance.dtype,
             needs_confirmation = instance.needs_confirmation,
             status = instance.status,
-            code = instance.code
+            code = instance.code,
+            triggering_amount = instance.triggering_amount
             #deleted_at = instance.deleted_at
         )
 
