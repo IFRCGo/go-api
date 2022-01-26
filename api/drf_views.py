@@ -109,7 +109,10 @@ from .serializers import (
     ListEventTableauSerializer,
     ListFieldReportTableauSerializer,
     RegionSnippetTableauSerializer,
-    SituationReportTableauSerializer
+    SituationReportTableauSerializer,
+
+    # Go Historical
+    GoHistoricalSerializer,
 )
 from .logger import logger
 
@@ -947,6 +950,31 @@ class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     queryset = MainContact.objects.order_by('extent')
     search_fields = ('name', 'email')  # for /docs
 
+
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer
     queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')
+
+
+class GoHistoricalFilter(filters.FilterSet):
+    countries = filters.ModelMultipleChoiceFilter(
+        field_name='countries',
+        queryset=Country.objects.all()
+    )
+    disaster_start_date_lte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='lte')
+    disaster_start_date_gte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='gte')
+    start_date_lte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='lte', field_name='appeals__start_date')
+    end_date_gte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='gte', field_name='appeals__end_date')
+    iso3 = filters.CharFilter(field_name='countries__iso3', lookup_expr='icontains')
+
+    class Meta:
+        model = Event
+        fields = ()
+
+
+class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GoHistoricalSerializer
+    filterset_class = GoHistoricalFilter
+
+    def get_queryset(self):
+        return Event.objects.filter(num_affected__isnull=False, appeals__isnull=False)
