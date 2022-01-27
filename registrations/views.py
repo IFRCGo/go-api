@@ -217,7 +217,16 @@ class VerifyEmail(APIView):
                     ),
                     'first_name': pending_user.user.first_name,
                     'last_name': pending_user.user.last_name,
+                    'username': pending_user.user.username,
                     'email': pending_user.user.email,
+                    'region': pending_user.user.profile.country.region ,
+                    'country': pending_user.user.profile.country,
+                    'organization': pending_user.user.profile.org,
+                    'city': pending_user.user.profile.city,
+                    'department': pending_user.user.profile.department,
+                    'position': pending_user.user.profile.position,
+                    'phone': pending_user.user.profile.phone_number,
+                    'justification': pending_user.justification,
                 }
                 
                 send_notification('Reference to approve an account',

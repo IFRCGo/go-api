@@ -13,15 +13,15 @@ from notifications.models import NotificationGUID
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-EMAIL_USER = os.environ.get('EMAIL_USER')
-EMAIL_PASS = os.environ.get('EMAIL_PASS')
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
+EMAIL_USER = 'go.staging@ifrc.org' # os.environ.get('EMAIL_USER')
+EMAIL_PASS = 'KTkZL5\$e' # os.environ.get('EMAIL_PASS')
+EMAIL_HOST = 'smtp.office365.com' # os.environ.get('EMAIL_HOST')
+EMAIL_PORT = 587 # os.environ.get('EMAIL_PORT')
+EMAIL_API_ENDPOINT = 'https://microservices-staging.ifrc.org/Email/api/Email?apiKey=8a3dfabf-37d2-4fde-b8ab-9f7d4f5cad5a' # os.environ.get('EMAIL_API_ENDPOINT')
 EMAIL_TO = 'no-reply@ifrc.org'
-IS_PROD = os.environ.get('PRODUCTION')
+IS_PROD = 0 # os.environ.get('PRODUCTION')
 
-test_emails = os.environ.get('TEST_EMAILS')
+test_emails = 'viktor.deak@atos.net,viktor.deak@ifrc.org,viktor.deak79@gmail.com' # os.environ.get('TEST_EMAILS')
 if test_emails:
     test_emails = test_emails.split(',')
 else:
@@ -95,10 +95,14 @@ def send_notification(subject, recipients, html, mailtype=''):
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
     to_addresses = recipients
+    
     if int(IS_PROD) != 1:
         logger.info('Using test email addresses...')
         to_addresses = []
+        logger.info(to_addresses)
         for eml in test_emails:
+            logger.info('eml: '+eml)
+           # import pdb; pdb.set_trace();
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:
@@ -108,6 +112,7 @@ def send_notification(subject, recipients, html, mailtype=''):
                     except Exception:
                         logger.info('Could not extract domain from: {}'.format(rec))
             elif eml and (eml in recipients):
+                #logger.info(eml)
                 to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
