@@ -148,13 +148,13 @@ class AggregateHeaderFigures(APIView):
         iso3 = request.GET.get('iso3', None)
         country = request.GET.get('country', None)
         region = request.GET.get('region', None)
-        
+
         now = timezone.now()
         date = request.GET.get('date', now)
         appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=date) & Q(start_date__lt=date)
-        
+
         all_appealhistory = AppealHistory.objects.select_related('appeal').filter(valid_from__lt=date, valid_to__gt=date, appeal__code__isnull=False)
-       
+
         if iso3:
             all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
         if country:

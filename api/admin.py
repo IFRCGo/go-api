@@ -430,7 +430,7 @@ class UserCountryAdmin(CompareVersionAdmin):
 
 class UserRegionAdmin(CompareVersionAdmin):
     list_display = ['user','get_firstname','get_lastname','get_email','region',]
-    
+
     def get_firstname(self, obj):
         return obj.user.first_name 
     get_firstname.short_description = 'First name'
@@ -445,7 +445,7 @@ class UserRegionAdmin(CompareVersionAdmin):
         return obj.user.email
     get_email.short_description = 'Email'
     get_email.admin_order_field = 'user__email'
-   
+
 
     #search_fields = ('user','country')
     model = models.UserRegion

@@ -95,13 +95,13 @@ def send_notification(subject, recipients, html, mailtype=''):
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
     to_addresses = recipients
-    
+
     if int(IS_PROD) != 1:
         logger.info('Using test email addresses...')
         to_addresses = []
         logger.info(to_addresses)
         for eml in test_emails:
-          
+
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:

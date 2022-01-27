@@ -14,7 +14,7 @@ class PendingAdmin(CompareVersionAdmin):
     list_display = ('get_username_and_mail', 'get_region','get_country','created_at', 'email_verified', 'user_is_active')
     actions = ('activate_users',)
     list_filter = ['email_verified']
-    
+
     change_form_template = "admin/pending_changeform.html"
 
     # Get the 'user' objects with a JOIN query
@@ -29,55 +29,55 @@ class PendingAdmin(CompareVersionAdmin):
             retval = super().get_queryset(request).select_related('user').filter(user_id__in=user_ids)
 
         return retval
-         
+
     def get_username_and_mail(self, obj):
         return obj.user.username + ' - ' + obj.user.email
-    
+
     get_username_and_mail.short_description = 'Username - Email'
     get_username_and_mail.admin_order_field = 'user__username'
-    
+
     def get_region(self, obj):
         if obj.user.profile.country:
             return obj.user.profile.country.region
         else:  
             return obj.user.profile.country
-    
+
     get_region.short_description = 'Region'
     get_region.admin_order_field = 'user__profile__country__region'
 
     def get_country(self, obj):
         return obj.user.profile.country
-    
+
     get_country.short_description = 'Country'
     get_country.admin_order_field = 'user__profile__country'
 
     def get_org(self, obj):
         return obj.user.profile.organization
-    
+
     get_org.short_description = 'Organization'
     get_org.admin_order_field = 'user__profile__organization'
 
     def get_city(self, obj):
         return obj.user.profile.city
-    
+
     get_city.short_description = 'City'
     get_city.admin_order_field = 'user__profile__city'
 
     def get_department(self, obj):
         return obj.user.profile.department
-    
+
     get_department.short_description = 'Department'
     get_department.admin_order_field = 'user__profile__department'
 
     def get_position(self, obj):
         return obj.user.profile.position
-    
+
     get_position.short_description = 'Position'
     get_position.admin_order_field = 'user__profile__position'
 
     def get_phone(self, obj):
         return obj.user.profile.phone
-    
+
     get_phone.short_description = 'Phone'
     get_phone.admin_order_field = 'user__profile__phone'
 
@@ -89,7 +89,7 @@ class PendingAdmin(CompareVersionAdmin):
             usr = User.objects.filter(id=pu.user_id).first()
             if usr:
                 if usr.is_active is False:
-                    
+
                     email_context = {
                         'frontend_url': frontend_url
                     }
@@ -113,7 +113,7 @@ class PendingAdmin(CompareVersionAdmin):
 
             if usr:
                 if usr.is_active is False:
-                    
+
                     email_context = {
                         'frontend_url': frontend_url
                     }

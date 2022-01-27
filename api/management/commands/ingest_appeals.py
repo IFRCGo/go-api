@@ -49,11 +49,11 @@ class Command(BaseCommand):
                 codes_skip = AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter')[0].split(",")
             else:
                 codes_skip = []
-           
+
             with open('appeals.json') as f:
                 #modified = json.loads(f.read())
                 records = json.loads(f.read())
-                                
+
                 for r in records:
                 # Temporary filtering, the manual version should be kept:
                     if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
@@ -69,7 +69,7 @@ class Command(BaseCommand):
                             details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
                             detail = details[0]
 
-                       
+
                     apd_modify_time = self.parse_date(detail['APD_modifyTime'])
                     app_modify_time = self.parse_date(r['APP_modifyTime'])
                     api_appeal_modify_time = Appeal.objects.get(code=r['APP_code']).modified_at
@@ -150,7 +150,7 @@ class Command(BaseCommand):
                 else:
                     # We use all records, do NOT check if last_modified > since_last_checked
                     modified.append(r)
-                      
+
 
         return new, modified, bilaterals
 

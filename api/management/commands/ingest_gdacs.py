@@ -29,7 +29,7 @@ class Command(BaseCommand):
         results = xmltodict.parse(response.content)
         levels = {'Orange': 1, 'Red': 2}
         added = 0
-        
+
         for alert in results['rss']['channel']['item']:
             alert_level = alert['%salertlevel' % nspace]
             if alert_level in levels.keys():

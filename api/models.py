@@ -948,7 +948,7 @@ class Appeal(models.Model):
 
     def __str__(self):
         return self.code
-    
+
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
@@ -1360,7 +1360,7 @@ class FieldReport(models.Model):
 
     def to_dict(self):
         return to_dict(self)
-    
+
     # def get_for(cls, user, queryset=None):
     #     _queryset = queryset
     #     if queryset is None:

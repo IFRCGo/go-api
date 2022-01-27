@@ -93,7 +93,7 @@ class NewRegistration(APIView):
             'firstname',
             'lastname',
         )
-        
+
         missing_fields = [field for field in required_fields if field not in request.data]
         if missing_fields:
             return bad_request('Could not complete request. Please submit %s' % ', '.join(missing_fields))
@@ -113,9 +113,9 @@ class NewRegistration(APIView):
         position = request.data.get('position', None)
         phone_number = request.data.get('phoneNumber', None)
         justification = request.data.get('justification', None)
-        
+
         is_staff = is_valid_domain(email)
-                
+
         if User.objects.filter(email__iexact=email).exists():
             return bad_request('A user with that email address already exists.')
         if User.objects.filter(username__iexact=username).exists():
@@ -136,12 +136,12 @@ class NewRegistration(APIView):
             User.objects.filter(username=username).delete()
             return bad_request('Could not create user profile.')
 
-        
+
         pending = Pending.objects.create(user=user, justification=justification,
                                          token=get_random_string(length=32))
         if not is_staff:
                pending.admin_token_1 = get_random_string(length=32)
-      
+
         pending.save()
 
         email_context = {
@@ -204,9 +204,9 @@ class VerifyEmail(APIView):
             }
             return HttpResponse(render_to_string('registration/success.html', email_context))
         else:
-            
+
             admins = getRegionalAdmins(pending_user.user_id)
-                       
+
             for admin in admins:
                 token = pending_user.admin_token_1 
                 email_context = {
@@ -228,7 +228,7 @@ class VerifyEmail(APIView):
                     'phone': pending_user.user.profile.phone_number,
                     'justification': pending_user.justification,
                 }
-                
+
                 send_notification('Reference to approve an account',
                                   [admin],
                                   render_to_string('email/registration/validate.html', email_context),
@@ -279,4 +279,4 @@ class ValidateUser(APIView):
                               'Approved account successfully - ' + pending_user.user.username)
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
-        
+

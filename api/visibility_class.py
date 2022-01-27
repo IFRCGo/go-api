@@ -43,5 +43,5 @@ class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
                     return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True))))
                 else:
                     return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC)
-        
+
         return self.visibility_model_class.objects.filter(visibility=VisibilityChoices.PUBLIC)

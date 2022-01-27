@@ -87,7 +87,7 @@ class Command(BaseCommand):
         columns = [a.replace('*','').replace(' ','') for a in records[0]]
         # ['Year', 'AppealCode', 'Region', 'Country', 'Location', 'Disastertype', 'Disastername', 'Name', 'DeployingNS/IFRCOffice', 'Gender', 'Language', 'Position', 'Type', 'SupportedbyNS', 'Availability', 'Expstartdate', 'expduration', 'Alert', 'Deploymentmessage', 'Startofmission', 'Endofmission', 'DeploymentDuration', 'Deployed', 'Rotation', 'Comments']
         #     0          1          2          3          4          5                    6          7          8                       9          10          11          12          13             14            15              16          17          18                    19                    20                21          22          23          24
-        
+
         # if empty name -> Alert, otherwise -> Deployment
 
 #       OBSOLETE:

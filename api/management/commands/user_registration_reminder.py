@@ -33,18 +33,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         region_ids = Region.objects.all().values_list('id', flat=True)
         time_diff_3_day = self.diff_3_day()
-        
+
         for region_id in region_ids:
             region_admin_emails = list(UserRegion.objects.filter(region_id = region_id).values_list('user__email',flat=True))
             pending3days = Pending.objects.filter(user__profile__country__region_id=region_id).filter(reminder_sent_to_admin=False).filter(created_at__lte=time_diff_3_day)
             userlist = self.create_html_list_of_pending_users(pending3days)
-            
+
             email_context = {
                    'userlist': userlist,
                 }
-          
+
             if len(pending3days)>0 and len(region_admin_emails)>0 :
-                
+
                 send_notification('Pending registrations for more than 3 days',
                                 region_admin_emails,
                                 render_to_string('email/registration/reminder.html', email_context),

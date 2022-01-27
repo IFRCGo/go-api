@@ -123,7 +123,7 @@ class Command(BaseCommand):
             else:
               missing_file.writerow({'code': code, 'name': name})
 
-          
+
         if len(districts) == 1:
           d = districts[0]
           if options['update_geom']:
