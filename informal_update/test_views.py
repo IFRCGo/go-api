@@ -73,8 +73,26 @@ class InformalUpdateTest(APITestCase):
             "share_with": InformalUpdate.InformalShareWith.IFRC_SECRETARIAT.value,
             "created_by": str(self.user.id),
             "hazard_type": str(self.hazard_type.id),
-            "map": [map1.id, map2.id, map3.id, map5.id],
-            "graphics": [graphic1.id, graphic2.id]
+            "map": [
+                {
+                    'pk': map1.id,
+                    'caption': 'test'
+                },
+                {
+                    'pk': map2.id,
+                    'caption': 'test2'
+                }
+            ],
+            "graphics": [
+                {
+                    'pk': graphic1.id,
+                    'caption': 'test'
+                },
+                {
+                    'pk': graphic1.id,
+                    'caption': 'test2'
+                }
+            ]
         }
         super().setUp()
 
@@ -82,6 +100,7 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
+            print(response)
         created = InformalUpdate.objects.get(pk=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)

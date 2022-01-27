@@ -27,6 +27,7 @@ from main.writable_nested_serializers import (
 
 class InformalGraphicMapSerializer(serializers.ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    file = serializers.FileField(required=False)
 
     class Meta:
         model = InformalGraphicMap
@@ -77,7 +78,7 @@ class InformalCountryDistrictSerializer(serializers.ModelSerializer):
         fields = ('id', 'country', 'district', 'country_details', 'district_details')
         read_only_fields = ('informal_update',)
 
-    def validate(sel, data):
+    def validate(self, data):
         if len(data) > 10:
             raise serializers.ValidationError("Number of countries selected should be less than 10")
         district = data['district']
@@ -100,8 +101,8 @@ class InformalUpdateSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='hazard_type', read_only=True)
     share_with_display = serializers.CharField(source='get_share_with_display', read_only=True)
-    map_details = InformalGraphicMapSerializer(source='map', many=True, required=False, read_only=True)
-    graphics_details = InformalGraphicMapSerializer(source='graphics', many=True, required=False, read_only=True)
+    map = InformalGraphicMapSerializer(many=True, required=False)
+    graphics = InformalGraphicMapSerializer(many=True, required=False)
 
     class Meta:
         model = InformalUpdate

@@ -19,7 +19,6 @@ from main.enums import TextChoices
 class InformalGraphicMap(models.Model):
     file = models.FileField(
         verbose_name=_('file'),
-        null=True, blank=True,
         upload_to='informal_update/images/'
     )
     caption = models.CharField(max_length=225, blank=True, null=True)
@@ -60,6 +59,7 @@ class InformalUpdate(models.Model):
     class InformalShareWith(TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
         RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
+        RCRC_NETWORK_AND_DONOR = 'rcrc_network_and_donors', _('RCRC Network and Donors')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='informal_update_created_by',
@@ -106,7 +106,7 @@ class InformalUpdate(models.Model):
     # Share with
     share_with = models.CharField(
         max_length=50, choices=InformalShareWith.choices,
-        default=InformalShareWith.IFRC_SECRETARIAT, verbose_name=_('share with')
+        null=True, blank=True, verbose_name=_('share with')
     )
     references = models.ManyToManyField(
         InformalReferences, blank=True,

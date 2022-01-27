@@ -11,7 +11,9 @@ from api.models import CronJob, CronJobStatus
 from django.utils.html import strip_tags
 from notifications.models import NotificationGUID
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
+
 
 EMAIL_USER = os.environ.get('EMAIL_USER')
 EMAIL_PASS = os.environ.get('EMAIL_PASS')
@@ -64,7 +66,7 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html):
+def construct_msg(subject, html, file=None):
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = subject
@@ -77,10 +79,15 @@ def construct_msg(subject, html):
     msg.attach(text_body)
     msg.attach(html_body)
 
+    if file:
+        attachedfile = MIMEApplication(file['file'])
+        attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
+        msg.attach(attachedfile)
+
     return msg
 
 
-def send_notification(subject, recipients, html, mailtype=''):
+def send_notification(subject, recipients, html, mailtype='', file=None):
     """ Generic email sending method, handly only HTML emails currently """
     if not EMAIL_USER or not EMAIL_API_ENDPOINT:
         logger.warning(
@@ -155,12 +162,12 @@ def send_notification(subject, recipients, html, mailtype=''):
     elif res.status_code == 401 or res.status_code == 403:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error(f'Authorization/authentication failed ({res.status_code}) to the e-mail sender API.')
-        msg = construct_msg(subject, html)
+        msg = construct_msg(subject, html, file)
         SendMail(to_addresses, msg).start()
     else:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
-        msg = construct_msg(subject, html)
+        msg = construct_msg(subject, html, file)
         SendMail(to_addresses, msg).start()
 
     return res.text
