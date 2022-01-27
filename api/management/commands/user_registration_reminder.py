@@ -42,13 +42,15 @@ class Command(BaseCommand):
             email_context = {
                    'userlist': userlist,
                 }
-            
-            send_notification('Pending registrations for more than 3 days',
-                              region_admin_emails,
-                              render_to_string('email/registration/reminder.html', email_context),
-                              'Reminder')
+          
+            if len(pending3days)>0 and len(region_admin_emails)>0 :
+                
+                send_notification('Pending registrations for more than 3 days',
+                                region_admin_emails,
+                                render_to_string('email/registration/reminder.html', email_context),
+                                'Reminder')
 
-            pending3days.update(reminder_sent_to_admin=True)
+                pending3days.update(reminder_sent_to_admin=True)
 
 
     def create_html_list_of_pending_users(self, pendings):
