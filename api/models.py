@@ -914,6 +914,7 @@ class Appeal(models.Model):
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -973,6 +974,7 @@ class AppealHistory(models.Model):
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True)
     #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
