@@ -146,6 +146,7 @@ class Command(BaseCommand):
                 # Temporary filtering, the manual version should be kept:
                 if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
+                # if r['APP_code'] != 'DEBUG_this': continue
                 if r['APP_code'] not in codes:
                     new.append(r)
                 else:
@@ -231,13 +232,15 @@ class Command(BaseCommand):
         atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
         atype = atypes[detail['APD_TYP_Id']]
 
-        if atype == AppealType.DREF:
-            # appeals are always fully-funded
-            amount_funded = detail['APD_amountCHF']
-            triggering_amount = detail['APD_amountCHF']
-        else:
-            amount_funded = 0 if detail['ContributionAmount'] is None else detail['ContributionAmount']
-            triggering_amount = 0 if detail['TriggeringAmount'] is None else detail['TriggeringAmount']
+        amount_funded = triggering_amount = 0
+        # detail variable is used for other purpose
+        for detl in details:
+            triggering_amount += detl['TriggeringAmount'] if detl['TriggeringAmount'] else 0
+            if atype == AppealType.DREF:
+                # appeals are always fully-funded
+                amount_funded += detl['APD_amountCHF'] if detl['APD_amountCHF'] else 0
+            else:
+                amount_funded += detl['ContributionAmount'] if detl['ContributionAmount'] else 0
 
         end_date = self.parse_date(detail['APD_endDate'])
         # for new, open appeals, if we have a country, try to guess what emergency it belongs to.
