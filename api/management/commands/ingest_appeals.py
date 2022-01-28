@@ -235,6 +235,8 @@ class Command(BaseCommand):
         amount_funded = triggering_amount = 0
         # detail variable is used for other purpose
         for detl in r['Details']:
+            if self.parse_date(detl['APD_endDate']) < tz.now():
+                continue
             triggering_amount += detl['TriggeringAmount'] if detl['TriggeringAmount'] else 0
             if atype == AppealType.DREF:
                 # appeals are always fully-funded
