@@ -40,7 +40,7 @@ class Command(BaseCommand):
         use_local_file = True if os.getenv('DJANGO_DB_NAME') == 'test' and os.path.exists('appeals.json') else False
         new = []
         modified = []
-        #use_local_file = False
+        
         if use_local_file:
             # read from static file for development
             logger.info('Using local appeals.json file')
@@ -87,7 +87,7 @@ class Command(BaseCommand):
             logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            auth = ('gotestuser','123456')
+            
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount('http://', adapter)
@@ -237,7 +237,7 @@ class Command(BaseCommand):
             triggering_amount = detail['APD_amountCHF']
         else:
             amount_funded = 0 if detail['ContributionAmount'] is None else detail['ContributionAmount']
-            triggering_amount = detail['TriggeringAmount']
+            triggering_amount = 0 if detail['TriggeringAmount'] is None else detail['TriggeringAmount']
 
         end_date = self.parse_date(detail['APD_endDate'])
         # for new, open appeals, if we have a country, try to guess what emergency it belongs to.
