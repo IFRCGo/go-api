@@ -40,7 +40,7 @@ class Command(BaseCommand):
         use_local_file = True if os.getenv('DJANGO_DB_NAME') == 'test' and os.path.exists('appeals.json') else False
         new = []
         modified = []
-        
+
         if use_local_file:
             # read from static file for development
             logger.info('Using local appeals.json file')
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                     # We use all records, do NOT check if last_modified > since_last_checked
                         #import pdb; pdb.set_trace();
                         if len(r['Details']) == 1:
-                            detail = r['Details'][0]   
+                            detail = r['Details'][0]
                         else:
                             details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
                             detail = details[0]
@@ -87,7 +87,7 @@ class Command(BaseCommand):
             logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            
+
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount('http://', adapter)
@@ -234,7 +234,9 @@ class Command(BaseCommand):
 
         amount_funded = triggering_amount = 0
         # detail variable is used for other purpose
-        for detl in details:
+        for detl in r['Details']:
+            if self.parse_date(detl['APD_endDate']) < tz.now():
+                continue
             triggering_amount += detl['TriggeringAmount'] if detl['TriggeringAmount'] else 0
             if atype == AppealType.DREF:
                 # appeals are always fully-funded
