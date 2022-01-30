@@ -96,7 +96,6 @@ def send_notification(subject, recipients, html, mailtype=''):
         print('-' * 22, 'EMAIL START', '-' * 22)
         print(f'\n{html}\n')
         print('-' * 22, 'EMAIL END -', '-' * 22)
-    return
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
     to_addresses = recipients
