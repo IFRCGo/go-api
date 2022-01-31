@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
   def add_arguments(self, parser):
     parser.add_argument('filename', nargs='+', type=str)
-  
+
   @transaction.atomic
   def handle(self, *args, **options):
     filename = options['filename'][0]

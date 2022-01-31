@@ -13,7 +13,7 @@ class Command(BaseCommand):
             if usr.groups.filter(name__icontains='read only'):
                 readonly.append(usr)
                 logger.info(u"Read only: %s", usr.get_full_name())
-        
+
         return readonly
 
     def get_ifrc_domain_users(self):

@@ -40,6 +40,7 @@ class Command(BaseCommand):
         use_local_file = True if os.getenv('DJANGO_DB_NAME') == 'test' and os.path.exists('appeals.json') else False
         new = []
         modified = []
+
         if use_local_file:
             # read from static file for development
             logger.info('Using local appeals.json file')
@@ -49,11 +50,11 @@ class Command(BaseCommand):
                 codes_skip = AppealFilter.objects.values_list('value', flat=True).filter(name='ingestAppealFilter')[0].split(",")
             else:
                 codes_skip = []
-           
+
             with open('appeals.json') as f:
                 #modified = json.loads(f.read())
                 records = json.loads(f.read())
-                                
+
                 for r in records:
                 # Temporary filtering, the manual version should be kept:
                     if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
@@ -64,12 +65,12 @@ class Command(BaseCommand):
                     # We use all records, do NOT check if last_modified > since_last_checked
                         #import pdb; pdb.set_trace();
                         if len(r['Details']) == 1:
-                            detail = r['Details'][0]   
+                            detail = r['Details'][0]
                         else:
                             details = sorted(r['Details'], reverse=True, key=lambda x: self.parse_date(x['APD_startDate']))
                             detail = details[0]
 
-                       
+
                     apd_modify_time = self.parse_date(detail['APD_modifyTime'])
                     app_modify_time = self.parse_date(r['APP_modifyTime'])
                     api_appeal_modify_time = Appeal.objects.get(code=r['APP_code']).modified_at
@@ -86,7 +87,7 @@ class Command(BaseCommand):
             logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
             auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
-            #auth = ('gotestuser','123456')
+
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
             sess.mount('http://', adapter)
@@ -145,12 +146,13 @@ class Command(BaseCommand):
                 # Temporary filtering, the manual version should be kept:
                 if r['APP_code'] in codes_skip: #['MDR65002', 'MDR00001', 'MDR00004']:
                     continue
+                # if r['APP_code'] != 'DEBUG_this': continue
                 if r['APP_code'] not in codes:
                     new.append(r)
                 else:
                     # We use all records, do NOT check if last_modified > since_last_checked
                     modified.append(r)
-                      
+
 
         return new, modified, bilaterals
 
@@ -230,11 +232,17 @@ class Command(BaseCommand):
         atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
         atype = atypes[detail['APD_TYP_Id']]
 
-        if atype == AppealType.DREF:
-            # appeals are always fully-funded
-            amount_funded = detail['APD_amountCHF']
-        else:
-            amount_funded = 0 if detail['ContributionAmount'] is None else detail['ContributionAmount']
+        amount_funded = triggering_amount = 0
+        # detail variable is used for other purpose
+        for detl in r['Details']:
+            if self.parse_date(detl['APD_endDate']) < tz.now():
+                continue
+            triggering_amount += detl['TriggeringAmount'] if detl['TriggeringAmount'] else 0
+            if atype == AppealType.DREF:
+                # appeals are always fully-funded
+                amount_funded += detl['APD_amountCHF'] if detl['APD_amountCHF'] else 0
+            else:
+                amount_funded += detl['ContributionAmount'] if detl['ContributionAmount'] else 0
 
         end_date = self.parse_date(detail['APD_endDate'])
         # for new, open appeals, if we have a country, try to guess what emergency it belongs to.
@@ -271,6 +279,7 @@ class Command(BaseCommand):
             'amount_requested': detail['APD_amountCHF'],
             'amount_funded': amount_funded,
             'real_data_update': modify_time,
+            'triggering_amount': triggering_amount,
         }
 
         if event is not None:
@@ -298,6 +307,7 @@ class Command(BaseCommand):
             # correction of the appeal record with appealbilaterals value
             if fields['code'] in bilaterals:
                 fields['amount_funded'] += round(bilaterals[fields['code']], 1)
+                fields['triggering_amount'] += round(bilaterals[fields['code']], 1)
             try:
                 Appeal.objects.create(**fields)
                 num_created += 1
@@ -316,6 +326,7 @@ class Command(BaseCommand):
             # correction of the appeal record with appealbilaterals value
             if fields['code'] in bilaterals:
                 fields['amount_funded'] += round(bilaterals[fields['code']], 1)
+                fields['triggering_amount'] += round(bilaterals[fields['code']], 1)
 
             try:
                 # DREF is coming from Apple (doesn't have FBA), keep FBA type

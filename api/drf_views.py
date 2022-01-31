@@ -365,7 +365,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                 return ListEventSerializer
         else:
             return DetailEventSerializer
-    
+
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
@@ -410,7 +410,7 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
 
-   
+
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer

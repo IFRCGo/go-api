@@ -75,7 +75,7 @@ class Command(BaseCommand):
                         val = row[key]
                     if key in fields_to_save:  
                         country.__setattr__(key, val)
-                
+
                 country.save()
                 print('SUCCESS', country.name_en)
             print('done importing countries')

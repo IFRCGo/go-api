@@ -23,7 +23,7 @@ class Command(BaseCommand):
             data = DataSource(filename)
         except:
             raise CommandError('Could not open file')
-        
+
         for feature in data[0]:
             feature_id = feature.get('id')
             geom_wkt = feature.geom.wkt

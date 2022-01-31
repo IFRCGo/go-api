@@ -670,7 +670,7 @@ class Command(BaseCommand):
             '''
 
         cron_msg = f'Done scraping PDF-s --- ({scraped_count}) {all_error_msgs}'
-        
+
         logger.info('Starting data-cleaning.')
         epoa_errors, ou_errors, fr_errors, ea_errors = self.clean_data_and_save(processed_data)
         errors_count = len(epoa_errors) + len(ou_errors) + len(fr_errors) + len(ea_errors)
@@ -684,7 +684,7 @@ class Command(BaseCommand):
                 {('FR errors:' + fr_errors) if fr_errors else ''}
                 {('EA errors:' + ea_errors) if ea_errors else ''}
             '''
-        
+
         cron_msg += f'\nDone saving records to DB --- ({scraped_count - errors_count}) {all_error_msgs}'
         cron_body = {
             "name": "scrape_pdfs",
