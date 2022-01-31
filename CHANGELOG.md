@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.418
+
+### Added
+ - Safelink Outlook link checking caused double run - fixed
+ - TriggeringAmount – better triggering appeal change
+ - Fixing appeal-docs ingesting (urllib3)
+ - New registration method (without 2 gate-keepers)
+
 ## 1.1.417
 
 ### Added
@@ -1888,7 +1896,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.417...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.418...HEAD
+[1.1.418]: https://github.com/IFRCGo/go-api/compare/1.1.417...1.1.418
 [1.1.417]: https://github.com/IFRCGo/go-api/compare/1.1.416...1.1.417
 [1.1.416]: https://github.com/IFRCGo/go-api/compare/1.1.415...1.1.416
 [1.1.415]: https://github.com/IFRCGo/go-api/compare/1.1.414...1.1.415
