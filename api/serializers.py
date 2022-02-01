@@ -960,6 +960,6 @@ class GoHistoricalSerializer(ModelSerializer):
     class Meta:
         model = Event
         fields = (
-            'name', 'dtype', 'countries', 'num_affected',
+            'id', 'name', 'dtype', 'countries', 'num_affected',
             'disaster_start_date', 'created_at', 'appeals',
         )
