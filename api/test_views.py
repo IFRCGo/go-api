@@ -10,6 +10,7 @@ from api.factories.event import (
     EventFactory,
     EventFeaturedDocumentFactory,
     EventLinkFactory,
+    AppealFactory
 )
 
 
@@ -323,3 +324,57 @@ class ActionTestCase(APITestCase):
         res2 = response['results'][1]
         self.assertEqual(res2['organizations'], [])
         self.assertEqual(res2['field_report_types'], [EARLY_WARNING])
+
+
+class HistoricalEventTest(APITestCase):
+
+    fixtures = ['DisasterTypes']
+
+    def test_historical_events(self):
+        country1 = models.Country.objects.create(name='Nepal', iso3='nlp')
+        country2 = models.Country.objects.create(name='India', iso3='ind')
+        dtype1 = models.DisasterType.objects.get(pk=1)
+        dtype2 = models.DisasterType.objects.get(pk=2)
+        EventFactory.create(
+            name='test1',
+            dtype=dtype1,
+        )
+        event1 = EventFactory.create(
+            name='test0',
+            dtype=dtype1,
+            num_affected=10000,
+            countries=[country1]
+        )
+        event2 = EventFactory.create(
+            name='test2',
+            dtype=dtype2,
+            num_affected=99999,
+            countries=[country2]
+        )
+        appeal1 = AppealFactory.create(
+            event=event1,
+            dtype=dtype1,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999
+        )
+        appeal2 = AppealFactory.create(
+            event=event2,
+            dtype=dtype2,
+            num_beneficiaries=90023,
+            amount_requested=100440,
+            amount_funded=12299999
+        )
+
+        response = self.client.get('/api/v2/go-historical/').json()
+        print(response)
+        self.assertEqual(response['count'], 2)  # should give event that have appeal associated with them
+        self.assertEqual(
+            sorted([event1.id, event2.id]),
+            sorted([data['id'] for data in response['results']])
+        )
+
+        # test for filter by country iso3
+        response = self.client.get(f'/api/v2/go-historical/?iso3={country1.iso3}').json()
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['id'], event1.id)

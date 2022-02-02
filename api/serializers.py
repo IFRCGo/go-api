@@ -950,3 +950,16 @@ class NsSerializer(ModelSerializer):
     class Meta:
         model = Country
         fields = ('url_ifrc',)
+
+
+class GoHistoricalSerializer(ModelSerializer):
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
+
+    class Meta:
+        model = Event
+        fields = (
+            'id', 'name', 'dtype', 'countries', 'num_affected',
+            'disaster_start_date', 'created_at', 'appeals',
+        )
