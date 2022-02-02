@@ -279,7 +279,7 @@ EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = os.environ.get('EMAIL_PORT')
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
-DEBUG_EMAIL = True if os.environ.get('DEBUG_EMAIL', 0) == 1 else False
+DEBUG_EMAIL = True if os.environ.get('DEBUG_EMAIL', '0') == '1' else False
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
