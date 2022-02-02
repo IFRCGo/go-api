@@ -759,8 +759,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         {
             'budget_amount_total': 150000,
             'id': 11,
-            'iso3': 'Ixy',
-            'name': 'country-HivaKQuijMsyibLmSxwUyYeZVVPaZnTQKMwiXSLFbXgoDhjrmB',
+            'iso3': 'JuI',
+            'name': 'country-zOHivaKQuijMsyibLmSxwUyYeZVVPaZnTQKMwiXSLFbXgoDhjr',
             'ongoing_projects': 1,
             'operation_types': [
                 0
@@ -775,7 +775,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'Education'
                 }
             ],
-            'society_name': 'society-name-tWinbqeVXjbjEdBhxNkEoJFrdkMNdCUUfBBLbAoiisHPgvuqkR',
+            'society_name': 'society-name-xytWinbqeVXjbjEdBhxNkEoJFrdkMNdCUUfBBLbAoiisHPgvuq',
             'target_total': 0
         },
         {
