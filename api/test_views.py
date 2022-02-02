@@ -351,6 +351,12 @@ class HistoricalEventTest(APITestCase):
             num_affected=99999,
             countries=[country2]
         )
+        event3 = EventFactory.create(
+            name='test2',
+            dtype=dtype2,
+            num_affected=None,
+            countries=[country2]
+        )
         appeal1 = AppealFactory.create(
             event=event1,
             dtype=dtype1,
@@ -365,12 +371,17 @@ class HistoricalEventTest(APITestCase):
             amount_requested=100440,
             amount_funded=12299999
         )
-
+        appeal2 = AppealFactory.create(
+            event=event3,
+            dtype=dtype2,
+            num_beneficiaries=91000,
+            amount_requested=10000888,
+            amount_funded=678888
+        )
         response = self.client.get('/api/v2/go-historical/').json()
-        print(response)
-        self.assertEqual(response['count'], 2)  # should give event that have appeal associated with them
+        self.assertEqual(response['count'], 3)  # should give event that have appeal associated with and num_affected=null
         self.assertEqual(
-            sorted([event1.id, event2.id]),
+            sorted([event1.id, event2.id, event3.id]),
             sorted([data['id'] for data in response['results']])
         )
 
@@ -378,3 +389,4 @@ class HistoricalEventTest(APITestCase):
         response = self.client.get(f'/api/v2/go-historical/?iso3={country1.iso3}').json()
         self.assertEqual(response['count'], 1)
         self.assertEqual(response['results'][0]['id'], event1.id)
+        self.assertEqual(response['results'][0]['appeals'][0]['id'], appeal1.id)
