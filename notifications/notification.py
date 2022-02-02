@@ -98,7 +98,7 @@ def send_notification(subject, recipients, html, mailtype=''):
         print('-' * 22, 'EMAIL END -', '-' * 22)
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
-    to_addresses = recipients
+    to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
     if int(IS_PROD) != 1:
         logger.info('Using test email addresses...')
@@ -106,6 +106,7 @@ def send_notification(subject, recipients, html, mailtype=''):
         logger.info(to_addresses)
         for eml in test_emails:
 
+            # It is possible to filter test addressees to domain name only – not used.
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:
