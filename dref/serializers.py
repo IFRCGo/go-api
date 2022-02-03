@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from dref.writable_nested_serializers import (
+from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
@@ -44,20 +44,22 @@ class DrefFileSerializer(ModelSerializer):
 
 class PlannedInterventionSerializer(ModelSerializer):
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = PlannedIntervention
         fields = '__all__'
 
-    def create(self, validated_data):
-        title = validated_data.get('title')
+    def get_image_url(self, plannedintervention):
         request = self.context['request']
+        title = plannedintervention.title
         if title:
-            validated_data['image_url'] = PlannedIntervention.get_image_map(title, request)
-        return super().create(validated_data)
+            return PlannedIntervention.get_image_map(title, request)
+        return None
 
 
 class NationalSocietyActionSerializer(ModelSerializer):
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = NationalSocietyAction
@@ -68,15 +70,17 @@ class NationalSocietyActionSerializer(ModelSerializer):
             'image_url',
         )
 
-    def create(self, validated_data):
-        title = validated_data.get('title')
+    def get_image_url(self, nationalsocietyactions):
         request = self.context['request']
+        title = nationalsocietyactions.title
         if title:
-            validated_data['image_url'] = NationalSocietyAction.get_image_map(title, request)
-        return super().create(validated_data)
+            return NationalSocietyAction.get_image_map(title, request)
+        return None
 
 
 class IdentifiedNeedSerializer(ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = IdentifiedNeed
         fields = (
@@ -86,12 +90,12 @@ class IdentifiedNeedSerializer(ModelSerializer):
             'image_url',
         )
 
-    def create(self, validated_data):
-        title = validated_data.get('title')
+    def get_image_url(self, identifiedneed):
         request = self.context['request']
+        title = identifiedneed.title
         if title:
-            validated_data['image_url'] = IdentifiedNeed.get_image_map(title, request)
-        return super().create(validated_data)
+            return IdentifiedNeed.get_image_map(title, request)
+        return None
 
 
 class DrefCountryDistrictSerializer(ModelSerializer):
@@ -103,7 +107,7 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         fields = ('id', 'country', 'district', 'country_details', 'district_details')
         read_only_fields = ('dref',)
 
-    def validate(sel, data):
+    def validate(self, data):
         districts = data['district']
         if isinstance(districts, list) and len(districts):
             for district in districts:
@@ -149,7 +153,6 @@ class DrefSerializer(
         disability_people_per = data.get('disability_people_per', '')
         if disability_people_per and len(disability_people_per.split('.')[0]) == 3:
             data['disability_people_per'] = disability_people_per.split('.')[0]
-        # TODO: Why are we doing this?
         people_per_urban = data.get('people_per_urban', '')
         people_per_local = data.get('people_per_local', '')
         if people_per_urban and len(people_per_urban.split('.')[0]) == 3:

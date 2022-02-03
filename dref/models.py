@@ -14,16 +14,7 @@ from api.models import (
     District,
     FieldReport
 )
-from api.storage import get_storage
 from .enums import TextChoices
-
-
-def dref_document_path(instance, filename):
-    return f'dref/event/{filename}'
-
-
-def image_path(instance, filename):
-    return f'dref-images/{filename}'
 
 
 class NationalSocietyAction(models.Model):
@@ -50,7 +41,6 @@ class NationalSocietyAction(models.Model):
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
@@ -98,7 +88,6 @@ class IdentifiedNeed(models.Model):
         SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
-    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
 
     class Meta:
@@ -142,7 +131,6 @@ class PlannedIntervention(models.Model):
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_('person targeted'), blank=True, null=True)
     indicator = models.TextField(verbose_name=_('indicator'), blank=True, null=True)
-    image_url = models.CharField(max_length=255, verbose_name=_('image_url'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('planned intervention')

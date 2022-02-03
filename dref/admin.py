@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from lang.admin import TranslationAdmin
 from .models import (
     Dref,
     PlannedIntervention,
@@ -36,7 +37,7 @@ class DrefCountryDistrictAdminInline(admin.TabularInline):
 
 
 @admin.register(Dref)
-class DrefAdmin(admin.ModelAdmin):
+class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     list_display = ('title', 'national_society', 'disaster_type',
                     'ns_request_date', 'submission_to_geneva', 'status')

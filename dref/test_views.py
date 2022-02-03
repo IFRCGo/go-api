@@ -199,11 +199,13 @@ class DrefTestCase(APITestCase):
         """
         Test for the event date based on type_of_onset
         """
+        national_society = Country.objects.create(name='xzz')
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
             "status": Dref.Status.IN_PROGESS.value,
+            "national_society": national_society.id,
             "num_assisted": 5666,
             "num_affected": 23,
             "amount_requested": 127771111,
