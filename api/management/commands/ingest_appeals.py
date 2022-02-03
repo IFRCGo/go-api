@@ -1,6 +1,5 @@
 import os
 import json
-from decimal import Decimal
 from requests import Session, exceptions as reqexc
 from requests.adapters import HTTPAdapter
 from datetime import datetime, timezone, timedelta
@@ -229,7 +228,7 @@ class Command(BaseCommand):
         start_date = self.parse_date(detail0['APD_startDate'])
         end_date = self.parse_date(detail1['APD_endDate'])
         atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
-        atype = atypes[detail0['APD_TYP_Id']]
+        atype = atypes[detail1['APD_TYP_Id']]
 
         amount_funded = triggering_amount = 0
         for detl in details:
@@ -276,7 +275,7 @@ class Command(BaseCommand):
             'amount_requested': detail1['APD_amountCHF'],
             'amount_funded': amount_funded,
             'real_data_update': modify_time,
-            'triggering_amount': Decimal(int(triggering_amount) % 10**10)  # to avoid overflow
+            'triggering_amount': float(int(triggering_amount) % 10**10)  # to avoid overflow
         }
 
         if event is not None:
