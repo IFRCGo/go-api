@@ -229,7 +229,7 @@ class Command(BaseCommand):
         start_date = self.parse_date(detail0['APD_startDate'])
         end_date = self.parse_date(detail1['APD_endDate'])
         atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
-        atype = atypes[detail0['APD_TYP_Id']]
+        atype = atypes[detail1['APD_TYP_Id']]
 
         amount_funded = triggering_amount = 0
         for detl in details:
