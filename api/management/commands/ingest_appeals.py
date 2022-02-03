@@ -1,5 +1,6 @@
 import os
 import json
+from decimal import Decimal
 from requests import Session, exceptions as reqexc
 from requests.adapters import HTTPAdapter
 from datetime import datetime, timezone, timedelta
@@ -114,7 +115,7 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info('Querying appeals API for new appeals data')
-            url = 'http://go-api.ifrc.org/api/appeals'
+            url = 'http://go-api.ifrc.org/api/appeals'  # DEBUG: can append filter ?app_code=M04EA028
             # try 3 times to reach the API
             try:
                 response = sess.get(url, auth=auth)
@@ -275,7 +276,7 @@ class Command(BaseCommand):
             'amount_requested': detail1['APD_amountCHF'],
             'amount_funded': amount_funded,
             'real_data_update': modify_time,
-            'triggering_amount': triggering_amount,
+            'triggering_amount': Decimal(int(triggering_amount) % 10**10)  # to avoid overflow
         }
 
         if event is not None:
