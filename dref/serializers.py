@@ -1,6 +1,7 @@
 import os
 
 from django.utils.translation import ugettext
+from django.db import models
 
 from rest_framework import serializers
 
@@ -126,6 +127,7 @@ class DrefSerializer(
 ):
     MAX_NUMBER_OF_IMAGES = 6
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
+
     country_district = DrefCountryDistrictSerializer(source='drefcountrydistrict_set', many=True, required=False)
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
@@ -149,60 +151,66 @@ class DrefSerializer(
         read_only_fields = ('modified_by', 'created_by', 'budget_file_preview')
 
     def to_representation(self, instance):
+        def _remove_digits_after_decimal(value):
+            # NOTE: We are doing this to remove decimal after 3 digits whole numbers
+            # eg: 100.00% be replaced with 100%
+            if value and len(value.split('.')[0]) == 3:
+                return value.split('.')[0]
+            return None
+
         data = super().to_representation(instance)
-        disability_people_per = data.get('disability_people_per', '')
-        if disability_people_per and len(disability_people_per.split('.')[0]) == 3:
-            data['disability_people_per'] = disability_people_per.split('.')[0]
-        people_per_urban = data.get('people_per_urban', '')
-        people_per_local = data.get('people_per_local', '')
-        if people_per_urban and len(people_per_urban.split('.')[0]) == 3:
-            data['people_per_urban'] = people_per_urban.split('.')[0]
-        if people_per_local and len(people_per_local.split('.')[0]) == 3:
-            data['people_per_local'] = people_per_local.split('.')[0]
+        for key in [
+            'disability_people_per',
+            'people_per_urban',
+            'people_per_local',
+        ]:
+            value = data.get(key) or ''
+            data[key] = _remove_digits_after_decimal(value)
         return data
 
     def validate(self, data):
-        event_date = data.get('event_date', None)
+        event_date = data.get('event_date')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
-                'event_date': ugettext('Cannot add event_date if onset type not in {} or {}')
-                .format(Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label)
+                'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
         return data
 
     def validate_images(self, images):
-        # Validate if images are provided
-        if images:
-            # Fetch current images
-            current_images_map = {
-                image.pk: image.file
-                for image in (self.instance and self.instance.images.all()) or []
-            }
-            for image in images:
-                # Ignore for current images (if file is not changed)
-                if image.id is not None and image.id in current_images_map and image.file == current_images_map[image.id]:
-                    continue
-                elif image.created_by != self.context['request'].user:
-                    raise serializers.ValidationError(
-                        ugettext('Only image owner can attach image(id: %s)' % image.id)
-                    )
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(
                 ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
+        images_id = [image.id for image in images]
+        images_without_access_qs = DrefFile.objects.filter(
+            # Not created by current user
+            ~models.Q(created_by=self.context['request'].user),
+            # Look into provided images
+            id__in=images_id,
+        )
+        # Exclude already attached images if exists
+        if self.instance:
+            images_without_access_qs = images_without_access_qs.exclude(
+                id__in=self.instance.images.all()
+            )
+        images_id_without_access = images_without_access_qs.values_list('id', flat=True)
+        if images_id_without_access:
+            raise serializers.ValidationError(
+                ugettext(
+                    'Only image owner can attach image. Not allowed image ids: %s' % ','.join(map(str, images_id_without_access))
+                )
+            )
         return images
 
-    def validate_extension(self, filename):
-        extension = os.path.splitext(filename)[1].replace(".", "")
+    def validate_budget_file(self, budget_file):
+        if budget_file is None:
+            return
+        extension = os.path.splitext(budget_file.file.name)[1].replace(".", "")
         if extension.lower() not in self.ALLOWED_BUDGET_FILE_EXTENSIONS:
             raise serializers.ValidationError(
-                f'Invalid uploaded file type: {filename}, Supported only PDF Files'
+                f'Invalid uploaded file extension: {extension}, Supported only PDF Files'
             )
-
-    def validate_budget_file(self, budget_file):
-        if budget_file:
-            self.validate_extension(os.path.basename(budget_file.file.name))
         return budget_file
 
     def create(self, validated_data):

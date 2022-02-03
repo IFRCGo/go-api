@@ -1,3 +1,6 @@
+# NOTE: Using django provied from Django version3
+# To be removed after django version 3
+# Source: https://github.com/django/django/blob/main/django/db/models/enums.py
 import enum
 from types import DynamicClassAttribute
 

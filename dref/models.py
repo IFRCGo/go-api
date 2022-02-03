@@ -14,7 +14,7 @@ from api.models import (
     District,
     FieldReport
 )
-from .enums import TextChoices
+from .enums import TextChoices, IntegerChoices
 
 
 class NationalSocietyAction(models.Model):
@@ -155,33 +155,19 @@ class PlannedIntervention(models.Model):
 
 class Dref(models.Model):
 
-    class OnsetType(IntEnum):
-        IMMINENT = 0
-        SLOW = 1
-        SUDDEN = 2
+    class OnsetType(IntegerChoices):
+        IMMINENT = 0, _('Imminent')
+        SLOW = 1, _('Slow')
+        SUDDEN = 2, _('Sudden')
 
-        class Labels:
-            IMMINENT = _('Imminent')
-            SLOW = _('Slow')
-            SUDDEN = _('Sudden')
+    class DisasterCategory(IntegerChoices):
+        YELLOW = 0, _('Yellow')
+        ORANGE = 1, _('Orange')
+        RED = 2, _('Red')
 
-    class DisasterCategory(IntEnum):
-        YELLOW = 0
-        ORANGE = 1
-        RED = 2
-
-        class Labels:
-            YELLOW = _('Yellow')
-            ORANGE = _('Orange')
-            RED = _('Red')
-
-    class Status(IntEnum):
-        IN_PROGESS = 0
-        COMPLETED = 1
-
-        class Labels:
-            IN_PROGESS = _('In Progress')
-            COMPLETED = _('Completed')
+    class Status(IntegerChoices):
+        IN_PROGESS = 0, _('In Progress')
+        COMPLETED = 1, _('Completed')
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
@@ -212,9 +198,9 @@ class Dref(models.Model):
         blank=True, null=True,
         on_delete=models.SET_NULL
     )
-    type_of_onset = EnumIntegerField(OnsetType, verbose_name=_('onset type'), null=True, blank=True)
-    disaster_category = EnumIntegerField(DisasterCategory, verbose_name=_('disaster category'), null=True, blank=True)
-    status = EnumIntegerField(Status, verbose_name=_('status'), null=True, blank=True)
+    type_of_onset = models.IntegerField(choices=OnsetType.choices, verbose_name=_('onset type'), null=True, blank=True)
+    disaster_category = models.IntegerField(choices=DisasterCategory.choices, verbose_name=_('disaster category'), null=True, blank=True)
+    status = models.IntegerField(choices=Status.choices, verbose_name=_('status'), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
@@ -532,11 +518,7 @@ class Dref(models.Model):
         verbose_name_plural = _('drefs')
 
     def save(self, *args, **kwargs):
-        # TODO: Need to remove this if not required later
-        if self.date_of_approval:
-            self.status = Dref.Status.COMPLETED
-        elif not self.date_of_approval:
-            self.status = Dref.Status.IN_PROGESS
+        self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGESS
         return super().save(*args, **kwargs)
 
 
@@ -555,7 +537,7 @@ class DrefCountryDistrict(models.Model):
 
 class DrefFile(models.Model):
     file = models.FileField(
-        blank=True, null=True, verbose_name=_('file'),
+        verbose_name=_('file'),
         upload_to='dref/images/',
     )
     created_by = models.ForeignKey(

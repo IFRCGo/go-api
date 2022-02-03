@@ -19,16 +19,19 @@ class DrefFileAdmin(admin.ModelAdmin):
 @admin.register(PlannedIntervention)
 class PlannedInterventionAdmin(admin.ModelAdmin):
     list_display = ('title',)
+    search_fields = ('title',)
 
 
 @admin.register(IdentifiedNeed)
 class IdentifiedNeedAdmin(admin.ModelAdmin):
     list_display = ('title',)
+    search_fields = ('title',)
 
 
 @admin.register(NationalSocietyAction)
 class NationalSocietyActiondAdmin(admin.ModelAdmin):
     list_display = ('title',)
+    search_fields = ('title',)
 
 
 class DrefCountryDistrictAdminInline(admin.TabularInline):
@@ -42,6 +45,7 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
     list_display = ('title', 'national_society', 'disaster_type',
                     'ns_request_date', 'submission_to_geneva', 'status')
     inlines = [DrefCountryDistrictAdminInline]
+    autocomplete_fields = ('planned_interventions', 'needs_identified', 'national_society_actions')
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related(
