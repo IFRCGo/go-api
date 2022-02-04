@@ -491,7 +491,8 @@ class Dref(models.Model):
         related_name='event_map_dref'
     )
     images = models.ManyToManyField(
-        'DrefFile', blank=True, null=True,
+        # null=True is not ok here: null has no effect on ManyToManyField.
+        'DrefFile', blank=True,
         verbose_name=_('images'),
         related_name='image_dref'
     )

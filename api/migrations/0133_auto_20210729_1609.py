@@ -14,11 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='appealhistory',
             name='code',
-            field=models.CharField(max_length=20, null=True, unique=True, verbose_name='code'),
-        ),
-        migrations.AlterField(
-            model_name='eventfeatureddocument',
-            name='thumbnail',
-            field=models.ImageField(help_text='Image should be portrait (3:4 aspect ratio) and scaled down to as close to 96x128 as the image size', storage=django.core.files.storage.FileSystemStorage(location='media'), upload_to='event-featured-documents/thumbnail/', verbose_name='thumbnail'),
+            field=models.CharField(max_length=20, null=True, verbose_name='code'),
         ),
     ]
