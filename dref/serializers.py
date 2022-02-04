@@ -27,7 +27,6 @@ from dref.models import (
     DrefCountryDistrict,
     DrefFile
 )
-from dref.scripts import pdf_image_extractor
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -215,9 +214,6 @@ class DrefSerializer(
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
-        budget_file = validated_data.get('budget_file', None)
-        if budget_file:
-            validated_data['budget_file_preview'] = pdf_image_extractor(budget_file.file.path)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

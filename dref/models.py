@@ -1,12 +1,12 @@
 import os
 
+from pdf2image import convert_from_path
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.templatetags.static import static
-from django.http import request
-
-from enumfields import IntEnum, EnumIntegerField
+from django.core.exceptions import ValidationError
 
 from api.models import (
     Country,
@@ -512,14 +512,28 @@ class Dref(models.Model):
         verbose_name=_('cover image'),
         related_name='cover_image_dref'
     )
+    __budget_file_id = None
 
     class Meta:
         verbose_name = _('dref')
         verbose_name_plural = _('drefs')
 
     def save(self, *args, **kwargs):
+        if self.budget_file and self.budget_file_id != self.__budget_file_id:
+            pages = convert_from_path(self.budget_file.file.path)
+            if len(pages) > 0:
+                budget_file_preview = pages[0]  # get first page
+                filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
+                temp_image = open(os.path.join('/tmp', filename), 'wb')
+                budget_file_preview.save(temp_image, 'PNG')
+                thumb_data = open(os.path.join('/tmp', filename), 'rb')
+                self.budget_file_preview.save(filename, thumb_data, save=False)
+            else:
+                raise ValidationError({'budget_file': 'Sorry cannot generate preview for empty pdf'})
+
         self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGESS
-        return super().save(*args, **kwargs)
+        self.__budget_file_id = self.budget_file_id
+        super().save(*args, **kwargs)
 
 
 class DrefCountryDistrict(models.Model):
