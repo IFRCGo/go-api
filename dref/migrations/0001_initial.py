@@ -169,7 +169,7 @@ class Migration(migrations.Migration):
                 ('disaster_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.DisasterType', verbose_name='disaster type')),
                 ('event_map', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='event_map_dref', to='dref.DrefFile', verbose_name='event map')),
                 ('field_report', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='field_report_dref', to='api.FieldReport', verbose_name='field report')),
-                ('images', models.ManyToManyField(blank=True, null=True, related_name='image_dref', to='dref.DrefFile', verbose_name='images')),
+                ('images', models.ManyToManyField(blank=True, related_name='image_dref', to='dref.DrefFile', verbose_name='images')),
                 ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='modified_by_dref', to=settings.AUTH_USER_MODEL, verbose_name='modified by')),
                 ('national_society', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Country', verbose_name='national_society')),
                 ('national_society_actions', models.ManyToManyField(blank=True, to='dref.NationalSocietyAction', verbose_name='national society actions')),
