@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'deployments',
     'databank',
     'lang',
+    'dref',
 
     # Utils Apps
     'tinymce',
@@ -268,7 +269,11 @@ MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "go-static"),
+]
 
 if DEBUG:
     MEDIA_URL = '/media/'
@@ -383,3 +388,5 @@ MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
 
 ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency')
 ERP_API_SUBSCRIPTION_KEY = os.environ.get('ERP_API_SUBSCRIPTION_KEY', 'abcdef')
+
+TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')

@@ -7,7 +7,7 @@ RUN \
 	apt-get update && \
 	apt-get install -y nginx postgresql-client mdbtools vim tidy less gettext && \
 	apt-get install -y cron --no-install-recommends && \
-	apt-get install -y binutils libproj-dev gdal-bin
+	apt-get install -y --no-install-recommends binutils libproj-dev gdal-bin poppler-utils
 
 ENV HOME=/home/ifrc
 WORKDIR $HOME

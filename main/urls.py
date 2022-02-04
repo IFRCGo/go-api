@@ -69,6 +69,7 @@ from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
 from lang import views as lang_views
+from dref import views as dref_views
 
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset, basename='action')
@@ -130,6 +131,8 @@ router.register(r'situation_report_type', api_views.SituationReportTypeViewset, 
 router.register(r'subscription', notification_views.SubscriptionViewset, basename='subscription')
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
+router.register(r'dref', dref_views.DrefViewSet, basename='dref')
+router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
 
 
 admin.site.site_header = 'IFRC Go administration'
@@ -170,6 +173,7 @@ urlpatterns = [
     url(r'^show_username', ShowUsername.as_view()),
     url(r'^resend_validation', ResendValidation.as_view()),
     url(r'^api/v2/', include(router.urls)),
+    url(r'^api/v2/dref-options/', dref_views.DrefOptionsView.as_view()),
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),

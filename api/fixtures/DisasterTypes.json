@@ -115,7 +115,7 @@
     "model": "api.DisasterType",
     "pk": "27",
     "fields": {
-      "name": "Pluvial/Flash Flood"
+      "name": "Flash Flood"
     }
   },
   {
