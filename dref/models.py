@@ -85,7 +85,7 @@ class IdentifiedNeed(models.Model):
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
-        SHELTER_CLUSTER_COORDINATION = ('shelter_cluster_coordination'), _('Shelter Cluster Coordination')
+        SHELTER_CLUSTER_COORDINATION = 'shelter_cluster_coordination', _('Shelter Cluster Coordination')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
