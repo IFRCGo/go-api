@@ -129,6 +129,19 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
             'region', 'independent', 'is_deprecated', 'fdrs',
         )
 
+class CountrySerializerRMD(EnumSupportSerializerMixin, ModelSerializer):
+    
+    class Meta:
+        model = Country
+        fields = (
+            'name', 'iso3'
+        )
+
+
+class DistrictSerializerRMD(ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'is_deprecated',)
 
 class MicroCountrySerializer(ModelSerializer):
     class Meta:
