@@ -34,7 +34,7 @@ from .models import (
     Country,
     CountryKeyFigure,
     CountrySnippet,
-
+    
     District,
 
     Event,
@@ -74,9 +74,11 @@ from .serializers import (
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
+    CountrySerializerRMD,
 
     DistrictSerializer,
     MiniDistrictGeoSerializer,
+    DistrictSerializerRMD,
 
     SnippetSerializer,
     ListMiniEventSerializer,
@@ -215,6 +217,34 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
         raise Http404
 
+
+class CountryFilterRMD(filters.FilterSet):
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    
+    class Meta:
+        model = Country
+        fields = ('region', 'record_type',)
+
+class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
+    filterset_class = CountryFilterRMD
+    search_fields = ('name',) 
+    serializer_class = CountrySerializerRMD 
+
+
+class DistrictRMDFilter(filters.FilterSet):
+    class Meta:
+        model = District
+        fields = ('country','country__name')
+
+
+class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    filterset_class = DistrictRMDFilter
+    search_fields = ('name', 'country__name',)  
+    serializer_class = DistrictSerializerRMD
+
+   
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
