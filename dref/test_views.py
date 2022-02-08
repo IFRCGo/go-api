@@ -110,7 +110,7 @@ class DrefTestCase(APITestCase):
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGESS.value,
+            "status": Dref.Status.IN_PROGRESS.value,
             "num_assisted": 5666,
             "num_affected": 23,
             "amount_requested": 127771111,
@@ -204,7 +204,7 @@ class DrefTestCase(APITestCase):
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
-            "status": Dref.Status.IN_PROGESS.value,
+            "status": Dref.Status.IN_PROGRESS.value,
             "national_society": national_society.id,
             "num_assisted": 5666,
             "num_affected": 23,
@@ -339,11 +339,11 @@ class DrefTestCase(APITestCase):
         DrefFactory.create(title='test', status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
         DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
         DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
-        DrefFactory.create(status=Dref.Status.IN_PROGESS, created_by=self.user)
-        DrefFactory.create(status=Dref.Status.IN_PROGESS, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
 
         # filter by `In Progress`
-        url = f'/api/v2/dref/?status={Dref.Status.IN_PROGESS.value}'
+        url = f'/api/v2/dref/?status={Dref.Status.IN_PROGRESS.value}'
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

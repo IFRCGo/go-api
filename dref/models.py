@@ -166,7 +166,7 @@ class Dref(models.Model):
         RED = 2, _('Red')
 
     class Status(IntegerChoices):
-        IN_PROGESS = 0, _('In Progress')
+        IN_PROGRESS = 0, _('In Progress')
         COMPLETED = 1, _('Completed')
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
@@ -532,7 +532,7 @@ class Dref(models.Model):
             else:
                 raise ValidationError({'budget_file': 'Sorry cannot generate preview for empty pdf'})
 
-        self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGESS
+        self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGRESS
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
