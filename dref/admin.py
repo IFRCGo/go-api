@@ -64,6 +64,5 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
             'planned_interventions',
             'needs_identified',
             'national_society_actions'
-            'users',
-            'images',
+            'users'
         )
