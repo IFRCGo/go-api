@@ -13,7 +13,7 @@ from .models import (
 
 @admin.register(DrefFile)
 class DrefFileAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('file',)
 
 
 @admin.register(PlannedIntervention)
@@ -37,16 +37,33 @@ class NationalSocietyActiondAdmin(admin.ModelAdmin):
 class DrefCountryDistrictAdminInline(admin.TabularInline):
     model = DrefCountryDistrict
     extra = 0
+    autocomplete_fields = ('country', 'district',)
 
 
 @admin.register(Dref)
 class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     list_display = ('title', 'national_society', 'disaster_type',
-                    'ns_request_date', 'submission_to_geneva', 'status')
+                    'ns_request_date', 'submission_to_geneva', 'status',)
     inlines = [DrefCountryDistrictAdminInline]
-    autocomplete_fields = ('planned_interventions', 'needs_identified', 'national_society_actions')
+    autocomplete_fields = (
+        'planned_interventions',
+        'needs_identified',
+        'national_society_actions',
+        'national_society',
+        'disaster_type',
+        'users',
+        'event_map',
+        'images',
+        'budget_file',
+        'cover_image',
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related(
-            'planned_interventions', 'needs_identified', 'national_society_actions')
+            'planned_interventions',
+            'needs_identified',
+            'national_society_actions'
+            'users',
+            'images',
+        )

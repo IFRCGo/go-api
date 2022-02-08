@@ -997,6 +997,7 @@ class GoHistoricalFilter(filters.FilterSet):
     start_date_lte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='lte', field_name='appeals__start_date')
     end_date_gte = filters.DateFilter(input_formats=['%Y-%m-%d'], lookup_expr='gte', field_name='appeals__end_date')
     iso3 = filters.CharFilter(field_name='countries__iso3', lookup_expr='icontains')
+    region = filters.NumberFilter(field_name='countries__region', lookup_expr='exact')
 
     class Meta:
         model = Event

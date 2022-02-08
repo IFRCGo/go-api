@@ -331,8 +331,10 @@ class HistoricalEventTest(APITestCase):
     fixtures = ['DisasterTypes']
 
     def test_historical_events(self):
-        country1 = models.Country.objects.create(name='Nepal', iso3='nlp')
-        country2 = models.Country.objects.create(name='India', iso3='ind')
+        region1 = models.Region.objects.create(name=1)
+        region2 = models.Region.objects.create(name=2)
+        country1 = models.Country.objects.create(name='Nepal', iso3='nlp', region=region1)
+        country2 = models.Country.objects.create(name='India', iso3='ind', region=region2)
         dtype1 = models.DisasterType.objects.get(pk=1)
         dtype2 = models.DisasterType.objects.get(pk=2)
         EventFactory.create(
@@ -390,3 +392,8 @@ class HistoricalEventTest(APITestCase):
         self.assertEqual(response['count'], 1)
         self.assertEqual(response['results'][0]['id'], event1.id)
         self.assertEqual(response['results'][0]['appeals'][0]['id'], appeal1.id)
+
+        # test for region filter by
+        response = self.client.get(f'/api/v2/go-historical/?region={region1.id}').json()
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['id'], event1.id)
