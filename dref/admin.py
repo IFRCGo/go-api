@@ -63,7 +63,6 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
         return super().get_queryset(request).prefetch_related(
             'planned_interventions',
             'needs_identified',
-            'national_society_actions'
-            'users',
-            'images',
+            'national_society_actions',
+            'users'
         )
