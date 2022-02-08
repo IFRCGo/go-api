@@ -30,7 +30,7 @@ class NationalSocietyAction(models.Model):
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
-        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
+        PROTECTION_GENDER_AND_INCLUSION = 'protection_gender_and_inclusion', _('Protection, Gender And Inclusion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
@@ -54,7 +54,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             NationalSocietyAction.Title.HEALTH: 'health.png',
             NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
-            NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCLUSION: 'protection.png',
             NationalSocietyAction.Title.EDUCATION: 'education.png',
             NationalSocietyAction.Title.MIGRATION: 'migration.png',
             NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
@@ -77,7 +77,7 @@ class IdentifiedNeed(models.Model):
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
-        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
+        PROTECTION_GENDER_AND_INCLUSION = 'protection_gender_and_inclusion', _('Protection, Gender And Inclusion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
@@ -101,7 +101,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             IdentifiedNeed.Title.HEALTH: 'health.png',
             IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
-            IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION: 'protection.png',
             IdentifiedNeed.Title.EDUCATION: 'education.png',
             IdentifiedNeed.Title.MIGRATION: 'migration.png',
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
@@ -118,7 +118,7 @@ class PlannedIntervention(models.Model):
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
-        PROTECTION_GENDER_AND_INCULSION = 'protection_gender_and_inculsion', _('Protection, Gender And Inculsion')
+        PROTECTION_GENDER_AND_INCLUSION = 'protection_gender_and_inclusion', _('Protection, Gender And Inclusion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
@@ -143,7 +143,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             PlannedIntervention.Title.HEALTH: 'health.png',
             PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
-            PlannedIntervention.Title.PROTECTION_GENDER_AND_INCULSION: 'protection.png',
+            PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION: 'protection.png',
             PlannedIntervention.Title.EDUCATION: 'education.png',
             PlannedIntervention.Title.MIGRATION: 'migration.png',
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
@@ -248,7 +248,7 @@ class Dref(models.Model):
     event_description = models.TextField(verbose_name=_('event description'), blank=True, null=True)
     anticipatory_actions = models.TextField(
         blank=True, null=True,
-        verbose_name=_('anaticipatory actions'),
+        verbose_name=_('anticipatory actions'),
         help_text=_('Description of anticipatory actions or imminent disaster')
     )
     event_scope = models.TextField(
@@ -309,8 +309,8 @@ class Dref(models.Model):
         verbose_name=_('boys'), help_text=_('Boys under 18'),
         blank=True, null=True
     )
-    total_targated_population = models.IntegerField(
-        verbose_name=_('total targated population'), help_text=_('Estimated number of targated people'),
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'), help_text=_('Estimated number of targeted people'),
         blank=True, null=True
     )
     disability_people_per = models.DecimalField(
