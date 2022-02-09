@@ -66,7 +66,7 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html, file=None):
+def construct_msg(subject, html, files=None):
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = subject
@@ -79,15 +79,16 @@ def construct_msg(subject, html, file=None):
     msg.attach(text_body)
     msg.attach(html_body)
 
-    if file:
-        attachedfile = MIMEApplication(file['file'])
-        attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
-        msg.attach(attachedfile)
+    if files:
+        for file in files:
+            attachedfile = MIMEApplication(file['file'])
+            attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
+            msg.attach(attachedfile)
 
     return msg
 
 
-def send_notification(subject, recipients, html, mailtype='', file=None):
+def send_notification(subject, recipients, html, mailtype='', files=None):
     """ Generic email sending method, handly only HTML emails currently """
     if not EMAIL_USER or not EMAIL_API_ENDPOINT:
         logger.warning(
@@ -99,13 +100,21 @@ def send_notification(subject, recipients, html, mailtype='', file=None):
             print(f'subject={subject}\nrecipients={recipients}\nhtml={html}\nmailtype={mailtype}')
             print('-' * 22, 'EMAIL END -', '-' * 22)
         return
+    if settings.DEBUG_EMAIL:
+        print('-' * 22, 'EMAIL START', '-' * 22)
+        print(f'\n{html}\n')
+        print('-' * 22, 'EMAIL END -', '-' * 22)
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
-    to_addresses = recipients
+    to_addresses = recipients if isinstance(recipients, list) else [recipients]
+
     if int(IS_PROD) != 1:
         logger.info('Using test email addresses...')
         to_addresses = []
+        logger.info(to_addresses)
         for eml in test_emails:
+
+            # It is possible to filter test addressees to domain name only – not used.
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:
@@ -162,12 +171,12 @@ def send_notification(subject, recipients, html, mailtype='', file=None):
     elif res.status_code == 401 or res.status_code == 403:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error(f'Authorization/authentication failed ({res.status_code}) to the e-mail sender API.')
-        msg = construct_msg(subject, html, file)
+        msg = construct_msg(subject, html, files)
         SendMail(to_addresses, msg).start()
     else:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
-        msg = construct_msg(subject, html, file)
+        msg = construct_msg(subject, html, files)
         SendMail(to_addresses, msg).start()
 
     return res.text

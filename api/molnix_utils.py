@@ -2,7 +2,7 @@ import requests
 import json
 
 class MolnixApi:
-    
+
     access_token = None
 
     def __init__(self, url='https://api.ifrc-staging.rpm.molnix.com/api/', username=None, password=None):

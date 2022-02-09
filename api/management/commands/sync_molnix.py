@@ -124,7 +124,7 @@ def add_tags_to_obj(obj, tags):
 
 
 
-def sync_deployments(molnix_deployments):
+def sync_deployments(molnix_deployments, molnix_api, countries):
     #import json
     #print(json.dumps(molnix_deployments, indent=2))
     molnix_ids = [d['id'] for d in molnix_deployments]
@@ -143,8 +143,13 @@ def sync_deployments(molnix_deployments):
             p = PersonnelDeployment()
             p.event_deployed_to = event
 
-            # FIXME: check if country exists, etc.
             if p.event_deployed_to.countries.all().count() > 0:
+                # Since different personnel deployed to the same emergency
+                # can be deployed to different countries affected by the emergency,
+                # we should no longer use country_deployed_to from PersonnelDeployment,
+                # rather get the country for each deployed person directly from the
+                # Personnel model for each deployed person.
+                # FIXME: we should look to deprecate usage of this field entirely.
                 p.country_deployed_to = p.event_deployed_to.countries.all()[0]
                 p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             else:
@@ -188,6 +193,13 @@ def sync_deployments(molnix_deployments):
         personnel.end_date = get_datetime(md['end'])
         personnel.name = md['person']['fullname']
         personnel.role = md['title']
+        country_to = get_go_country(countries, md['country_id'])
+        if not country_to:
+            warning = 'Position id %d does not have a valid Country To' % (md['id'])
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
+
         country_from = None
 
         # Sometimes the `incoming` value from Molnix is null.
@@ -218,6 +230,7 @@ def sync_deployments(molnix_deployments):
             warnings.append(warning)
 
         personnel.country_from = country_from
+
         personnel.save()
         add_tags_to_obj(personnel, md['tags'])
         if created:
@@ -346,7 +359,7 @@ class Command(BaseCommand):
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags)
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
-            deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments)
+            deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments, molnix, countries)
         except Exception as ex:
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)

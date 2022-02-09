@@ -715,6 +715,7 @@ class KeyFigure(models.Model):
     class Meta:
         verbose_name = _('key figure')
         verbose_name_plural = _('key figures')
+        ordering = ('id',)
 
 
 def snippet_image_path(instance, filename):
@@ -913,6 +914,7 @@ class Appeal(models.Model):
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -947,7 +949,7 @@ class Appeal(models.Model):
 
     def __str__(self):
         return self.code
-    
+
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
@@ -972,6 +974,7 @@ class AppealHistory(models.Model):
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True)
     #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -1112,6 +1115,26 @@ class UserCountry(models.Model):
     class Meta:
         verbose_name = _('User Country')
         verbose_name_plural = _('User Countries')
+
+    def __str__(self):
+        #import pdb; pdb.set_trace();
+        return self.user.get_username()
+
+class UserRegion(models.Model):
+    """ Connects User, role and Country """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='userRegionName',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+
+    region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.CASCADE)
+    #countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    #role = models.IntegerField(verbose_name=_('role'))
+
+    class Meta:
+        verbose_name = _('Regional Admin')
+        verbose_name_plural = _('Regional Admins')
 
     def __str__(self):
         #import pdb; pdb.set_trace();
@@ -1339,7 +1362,7 @@ class FieldReport(models.Model):
 
     def to_dict(self):
         return to_dict(self)
-    
+
     # def get_for(cls, user, queryset=None):
     #     _queryset = queryset
     #     if queryset is None:

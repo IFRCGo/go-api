@@ -34,7 +34,7 @@ from .models import (
     Country,
     CountryKeyFigure,
     CountrySnippet,
-
+    
     District,
 
     Event,
@@ -74,9 +74,11 @@ from .serializers import (
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
+    CountrySerializerRMD,
 
     DistrictSerializer,
     MiniDistrictGeoSerializer,
+    DistrictSerializerRMD,
 
     SnippetSerializer,
     ListMiniEventSerializer,
@@ -109,7 +111,10 @@ from .serializers import (
     ListEventTableauSerializer,
     ListFieldReportTableauSerializer,
     RegionSnippetTableauSerializer,
-    SituationReportTableauSerializer
+    SituationReportTableauSerializer,
+
+    # Go Historical
+    GoHistoricalSerializer,
 )
 from .logger import logger
 
@@ -212,6 +217,34 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
         raise Http404
 
+
+class CountryFilterRMD(filters.FilterSet):
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    
+    class Meta:
+        model = Country
+        fields = ('region', 'record_type',)
+
+class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
+    filterset_class = CountryFilterRMD
+    search_fields = ('name',) 
+    serializer_class = CountrySerializerRMD 
+
+
+class DistrictRMDFilter(filters.FilterSet):
+    class Meta:
+        model = District
+        fields = ('country','country__name')
+
+
+class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    filterset_class = DistrictRMDFilter
+    search_fields = ('name', 'country__name',)  
+    serializer_class = DistrictSerializerRMD
+
+   
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
@@ -365,7 +398,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
                 return ListEventSerializer
         else:
             return DetailEventSerializer
-    
+
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
     def retrieve(self, request, pk=None, *args, **kwargs):
         if pk:
@@ -410,7 +443,7 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
 
-   
+
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
@@ -588,6 +621,7 @@ class FieldReportFilter(filters.FilterSet):
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
+    summary = filters.CharFilter(field_name='summary', lookup_expr='icontains')
 
     class Meta:
         model = FieldReport
@@ -947,6 +981,28 @@ class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     queryset = MainContact.objects.order_by('extent')
     search_fields = ('name', 'email')  # for /docs
 
+
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer
     queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')
+
+
+class GoHistoricalFilter(filters.FilterSet):
+    countries = filters.ModelMultipleChoiceFilter(
+        field_name='countries',
+        queryset=Country.objects.all()
+    )
+    iso3 = filters.CharFilter(field_name='countries__iso3', lookup_expr='icontains')
+    region = filters.NumberFilter(field_name='countries__region', lookup_expr='exact')
+
+    class Meta:
+        model = Event
+        fields = ()
+
+
+class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GoHistoricalSerializer
+    filterset_class = GoHistoricalFilter
+
+    def get_queryset(self):
+        return Event.objects.filter(appeals__isnull=False)

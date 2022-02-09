@@ -227,7 +227,6 @@ class BaseNestedModelSerializer(serializers.ModelSerializer):
     def update_or_create_reverse_relations(self, instance, reverse_relations):
         # Update or create reverse relations:
         # many-to-one, many-to-many, reversed one-to-one
-        print(reverse_relations.items())
         for field_name, (related_field, field, field_source) in \
                 reverse_relations.items():
             related_data = self.initial_data[field_name]

@@ -25,7 +25,7 @@ DISASTER_TYPE_MAPPING = {
     'Extreme winter condition':'Cold Wave',
     'Fire':'Fire',
     'Natural Fire':'Fire',
-    'Flash floods':'Pluvial/Flash Flood',
+    'Flash floods':'Flash Flood',
     'Floods':'Flood',
     'Food insecurity':'Food Insecurity',
     'Famine / Food Insecurity': 'Food Insecurity',

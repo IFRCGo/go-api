@@ -26,6 +26,7 @@ class InformalGraphicMap(models.Model):
         settings.AUTH_USER_MODEL, verbose_name=_('created_by'),
         on_delete=models.SET_NULL, null=True,
     )
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('informal graphic map')
@@ -42,6 +43,7 @@ class InformalReferences(models.Model):
         verbose_name=_('document'),
         related_name='informal_document'
     )
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('informal reference')
@@ -134,6 +136,7 @@ class InformalCountryDistrict(models.Model):
         District, verbose_name=_('district'), on_delete=models.CASCADE,
         related_name='informal_district'
     )
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         unique_together = ('informal_update', 'country')
@@ -161,6 +164,7 @@ class InformalAction(models.Model):
     )
     is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False, help_text=_('Disable in form'))
     tooltip_text = models.TextField(verbose_name=_('tooltip text'), null=True, blank='true')
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('informal action')
@@ -178,10 +182,11 @@ class InformalActionsTaken(models.Model):
         verbose_name=_('organization'), max_length=16,
     )
     actions = models.ManyToManyField(InformalAction, verbose_name=_('actions'), blank=True)
-    summary = models.TextField(verbose_name=_('summary'), blank=True)
+    summary = models.TextField(verbose_name=_('summary'), null=True, blank=True)
     informal_update = models.ForeignKey(
         InformalUpdate, verbose_name=_('informal update'), related_name='actions_taken_informal', on_delete=models.CASCADE
     )
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('actions taken informal')
@@ -197,7 +202,7 @@ class InformalEmailSubscriptions(models.Model):
         default=InformalUpdate.InformalShareWith.IFRC_SECRETARIAT,
         verbose_name=_('share with')
     )
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True, related_name='informal_email_group')
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True, related_name='informal_email_subscription')
 
     def __str__(self):
         return self.share_with

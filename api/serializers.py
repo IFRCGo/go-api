@@ -1,5 +1,6 @@
 import json
 import datetime
+from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from enumfields.drf.serializers import EnumSupportSerializerMixin
@@ -128,6 +129,19 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
             'region', 'independent', 'is_deprecated', 'fdrs',
         )
 
+class CountrySerializerRMD(EnumSupportSerializerMixin, ModelSerializer):
+    
+    class Meta:
+        model = Country
+        fields = (
+            'name', 'iso3'
+        )
+
+
+class DistrictSerializerRMD(ModelSerializer):
+    class Meta:
+        model = District
+        fields = ('name', 'code', 'is_deprecated',)
 
 class MicroCountrySerializer(ModelSerializer):
     class Meta:
@@ -523,7 +537,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.filter(end_date__gte=datetime.datetime.now(), is_active=True):
+            for p in d.personnel_set.filter(end_date__gte=timezone.now(), is_active=True):
                 personnels.append(p)
         return list(set([p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']))
 
@@ -949,3 +963,16 @@ class NsSerializer(ModelSerializer):
     class Meta:
         model = Country
         fields = ('url_ifrc',)
+
+
+class GoHistoricalSerializer(ModelSerializer):
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
+
+    class Meta:
+        model = Event
+        fields = (
+            'id', 'name', 'dtype', 'countries', 'num_affected',
+            'disaster_start_date', 'created_at', 'appeals',
+        )

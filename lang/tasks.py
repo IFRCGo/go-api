@@ -1,5 +1,5 @@
 import logging
-from celery import shared_task
+#ς from celery import shared_task
 from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.conf import settings
 from functools import reduce
 
-from main.celery import Queues
+#ς from main.celery import Queues
 from .translation import (
     AmazonTranslate,
     AVAILABLE_LANGUAGES,
@@ -173,7 +173,7 @@ class ModelTranslator():
                 index += 1
 
 
-@shared_task(queue=Queues.CRONJOB)
+#ς @shared_task(queue=Queues.CRONJOB)
 def translate_remaining_models_fields():
     # Disabled in DEBUG/Development
     if settings.DEBUG:
@@ -182,14 +182,14 @@ def translate_remaining_models_fields():
     ModelTranslator().run(batch_size=100)
 
 
-@shared_task(queue=Queues.DEFAULT)
+#ς @shared_task(queue=Queues.DEFAULT)
 def translate_model_fields(model_name, pk):
     model = django_apps.get_model(model_name)
     obj = model.objects.get(pk=pk)
     ModelTranslator().translate_model_fields(obj)
 
 
-@shared_task(queue=Queues.HEAVY)
+#ς @shared_task(queue=Queues.HEAVY)
 def translate_model_fields_in_bulk(model_name, pks):
     model = django_apps.get_model(model_name)
     for obj in model.objects.filter(pk__in=pks):

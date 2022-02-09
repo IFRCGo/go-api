@@ -71,6 +71,7 @@ from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
 from lang import views as lang_views
+from dref import views as dref_views
 
 
 router = routers.DefaultRouter()
@@ -79,15 +80,18 @@ router.register(r'informal_action', informal_views.InformalActionViewset, basena
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
+router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'disaster_type', api_views.DisasterTypeViewset, basename='disaster_type')
 router.register(r'district', api_views.DistrictViewset, basename='district')
+router.register(r'district_rmd', api_views.DistrictRMDViewset, basename='district')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)
 router.register(r'eru', deployment_views.ERUViewset, basename='eru')
 router.register(r'eru_owner', deployment_views.ERUOwnerViewset, basename='eru_owner')
 router.register(r'event', api_views.EventViewset, basename='event')
+router.register(r'go-historical', api_views.GoHistoricalViewSet, basename='go_historical')
 router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset, basename='featured_event_deployments')
 router.register(r'field_report', api_views.FieldReportViewset, basename='field_report')
 router.register(r'event_snippet', api_views.EventSnippetViewset, basename='event_snippet')
@@ -135,6 +139,8 @@ router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='
 router.register(r'user', api_views.UserViewset, basename='user')
 router.register(r'informal-update', informal_views.InformalUpdateViewSet, basename='informal_update')
 router.register(r'informal-file', informal_views.InformalUpdateFileViewSet, basename='informal_file')
+router.register(r'dref', dref_views.DrefViewSet, basename='dref')
+router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
 
 
 admin.site.site_header = 'IFRC Go administration'
@@ -176,6 +182,7 @@ urlpatterns = [
     url(r'^show_username', ShowUsername.as_view()),
     url(r'^resend_validation', ResendValidation.as_view()),
     url(r'^api/v2/', include(router.urls)),
+    url(r'^api/v2/dref-options/', dref_views.DrefOptionsView.as_view()),
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),

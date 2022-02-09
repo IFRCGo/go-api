@@ -35,6 +35,9 @@ class InformalReferencesAdmin(admin.ModelAdmin):
 class InformalEmailSubscriptionsAdmin(admin.ModelAdmin):
     autocomplete_fields = ('group',)
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 class InformalActionTakenAdminInline(admin.TabularInline):
     model = InformalActionsTaken

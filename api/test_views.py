@@ -10,6 +10,7 @@ from api.factories.event import (
     EventFactory,
     EventFeaturedDocumentFactory,
     EventLinkFactory,
+    AppealFactory
 )
 
 
@@ -323,3 +324,76 @@ class ActionTestCase(APITestCase):
         res2 = response['results'][1]
         self.assertEqual(res2['organizations'], [])
         self.assertEqual(res2['field_report_types'], [EARLY_WARNING])
+
+
+class HistoricalEventTest(APITestCase):
+
+    fixtures = ['DisasterTypes']
+
+    def test_historical_events(self):
+        region1 = models.Region.objects.create(name=1)
+        region2 = models.Region.objects.create(name=2)
+        country1 = models.Country.objects.create(name='Nepal', iso3='nlp', region=region1)
+        country2 = models.Country.objects.create(name='India', iso3='ind', region=region2)
+        dtype1 = models.DisasterType.objects.get(pk=1)
+        dtype2 = models.DisasterType.objects.get(pk=2)
+        EventFactory.create(
+            name='test1',
+            dtype=dtype1,
+        )
+        event1 = EventFactory.create(
+            name='test0',
+            dtype=dtype1,
+            num_affected=10000,
+            countries=[country1]
+        )
+        event2 = EventFactory.create(
+            name='test2',
+            dtype=dtype2,
+            num_affected=99999,
+            countries=[country2]
+        )
+        event3 = EventFactory.create(
+            name='test2',
+            dtype=dtype2,
+            num_affected=None,
+            countries=[country2]
+        )
+        appeal1 = AppealFactory.create(
+            event=event1,
+            dtype=dtype1,
+            num_beneficiaries=9000,
+            amount_requested=10000,
+            amount_funded=1899999
+        )
+        appeal2 = AppealFactory.create(
+            event=event2,
+            dtype=dtype2,
+            num_beneficiaries=90023,
+            amount_requested=100440,
+            amount_funded=12299999
+        )
+        appeal2 = AppealFactory.create(
+            event=event3,
+            dtype=dtype2,
+            num_beneficiaries=91000,
+            amount_requested=10000888,
+            amount_funded=678888
+        )
+        response = self.client.get('/api/v2/go-historical/').json()
+        self.assertEqual(response['count'], 3)  # should give event that have appeal associated with and num_affected=null
+        self.assertEqual(
+            sorted([event1.id, event2.id, event3.id]),
+            sorted([data['id'] for data in response['results']])
+        )
+
+        # test for filter by country iso3
+        response = self.client.get(f'/api/v2/go-historical/?iso3={country1.iso3}').json()
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['id'], event1.id)
+        self.assertEqual(response['results'][0]['appeals'][0]['id'], appeal1.id)
+
+        # test for region filter by
+        response = self.client.get(f'/api/v2/go-historical/?region={region1.id}').json()
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['id'], event1.id)

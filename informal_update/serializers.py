@@ -1,8 +1,10 @@
+from django.db import transaction
 from django.utils.translation import ugettext
 
 from rest_framework import serializers
 
 from enumfields.drf.serializers import EnumSupportSerializerMixin
+from .utils import send_email_when_informal_update_created
 
 from api.serializers import (
     UserNameSerializer,
@@ -42,7 +44,7 @@ class InformalGraphicMapSerializer(serializers.ModelSerializer):
 class InformalActionSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformalAction
-        fields = ('name', 'id', 'organizations', 'category', 'tooltip_text')
+        fields = ('name', 'id', 'organizations', 'category', 'tooltip_text', 'client_id')
 
 
 class InformalActionsTakenSerializer(
@@ -55,7 +57,7 @@ class InformalActionsTakenSerializer(
 
     class Meta:
         model = InformalActionsTaken
-        fields = ('organization', 'organization_display', 'actions', 'action_details', 'summary', 'id',)
+        fields = ('organization', 'organization_display', 'actions', 'action_details', 'summary', 'id', 'client_id')
         read_only_fields = ('informal_update',)
 
 
@@ -75,12 +77,10 @@ class InformalCountryDistrictSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InformalCountryDistrict
-        fields = ('id', 'country', 'district', 'country_details', 'district_details')
+        fields = ('id', 'country', 'district', 'country_details', 'district_details', 'client_id')
         read_only_fields = ('informal_update',)
 
     def validate(self, data):
-        if len(data) > 10:
-            raise serializers.ValidationError("Number of countries selected should be less than 10")
         district = data['district']
         if district and district.country != data['country']:
             raise serializers.ValidationError({
@@ -101,16 +101,21 @@ class InformalUpdateSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='hazard_type', read_only=True)
     share_with_display = serializers.CharField(source='get_share_with_display', read_only=True)
-    map = InformalGraphicMapSerializer(many=True, required=False)
-    graphics = InformalGraphicMapSerializer(many=True, required=False)
+    map_files = InformalGraphicMapSerializer(source='map', many=True, required=False)
+    graphics_files = InformalGraphicMapSerializer(source='graphics', many=True, required=False)
 
     class Meta:
         model = InformalUpdate
         fields = '__all__'
 
+    def validate_country_district(self, attrs):
+        if len(attrs) > 10:
+            raise serializers.ValidationError("Number of countries selected should be less than 10")
+
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
         informal_update = super().create(validated_data)
+        transaction.on_commit(lambda: send_email_when_informal_update_created(informal_update))
         return informal_update
 
     def update(self, instance, validated_data):

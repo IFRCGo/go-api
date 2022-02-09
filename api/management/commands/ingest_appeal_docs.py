@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
-from urllib.request import urlopen
+from urllib3 import PoolManager
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
@@ -50,9 +50,10 @@ class Command(BaseCommand):
 
         # v smoke test
         baseurl = 'https://www.ifrc.org/appeals/'  # no more ...en/publications-and-reports...
-        smoke_response = urlopen(baseurl)
+        http = PoolManager()  # stackoverflow.com/questions/36516183/what-should-i-use-to-open-a-url-instead-of-urlopen-in-urllib3
+        smoke_response = http.request('GET', baseurl)
         joy_to_the_world = False
-        if smoke_response.code == 200:
+        if smoke_response.status == 200:
             joy_to_the_world = True  # We log the success later, when we know the numeric results.
         else:
             body = {
@@ -87,12 +88,13 @@ class Command(BaseCommand):
             code = code.replace(' ', '')
             docs_url = f'{baseurl}?appeal_code={code}'  # no more ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo=
             try:
-                response = urlopen(docs_url)
+                http = PoolManager()
+                response = http.request('GET', docs_url)
             except Exception:  # if we get an error fetching page for an appeal, we ignore it
                 page_not_found.append(code)
                 continue
 
-            soup = BeautifulSoup(response.read(), "lxml")
+            soup = BeautifulSoup(response.data, "lxml")
             div = soup.find('div', class_='row appeals-view__row')
             for t in div.findAll('tbody'):
                 output = output + self.makelist(t)

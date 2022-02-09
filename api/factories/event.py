@@ -9,6 +9,7 @@ from ..models import (
     Event,
     EventFeaturedDocument,
     EventLink,
+    Appeal,
 )
 from .disaster_type import DisasterTypeFactory
 
@@ -103,3 +104,15 @@ class EventLinkFactory(factory.django.DjangoModelFactory):
     event = factory.SubFactory(Event)
     title = fuzzy.FuzzyText(length=50, prefix='event-link-title-')
     description = fuzzy.FuzzyText(length=100, prefix='event-link-description-')
+
+
+class AppealFactory(factory.django.DjangoModelFactory):
+    name = fuzzy.FuzzyText(length=50, prefix='event-')
+    dtype = factory.SubFactory(DisasterTypeFactory)
+    num_beneficiaries = fuzzy.FuzzyInteger(0)
+    amount_requested = fuzzy.FuzzyInteger(0)
+    amount_funded = fuzzy.FuzzyInteger(0)
+    event = factory.SubFactory(EventFactory)
+
+    class Meta:
+        model = Appeal

@@ -11,7 +11,7 @@ from informal_update.factories.informal_update import (
     InformalGraphicMapFactory,
     InformalActionFactory
 )
-from informal_update.signals import send_email_when_informal_update_created
+from informal_update.utils import send_email_when_informal_update_created
 
 
 class InformalUpdateTest(APITestCase):
@@ -43,7 +43,7 @@ class InformalUpdateTest(APITestCase):
                 {
                     'country': str(self.country2.id),
                     'district': str(self.district2.id)
-                },
+                }
             ],
             "references": [
                 {
@@ -73,23 +73,23 @@ class InformalUpdateTest(APITestCase):
             "share_with": InformalUpdate.InformalShareWith.IFRC_SECRETARIAT.value,
             "created_by": str(self.user.id),
             "hazard_type": str(self.hazard_type.id),
-            "map": [
+            "map_files": [
                 {
-                    'pk': map1.id,
+                    'id': map1.id,
                     'caption': 'test'
                 },
                 {
-                    'pk': map2.id,
+                    'id': map2.id,
                     'caption': 'test2'
                 }
             ],
-            "graphics": [
+            "graphics_files": [
                 {
-                    'pk': graphic1.id,
+                    'id': graphic1.id,
                     'caption': 'test'
                 },
                 {
-                    'pk': graphic1.id,
+                    'id': graphic1.id,
                     'caption': 'test2'
                 }
             ]
@@ -100,8 +100,7 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-            print(response)
-        created = InformalUpdate.objects.get(pk=response['id'])
+        created = InformalUpdate.objects.get(id=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
         self.assertEqual(response['country_district'][0]['country'], self.country1.id)
@@ -142,7 +141,7 @@ class InformalUpdateTest(APITestCase):
         data['share_with'] = InformalUpdate.InformalShareWith.RCRC_NETWORK
 
         response = self.client.put(f'/api/v2/informal-update/{created.id}/', data, format='json').json()
-        updated = InformalUpdate.objects.get(pk=response['id'])
+        updated = InformalUpdate.objects.get(id=response['id'])
         self.assertEqual(updated.id, created.id)
         self.assertEqual(updated.modified_by, self.user)
         self.assertEqual(updated.share_with, InformalUpdate.InformalShareWith.RCRC_NETWORK)
@@ -155,10 +154,10 @@ class InformalUpdateTest(APITestCase):
         self.client.force_authenticate(user=user)
         with self.capture_on_commit_callbacks(execute=True):
             response1 = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-        created = InformalUpdate.objects.get(pk=response1['id'])
+        created = InformalUpdate.objects.get(id=response1['id'])
         data = {'title': 'test title patched'}
         response2 = self.client.patch(f'/api/v2/informal-update/{created.id}/', data=data, format='json').json()
-        informal_id = InformalUpdate.objects.get(pk=response2['id'])
+        informal_id = InformalUpdate.objects.get(id=response2['id'])
         self.assertEqual(informal_id.modified_by, user)
         self.assertNotEqual(response1['title'], response2['title'])
         self.assertEqual(response1['id'], response2['id'])
@@ -267,8 +266,8 @@ class InformalUpdateTest(APITestCase):
 
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/api/v2/informal-update/', self.body, format='json').json()
-        instance = InformalUpdate.objects.get(pk=response['id'])
-        email_data = send_email_when_informal_update_created(InformalUpdate, instance, created=True)
+        instance = InformalUpdate.objects.get(id=response['id'])
+        email_data = send_email_when_informal_update_created(instance)
         self.assertEqual(email_data['title'], instance.title)
         self.assertEqual(email_data['situational_overview'], instance.situational_overview)
         self.assertIn(
