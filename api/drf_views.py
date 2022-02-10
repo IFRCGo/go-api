@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from django.http import Http404
 from django_filters import rest_framework as filters
@@ -513,8 +513,9 @@ class AppealHistoryFilter(filters.FilterSet):
         }
 
 
-class AppealViewset(viewsets.ReadOnlyModelViewSet):
-    ''' Used to get Appeals from AppealHistory. Do not use the "read" option, query appeals via the "list". '''
+# Instead of viewsets.ReadOnlyModelViewSet:
+class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'. """
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     # queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
@@ -541,7 +542,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     def remove_unconfirmed_events(self, objs):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
-    # Overwrite retrieve, list to exclude the event if it requires confirmation
+    # Overwrite to exclude the events which require confirmation
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get('date', now)
@@ -555,11 +556,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(self.remove_unconfirmed_events(serializer.data))
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        serializer = self.get_serializer(instance)
-        return Response(self.remove_unconfirmed_event(serializer.data))
+#    def retrieve(self, request, *args, **kwargs):
+#        instance = self.get_object()
+#
+#        serializer = self.get_serializer(instance)
+#        return Response(self.remove_unconfirmed_event(serializer.data))
 
 
 class AppealDocumentFilter(filters.FilterSet):
