@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.419
+
+### Added
+ - Registration workflow change  
+ - String/List mismatch in email addressees - fixed
+
 ## 1.1.418
 
 ### Added
@@ -1896,7 +1902,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.418...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.419...HEAD
+[1.1.419]: https://github.com/IFRCGo/go-api/compare/1.1.418...1.1.419
 [1.1.418]: https://github.com/IFRCGo/go-api/compare/1.1.417...1.1.418
 [1.1.417]: https://github.com/IFRCGo/go-api/compare/1.1.416...1.1.417
 [1.1.416]: https://github.com/IFRCGo/go-api/compare/1.1.415...1.1.416
