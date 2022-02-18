@@ -1400,11 +1400,13 @@ class ActionOrg:
     NATIONAL_SOCIETY = 'NTLS'
     FOREIGN_SOCIETY = 'PNS'
     FEDERATION = 'FDRN'
+    GOVERNMENT = 'GOV'
 
     CHOICES = (
         (NATIONAL_SOCIETY, _('National Society')),
         (FOREIGN_SOCIETY, _('Foreign Society')),
         (FEDERATION, _('Federation')),
+        (GOVERNMENT, _('Government')),
     )
 
 

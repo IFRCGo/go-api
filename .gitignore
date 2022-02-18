@@ -1,5 +1,5 @@
 # go file storage folder
-media
+media/**
 
 # python virtual environment folder
 env

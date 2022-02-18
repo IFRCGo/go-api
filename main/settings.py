@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'deployments',
     'databank',
     'lang',
+    'informal_update',
     'dref',
 
     # Utils Apps
@@ -275,7 +276,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "go-static"),
 ]
 
-if DEBUG:
+if not os.environ.get('AZURE_STORAGE_ACCOUNT'):
     MEDIA_URL = '/media/'
     MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
 
