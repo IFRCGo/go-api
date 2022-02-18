@@ -460,12 +460,12 @@ msgstr "indicación"
 #: api/models.py:398
 msgid ""
 "Optional string for a clean URL. For example, "
-"go.ifrc.org/emergencies/hurricane-katrina-2019. The string cannot start with"
+"go.ifrc.org/emergency/hurricane-katrina-2019. The string cannot start with"
 " a number and is forced to be lowercase. Recommend using hyphens over "
 "underscores. Special characters like # is not allowed."
 msgstr ""
 "Cadena opcional para una URL vacía Por ejemplo,\n"
-"go.ifrc.org/emergencies/hurricane-katrina-2019. La cadena no puede empezar con un número y debe estar en minúscula. Se recomienda utilizar guiones en lugar de barra baja. Los caracteres especiales como # no están permitidos."
+"go.ifrc.org/emergency/hurricane-katrina-2019. La cadena no puede empezar con un número y debe estar en minúscula. Se recomienda utilizar guiones en lugar de barra baja. Los caracteres especiales como # no están permitidos."
 
 #: api/models.py:408
 msgid "Parent Emergency"

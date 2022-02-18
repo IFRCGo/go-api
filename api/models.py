@@ -534,7 +534,7 @@ class Event(models.Model):
         verbose_name=_('slug'), max_length=50, editable=True, default=None, unique=True, null=True, blank=True,
         validators=[validate_slug, validate_slug_number],
         help_text=_(
-            'Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019.'
+            'Optional string for a clean URL. For example, go.ifrc.org/emergency/hurricane-katrina-2019.'
             ' The string cannot start with a number and is forced to be lowercase.'
             ' Recommend using hyphens over underscores. Special characters like # is not allowed.'
         )
