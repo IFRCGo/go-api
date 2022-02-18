@@ -94,3 +94,4 @@ urllib3==1.26.8
 wheel==0.30.0
 xmltodict==0.11.0
 xhtml2pdf==0.2.5
+reportlab==3.6.6  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
