@@ -3,7 +3,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 
-from xhtml2pdf import pisa
+# from xhtml2pdf import pisa
 
 from notifications.notification import send_notification
 from main.frontend import get_project_url
@@ -13,6 +13,7 @@ from .models import InformalUpdate, Donors
 def render_to_pdf(template_src, context_dict={}):
     html = render_to_string(template_src, context_dict)
     result = BytesIO()
+    return  # temporary by zol
     pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
     if not pdf.err:
         file = {
