@@ -1,0 +1,79 @@
+<html>
+    <style>
+        table {    -pdf-keep-in-frame-mode: shrink;}
+        img {
+        -ms-interpolation-mode: bicubic;
+      }
+      .text-left {
+        text-align: left;
+      }
+      .title-heading-main {
+        font-weight: bold;
+        font-size: 24px;
+        text-align: center;
+      }
+      .heading {
+        font-size: 20px;
+      }
+      .sub-heading {
+        font-size: 15px;
+        font-weight: bold;
+      }
+      .desc {
+        font-size: 15px;
+      }
+      .actions {
+          font-size: 13px;
+          font-weight: bold;
+          padding-left: 20px;
+      }
+    .img-informal {
+            width: 120px;
+            height: 120px;
+        }
+
+    </style>
+
+    <body>
+        <div class="img text-left">
+            <img src="https://dsgoproxyapp.azurewebsites.net/assets/graphics/layout/go-logo-2020.png" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" />
+        </div>
+        <h1 class="title-heading-main">{{title}}</h1>
+        <h2 class="heading">Situational Overview</h2>
+        <p class="desc"> {{situational_overview}}</p>
+
+        <h2 class="heading">Graphics</h2>
+        <div class="d-flex p-2">
+        {% for map in map_list %}
+            <img class = 'img-informal' src="http://{{map.image}}" alt="image">
+        {% endfor %}
+        </div><br>
+        <div class="d-flex p-2">
+        {% for graphic in graphic_list %}
+            <img class = 'img-informal'  src="http://{{graphic.image}}" alt="image">
+        {% endfor %}
+        </div>
+
+        <h2 class="heading">Actions Taken</h2>
+
+        {% for act_taken in actions_taken %}
+            <p class="sub-heading">Actions Taken by {{act_taken.organization_display}}</p>
+
+            <p class="sub-heading">Descriptions</p>
+            <p class="desc"> {{act_taken.summary}}</p>
+
+            <p class="sub-heading">Actions</p>
+            {% for action in act_taken.action_details %}
+                    <p class="actions">{{action.name}}</p>
+            {%endfor%}
+        {% endfor %}
+
+    <h2 class="heading">Resources</h2>
+    {% for resource in resources %}
+        <p class="desc">{{resource.date}}</p>
+        <p class="desc">{{resource.source_description}}</p>
+        <a class="actions">{{resource.url}}</a>
+    {%endfor%}
+
+    </body>
+</html>

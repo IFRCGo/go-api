@@ -58,12 +58,14 @@ from per.views import (
     DeletePerOverview,
     DelWorkPlan
 )
+
 from databank.views import CountryOverviewViewSet
 
 # DRF routes
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from api import drf_views as api_views
+from informal_update import views as informal_views
 from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
@@ -71,8 +73,10 @@ from registrations import drf_views as registration_views
 from lang import views as lang_views
 from dref import views as dref_views
 
+
 router = routers.DefaultRouter()
 router.register(r'action', api_views.ActionViewset, basename='action')
+router.register(r'informal_action', informal_views.InformalActionViewset, basename='informal-action')
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
@@ -133,6 +137,8 @@ router.register(r'situation_report_type', api_views.SituationReportTypeViewset, 
 router.register(r'subscription', notification_views.SubscriptionViewset, basename='subscription')
 router.register(r'surge_alert', notification_views.SurgeAlertViewset, basename='surge_alert')
 router.register(r'user', api_views.UserViewset, basename='user')
+router.register(r'informal-update', informal_views.InformalUpdateViewSet, basename='informal_update')
+router.register(r'informal-file', informal_views.InformalUpdateFileViewSet, basename='informal_file')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
 
@@ -158,6 +164,7 @@ urlpatterns = [
     url(r'^api/v2/add_subscription/', AddSubscription.as_view()),
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
+    url(r'^api/v2/informal-options/', informal_views.InformalUpdateOptions.as_view()),
     url(r'^register', NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),
