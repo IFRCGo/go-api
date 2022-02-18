@@ -55,55 +55,25 @@
         </div>
 
         <h2 class="heading">Actions Taken</h2>
+
         {% for act_taken in actions_taken %}
+            <p class="sub-heading">Actions Taken by {{act_taken.organization_display}}</p>
 
-            {% for key, value in act_taken.items %}
+            <p class="sub-heading">Descriptions</p>
+            <p class="desc"> {{act_taken.summary}}</p>
 
-                {% if key == "organization_display" %}
-                
-                <p class="sub-heading">Actions Taken by {{value}}</p>
-                
-                {% endif %}
-
-                {% if key == 'summary' %}
-                
-                <p class="sub-heading">Descriptions</p>
-                
-                <p class="desc">{{value}}</p>
-        
-                {% endif %}
-
-                {% if key == "action_details" %}
-                <p class="sub-heading">Actions</p>
-                    {% for action in value %}
-                        {% for key, value in action.items %}
-                            {% if key == "name" %}
-                            <p class="actions">{{value}}</p>
-                            {% endif %}
-                        {% endfor %}
-                    {%endfor%}
-                {% endif %}
-
-            {% endfor %}
-            <hr>
-    {% endfor %}
+            <p class="sub-heading">Actions</p>
+            {% for action in act_taken.action_details %}
+                    <p class="actions">{{action.name}}</p>
+            {%endfor%}
+        {% endfor %}
 
     <h2 class="heading">Resources</h2>
     {% for resource in resources %}
-        {% for key, value in resource.items %}
-            {% if key == "date" %}
-            <p class="desc">{{value}}</p>
-            {%endif%}
-
-            {% if key == "source_description" %}
-            <p class="desc">{{value}}</p>
-            {%endif%}
-
-            {% if key == "url" %}
-            <a class="actions">{{value}}</a>
-            {%endif%}
-        {%endfor%}
-    {% endfor %}
+        <p class="desc">{{resource.date}}</p>
+        <p class="desc">{{resource.source_description}}</p>
+        <a class="actions">{{resource.url}}</a>
+    {%endfor%}
 
     </body>
 </html>

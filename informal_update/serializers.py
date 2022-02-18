@@ -115,7 +115,9 @@ class InformalUpdateSerializer(
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
         informal_update = super().create(validated_data)
-        transaction.on_commit(lambda: send_email_when_informal_update_created(informal_update))
+        transaction.on_commit(
+            lambda: send_email_when_informal_update_created(informal_update)
+        )
         return informal_update
 
     def update(self, instance, validated_data):

@@ -36,22 +36,24 @@ def generate_file_data(data):
 def send_email_when_informal_update_created(instance):
     from informal_update.serializers import InformalUpdateSerializer
 
-    informal_update = InformalUpdateSerializer(instance)
-    data = informal_update.data
-    map_list = generate_file_data(data['map_files'])
-    graphics_list = generate_file_data(data['graphics_files'])
-    email_context = {
-        'resource_url': get_project_url(instance.id),
-        'title': data['title'],
-        'situational_overview': data['situational_overview'],
-        'map_list': map_list,
-        'graphic_list': graphics_list,
-        'actions_taken': data['actions_taken'],
-        'resources': data['references'],
-    }
     share_with_group = instance.share_with
     if instance.share_with is None:
         return
+
+    informal_update_data = InformalUpdateSerializer(instance).data
+    map_list = generate_file_data(informal_update_data['map_files'])
+    graphics_list = generate_file_data(informal_update_data['graphics_files'])
+    actions_taken = [dict(action_taken) for action_taken in informal_update_data['actions_taken']]
+    resources = [dict(refrence) for refrence in informal_update_data['references']]
+    email_context = {
+        'resource_url': get_project_url(instance.id),
+        'title': informal_update_data['title'],
+        'situational_overview': informal_update_data['situational_overview'],
+        'map_list': map_list,
+        'graphic_list': graphics_list,
+        'actions_taken': actions_taken,
+        'resources': resources
+    }
     # Generate donors, users email through share_with_group config
     users_emails = []
     donors_emails = []

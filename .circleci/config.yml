@@ -1,11 +1,11 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-version: 2
+# Python CircleCI 2.1 configuration file
+version: 2.1
 
 jobs:
   build:
-    machine: true
+    machine:
+# Check https://circleci.com/developer/machine/image/ubuntu-2004 for details:
+      image: ubuntu-2004:202201-02
     steps:
       - checkout
       - run:

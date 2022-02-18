@@ -79,11 +79,10 @@ def construct_msg(subject, html, files=None):
     msg.attach(text_body)
     msg.attach(html_body)
 
-    if files:
-        for file in files:
-            attachedfile = MIMEApplication(file['file'])
-            attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
-            msg.attach(attachedfile)
+    for file in files or []:
+        attachedfile = MIMEApplication(file['file'])
+        attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
+        msg.attach(attachedfile)
 
     return msg
 

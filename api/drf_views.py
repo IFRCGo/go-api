@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from django.http import Http404
 from django_filters import rest_framework as filters
@@ -19,7 +19,7 @@ from databank.serializers import CountryOverviewSerializer
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
-from .visibility_class import ReadOnlyVisibilityViewsetMixin, ReadOnlyVisibilityViewset
+from .visibility_class import ReadOnlyVisibilityViewset
 
 from .models import (
     AppealHistory,
@@ -360,11 +360,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventFilter
     visibility_model_class = Event
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
-    visibility_model_class = Event
 
     def get_queryset(self, *args, **kwargs):
         #import pdb; pdb.set_trace();
-        qset = super().get_queryset(*args, **kwargs)
+        qset = super().get_queryset()
         if self.action == 'mini_events':
             #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
             return qset.filter(parent_event__isnull=True).select_related('dtype')
@@ -501,8 +500,8 @@ class AppealHistoryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact')
+    # Do not use, misleading: id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact', help_text='Use this (or code) for appeal identification.')
 
     class Meta:
         model = AppealHistory
@@ -514,9 +513,11 @@ class AppealHistoryFilter(filters.FilterSet):
         }
 
 
-class AppealViewset(viewsets.ReadOnlyModelViewSet):
+# Instead of viewsets.ReadOnlyModelViewSet:
+class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'. """
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
-    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
+    # queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
@@ -541,7 +542,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     def remove_unconfirmed_events(self, objs):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
-    # Overwrite retrieve, list to exclude the event if it requires confirmation
+    # Overwrite to exclude the events which require confirmation
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get('date', now)
@@ -555,11 +556,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(self.remove_unconfirmed_events(serializer.data))
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        serializer = self.get_serializer(instance)
-        return Response(self.remove_unconfirmed_event(serializer.data))
+#    def retrieve(self, request, *args, **kwargs):
+#        instance = self.get_object()
+#
+#        serializer = self.get_serializer(instance)
+#        return Response(self.remove_unconfirmed_event(serializer.data))
 
 
 class AppealDocumentFilter(filters.FilterSet):
@@ -637,7 +638,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     search_fields = ('countries__name', 'regions__label', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
-        qset = super().get_queryset(*args, **kwargs)
+        qset = super().get_queryset()
         qset = qset.select_related('dtype', 'event')
         return qset.prefetch_related('actions_taken', 'actions_taken__actions',
                                      'countries', 'districts', 'regions')
@@ -876,7 +877,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         report.save()
         return event
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
             try:

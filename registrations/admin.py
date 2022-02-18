@@ -9,9 +9,9 @@ from main.frontend import frontend_url
 from django.http import HttpResponse, HttpResponseRedirect
 
 class PendingAdmin(CompareVersionAdmin):
-    readonly_fields = ('get_username_and_mail','get_region','get_country','get_org','get_city','get_department','get_position','get_phone','justification','created_at','user_is_active')
+    readonly_fields = ('get_username_and_mail','get_region','get_country','get_org','get_city','get_department','get_position','get_phone','justification','created_at')
     search_fields = ('user__username', 'user__email', 'admin_contact_1', 'admin_contact_2')
-    list_display = ('get_username_and_mail', 'get_region','get_country','created_at', 'email_verified', 'user_is_active')
+    list_display = ('get_username_and_mail', 'get_region','get_country','created_at', 'email_verified')
     actions = ('activate_users',)
     list_filter = ['email_verified']
 
@@ -20,13 +20,13 @@ class PendingAdmin(CompareVersionAdmin):
     # Get the 'user' objects with a JOIN query
     def get_queryset(self, request):
         if request.user.is_superuser:
-            retval = super().get_queryset(request).select_related('user')
+            retval = super().get_queryset(request).select_related('user').exclude(user__is_active=1)
         else:
             region_id = UserRegion.objects.filter(user_id=request.user.id).values_list('region_id', flat=True)
             country_ids = Country.objects.filter(region_id__in=region_id).values_list('id', flat=True)
             user_ids = Profile.objects.filter(country_id__in=country_ids).values_list('user_id', flat=True)
 
-            retval = super().get_queryset(request).select_related('user').filter(user_id__in=user_ids)
+            retval = super().get_queryset(request).select_related('user').filter(user_id__in=user_ids).exclude(user__is_active=1)
 
         return retval
 
@@ -135,8 +135,6 @@ class PendingAdmin(CompareVersionAdmin):
 
     def get_actions(self, request):
         actions = super(PendingAdmin, self).get_actions(request)
-        if not request.user.is_superuser:
-            del actions['activate_users']
         return actions
 
 

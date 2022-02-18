@@ -72,10 +72,11 @@ class InformalUpdateOptions(views.APIView):
         options = {
             'share_with_options': [
                 {
-                    'value': share_with[0],
-                    'label': share_with[1]
-                } for share_with in InformalUpdate.InformalShareWith.choices
+                    'value': value,
+                    'label': label,
+                } for value, label in InformalUpdate.InformalShareWith.choices
             ]
         }
         return Response(options)
+
 
