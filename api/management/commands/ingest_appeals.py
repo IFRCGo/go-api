@@ -13,6 +13,7 @@ from api.create_cron import create_cron_record
 
 
 CRON_NAME = 'ingest_appeals'
+# DANGER! It should be changed when disaster type changes in database:
 DTYPE_KEYS = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
 GEC_CODES = GECCode.objects.select_related('country').all()
@@ -114,7 +115,7 @@ class Command(BaseCommand):
 
             # get latest APPEALS
             logger.info('Querying appeals API for new appeals data')
-            url = 'http://go-api.ifrc.org/api/appeals'  # DEBUG: can append filter ?app_code=M04EA028
+            url = 'http://go-api.ifrc.org/api/appeals'  # DEBUG: can append filter ?app_code=MDRDJ003
             # try 3 times to reach the API
             try:
                 response = sess.get(url, auth=auth)
