@@ -1878,12 +1878,14 @@ class MainContact(models.Model):
 
 
 class CronJobStatus(IntEnum):
+    ACKNOWLEDGED = -2
     NEVER_RUN = -1
     SUCCESSFUL = 0
     WARNED = 1
     ERRONEOUS = 2
 
     class Labels:
+        ACKNOWLEDGED = _('Acknowledged')
         NEVER_RUN = _('Never run')
         SUCCESSFUL = _('Successfull')
         WARNED = _('Warned')
