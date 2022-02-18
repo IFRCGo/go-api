@@ -529,9 +529,9 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    # FIXME slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
+    # Obsolete: slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
     slug = models.CharField(
-        verbose_name=_('slug'), max_length=50, editable=False, default=None, unique=True, null=True, blank=True,
+        verbose_name=_('slug'), max_length=50, editable=True, default=None, unique=True, null=True, blank=True,
         validators=[validate_slug, validate_slug_number],
         help_text=_(
             'Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019.'
@@ -1878,12 +1878,14 @@ class MainContact(models.Model):
 
 
 class CronJobStatus(IntEnum):
+    ACKNOWLEDGED = -2
     NEVER_RUN = -1
     SUCCESSFUL = 0
     WARNED = 1
     ERRONEOUS = 2
 
     class Labels:
+        ACKNOWLEDGED = _('Acknowledged')
         NEVER_RUN = _('Never run')
         SUCCESSFUL = _('Successfull')
         WARNED = _('Warned')
