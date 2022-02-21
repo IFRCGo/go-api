@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - Adding poetry as Python package manager
+ - Editable slugs for emergencies
+ - We can acknowledge the erroneous cronjob runs
+
 ## 1.1.419
 
 ### Added
