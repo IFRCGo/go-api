@@ -16,7 +16,7 @@ jobs:
             docker-compose build --progress plain base
             docker-compose pull db redis
       - run:
-          name: 🕮 Validate if there are no pending django migrations.
+          name: Validate if there are no pending django migrations.
           command: |
             docker-compose run --rm serve ./manage.py makemigrations --check --dry-run || {
               echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';

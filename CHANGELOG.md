@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
  - Adding poetry as Python package manager
+   · Enable buildx for docker build
+   · Enable docker layer caching in Circle-CI
+   · Update README.md for poetry
+   · Add migration check to Circle-CI
+   · Provide empty default value for docker-compose env vars to disable warnings
  - Editable slugs for emergencies
  - We can acknowledge the erroneous cronjob runs
 
