@@ -12,9 +12,9 @@
                 <table width="100%" border="0" cellspacing="0" cellpadding="0">
                   <tr>
                     <td class="text-center text-default pb-30" style="padding-bottom: 30px;text-align: center;">
-                      <span style="font-style: normal;font-weight: normal;font-size: 14px;line-height: 21px;color: #525252;"
+                      <span style="font-style: normal; font-weight: normal;font-size: 14px;line-height: 21px;color: #525252;"
                       >New Operation</span><br/>
-                      <span style="font-style: normal;font-weight: normal;font-size: 18px;line-height: 27px;text-align: center;color: #000000;"
+                      <span style="font-style: normal; font-weight: normal;font-size: 18px;line-height: 27px;text-align: center;color: #000000;"
                       >{{ op.title }}</span>
                     </td>
                   </tr>
@@ -29,7 +29,7 @@
                   {% endif %}
                   {% if op.situation_overview %}
                   <tr>
-                    <td class="text-default table-heading-title pt-10" style="padding-top: 10px;padding-left: 20px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
+                    <td class="text-default table-heading-title pt-10" style="padding-top: 10px;padding-left: 20px;font-family: Poppins, Arial, sans-serif;font-style: normal; font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
                     >Situational Overview
                     </td>
                   </tr>
@@ -40,7 +40,7 @@
                     <td class="text-default table-heading-title">&nbsp;</td>
                   </tr>
                   <tr>
-                    <td class="text-default text-light pb-40" style="padding: 0 10px 40px 20px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: normal;font-size: 12px;line-height: 18px;color: #000000;">
+                    <td class="text-default text-light pb-40" style="padding: 0 10px 40px 20px;font-family: Poppins, Arial, sans-serif;font-style: normal; font-weight: normal;font-size: 12px;line-height: 18px;color: #000000;">
                       {% autoescape off %}
                         {{ op.situation_overview }}
                       {% endautoescape %}
@@ -51,51 +51,51 @@
                     <td class="td text-default" style="background: #FDFDFD;box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.08);border-radius: 4px;">
                       <table width="100%" border="0" cellspacing="0" cellpadding="5" class="pb-10 pt-10" style="font-family: Poppins, Arial, sans-serif; padding: 10px 0 10px 0; font-size: 14px">
                         <tr>
-                          <td colspan="4" class="text-default table-heading-title pb-15" style="padding-bottom: 15px; text-transform: uppercase;font-weight: bold;text-align: center; border-bottom: 2px solid #E0E0E0">
+                          <td colspan="4" class="text-default table-heading-title pb-15" style="padding-bottom: 15px; text-transform: uppercase; font-weight: bold;text-align: center; border-bottom: 2px solid #E0E0E0">
                             Key Figures
                           </td>
                         </tr>
                         <tr><td colspan="4" style="height: 1.2rem"> </td></tr>
                         <tr>
-                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">People Targeted</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.people_targeted|floatformat:"1"|intcomma|slice:":-2" }}</td>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">People Targeted</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.people_targeted|floatformat:"1"|intcomma|slice:":-2" }}</td>
                           {% if op.field_reports|length %}
-                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap;">Local Staff</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap;">Local Staff</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
                           {% else %}
-                          <td colspan="2" class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap;">(No field report)</td>
+                          <td colspan="2" class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap;">(No field report)</td>
                           {% endif %}
                         </tr>
                         <tr>
-                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Funding Requirements</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.funding_req|floatformat:"1"|intcomma|slice:":-2" }} CHF</td>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">Funding Requirements</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.funding_req|floatformat:"1"|intcomma|slice:":-2" }} CHF</td>
                           {% if op.field_reports|length %}
-                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Volunteers</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap">Volunteers</td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.volunteers }}</td>
                           {% else %}
                           <td colspan="2" style="border-left: 2px solid #E0E0E0; padding-left: 20px"></td>
                           {% endif %}
                         </tr>
                         <tr>
-                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Appeal Code</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.appeal_code }}</td>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">Appeal Code</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.appeal_code }}</td>
                           {% if op.field_reports|length %}
-                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Delegates</td>
+                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap">Delegates</td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.delegates }}</td>
                           {% else %}
                           <td colspan="2" style="border-left: 2px solid #E0E0E0; padding-left: 20px"></td>
                           {% endif %}
                         </tr>
                         <tr>
-                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">Start Date</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
-                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap"></td>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">Start Date</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.start_date|date:'d-m-Y' }}</td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap"></td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;"></td>
                         </tr>
                         <tr>
-                          <td class="text-default text-light pl-20" style="padding-left: 20px;font-weight: 300;white-space: nowrap;">End Date</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px;font-weight: 700;white-space: nowrap; text-align: right;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
-                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px;white-space: nowrap">Operation Type</td>
+                          <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">End Date</td>
+                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.end_date|date:'d-m-Y' }}</td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap">Operation Type</td>
                           <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.operation_type_short }}</td>
                         </tr>
                         <tr><td colspan="4" style="height: 0.2rem"> </td></tr>
@@ -104,7 +104,7 @@
                   </tr>
                   {% if op.field_reports|length %}
                   <tr>
-                    <td class="text-default table-heading-title pt-40" style="padding-top: 40px;font-family: Poppins, Arial, sans-serif;font-style: normal;font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
+                    <td class="text-default table-heading-title pt-40" style="padding-top: 40px;font-family: Poppins, Arial, sans-serif;font-style: normal; font-weight: 500;font-size: 14px;line-height: 21px;letter-spacing: 0.05em;text-transform: uppercase;color: #323232;"
                     >Field Report{% if op.field_reports|length > 1 %}s{% endif %}
                     </td>
                   </tr>
@@ -134,7 +134,7 @@
                   {% endfor %}
                   {% endif %}
                   <tr>
-                    <td class="text-default pt-40 pl-20" style="padding-top: 40px; padding-left: 20px;font-style: normal;font-weight: 300;font-size: 12px;line-height: 18px"
+                    <td class="text-default pt-40 pl-20" style="padding-top: 40px; padding-left: 20px;font-style: normal; font-weight: 300;font-size: 12px;line-height: 18px"
                        >You are receiving this update based on your selected preferences. &nbsp;
                        <a href="https://{{ op.frontend_url }}/account#notifications" target="_blank" class="link" style="font-family: Poppins, Arial, sans-serif;text-decoration: underline;color: #000;"
                        >Update your preferences
