@@ -56,6 +56,24 @@ Access the site at http://localhost:8000
 
      $ docker-compose build
 
+### Using [poetry](https://python-poetry.org/docs/) (python package manager)
+- Install used python version using pyenv
+    ```bash
+    pyenv install $(cat .python-version)
+    ```
+- Install poetry packages in host
+    ```bash
+    poetry install
+    ```
+- Add new package
+    ```bash
+    poetry add <package-name>
+    ```
+- Update lock file
+    ```bash
+    poetry update --lock
+    ```
+
 ## Adding/Updating translations (Django static)
 
 ```bash
