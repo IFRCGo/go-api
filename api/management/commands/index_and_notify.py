@@ -607,6 +607,7 @@ class Command(BaseCommand):
             'records': record_entries,
             'is_staff': True if uid is None else is_staff,  # TODO: fork the sending to "is_staff / not ~" groups
             'subject': subject,
+            'hide_preferences': False,
         })
         recipients = emails
 
@@ -631,6 +632,7 @@ class Command(BaseCommand):
                             'records': non_ifrc_records,
                             'is_staff': True if uid is None else is_staff,
                             'subject': subject,
+                            'hide_preferences': False,
                         })
                         send_notification(subject,
                                           non_ifrc_recipients,
@@ -652,6 +654,7 @@ class Command(BaseCommand):
                     'records': record_entries,
                     'is_staff': True if uid is None else is_staff,
                     'subject': subject,
+                    'hide_preferences': False,
                 })
 
                 if record_count == 1:
