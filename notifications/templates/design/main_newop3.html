@@ -60,8 +60,8 @@
                           <td class="text-default text-light pl-20" style="padding-left: 20px; font-weight: 300; white-space: nowrap;">People Targeted</td>
                           <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.people_targeted|floatformat:"1"|intcomma|slice:":-2" }}</td>
                           {% if op.field_reports|length %}
-                          <td class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap;">Local Staff</td>
-                          <td class="text-default text-bold pr-10" style="padding-right: 10px; font-weight: 700; white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
+                          <td style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap">Local Staff</td>
+                          <td class="text-default text-bold pr-10" style="white-space: nowrap; text-align: right;">{{ op.key_figures.local_staff }}</td>
                           {% else %}
                           <td colspan="2" class="text-default text-light" style="border-left: 2px solid #E0E0E0; padding-left: 20px; white-space: nowrap;">(No field report)</td>
                           {% endif %}
