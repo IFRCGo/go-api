@@ -2,25 +2,71 @@ import os
 import sys
 import pytz
 from datetime import datetime
+import environ
 
 from django.utils.translation import ugettext_lazy as _
 # from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 
-PRODUCTION_URL = os.environ.get('API_FQDN')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+env = environ.Env(
+    # Django
+    DJANGO_DEBUG=(bool, False),
+    DOCKER_HOST_IP=(str, None),
+    DJANGO_SECRET_KEY=str,
+    DJANGO_MEDIA_URL=(str, '/media/'),
+    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
+    DJANGO_STATIC_URL=(str, '/static/'),
+    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org,prddsgocdnapi.azureedge.net
+    GO_ENVIRONMENT=(str, 'development'),
+    #
+    API_FQDN=(str, 'localhost:8000'),  # sub-domain.domain.domain-extension
+    # Database
+    DJANGO_DB_NAME=str,
+    DJANGO_DB_USER=str,
+    DJANGO_DB_PASS=str,
+    DJANGO_DB_HOST=str,
+    DJANGO_DB_PORT=(int, 5432),
+    # Azure storage
+    AZURE_STORAGE_ACCOUNT=(str, None),
+    AZURE_STORAGE_KEY=(str, None),
+    # Email
+    EMAIL_HOST=(str, None),
+    EMAIL_PORT=(str, None),
+    EMAIL_USER=(str, None),
+    EMAIL_PASS=(str, None),
+    DEBUG_EMAIL=(bool, False),  # This was 0/1 before
+    # AWS Translate NOTE: not used right now
+    AWS_TRANSLATE_ACCESS_KEY=(str, None),
+    AWS_TRANSLATE_SECRET_KEY=(str, None),
+    AWS_TRANSLATE_REGION=(str, None),
+    # Celery NOTE: Not used right now
+    CELERY_REDIS_URL=(str, 'redis://redis:6379/0'),
+    # MOLNIX
+    MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
+    MOLNIX_USERNAME=(str, None),
+    MOLNIX_PASSWORD=(str, None),
+    # ERP
+    ERP_API_ENDPOINT=(str, 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency'),
+    ERP_API_SUBSCRIPTION_KEY=(str, 'abcdef'),
+    # Misc
+    FDRS_APIKEY=(str, None),
+    FDRS_CREDENTIAL=(str, None),
+    HPC_CREDENTIAL=(str, None),
+    APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=(str, None),
+    # Pytest (Only required when running tests)
+    PYTEST_XDIST_WORKER=(str, None),
+)
+
+
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
-
-localhost = 'localhost'
-BASE_URL = PRODUCTION_URL if PRODUCTION_URL else '%s:8000' % localhost
-
-# Backend URL nicing:
-if BASE_URL == 'prddsgocdnapi.azureedge.net':
-    BASE_URL = 'goadmin.ifrc.org'
-# The frontend_url nicing is in frontend.py
+BASE_URL = GO_API_FQDN = env('API_FQDN')
 
 INTERNAL_IPS = ['127.0.0.1']
-if 'DOCKER_HOST_IP' in os.environ:
-    INTERNAL_IPS.append(os.environ['DOCKER_HOST_IP'])
+if env('DOCKER_HOST_IP'):
+    INTERNAL_IPS.append(env('DOCKER_HOST_IP'))
 
 DEBUG_TOOLBAR_CONFIG = {
     'DISABLE_PANELS': [
@@ -31,13 +77,16 @@ DEBUG_TOOLBAR_CONFIG = {
     ],
 }
 
-ALLOWED_HOSTS = [localhost, '0.0.0.0']
-if PRODUCTION_URL is not None:
-    ALLOWED_HOSTS.append(PRODUCTION_URL)
+ALLOWED_HOSTS = [
+    'localhost',
+    '0.0.0.0',
+    GO_API_FQDN,
+    *env('DJANGO_ADDITIONAL_ALLOWED_HOSTS'),
+]
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-DEBUG = False if PRODUCTION_URL is not None else True
+SECRET_KEY = env('DJANGO_SECRET_KEY')
+DEBUG = env('DJANGO_DEBUG')
+GO_ENVIRONMENT = env('GO_ENVIRONMENT')
 
 # See if we are inside a test environment
 TESTING = any([
@@ -50,7 +99,7 @@ TESTING = any([
         '/usr/local/lib/python3.6/dist-packages/py/test.py',
     ]
     # Provided by pytest-xdist (If pytest is used)
-]) or os.environ.get('PYTEST_XDIST_WORKER') is not None
+]) or env('PYTEST_XDIST_WORKER') is not None
 
 
 INSTALLED_APPS = [
@@ -88,7 +137,7 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    #ς 'django_celery_beat',
+    # 'django_celery_beat',
 
     # Logging
     'reversion',
@@ -124,17 +173,6 @@ REST_FRAMEWORK = {
 
 GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
-}
-
-FILE_STORAGE = {
-    'LOCATION': 'media',
-}
-
-AZURE_STORAGE = {
-    'CONTAINER': 'api',
-    'ACCOUNT_NAME': os.environ.get('AZURE_STORAGE_ACCOUNT'),
-    'ACCOUNT_KEY': os.environ.get('AZURE_STORAGE_KEY'),
-    'USE_SSL': False,
 }
 
 MIDDLEWARE = [
@@ -187,11 +225,11 @@ WSGI_APPLICATION = 'main.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('DJANGO_DB_NAME'),
-        'USER': os.environ.get('DJANGO_DB_USER'),
-        'PASSWORD': os.environ.get('DJANGO_DB_PASS'),
-        'HOST': os.environ.get('DJANGO_DB_HOST'),
-        'PORT': os.environ.get('DJANGO_DB_PORT'),
+        'NAME': env('DJANGO_DB_NAME'),
+        'USER': env('DJANGO_DB_USER'),
+        'PASSWORD': env('DJANGO_DB_PASS'),
+        'HOST': env('DJANGO_DB_HOST'),
+        'PORT': env('DJANGO_DB_PORT'),
     }
 }
 
@@ -269,23 +307,34 @@ LANGUAGES = (
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+MEDIA_URL = env('DJANGO_MEDIA_URL')
+MEDIA_ROOT = env('DJANGO_MEDIA_ROOT')
+
+STATIC_URL = env('DJANGO_STATIC_URL')
+STATIC_ROOT = env('DJANGO_STATIC_ROOT')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "go-static"),
 ]
 
-if not os.environ.get('AZURE_STORAGE_ACCOUNT'):
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = FILE_STORAGE.get('LOCATION')
+
+AZURE_STORAGE = {
+    'CONTAINER': 'api',
+    'ACCOUNT_NAME': env('AZURE_STORAGE_ACCOUNT'),
+    'ACCOUNT_KEY': env('AZURE_STORAGE_KEY'),
+    'CDN_HOST': None,
+    'USE_SSL': False,
+}
+if env('AZURE_STORAGE_ACCOUNT'):
+    # FIXME: Use https://django-storages.readthedocs.io/en/latest/backends/azure.html instead.
+    DEFAULT_FILE_STORAGE = 'api.storage.AzureStorage'
 
 # Email config
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
-DEBUG_EMAIL = True if os.environ.get('DEBUG_EMAIL', '0') == '1' else False
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_HOST_USER = env('EMAIL_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_PASS')
+DEBUG_EMAIL = env('DEBUG_EMAIL')
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
@@ -298,11 +347,11 @@ timezone = pytz.timezone("Europe/Zurich")
 PER_LAST_DUEDATE = timezone.localize(datetime(2018, 11, 15, 9, 59, 25, 0))
 PER_NEXT_DUEDATE = timezone.localize(datetime(2023, 11, 15, 9, 59, 25, 0))
 
-FDRS_APIKEY = os.environ.get('FDRS_APIKEY')
-FDRS_CREDENTIAL = os.environ.get('FDRS_CREDENTIAL')
-HPC_CREDENTIAL = os.environ.get('HPC_CREDENTIAL')
+FDRS_APIKEY = env('FDRS_APIKEY')
+FDRS_CREDENTIAL = env('FDRS_CREDENTIAL')
+HPC_CREDENTIAL = env('HPC_CREDENTIAL')
 
-APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
+APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = env('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
 
 if APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
     MIDDLEWARE.append('opencensus.ext.django.middleware.OpencensusMiddleware')
@@ -342,32 +391,19 @@ LOGGING = {
     },
 }
 
-APPLICATION_INSIGHTS_INSTRUMENTATION_KEY = os.environ.get('APPLICATION_INSIGHTS_INSTRUMENTATION_KEY')
-
-if APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
-    MIDDLEWARE += ['opencensus.ext.django.middleware.OpencensusMiddleware']
-    OPENCENSUS = {
-        'TRACE': {
-            'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
-            'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
-                connection_string="InstrumentationKey={}"
-            )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
-        }
-    }
-
 # AWS Translate Credentials
-AWS_TRANSLATE_ACCESS_KEY = os.environ.get('AWS_TRANSLATE_ACCESS_KEY')
-AWS_TRANSLATE_SECRET_KEY = os.environ.get('AWS_TRANSLATE_SECRET_KEY')
-AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION')
+AWS_TRANSLATE_ACCESS_KEY = env('AWS_TRANSLATE_ACCESS_KEY')
+AWS_TRANSLATE_SECRET_KEY = env('AWS_TRANSLATE_SECRET_KEY')
+AWS_TRANSLATE_REGION = env('AWS_TRANSLATE_REGION')
 
 TEST_RUNNER = 'snapshottest.django.TestRunner'
 
-#ς # CELERY CONFIG
-#ς CELERY_REDIS_URL = os.environ.get('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
-#ς CELERY_BROKER_URL = CELERY_REDIS_URL
-#ς CELERY_RESULT_BACKEND = CELERY_REDIS_URL
-#ς CELERY_TIMEZONE = TIME_ZONE
-#ς CELERY_ACKS_LATE = True
+# # CELERY CONFIG
+# CELERY_REDIS_URL = env('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
+# CELERY_BROKER_URL = CELERY_REDIS_URL
+# CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+# CELERY_TIMEZONE = TIME_ZONE
+# CELERY_ACKS_LATE = True
 
 # CELERY_BEAT_SCHEDULE = {
 #     'translate_remaining_models_fields': {
@@ -383,11 +419,11 @@ RETRY_STRATEGY = Retry(
     method_whitelist=["HEAD", "GET", "OPTIONS"]
 )
 
-MOLNIX_API_BASE = os.environ.get('MOLNIX_API_BASE', 'https://api.ifrc-staging.rpm.molnix.com/api/')
-MOLNIX_USERNAME = os.environ.get('MOLNIX_USERNAME')
-MOLNIX_PASSWORD = os.environ.get('MOLNIX_PASSWORD')
+MOLNIX_API_BASE = env('MOLNIX_API_BASE')
+MOLNIX_USERNAME = env('MOLNIX_USERNAME')
+MOLNIX_PASSWORD = env('MOLNIX_PASSWORD')
 
-ERP_API_ENDPOINT = os.environ.get('ERP_API_ENDPOINT', 'https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency')
-ERP_API_SUBSCRIPTION_KEY = os.environ.get('ERP_API_SUBSCRIPTION_KEY', 'abcdef')
+ERP_API_ENDPOINT = env('ERP_API_ENDPOINT')
+ERP_API_SUBSCRIPTION_KEY = env('ERP_API_SUBSCRIPTION_KEY')
 
 TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')

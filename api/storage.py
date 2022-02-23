@@ -1,18 +1,13 @@
 import mimetypes
 import datetime
-import os
 
 from azure.common import AzureMissingResourceHttpError
 from azure.storage.blob import BlockBlobService
 from azure.storage.blob.models import ContentSettings
 
-from django.core.files.storage import Storage, FileSystemStorage
+from django.core.files.storage import Storage
 from django.conf import settings
 from django.utils.deconstruct import deconstructible
-
-
-def get_storage():
-    return AzureStorage() if os.environ.get('AZURE_STORAGE_ACCOUNT') else FileSystemStorage(location=settings.FILE_STORAGE.get('LOCATION'))
 
 
 @deconstructible
@@ -21,29 +16,25 @@ class AzureStorage(Storage):
     Custom file storage system for Azure
     """
 
-    container = settings.AZURE_STORAGE.get('CONTAINER')
-    account_name = settings.AZURE_STORAGE.get('ACCOUNT_NAME')
-    account_key = settings.AZURE_STORAGE.get('ACCOUNT_KEY')
-    cdn_host = settings.AZURE_STORAGE.get('CDN_HOST')
-    use_ssl = settings.AZURE_STORAGE.get('USE_SSL')
+    container: str
+    account_name: str
+    account_key: str
+    cdn_host: str
+    use_ssl: bool
 
-    def __init__(self, account_name=None, account_key=None, container=None,
-         use_ssl=None, cdn_host=None):
-
-        if account_name is not None:
-            self.account_name = account_name
-
-        if account_key is not None:
-            self.account_key = account_key
-
-        if container is not None:
-            self.container = container
-
-        if use_ssl is not None:
-            self.use_ssl = use_ssl
-
-        if cdn_host is not None:
-            self.cdn_host = cdn_host
+    def __init__(
+        self,
+        account_name=settings.AZURE_STORAGE['ACCOUNT_NAME'],
+        account_key=settings.AZURE_STORAGE['ACCOUNT_KEY'],
+        container=settings.AZURE_STORAGE['CONTAINER'],
+        use_ssl=settings.AZURE_STORAGE['USE_SSL'],
+        cdn_host=settings.AZURE_STORAGE['CDN_HOST'],
+    ):
+        self.account_name = account_name
+        self.account_key = account_key
+        self.container = container
+        self.use_ssl = use_ssl
+        self.cdn_host = cdn_host
 
     def __getstate__(self):
         return dict(
@@ -89,7 +80,6 @@ class AzureStorage(Storage):
         Use the Azure Storage service to write ``content`` to a remote file
         (called ``name``).
         """
-
 
         content.open()
 
