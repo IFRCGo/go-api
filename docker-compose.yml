@@ -4,6 +4,7 @@ services:
   base_django_setup: &base_django_setup
     image: ifrcgo/go-api:latest
     environment:
+      DJANGO_DEBUG: 'true'
       # DJANGO_DB_NAME: ${DJANGO_DB_NAME:-test}
       # DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-test}
       # DJANGO_DB_HOST: ${DJANGO_DB_HOST:-db}

@@ -19,6 +19,7 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
+    GO_ENVIRONMENT=(str, 'development'),
     #
     API_FQDN=(str, 'localhost:8000'),  # sub-domain.domain.domain-extension
     # Database
@@ -85,6 +86,7 @@ ALLOWED_HOSTS = ['localhost', '0.0.0.0', GO_API_FQDN]
 
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
+GO_ENVIRONMENT = env('GO_ENVIRONMENT')
 
 # See if we are inside a test environment
 TESTING = any([
