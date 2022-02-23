@@ -19,6 +19,7 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org
     GO_ENVIRONMENT=(str, 'development'),
     #
     API_FQDN=(str, 'localhost:8000'),  # sub-domain.domain.domain-extension
@@ -82,7 +83,12 @@ DEBUG_TOOLBAR_CONFIG = {
     ],
 }
 
-ALLOWED_HOSTS = ['localhost', '0.0.0.0', GO_API_FQDN]
+ALLOWED_HOSTS = [
+    'localhost',
+    '0.0.0.0',
+    GO_API_FQDN,
+    *env('DJANGO_ADDITIONAL_ALLOWED_HOSTS'),
+]
 
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
