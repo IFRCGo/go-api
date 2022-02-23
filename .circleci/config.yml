@@ -13,7 +13,8 @@ jobs:
           name: build docker base image
           command: |
             export DOCKER_BUILDKIT=1
-            docker-compose build --progress plain base
+            cp .env-sample .env
+            docker-compose build --progress plain
             docker-compose pull db redis
       - run:
           name: Validate if there are no pending django migrations.

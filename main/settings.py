@@ -20,9 +20,10 @@ env = environ.Env(
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
     DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org,prddsgocdnapi.azureedge.net
-    GO_ENVIRONMENT=(str, 'development'),
+    GO_ENVIRONMENT=(str, 'development'),  # staging, production
     #
-    API_FQDN=(str, 'localhost:8000'),  # sub-domain.domain.domain-extension
+    API_FQDN=str,  # sub-domain.domain.domain-extension
+    FRONTEND_URL=str,
     # Database
     DJANGO_DB_NAME=str,
     DJANGO_DB_USER=str,
@@ -33,10 +34,12 @@ env = environ.Env(
     AZURE_STORAGE_ACCOUNT=(str, None),
     AZURE_STORAGE_KEY=(str, None),
     # Email
+    EMAIL_API_ENDPOINT=(str, None),
     EMAIL_HOST=(str, None),
     EMAIL_PORT=(str, None),
     EMAIL_USER=(str, None),
     EMAIL_PASS=(str, None),
+    TEST_EMAILS=(list, ['im@ifrc.org']),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
     # AWS Translate NOTE: not used right now
     AWS_TRANSLATE_ACCESS_KEY=(str, None),
@@ -58,6 +61,13 @@ env = environ.Env(
     APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=(str, None),
     # Pytest (Only required when running tests)
     PYTEST_XDIST_WORKER=(str, None),
+    # Elastic-Cache
+    ES_HOST=(str, None),
+    # FTP
+    GO_FTPHOST=(str, None),
+    GO_FTPUSER=(str, None),
+    GO_FTPPASS=(str, None),
+    GO_DBPASS=(str, None),
 )
 
 
@@ -318,22 +328,27 @@ STATICFILES_DIRS = [
 ]
 
 
+AZURE_STORAGE_ACCOUNT = env('AZURE_STORAGE_ACCOUNT')
+AZURE_STORAGE_KEY = env('AZURE_STORAGE_KEY')
+
 AZURE_STORAGE = {
     'CONTAINER': 'api',
-    'ACCOUNT_NAME': env('AZURE_STORAGE_ACCOUNT'),
-    'ACCOUNT_KEY': env('AZURE_STORAGE_KEY'),
+    'ACCOUNT_NAME': AZURE_STORAGE_ACCOUNT,
+    'ACCOUNT_KEY': AZURE_STORAGE_KEY,
     'CDN_HOST': None,
     'USE_SSL': False,
 }
-if env('AZURE_STORAGE_ACCOUNT'):
+if AZURE_STORAGE_ACCOUNT:
     # FIXME: Use https://django-storages.readthedocs.io/en/latest/backends/azure.html instead.
     DEFAULT_FILE_STORAGE = 'api.storage.AzureStorage'
 
 # Email config
+EMAIL_API_ENDPOINT = env('EMAIL_API_ENDPOINT')
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_PORT = env('EMAIL_PORT')
-EMAIL_HOST_USER = env('EMAIL_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_PASS')
+EMAIL_USER = env('EMAIL_USER')
+EMAIL_PASS = env('EMAIL_PASS')
+TEST_EMAILS = env('TEST_EMAILS')
 DEBUG_EMAIL = env('DEBUG_EMAIL')
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
@@ -427,3 +442,15 @@ ERP_API_ENDPOINT = env('ERP_API_ENDPOINT')
 ERP_API_SUBSCRIPTION_KEY = env('ERP_API_SUBSCRIPTION_KEY')
 
 TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')
+
+# Elastic search host
+ELASTIC_SEARCH_HOST = env('ES_HOST')
+
+# FTP
+GO_FTPHOST = env('GO_FTPHOST')
+GO_FTPUSER = env('GO_FTPUSER')
+GO_FTPPASS = env('GO_FTPPASS')
+GO_DBPASS = env('GO_DBPASS')
+
+# MISC
+FRONTEND_URL = env('FRONTEND_URL')

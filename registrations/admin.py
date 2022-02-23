@@ -1,17 +1,30 @@
 from django.contrib import admin
+from django.template.loader import render_to_string
+from django.http import HttpResponseRedirect
+from django.conf import settings
+from reversion_compare.admin import CompareVersionAdmin
+
 from api.logger import logger
 from api.models import User, UserRegion, Country, Profile
 import registrations.models as models
-from reversion_compare.admin import CompareVersionAdmin
 from notifications.notification import send_notification
-from django.template.loader import render_to_string
-from main.frontend import frontend_url
-from django.http import HttpResponse, HttpResponseRedirect
+
 
 class PendingAdmin(CompareVersionAdmin):
-    readonly_fields = ('get_username_and_mail','get_region','get_country','get_org','get_city','get_department','get_position','get_phone','justification','created_at')
+    readonly_fields = (
+        'get_username_and_mail',
+        'get_region',
+        'get_country',
+        'get_org',
+        'get_city',
+        'get_department',
+        'get_position',
+        'get_phone',
+        'justification',
+        'created_at',
+    )
     search_fields = ('user__username', 'user__email', 'admin_contact_1', 'admin_contact_2')
-    list_display = ('get_username_and_mail', 'get_region','get_country','created_at', 'email_verified')
+    list_display = ('get_username_and_mail', 'get_region', 'get_country', 'created_at', 'email_verified')
     actions = ('activate_users',)
     list_filter = ['email_verified']
 
@@ -39,7 +52,7 @@ class PendingAdmin(CompareVersionAdmin):
     def get_region(self, obj):
         if obj.user.profile.country:
             return obj.user.profile.country.region
-        else:  
+        else:
             return obj.user.profile.country
 
     get_region.short_description = 'Region'
@@ -91,13 +104,15 @@ class PendingAdmin(CompareVersionAdmin):
                 if usr.is_active is False:
 
                     email_context = {
-                        'frontend_url': frontend_url
+                        'frontend_url': settings.FRONTEND_URL
                     }
 
-                    send_notification('Your account has been approved',
-                              [usr.email],
-                              render_to_string('email/registration/outside-email-success.html', email_context),
-                              'Approved account successfully - ' + usr.username)
+                    send_notification(
+                        'Your account has been approved',
+                        [usr.email],
+                        render_to_string('email/registration/outside-email-success.html', email_context),
+                        f'Approved account successfully - {usr.username}'
+                    )
 
                     usr.is_active = True
                     usr.save()
@@ -105,7 +120,6 @@ class PendingAdmin(CompareVersionAdmin):
                     logger.info(f'User {usr.username} was already active')
             else:
                 logger.info(f'There is no User record with the ID: {pu.user_id}')
-
 
     def response_change(self, request, obj):
         if "_activate-user" in request.POST:
@@ -115,13 +129,15 @@ class PendingAdmin(CompareVersionAdmin):
                 if usr.is_active is False:
 
                     email_context = {
-                        'frontend_url': frontend_url
+                        'frontend_url': settings.FRONTEND_URL
                     }
 
-                    send_notification('Your account has been approved',
-                              [usr.email],
-                              render_to_string('email/registration/outside-email-success.html', email_context),
-                              'Approved account successfully - ' + usr.username)
+                    send_notification(
+                        'Your account has been approved',
+                        [usr.email],
+                        render_to_string('email/registration/outside-email-success.html', email_context),
+                        f'Approved account successfully - {usr.username}'
+                    )
 
                     usr.is_active = True
                     usr.save()

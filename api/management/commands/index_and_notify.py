@@ -1,10 +1,13 @@
+import html
 from datetime import datetime, timezone, timedelta
+
 from django.db.models import Q, F, ExpressionWrapper, DurationField, Sum
 from django.db.models.query import QuerySet
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.template.loader import render_to_string
+
 from elasticsearch.helpers import bulk
 from utils.elasticsearch import construct_es_data
 from api.esconnection import ES_CLIENT
@@ -14,8 +17,6 @@ from notifications.models import RecordType, SubscriptionType, Subscription, Sur
 from notifications.hello import get_hello
 from notifications.notification import send_notification
 from deployments.models import PersonnelDeployment, ERU, Personnel
-from main.frontend import frontend_url
-import html
 
 time_5_minutes = timedelta(minutes=5)
 time_1_day = timedelta(days=1)
@@ -123,7 +124,8 @@ class Command(BaseCommand):
             subscribers = User.objects.filter(subscription__rtype=rtype_of_subscr,
                                               subscription__stype=stype, is_active=True).values('email')
 
-        # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one. This part is not called.
+        # For FOLLOWED_EVENTs and DEPLOYMENTs we do not collect other generic (d*, country, region) subscriptions, just one.
+        # This part is not called.
         if rtype_of_subscr != RecordType.FOLLOWED_EVENT and \
            rtype_of_subscr != RecordType.SURGE_ALERT and \
            rtype_of_subscr != RecordType.SURGE_DEPLOYMENT_MESSAGES:
@@ -136,7 +138,9 @@ class Command(BaseCommand):
 
             lookups = dtypes + countries + regions
             if len(lookups):
-                subscribers = (subscribers | User.objects.filter(subscription__lookup_id__in=lookups, is_active=True).values('email')).distinct()
+                subscribers = (
+                    subscribers | User.objects.filter(subscription__lookup_id__in=lookups, is_active=True).values('email')
+                ).distinct()
         emails = list(set([subscriber['email'] for subscriber in subscribers]))
         return emails
 
@@ -148,21 +152,26 @@ class Command(BaseCommand):
     # Get the front-end url of the resource
     def get_resource_uri(self, record, rtype):
         # Determine the front-end URL
-        resource_uri = frontend_url
-        if rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT: # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
-            belonging_event = record.event.id if record.event is not None else 57 # Very rare – giving a non-existent | manually created surge – no event
-            resource_uri = '%s/emergencies/%s#surge' % (frontend_url, belonging_event)
+        resource_uri = settings.FRONTEND_URL
+        if (
+            rtype == RecordType.SURGE_ALERT or rtype == RecordType.FIELD_REPORT
+        ):  # Pointing to event instead of field report %s/%s/%s - Munu asked - ¤
+            belonging_event = (
+                record.event.id if record.event is not None else 57
+            )  # Very rare – giving a non-existent | manually created surge – no event
+            resource_uri = '%s/emergencies/%s#surge' % (settings.FRONTEND_URL, belonging_event)
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
-            resource_uri = '%s/%s' % (frontend_url, 'deployments')  # can be further sophisticated
+            resource_uri = '%s/%s' % (settings.FRONTEND_URL, 'deployments')  # can be further sophisticated
         elif rtype == RecordType.APPEAL and (
                 record.event is not None and not record.needs_confirmation):
             # Appeals with confirmed emergencies link to that emergency
-            resource_uri = '%s/emergencies/%s' % (frontend_url, record.event.id)
+            resource_uri = '%s/emergencies/%s' % (settings.FRONTEND_URL, record.event.id)
         elif rtype != RecordType.APPEAL:
             # One-by-one followed or globally subscribed emergencies
             resource_uri = '%s/%s/%s' % (
-                frontend_url,
-                'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports', # this else never occurs, see ¤
+                settings.FRONTEND_URL,
+                # this else never occurs, see ¤
+                'emergencies' if rtype == RecordType.EVENT or rtype == RecordType.FOLLOWED_EVENT else 'reports',
                 record.id
             )
         return resource_uri
@@ -191,13 +200,16 @@ class Command(BaseCommand):
                     sendMe = sendMe + ' (' + country + ')'
             return sendMe
         elif rtype == RecordType.SURGE_ALERT:
-            duration = (record.end-record.start).days
+            duration = (record.end - record.start).days
             if duration > 29:
                 durationMonth = (record.end - record.start).days // 30
                 duration = f"{durationMonth} month{'s' if durationMonth > 1 else ''}"
             else:
                 duration = f"{(record.end - record.start).days} days"
-            return f"{record.operation if record.operation_en else record.event.name}, {duration} starting on {record.start.date()}"
+            return (
+                f'{record.operation if record.operation_en else record.event.name}'
+                f', {duration} starting on {record.start.date()}'
+            )
             # go-frontend/issues/2041: del ' (' + record.atype.name + ', ' + record.category.name.lower() +')'
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
             return '%s, %s' % (record.country_deployed_to, record.region_deployed_to)
@@ -296,7 +308,10 @@ class Command(BaseCommand):
         #         alert_to_add = {
         #             'type': 'Alert',
         #             'operation': alert.operation,
-        #             'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+        #            'event_url': (
+        #                '{}/emergencies/{}#overview'.format(settings.FRONTEND_URL, event.id) if event else
+        #                settings.FRONTEND_URL,
+        #            ),
         #             'society_from': '',
         #             'deployed_to': '',
         #             'name': '',
@@ -313,7 +328,10 @@ class Command(BaseCommand):
             country_from = Country.objects.get(id=pers.country_from_id) if pers.country_from_id is not None else None
             dep_to_add = {
                 'operation': event.name if event else '',
-                'event_url': '{}/emergencies/{}#overview'.format(frontend_url, event.id) if event else frontend_url,
+                'event_url': (
+                    '{}/emergencies/{}#overview'.format(settings.FRONTEND_URL, event.id) if event else
+                    settings.FRONTEND_URL
+                ),
                 'society_from': country_from.society_name if country_from else '',
                 'name': pers.name,
                 'role': pers.role,
@@ -329,7 +347,9 @@ class Command(BaseCommand):
         events = Event.objects.filter(is_featured=True, updated_at__gte=dig_time).order_by('-updated_at')
         ret_highlights = []
         for ev in events:
-            amount_requested = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
+            amount_requested = (
+                Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_requested'))['amount_requested__sum'] or '--'
+            )
             amount_funded = Appeal.objects.filter(event_id=ev.id).aggregate(Sum('amount_funded'))['amount_funded__sum'] or '--'
             coverage = '--'
 
@@ -340,7 +360,9 @@ class Command(BaseCommand):
                 'hl_id': ev.id,
                 'hl_name': ev.name,
                 'hl_last_update': ev.updated_at,
-                'hl_people': Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or '--',
+                'hl_people': (
+                    Appeal.objects.filter(event_id=ev.id).aggregate(Sum('num_beneficiaries'))['num_beneficiaries__sum'] or '--'
+                ),
                 'hl_funding': amount_requested,
                 'hl_deployed_eru': ERU.objects.filter(event_id=ev.id).aggregate(Sum('units'))['units__sum'] or '--',
                 'hl_deployed_sp': PersonnelDeployment.objects.filter(event_deployed_to_id=ev.id).count(),
@@ -470,17 +492,19 @@ class Command(BaseCommand):
                     volunteers += int(f.num_volunteers or 0)
                     delegates += int(f.num_expats_delegates or 0)
             resource_uri, follow_url = self.get_resource_uri(record, rtype), None
-            if resource_uri != frontend_url:
-                # instead of '{}/account#notifications'.format(frontend_url):
+            if resource_uri != settings.FRONTEND_URL:
+                # instead of '{}/account#notifications'.format(settings.FRONTEND_URL):
                 follow_url = resource_uri + '/follow'
                 resource_uri += '#overview'
             rec_obj = {
-                'frontend_url': frontend_url,
+                'frontend_url': settings.FRONTEND_URL,
                 'resource_uri': resource_uri,
                 'follow_url': follow_url,
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'situation_overview': Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else '',
+                'situation_overview': (
+                    Event.objects.values_list('summary', flat=True).get(id=record.event_id) if record.event_id is not None else ''
+                ),
                 'key_figures': {
                     'people_targeted': float(record.num_beneficiaries),
                     'funding_req': float(record.amount_requested),
@@ -513,7 +537,7 @@ class Command(BaseCommand):
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
                 'content': shortened,
-        }
+            }
         else:  # The default (old) template
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
@@ -698,13 +722,24 @@ class Command(BaseCommand):
             if len(recipients):
                 # check if email is not in events_sent_to{event_id: recipients}
                 if not emails:
-                    logger.info('Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid))
-                # Recently we do not allow EDIT (modif.) subscription, so it is irrelevant recently (do not check the 1+ events in loop) :
+                    logger.info(
+                        'Silent about the one-by-one subscribed %s – user %s has not set email address' % (record_type, uid)
+                    )
+                # Recently we do not allow EDIT (modif.) subscription
+                # , so it is irrelevant recently (do not check the 1+ events in loop) :
                 elif (records[0].id not in events_sent_to) or (emails[0] not in events_sent_to[records[0].id]):
-                    logger.info('Notifying %s subscriber about %s one-by-one subscribed %s' % (len(emails), record_count, record_type))
+                    logger.info(
+                        'Notifying %s subscriber about %s one-by-one subscribed %s' % (
+                            len(emails),
+                            record_count,
+                            record_type,
+                        )
+                    )
                     send_notification(subject, recipients, html, RTYPE_NAMES[rtype] + ' notification - ' + subject)
                 else:
-                    logger.info('Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type))
+                    logger.info(
+                        'Silent about a one-by-one subscribed %s – user already notified via generic subscription' % (record_type)
+                    )
 
     def index_records(self, records, to_create=True):
         self.bulk([construct_es_data(record, is_create=to_create) for record in list(records)])
@@ -732,7 +767,9 @@ class Command(BaseCommand):
                 record.updated_at.replace(microsecond=0) == record.created_at.replace(microsecond=0))]
 
     def check_ingest_issues(self, having_ingest_issue):
-        # having_ingest_issue = CronJob.objects.raw('SELECT * FROM api_cronjob WHERE status=' + str(CronJobStatus.ERRONEOUS.value))
+        # having_ingest_issue = CronJob.objects.raw(
+        #     f'SELECT * FROM api_cronjob WHERE status={CronJobStatus.ERRONEOUS.value}'
+        # )
         ingest_issue_id = having_ingest_issue[0].id if len(having_ingest_issue) > 0 else -1
         ingestor_name = having_ingest_issue[0].name if len(having_ingest_issue) > 0 else ''
         if len(having_ingest_issue) > 0:
@@ -756,7 +793,9 @@ class Command(BaseCommand):
         condU = Q(updated_at__gte=time_diff)
         condR = Q(real_data_update__gte=time_diff)  # instead of modified at
         cond2 = ~Q(previous_update__gte=time_diff_1_day)  # negate (~) no previous_update in the last day, so send once a day
-        condF = Q(auto_generated_source='New field report')  # exclude those events that were generated from field reports, to avoid 2x notif.
+        condF = Q(
+            auto_generated_source='New field report'
+        )  # exclude those events that were generated from field reports, to avoid 2x notif.
         condE = Q(status=CronJobStatus.ERRONEOUS)
 
         # ".annotate(diff...)" - To check if a record was newly created, we check if

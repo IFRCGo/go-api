@@ -1,9 +1,8 @@
-import os
 from elasticsearch import Elasticsearch
+from django.conf import settings
 
-host = os.environ.get('ES_HOST')
-if host is not None:
-    ES_CLIENT = Elasticsearch([host], timeout=2, max_retries=3, retry_on_timeout=True)
+if settings.ELASTIC_SEARCH_HOST is not None:
+    ES_CLIENT = Elasticsearch([settings.ELASTIC_SEARCH_HOST], timeout=2, max_retries=3, retry_on_timeout=True)
 else:
     print('Warning: No elasticsearch host found, will not index elasticsearch')
     ES_CLIENT = None
