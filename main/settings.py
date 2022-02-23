@@ -19,7 +19,7 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
-    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org,prddsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, 'development'),
     #
     API_FQDN=(str, 'localhost:8000'),  # sub-domain.domain.domain-extension
@@ -63,12 +63,6 @@ env = environ.Env(
 
 # Requires uppercase variable https://docs.djangoproject.com/en/2.1/topics/settings/#creating-your-own-settings
 BASE_URL = GO_API_FQDN = env('API_FQDN')
-
-# Backend URL nicing:
-# XXX: Why not use goadmin.ifrc.org directly in production instead of prddsgocdnapi.azureedge.net
-if BASE_URL == 'prddsgocdnapi.azureedge.net':
-    BASE_URL = 'goadmin.ifrc.org'
-# The frontend_url nicing is in frontend.py
 
 INTERNAL_IPS = ['127.0.0.1']
 if env('DOCKER_HOST_IP'):
