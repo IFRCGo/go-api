@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 
 x-server: &base_server_setup
   image: ifrcgo/go-api:latest
