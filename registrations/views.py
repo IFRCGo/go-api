@@ -10,14 +10,14 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from rest_framework.views import APIView
+
 from api.views import (
     bad_request,
     bad_http_request,
 )
-from api.models import Country,Profile, UserRegion
-from .models import Pending, DomainWhitelist
+from api.models import Country, Profile, UserRegion
 from notifications.notification import send_notification
-from main.frontend import frontend_url
+from .models import Pending, DomainWhitelist
 
 
 def is_valid_domain(email):
@@ -71,11 +71,12 @@ def set_user_profile(user, country, organization_type, organization, city, depar
     user.save()
     return user
 
+
 def getRegionalAdmins(userId):
     countryId = Profile.objects.get(user_id=userId).country_id
-    regionId = Country.objects.get(id = countryId).region_id
+    regionId = Country.objects.get(id=countryId).region_id
 
-    admins = UserRegion.objects.filter(region_id=regionId).values_list('user__email',flat=True)
+    admins = UserRegion.objects.filter(region_id=regionId).values_list('user__email', flat=True)
     return admins
 
 
@@ -136,11 +137,9 @@ class NewRegistration(APIView):
             User.objects.filter(username=username).delete()
             return bad_request('Could not create user profile.')
 
-
-        pending = Pending.objects.create(user=user, justification=justification,
-                                         token=get_random_string(length=32))
+        pending = Pending.objects.create(user=user, justification=justification, token=get_random_string(length=32))
         if not is_staff:
-               pending.admin_token_1 = get_random_string(length=32)
+            pending.admin_token_1 = get_random_string(length=32)
 
         pending.save()
 
@@ -200,7 +199,7 @@ class VerifyEmail(APIView):
             pending_user.user.save()
             pending_user.delete()
             email_context = {
-                'frontend_url': frontend_url
+                'frontend_url': settings.FRONTEND_URL
             }
             return HttpResponse(render_to_string('registration/success.html', email_context))
         else:
@@ -208,7 +207,7 @@ class VerifyEmail(APIView):
             admins = getRegionalAdmins(pending_user.user_id)
 
             for admin in admins:
-                token = pending_user.admin_token_1 
+                token = pending_user.admin_token_1
                 email_context = {
                     'validation_link': 'https://%s/validate_user/?token=%s&user=%s' % (
                         settings.BASE_URL,  # on PROD it should point to goadmin...
@@ -219,7 +218,7 @@ class VerifyEmail(APIView):
                     'last_name': pending_user.user.last_name,
                     'username': pending_user.user.username,
                     'email': pending_user.user.email,
-                    'region': pending_user.user.profile.country.region ,
+                    'region': pending_user.user.profile.country.region,
                     'country': pending_user.user.profile.country,
                     'organization': pending_user.user.profile.org,
                     'city': pending_user.user.profile.city,
@@ -263,20 +262,21 @@ class ValidateUser(APIView):
             return bad_http_request('Already confirmed',
                                     'You have already confirmed this user.')
 
-        setattr(pending_user, 'admin_1_validated' , True)
-        setattr(pending_user, 'admin_1_validated_date' , timezone.now())
+        setattr(pending_user, 'admin_1_validated', True)
+        setattr(pending_user, 'admin_1_validated_date', timezone.now())
         pending_user.save()
 
-        if pending_user.admin_1_validated: # and pending_user.admin_2_validated:
+        if pending_user.admin_1_validated:  # and pending_user.admin_2_validated:
             pending_user.user.is_active = True
             pending_user.user.save()
             email_context = {
-                'frontend_url': frontend_url
+                'frontend_url': settings.FRONTEND_URL
             }
-            send_notification('Your account has been approved',
-                              [pending_user.user.email],
-                              render_to_string('email/registration/outside-email-success.html', email_context),
-                              'Approved account successfully - ' + pending_user.user.username)
+            send_notification(
+                'Your account has been approved',
+                [pending_user.user.email],
+                render_to_string('email/registration/outside-email-success.html', email_context),
+                f'Approved account successfully - {pending_user.user.username}'
+            )
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
-

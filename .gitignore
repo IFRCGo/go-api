@@ -6,6 +6,7 @@ env
 
 # secret settings env variables
 .env*
+!.env-sample
 
 # python stuff
 *.pyc

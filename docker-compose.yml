@@ -1,45 +1,35 @@
 version: '3'
 
+x-server: &base_server_setup
+  image: ifrcgo/go-api:latest
+  build: .
+  tty: true
+  environment:
+    # Overwrite this using .env (for additional configuration, look at main/settings.py:env
+    # Database (from db.environment)
+    DJANGO_DB_HOST: ${DJANGO_DB_HOST:-db}
+    DJANGO_DB_NAME: ${DJANGO_DB_NAME:-test}
+    DJANGO_DB_USER: ${DJANGO_DB_USER:-test}
+    DJANGO_DB_PASS: ${DJANGO_DB_PASS:-test}
+    # Other development defaults configs
+    DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+    GO_ENVIRONMENT: ${GO_ENVIRONMENT:-development}
+    API_FQDN: ${API_FQDN:-localhost:8000}
+    FRONTEND_URL: ${FRONTEND_URL:-localhost:3000}
+    DEBUG_EMAIL: ${DEBUG_EMAIL:-true}
+    MOLNIX_API_BASE: ${MOLNIX_API_BASE:-https://api.ifrc-staging.rpm.molnix.com/api/}
+    ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
+    ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
+  env_file:
+    - .env
+  volumes:
+    - '.:/home/ifrc/go-api'
+  depends_on:
+    - db
+    - redis
+
+
 services:
-  base_django_setup: &base_django_setup
-    image: ifrcgo/go-api:latest
-    environment:
-      DJANGO_DEBUG: 'true'
-      # DJANGO_DB_NAME: ${DJANGO_DB_NAME:-test}
-      # DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-test}
-      # DJANGO_DB_HOST: ${DJANGO_DB_HOST:-db}
-      # DJANGO_DB_USER: ${DJANGO_DB_USER:-test}
-      # DJANGO_DB_PASS: ${DJANGO_DB_PASS:-test}
-      DJANGO_DB_NAME: test
-      DJANGO_SECRET_KEY: test
-      DJANGO_DB_HOST: db
-      DJANGO_DB_USER: test
-      DJANGO_DB_PASS: test
-      DEBUG_EMAIL: ${DEBUG_EMAIL:-}
-      FRONTEND_URL: ${FRONTEND_URL:-}
-      FDRS_CREDENTIAL: ${FDRS_CREDENTIAL:-}
-      HPC_CREDENTIAL: ${HPC_CREDENTIAL:-}
-      APPEALS_USER: ${APPEALS_USER:-}
-      APPEALS_PASS: ${APPEALS_PASS:-}
-      AWS_TRANSLATE_ACCESS_KEY: ${AWS_TRANSLATE_ACCESS_KEY:-}
-      AWS_TRANSLATE_SECRET_KEY: ${AWS_TRANSLATE_SECRET_KEY:-}
-      AWS_TRANSLATE_REGION: ${AWS_TRANSLATE_REGION:-}
-      APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: ${APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:-}
-      ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-}
-      ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-}
-    volumes:
-      - '.:/home/ifrc/go-api'
-    depends_on:
-      - db
-      - redis
-    links:
-      - db
-      - redis
-
-  base:
-    build: .
-    image: ifrcgo/go-api:latest
-
   db:
     image: postgis/postgis:11-3.1-alpine
     environment:
@@ -47,7 +37,6 @@ services:
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      # Database migration should be done manually, so .tmp -> .db:
       - './.db/pg:/var/lib/postgresql/data'
 
   redis:
@@ -56,98 +45,98 @@ services:
       - redis-data:/data
 
   serve:
-    <<: *base_django_setup
+    <<: *base_server_setup
     ports:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000
 
   # For development only
-  celery:
-    <<: *base_django_setup
-    command: python manage.py run_celery_dev
+  # celery:
+  #   <<: *base_server_setup
+  #   command: python manage.py run_celery_dev
 
   bash:
-    <<: *base_django_setup
+    <<: *base_server_setup
     entrypoint: /bin/bash
 
   shell:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py shell
 
   loaddata:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
 
   ingest_databank:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py ingest_databank
 
   collectstatic:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py collectstatic --noinput -l
 
   createsuperuser:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py createsuperuser
 
   ingest_appeals:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py ingest_appeals
 
   ingest_appeal_docs:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py ingest_appeal_docs
 
   ingest_appeal_docs:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py user_registration_reminder
 
   ingest_appeal_docs_fullscan:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py ingest_appeal_docs --fullscan
 
   ingest_mdb:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py ingest_mdb
 
   migrate:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py migrate
 
   makemigrations:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py makemigrations
 
   makemigrations_merge:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py makemigrations --merge
 
   make_permissions:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py make_permissions
 
   test:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: pytest --durations=10
 
   test_snapshot_update:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py test -k --snapshot-update
 
   coverage:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: coverage run --source='.' manage.py test -k
 
   coverage_report:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: coverage report
 
   coverage_html:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: coverage html
 
   triggers_to_db:
-    <<: *base_django_setup
+    <<: *base_server_setup
     command: python manage.py triggers_to_db
 
 volumes:

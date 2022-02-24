@@ -2,14 +2,17 @@ import os
 import csv
 import subprocess
 import pytz
-from django.utils import timezone
 from datetime import datetime, timedelta
 from glob import glob
 from ftplib import FTP
 from zipfile import ZipFile
+
+from django.utils import timezone
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+
 from api.models import (
     DisasterType,
     Country,
@@ -26,6 +29,7 @@ from api.event_sources import SOURCES
 from api.logger import logger
 
 REPORT_DATE_FORMAT = '%m/%d/%y %H:%M:%S'
+
 
 def extract_table(dbfile, table):
     """ Extract a table from the Access database """
@@ -54,10 +58,10 @@ def contact_is_valid(contact, field):
 
 
 def get_dbfile():
-    ftphost = os.environ.get('GO_FTPHOST', None)
-    ftpuser = os.environ.get('GO_FTPUSER', None)
-    ftppass = os.environ.get('GO_FTPPASS', None)
-    dbpass = os.environ.get('GO_DBPASS', None)
+    ftphost = settings.GO_FTPHOST
+    ftpuser = settings.GO_FTPUSER
+    ftppass = settings.GO_FTPPASS
+    dbpass = settings.GO_DBPASS
     if ftphost is None or ftpuser is None or ftppass is None:
         if os.path.exists('URLs.mdb'):
             logger.info('No credentials in env, using local MDB database file')
@@ -131,7 +135,7 @@ class Command(BaseCommand):
         if len(set(fids)) != len(fids):
             raise Exception('More than one InformationManagement record for a field report')
 
-        ### many-to-many
+        # ## many-to-many
 
         # actions taken
         actions_national = extract_table(filename, 'EW_Report_ActionTakenByRedCross')
@@ -261,7 +265,7 @@ class Command(BaseCommand):
                     field_report.regions.add(country.region)
                     event.regions.add(country.region)
 
-            ### add items with foreignkeys to report
+            # ## add items with foreignkeys to report
             # national red cross actions
             actions = fetch_relation(actions_national, report['ReportID'])
             if len(actions) > 0:
@@ -293,8 +297,10 @@ class Command(BaseCommand):
             sources = fetch_relation(source_table, report['ReportID'])
             for s in sources:
                 spec = '' if s['Specification'] is None else s['Specification']
-                src = Source.objects.create(stype=SourceType.objects.get(pk=s['SourceID']),
-                                            spec=spec, field_report=field_report)
+                Source.objects.create(
+                    stype=SourceType.objects.get(pk=s['SourceID']),
+                    spec=spec, field_report=field_report
+                )
 
             # disaster response
             response = fetch_relation(dr_table, report['ReportID'])
@@ -308,7 +314,7 @@ class Command(BaseCommand):
                 fields = ['Originator', 'Primary', 'Federation', 'NationalSociety', 'MediaNationalSociety', 'Media']
                 for f in fields:
                     if contact_is_valid(contact, f):
-                        ct = FieldReportContact.objects.create(
+                        FieldReportContact.objects.create(
                             ctype=f,
                             name=contact['%sName' % f],
                             title=contact['%sFunction' % f],
@@ -351,12 +357,13 @@ class Command(BaseCommand):
                 name = user_data['RealName'].split()
                 first_name = name[0]
                 last_name = ' '.join(name[1:]) if len(name) > 1 else ''
-                user = User.objects.create(username=user_data['UserName'],
-                                           first_name=first_name if len(first_name) <= 30 else '',
-                                           last_name=last_name if len(last_name) <= 30 else '',
-                                           email=user_data['EmailAddress'],
-                                           last_login=last_login,
-                                           )
+                user = User.objects.create(
+                    username=user_data['UserName'],
+                    first_name=first_name if len(first_name) <= 30 else '',
+                    last_name=last_name if len(last_name) <= 30 else '',
+                    email=user_data['EmailAddress'],
+                    last_login=last_login,
+                )
                 user.set_password(user_data['Password'])
                 user.is_staff = True if user_data['UserIsSysAdm'] == '1' else False
 
@@ -365,9 +372,9 @@ class Command(BaseCommand):
             user.profile.org_type = org_types.get(user_data['OrgTypeID'])
             # print(i, user_data['CountryID']) # - for debug purposes. Check go-api/data/Countries.csv for details.
             if user_data['CountryID'] in ['275', '281']:
-                user_data['CountryID'] = '47' #Hong Kong or Taiwan should be handled as China. Macao (279) is other case.
+                user_data['CountryID'] = '47'  # Hong Kong or Taiwan should be handled as China. Macao (279) is other case.
             elif user_data['CountryID'] in ['284']:
-                user_data['CountryID'] = '292' #Zone Central and West Africa -> Central Africa Country Cluster
+                user_data['CountryID'] = '292'  # Zone Central and West Africa -> Central Africa Country Cluster
             user.profile.country = Country.objects.get(pk=user_data['CountryID'])
             user.profile.city = user_data['City'] if len(user_data['City']) <= 100 else ''
             user.profile.department = user_data['Department'] if len(user_data['Department']) <= 100 else ''

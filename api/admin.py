@@ -1,4 +1,3 @@
-import os
 import csv
 import time
 from django.contrib.gis import admin as geoadmin
@@ -7,23 +6,24 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import format_html_join, format_html
 from django.utils.safestring import mark_safe
-from api.event_sources import SOURCES
-from api.admin_classes import RegionRestrictedAdmin
-from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
-import api.models as models
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.http import HttpResponse, HttpResponseRedirect
+from django.conf import settings
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
-from django.http import HttpResponse, HttpResponseRedirect
-from .forms import ActionForm
+from reversion_compare.admin import CompareVersionAdmin
 # from reversion.models import Revision
 
-from reversion_compare.admin import CompareVersionAdmin
+from api.event_sources import SOURCES
+from api.admin_classes import RegionRestrictedAdmin
+import api.models as models
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
-
 from api.management.commands.index_and_notify import Command as Notify
 from notifications.models import RecordType, SubscriptionType
+
+from .forms import ActionForm
 
 
 class ProfileInline(admin.StackedInline):
@@ -423,16 +423,18 @@ class AppealFilterAdmin(CompareVersionAdmin):
     list_display = ('name', 'value')
     search_fields = ('name', 'value')
 
+
 class UserCountryAdmin(CompareVersionAdmin):
-    list_display = ('user','country')
-    #search_fields = ('user','country')
+    list_display = ('user', 'country')
+    # search_fields = ('user','country')
     model = models.UserCountry
 
+
 class UserRegionAdmin(CompareVersionAdmin):
-    list_display = ['user','get_firstname','get_lastname','get_email','region',]
+    list_display = ['user', 'get_firstname', 'get_lastname', 'get_email', 'region']
 
     def get_firstname(self, obj):
-        return obj.user.first_name 
+        return obj.user.first_name
     get_firstname.short_description = 'First name'
     get_firstname.admin_order_field = 'user__first_name'
 
@@ -446,9 +448,9 @@ class UserRegionAdmin(CompareVersionAdmin):
     get_email.short_description = 'Email'
     get_email.admin_order_field = 'user__email'
 
-
-    #search_fields = ('user','country')
+    # search_fields = ('user','country')
     model = models.UserRegion
+
 
 class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     search_fields = ('name',)
@@ -783,5 +785,6 @@ admin.site.register(models.MainContact, MainContactAdmin)
 admin.site.register(models.UserCountry, UserCountryAdmin)
 admin.site.register(models.UserRegion, UserRegionAdmin)
 # admin.site.register(Revision, RevisionAdmin)
-admin.site.site_url = 'https://' + os.environ.get('FRONTEND_URL')
+
+admin.site.site_url = 'https://' + settings.FRONTEND_URL
 admin.widgets.RelatedFieldWidgetWrapper.template_name = 'related_widget_wrapper.html'
