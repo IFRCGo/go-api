@@ -62,7 +62,7 @@ env = environ.Env(
     # Pytest (Only required when running tests)
     PYTEST_XDIST_WORKER=(str, None),
     # Elastic-Cache
-    ES_HOST=(str, None),
+    ELASTIC_SEARCH_HOST=(str, None),
     # FTP
     GO_FTPHOST=(str, None),
     GO_FTPUSER=(str, None),
@@ -444,7 +444,7 @@ ERP_API_SUBSCRIPTION_KEY = env('ERP_API_SUBSCRIPTION_KEY')
 TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')
 
 # Elastic search host
-ELASTIC_SEARCH_HOST = env('ES_HOST')
+ELASTIC_SEARCH_HOST = env('ELASTIC_SEARCH_HOST')
 
 # FTP
 GO_FTPHOST = env('GO_FTPHOST')
