@@ -1,179 +1,179 @@
 [
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 27,
         "fields": {
             "name": "Damage/Needs assessment",
             "organizations": "[\"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\", \"COVID\"]",
+            "flash_update_types": "[\"EW\", \"COVID\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 28,
         "fields": {
             "name": "Search & Rescue",
             "organizations": "[\"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EVT\", \"EW\", \"EPI\"]",
+            "flash_update_types": "[\"EVT\", \"EW\", \"EPI\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 29,
         "fields": {
             "name": "Water & Sanitation",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EVT\", \"EW\"]",
+            "flash_update_types": "[\"EVT\", \"EW\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 30,
         "fields": {
             "name": "Food aid",
             "organizations": "[\"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EVT\", \"EW\", \"EPI\"]",
+            "flash_update_types": "[\"EVT\", \"EW\", \"EPI\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 31,
         "fields": {
             "name": "Health",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\"]",
-            "informal_update_types": "[\"EVT\", \"EW\"]",
+            "flash_update_types": "[\"EVT\", \"EW\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 32,
         "fields": {
             "name": "Shelter",
             "organizations": "[\"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
+            "flash_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 33,
         "fields": {
             "name": "Camp management",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
+            "flash_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 34,
         "fields": {
             "name": "Psychosocial support services",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\"]",
-            "informal_update_types": "[\"EW\", \"EPI\"]",
+            "flash_update_types": "[\"EW\", \"EPI\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 35,
         "fields": {
             "name": "RFL",
             "organizations": "[\"PNS\", \"FDRN\"]",
-            "informal_update_types": "[\"EVT\", \"EW\"]",
+            "flash_update_types": "[\"EVT\", \"EW\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 36,
         "fields": {
             "name": "Evacuation",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\", \"EPI\"]",
+            "flash_update_types": "[\"EW\", \"EPI\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 37,
         "fields": {
             "name": "First Aid",
             "organizations": "[\"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
+            "flash_update_types": "[\"EW\", \"EPI\", \"COVID\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 38,
         "fields": {
             "name": "Relief/Supply distribution",
             "organizations": "[\"PNS\", \"FDRN\"]",
-            "informal_update_types": "[\"EVT\", \"EW\"]",
+            "flash_update_types": "[\"EVT\", \"EW\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 39,
         "fields": {
             "name": "Other",
             "organizations": "[\"NTLS\", \"PNS\", \"FDRN\", \"GOV\"]",
-            "informal_update_types": "[\"EW\"]",
+            "flash_update_types": "[\"EW\"]",
             "category": "Health",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 40,
         "fields": {
             "name": "Human remains management and identification",
             "organizations": "[\"NTLS\", \"PNS\"]",
-            "informal_update_types": "[\"EVT\"]",
+            "flash_update_types": "[\"EVT\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""
         }
     },
     {
-        "model": "informal_update.informalaction",
+        "model": "flash_update.flashaction",
         "pk": 41,
         "fields": {
             "name": "CVA/Basic needs",
             "organizations": "[\"NTLS\"]",
-            "informal_update_types": "[\"EW\"]",
+            "flash_update_types": "[\"EW\"]",
             "category": "General",
             "is_disabled": false,
             "tooltip_text": ""

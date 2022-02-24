@@ -1,4 +1,5 @@
 from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework import (
     views,
     viewsets,
@@ -11,38 +12,36 @@ from rest_framework.decorators import action
 
 from api.serializers import ActionSerializer
 from .models import (
-    InformalUpdate,
-    InformalGraphicMap,
-    InformalAction
+    FlashUpdate,
+    FlashGraphicMap,
+    FlashAction
 )
 from .serializers import (
-    InformalUpdateSerializer,
-    InformalGraphicMapSerializer
+    FlashUpdateSerializer,
+    FlashGraphicMapSerializer
 )
-from .filter_set import InformalUpdateFilter
+from .filter_set import FlashUpdateFilter
 
 
-class InformalUpdateViewSet(viewsets.ModelViewSet):
-    serializer_class = InformalUpdateSerializer
+class FlashUpdateViewSet(viewsets.ModelViewSet):
+    serializer_class = FlashUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filterset_class = InformalUpdateFilter
+    filterset_class = FlashUpdateFilter
 
     def get_queryset(self):
-        return InformalUpdate.objects.filter(
-            created_by=self.request.user
-        ).order_by('-created_at').distinct()
+        return FlashUpdate.objects.all().order_by('-created_at').distinct()
 
 
-class InformalUpdateFileViewSet(
+class FlashUpdateFileViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     viewsets.GenericViewSet
 ):
     permission_class = [permissions.IsAuthenticated]
-    serializer_class = InformalGraphicMapSerializer
+    serializer_class = FlashGraphicMapSerializer
 
     def get_queryset(self):
-        return InformalGraphicMap.objects.filter(created_by=self.request.user)
+        return FlashGraphicMap.objects.all()
 
     @action(
         detail=False,
@@ -54,7 +53,9 @@ class InformalUpdateFileViewSet(
         # converts querydict to original dict
         files = dict((request.data).lists())['file']
         data = [{'file': file} for file in files]
-        file_serializer = InformalGraphicMapSerializer(data=data, context={'request': request}, many=True)
+        if len(data) > 3:
+            raise serializers.ValidationError("Number of files selected should not be greater than 3")
+        file_serializer = FlashGraphicMapSerializer(data=data, context={'request': request}, many=True)
         if file_serializer.is_valid():
             file_serializer.save()
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
@@ -62,19 +63,19 @@ class InformalUpdateFileViewSet(
             return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class InformalActionViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = InformalAction.objects.exclude(is_disabled=True)
+class FlashActionViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = FlashAction.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
 
 
-class InformalUpdateOptions(views.APIView):
+class FlashUpdateOptions(views.APIView):
     def get(self, request, format=None):
         options = {
             'share_with_options': [
                 {
                     'value': value,
                     'label': label,
-                } for value, label in InformalUpdate.InformalShareWith.choices
+                } for value, label in FlashUpdate.FlashShareWith.choices
             ]
         }
         return Response(options)

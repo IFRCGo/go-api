@@ -82,13 +82,13 @@ INSTALLED_APPS = [
     'deployments',
     'databank',
     'lang',
-    'informal_update',
     'dref',
+    'flash_update',
 
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    #ς 'django_celery_beat',
+    # 'django_celery_beat',
 
     # Logging
     'reversion',
