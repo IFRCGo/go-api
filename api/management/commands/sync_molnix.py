@@ -198,8 +198,8 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             warning = 'Position id %d does not have a valid Country To' % (md['id'])
             logger.warning(warning)
             warnings.append(warning)
-            continue
-
+            country_to = None
+        personnel.country_to = country_to
         country_from = None
 
         # Sometimes the `incoming` value from Molnix is null.
