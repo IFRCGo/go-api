@@ -141,8 +141,8 @@ INSTALLED_APPS = [
     'deployments',
     'databank',
     'lang',
-    'informal_update',
     'dref',
+    'flash_update',
 
     # Utils Apps
     'tinymce',

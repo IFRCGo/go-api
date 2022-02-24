@@ -7,32 +7,32 @@ from api.models import (
     ActionType,
     ActionCategory
 )
-from informal_update.models import (
-    InformalUpdate,
-    InformalGraphicMap,
-    InformalAction
+from flash_update.models import (
+    FlashUpdate,
+    FlashGraphicMap,
+    FlashAction
 )
 
 
-class InformalGraphicMapFactory(factory.django.DjangoModelFactory):
+class FlashGraphicMapFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = InformalGraphicMap
+        model = FlashGraphicMap
 
 
-class InformalActionFactory(factory.django.DjangoModelFactory):
+class FlashActionFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = InformalAction
+        model = FlashAction
 
     name = fuzzy.FuzzyText(length=50)
     organizations = fuzzy.FuzzyChoice(ActionOrg.CHOICES)
-    informal_update_types = fuzzy.FuzzyChoice(ActionType.CHOICES)
+    flash_update_types = fuzzy.FuzzyChoice(ActionType.CHOICES)
     category = fuzzy.FuzzyChoice(ActionCategory.CHOICES)
     tooltip_text = fuzzy.FuzzyText(length=50)
 
 
-class InformalUpdateFactory(factory.django.DjangoModelFactory):
+class FlashUpdateFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = InformalUpdate
+        model = FlashUpdate
 
     hazard_type = factory.SubFactory(disaster_type.DisasterTypeFactory)
     title = fuzzy.FuzzyText(length=300)
@@ -47,7 +47,7 @@ class InformalUpdateFactory(factory.django.DjangoModelFactory):
     ifrc_email = fuzzy.FuzzyText(length=50)
     ifrc_phone = fuzzy.FuzzyInteger(0, 9)
 
-    share_with = fuzzy.FuzzyChoice(InformalUpdate.InformalShareWith)
+    share_with = fuzzy.FuzzyChoice(FlashUpdate.FlashShareWith)
 
     @factory.post_generation
     def references(self, create, extracted, **kwargs):

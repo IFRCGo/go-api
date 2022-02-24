@@ -1,13 +1,13 @@
 [
     {
-        "model": "informal_update.informalemailsubscriptions",
+        "model": "flash_update.flashemailsubscriptions",
         "pk": 1,
         "fields": {
             "share_with": "ifrc_secretariat"
         }
     },
     {
-        "model": "informal_update.informalemailsubscriptions",
+        "model": "flash_update.flashemailsubscriptions",
         "pk": 2,
         "fields": {
             "share_with": "rcrc_network"
