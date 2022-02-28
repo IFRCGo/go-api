@@ -453,7 +453,7 @@ class UserRegionAdmin(CompareVersionAdmin):
 
 
 class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
-    search_fields = ('name',)
+    search_fields = ('name', 'document')
 
 
 class CountryKeyFigureInline(admin.TabularInline):
