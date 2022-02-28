@@ -1030,9 +1030,9 @@ def general_document_path(instance, filename):
 
 
 class GeneralDocument(models.Model):
-    # Don't set `auto_now_add` so we can modify it on save
-    created_at = models.DateTimeField(verbose_name=_('created at'))
     name = models.CharField(verbose_name=_('name'), max_length=100)
+    # Don't set `auto_now_add` so we can modify it on save
+    created_at = models.DateTimeField(verbose_name=_('created at'), blank=True)
     document = models.FileField(verbose_name=_('document'), null=True, blank=True, upload_to=general_document_path)
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
