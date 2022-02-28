@@ -14,11 +14,15 @@ from api.serializers import ActionSerializer
 from .models import (
     FlashUpdate,
     FlashGraphicMap,
-    FlashAction
+    FlashAction,
+    DonorGroup,
+    Donors
 )
 from .serializers import (
     FlashUpdateSerializer,
-    FlashGraphicMapSerializer
+    FlashGraphicMapSerializer,
+    DonorGroupSerializer,
+    DonorsSerializer,
 )
 from .filter_set import FlashUpdateFilter
 
@@ -81,3 +85,11 @@ class FlashUpdateOptions(views.APIView):
         return Response(options)
 
 
+class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = DonorGroup.objects.all()
+    serializer_class = DonorGroupSerializer
+
+
+class DonorsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Donors.objects.all()
+    serializer_class = DonorsSerializer

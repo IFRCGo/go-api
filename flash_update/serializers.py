@@ -18,13 +18,29 @@ from flash_update.models import (
     FlashCountryDistrict,
     FlashGraphicMap,
     FlashAction,
-    FlashActionsTaken
+    FlashActionsTaken,
+    DonorGroup,
+    Donors
 )
 
 from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
 )
+
+
+class DonorGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DonorGroup
+        fields = '__all__'
+
+
+class DonorsSerializer(serializers.ModelSerializer):
+    groups_details = DonorGroupSerializer(source='groups', many=True, required=False, read_only=True)
+
+    class Meta:
+        model = Donors
+        fields = '__all__'
 
 
 class FlashGraphicMapSerializer(serializers.ModelSerializer):

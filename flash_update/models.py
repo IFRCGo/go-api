@@ -208,12 +208,20 @@ class FlashEmailSubscriptions(models.Model):
         return self.share_with
 
 
+class DonorGroup(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_('name'))
+
+    def __str__(self):
+        return self.name
+
+
 class Donors(models.Model):
     organization_name = models.CharField(max_length=500, blank=True, null=True)
     first_name = models.CharField(max_length=300, blank=True, null=True)
     last_name = models.CharField(max_length=300, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     position = models.CharField(max_length=300, blank=True, null=True)
+    groups = models.ManyToManyField(DonorGroup, verbose_name=_('donor group'), blank=True)
 
     def __str__(self):
         return self.organization_name

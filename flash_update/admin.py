@@ -10,7 +10,8 @@ from .models import (
     FlashActionsTaken,
     FlashCountryDistrict,
     FlashEmailSubscriptions,
-    Donors
+    Donors,
+    DonorGroup,
 )
 
 from .forms import ActionForm
@@ -42,6 +43,11 @@ class FlashEmailSubscriptionsAdmin(admin.ModelAdmin):
 class FlashActionTakenAdminInline(admin.TabularInline):
     model = FlashActionsTaken
     extra = 0
+
+
+@admin.register(DonorGroup)
+class DonorGroup(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Donors)
