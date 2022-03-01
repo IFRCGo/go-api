@@ -3,4 +3,4 @@
 #ς from .celery import app as celery_app
 
 #ς __all__ = ['celery_app']
-__version__ = '1.1.419'
+__version__ = '1.1.420'
