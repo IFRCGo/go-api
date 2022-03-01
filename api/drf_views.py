@@ -126,16 +126,17 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                                 personnel_count=Count(
                                     'personneldeployment__personnel',
                                     filter=Q(
-                                        personneldeployment__personnel__is_active=True,
                                         personneldeployment__personnel__type=Personnel.RR,
+                                        personneldeployment__personnel__start_date__lte=timezone.now(),
                                         personneldeployment__personnel__end_date__gte=timezone.now(),
-                                        personneldeployment__personnel__start_date__lte=timezone.now()
+                                        personneldeployment__personnel__is_active=True
                                     )
                                 )
                             ).filter(personnel_count__gt=0) \
                             .order_by('-disaster_start_date')
 
 
+# These two should give the same result: ^ v
 class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ListEventDeploymentsSerializer
 
@@ -143,6 +144,7 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
         return Personnel.objects.filter(
             start_date__lte=timezone.now(),
             end_date__gte=timezone.now(),
+            is_active=True
         ).order_by().values(
             'deployment__event_deployed_to', 'type',
         ).annotate(
