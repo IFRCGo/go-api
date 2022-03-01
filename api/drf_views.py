@@ -128,8 +128,8 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                                     filter=Q(
                                         personneldeployment__personnel__is_active=True,
                                         personneldeployment__personnel__type=Personnel.RR,
-                                        personneldeployment__personnel__end_date__gt=timezone.now(),
-                                        personneldeployment__personnel__start_date__lt=timezone.now()
+                                        personneldeployment__personnel__end_date__gte=timezone.now(),
+                                        personneldeployment__personnel__start_date__lte=timezone.now()
                                     )
                                 )
                             ).filter(personnel_count__gt=0) \
@@ -141,7 +141,8 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Personnel.objects.filter(
-            end_date__gt=timezone.now(),
+            start_date__lte=timezone.now(),
+            end_date__gte=timezone.now(),
         ).order_by().values(
             'deployment__event_deployed_to', 'type',
         ).annotate(
