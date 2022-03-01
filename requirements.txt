@@ -1,9 +1,10 @@
-Django==2.2.26
+Django==2.2.27
 Jinja2==2.11.3
 Markdown==3.3.4
 MarkupSafe==1.1.1
 Pillow==9.0.0
 PyPDF2==1.26.0
+pdf2image==1.16.0
 Pygments==2.7.4
 Rx==1.6.0
 aiofiles==0.4.0
@@ -92,3 +93,5 @@ uritemplate==3.0.0
 urllib3==1.26.8
 wheel==0.30.0
 xmltodict==0.11.0
+xhtml2pdf==0.2.5
+reportlab==3.6.6  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now

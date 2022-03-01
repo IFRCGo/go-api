@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
 from django.http import Http404
 from django_filters import rest_framework as filters
@@ -19,7 +19,7 @@ from databank.serializers import CountryOverviewSerializer
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
-from .visibility_class import ReadOnlyVisibilityViewsetMixin, ReadOnlyVisibilityViewset
+from .visibility_class import ReadOnlyVisibilityViewset
 
 from .models import (
     AppealHistory,
@@ -34,7 +34,7 @@ from .models import (
     Country,
     CountryKeyFigure,
     CountrySnippet,
-
+    
     District,
 
     Event,
@@ -74,9 +74,11 @@ from .serializers import (
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
+    CountrySerializerRMD,
 
     DistrictSerializer,
     MiniDistrictGeoSerializer,
+    DistrictSerializerRMD,
 
     SnippetSerializer,
     ListMiniEventSerializer,
@@ -109,7 +111,10 @@ from .serializers import (
     ListEventTableauSerializer,
     ListFieldReportTableauSerializer,
     RegionSnippetTableauSerializer,
-    SituationReportTableauSerializer
+    SituationReportTableauSerializer,
+
+    # Go Historical
+    GoHistoricalSerializer,
 )
 from .logger import logger
 
@@ -212,6 +217,34 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
         raise Http404
 
+
+class CountryFilterRMD(filters.FilterSet):
+    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    
+    class Meta:
+        model = Country
+        fields = ('region', 'record_type',)
+
+class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
+    filterset_class = CountryFilterRMD
+    search_fields = ('name',) 
+    serializer_class = CountrySerializerRMD 
+
+
+class DistrictRMDFilter(filters.FilterSet):
+    class Meta:
+        model = District
+        fields = ('country','country__name')
+
+
+class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    filterset_class = DistrictRMDFilter
+    search_fields = ('name', 'country__name',)  
+    serializer_class = DistrictSerializerRMD
+
+   
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
@@ -327,11 +360,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
     filterset_class = EventFilter
     visibility_model_class = Event
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
-    visibility_model_class = Event
 
     def get_queryset(self, *args, **kwargs):
         #import pdb; pdb.set_trace();
-        qset = super().get_queryset(*args, **kwargs)
+        qset = super().get_queryset()
         if self.action == 'mini_events':
             #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
             return qset.filter(parent_event__isnull=True).select_related('dtype')
@@ -468,8 +500,8 @@ class AppealHistoryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
     code = filters.CharFilter(field_name='code', lookup_expr='exact')
     status = filters.NumberFilter(field_name='status', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact')
+    # Do not use, misleading: id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact', help_text='Use this (or code) for appeal identification.')
 
     class Meta:
         model = AppealHistory
@@ -481,9 +513,11 @@ class AppealHistoryFilter(filters.FilterSet):
         }
 
 
-class AppealViewset(viewsets.ReadOnlyModelViewSet):
+# Instead of viewsets.ReadOnlyModelViewSet:
+class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """ Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'. """
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
-    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
+    # queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
@@ -508,7 +542,7 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
     def remove_unconfirmed_events(self, objs):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
-    # Overwrite retrieve, list to exclude the event if it requires confirmation
+    # Overwrite to exclude the events which require confirmation
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get('date', now)
@@ -522,11 +556,11 @@ class AppealViewset(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(self.remove_unconfirmed_events(serializer.data))
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        serializer = self.get_serializer(instance)
-        return Response(self.remove_unconfirmed_event(serializer.data))
+#    def retrieve(self, request, *args, **kwargs):
+#        instance = self.get_object()
+#
+#        serializer = self.get_serializer(instance)
+#        return Response(self.remove_unconfirmed_event(serializer.data))
 
 
 class AppealDocumentFilter(filters.FilterSet):
@@ -588,6 +622,7 @@ class FieldReportFilter(filters.FilterSet):
     regions__in = ListFilter(field_name='regions__id')
     id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
+    summary = filters.CharFilter(field_name='summary', lookup_expr='icontains')
 
     class Meta:
         model = FieldReport
@@ -603,7 +638,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     search_fields = ('countries__name', 'regions__label', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
-        qset = super().get_queryset(*args, **kwargs)
+        qset = super().get_queryset()
         qset = qset.select_related('dtype', 'event')
         return qset.prefetch_related('actions_taken', 'actions_taken__actions',
                                      'countries', 'districts', 'regions')
@@ -842,7 +877,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         report.save()
         return event
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
             try:
@@ -947,6 +982,28 @@ class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     queryset = MainContact.objects.order_by('extent')
     search_fields = ('name', 'email')  # for /docs
 
+
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer
     queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')
+
+
+class GoHistoricalFilter(filters.FilterSet):
+    countries = filters.ModelMultipleChoiceFilter(
+        field_name='countries',
+        queryset=Country.objects.all()
+    )
+    iso3 = filters.CharFilter(field_name='countries__iso3', lookup_expr='icontains')
+    region = filters.NumberFilter(field_name='countries__region', lookup_expr='exact')
+
+    class Meta:
+        model = Event
+        fields = ()
+
+
+class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GoHistoricalSerializer
+    filterset_class = GoHistoricalFilter
+
+    def get_queryset(self):
+        return Event.objects.filter(appeals__isnull=False)

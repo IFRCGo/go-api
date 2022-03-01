@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.420
+
+### Added
+ - Flash update
+ - General documents (more convenient creation)
+ - Adding poetry as Python package manager
+   · Enable buildx for docker build
+   · Enable docker layer caching in Circle-CI
+   · Update README.md for poetry
+   · Add migration check to Circle-CI
+   · Provide empty default value for docker-compose env vars to disable warnings
+ - Editable slugs for emergencies
+ - We can acknowledge the erroneous cronjob runs
+
 ## 1.1.419
 
 ### Added
@@ -1902,7 +1916,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.419...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.420...HEAD
+[1.1.420]: https://github.com/IFRCGo/go-api/compare/1.1.419...1.1.420
 [1.1.419]: https://github.com/IFRCGo/go-api/compare/1.1.418...1.1.419
 [1.1.418]: https://github.com/IFRCGo/go-api/compare/1.1.417...1.1.418
 [1.1.417]: https://github.com/IFRCGo/go-api/compare/1.1.416...1.1.417

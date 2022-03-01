@@ -1,31 +1,20 @@
-import os
 import requests
 import base64
 import threading
 import smtplib
-
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
 from django.conf import settings
+from django.utils.html import strip_tags
 
 from api.logger import logger
 from api.models import CronJob, CronJobStatus
-from django.utils.html import strip_tags
 from notifications.models import NotificationGUID
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
-EMAIL_USER = os.environ.get('EMAIL_USER')
-EMAIL_PASS = os.environ.get('EMAIL_PASS')
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_API_ENDPOINT = os.environ.get('EMAIL_API_ENDPOINT')
+
 EMAIL_TO = 'no-reply@ifrc.org'
-IS_PROD = os.environ.get('PRODUCTION')
-
-test_emails = os.environ.get('TEST_EMAILS')
-if test_emails:
-    test_emails = test_emails.split(',')
-else:
-    test_emails = ['im@ifrc.org']
+IS_PROD = settings.GO_ENVIRONMENT == 'production'
 
 
 class SendMail(threading.Thread):
@@ -36,18 +25,18 @@ class SendMail(threading.Thread):
 
     def run(self):
         try:
-            server = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+            server = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
             server.ehlo()
             server.starttls()
             server.ehlo()
-            succ = server.login(EMAIL_USER, EMAIL_PASS)
+            succ = server.login(settings.EMAIL_USER, settings.EMAIL_PASS)
             if 'successful' not in str(succ[1]):
                 cron_rec = {"name": "notification",
-                            "message": 'Error contacting ' + EMAIL_HOST + ' smtp server for notifications',
+                            "message": 'Error contacting ' + settings.EMAIL_HOST + ' smtp server for notifications',
                             "status": CronJobStatus.ERRONEOUS}
                 CronJob.sync_cron(cron_rec)
             if len(self.recipients) > 0:
-                server.sendmail(EMAIL_USER, self.recipients, self.msg.as_string())
+                server.sendmail(settings.EMAIL_USER, self.recipients, self.msg.as_string())
             server.quit()
             logger.info('E-mails were sent successfully.')
         except Exception as exc:
@@ -64,11 +53,11 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html):
+def construct_msg(subject, html, files=None):
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = subject
-    msg['From'] = EMAIL_USER.upper()
+    msg['From'] = settings.EMAIL_USER.upper()
     msg['To'] = 'no-reply@ifrc.org'
 
     text_body = MIMEText(strip_tags(html), 'plain')
@@ -77,12 +66,17 @@ def construct_msg(subject, html):
     msg.attach(text_body)
     msg.attach(html_body)
 
+    for file in files or []:
+        attachedfile = MIMEApplication(file['file'])
+        attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
+        msg.attach(attachedfile)
+
     return msg
 
 
-def send_notification(subject, recipients, html, mailtype=''):
+def send_notification(subject, recipients, html, mailtype='', files=None):
     """ Generic email sending method, handly only HTML emails currently """
-    if not EMAIL_USER or not EMAIL_API_ENDPOINT:
+    if not settings.EMAIL_USER or not settings.EMAIL_API_ENDPOINT:
         logger.warning(
             'Cannot send notifications.\n'
             'No username and/or API endpoint set as environment variables.'
@@ -98,14 +92,15 @@ def send_notification(subject, recipients, html, mailtype=''):
         print('-' * 22, 'EMAIL END -', '-' * 22)
 
     # If it's not PROD only able to use test e-mail addresses which are set in the env var
-    to_addresses = recipients
+    to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
-    if int(IS_PROD) != 1:
+    if not IS_PROD:
         logger.info('Using test email addresses...')
         to_addresses = []
         logger.info(to_addresses)
-        for eml in test_emails:
+        for eml in settings.TEST_EMAILS:
 
+            # It is possible to filter test addressees to domain name only – not used.
             is_dom = True if '@' not in eml else False
             if is_dom:
                 for rec in recipients:
@@ -131,7 +126,7 @@ def send_notification(subject, recipients, html, mailtype=''):
 
     # Encode with base64 into bytes, then converting it back to strings for the JSON
     payload = {
-        "FromAsBase64": str(base64.b64encode(EMAIL_USER.encode('utf-8')), 'utf-8'),
+        "FromAsBase64": str(base64.b64encode(settings.EMAIL_USER.encode('utf-8')), 'utf-8'),
         "ToAsBase64": str(base64.b64encode(EMAIL_TO.encode('utf-8')), 'utf-8'),
         "CcAsBase64": "",
         "BccAsBase64": str(base64.b64encode(recipients_as_string.encode('utf-8')), 'utf-8'),
@@ -143,7 +138,7 @@ def send_notification(subject, recipients, html, mailtype=''):
     }
 
     # The response contains the GUID (res.text)
-    res = requests.post(EMAIL_API_ENDPOINT, json=payload)
+    res = requests.post(settings.EMAIL_API_ENDPOINT, json=payload)
     res_text = res.text.replace('"', '')
 
     if res.status_code == 200:
@@ -162,12 +157,12 @@ def send_notification(subject, recipients, html, mailtype=''):
     elif res.status_code == 401 or res.status_code == 403:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error(f'Authorization/authentication failed ({res.status_code}) to the e-mail sender API.')
-        msg = construct_msg(subject, html)
+        msg = construct_msg(subject, html, files)
         SendMail(to_addresses, msg).start()
     else:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
-        msg = construct_msg(subject, html)
+        msg = construct_msg(subject, html, files)
         SendMail(to_addresses, msg).start()
 
     return res.text

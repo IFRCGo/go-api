@@ -55,8 +55,8 @@
   data-admin-utc-offset="{% now "Z" %}">
     {# use PRODUCTION_URL to create logic - in base_site.html #}
 
-    {% if IS_STAGING %}
-      <div class="staging-footer">STAGING SITE</div>
+    {% if GO_ENVIRONMENT != 'production' %}
+    <div class="staging-footer">{{GO_ENVIRONMENT|upper}} SITE</div>
     {% endif %}
 
 <!-- Container -->

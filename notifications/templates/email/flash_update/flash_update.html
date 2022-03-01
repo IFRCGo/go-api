@@ -1,0 +1,90 @@
+{% include "email/flash_update/head.html" %}
+   <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff">
+        <tr>
+          <td align="center" class="pb-30" style="padding-bottom:30px;">
+            <table width="650" border="0" cellspacing="0" cellpadding="0" class="mobile-shell">
+              <tr>
+                <td class="td td-shell" style="width: 650px;min-width: 650px;padding: 0;margin: 0;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td class="text-center text-default pb-25" style="padding-bottom: 25px;text-align: center;">
+                        <span class="table-heading-sub" style="font-size: 14px;">Flash Update</span><br>
+                        <span class="table-heading-main" style="font-weight: bold;font-size: 18px;">{{title}}</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Situational Overview</td>
+                    </tr>
+                    <tr>
+                      <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
+                        {{situational_overview}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Graphics</td>
+                    </tr>
+                    <tr>
+                      <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
+                        {% for map in map_list %}
+                        <img class = 'img-flash' src="http://{{map.image}}" alt="image">
+                        {% endfor %}
+
+                        {% for graphic in graphic_list %}
+                        <img class = 'img-flash'  src="http://{{graphic.image}}" alt="image">
+                        {% endfor %}
+                      </td>
+                    </tr>
+
+                   
+                    {% for act_taken in actions_taken %}
+                        <tr>
+                            <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Actions Taken by {{act_taken.organization_display}}</td>
+                        </tr>
+                        <tr>
+                        <td class="text-default text-light" style="font-weight: 300;size:12px;">Descriptions</td>
+                        </tr>
+                        <tr>
+                        <td class="text-default" style="font-family:'Lato', Arial, sans-serif; padding-bottom: 40px;">{{act_taken.summary}}</td>
+                        </tr>
+
+                        <tr>
+                            <td class="text-default text-light" style="font-weight: 300;size:12px;">Actions</td>
+                        </tr>
+                            {% for action in act_taken.action_details %}
+                                    <tr>
+                                        <td class="text-default" style="font-family:'Lato', Arial, sans-serif; padding-bottom: 40px; font-weight: bold;padding-left: 20px;">{{action.name}}</td>
+                                    </tr>
+                            {%endfor%}
+                    {% endfor %}
+
+
+                    <tr>
+                        <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Resources</td>
+                     </tr>
+                     {% for resource in resources %}
+                        <tr>
+                            <td class="text-default" style="font-family:'Lato', Arial, sans-serif;">{{resource.date}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-default text-light" style="font-weight: 300; size:12px;">{{resource.source_description}}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-default" style="font-family:'Lato', Arial, sans-serif; padding-bottom: 40px;">{{resource.url}}</td>
+                        </tr>
+                    {%endfor%}
+
+                      <td class="text-default td-global-font-style text-italic pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-style: italic;font-weight: 300;font-size: 18px;">
+                        You are receiving this update based on your selected preferences. <a href="https://go.ifrc.org/account#notifications" target="_blank" class="link" style="font-family: 'Lato', Arial, sans-serif;text-decoration: underline;color: #000;">
+                          Update your preferences
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+{% include "design/foot1.html" %}

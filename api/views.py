@@ -1,10 +1,6 @@
 import json
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import authentication, permissions
-
 from datetime import datetime, timedelta
+
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -17,17 +13,19 @@ from django.db.models import Count, Sum, Q, F, Case, When
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
-
 from rest_framework.authtoken.models import Token
-from .utils import pretty_request
-from .esconnection import ES_CLIENT
-from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
-from .indexes import ES_PAGE_NAME
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import authentication, permissions
+
 from deployments.models import Heop
 from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
-from main.frontend import frontend_url
+
+from .esconnection import ES_CLIENT
+from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
+from .indexes import ES_PAGE_NAME
 
 
 def bad_request(message):
@@ -151,9 +149,13 @@ class AggregateHeaderFigures(APIView):
 
         now = timezone.now()
         date = request.GET.get('date', now)
-        appeal_conditions = (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__gt=date) & Q(start_date__lt=date)
+        appeal_conditions = (
+            Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)
+        ) & Q(end_date__gt=date) & Q(start_date__lt=date)
 
-        all_appealhistory = AppealHistory.objects.select_related('appeal').filter(valid_from__lt=date, valid_to__gt=date, appeal__code__isnull=False)
+        all_appealhistory = AppealHistory.objects\
+            .select_related('appeal')\
+            .filter(valid_from__lt=date, valid_to__gt=date, appeal__code__isnull=False)
 
         if iso3:
             all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
@@ -424,7 +426,7 @@ class RecoverPassword(APIView):
         Recovery.objects.filter(user=user).delete()
         Recovery.objects.create(user=user, token=token)
         email_context = {
-            'frontend_url': frontend_url,
+            'frontend_url': settings.FRONTEND_URL,
             'username': user.username,
             'token': token
         }

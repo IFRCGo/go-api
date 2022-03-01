@@ -1,11 +1,12 @@
 # go file storage folder
-media
+media/**
 
 # python virtual environment folder
 env
 
 # secret settings env variables
 .env*
+!.env-sample
 
 # python stuff
 *.pyc

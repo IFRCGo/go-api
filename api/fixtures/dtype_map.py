@@ -40,6 +40,7 @@ DISASTER_TYPE_MAPPING = {
     'Insect Infestatations / Animal Attack':'Insect Infestation',
     'Meteorite':'Other',
     'Other':'Other',
+    'Pluvial / Flash flood': 'Pluvial/Flash Flood',
     'Poisoning':'Biological Emergency',
     'Population movements':'Population Movement',
     'Radiation':'Radiological Emergency',

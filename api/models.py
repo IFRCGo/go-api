@@ -7,7 +7,6 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
-from .storage import get_storage
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
@@ -154,7 +153,7 @@ class Country(models.Model):
     inform_score = models.DecimalField(verbose_name=_('inform score'), blank=True, null=True, decimal_places=2, max_digits=3)
     logo = models.FileField(
         blank=True, null=True, verbose_name=_('logo'), upload_to=logo_document_path,
-        storage=get_storage(), validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'gif'])]
     )
     centroid = models.PointField(srid=4326, blank=True, null=True)
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
@@ -368,9 +367,7 @@ class TabNumber(IntEnum):
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/', storage=get_storage()
-    )
+    image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/')
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
@@ -443,9 +440,7 @@ class RegionProfileSnippet(models.Model):
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/', storage=get_storage()
-    )
+    image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/')
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
 
@@ -529,12 +524,12 @@ class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    # FIXME slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
+    # Obsolete: slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
     slug = models.CharField(
-        verbose_name=_('slug'), max_length=50, editable=False, default=None, unique=True, null=True, blank=True,
+        verbose_name=_('slug'), max_length=50, editable=True, default=None, unique=True, null=True, blank=True,
         validators=[validate_slug, validate_slug_number],
         help_text=_(
-            'Optional string for a clean URL. For example, go.ifrc.org/emergencies/hurricane-katrina-2019.'
+            'Optional string for a clean URL. For example, go.ifrc.org/emergency/hurricane-katrina-2019.'
             ' The string cannot start with a number and is forced to be lowercase.'
             ' Recommend using hyphens over underscores. Special characters like # is not allowed.'
         )
@@ -664,11 +659,9 @@ class EventFeaturedDocument(models.Model):
     thumbnail = models.ImageField(
         verbose_name=_('thumbnail'), upload_to='event-featured-documents/thumbnail/',
         help_text=_('Image should be portrait (3:4 aspect ratio) and scaled down to as close to 96x128 as the image size'),
-        storage=get_storage()
     )
     file = models.FileField(
         verbose_name=_('file'), upload_to='event-featured-documents/file/',
-        storage=get_storage()
     )
 
 
@@ -725,9 +718,7 @@ def snippet_image_path(instance, filename):
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    image = models.ImageField(
-        verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path, storage=get_storage()
-    )
+    image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path)
     event = models.ForeignKey(Event, verbose_name=_('event'), related_name='snippets', on_delete=models.CASCADE)
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
     position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
@@ -765,9 +756,7 @@ def sitrep_document_path(instance, filename):
 class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path, storage=get_storage()
-    )
+    document = models.FileField(verbose_name=_('document'), null=True, blank=True, upload_to=sitrep_document_path)
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
     event = models.ForeignKey(Event, verbose_name=_('event'), on_delete=models.CASCADE)
@@ -913,8 +902,14 @@ class Appeal(models.Model):
     influence_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     accountable_ifrc_budget: models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
-    #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
-    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
+    # deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(
+        verbose_name=_('triggering amount'),
+        max_digits=12,
+        decimal_places=2,
+        default=0.00,
+        editable=False,
+    )
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -950,6 +945,7 @@ class Appeal(models.Model):
     def __str__(self):
         return self.code
 
+
 def appeal_document_path(instance, filename):
     return 'appeals/%s/%s' % (instance.appeal, filename)
 
@@ -973,8 +969,14 @@ class AppealHistory(models.Model):
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
     status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True)
-    #deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
-    triggering_amount = models.DecimalField(verbose_name=_('triggering amount'), max_digits=12, decimal_places=2, default=0.00, editable=False)
+    # deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
+    triggering_amount = models.DecimalField(
+        verbose_name=_('triggering amount'),
+        max_digits=12,
+        decimal_places=2,
+        default=0.00,
+        editable=False,
+    )
 
     class Meta:
         ordering = ('-start_date', '-end_date',)
@@ -992,9 +994,7 @@ class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path, storage=get_storage()
-    )
+    document = models.FileField(verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path)
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), on_delete=models.CASCADE)
@@ -1026,15 +1026,14 @@ class AppealFilter(models.Model):
 
 
 def general_document_path(instance, filename):
-    return ('documents/%s/%s' % (instance.name, filename)).replace(' ','_')
+    return ('documents/%s/%s' % (instance.name, filename)).replace(' ', '_')
+
 
 class GeneralDocument(models.Model):
-    # Don't set `auto_now_add` so we can modify it on save
-    created_at = models.DateTimeField(verbose_name=_('created at'))
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    document = models.FileField(
-        verbose_name=_('document'), null=True, blank=True, upload_to=general_document_path, storage=get_storage()
-    )
+    # Don't set `auto_now_add` so we can modify it on save
+    created_at = models.DateTimeField(verbose_name=_('created at'), blank=True)
+    document = models.FileField(verbose_name=_('document'), null=True, blank=True, upload_to=general_document_path)
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
 
     class Meta:
@@ -1048,7 +1047,7 @@ class GeneralDocument(models.Model):
         return super(GeneralDocument, self).save(*args, **kwargs)
 
     def __str__(self):
-        return ('%s' % self.document)[10:] # 10 = len('documents/')
+        return ('%s' % self.document)[10:]  # 10 = len('documents/')
 
 
 class RequestChoices(IntEnum):
@@ -1100,6 +1099,7 @@ class SupportedActivity(models.Model):
     def __str__(self):
         return self.name
 
+
 class UserCountry(models.Model):
     """ Connects User, role and Country """
 
@@ -1109,16 +1109,17 @@ class UserCountry(models.Model):
     )
 
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.CASCADE)
-    #countries = models.ManyToManyField(Country, verbose_name=_('countries'))
-    #role = models.IntegerField(verbose_name=_('role'))
+    # countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    # role = models.IntegerField(verbose_name=_('role'))
 
     class Meta:
         verbose_name = _('User Country')
         verbose_name_plural = _('User Countries')
 
     def __str__(self):
-        #import pdb; pdb.set_trace();
+        # import pdb; pdb.set_trace();
         return self.user.get_username()
+
 
 class UserRegion(models.Model):
     """ Connects User, role and Country """
@@ -1129,16 +1130,17 @@ class UserRegion(models.Model):
     )
 
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.CASCADE)
-    #countries = models.ManyToManyField(Country, verbose_name=_('countries'))
-    #role = models.IntegerField(verbose_name=_('role'))
+    # countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    # role = models.IntegerField(verbose_name=_('role'))
 
     class Meta:
         verbose_name = _('Regional Admin')
         verbose_name_plural = _('Regional Admins')
 
     def __str__(self):
-        #import pdb; pdb.set_trace();
+        # import pdb; pdb.set_trace();
         return self.user.get_username()
+
 
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
@@ -1370,7 +1372,6 @@ class FieldReport(models.Model):
     #     import pdb; pdb.set_trace();
     #     return _queryset.filter(user=user)
 
-
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
         return '%s - %s' % (self.id, summary)
@@ -1400,11 +1401,13 @@ class ActionOrg:
     NATIONAL_SOCIETY = 'NTLS'
     FOREIGN_SOCIETY = 'PNS'
     FEDERATION = 'FDRN'
+    GOVERNMENT = 'GOV'
 
     CHOICES = (
         (NATIONAL_SOCIETY, _('National Society')),
         (FOREIGN_SOCIETY, _('Foreign Society')),
         (FEDERATION, _('Federation')),
+        (GOVERNMENT, _('Government')),
     )
 
 
@@ -1878,12 +1881,14 @@ class MainContact(models.Model):
 
 
 class CronJobStatus(IntEnum):
+    ACKNOWLEDGED = -2
     NEVER_RUN = -1
     SUCCESSFUL = 0
     WARNED = 1
     ERRONEOUS = 2
 
     class Labels:
+        ACKNOWLEDGED = _('Acknowledged')
         NEVER_RUN = _('Never run')
         SUCCESSFUL = _('Successfull')
         WARNED = _('Warned')
