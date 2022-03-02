@@ -10,7 +10,9 @@ from api.models import (
 from flash_update.models import (
     FlashUpdate,
     FlashGraphicMap,
-    FlashAction
+    FlashAction,
+    Donors,
+    DonorGroup
 )
 
 
@@ -75,3 +77,13 @@ class FlashUpdateFactory(factory.django.DjangoModelFactory):
         if extracted:
             for graphic in extracted:
                 self.graphics.add(graphic)
+
+
+class DonorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Donors
+
+
+class DonorGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = DonorGroup

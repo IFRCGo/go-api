@@ -225,3 +225,13 @@ class Donors(models.Model):
 
     def __str__(self):
         return self.organization_name
+
+
+class FlashUpdateShare(models.Model):
+    flash_update = models.ForeignKey(FlashUpdate, on_delete=models.CASCADE, related_name='flash_update_share')
+    donors = models.ManyToManyField(Donors, blank=True, null=True)
+    donor_groups = models.ManyToManyField(DonorGroup, blank=True, null=True)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+
+    def __str__(self):
+        return self.flash_update

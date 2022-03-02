@@ -141,6 +141,7 @@ router.register(r'flash-update', flash_views.FlashUpdateViewSet, basename='flash
 router.register(r'flash-update-file', flash_views.FlashUpdateFileViewSet, basename='flash_update_file')
 router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_group')
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
+router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
 

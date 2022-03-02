@@ -13,14 +13,16 @@ from .models import FlashUpdate, Donors
 def render_to_pdf(template_src, context_dict={}):
     html = render_to_string(template_src, context_dict)
     result = BytesIO()
-    pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
-    if not pdf.err:
-        file = {
-            'filename': 'flash_update.pdf',
-            'file': result.getvalue()
-        }
-        return file
-    return None
+    try:
+        pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+        if not pdf.err:
+            file = {
+                'filename': 'flash_update.pdf',
+                'file': result.getvalue()
+            }
+            return file
+    except:
+        return None
 
 
 def generate_file_data(data):
@@ -33,12 +35,8 @@ def generate_file_data(data):
     ]
 
 
-def send_email_when_flash_update_created(instance):
+def get_email_context(instance):
     from flash_update.serializers import FlashUpdateSerializer
-
-    share_with_group = instance.share_with
-    if instance.share_with is None:
-        return
 
     flash_update_data = FlashUpdateSerializer(instance).data
     map_list = generate_file_data(flash_update_data['map_files'])
@@ -54,6 +52,15 @@ def send_email_when_flash_update_created(instance):
         'actions_taken': actions_taken,
         'resources': resources
     }
+    return email_context
+
+
+def send_email_when_flash_update_created(instance):
+    share_with_group = instance.share_with
+    if instance.share_with is None:
+        return
+
+    email_context = get_email_context(instance)
     # Generate donors, users email through share_with_group config
     users_emails = []
     donors_emails = []
@@ -83,4 +90,20 @@ def send_email_when_flash_update_created(instance):
             'Flash Update',
             [render_to_pdf('email/flash_update/flash_pdf.html', email_context)]
         )
+    return email_context
+
+
+def share_flash_update(instance):
+    email_context = get_email_context(instance.flash_update)
+    donors_emails = list(instance.donors.all().values_list('email', flat=True))
+    doner_groups = list(instance.donor_groups.all().values_list('id', flat=True))
+    donor_groups_emails = list(Donors.objects.filter(groups__id__in=doner_groups).values_list('email', flat=True))
+    users_emails = donors_emails + donor_groups_emails
+    send_notification(
+        'Flash Update',
+        users_emails,
+        render_to_string('email/flash_update/donor_email.html', email_context),
+        'Flash Update',
+        [render_to_pdf('email/flash_update/flash_pdf.html', email_context)]
+    )
     return email_context

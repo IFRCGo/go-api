@@ -16,13 +16,15 @@ from .models import (
     FlashGraphicMap,
     FlashAction,
     DonorGroup,
-    Donors
+    Donors,
+    FlashUpdateShare
 )
 from .serializers import (
     FlashUpdateSerializer,
     FlashGraphicMapSerializer,
     DonorGroupSerializer,
     DonorsSerializer,
+    ShareFlashUpdateSerializer
 )
 from .filter_set import FlashUpdateFilter
 
@@ -93,3 +95,13 @@ class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
 class DonorsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Donors.objects.all()
     serializer_class = DonorsSerializer
+
+
+class ShareFlashUpdateViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = FlashUpdateShare.objects.all()
+    serializer_class = ShareFlashUpdateSerializer
+    permission_class = [permissions.IsAuthenticated]

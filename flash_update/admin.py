@@ -12,6 +12,7 @@ from .models import (
     FlashEmailSubscriptions,
     Donors,
     DonorGroup,
+    FlashUpdateShare
 )
 
 from .forms import ActionForm
@@ -52,6 +53,11 @@ class DonorGroup(admin.ModelAdmin):
 
 @admin.register(Donors)
 class DonorsAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(FlashUpdateShare)
+class ShareFlashUpdateAdmin(admin.ModelAdmin):
     pass
 
 
