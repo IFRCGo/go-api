@@ -4,7 +4,7 @@ from django.utils.translation import ugettext
 from rest_framework import serializers
 
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from .utils import send_email_when_flash_update_created
+from .utils import send_email_when_flash_update_created, share_flash_update
 
 from api.serializers import (
     UserNameSerializer,
@@ -18,13 +18,30 @@ from flash_update.models import (
     FlashCountryDistrict,
     FlashGraphicMap,
     FlashAction,
-    FlashActionsTaken
+    FlashActionsTaken,
+    DonorGroup,
+    Donors,
+    FlashUpdateShare,
 )
 
 from main.writable_nested_serializers import (
     NestedCreateMixin,
-    NestedUpdateMixin
+    NestedUpdateMixin,
 )
+
+
+class DonorGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DonorGroup
+        fields = '__all__'
+
+
+class DonorsSerializer(serializers.ModelSerializer):
+    groups_details = DonorGroupSerializer(source='groups', many=True, required=False, read_only=True)
+
+    class Meta:
+        model = Donors
+        fields = '__all__'
 
 
 class FlashGraphicMapSerializer(serializers.ModelSerializer):
@@ -131,3 +148,20 @@ class FlashUpdateSerializer(
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
         return super().update(instance, validated_data)
+
+
+class ShareFlashUpdateSerializer(serializers.ModelSerializer):
+    groups_details = DonorGroupSerializer(source='donor_groups', many=True, required=False, read_only=True)
+    donors_details = DonorsSerializer(source='donors', many=True, required=False, read_only=True)
+    flash_update_details = FlashUpdateSerializer(source='flash_update', required=False, read_only=True)
+
+    class Meta:
+        model = FlashUpdateShare
+        fields = '__all__'
+
+    def create(self, validated_data):
+        flash_update_share = super().create(validated_data)
+        transaction.on_commit(
+            lambda: share_flash_update(flash_update_share)
+        )
+        return flash_update_share

@@ -5,13 +5,20 @@ from django.contrib.auth.models import User, Group
 
 from main.test_case import APITestCase
 import api.models as models
-from flash_update.models import FlashUpdate, FlashEmailSubscriptions, FlashGraphicMap
+from flash_update.models import (
+    FlashUpdate,
+    FlashEmailSubscriptions,
+    FlashGraphicMap,
+    FlashUpdateShare,
+)
 from flash_update.factories.flash_update import (
     FlashUpdateFactory,
     FlashGraphicMapFactory,
-    FlashActionFactory
+    FlashActionFactory,
+    DonorFactory,
+    DonorGroupFactory,
 )
-from flash_update.utils import send_email_when_flash_update_created
+from flash_update.utils import send_email_when_flash_update_created, share_flash_update
 
 
 class FlashUpdateTest(APITestCase):
@@ -34,7 +41,6 @@ class FlashUpdateTest(APITestCase):
 
         path = os.path.join(settings.TEST_DIR, 'documents')
         self.file = os.path.join(path, 'go.png')
-        print(self.file)
 
         self.body = {
             "country_district": [
@@ -102,7 +108,6 @@ class FlashUpdateTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
-            print(response)
         created = FlashUpdate.objects.get(id=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
@@ -285,3 +290,24 @@ class FlashUpdateTest(APITestCase):
             [data['id'] for data in instance.actions_taken_flash.all().values('id')]
         )
 
+    def test_flash_update_share(self):
+        donor1, donor2, donor3 = DonorFactory.create_batch(3)
+        donor_group1, donor_group2 = DonorGroupFactory.create_batch(2)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
+        flash_update = FlashUpdate.objects.get(id=response['id'])
+        data = {
+            'flash_update': flash_update.id,
+            'donors': [donor1.id, donor2.id, donor3.id],
+            'donor_groups': [donor_group1.id, donor_group2.id]
+        }
+        response = self.client.post('/api/v2/share-flash-update/', data, format='json').json()
+        self.assertEqual(response['flash_update'], flash_update.id)
+        self.assertIn(donor1.id, response['donors'])
+        self.assertIn(donor_group1.id, response['donor_groups'])
+
+        # check email context
+        flash_update_share = FlashUpdateShare.objects.get(id=response['id'])
+        email_data = share_flash_update(flash_update_share)
+        self.assertEqual(email_data['title'], flash_update.title)
+        self.assertEqual(email_data['situational_overview'], flash_update.situational_overview)

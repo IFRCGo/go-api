@@ -6,7 +6,7 @@ from rest_framework import (
     permissions,
     status,
     mixins,
-    response
+    response,
 )
 from rest_framework.decorators import action
 
@@ -14,11 +14,17 @@ from api.serializers import ActionSerializer
 from .models import (
     FlashUpdate,
     FlashGraphicMap,
-    FlashAction
+    FlashAction,
+    DonorGroup,
+    Donors,
+    FlashUpdateShare,
 )
 from .serializers import (
     FlashUpdateSerializer,
-    FlashGraphicMapSerializer
+    FlashGraphicMapSerializer,
+    DonorGroupSerializer,
+    DonorsSerializer,
+    ShareFlashUpdateSerializer,
 )
 from .filter_set import FlashUpdateFilter
 
@@ -81,3 +87,21 @@ class FlashUpdateOptions(views.APIView):
         return Response(options)
 
 
+class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = DonorGroup.objects.all()
+    serializer_class = DonorGroupSerializer
+
+
+class DonorsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Donors.objects.all()
+    serializer_class = DonorsSerializer
+
+
+class ShareFlashUpdateViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = FlashUpdateShare.objects.all()
+    serializer_class = ShareFlashUpdateSerializer
+    permission_class = [permissions.IsAuthenticated]

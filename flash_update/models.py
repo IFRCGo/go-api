@@ -61,7 +61,6 @@ class FlashUpdate(models.Model):
     class FlashShareWith(TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
         RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
-        RCRC_NETWORK_AND_DONOR = 'rcrc_network_and_donors', _('RCRC Network and Donors')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='flash_update_created_by',
@@ -208,12 +207,33 @@ class FlashEmailSubscriptions(models.Model):
         return self.share_with
 
 
+class DonorGroup(models.Model):
+    name = models.CharField(max_length=255, verbose_name=_('name'))
+
+    def __str__(self):
+        return self.name
+
+
 class Donors(models.Model):
     organization_name = models.CharField(max_length=500, blank=True, null=True)
     first_name = models.CharField(max_length=300, blank=True, null=True)
     last_name = models.CharField(max_length=300, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     position = models.CharField(max_length=300, blank=True, null=True)
+    groups = models.ManyToManyField(DonorGroup, verbose_name=_('donor group'), blank=True)
+
+    class Meta:
+        verbose_name = _('donor')
 
     def __str__(self):
         return self.organization_name
+
+
+class FlashUpdateShare(models.Model):
+    flash_update = models.ForeignKey(FlashUpdate, on_delete=models.CASCADE, related_name='flash_update_share')
+    donors = models.ManyToManyField(Donors, blank=True)
+    donor_groups = models.ManyToManyField(DonorGroup, blank=True)
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+
+    def __str__(self):
+        return self.flash_update
