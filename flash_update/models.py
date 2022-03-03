@@ -203,6 +203,9 @@ class FlashEmailSubscriptions(models.Model):
     )
     group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True, blank=True, related_name='flash_email_subscription')
 
+    class Meta:
+        verbose_name = _('flash email subscription')
+
     def __str__(self):
         return self.share_with
 
