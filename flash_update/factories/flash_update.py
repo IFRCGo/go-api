@@ -12,7 +12,7 @@ from flash_update.models import (
     FlashGraphicMap,
     FlashAction,
     Donors,
-    DonorGroup
+    DonorGroup,
 )
 
 

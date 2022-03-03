@@ -61,7 +61,6 @@ class FlashUpdate(models.Model):
     class FlashShareWith(TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
         RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
-        RCRC_NETWORK_AND_DONOR = 'rcrc_network_and_donors', _('RCRC Network and Donors')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='flash_update_created_by',
@@ -229,8 +228,8 @@ class Donors(models.Model):
 
 class FlashUpdateShare(models.Model):
     flash_update = models.ForeignKey(FlashUpdate, on_delete=models.CASCADE, related_name='flash_update_share')
-    donors = models.ManyToManyField(Donors, blank=True, null=True)
-    donor_groups = models.ManyToManyField(DonorGroup, blank=True, null=True)
+    donors = models.ManyToManyField(Donors, blank=True)
+    donor_groups = models.ManyToManyField(DonorGroup, blank=True)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
 
     def __str__(self):

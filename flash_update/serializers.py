@@ -21,12 +21,12 @@ from flash_update.models import (
     FlashActionsTaken,
     DonorGroup,
     Donors,
-    FlashUpdateShare
+    FlashUpdateShare,
 )
 
 from main.writable_nested_serializers import (
     NestedCreateMixin,
-    NestedUpdateMixin
+    NestedUpdateMixin,
 )
 
 

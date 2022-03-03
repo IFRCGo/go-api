@@ -6,7 +6,7 @@ from rest_framework import (
     permissions,
     status,
     mixins,
-    response
+    response,
 )
 from rest_framework.decorators import action
 
@@ -17,14 +17,14 @@ from .models import (
     FlashAction,
     DonorGroup,
     Donors,
-    FlashUpdateShare
+    FlashUpdateShare,
 )
 from .serializers import (
     FlashUpdateSerializer,
     FlashGraphicMapSerializer,
     DonorGroupSerializer,
     DonorsSerializer,
-    ShareFlashUpdateSerializer
+    ShareFlashUpdateSerializer,
 )
 from .filter_set import FlashUpdateFilter
 

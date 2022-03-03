@@ -12,7 +12,7 @@ from .models import (
     FlashEmailSubscriptions,
     Donors,
     DonorGroup,
-    FlashUpdateShare
+    FlashUpdateShare,
 )
 
 from .forms import ActionForm

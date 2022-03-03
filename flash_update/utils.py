@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -7,7 +8,9 @@ from xhtml2pdf import pisa
 
 from notifications.notification import send_notification
 from main.frontend import get_project_url
-from .models import FlashUpdate, Donors
+from .models import Donors
+
+logger = logging.getLogger(__name__)
 
 
 def render_to_pdf(template_src, context_dict={}):
@@ -21,7 +24,8 @@ def render_to_pdf(template_src, context_dict={}):
                 'file': result.getvalue()
             }
             return file
-    except:
+    except Exception as e:
+        logger.error('Error in rendering html to pdf', exc_info=True)
         return None
 
 
@@ -61,20 +65,9 @@ def send_email_when_flash_update_created(instance):
         return
 
     email_context = get_email_context(instance)
-    # Generate donors, users email through share_with_group config
-    users_emails = []
-    donors_emails = []
-    if share_with_group == FlashUpdate.FlashShareWith.RCRC_NETWORK_AND_DONOR:
-        # NOTE: Custom logic for RCRC_NETWORK_AND_DONOR, fetch donors and RCRC_NETWORK users
-        users_emails = User.objects.filter(
-            groups__flash_email_subscription__share_with=FlashUpdate.FlashShareWith.RCRC_NETWORK
-        ).values_list('email', flat=True)
-        donors_emails = Donors.objects.all().values_list('email', flat=True)
-    else:
-        users_emails = User.objects.filter(
-            groups__flash_email_subscription__share_with=share_with_group
-        ).values_list('email', flat=True)
-    # If there are recipients in the groups send the email
+    users_emails = User.objects.filter(
+        groups__flash_email_subscription__share_with=share_with_group
+    ).values_list('email', flat=True)
     if users_emails:
         send_notification(
             'Flash Update',
@@ -82,23 +75,17 @@ def send_email_when_flash_update_created(instance):
             render_to_string('email/flash_update/flash_update.html', email_context),
             'Flash Update'
         )
-    if donors_emails:
-        send_notification(
-            'Flash Update',
-            donors_emails,
-            render_to_string('email/flash_update/donor_email.html', email_context),
-            'Flash Update',
-            [render_to_pdf('email/flash_update/flash_pdf.html', email_context)]
-        )
     return email_context
 
 
 def share_flash_update(instance):
     email_context = get_email_context(instance.flash_update)
-    donors_emails = list(instance.donors.all().values_list('email', flat=True))
-    doner_groups = list(instance.donor_groups.all().values_list('id', flat=True))
-    donor_groups_emails = list(Donors.objects.filter(groups__id__in=doner_groups).values_list('email', flat=True))
-    users_emails = donors_emails + donor_groups_emails
+    donors_emails = instance.donors.all().values_list('email', flat=True)
+    donor_groups_emails = Donors.objects.filter(
+        groups__in=instance.donor_groups.all()
+    ).values_list('email', flat=True)
+
+    users_emails = set([*donors_emails, *donor_groups_emails])
     send_notification(
         'Flash Update',
         users_emails,

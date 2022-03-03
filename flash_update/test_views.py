@@ -5,13 +5,18 @@ from django.contrib.auth.models import User, Group
 
 from main.test_case import APITestCase
 import api.models as models
-from flash_update.models import FlashUpdate, FlashEmailSubscriptions, FlashGraphicMap, FlashUpdateShare
+from flash_update.models import (
+    FlashUpdate,
+    FlashEmailSubscriptions,
+    FlashGraphicMap,
+    FlashUpdateShare,
+)
 from flash_update.factories.flash_update import (
     FlashUpdateFactory,
     FlashGraphicMapFactory,
     FlashActionFactory,
     DonorFactory,
-    DonorGroupFactory
+    DonorGroupFactory,
 )
 from flash_update.utils import send_email_when_flash_update_created, share_flash_update
 
