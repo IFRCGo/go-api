@@ -222,6 +222,9 @@ class Donors(models.Model):
     position = models.CharField(max_length=300, blank=True, null=True)
     groups = models.ManyToManyField(DonorGroup, verbose_name=_('donor group'), blank=True)
 
+    class Meta:
+        verbose_name = _('donor')
+
     def __str__(self):
         return self.organization_name
 
