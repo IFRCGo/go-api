@@ -1,3 +1,5 @@
+from tinymce import HTMLField
+
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
@@ -79,7 +81,7 @@ class FlashUpdate(models.Model):
         null=True, on_delete=models.SET_NULL
     )
     title = models.CharField(max_length=300)
-    situational_overview = models.TextField(verbose_name=_('Situational Overview'))
+    situational_overview = HTMLField(verbose_name=_('Situational Overview'), blank=True, default='')
 
     # map/graphics
     map = models.ManyToManyField(
@@ -239,4 +241,4 @@ class FlashUpdateShare(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
 
     def __str__(self):
-        return self.flash_update
+        return self.flash_update.title
