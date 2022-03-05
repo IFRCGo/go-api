@@ -235,6 +235,27 @@ class ERUReadinessAdmin(CompareVersionAdmin):
         return super().get_queryset(request).select_related('national_society')
 
 
+# ----- Emergency Project ----- [Start]
+class EmergencyProjectActivityActionSupplyInline(admin.TabularInline):
+    model = models.EmergencyProjectActivityActionSupply
+
+
+class EmergencyProjectActivityActionInline(admin.TabularInline):
+    model = models.EmergencyProjectActivityAction
+
+
+@admin.register(models.EmergencyProjectActivityAction)
+class EmergencyProjectActivityActionAdmin(admin.ModelAdmin):
+    inlines = (EmergencyProjectActivityActionSupplyInline,)
+
+
+@admin.register(models.EmergencyProjectActivitySector)
+class EmergencyProjectActivitySectorAdmin(admin.ModelAdmin):
+    inlines = (EmergencyProjectActivityActionInline,)
+
+
+# ----- Emergency Project ----- [End]
+
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
 admin.site.register(models.Personnel, PersonnelAdmin)

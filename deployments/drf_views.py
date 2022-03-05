@@ -28,7 +28,7 @@ from api.models import (
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
-from .filters import ProjectFilter
+from .filters import ProjectFilter, EmergencyProjectFilter
 from .utils import get_previous_months
 from .models import (
     ERU,
@@ -43,6 +43,9 @@ from .models import (
     SectorTags,
     Sectors,
     Statuses,
+    EmergencyProject,
+    EmergencyProjectActivitySector,
+    EmergencyProjectActivityAction,
 )
 from .serializers import (
     ERUOwnerSerializer,
@@ -59,6 +62,8 @@ from .serializers import (
     RegionalProjectSerializer,
     ProjectSerializer,
     ProjectCsvSerializer,
+    EmergencyProjectSerializer,
+    EmergencyProjectOptionsSerializer,
 )
 
 
@@ -617,3 +622,34 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 )
             ]
         })
+
+
+class EmergencyProjectViewSet(
+    RevisionMixin,
+    ReadOnlyVisibilityViewsetMixin,
+    viewsets.ModelViewSet,
+):
+    # FIXME: N+1 Query
+    queryset = EmergencyProject.objects.prefetch_related(
+        'created_by', 'reporting_ns', 'districts', 'event',
+    ).all()
+    filterset_class = EmergencyProjectFilter
+    serializer_class = EmergencyProjectSerializer
+    ordering_fields = ('title',)
+    search_fields = ('title',)  # for /docs
+
+    @action(
+        detail=False,
+        url_path='options',
+        methods=('get',),
+        serializer_class=EmergencyProjectOptionsSerializer,
+    )
+    def get_options(self, request, pk=None):
+        return Response(
+            EmergencyProjectOptionsSerializer(
+                instance=dict(
+                    sectors=EmergencyProjectActivitySector.objects.all(),
+                    actions=EmergencyProjectActivityAction.objects.prefetch_related('supplies').all(),
+                )
+            ).data
+        )

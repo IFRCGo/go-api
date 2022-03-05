@@ -10,6 +10,7 @@ from .models import (
     SectorTags,
     Statuses,
     Project,
+    EmergencyProject,
 )
 
 
@@ -87,4 +88,13 @@ class ProjectFilter(filters.FilterSet):
             'primary_sector',
             'operation_type',
             'exclude_within',
+        ]
+
+
+class EmergencyProjectFilter(filters.FilterSet):
+    class Meta:
+        model = EmergencyProject
+        fields = [
+            'country',
+            'status',
         ]

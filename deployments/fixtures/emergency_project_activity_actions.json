@@ -1,0 +1,83 @@
+[
+  {
+    "model": "deployments.EmergencyProjectActivitySector",
+    "pk": "1",
+    "fields": {
+      "title": "Health",
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivitySector",
+    "pk": "2",
+    "fields": {
+      "title": "Water & Sanitation",
+      "order": 2
+    }
+  },
+
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "1",
+    "fields": {
+      "title": "Transporting people to health facilities",
+      "sector": 1,
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "2",
+    "fields": {
+      "title": "Providing immunization support",
+      "sector": 1,
+      "order": 2
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "3",
+    "fields": {
+      "title": "Providing clean drinking water",
+      "sector": 2,
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "4",
+    "fields": {
+      "title": "Repairing damaged latrines",
+      "sector": 2,
+      "order": 2
+    }
+  },
+
+  {
+    "model": "deployments.EmergencyProjectActivityActionSupply",
+    "pk": "1",
+    "fields": {
+      "title": "First aid kits",
+      "action": 1,
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityActionSupply",
+    "pk": "2",
+    "fields": {
+      "title": "Medicines",
+      "action": 1,
+      "order": 2
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityActionSupply",
+    "pk": "3",
+    "fields": {
+      "title": "Pre-natal vitamins",
+      "action": 1,
+      "order": 3
+    }
+  }
+]
