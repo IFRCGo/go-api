@@ -626,7 +626,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
 
 class EmergencyProjectViewSet(
     RevisionMixin,
-    ReadOnlyVisibilityViewsetMixin,
+    # ReadOnlyVisibilityViewsetMixin,  # FIXME: This is required?
     viewsets.ModelViewSet,
 ):
     # FIXME: N+1 Query
