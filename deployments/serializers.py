@@ -34,6 +34,7 @@ from .models import (
     EmergencyProjectActivitySector,
     EmergencyProjectActivityAction,
     EmergencyProjectActivityActionSupply,
+    EmergencyProjectActivity,
 
     OperationTypes,
     ProgrammeTypes,
@@ -360,8 +361,8 @@ class EmergencyProjectOptionsSerializer(serializers.Serializer):
 
 class EmergencyProjectActivitySerializer(ModelSerializer):
     class Meta:
-        model = EmergencyProject
-        fields = '__all__'
+        model = EmergencyProjectActivity
+        exclude = ('project',)
 
     def validate(self, data):
         sector = data.get('sector', self.instance and self.instance.sector)
@@ -399,12 +400,11 @@ class EmergencyProjectSerializer(
 ):
     created_by_details = MiniUserSerializer(source='created_by', read_only=True)
     modified_by_details = MiniUserSerializer(source='modified_by', read_only=True)
-    country_details = MiniCountrySerializer(source='country', read_only=True)
     event_details = MiniEventSerializer(source='event', read_only=True)
     reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
-    activities = EmergencyProjectActivitySerializer(many=True, required=False)
+    activities = EmergencyProjectActivitySerializer(many=True, required=False,)
     # Enums
     activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -420,19 +420,14 @@ class EmergencyProjectSerializer(
         )
 
     def validate(self, data):
-        # Pull country data from event
         event = data.get('event', self.instance and self.instance.event)
-        country = data.get('country', self.instance and self.instance.country)
+        countries_id = list(event.countries.values_list('id', flat=True))
         reporting_ns = data.get('reporting_ns', self.instance and self.instance.reporting_ns)
         deployed_eru = data.get('deployed_eru', self.instance and self.instance.deployed_eru)
-        if not event.countries.filter(id=country.pk).exists():
-            raise serializers.ValidationError({
-                'country': ugettext("Provided country doesn't exists for provided event")
-            })
         for district in data.get('districts') or []:
-            if district.country != country:
+            if district.country_id not in countries_id:
                 raise serializers.ValidationError({
-                    'districts': ugettext('All region/province should be from event country'),
+                    'districts': ugettext("All region/province should be from event's countries"),
                 })
         if data['activity_lead'] == EmergencyProject.ActivityLead.NATIONAL_SOCIETY:
             if reporting_ns is None:

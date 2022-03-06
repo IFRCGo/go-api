@@ -95,6 +95,5 @@ class EmergencyProjectFilter(filters.FilterSet):
     class Meta:
         model = EmergencyProject
         fields = [
-            'country',
             'status',
         ]

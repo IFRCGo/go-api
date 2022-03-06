@@ -546,12 +546,6 @@ class EmergencyProject(models.Model):
         on_delete=models.CASCADE,
         related_name='+'
     )  # this is the current operation
-    country = models.ForeignKey(
-        Country,
-        verbose_name=_('Country'),
-        on_delete=models.CASCADE,
-        related_name='+',
-    )  # this is the country where the project is actually taking place
     districts = models.ManyToManyField(
         District,
         verbose_name=_('Districts'),
