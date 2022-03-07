@@ -329,6 +329,21 @@ class ProjectCsvSerializer(ProjectSerializer):
         )
 
 
+class CharKeyValueSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    value = serializers.CharField()
+
+    @staticmethod
+    def choices_to_data(choices):
+        return [
+            {
+                'key': key,
+                'value': value,
+            }
+            for key, value in choices
+        ]
+
+
 # ------ Emergency Project -- [Start]
 class EmergencyProjectActivitySectorSerializer(ModelSerializer):
     class Meta:
@@ -357,6 +372,8 @@ class EmergencyProjectActivityActionSerializer(ModelSerializer):
 class EmergencyProjectOptionsSerializer(serializers.Serializer):
     sectors = EmergencyProjectActivitySectorSerializer(read_only=True, many=True)
     actions = EmergencyProjectActivityActionSerializer(read_only=True, many=True)
+    activity_leads = CharKeyValueSerializer(read_only=True, many=True)
+    activity_status = CharKeyValueSerializer(read_only=True, many=True)
 
 
 class EmergencyProjectActivitySerializer(ModelSerializer):
