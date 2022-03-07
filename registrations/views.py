@@ -189,9 +189,9 @@ class VerifyEmail(APIView):
         if pending_user.email_verified:
             return bad_http_request('You have already verified your email',
                                     'A validation email has been sent to the administrators you listed.')
-        if pending_user.created_at < timezone.now() - timedelta(days=1):
+        if pending_user.created_at < timezone.now() - timedelta(days=30):
             return bad_http_request('This link is expired',
-                                    'You must verify your email within 24 hours. \
+                                    'You must verify your email within 30 days. \
                                     Please contact your system administrator.')
 
         if is_valid_domain(pending_user.user.email):

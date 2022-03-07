@@ -476,10 +476,10 @@ class ResendValidation(APIView):
                 if pending_user.user.is_active is True:
                     return bad_request('Your registration is already active, \
                                         you can try logging in with your registered username and password')
-# no 24h limit  if pending_user.created_at < timezone.now() - timedelta(days=1):
-# no 24h limit      return bad_request('The verification period is expired. \
-# no 24h limit                          You must verify your email within 24 hours. \
-# no 24h limit                          Please contact your system administrator.')
+                if pending_user.created_at < timezone.now() - timedelta(days=30):
+                    return bad_request('The verification period is expired. \
+                                        You must verify your email within 30 days. \
+                                        Please contact your system administrator.')
 
                 # Construct and re-send the email
                 email_context = {
