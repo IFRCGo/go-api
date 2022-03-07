@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - Changing 1 day limit for registrations to 30
+
 ## 1.1.420
 
 ### Added
