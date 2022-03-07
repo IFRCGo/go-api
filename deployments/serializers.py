@@ -377,6 +377,9 @@ class EmergencyProjectOptionsSerializer(serializers.Serializer):
 
 
 class EmergencyProjectActivitySerializer(ModelSerializer):
+    supplies = serializers.DictField(serializers.IntegerField())
+    custom_supplies = serializers.DictField(serializers.IntegerField())
+
     class Meta:
         model = EmergencyProjectActivity
         exclude = ('project',)
@@ -393,14 +396,7 @@ class EmergencyProjectActivitySerializer(ModelSerializer):
             })
         if supplies:
             supplies_keys = supplies.keys()
-            supplies_counts = supplies.values()
             action_supplies_id = list(action.supplies.values_list('id', flat=True))
-            if invalid_counts := [count for count in supplies_counts if type(count) != int]:
-                raise serializers.ValidationError({
-                    'supplies': ugettext(
-                        'Count should be integers: %s' % ', '.join(invalid_counts)
-                    ),
-                })
             if invalid_keys := [key for key in supplies_keys if int(key) not in action_supplies_id]:
                 raise serializers.ValidationError({
                     'supplies': ugettext(
