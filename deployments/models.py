@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
 from django.contrib.postgres.fields import JSONField
 
@@ -688,6 +689,9 @@ class EmergencyProjectActivity(models.Model):
     # Custom action/supplies
     custom_action = models.CharField(verbose_name=_('custom_action'), max_length=255, blank=True, null=True)
     custom_supplies = JSONField(verbose_name=_('custom supplies'), default=dict)  # key: count (key: User defined)
+    # Location Data
+    location_point = gid_models.PointField(verbose_name=_('location point'), srid=4326, blank=True, null=True)
+    location_description = models.TextField(verbose_name=_('location description'), blank=True)
 
 
 # -------------- Emergency 3W [END]
