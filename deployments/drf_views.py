@@ -151,8 +151,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
                     'deployment__event_deployed_to__field_reports',
                     queryset=FieldReport.objects.only('id', 'event_id')
                 )
-            )
-        return qs.prefetch_related('deployment__event_deployed_to__field_reports')
+            ).distinct()
+
+        return qs.prefetch_related('deployment__event_deployed_to__field_reports').distinct()
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get('format', 'json')
