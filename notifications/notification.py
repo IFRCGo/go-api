@@ -3,7 +3,6 @@ import base64
 import threading
 import smtplib
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 from email.mime.text import MIMEText
 from django.conf import settings
 from django.utils.html import strip_tags
@@ -53,7 +52,7 @@ class SendMail(threading.Thread):
             CronJob.sync_cron(cron_rec)
 
 
-def construct_msg(subject, html, files=None):
+def construct_msg(subject, html):
     msg = MIMEMultipart('alternative')
 
     msg['Subject'] = subject
@@ -65,11 +64,6 @@ def construct_msg(subject, html, files=None):
 
     msg.attach(text_body)
     msg.attach(html_body)
-
-    for file in files or []:
-        attachedfile = MIMEApplication(file['file'])
-        attachedfile.add_header('content-disposition', 'attachment', filename=file['filename'])
-        msg.attach(attachedfile)
 
     return msg
 
@@ -157,12 +151,12 @@ def send_notification(subject, recipients, html, mailtype='', files=None):
     elif res.status_code == 401 or res.status_code == 403:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error(f'Authorization/authentication failed ({res.status_code}) to the e-mail sender API.')
-        msg = construct_msg(subject, html, files)
+        msg = construct_msg(subject, html)
         SendMail(to_addresses, msg).start()
     else:
         # Try sending with Python smtplib, if reaching the API fails
         logger.error('Could not reach the e-mail sender API. Trying with Python smtplib...')
-        msg = construct_msg(subject, html, files)
+        msg = construct_msg(subject, html)
         SendMail(to_addresses, msg).start()
 
     return res.text

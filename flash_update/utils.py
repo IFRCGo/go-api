@@ -1,6 +1,7 @@
 import logging
 from io import BytesIO
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 
@@ -54,12 +55,13 @@ def get_email_context(instance):
         'map_list': map_list,
         'graphic_list': graphics_list,
         'actions_taken': actions_taken,
-        'resources': resources
+        'resources': resources,
+        'document_url': flash_update_data['document']
     }
     return email_context
 
 
-def send_email_when_flash_update_created(instance):
+def send_flash_update_email(instance):
     share_with_group = instance.share_with
     if instance.share_with is None:
         return
@@ -79,7 +81,12 @@ def send_email_when_flash_update_created(instance):
 
 
 def share_flash_update(instance):
-    email_context = get_email_context(instance.flash_update)
+    context_for_pdf = get_email_context(instance.flash_update)
+    pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
+    instance.flash_update.document.save(pdf['filename'], ContentFile(pdf['file']))
+    email_context = {
+        'document_url': settings.BASE_URL + context_for_pdf['document_url']
+    }
     donors_emails = instance.donors.all().values_list('email', flat=True)
     donor_groups_emails = Donors.objects.filter(
         groups__in=instance.donor_groups.all()
@@ -87,10 +94,9 @@ def share_flash_update(instance):
 
     users_emails = set([*donors_emails, *donor_groups_emails])
     send_notification(
-        'Flash Update',
+        f'Flash Update #{instance.flash_update.id}',
         users_emails,
         render_to_string('email/flash_update/donor_email.html', email_context),
         'Flash Update',
-        [render_to_pdf('email/flash_update/flash_pdf.html', email_context)]
     )
     return email_context

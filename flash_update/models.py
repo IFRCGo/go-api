@@ -115,6 +115,12 @@ class FlashUpdate(models.Model):
         FlashReferences, blank=True,
         verbose_name=_('references')
     )
+    document = models.FileField(
+        verbose_name=_('file'),
+        upload_to='flash_update/documents/',
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = _('Flash update')

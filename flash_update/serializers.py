@@ -4,7 +4,7 @@ from django.utils.translation import ugettext
 from rest_framework import serializers
 
 from enumfields.drf.serializers import EnumSupportSerializerMixin
-from .utils import send_email_when_flash_update_created, share_flash_update
+from .utils import send_flash_update_email, share_flash_update
 
 from api.serializers import (
     UserNameSerializer,
@@ -140,14 +140,20 @@ class FlashUpdateSerializer(
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
         flash_update = super().create(validated_data)
+        # TODO : Make async
         transaction.on_commit(
-            lambda: send_email_when_flash_update_created(flash_update)
+            lambda: send_flash_update_email(flash_update)
         )
         return flash_update
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
-        return super().update(instance, validated_data)
+        flash_update = super().update(instance, validated_data)
+        # TODO : Make async
+        transaction.on_commit(
+            lambda: send_flash_update_email(flash_update)
+        )
+        return flash_update
 
 
 class ShareFlashUpdateSerializer(serializers.ModelSerializer):
@@ -161,6 +167,7 @@ class ShareFlashUpdateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         flash_update_share = super().create(validated_data)
+        # TODO : make async using celery
         transaction.on_commit(
             lambda: share_flash_update(flash_update_share)
         )
