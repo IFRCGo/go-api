@@ -184,9 +184,14 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
-        if md['hidden'] == 1 or md['draft'] == 1:
+        if md['hidden'] == 1
+            personnel.molnix_status = 'hidden'
+            personnel.is_active = False
+        elif md['draft'] == 1:
+            personnel.molnix_status = 'draft'
             personnel.is_active = False
         else:
+            personnel.molnix_status = 'active'
             personnel.is_active = True
         personnel.type = Personnel.RR
         personnel.start_date = get_datetime(md['start'])
@@ -245,6 +250,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     for id in inactive_ids:
         personnel = Personnel.objects.get(molnix_id=id)
+        personnel.molnix_status = 'deleted'
         personnel.is_active = False
         personnel.save()
 

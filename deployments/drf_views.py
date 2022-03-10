@@ -158,8 +158,16 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         request_format_type = self.request.GET.get('format', 'json')
         if request_format_type == 'csv':
-            return PersonnelCsvSerializerAnon if self.request.user.is_anonymous else PersonnelCsvSerializer
-        return PersonnelSerializerAnon if self.request.user.is_anonymous else PersonnelSerializer
+            if self.request.user.is_anonymous:
+                return PersonnelCsvSerializerAnon
+            elif self.request.user.is_superuser:
+                return PersonnelCsvSerializerSuper
+            return PersonnelCsvSerializer
+        if self.request.user.is_anonymous:
+            return PersonnelSerializerAnon
+        elif self.request.user.is_superuser:
+            return PersonnelSerializerSuper
+        return PersonnelSerializer
 
 
 class AggregateDeployments(APIView):
