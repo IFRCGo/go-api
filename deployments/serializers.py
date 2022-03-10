@@ -384,7 +384,11 @@ class EmergencyProjectOptionsSerializer(serializers.Serializer):
     activity_status = CharKeyValueSerializer(read_only=True, many=True)
 
 
-class EmergencyProjectActivitySerializer(ModelSerializer):
+class EmergencyProjectActivitySerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer
+):
     supplies = serializers.DictField(serializers.IntegerField())
     custom_supplies = serializers.DictField(serializers.IntegerField())
     points = EmergencyProjectActivityLocationSerializer(many=True, required=False)
@@ -418,6 +422,7 @@ class EmergencyProjectActivitySerializer(ModelSerializer):
 
 
 class EmergencyProjectSerializer(
+    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer,
@@ -428,7 +433,7 @@ class EmergencyProjectSerializer(
     reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
-    emergency_activities = EmergencyProjectActivitySerializer(many=True, required=False, source='activities')
+    activities = EmergencyProjectActivitySerializer(many=True, required=False)
     # Enums
     activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)

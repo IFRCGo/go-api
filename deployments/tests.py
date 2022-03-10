@@ -259,33 +259,28 @@ class TestEmergencyProjectAPI(APITestCase):
             'activity_lead': EmergencyProject.ActivityLead.NATIONAL_SOCIETY,
             'start_date': '2022-01-01',
             'deployed_eru': deployed_eru.id,
-            'country': country1.id
+            'country': country1.id,
+            "activities": [
+                {
+                    "sector": sector.id,
+                    "action": action.id,
+                    "household_count": 1,
+                    "people_count": 2,
+                    "male": 3,
+                    "female": 5,
+                    "supplies": {
+                        "2": 33,
+                        "3": 178
+                    },
+                    "custom_supplies": {},
+                    "points": []
+                },
+            ]
         }
-        data['emergency_activities'] = [
-            {
-                'sector': sector.id,
-                'action': action.id,
-                'project': project.id,
-                'supplies': {
-                    '2': 100,
-                    '1': 1,
-                    '4': 3
-                }
-            },
-            {
-                'sector': sector.id,
-                'action': action.id,
-                'project': project.id,
-                'supplies': {
-                    '2': 100,
-                    '1': 144,
-                    '4': 3
-                }
-            },
-        ]
         url = '/api/v2/emergency-project/'
         self.authenticate()
         response = self.client.post(url, data=data, format='json')
+        print(response.content)
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
-        self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 2)
+        self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)
