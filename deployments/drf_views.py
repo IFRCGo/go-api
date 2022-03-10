@@ -52,6 +52,8 @@ from .serializers import (
     PersonnelCsvSerializer,
     PersonnelSerializerAnon,
     PersonnelCsvSerializerAnon,
+    PersonnelSerializerSuper,
+    PersonnelCsvSerializerSuper,
     PartnerDeploymentSerializer,
     PartnerDeploymentTableauSerializer,
     RegionalProjectSerializer,
