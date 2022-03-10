@@ -83,9 +83,12 @@ def send_flash_update_email(instance):
 def share_flash_update(instance):
     context_for_pdf = get_email_context(instance.flash_update)
     pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
+
+    # save the generated pdf
     instance.flash_update.document.save(pdf['filename'], ContentFile(pdf['file']))
+    # create url for pdf in email
     email_context = {
-        'document_url': settings.BASE_URL + context_for_pdf['document_url']
+        'document_url': settings.BASE_URL + instance.flash_update.document.url
     }
     donors_emails = instance.donors.all().values_list('email', flat=True)
     donor_groups_emails = Donors.objects.filter(
@@ -99,4 +102,4 @@ def share_flash_update(instance):
         render_to_string('email/flash_update/donor_email.html', email_context),
         'Flash Update',
     )
-    return email_context
+    return context_for_pdf

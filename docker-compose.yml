@@ -3,6 +3,7 @@ version: '3.5'
 x-server: &base_server_setup
   image: ifrcgo/go-api:latest
   build: .
+  stdin_open: true
   tty: true
   environment:
     # Overwrite this using .env (for additional configuration, look at main/settings.py:env
