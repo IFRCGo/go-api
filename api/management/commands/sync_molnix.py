@@ -184,7 +184,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
-        if md['hidden'] == 1
+        if md['hidden'] == 1:
             personnel.molnix_status = 'hidden'
             personnel.is_active = False
         elif md['draft'] == 1:
