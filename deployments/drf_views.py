@@ -176,7 +176,8 @@ class AggregateDeployments(APIView):
     '''
         Get aggregated data for personnel deployments
     '''
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         now = timezone.now()
         deployments_qset = Personnel.objects.filter(is_active=True)
         eru_qset = ERU.objects.all()
@@ -206,7 +207,8 @@ class AggregateDeployments(APIView):
 
 class DeploymentsByMonth(APIView):
 
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         '''Returns count of Personnel Deployments
             for last 12 months, aggregated by month.
         '''
@@ -227,7 +229,8 @@ class DeploymentsByMonth(APIView):
 
 class DeploymentsByNS(APIView):
 
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         '''Returns count of Personnel Deployments
             by National Society, for the current year.
         '''
