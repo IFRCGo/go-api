@@ -173,6 +173,11 @@ class DeployedPerson(models.Model):
 
 
 class Personnel(DeployedPerson):
+    """
+    Deployed personnel (connected to personneldeployment,
+    which contains the details, date intervals etc.)
+    """
+
     FACT = 'fact'
     HEOP = 'heop'
     RDRT = 'rdrt'
@@ -189,6 +194,18 @@ class Personnel(DeployedPerson):
         (RR, _('Rapid Response')),
     )
 
+    ACTIVE = 'active'
+    HIDDEN = 'hidden'
+    DRAFT = 'draft'
+    DELETED = 'deleted'
+
+    STATUS_CHOICES = (
+        (ACTIVE, _('ACTIVE')),
+        (HIDDEN, _('HIDDEN')),
+        (DRAFT, _('DRAFT')),
+        (DELETED, _('DELETED')),
+    )
+
     type = models.CharField(verbose_name=_('type'), choices=TYPE_CHOICES, max_length=4)
     country_from = models.ForeignKey(
         Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
@@ -199,7 +216,9 @@ class Personnel(DeployedPerson):
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
     molnix_id = models.IntegerField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
+    molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=STATUS_CHOICES, default=ACTIVE)
     is_active = models.BooleanField(default=True)  # Active in Molnix API
+
 
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
