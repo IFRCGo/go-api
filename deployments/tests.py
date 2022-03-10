@@ -4,14 +4,23 @@ import pydash
 
 import json
 
-from main.test_case import SnapshotTestCase
+from main.test_case import SnapshotTestCase, APITestCase
 from deployments.factories.user import UserFactory
 from deployments.factories.project import ProjectFactory
 from api.factories import country, district
-
+import api.models as models
 from deployments.models import Project, VisibilityCharChoices, SectorTags
 
 from .factories.personnel import PersonnelFactory
+from deployments.factories.emergency_project import (
+    EmergencyProjectActivityFactory,
+    EmergencyProjectFactory,
+    EmergencyProjectActivityActionFactory,
+    EmergencyProjectActivitySectorFactory,
+    EruFactory,
+)
+from api.factories.event import EventFactory
+from deployments.models import EmergencyProject, EmergencyProjectActivity
 
 
 class TestProjectAPI(SnapshotTestCase):
@@ -206,3 +215,77 @@ class TestProjectAPI(SnapshotTestCase):
         resp = self.client.get(url)
         self.assert_200(resp)
         self.assertMatchSnapshot(resp.json())
+
+
+class TestEmergencyProjectAPI(APITestCase):
+    def test_emergency_project(self):
+        supplies = {
+            '2': 100,
+            '1': 1,
+            '4': 3
+        }
+        EmergencyProjectActivityFactory.create_batch(1, supplies=supplies)
+        url = '/api/v2/emergency-project/'
+        self.authenticate()
+        response = self.client.get(url)
+        print(response.content)
+        self.assert_204(response)
+        self.assertEqual(len(response.data['results']), 5)
+
+    def test_emergency_project_create(self):
+        fixtures = ['emergency_project_activity_actions.json']
+        old_emergency_project_count = EmergencyProject.objects.count()
+        old_emergency_project_activity_count = EmergencyProjectActivity.objects.count()
+        country1 = models.Country.objects.create(name='abc')
+        country2 = models.Country.objects.create(name='xyz')
+        district1 = models.District.objects.create(name='test district1', country=country1)
+        district2 = models.District.objects.create(name='test district12', country=country2)
+        district3 = models.District.objects.create(name='test district3', country=country1)
+        sector = EmergencyProjectActivitySectorFactory.create()
+        action = EmergencyProjectActivityActionFactory.create()
+        project = ProjectFactory.create()
+        event = EventFactory.create(
+            countries=[country1.id, country2.id],
+            districts=[district1.id, district3.id]
+        )
+        reporting_ns = models.Country.objects.create(name='ne')
+        deployed_eru = EruFactory.create()
+        data = {
+            'title': "Emergency title",
+            'event': event.id,
+            'districts': [district1.id, district3.id],
+            'reporting_ns': reporting_ns.id,
+            'status': EmergencyProject.ActivityStatus.ON_GOING,
+            'activity_lead': EmergencyProject.ActivityLead.NATIONAL_SOCIETY,
+            'start_date': '2022-01-01',
+            'deployed_eru': deployed_eru.id,
+            'country': country1.id
+        }
+        data['emergency_activities'] = [
+            {
+                'sector': sector.id,
+                'action': action.id,
+                'project': project.id,
+                'supplies': {
+                    '2': 100,
+                    '1': 1,
+                    '4': 3
+                }
+            },
+            {
+                'sector': sector.id,
+                'action': action.id,
+                'project': project.id,
+                'supplies': {
+                    '2': 100,
+                    '1': 144,
+                    '4': 3
+                }
+            },
+        ]
+        url = '/api/v2/emergency-project/'
+        self.authenticate()
+        response = self.client.post(url, data=data, format='json')
+        self.assert_201(response)
+        self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
+        self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 2)

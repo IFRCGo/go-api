@@ -600,6 +600,12 @@ class EmergencyProject(models.Model):
         choices=ActivityStatus.choices,
         default=ActivityStatus.ON_GOING,
     )
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE,
+        related_name='+',
+    )  # Country to be among the country in event
 
     def __str__(self):
         return self.title
@@ -640,6 +646,16 @@ class EmergencyProjectActivityActionSupply(models.Model):
         return self.title
 
 
+class EmergencyProjectActivityLocation(models.Model):
+    # Location Data
+    latitude = models.IntegerField(verbose_name=_('latitude'))
+    longitude = models.IntegerField(verbose_name=_('longitude'))
+    description = models.TextField(verbose_name=_('location description'))
+
+    def __str__(self):
+        return f'{self.latitude} - {self.longitude}'
+
+
 class EmergencyProjectActivity(models.Model):
     sector = models.ForeignKey(
         EmergencyProjectActivitySector,
@@ -661,6 +677,10 @@ class EmergencyProjectActivity(models.Model):
     )
     is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
     # Metrics
+    household_count = models.IntegerField(verbose_name=_('Household'), null=True, blank=True)
+    amount = models.IntegerField(verbose_name=_('Amount'), null=True, blank=True)
+    item_count = models.IntegerField(verbose_name=_('Item'), null=True, blank=True)
+
     people_count = models.IntegerField(verbose_name=_('People'), null=True, blank=True)
     male_count = models.IntegerField(verbose_name=_('Men'), null=True, blank=True)
     female_count = models.IntegerField(verbose_name=_('Female'), null=True, blank=True)
@@ -683,15 +703,30 @@ class EmergencyProjectActivity(models.Model):
     female_50_59_count = models.IntegerField(verbose_name=_('Women 50-59'), null=True, blank=True)
     female_60_69_count = models.IntegerField(verbose_name=_('Women 60-69'), null=True, blank=True)
     female_70_plus_count = models.IntegerField(verbose_name=_('Women 70+'), null=True, blank=True)
+    other_0_5_count = models.IntegerField(verbose_name=_('Others/Unknown 0-5'), null=True, blank=True)
+    other_6_12_count = models.IntegerField(verbose_name=_('Others/Unknown 6-12'), null=True, blank=True)
+    other_13_17_count = models.IntegerField(verbose_name=_('Others/Unknown 13-17'), null=True, blank=True)
+    other_18_29_count = models.IntegerField(verbose_name=_('Others/Unknown 18-29'), null=True, blank=True)
+    other_30_39_count = models.IntegerField(verbose_name=_('Others/Unknown 30-39'), null=True, blank=True)
+    other_40_49_count = models.IntegerField(verbose_name=_('Others/Unknown 40-49'), null=True, blank=True)
+    other_50_59_count = models.IntegerField(verbose_name=_('Others/Unknown 50-59'), null=True, blank=True)
+    other_60_69_count = models.IntegerField(verbose_name=_('Others/Unknown 60-69'), null=True, blank=True)
+    other_70_plus_count = models.IntegerField(verbose_name=_('Others/Unknown 70+'), null=True, blank=True)
     # More Details
     details = models.TextField(verbose_name=_('details'), blank=True)
     supplies = JSONField(verbose_name=_('supplies'), default=dict)  # key: count (key: System defined id)
     # Custom action/supplies
     custom_action = models.CharField(verbose_name=_('custom_action'), max_length=255, blank=True, null=True)
     custom_supplies = JSONField(verbose_name=_('custom supplies'), default=dict)  # key: count (key: User defined)
-    # Location Data
-    location_point = gid_models.PointField(verbose_name=_('location point'), srid=4326, blank=True, null=True)
-    location_description = models.TextField(verbose_name=_('location description'), blank=True)
+    # point details
+    # point_count to be used if is_simplified_report is True
+    point_count = models.IntegerField(verbose_name=_('Point Count'), null=True, blank=True)
+    # points to be used if is_simplified_report is False
+    points = models.ManyToManyField(
+        EmergencyProjectActivityLocation,
+        verbose_name=_('Points'),
+        blank=True
+    )
 
 
 # -------------- Emergency 3W [END]

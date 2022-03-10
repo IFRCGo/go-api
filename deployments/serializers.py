@@ -2,12 +2,13 @@ from django.utils.translation import ugettext
 from django.contrib.auth.models import User
 
 from rest_framework import serializers
+
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from main.utils import get_merged_items_by_fields
 from main.writable_nested_serializers import (
     NestedCreateMixin,
-    NestedUpdateMixin
+    NestedUpdateMixin,
 )
 from lang.serializers import ModelSerializer
 from api.serializers import (
@@ -35,6 +36,7 @@ from .models import (
     EmergencyProjectActivityAction,
     EmergencyProjectActivityActionSupply,
     EmergencyProjectActivity,
+    EmergencyProjectActivityLocation,
 
     OperationTypes,
     ProgrammeTypes,
@@ -369,6 +371,12 @@ class EmergencyProjectActivityActionSerializer(ModelSerializer):
         fields = ('id', 'sector', 'title', 'order', 'supplies_details',)
 
 
+class EmergencyProjectActivityLocationSerializer(ModelSerializer):
+    class Meta:
+        model = EmergencyProjectActivityLocation
+        fields = '__all__'
+
+
 class EmergencyProjectOptionsSerializer(serializers.Serializer):
     sectors = EmergencyProjectActivitySectorSerializer(read_only=True, many=True)
     actions = EmergencyProjectActivityActionSerializer(read_only=True, many=True)
@@ -379,6 +387,9 @@ class EmergencyProjectOptionsSerializer(serializers.Serializer):
 class EmergencyProjectActivitySerializer(ModelSerializer):
     supplies = serializers.DictField(serializers.IntegerField())
     custom_supplies = serializers.DictField(serializers.IntegerField())
+    points = EmergencyProjectActivityLocationSerializer(many=True, required=False)
+    sector_details = EmergencyProjectActivitySectorSerializer(source='sector', read_only=True)
+    action_details = EmergencyProjectActivityActionSerializer(source='action', read_only=True)
 
     class Meta:
         model = EmergencyProjectActivity
@@ -417,10 +428,11 @@ class EmergencyProjectSerializer(
     reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
-    activities = EmergencyProjectActivitySerializer(many=True, required=False,)
+    emergency_activities = EmergencyProjectActivitySerializer(many=True, required=False, source='activities')
     # Enums
     activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    country_details = MiniCountrySerializer(source='country', read_only=True)
 
     class Meta:
         model = EmergencyProject
@@ -437,10 +449,15 @@ class EmergencyProjectSerializer(
         countries_id = list(event.countries.values_list('id', flat=True))
         reporting_ns = data.get('reporting_ns', self.instance and self.instance.reporting_ns)
         deployed_eru = data.get('deployed_eru', self.instance and self.instance.deployed_eru)
+        country = data.get('country', None)
+        if country and country.id not in countries_id:
+            raise serializers.ValidationError({
+                'country': ugettext("Country should be from event's countries"),
+            })
         for district in data.get('districts') or []:
-            if district.country_id not in countries_id:
+            if district.country_id != country.id:
                 raise serializers.ValidationError({
-                    'districts': ugettext("All region/province should be from event's countries"),
+                    'districts': ugettext("All region/province should be from selected country"),
                 })
         if data['activity_lead'] == EmergencyProject.ActivityLead.NATIONAL_SOCIETY:
             if reporting_ns is None:

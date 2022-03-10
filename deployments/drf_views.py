@@ -632,8 +632,9 @@ class EmergencyProjectViewSet(
 ):
     # FIXME: N+1 Query
     queryset = EmergencyProject.objects.prefetch_related(
-        'created_by', 'reporting_ns', 'districts', 'event',
+        'created_by', 'reporting_ns', 'districts', 'event', 'country'
     ).all()
+    permission_classes = [IsAuthenticated]
     filterset_class = EmergencyProjectFilter
     serializer_class = EmergencyProjectSerializer
     ordering_fields = ('title',)
