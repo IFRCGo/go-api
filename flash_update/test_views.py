@@ -1,9 +1,8 @@
 import os
-import xhtml2pdf
+
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from unittest import mock
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from main.test_case import APITestCase
 import api.models as models

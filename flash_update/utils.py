@@ -1,5 +1,7 @@
 import logging
 from io import BytesIO
+
+from django.utils import timezone
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.template.loader import render_to_string
@@ -56,7 +58,7 @@ def get_email_context(instance):
         'graphic_list': graphics_list,
         'actions_taken': actions_taken,
         'resources': resources,
-        'document_url': flash_update_data['document']
+        'document_url': flash_update_data['extracted_file']
     }
     return email_context
 
@@ -81,14 +83,19 @@ def send_flash_update_email(instance):
 
 
 def share_flash_update(instance):
-    context_for_pdf = get_email_context(instance.flash_update)
-    pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
+    flash_update = instance.flash_update
+    context_for_pdf = get_email_context(flash_update)
+    if flash_update.extracted_at is None or flash_update.modified_at > flash_update.extracted_at:
+        pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
 
-    # save the generated pdf
-    instance.flash_update.document.save(pdf['filename'], ContentFile(pdf['file']))
+        # save the generated pdf
+        flash_update.extracted_file.save(pdf['filename'], ContentFile(pdf['file']))
+        flash_update.extracted_at = timezone.now()
+        flash_update.save(update_fields=('extracted_at',))
+
     # create url for pdf in email
     email_context = {
-        'document_url': settings.BASE_URL + instance.flash_update.document.url
+        'document_url': settings.BASE_URL + flash_update.extracted_file.url
     }
     donors_emails = instance.donors.all().values_list('email', flat=True)
     donor_groups_emails = Donors.objects.filter(
@@ -97,9 +104,10 @@ def share_flash_update(instance):
 
     users_emails = set([*donors_emails, *donor_groups_emails])
     send_notification(
-        f'Flash Update #{instance.flash_update.id}',
+        f'Flash Update #{flash_update.id}',
         users_emails,
         render_to_string('email/flash_update/donor_email.html', email_context),
         'Flash Update',
     )
     return context_for_pdf
+
