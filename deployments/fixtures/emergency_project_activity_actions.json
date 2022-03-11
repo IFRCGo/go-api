@@ -19,7 +19,7 @@
     "model": "deployments.EmergencyProjectActivitySector",
     "pk": "3",
     "fields": {
-      "title": "CTP/Basic Needs",
+      "title": "Cash & Voucher Assistance",
       "order": 3
     }
   },
@@ -84,7 +84,7 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "2",
     "fields": {
-      "title": "Emergency shelter construction",
+      "title": "Emergency shelter assistance",
       "sector": 2,
       "order": 2
     }
@@ -93,7 +93,7 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "3",
     "fields": {
-      "title": "Shelter supply/toolkit distribution",
+      "title": "Basic household items distribution",
       "sector": 2,
       "order": 3
     }
@@ -102,7 +102,7 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "4",
     "fields": {
-      "title": "Household supply distribution",
+      "title": "Cash or voucher for shelter",
       "sector": 2,
       "order": 4
     }
@@ -111,7 +111,7 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "5",
     "fields": {
-      "title": "Cash-for-work related to shelter and settlements",
+      "title": "Collective shelter support",
       "sector": 2,
       "order": 5
     }
@@ -120,59 +120,23 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "6",
     "fields": {
-      "title": "Shelter management",
-      "sector": 2,
-      "order": 6
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "7",
-    "fields": {
-      "title": "Host assistance",
-      "sector": 2,
-      "order": 7
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "8",
-    "fields": {
-      "title": "Rental assistance",
-      "sector": 2,
-      "order": 8
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "9",
-    "fields": {
-      "title": "Cash distribution",
+      "title": "Multi-purpose cash (unconditional)",
       "sector": 3,
       "order": 1
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "10",
+    "pk": "7",
     "fields": {
-      "title": "Cash for work assignments",
+      "title": "Multi-purpose voucher (unconditional)",
       "sector": 3,
       "order": 2
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "11",
-    "fields": {
-      "title": "Voucher distribution",
-      "sector": 3,
-      "order": 4
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "12",
+    "pk": "8",
     "fields": {
       "title": "Education support for children, adolescents, and young adults",
       "sector": 4,
@@ -181,7 +145,7 @@
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "13",
+    "pk": "9",
     "fields": {
       "title": "Education supplies, kits, or equipment distribution for children, adolescents and young adults",
       "sector": 4,
@@ -190,7 +154,7 @@
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "14",
+    "pk": "10",
     "fields": {
       "title": "Education spaces constructed or rehabilitation",
       "sector": 4,
@@ -199,26 +163,26 @@
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "15",
+    "pk": "11",
     "fields": {
-      "title": "Food distribution",
+      "title": "Food distribution (in-kind)",
       "sector": 5,
       "order": 1
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "16",
+    "pk": "12",
     "fields": {
-      "title": "Agricultural inputs, materials, and/or tools distribution for production",
+      "title": "Cash or voucher for food security and livelihoods",
       "sector": 5,
       "order": 2
     }
   },{
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "17",
+    "pk": "13",
     "fields": {
-      "title": "Inputs, materials, and/or tools distribution for income-generation",
+      "title": "In-kind support for food security & livelihoods",
       "sector": 5,
       "order": 3
     }
@@ -226,29 +190,56 @@
 
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "18",
+    "pk": "14",
     "fields": {
-      "title": "Essential services/information for production",
+      "title": "Essential services/information for food security & livelihoods",
       "sector": 5,
       "order": 4
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "15",
+    "fields": {
+      "title": "First aid",
+      "sector": 1,
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "16",
+    "fields": {
+      "title": "First aid training",
+      "sector": 1,
+      "order": 2
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "17",
+    "fields": {
+      "title": "Primary healthcare, mobile or stationary clinics",
+      "sector": 1,
+      "order": 3
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
     "pk": "18",
     "fields": {
-      "title": "Essential services/information for income-generation",
-      "sector": 5,
-      "order": 5
+      "title": "Search and rescue",
+      "sector": 1,
+      "order": 4
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "19",
     "fields": {
-      "title": "Essential services/information for employment opportunities, including self-employment",
-      "sector": 5,
-      "order": 6
+      "title": "health promotion, disease prevention",
+      "sector": 1,
+      "order": 5
     }
   },
   {
@@ -256,7 +247,7 @@
     "pk": "20",
     "fields": {
       "title": "Hygiene promotion",
-      "sector": 1,
+      "sector": 6,
       "order": 1
     }
   },
@@ -265,7 +256,7 @@
     "pk": "21",
     "fields": {
       "title": "Hygiene supply distribution",
-      "sector": 1,
+      "sector": 6,
       "order": 2
     }
   },
@@ -273,8 +264,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "22",
     "fields": {
-      "title": "Mental health and psychosocial services",
-      "sector": 1,
+      "title": "Water source improvements",
+      "sector": 6,
       "order": 3
     }
   },
@@ -282,8 +273,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "23",
     "fields": {
-      "title": "Health facilities assessments",
-      "sector": 1,
+      "title": "Water treatment facilities contruction/rehabilitation",
+      "sector": 6,
       "order": 4
     }
   },
@@ -291,63 +282,63 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "24",
     "fields": {
-      "title": "Water points improvements",
-      "sector": 6,
-      "order": 1
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "25",
-    "fields": {
-      "title": "Water treatment facilities contruction/rehabilitation",
-      "sector": 6,
-      "order": 2
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "26",
-    "fields": {
       "title": "Water treatment supply distribution",
-      "sector": 6,
-      "order": 3
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "27",
-    "fields": {
-      "title": "Water distribution",
-      "sector": 6,
-      "order": 4
-    }
-  },
-  {
-    "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "28",
-    "fields": {
-      "title": "Handwashing facilities construction/rehabilitation",
       "sector": 6,
       "order": 5
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "29",
+    "pk": "25",
     "fields": {
-      "title": "Water point assessments",
+      "title": "Water distribution",
       "sector": 6,
       "order": 6
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
-    "pk": "30",
+    "pk": "26",
     "fields": {
-      "title": "Group programmes (Women, Men, Older people, etc.)",
+      "title": "Handwashing facilities construction/rehabilitation",
+      "sector": 6,
+      "order": 7
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "27",
+    "fields": {
+      "title": "Toilet facilities construction/rehabilitation",
+      "sector": 6,
+      "order": 8
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "28",
+    "fields": {
+      "title": "Restoring family links",
       "sector": 7,
       "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "29",
+    "fields": {
+      "title": "Child-friendly spaces",
+      "sector": 7,
+      "order": 2
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "30",
+    "fields": {
+      "title": "Specialised programme preventing or responding to violence",
+      "sector": 7,
+      "order": 3
     }
   },
   {
@@ -356,23 +347,23 @@
     "fields": {
       "title": "Referrals to case management/follow-up services",
       "sector": 7,
-      "order": 2
+      "order": 4
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "32",
     "fields": {
-      "title": "PSEA training to staff & volunteers",
+      "title": "Prevention of Sexual Exploitation & Abuse & Child safeguarding SOPs, policies & training",
       "sector": 7,
-      "order": 3
+      "order": 5
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "33",
     "fields": {
-      "title": "Legal assistance",
+      "title": "Transportation / evacuation of people",
       "sector": 8,
       "order": 1
     }
@@ -381,8 +372,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "34",
     "fields": {
-      "title": "CEA training for staff & volunteers",
-      "sector": 9,
+      "title": "Transportation / evacuation of people",
+      "sector": 8,
       "order": 1
     }
   },
@@ -390,8 +381,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "35",
     "fields": {
-      "title": "Information provision to affected population",
-      "sector": 9,
+      "title": "Establishing humanitarian service points / safe service provision/distribution points",
+      "sector": 8,
       "order": 2
     }
   },
@@ -399,8 +390,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "36",
     "fields": {
-      "title": "Community feedback mechanism",
-      "sector": 9,
+      "title": "Support / accompaniment in official procedures ",
+      "sector": 8,
       "order": 3
     }
   },
@@ -408,8 +399,8 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "37",
     "fields": {
-      "title": "Community consultations",
-      "sector": 9,
+      "title": "Establishing community centers/multifunctional centres, integration services",
+      "sector": 8,
       "order": 4
     }
   },
@@ -417,7 +408,43 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "38",
     "fields": {
+      "title": "CEA training for staff & volunteers",
+      "sector": 9,
+      "order": 1
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "39",
+    "fields": {
+      "title": "Information sharing/awareness raising",
+      "sector": 9,
+      "order": 2
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "40",
+    "fields": {
+      "title": "Community complaints and feedback mechanisms",
+      "sector": 9,
+      "order": 3
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "41",
+    "fields": {
       "title": "Perception or satisfaction survey",
+      "sector": 9,
+      "order": 4
+    }
+  },
+  {
+    "model": "deployments.EmergencyProjectActivityAction",
+    "pk": "42",
+    "fields": {
+      "title": "Rumour tracking",
       "sector": 9,
       "order": 5
     }
