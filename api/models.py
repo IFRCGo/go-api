@@ -523,7 +523,7 @@ class AlertLevel(IntEnum):
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
-    name = models.CharField(verbose_name=_('name'), max_length=100)
+    name = models.CharField(verbose_name=_('name'), max_length=256)
     # Obsolete: slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
     slug = models.CharField(
         verbose_name=_('slug'), max_length=50, editable=True, default=None, unique=True, null=True, blank=True,
