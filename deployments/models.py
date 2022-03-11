@@ -564,6 +564,8 @@ class EmergencyProject(models.Model):
         verbose_name=_('Reporting national society'),
         on_delete=models.CASCADE,
         related_name='+',
+        blank=True,
+        null=True,
     )
     reporting_ns_contact_name = models.CharField(
         verbose_name=_('NS Contanct Information: Name'),
@@ -589,6 +591,8 @@ class EmergencyProject(models.Model):
         verbose_name=_('Deployed ERU'),
         on_delete=models.CASCADE,
         related_name='+',
+        blank=True,
+        null=True,
     )
     start_date = models.DateField(
         verbose_name=_('Start Date'),

@@ -226,12 +226,11 @@ class TestEmergencyProjectAPI(APITestCase):
             '1': 1,
             '4': 3
         }
-        EmergencyProjectActivityFactory.create_batch(1, supplies=supplies)
+        EmergencyProjectActivityFactory.create_batch(5, supplies=supplies)
         url = '/api/v2/emergency-project/'
         self.authenticate()
         response = self.client.get(url)
-        print(response.content)
-        self.assert_204(response)
+        self.assert_200(response)
         self.assertEqual(len(response.data['results']), 5)
 
     def test_emergency_project_create(self):
