@@ -648,8 +648,8 @@ class EmergencyProjectActivityActionSupply(models.Model):
 
 class EmergencyProjectActivityLocation(models.Model):
     # Location Data
-    latitude = models.IntegerField(verbose_name=_('latitude'))
-    longitude = models.IntegerField(verbose_name=_('longitude'))
+    latitude = models.FloatField(verbose_name=_('latitude'))
+    longitude = models.FloatField(verbose_name=_('longitude'))
     description = models.TextField(verbose_name=_('location description'))
 
     def __str__(self):

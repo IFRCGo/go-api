@@ -218,6 +218,8 @@ class TestProjectAPI(SnapshotTestCase):
 
 
 class TestEmergencyProjectAPI(APITestCase):
+    fixtures = ['emergency_project_activity_actions.json']
+
     def test_emergency_project(self):
         supplies = {
             '2': 100,
@@ -233,27 +235,24 @@ class TestEmergencyProjectAPI(APITestCase):
         self.assertEqual(len(response.data['results']), 5)
 
     def test_emergency_project_create(self):
-        fixtures = ['emergency_project_activity_actions.json']
         old_emergency_project_count = EmergencyProject.objects.count()
         old_emergency_project_activity_count = EmergencyProjectActivity.objects.count()
         country1 = models.Country.objects.create(name='abc')
         country2 = models.Country.objects.create(name='xyz')
         district1 = models.District.objects.create(name='test district1', country=country1)
-        district2 = models.District.objects.create(name='test district12', country=country2)
-        district3 = models.District.objects.create(name='test district3', country=country1)
+        district2 = models.District.objects.create(name='test district2', country=country1)
         sector = EmergencyProjectActivitySectorFactory.create()
         action = EmergencyProjectActivityActionFactory.create()
-        project = ProjectFactory.create()
         event = EventFactory.create(
             countries=[country1.id, country2.id],
-            districts=[district1.id, district3.id]
+            districts=[district1.id, district2.id]
         )
         reporting_ns = models.Country.objects.create(name='ne')
         deployed_eru = EruFactory.create()
         data = {
             'title': "Emergency title",
             'event': event.id,
-            'districts': [district1.id, district3.id],
+            'districts': [district1.id, district2.id],
             'reporting_ns': reporting_ns.id,
             'status': EmergencyProject.ActivityStatus.ON_GOING,
             'activity_lead': EmergencyProject.ActivityLead.NATIONAL_SOCIETY,
@@ -268,11 +267,11 @@ class TestEmergencyProjectAPI(APITestCase):
                     "people_count": 2,
                     "male": 3,
                     "female": 5,
-                    "supplies": {
-                        "2": 33,
-                        "3": 178
+                    "custom_supplies": {
+                        "test_supplies": 23,
+                        "test_world": 34,
+                        "test_emergency": 56
                     },
-                    "custom_supplies": {},
                     "points": []
                 },
             ]
@@ -280,7 +279,6 @@ class TestEmergencyProjectAPI(APITestCase):
         url = '/api/v2/emergency-project/'
         self.authenticate()
         response = self.client.post(url, data=data, format='json')
-        print(response.content)
         self.assert_201(response)
         self.assertEqual(EmergencyProject.objects.count(), old_emergency_project_count + 1)
         self.assertEqual(EmergencyProjectActivity.objects.count(), old_emergency_project_activity_count + 1)

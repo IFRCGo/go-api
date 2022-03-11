@@ -389,8 +389,8 @@ class EmergencyProjectActivitySerializer(
     NestedCreateMixin,
     ModelSerializer
 ):
-    supplies = serializers.DictField(child=serializers.IntegerField())
-    custom_supplies = serializers.DictField(child=serializers.IntegerField())
+    supplies = serializers.DictField(child=serializers.IntegerField(), required=False)
+    custom_supplies = serializers.DictField(child=serializers.IntegerField(),)
     points = EmergencyProjectActivityLocationSerializer(many=True, required=False)
     sector_details = EmergencyProjectActivitySectorSerializer(source='sector', read_only=True)
     action_details = EmergencyProjectActivityActionSerializer(source='action', read_only=True)
