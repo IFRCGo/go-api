@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from unittest import mock
 
 from main.test_case import APITestCase
 import api.models as models
@@ -18,7 +19,7 @@ from flash_update.factories.flash_update import (
     DonorFactory,
     DonorGroupFactory,
 )
-from flash_update.utils import send_email_when_flash_update_created, share_flash_update
+from flash_update.utils import send_flash_update_email, share_flash_update
 
 
 class FlashUpdateTest(APITestCase):
@@ -271,18 +272,22 @@ class FlashUpdateTest(APITestCase):
         response = self.client.post(url, data2, format='multipart')
         self.assert_400(response)
 
-    def test_send_email(self):
-        group = Group.objects.create(name="flash_email_member")
+    @mock.patch('notifications.notification.send_notification')
+    def test_send_email(self, send_notification):
+        group = Group.objects.create(name="flash_email_group")
         email_suscription = FlashEmailSubscriptions.objects.get(
             share_with=FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         )
         email_suscription.group = group
         email_suscription.save()
 
+        # check for create
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
         instance = FlashUpdate.objects.get(id=response['id'])
-        email_data = send_email_when_flash_update_created(instance)
+        email_data = send_flash_update_email(instance)
+
+        self.assertTrue(send_notification.assert_called)  # check if send_notifications function is called.
         self.assertEqual(email_data['title'], instance.title)
         self.assertEqual(email_data['situational_overview'], instance.situational_overview)
         self.assertIn(
@@ -290,7 +295,33 @@ class FlashUpdateTest(APITestCase):
             [data['id'] for data in instance.actions_taken_flash.all().values('id')]
         )
 
-    def test_flash_update_share(self):
+        # check for update
+        group2 = Group.objects.create(name="flash_email_group2")
+        email_suscription = FlashEmailSubscriptions.objects.get(
+            share_with=FlashUpdate.FlashShareWith.RCRC_NETWORK
+        )
+        email_suscription.group = group2
+        email_suscription.save()
+        self.body['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        response = self.client.put(f'/api/v2/flash-update/{instance.id}/', self.body, format='json').json()
+        instance = FlashUpdate.objects.get(id=response['id'])
+        email_data = send_flash_update_email(instance)
+
+        self.assertTrue(send_notification.assert_called)  # check if send_notifications function is called.
+        self.assertEqual(email_data['title'], instance.title)
+        self.assertEqual(email_data['situational_overview'], instance.situational_overview)
+        self.assertIn(
+            email_data['actions_taken'][0]['id'],
+            [data['id'] for data in instance.actions_taken_flash.all().values('id')]
+        )
+
+    @mock.patch('flash_update.utils.render_to_pdf')
+    @mock.patch('notifications.notification.send_notification')
+    def test_flash_update_share(self, send_notification, render_to_pdf):
+        render_to_pdf.return_value = {
+            'filename': "test.pdf",
+            'file': b'pdf content'
+        }
         donor1, donor2, donor3 = DonorFactory.create_batch(3)
         donor_group1, donor_group2 = DonorGroupFactory.create_batch(2)
         self.client.force_authenticate(user=self.user)
@@ -309,5 +340,7 @@ class FlashUpdateTest(APITestCase):
         # check email context
         flash_update_share = FlashUpdateShare.objects.get(id=response['id'])
         email_data = share_flash_update(flash_update_share)
+        # check if send_notifications function is called.
+        self.assertTrue(send_notification.assert_called)
         self.assertEqual(email_data['title'], flash_update.title)
         self.assertEqual(email_data['situational_overview'], flash_update.situational_overview)

@@ -115,6 +115,13 @@ class FlashUpdate(models.Model):
         FlashReferences, blank=True,
         verbose_name=_('references')
     )
+    extracted_file = models.FileField(
+        verbose_name=_('extracted file'),
+        upload_to='flash_update/pdf/',
+        blank=True,
+        null=True
+    )
+    extracted_at = models.DateTimeField(verbose_name=_('extracted at'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('Flash update')
