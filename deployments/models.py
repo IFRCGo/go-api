@@ -657,6 +657,10 @@ class EmergencyProjectActivityLocation(models.Model):
 
 
 class EmergencyProjectActivity(models.Model):
+    class PeopleHouseholds(TextChoices):
+        PEOPLE = 'people', _('People'),
+        HOUSEHOLDS = 'households', _('Households')
+
     sector = models.ForeignKey(
         EmergencyProjectActivitySector,
         verbose_name=_('sector'),
@@ -677,6 +681,12 @@ class EmergencyProjectActivity(models.Model):
     )
     is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
     # Metrics
+    people_households = models.CharField(
+        max_length=50,
+        null=True, blank=True,
+        choices=PeopleHouseholds.choices,
+        verbose_name=_('People Households'),
+    )
     household_count = models.IntegerField(verbose_name=_('Household'), null=True, blank=True)
     amount = models.IntegerField(verbose_name=_('Amount'), null=True, blank=True)
     item_count = models.IntegerField(verbose_name=_('Item'), null=True, blank=True)

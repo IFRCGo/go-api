@@ -263,10 +263,10 @@ class TestEmergencyProjectAPI(APITestCase):
                 {
                     "sector": sector.id,
                     "action": action.id,
-                    "household_count": 1,
                     "people_count": 2,
                     "male": 3,
                     "female": 5,
+                    "people_households": EmergencyProjectActivity.PeopleHouseholds.PEOPLE,
                     "custom_supplies": {
                         "test_supplies": 23,
                         "test_world": 34,

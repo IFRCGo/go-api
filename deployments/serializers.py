@@ -382,6 +382,7 @@ class EmergencyProjectOptionsSerializer(serializers.Serializer):
     actions = EmergencyProjectActivityActionSerializer(read_only=True, many=True)
     activity_leads = CharKeyValueSerializer(read_only=True, many=True)
     activity_status = CharKeyValueSerializer(read_only=True, many=True)
+    activity_people_households = CharKeyValueSerializer(read_only=True, many=True)
 
 
 class EmergencyProjectActivitySerializer(
@@ -402,6 +403,8 @@ class EmergencyProjectActivitySerializer(
     def validate(self, data):
         sector = data.get('sector', self.instance and self.instance.sector)
         action = data.get('action', self.instance and self.instance.action)
+        people_count = data.get('people_count', self.instance and self.instance.people)
+        household_count = data.get('household_count', self.instance and self.instance.household_count)
         supplies = data.get('supplies')
         if action:
             data['sector'] = sector = action.sector
@@ -417,6 +420,16 @@ class EmergencyProjectActivitySerializer(
                     'supplies': ugettext(
                         'Invalid supplies keys: %s' % ', '.join(invalid_keys)
                     ),
+                })
+        if data['people_households'] == EmergencyProjectActivity.PeopleHouseholds.PEOPLE:
+            if people_count is None:
+                raise serializers.ValidationError({
+                    'people_count': ugettext('People count to be provided if people selected'),
+                })
+        else:
+            if household_count is None:
+                raise serializers.ValidationError({
+                    'household_count': ugettext('Households count to be provided if households selected'),
                 })
         return data
 
