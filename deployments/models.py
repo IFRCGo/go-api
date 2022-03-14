@@ -631,6 +631,7 @@ class EmergencyProjectActivityAction(models.Model):
     )
     title = models.CharField(max_length=255, verbose_name=_('title'))
     order = models.SmallIntegerField(default=0)
+    description = models.TextField(verbose_name=_('Description'), blank=True)
 
     def __str__(self):
         return self.title
@@ -727,7 +728,7 @@ class EmergencyProjectActivity(models.Model):
     other_60_69_count = models.IntegerField(verbose_name=_('Others/Unknown 60-69'), null=True, blank=True)
     other_70_plus_count = models.IntegerField(verbose_name=_('Others/Unknown 70+'), null=True, blank=True)
     # More Details
-    details = models.TextField(verbose_name=_('details'), blank=True)
+    details = models.TextField(verbose_name=_('details'), blank=True, null=True)
     supplies = JSONField(verbose_name=_('supplies'), default=dict)  # key: count (key: System defined id)
     # Custom action/supplies
     custom_action = models.CharField(verbose_name=_('custom_action'), max_length=255, blank=True, null=True)

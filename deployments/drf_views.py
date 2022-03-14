@@ -632,7 +632,7 @@ class EmergencyProjectViewSet(
     viewsets.ModelViewSet,
 ):
     # FIXME: N+1 Query
-    queryset = EmergencyProject.objects.prefetch_related(
+    queryset = EmergencyProject.objects.order_by('-modified_at').prefetch_related(
         'created_by', 'reporting_ns', 'districts', 'event', 'country'
     ).all()
     permission_classes = [IsAuthenticated]

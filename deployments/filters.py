@@ -2,7 +2,11 @@ from functools import reduce
 import django_filters as filters
 from django.db.models import Q, F
 
-from api.models import Region, Country
+from api.models import (
+    Region,
+    Country,
+    Event,
+)
 from .models import (
     OperationTypes,
     ProgrammeTypes,
@@ -10,6 +14,8 @@ from .models import (
     SectorTags,
     Statuses,
     Project,
+    ERU,
+    EmergencyProjectActivitySector,
     EmergencyProject,
 )
 
@@ -92,8 +98,37 @@ class ProjectFilter(filters.FilterSet):
 
 
 class EmergencyProjectFilter(filters.FilterSet):
+    status = filters.MultipleChoiceFilter(
+        choices=EmergencyProject.ActivityStatus.choices,
+    )
+    activity_lead = filters.MultipleChoiceFilter(
+        choices=EmergencyProject.ActivityLead.choices,
+    )
+    country = filters.ModelMultipleChoiceFilter(
+        field_name='country',
+        queryset=Country.objects.all()
+    )
+    reporting_ns = filters.ModelMultipleChoiceFilter(
+        field_name='reporting_ns',
+        queryset=Country.objects.all()
+    )
+    event = filters.ModelMultipleChoiceFilter(
+        field_name='event',
+        queryset=Event.objects.all()
+    )
+    deployed_eru = filters.ModelMultipleChoiceFilter(
+        field_name='deployed_eru',
+        queryset=ERU.objects.all()
+    )
+    sector = filters.ModelMultipleChoiceFilter(
+        label='sector',
+        field_name='activities__sector',
+        queryset=EmergencyProjectActivitySector.objects.all()
+
+    )
+
     class Meta:
         model = EmergencyProject
-        fields = [
-            'status',
-        ]
+        fields = {
+            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+        }

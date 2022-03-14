@@ -51,7 +51,7 @@
     "model": "deployments.EmergencyProjectActivitySector",
     "pk": "7",
     "fields": {
-      "title": "PGI",
+      "title": "Protection, Gender & Inclusion",
       "order": 7
     }
   },
@@ -67,7 +67,7 @@
     "model": "deployments.EmergencyProjectActivitySector",
     "pk": "9",
     "fields": {
-      "title": "CEA",
+      "title": "Community Engagement & Accountability",
       "order": 9
     }
   },
@@ -86,7 +86,8 @@
     "fields": {
       "title": "Emergency shelter assistance",
       "sector": 2,
-      "order": 2
+      "order": 2,
+      "description": "Refers to assistance in reconstruction or construction of shelter"
     }
   },
   {
@@ -104,7 +105,8 @@
     "fields": {
       "title": "Cash or voucher for shelter",
       "sector": 2,
-      "order": 4
+      "order": 4,
+      "description": "To include host, rental and cash for work for shelter and settlements"
     }
   },
   {
@@ -113,7 +115,8 @@
     "fields": {
       "title": "Collective shelter support",
       "sector": 2,
-      "order": 5
+      "order": 5,
+      "description": "Support provided to, and management of collective or reception centers, and also activities facilitating hosting at families"
     }
   },
   {
@@ -184,7 +187,8 @@
     "fields": {
       "title": "In-kind support for food security & livelihoods",
       "sector": 5,
-      "order": 3
+      "order": 3,
+      "description": "Agricultural inputs, materials, and/or tools distribution for production (in-kind)"
     }
   },
 
@@ -194,7 +198,8 @@
     "fields": {
       "title": "Essential services/information for food security & livelihoods",
       "sector": 5,
-      "order": 4
+      "order": 4,
+      "description": "Includes agricultural production, (self) employment and/or income generation"
     }
   },
   {
@@ -257,7 +262,8 @@
     "fields": {
       "title": "Hygiene supply distribution",
       "sector": 6,
-      "order": 2
+      "order": 2,
+      "description": "Hygiene items such as soap, toothbrush, menstrual hygiene etc"
     }
   },
   {
@@ -284,7 +290,8 @@
     "fields": {
       "title": "Water treatment supply distribution",
       "sector": 6,
-      "order": 5
+      "order": 5,
+      "description": "Tablets and filtration devices"
     }
   },
   {
@@ -338,7 +345,8 @@
     "fields": {
       "title": "Specialised programme preventing or responding to violence",
       "sector": 7,
-      "order": 3
+      "order": 3,
+      "description": "E.g. SGBV programming & dignity kit ditribution"
     }
   },
   {
@@ -347,7 +355,8 @@
     "fields": {
       "title": "Referrals to case management/follow-up services",
       "sector": 7,
-      "order": 4
+      "order": 4,
+      "description": "To include health,social services, protection but not legal migration referrals"
     }
   },
   {
@@ -392,7 +401,8 @@
     "fields": {
       "title": "Support / accompaniment in official procedures ",
       "sector": 8,
-      "order": 3
+      "order": 3,
+      "description": "Migration, temporary protection, asylum, healthcare)"
     }
   },
   {
@@ -428,7 +438,8 @@
     "fields": {
       "title": "Community complaints and feedback mechanisms",
       "sector": 9,
-      "order": 3
+      "order": 3,
+      "description": "Consultations"
     }
   },
   {
@@ -446,7 +457,8 @@
     "fields": {
       "title": "Rumour tracking",
       "sector": 9,
-      "order": 5
+      "order": 5,
+      "description": "Separated from CFM because of methods and use of the data, usually related to social listening"
     }
   },
 
