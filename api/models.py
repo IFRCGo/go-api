@@ -206,6 +206,8 @@ class Country(models.Model):
     wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True, blank=True)
 
     in_search = models.BooleanField(verbose_name=_('Include in Search'), default=True)
+    # Used in Emergency Project
+    average_household_size = models.IntegerField(verbose_name=_('Average Household Size'), null=True, blank=True)
 
     def indexing(self):
         return {
@@ -537,6 +539,10 @@ class Event(models.Model):
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    countries_for_preview = models.ManyToManyField(
+        Country, verbose_name=_('countries for preview'),
+        blank=True, related_name='countries_for_preview'
+    )
     regions = models.ManyToManyField(Region, verbose_name=_('regions'))
     parent_event = models.ForeignKey(
         'self', null=True, blank=True, verbose_name=_('Parent Emergency'), on_delete=models.SET_NULL,

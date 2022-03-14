@@ -599,6 +599,10 @@ class EmergencyProject(models.Model):
         blank=False,
         null=False,
     )
+    end_date = models.DateField(
+        verbose_name=_('End Date'),
+        null=True, blank=True,
+    )
     status = models.CharField(
         max_length=40,
         choices=ActivityStatus.choices,
@@ -632,6 +636,7 @@ class EmergencyProjectActivityAction(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
     order = models.SmallIntegerField(default=0)
     description = models.TextField(verbose_name=_('Description'), blank=True)
+    is_cash_type = models.BooleanField(default=False, verbose_name=_('is_cash_type'))
 
     def __str__(self):
         return self.title
@@ -685,6 +690,7 @@ class EmergencyProjectActivity(models.Model):
         related_name='activities',
     )
     is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
+    is_disaggregated_for_disabled = models.BooleanField(verbose_name=_('is_disaggregated_for_disabled'), default=False)
     # Metrics
     people_households = models.CharField(
         max_length=50,
@@ -693,12 +699,19 @@ class EmergencyProjectActivity(models.Model):
         verbose_name=_('People Households'),
     )
     household_count = models.IntegerField(verbose_name=_('Household'), null=True, blank=True)
+    # if sector.is_cash_type is True
     amount = models.IntegerField(verbose_name=_('Amount'), null=True, blank=True)
+    beneficiaries_count = models.IntegerField(verbose_name=_('Beneficiaries Count'), null=True, blank=True)
+
     item_count = models.IntegerField(verbose_name=_('Item'), null=True, blank=True)
 
     people_count = models.IntegerField(verbose_name=_('People'), null=True, blank=True)
     male_count = models.IntegerField(verbose_name=_('Men'), null=True, blank=True)
     female_count = models.IntegerField(verbose_name=_('Female'), null=True, blank=True)
+    # -- Age group
+    male_unknown_age = models.IntegerField(verbose_name=_('Male Unknown Age'), null=True, blank=True)
+    female_unknown_age = models.IntegerField(verbose_name=_('Female Unknown Age'), null=True, blank=True)
+    other_unknown_age = models.IntegerField(verbose_name=_('Other Unknown Age'), null=True, blank=True)
     # -- When is_simplified_report is False
     male_0_5_count = models.IntegerField(verbose_name=_('Boys 0-5'), null=True, blank=True)
     male_6_12_count = models.IntegerField(verbose_name=_('Boys 6-12'), null=True, blank=True)
@@ -727,6 +740,34 @@ class EmergencyProjectActivity(models.Model):
     other_50_59_count = models.IntegerField(verbose_name=_('Others/Unknown 50-59'), null=True, blank=True)
     other_60_69_count = models.IntegerField(verbose_name=_('Others/Unknown 60-69'), null=True, blank=True)
     other_70_plus_count = models.IntegerField(verbose_name=_('Others/Unknown 70+'), null=True, blank=True)
+    # -- When is_disaggregated_for_disabled is True
+    disabled_male_0_5_count = models.IntegerField(verbose_name=_(' Disabled Boys 0-5'), null=True, blank=True)
+    disabled_male_6_12_count = models.IntegerField(verbose_name=_('Disabled Boys 6-12'), null=True, blank=True)
+    disabled_male_13_17_count = models.IntegerField(verbose_name=_('Disabled Boys 13-17'), null=True, blank=True)
+    disabled_male_18_29_count = models.IntegerField(verbose_name=_('Disabled Men 18-29'), null=True, blank=True)
+    disabled_male_30_39_count = models.IntegerField(verbose_name=_('Disabled Men 30-39'), null=True, blank=True)
+    disabled_male_40_49_count = models.IntegerField(verbose_name=_('Disabled Men 40-49'), null=True, blank=True)
+    disabled_male_50_59_count = models.IntegerField(verbose_name=_('Disabled Men 50-59'), null=True, blank=True)
+    disabled_male_60_69_count = models.IntegerField(verbose_name=_('Disabled Men 60-69'), null=True, blank=True)
+    disabled_male_70_plus_count = models.IntegerField(verbose_name=_('Disabled Men 70+'), null=True, blank=True)
+    disabled_female_0_5_count = models.IntegerField(verbose_name=_('Disabled Girls 0-5'), null=True, blank=True)
+    disabled_female_6_12_count = models.IntegerField(verbose_name=_('Disabled Girls 6-12'), null=True, blank=True)
+    disabled_female_13_17_count = models.IntegerField(verbose_name=_('Disabled Girls 13-17'), null=True, blank=True)
+    disabled_female_18_29_count = models.IntegerField(verbose_name=_('Disabled Women 18-29'), null=True, blank=True)
+    disabled_female_30_39_count = models.IntegerField(verbose_name=_('Disabled Women 30-39'), null=True, blank=True)
+    disabled_female_40_49_count = models.IntegerField(verbose_name=_('Disabled Women 40-49'), null=True, blank=True)
+    disabled_female_50_59_count = models.IntegerField(verbose_name=_('Disabled Women 50-59'), null=True, blank=True)
+    disabled_female_60_69_count = models.IntegerField(verbose_name=_('Disabled Women 60-69'), null=True, blank=True)
+    disabled_female_70_plus_count = models.IntegerField(verbose_name=_('Disabled Women 70+'), null=True, blank=True)
+    disabled_other_0_5_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 0-5'), null=True, blank=True)
+    disabled_other_6_12_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 6-12'), null=True, blank=True)
+    disabled_other_13_17_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 13-17'), null=True, blank=True)
+    disabled_other_18_29_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 18-29'), null=True, blank=True)
+    disabled_other_30_39_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 30-39'), null=True, blank=True)
+    disabled_other_40_49_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 40-49'), null=True, blank=True)
+    disabled_other_50_59_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 50-59'), null=True, blank=True)
+    disabled_other_60_69_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 60-69'), null=True, blank=True)
+    disabled_other_70_plus_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 70+'), null=True, blank=True)
     # More Details
     details = models.TextField(verbose_name=_('details'), blank=True, null=True)
     supplies = JSONField(verbose_name=_('supplies'), default=dict)  # key: count (key: System defined id)
