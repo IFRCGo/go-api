@@ -12,6 +12,7 @@ from django.core import management
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import DEFAULT_DB_ALIAS, connections
+from django.test import override_settings
 
 from api.models import Country
 from deployments.factories.user import UserFactory
@@ -126,6 +127,7 @@ class GoAPITestMixin():
         return CaptureOnCommitCallbacksContext(using=using, execute=execute)
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class APITestCase(GoAPITestMixin, test.APITestCase):
     pass
 
