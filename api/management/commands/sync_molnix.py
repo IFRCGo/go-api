@@ -26,7 +26,8 @@ NS_MATCHING_OVERRIDES = {
     'Ifrc Americas': 'IFRC',
     'Ifrc Europe': 'IFRC',
     'IFRC': 'IFRC',
-    'Icrc Staff': 'ICRC'
+    'Icrc Staff': 'ICRC',
+    'ICRC': 'ICRC'
 }
 
 def get_unique_tags(deployments, open_positions):
