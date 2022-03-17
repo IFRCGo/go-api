@@ -153,6 +153,7 @@ class MolnixTag(models.Model):
     description = models.CharField(max_length=512)
     color = models.CharField(max_length=6)
     tag_type = models.CharField(max_length=127)
+    tag_category = models.CharField(null=True, max_length=127)
 
     def __str__(self):
         return self.name
