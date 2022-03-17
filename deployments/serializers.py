@@ -115,9 +115,19 @@ class PersonnelCsvSerializer(ModelSerializer):
     country_to = MicroCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
 
+    def get_category_for_tab(self, obj):
+        #category_fields = {
+        #    'name': ''
+        #}
+        # category_deployed_to = obj.category_deployed_to.all()
+        #if len(category_deployed_to) > 0:
+        #    category_fields['name'] = ', '.join([str(category.name) for category in category_deployed_to])
+        #return category_fields
+        return 'dummy'
+
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',)
+        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active', 'category_for_tab',)
 
 
 class PersonnelSerializerAnon(ModelSerializer):
