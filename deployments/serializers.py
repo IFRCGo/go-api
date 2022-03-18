@@ -186,26 +186,34 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     molnix_region = serializers.SerializerMethodField()
     molnix_scope = serializers.SerializerMethodField()
     molnix_modality = serializers.SerializerMethodField()
+    molnix_operation = serializers.SerializerMethodField()
 
-    def get_molnix_sector(self, obj):
+    @classmethod
+    def get_molnix_sector(cls, obj):
         return obj.get_tags_for_category('molnix_sector')
 
-    def get_molnix_role_profile(self, obj):
+    @classmethod
+    def get_molnix_role_profile(cls, obj):
         return obj.get_tags_for_category('molnix_role_profile')
 
-    def get_molnix_language(self, obj):
+    @classmethod
+    def get_molnix_language(cls, obj):
         return obj.get_tags_for_category('molnix_language')
 
-    def get_molnix_region(self, obj):
+    @classmethod
+    def get_molnix_region(cls, obj):
         return obj.get_tags_for_category('molnix_region')
 
-    def get_molnix_scope(self, obj):
+    @classmethod
+    def get_molnix_scope(cls, obj):
         return obj.get_tags_for_category('molnix_scope')
 
-    def get_molnix_modality(self, obj):
+    @classmethod
+    def get_molnix_modality(cls, obj):
         return obj.get_tags_for_category('molnix_modality')
 
-    def get_molnix_operation(self, obj):
+    @classmethod
+    def get_molnix_operation(cls, obj):
         return obj.get_tags_for_category('molnix_operation')
 
 
@@ -268,7 +276,8 @@ class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
     district_deployed_to = serializers.SerializerMethodField()
     activity = PartnerDeploymentActivitySerializer()
 
-    def get_district_deployed_to(self, obj):
+    @classmethod
+    def get_district_deployed_to(cls, obj):
         district_fields = {
             'name': ''
         }
@@ -370,13 +379,16 @@ class ProjectCsvSerializer(ProjectSerializer):
         model = Project
         exclude = ['project_districts']
 
-    def get_secondary_sectors(self, obj):
+    @classmethod
+    def get_secondary_sectors(cls, obj):
         return ', '.join([str(sector.value) for sector in obj.secondary_sectors])
 
-    def get_secondary_sectors_display(self, obj):
+    @classmethod
+    def get_secondary_sectors_display(cls, obj):
         return ', '.join(obj.get_secondary_sectors_display())
 
-    def get_project_districts_detail(self, obj):
+    @classmethod
+    def get_project_districts_detail(cls, obj):
         return get_merged_items_by_fields(
             obj.project_districts.all(),
             ['name', 'code', 'id', 'is_enclave', 'is_deprecated']
