@@ -9,9 +9,22 @@ from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
+from django.contrib.postgres.fields import JSONField
 
-from api.models import District, Country, Region, Event, DisasterType, Appeal, VisibilityCharChoices, Profile, UserCountry,VisibilityChoices, VisibilityCharChoices
+from dref.enums import TextChoices
+from api.models import (
+    District,
+    Country,
+    Region,
+    Event,
+    DisasterType,
+    Appeal,
+    Profile,
+    UserCountry,
+    VisibilityCharChoices,
+)
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
@@ -365,6 +378,7 @@ class RegionalProject(models.Model):
         return self.name
 
 
+# 3W
 class Project(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
     modified_by = models.ForeignKey(
@@ -455,10 +469,18 @@ class Project(models.Model):
             self.status = Statuses.COMPLETED
         return super().save(*args, **kwargs)
 
+    # FIXME: Is this used?
+    @staticmethod
     def get_for(user, queryset=None):
-        _queryset = queryset
-        retval = _queryset.exclude(Q(visibility=VisibilityCharChoices.IFRC_NS) & (~Q(project_country_id__in=UserCountry.objects.filter(user=user.id).values_list('country',flat=True).union(Profile.objects.filter(user=user.id).values_list('country',flat=True))))  & ~Q(reporting_ns_id__in=UserCountry.objects.filter(user=user.id).values_list('country',flat=True).union(Profile.objects.filter(user=user.id).values_list('country',flat=True))))
-        return retval
+        countries_qs = UserCountry.objects.filter(user=user).values('country').union(
+            Profile.objects.filter(user=user).values('country')
+        )
+        return queryset.exclude(
+            Q(visibility=VisibilityCharChoices.IFRC_NS) &
+            ~Q(project_country__in=countries_qs) &
+            ~Q(reporting_ns__in=countries_qs)
+        )
+
 
 class ProjectImport(models.Model):
     """
@@ -490,6 +512,264 @@ class ProjectImport(models.Model):
         return f'Project Import {self.get_status_display()}:{self.created_at}'
 
 
+# -------------- Emergency 3W [Start]
+class EmergencyProject(models.Model):
+    class ActivityLead(TextChoices):
+        NATIONAL_SOCIETY = 'national_society', _('National Society')
+        DEPLOYED_ERU = 'deployed_eru', _('Deployed ERU')
+
+    class ActivityStatus(TextChoices):
+        ON_GOING = 'on_going', _('Activity On-Going')
+        COMPLETE = 'complete', _('Activity Complete')
+        PLANNED = 'planned', _('Planned')
+
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('created by'),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('modified by'),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+    event = models.ForeignKey(
+        Event,
+        verbose_name=_('Event'),
+        on_delete=models.CASCADE,
+        related_name='+'
+    )  # this is the current operation
+    districts = models.ManyToManyField(
+        District,
+        verbose_name=_('Districts'),
+        related_name='+',
+    )  # this is the district where the project is actually taking place
+    # Who is conducting the Activity
+    activity_lead = models.CharField(
+        max_length=30,
+        verbose_name=_('Activity lead'),
+        choices=ActivityLead.choices,
+    )
+    # -- Reporting NS
+    reporting_ns = models.ForeignKey(
+        Country,
+        verbose_name=_('Reporting national society'),
+        on_delete=models.CASCADE,
+        related_name='+',
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_name = models.CharField(
+        verbose_name=_('NS Contanct Information: Name'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_role = models.CharField(
+        verbose_name=_('NS Contanct Information: Role'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_email = models.CharField(
+        verbose_name=_('NS Contanct Information: Email'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    # -- Deployed ERU
+    deployed_eru = models.ForeignKey(
+        ERU,
+        verbose_name=_('Deployed ERU'),
+        on_delete=models.CASCADE,
+        related_name='+',
+        blank=True,
+        null=True,
+    )
+    start_date = models.DateField(
+        verbose_name=_('Start Date'),
+        blank=False,
+        null=False,
+    )
+    end_date = models.DateField(
+        verbose_name=_('End Date'),
+        null=True, blank=True,
+    )
+    status = models.CharField(
+        max_length=40,
+        choices=ActivityStatus.choices,
+        default=ActivityStatus.ON_GOING,
+    )
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE,
+        related_name='+',
+    )  # Country to be among the country in event
+
+    def __str__(self):
+        return self.title
+
+
+class EmergencyProjectActivitySector(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    order = models.SmallIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+
+class EmergencyProjectActivityAction(models.Model):
+    sector = models.ForeignKey(
+        EmergencyProjectActivitySector,
+        verbose_name=_('sector'),
+        on_delete=models.PROTECT,
+    )
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    order = models.SmallIntegerField(default=0)
+    description = models.TextField(verbose_name=_('Description'), blank=True)
+    is_cash_type = models.BooleanField(default=False, verbose_name=_('is_cash_type'))
+    has_location = models.BooleanField(default=False, verbose_name=_('has location'))
+
+    def __str__(self):
+        return self.title
+
+
+class EmergencyProjectActivityActionSupply(models.Model):
+    action = models.ForeignKey(
+        EmergencyProjectActivityAction,
+        verbose_name=_('action'),
+        related_name='supplies',
+        on_delete=models.PROTECT,
+    )
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    order = models.SmallIntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+
+class EmergencyProjectActivityLocation(models.Model):
+    # Location Data
+    latitude = models.FloatField(verbose_name=_('latitude'))
+    longitude = models.FloatField(verbose_name=_('longitude'))
+    description = models.TextField(verbose_name=_('location description'))
+
+    def __str__(self):
+        return f'{self.latitude} - {self.longitude}'
+
+
+class EmergencyProjectActivity(models.Model):
+    class PeopleHouseholds(TextChoices):
+        PEOPLE = 'people', _('People'),
+        HOUSEHOLDS = 'households', _('Households')
+
+    sector = models.ForeignKey(
+        EmergencyProjectActivitySector,
+        verbose_name=_('sector'),
+        on_delete=models.CASCADE,
+    )
+    action = models.ForeignKey(
+        EmergencyProjectActivityAction,
+        verbose_name=_('action'),
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    project = models.ForeignKey(
+        EmergencyProject,
+        verbose_name=_('emergency project/3W'),
+        on_delete=models.CASCADE,
+        related_name='activities',
+    )
+    is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
+    is_disaggregated_for_disabled = models.BooleanField(verbose_name=_('is_disaggregated_for_disabled'), default=False)
+    # Metrics
+    people_households = models.CharField(
+        max_length=50,
+        null=True, blank=True,
+        choices=PeopleHouseholds.choices,
+        verbose_name=_('People Households'),
+    )
+    household_count = models.IntegerField(verbose_name=_('Household'), null=True, blank=True)
+    # if sector.is_cash_type is True
+    amount = models.IntegerField(verbose_name=_('Amount'), null=True, blank=True)
+    beneficiaries_count = models.IntegerField(verbose_name=_('Beneficiaries Count'), null=True, blank=True)
+
+    item_count = models.IntegerField(verbose_name=_('Item'), null=True, blank=True)
+
+    people_count = models.IntegerField(verbose_name=_('People'), null=True, blank=True)
+    male_count = models.IntegerField(verbose_name=_('Men'), null=True, blank=True)
+    female_count = models.IntegerField(verbose_name=_('Female'), null=True, blank=True)
+    # -- Age group
+    male_unknown_age = models.IntegerField(verbose_name=_('Male Unknown Age'), null=True, blank=True)
+    female_unknown_age = models.IntegerField(verbose_name=_('Female Unknown Age'), null=True, blank=True)
+    other_unknown_age = models.IntegerField(verbose_name=_('Other Unknown Age'), null=True, blank=True)
+    # -- When is_simplified_report is False
+    male_0_1 = models.IntegerField(verbose_name=_('Boys 0-1'), null=True, blank=True)
+    male_2_5_count = models.IntegerField(verbose_name=_('Boys 2-5'), null=True, blank=True)
+    male_6_12_count = models.IntegerField(verbose_name=_('Boys 6-12'), null=True, blank=True)
+    male_13_17_count = models.IntegerField(verbose_name=_('Boys 13-17'), null=True, blank=True)
+    male_18_59_count = models.IntegerField(verbose_name=_('Men 18-29'), null=True, blank=True)
+    male_60_plus_count = models.IntegerField(verbose_name=_('Older Men 60+'), null=True, blank=True)
+    female_0_1 = models.IntegerField(verbose_name=_('Girls 0-1'), null=True, blank=True)
+    female_2_5_count = models.IntegerField(verbose_name=_('Girls 2-5'), null=True, blank=True)
+    female_6_12_count = models.IntegerField(verbose_name=_('Girls 6-12'), null=True, blank=True)
+    female_13_17_count = models.IntegerField(verbose_name=_('Girls 13-17'), null=True, blank=True)
+    female_18_59_count = models.IntegerField(verbose_name=_('Women 18-29'), null=True, blank=True)
+    female_60_plus_count = models.IntegerField(verbose_name=_('Older Women 60+'), null=True, blank=True)
+    other_0_1 = models.IntegerField(verbose_name=_('Others/Unknown 0-1'), null=True, blank=True)
+    other_2_5_count = models.IntegerField(verbose_name=_('Others/Unknown 2-5'), null=True, blank=True)
+    other_6_12_count = models.IntegerField(verbose_name=_('Others/Unknown 6-12'), null=True, blank=True)
+    other_13_17_count = models.IntegerField(verbose_name=_('Others/Unknown 13-17'), null=True, blank=True)
+    other_18_59_count = models.IntegerField(verbose_name=_('Others/Unknown 18-29'), null=True, blank=True)
+    other_60_plus_count = models.IntegerField(verbose_name=_('Others/Unknown 60+'), null=True, blank=True)
+    # -- When is_disaggregated_for_disabled is True
+    disabled_male_0_1 = models.IntegerField(verbose_name=_('Disabled Boys 0-1'), null=True, blank=True)
+    disabled_male_2_5_count = models.IntegerField(verbose_name=_('Disabled Boys 2-5'), null=True, blank=True)
+    disabled_male_6_12_count = models.IntegerField(verbose_name=_('Disabled Boys 6-12'), null=True, blank=True)
+    disabled_male_13_17_count = models.IntegerField(verbose_name=_('Disabled Boys 13-17'), null=True, blank=True)
+    disabled_male_18_59_count = models.IntegerField(verbose_name=_('Disabled Men 18-29'), null=True, blank=True)
+    disabled_male_60_plus_count = models.IntegerField(verbose_name=_('Disabled Older Men 60+'), null=True, blank=True)
+    disabled_femal_0_1 = models.IntegerField(verbose_name=_('Disabled Girls 0-1'), null=True, blank=True)
+    disabled_female_2_5_count = models.IntegerField(verbose_name=_('Disabled Girls 2-5'), null=True, blank=True)
+    disabled_female_6_12_count = models.IntegerField(verbose_name=_('Disabled Girls 6-12'), null=True, blank=True)
+    disabled_female_13_17_count = models.IntegerField(verbose_name=_('Disabled Girls 13-17'), null=True, blank=True)
+    disabled_female_18_59_count = models.IntegerField(verbose_name=_('Disabled Women 18-29'), null=True, blank=True)
+    disabled_female_60_plus_count = models.IntegerField(verbose_name=_('Disabled Older Women 60+'), null=True, blank=True)
+    disabled_other_0_1 = models.IntegerField(verbose_name=_('Disabled Others/Unknown 0-1'), null=True, blank=True)
+    disabled_other_2_5_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 2-5'), null=True, blank=True)
+    disabled_other_6_12_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 6-12'), null=True, blank=True)
+    disabled_other_13_17_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 13-17'), null=True, blank=True)
+    disabled_other_18_59_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 18-29'), null=True, blank=True)
+    disabled_other_60_plus_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 60+'), null=True, blank=True)
+    # More Details
+    details = models.TextField(verbose_name=_('details'), blank=True, null=True)
+    supplies = JSONField(verbose_name=_('supplies'), default=dict)  # key: count (key: System defined id)
+    # Custom action/supplies
+    custom_action = models.CharField(verbose_name=_('custom_action'), max_length=255, blank=True, null=True)
+    custom_supplies = JSONField(verbose_name=_('custom supplies'), default=dict)  # key: count (key: User defined)
+    # point details
+    # point_count to be used if is_simplified_report is True
+    point_count = models.IntegerField(verbose_name=_('Point Count'), null=True, blank=True)
+    # points to be used if is_simplified_report is False
+    points = models.ManyToManyField(
+        EmergencyProjectActivityLocation,
+        verbose_name=_('Points'),
+        blank=True
+    )
+
+
+# -------------- Emergency 3W [END]
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """
     national_society = models.ForeignKey(
