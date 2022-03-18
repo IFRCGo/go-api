@@ -241,6 +241,10 @@ class Personnel(DeployedPerson):
         verbose_name = _('Personnel')
         verbose_name_plural = _('Personnels')
 
+    def get_tags_for_category(self, molnix_category):
+        tags = self.molnix_tags.filter(tag_category=molnix_category).values('name')
+        names = [tag['name'] for tag in tags]
+        return ", ".join(names)
 
 class PartnerSocietyActivities(models.Model):
     activity = models.CharField(verbose_name=_('activity'), max_length=50)

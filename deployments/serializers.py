@@ -142,16 +142,16 @@ class PersonnelSerializer(ModelSerializer):
         )
 
 
-class PersonnelCsvSerializer(ModelSerializer):
-    country_from = MicroCountrySerializer()
-    country_to = MicroCountrySerializer()
-    deployment = PersonnelDeploymentCsvSerializer()
+# class PersonnelCsvSerializer(ModelSerializer):
+#     country_from = MicroCountrySerializer()
+#     country_to = MicroCountrySerializer()
+#     deployment = PersonnelDeploymentCsvSerializer()
 
-    class Meta:
-        model = Personnel
-        fields = (
-            'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',
-        )
+#     class Meta:
+#         model = Personnel
+#         fields = (
+#             'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',
+#         )
 
 
 class PersonnelSerializerAnon(ModelSerializer):
@@ -168,22 +168,49 @@ class PersonnelSerializerAnon(ModelSerializer):
         )
 
 
-class PersonnelCsvSerializerAnon(ModelSerializer):
+class PersonnelCsvSerializerBase(ModelSerializer):
     country_from = MicroCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_to = MicroCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
+    molnix_sector = serializers.SerializerMethodField()
+    molnix_role_profile = serializers.SerializerMethodField()
+    molnix_language = serializers.SerializerMethodField()
+    molnix_region = serializers.SerializerMethodField()
+    molnix_scope = serializers.SerializerMethodField()
+    molnix_modality = serializers.SerializerMethodField()
+
+    def get_molnix_sector(self, obj):
+        return obj.get_tags_for_category('molnix_sector')
+
+    def get_molnix_role_profile(self, obj):
+        return obj.get_tags_for_category('molnix_role_profile')
+
+    def get_molnix_language(self, obj):
+        return obj.get_tags_for_category('molnix_language')
+
+    def get_molnix_region(self, obj):
+        return obj.get_tags_for_category('molnix_region')
+
+    def get_molnix_scope(self, obj):
+        return obj.get_tags_for_category('molnix_scope')
+
+    def get_molnix_modality(self, obj):
+        return obj.get_tags_for_category('molnix_modality')
+
+    def get_molnix_operation(self, obj):
+        return obj.get_tags_for_category('molnix_operation')
+
+class PersonnelCsvSerializerAnon(PersonnelCsvSerializerBase):
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active',)
+        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
+                  'deployment', 'id', 'is_active','molnix_sector',
+                  'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
+                  'molnix_modality', 'molnix_operation',)
 
 
 class PersonnelSerializerSuper(ModelSerializer):
-    # Superusers can see molnix-status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
-    deployment = PersonnelDeploymentSerializer()
-    molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Personnel
@@ -191,16 +218,16 @@ class PersonnelSerializerSuper(ModelSerializer):
                   'deployment', 'molnix_id', 'molnix_tags', 'molnix_status', 'is_active', 'id',)
 
 
-class PersonnelCsvSerializerSuper(ModelSerializer):
+class PersonnelCsvSerializerSuper(PersonnelCsvSerializerBase):
     # Superusers can see molnix-status
-    country_from = MicroCountrySerializer()
-    country_to = MicroCountrySerializer()
-    deployment = PersonnelDeploymentCsvSerializer()
 
     class Meta:
         model = Personnel
         fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to',
-                  'deployment', 'molnix_id', 'molnix_status', 'is_active', 'id',)
+                  'deployment', 'molnix_id', 'molnix_status', 'is_active', 'id', 'molnix_sector',
+                  'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
+                  'molnix_modality', 'molnix_operation',)
+
 
 
 class PartnerDeploymentActivitySerializer(ModelSerializer):
