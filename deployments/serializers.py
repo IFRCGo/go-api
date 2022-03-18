@@ -147,7 +147,7 @@ class PersonnelCsvSerializer(ModelSerializer):
     country_to = MicroCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
 
-    def get_category_for_tab(self, obj):
+    def get_category_for_tag(self, obj):
         #category_fields = {
         #    'name': ''
         #}
@@ -160,7 +160,7 @@ class PersonnelCsvSerializer(ModelSerializer):
     class Meta:
         model = Personnel
         fields = (
-            'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active', 'category_for_tab',
+            'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active', 'category_for_tag',
         )
 
 

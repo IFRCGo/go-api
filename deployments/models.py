@@ -232,6 +232,7 @@ class Personnel(DeployedPerson):
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
     molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=STATUS_CHOICES, default=ACTIVE)
     is_active = models.BooleanField(default=True)  # Active in Molnix API
+    category_for_tag = ''
 
 
     def __str__(self):
