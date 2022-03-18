@@ -2,9 +2,14 @@ from django.utils.translation import ugettext
 from django.contrib.auth.models import User
 
 from rest_framework import serializers
+
 from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from main.utils import get_merged_items_by_fields
+from main.writable_nested_serializers import (
+    NestedCreateMixin,
+    NestedUpdateMixin,
+)
 from lang.serializers import ModelSerializer
 from api.serializers import (
     DisasterTypeSerializer,
@@ -26,6 +31,12 @@ from .models import (
     PartnerSocietyDeployment,
     RegionalProject,
     Project,
+    EmergencyProject,
+    EmergencyProjectActivitySector,
+    EmergencyProjectActivityAction,
+    EmergencyProjectActivityActionSupply,
+    EmergencyProjectActivity,
+    EmergencyProjectActivityLocation,
 
     OperationTypes,
     ProgrammeTypes,
@@ -73,6 +84,25 @@ class ERUSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
 
 
+class ERUOwnerMiniSerializer(ModelSerializer):
+    national_society_country_details = MiniCountrySerializer(source='national_society_country', read_only=True)
+
+    class Meta:
+        model = ERUOwner
+        fields = ('id', 'national_society_country_details',)
+
+
+class ERUMiniSerializer(EnumSupportSerializerMixin, ModelSerializer):
+    eru_owner_details = ERUOwnerMiniSerializer(source='eru_owner', read_only=True)
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = ERU
+        fields = (
+            'id', 'type', 'type_display', 'units', 'equipment_units', 'eru_owner_details'
+        )
+
+
 class PersonnelDeploymentSerializer(ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
     event_deployed_to = ListEventSerializer()
@@ -106,8 +136,10 @@ class PersonnelSerializer(ModelSerializer):
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to',
-                  'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to',
+            'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
+        )
 
 
 class PersonnelCsvSerializer(ModelSerializer):
@@ -127,7 +159,9 @@ class PersonnelCsvSerializer(ModelSerializer):
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active', 'category_for_tab',)
+        fields = (
+            'start_date', 'end_date', 'name', 'role', 'type', 'country_from', 'country_to', 'deployment', 'id', 'is_active', 'category_for_tab',
+        )
 
 
 class PersonnelSerializerAnon(ModelSerializer):
@@ -138,8 +172,10 @@ class PersonnelSerializerAnon(ModelSerializer):
 
     class Meta:
         model = Personnel
-        fields = ('start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
-                  'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',)
+        fields = (
+            'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
+            'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
+        )
 
 
 class PersonnelCsvSerializerAnon(ModelSerializer):
@@ -303,3 +339,169 @@ class ProjectCsvSerializer(ProjectSerializer):
             obj.project_districts.all(),
             ['name', 'code', 'id', 'is_enclave', 'is_deprecated']
         )
+
+
+class CharKeyValueSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    value = serializers.CharField()
+
+    @staticmethod
+    def choices_to_data(choices):
+        return [
+            {
+                'key': key,
+                'value': value,
+            }
+            for key, value in choices
+        ]
+
+
+# ------ Emergency Project -- [Start]
+class EmergencyProjectActivitySectorSerializer(ModelSerializer):
+    class Meta:
+        model = EmergencyProjectActivitySector
+        fields = ('id', 'title', 'order',)
+
+
+class EmergencyProjectActivityActionSupplySerializer(ModelSerializer):
+    class Meta:
+        model = EmergencyProjectActivityActionSupply
+        fields = ('id', 'title', 'order',)
+
+
+class EmergencyProjectActivityActionSerializer(ModelSerializer):
+    supplies_details = EmergencyProjectActivityActionSupplySerializer(
+        source='supplies',
+        read_only=True,
+        many=True,
+    )
+
+    class Meta:
+        model = EmergencyProjectActivityAction
+        fields = (
+            'id',
+            'sector',
+            'title',
+            'order',
+            'supplies_details',
+            'description',
+            'is_cash_type',
+            'has_location'
+        )
+
+
+class EmergencyProjectActivityLocationSerializer(ModelSerializer):
+    class Meta:
+        model = EmergencyProjectActivityLocation
+        fields = '__all__'
+
+
+class EmergencyProjectOptionsSerializer(serializers.Serializer):
+    sectors = EmergencyProjectActivitySectorSerializer(read_only=True, many=True)
+    actions = EmergencyProjectActivityActionSerializer(read_only=True, many=True)
+    activity_leads = CharKeyValueSerializer(read_only=True, many=True)
+    activity_status = CharKeyValueSerializer(read_only=True, many=True)
+    activity_people_households = CharKeyValueSerializer(read_only=True, many=True)
+
+
+class EmergencyProjectActivitySerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer
+):
+    supplies = serializers.DictField(child=serializers.IntegerField(), required=False)
+    custom_supplies = serializers.DictField(child=serializers.IntegerField(),)
+    points = EmergencyProjectActivityLocationSerializer(many=True, required=False)
+    sector_details = EmergencyProjectActivitySectorSerializer(source='sector', read_only=True)
+    action_details = EmergencyProjectActivityActionSerializer(source='action', read_only=True)
+
+    class Meta:
+        model = EmergencyProjectActivity
+        exclude = ('project',)
+
+    def validate(self, data):
+        sector = data.get('sector', self.instance and self.instance.sector)
+        action = data.get('action', self.instance and self.instance.action)
+        supplies = data.get('supplies')
+        if action:
+            data['sector'] = sector = action.sector
+        if sector is None:
+            raise serializers.ValidationError({
+                'sector': ugettext('This is required, Or provide a valid action.')
+            })
+        if supplies:
+            supplies_keys = supplies.keys()
+            action_supplies_id = list(action.supplies.values_list('id', flat=True))
+            if invalid_keys := [key for key in supplies_keys if int(key) not in action_supplies_id]:
+                raise serializers.ValidationError({
+                    'supplies': ugettext(
+                        'Invalid supplies keys: %s' % ', '.join(invalid_keys)
+                    ),
+                })
+        return data
+
+
+class EmergencyProjectSerializer(
+    EnumSupportSerializerMixin,
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer,
+):
+    created_by_details = MiniUserSerializer(source='created_by', read_only=True)
+    modified_by_details = MiniUserSerializer(source='modified_by', read_only=True)
+    event_details = MiniEventSerializer(source='event', read_only=True)
+    reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
+    districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
+    activities = EmergencyProjectActivitySerializer(many=True, required=False)
+    # Enums
+    activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    country_details = MiniCountrySerializer(source='country', read_only=True)
+
+    class Meta:
+        model = EmergencyProject
+        fields = '__all__'
+        read_only_fields = (
+            'created_by',
+            'created_at',
+            'modified_by',
+            'modified_at',
+        )
+
+    def validate(self, data):
+        event = data.get('event', self.instance and self.instance.event)
+        countries_id = list(event.countries.values_list('id', flat=True))
+        reporting_ns = data.get('reporting_ns', self.instance and self.instance.reporting_ns)
+        deployed_eru = data.get('deployed_eru', self.instance and self.instance.deployed_eru)
+        country = data.get('country', None)
+        if country and country.id not in countries_id:
+            raise serializers.ValidationError({
+                'country': ugettext("Country should be from event's countries"),
+            })
+        for district in data.get('districts') or []:
+            if district.country_id != country.id:
+                raise serializers.ValidationError({
+                    'districts': ugettext("All region/province should be from selected country"),
+                })
+        if data['activity_lead'] == EmergencyProject.ActivityLead.NATIONAL_SOCIETY:
+            if reporting_ns is None:
+                raise serializers.ValidationError({
+                    'reporting_ns': ugettext('Reporting NS is required when National Society is leading the activity'),
+                })
+        else:
+            if deployed_eru is None:
+                raise serializers.ValidationError({
+                    'deployed_eru': ugettext('Deployed ERU is required when Deployed ERU is leading the activity'),
+                })
+        return data
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data['modified_by'] = self.context['request'].user
+        return super().update(instance, validated_data)
+
+# ------ Emergency Project -- [End]

@@ -125,6 +125,7 @@ router.register(r'per-formcomponent', per_views.FormComponentViewset, basename='
 router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='per-formquestion')
 router.register(r'profile', api_views.ProfileViewset, basename='profile')
 router.register(r'project', deployment_views.ProjectViewset)
+router.register(r'emergency-project', deployment_views.EmergencyProjectViewSet)
 router.register(r'region', api_views.RegionViewset, basename='region')
 router.register(r'region_key_figure', api_views.RegionKeyFigureViewset, basename='region_key_figure')
 router.register(r'region_snippet', api_views.RegionSnippetViewset, basename='region_snippet')
