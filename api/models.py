@@ -207,7 +207,11 @@ class Country(models.Model):
 
     in_search = models.BooleanField(verbose_name=_('Include in Search'), default=True)
     # Used in Emergency Project
-    average_household_size = models.IntegerField(verbose_name=_('Average Household Size'), null=True, blank=True)
+    average_household_size = models.DecimalField(
+        verbose_name=_('Average Household Size'),
+        null=True, blank=True,
+        max_digits=5, decimal_places=2
+    )
 
     def indexing(self):
         return {

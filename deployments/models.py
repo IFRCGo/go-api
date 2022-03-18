@@ -521,6 +521,7 @@ class EmergencyProject(models.Model):
     class ActivityStatus(TextChoices):
         ON_GOING = 'on_going', _('Activity On-Going')
         COMPLETE = 'complete', _('Activity Complete')
+        PLANNED = 'planned', _('Planned')
 
     title = models.CharField(max_length=255, verbose_name=_('title'))
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
@@ -637,6 +638,7 @@ class EmergencyProjectActivityAction(models.Model):
     order = models.SmallIntegerField(default=0)
     description = models.TextField(verbose_name=_('Description'), blank=True)
     is_cash_type = models.BooleanField(default=False, verbose_name=_('is_cash_type'))
+    has_location = models.BooleanField(default=False, verbose_name=_('has location'))
 
     def __str__(self):
         return self.title

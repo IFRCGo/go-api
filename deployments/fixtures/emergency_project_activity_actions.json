@@ -72,12 +72,21 @@
     }
   },
   {
+    "model": "deployments.EmergencyProjectActivitySector",
+    "pk": "10",
+    "fields": {
+      "title": "MHPSS",
+      "order": 10
+    }
+  },
+  {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "1",
     "fields": {
       "title": "Shelter repair",
       "sector": 2,
-      "order": 1
+      "order": 1,
+      "has_location": true
     }
   },
   {
@@ -87,7 +96,8 @@
       "title": "Emergency shelter assistance",
       "sector": 2,
       "order": 2,
-      "description": "Refers to assistance in reconstruction or construction of shelter"
+      "description": "Refers to assistance in reconstruction or construction of shelter",
+      "has_location": true
     }
   },
   {
@@ -96,7 +106,8 @@
     "fields": {
       "title": "Basic household items distribution",
       "sector": 2,
-      "order": 3
+      "order": 3,
+      "has_location": true
     }
   },
   {
@@ -116,7 +127,8 @@
       "title": "Collective shelter support",
       "sector": 2,
       "order": 5,
-      "description": "Support provided to, and management of collective or reception centers, and also activities facilitating hosting at families"
+      "description": "Support provided to, and management of collective or reception centers, and also activities facilitating hosting at families",
+      "has_location": true
     }
   },
   {
@@ -125,7 +137,8 @@
     "fields": {
       "title": "Multi-purpose cash (unconditional)",
       "sector": 3,
-      "order": 1
+      "order": 1,
+      "description": "Organise CVA distributions for basic needs in a timely, secured and accountable way"
     }
   },
   {
@@ -143,7 +156,9 @@
     "fields": {
       "title": "Education support for children, adolescents, and young adults",
       "sector": 4,
-      "order": 1
+      "order": 1,
+      "has_location": true,
+      "description": "Awareness sessions and trainings for educacional purposes. Support in homework, language and literacy etc."
     }
   },
   {
@@ -152,7 +167,8 @@
     "fields": {
       "title": "Education supplies, kits, or equipment distribution for children, adolescents and young adults",
       "sector": 4,
-      "order": 2
+      "order": 2,
+      "description": "Children kits, equipment for schools"
     }
   },
   {
@@ -161,7 +177,9 @@
     "fields": {
       "title": "Education spaces constructed or rehabilitation",
       "sector": 4,
-      "order": 3
+      "order": 3,
+      "description": "Refers to Rehabilitation of Educational Facilities",
+      "has_location": true
     }
   },
   {
@@ -170,7 +188,9 @@
     "fields": {
       "title": "Food distribution (in-kind)",
       "sector": 5,
-      "order": 1
+      "order": 1,
+      "description": "Physical food distributions only. Note that cash or vouchers that are intended to cover food needs would either be reported as multi-purpose cash; or as conditional cash or voucher for food security",
+      "has_location": true
     }
   },
   {
@@ -179,7 +199,9 @@
     "fields": {
       "title": "Cash or voucher for food security and livelihoods",
       "sector": 5,
-      "order": 2
+      "order": 2,
+      "description": "Conditional CVA: for food security, or livelihoods protection / recovery / strengthening etc. For agricultural livelihoods, income generation, small business etc",
+      "has_location": true
     }
   },{
     "model": "deployments.EmergencyProjectActivityAction",
@@ -188,7 +210,8 @@
       "title": "In-kind support for food security & livelihoods",
       "sector": 5,
       "order": 3,
-      "description": "Agricultural inputs, materials, and/or tools distribution for production (in-kind)"
+      "description": "Inputs, materials, or tools distribution (in-kind). For agricultural livelihoods, income generation, small business etc",
+      "has_location": true
     }
   },
 
@@ -196,10 +219,10 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "14",
     "fields": {
-      "title": "Essential services/information for food security & livelihoods",
+      "title": "Essential services, information, or training for food security & livelihoods",
       "sector": 5,
       "order": 4,
-      "description": "Includes agricultural production, (self) employment and/or income generation"
+      "description": "For agricultural production, income generation / small business, employment. Includes services, referrals & training related to employability & labour markets"
     }
   },
   {
@@ -208,7 +231,8 @@
     "fields": {
       "title": "First aid",
       "sector": 1,
-      "order": 1
+      "order": 1,
+      "description": "Refers to number of volunteers/staff that have completed FA training and/or people who have received first aid treatment"
     }
   },
   {
@@ -217,7 +241,8 @@
     "fields": {
       "title": "First aid training",
       "sector": 1,
-      "order": 2
+      "order": 2,
+      "description": "Refers to first aid training course run"
     }
   },
   {
@@ -226,7 +251,9 @@
     "fields": {
       "title": "Primary healthcare, mobile or stationary clinics",
       "sector": 1,
-      "order": 3
+      "order": 3,
+      "description": "Refers to any static or mobile set up that provides a PHC activity",
+      "has_location": true
     }
   },
   {
@@ -235,16 +262,20 @@
     "fields": {
       "title": "Search and rescue",
       "sector": 1,
-      "order": 4
+      "order": 4,
+      "description": "Activities to  co-ordinate initial medical assistance or medical evacuation, through the use of public and private resources",
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "19",
     "fields": {
-      "title": "health promotion, disease prevention",
+      "title": "Health promotion, disease prevention",
       "sector": 1,
-      "order": 5
+      "order": 5,
+      "description": "Refers to activities that come under the definition of health promotion/behaviour change that reduces the risk of disease or injury - can inlcude immunisation related activities, health education and training to volunteers which can mobilise them to implement health promotion related activities",
+      "has_location": true
     }
   },
   {
@@ -253,7 +284,9 @@
     "fields": {
       "title": "Hygiene promotion",
       "sector": 6,
-      "order": 1
+      "order": 1,
+      "description": "Activities meant to secure feedback on WASH facilities, encourage people to use them or other activities meant to improve hygiene behaviour",
+      "has_location": true
     }
   },
   {
@@ -263,7 +296,8 @@
       "title": "Hygiene supply distribution",
       "sector": 6,
       "order": 2,
-      "description": "Hygiene items such as soap, toothbrush, menstrual hygiene etc"
+      "description": "Hygiene items such as soap, toothbrush, menstrual hygiene etc",
+      "has_location": true
     }
   },
   {
@@ -272,7 +306,9 @@
     "fields": {
       "title": "Water source improvements",
       "sector": 6,
-      "order": 3
+      "order": 3,
+      "description": "Activities to increase water reliability, quanitiry or quantity or those that reduce distance to water supplies",
+      "has_location": true
     }
   },
   {
@@ -281,7 +317,9 @@
     "fields": {
       "title": "Water treatment facilities contruction/rehabilitation",
       "sector": 6,
-      "order": 4
+      "order": 4,
+      "description": "Permanent infrastructure or emergency units",
+      "has_location": true
     }
   },
   {
@@ -291,7 +329,8 @@
       "title": "Water treatment supply distribution",
       "sector": 6,
       "order": 5,
-      "description": "Tablets and filtration devices"
+      "description": "Tablets and filtration devices and activities to ensure their use",
+      "has_location": true
     }
   },
   {
@@ -300,7 +339,9 @@
     "fields": {
       "title": "Water distribution",
       "sector": 6,
-      "order": 6
+      "order": 6,
+      "description": "Delivery of water by pipeline or trucking ",
+      "has_location": true
     }
   },
   {
@@ -309,7 +350,9 @@
     "fields": {
       "title": "Handwashing facilities construction/rehabilitation",
       "sector": 6,
-      "order": 7
+      "order": 7,
+      "description": "Permanent or temporary facilities, including hand sanitizer or water and soap",
+      "has_location": true
     }
   },
   {
@@ -318,7 +361,9 @@
     "fields": {
       "title": "Toilet facilities construction/rehabilitation",
       "sector": 6,
-      "order": 8
+      "order": 8,
+      "description": "Simple pit latrines, communal or family toilets",
+      "has_location": true
     }
   },
   {
@@ -327,7 +372,8 @@
     "fields": {
       "title": "Restoring family links",
       "sector": 7,
-      "order": 1
+      "order": 1,
+      "description": "Hotlines, materials and staff/volunteer support to restore links with families"
     }
   },
   {
@@ -336,7 +382,8 @@
     "fields": {
       "title": "Child-friendly spaces",
       "sector": 7,
-      "order": 2
+      "order": 2,
+      "description": "Set up CFS, procure materials for activities with Children,CP activities, trainings and IEC awareness materials"
     }
   },
   {
@@ -356,7 +403,7 @@
       "title": "Referrals to case management/follow-up services",
       "sector": 7,
       "order": 4,
-      "description": "To include health,social services, protection but not legal migration referrals"
+      "description": "Mapping of services, provide trainings on safe referrals. Identify and evaluate needs for referralsTo include health,social services, protection but not legal migration referrals"
     }
   },
   {
@@ -365,7 +412,8 @@
     "fields": {
       "title": "Prevention of Sexual Exploitation & Abuse & Child safeguarding SOPs, policies & training",
       "sector": 7,
-      "order": 5
+      "order": 5,
+      "description": "IEC awareness materials, SOPs, provide survivor centered approach, mapping of services"
     }
   },
   {
@@ -381,84 +429,93 @@
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "34",
     "fields": {
-      "title": "Transportation / evacuation of people",
+      "title": "Establishing humanitarian service points / safe service provision/distribution points",
       "sector": 8,
-      "order": 1
+      "order": 2,
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "35",
     "fields": {
-      "title": "Establishing humanitarian service points / safe service provision/distribution points",
+      "title": "Support / accompaniment in official procedures ",
       "sector": 8,
-      "order": 2
+      "order": 3,
+      "description": "Migration, temporary protection, asylum, healthcare",
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "36",
     "fields": {
-      "title": "Support / accompaniment in official procedures ",
+      "title": "Community centers/multifunctional centres, integration services",
       "sector": 8,
-      "order": 3,
-      "description": "Migration, temporary protection, asylum, healthcare)"
+      "order": 4,
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "37",
     "fields": {
-      "title": "Establishing community centers/multifunctional centres, integration services",
-      "sector": 8,
-      "order": 4
+      "title": "CEA training for staff & volunteers",
+      "sector": 9,
+      "order": 1,
+      "description": "Standalone CEA trainings, or sectoral trainings including CEA sessions",
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "38",
     "fields": {
-      "title": "CEA training for staff & volunteers",
+      "title": "Information sharing/awareness raising",
       "sector": 9,
-      "order": 1
+      "order": 2,
+      "description": "materials and/or activities",
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "39",
     "fields": {
-      "title": "Information sharing/awareness raising",
+      "title": "Community complaints and feedback mechanisms",
       "sector": 9,
-      "order": 2
+      "order": 3,
+      "description": "Systems in place to receive feedback and complaints, respond appropriately, and use feedback to inform planning and adaptation",
+      "has_location": true
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "40",
     "fields": {
-      "title": "Community complaints and feedback mechanisms",
+      "title": "Perception or satisfaction survey",
       "sector": 9,
-      "order": 3,
-      "description": "Consultations"
+      "order": 4,
+      "description": "Surveys gauge people's understanding of the crisis and/or satisfaction with Movement services - satisfaction can be incorporated in Post Distribution Monitoring"
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "41",
     "fields": {
-      "title": "Perception or satisfaction survey",
+      "title": "Rumour tracking",
       "sector": 9,
-      "order": 4
+      "order": 5,
+      "description": "Systems in place to understand rumours circulating in communities - in person or online"
     }
   },
   {
     "model": "deployments.EmergencyProjectActivityAction",
     "pk": "42",
     "fields": {
-      "title": "Rumour tracking",
-      "sector": 9,
-      "order": 5,
-      "description": "Separated from CFM because of methods and use of the data, usually related to social listening"
+      "title": "Mental health and psychosocial services",
+      "sector": 10,
+      "order": 1
     }
   },
 

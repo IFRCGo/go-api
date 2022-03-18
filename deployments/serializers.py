@@ -368,7 +368,16 @@ class EmergencyProjectActivityActionSerializer(ModelSerializer):
 
     class Meta:
         model = EmergencyProjectActivityAction
-        fields = ('id', 'sector', 'title', 'order', 'supplies_details', 'description', 'is_cash_type',)
+        fields = (
+            'id',
+            'sector',
+            'title',
+            'order',
+            'supplies_details',
+            'description',
+            'is_cash_type',
+            'has_location'
+        )
 
 
 class EmergencyProjectActivityLocationSerializer(ModelSerializer):
