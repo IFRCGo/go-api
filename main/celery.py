@@ -1,16 +1,15 @@
 import os
 import celery
-#: this greek sigma (ς) shows the (searchable) celery-comments everywhere
 
 
-class Celery(celery.Celery):
+class CustomCeleryApp(celery.Celery):
     pass
 
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
 
-app = Celery('main')
+app = CustomCeleryApp('main')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
