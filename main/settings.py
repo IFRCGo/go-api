@@ -46,7 +46,7 @@ env = environ.Env(
     AWS_TRANSLATE_SECRET_KEY=(str, None),
     AWS_TRANSLATE_REGION=(str, None),
     # Celery NOTE: Not used right now
-    CELERY_REDIS_URL=(str, 'redis://redis:6379/0'),
+    CELERY_REDIS_URL=str,
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
@@ -399,6 +399,11 @@ LOGGING = {
     },
     'loggers': {
         'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'celery': {
             'handlers': ['file'],
             'level': 'INFO',
             'propagate': True,

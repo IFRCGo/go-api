@@ -32,7 +32,7 @@ exec gunicorn main.wsgi:application \
     --access-logfile=$HOME/logs/access.log &
 
 # set up cron
-rm $HOME/.env
+# rm $HOME/.env
 # Exporting env vars, like: echo "export PRODUCTION=\"$PRODUCTION\"" >> $HOME/.env
 printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 
