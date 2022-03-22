@@ -189,6 +189,16 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     molnix_operation = serializers.SerializerMethodField()
     ongoing = serializers.SerializerMethodField()
     inactive_status = serializers.SerializerMethodField()
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_start_date(obj):
+        return obj.start_date.date() if obj.start_date else None
+
+    @staticmethod
+    def get_end_date(obj):
+        return obj.end_date.date() if obj.end_date else None
 
     @staticmethod
     def get_molnix_sector(obj):
