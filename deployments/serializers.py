@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from django.utils.translation import ugettext
 from django.contrib.auth.models import User
 
@@ -14,10 +15,10 @@ from lang.serializers import ModelSerializer
 from api.serializers import (
     DisasterTypeSerializer,
     ListEventSerializer,
-    ListEventForPersonnelCsvSerializer,
+    SmallEventForPersonnelCsvSerializer,
     MiniEventSerializer,
     MiniCountrySerializer,
-    MicroCountrySerializer,
+    NanoCountrySerializer,
     MiniDistrictSerializer,
 )
 
@@ -120,12 +121,11 @@ class MolnixTagSerializer(ModelSerializer):
 
 
 class PersonnelDeploymentCsvSerializer(ModelSerializer):
-    country_deployed_to = MicroCountrySerializer()
-    event_deployed_to = ListEventForPersonnelCsvSerializer()
+    event_deployed_to = SmallEventForPersonnelCsvSerializer()
 
     class Meta:
         model = PersonnelDeployment
-        fields = ('country_deployed_to', 'event_deployed_to', 'comments', 'id')
+        fields = ('event_deployed_to', )
 
 
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
@@ -177,8 +177,8 @@ class PersonnelSerializerSuper(ModelSerializer):
 
 
 class PersonnelCsvSerializerBase(ModelSerializer):
-    country_from = MicroCountrySerializer()
-    country_to = MicroCountrySerializer()
+    country_from = NanoCountrySerializer()
+    country_to = NanoCountrySerializer()
     deployment = PersonnelDeploymentCsvSerializer()
     molnix_sector = serializers.SerializerMethodField()
     molnix_role_profile = serializers.SerializerMethodField()
@@ -187,35 +187,57 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     molnix_scope = serializers.SerializerMethodField()
     molnix_modality = serializers.SerializerMethodField()
     molnix_operation = serializers.SerializerMethodField()
+    ongoing = serializers.SerializerMethodField()
+    inactive_status = serializers.SerializerMethodField()
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
 
-    @classmethod
-    def get_molnix_sector(cls, obj):
+    @staticmethod
+    def get_start_date(obj):
+        return obj.start_date.date() if obj.start_date else None
+
+    @staticmethod
+    def get_end_date(obj):
+        return obj.end_date.date() if obj.end_date else None
+
+    @staticmethod
+    def get_molnix_sector(obj):
         return obj.get_tags_for_category('molnix_sector')
 
-    @classmethod
-    def get_molnix_role_profile(cls, obj):
+    @staticmethod
+    def get_molnix_role_profile(obj):
         return obj.get_tags_for_category('molnix_role_profile')
 
-    @classmethod
-    def get_molnix_language(cls, obj):
+    @staticmethod
+    def get_molnix_language(obj):
         return obj.get_tags_for_category('molnix_language')
 
-    @classmethod
-    def get_molnix_region(cls, obj):
+    @staticmethod
+    def get_molnix_region(obj):
         return obj.get_tags_for_category('molnix_region')
 
-    @classmethod
-    def get_molnix_scope(cls, obj):
+    @staticmethod
+    def get_molnix_scope(obj):
         return obj.get_tags_for_category('molnix_scope')
 
-    @classmethod
-    def get_molnix_modality(cls, obj):
+    @staticmethod
+    def get_molnix_modality(obj):
         return obj.get_tags_for_category('molnix_modality')
 
-    @classmethod
-    def get_molnix_operation(cls, obj):
+    @staticmethod
+    def get_molnix_operation(obj):
         return obj.get_tags_for_category('molnix_operation')
 
+    @staticmethod
+    def get_inactive_status(obj):
+        return obj.molnix_status if obj.molnix_status in ('deleted', 'hidden') else None
+
+    @staticmethod
+    def get_ongoing(obj):
+        today = datetime.utcnow().replace(tzinfo=timezone.utc)
+        start = obj.start_date if obj.start_date else today
+        end = obj.end_date if obj.end_date else today
+        return start <= today <= end
 
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
@@ -229,7 +251,7 @@ class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
             'role', 'type', 'country_from', 'country_to',
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
-            'molnix_modality', 'molnix_operation',
+            'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
         )
 
 
@@ -243,7 +265,7 @@ class PersonnelCsvSerializerAnon(PersonnelCsvSerializerBase):
             'role', 'type', 'country_from', 'country_to',
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
-            'molnix_modality', 'molnix_operation',
+            'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
         )
 
 
@@ -259,7 +281,7 @@ class PersonnelCsvSerializerSuper(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_status',  # plus
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
-            'molnix_modality', 'molnix_operation',
+            'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
         )
 
 
@@ -276,8 +298,8 @@ class PartnerDeploymentTableauSerializer(serializers.ModelSerializer):
     district_deployed_to = serializers.SerializerMethodField()
     activity = PartnerDeploymentActivitySerializer()
 
-    @classmethod
-    def get_district_deployed_to(cls, obj):
+    @staticmethod
+    def get_district_deployed_to(obj):
         district_fields = {
             'name': ''
         }
@@ -379,16 +401,16 @@ class ProjectCsvSerializer(ProjectSerializer):
         model = Project
         exclude = ['project_districts']
 
-    @classmethod
-    def get_secondary_sectors(cls, obj):
+    @staticmethod
+    def get_secondary_sectors(obj):
         return ', '.join([str(sector.value) for sector in obj.secondary_sectors])
 
-    @classmethod
-    def get_secondary_sectors_display(cls, obj):
+    @staticmethod
+    def get_secondary_sectors_display(obj):
         return ', '.join(obj.get_secondary_sectors_display())
 
-    @classmethod
-    def get_project_districts_detail(cls, obj):
+    @staticmethod
+    def get_project_districts_detail(obj):
         return get_merged_items_by_fields(
             obj.project_districts.all(),
             ['name', 'code', 'id', 'is_enclave', 'is_deprecated']
