@@ -7,17 +7,17 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''deployedperson-id,ongoing,start-date,end-date,role,name,country-from.iso3,country-from.name,country-from.region,country-from.society-name,country-to.iso3,country-to.name,country-to.region,country-to.society-name,deployment.event-deployed-to.countries.iso3,deployment.event-deployed-to.countries.name,deployment.event-deployed-to.countries.region,deployment.event-deployed-to.countries.society-name,disaster-type,deployment.event-deployed-to.glide,deployment.event-deployed-to.id,deployment.event-deployed-to.ifrc-severity-level,deployment.event-deployed-to.name,molnix-id,molnix-language,molnix-modality,molnix-operation,molnix-region,molnix-role-profile,molnix-scope,molnix-sector,type,is-active\r
-1,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-2,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-3,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-4,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-5,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-6,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-7,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-8,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-9,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
-10,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
+,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
 '''
 
 
