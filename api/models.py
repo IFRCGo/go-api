@@ -271,6 +271,22 @@ class District(models.Model):
         return f'{country_name} - {self.name}'
 
 
+class Admin2(models.Model):
+    """ Used for admin2, District refers to admin1 """
+    admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    code = models.CharField(verbose_name=_('code'), max_length=64, unique=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)    
+
+    class Meta:
+        verbose_name = _('admin2')
+        verbose_name_plural = _('admin2s')
+        ordering = ('code',)
+
+    def __str__(self):
+        return f'{self.admin1} - {self.name}'
+
 class CountryGeoms(models.Model):
     """ Admin0 geometries """
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
@@ -282,6 +298,10 @@ class DistrictGeoms(models.Model):
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     district = models.OneToOneField(District, verbose_name=_('district'), on_delete=models.DO_NOTHING, primary_key=True)
 
+class Admin2Geoms(models.Model):
+    """ Admin2 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    admin2 = models.OneToOneField(Admin2, verbose_name=_('admin2'), on_delete=models.DO_NOTHING, primary_key=True)
 
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
