@@ -7,17 +7,17 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''deployedperson-id,country-from.iso3,country-from.name,country-from.region,country-from.society-name,country-to.iso3,country-to.name,country-to.region,country-to.society-name,deployment.event-deployed-to.countries.iso3,deployment.event-deployed-to.countries.name,deployment.event-deployed-to.countries.region,deployment.event-deployed-to.countries.society-name,disaster-type,deployment.event-deployed-to.glide,deployment.event-deployed-to.id,deployment.event-deployed-to.ifrc-severity-level,deployment.event-deployed-to.name,end-date,is-active,molnix-id,molnix-language,molnix-modality,molnix-operation,molnix-region,molnix-role-profile,molnix-scope,molnix-sector,molnix-status,name,role,start-date,type,ongoing,inactive-status\r
-1,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-2,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-3,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-4,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-5,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-6,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-7,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-8,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-9,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
-10,,,,,,,,,,,,,,,,,,,True,,,,,,,,,,,,,,True,\r
+snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''deployedperson-id,ongoing,start-date,end-date,role,name,country-from.iso3,country-from.name,country-from.region,country-from.society-name,country-to.iso3,country-to.name,country-to.region,country-to.society-name,deployment.event-deployed-to.countries.iso3,deployment.event-deployed-to.countries.name,deployment.event-deployed-to.countries.region,deployment.event-deployed-to.countries.society-name,disaster-type,deployment.event-deployed-to.glide,deployment.event-deployed-to.id,deployment.event-deployed-to.ifrc-severity-level,deployment.event-deployed-to.name,molnix-id,molnix-language,molnix-modality,molnix-operation,molnix-region,molnix-role-profile,molnix-scope,molnix-sector,type,is-active\r
+1,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+2,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+3,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+4,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+5,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+6,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+7,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+8,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+9,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
+10,True,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,True\r
 '''
 
 

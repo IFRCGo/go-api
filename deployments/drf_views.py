@@ -180,46 +180,51 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
-        # force the order from the serializer.
+        # Force the order from the serializer. Otherwise redundant literal list!
         # ser_cls = self.get_serializer_class()
-        # instead of "ser_cls.Meta.fields if ser_cls else None" literaly the header items:
+        # instead of "ser_cls.Meta.fields if ser_cls else None":
         context['header'] = \
-        ['id'
-        ,'country_from.iso3'
-        ,'country_from.name'
-        ,'country_from.region'
-        ,'country_from.society_name'
-        ,'country_to.iso3'
-        ,'country_to.name'
-        ,'country_to.region'
-        ,'country_to.society_name'
-        ,'deployment.event_deployed_to.countries.iso3'
-        ,'deployment.event_deployed_to.countries.name'
-        ,'deployment.event_deployed_to.countries.region'
-        ,'deployment.event_deployed_to.countries.society_name'
-        ,'deployment.event_deployed_to.dtype_name'
-        ,'deployment.event_deployed_to.glide'
-        ,'deployment.event_deployed_to.id'
-        ,'deployment.event_deployed_to.ifrc_severity_level'
-        ,'deployment.event_deployed_to.name'
-        ,'end_date'
-        ,'is_active'
-        ,'molnix_id'
-        ,'molnix_language'
-        ,'molnix_modality'
-        ,'molnix_operation'
-        ,'molnix_region'
-        ,'molnix_role_profile'
-        ,'molnix_scope'
-        ,'molnix_sector'
-        ,'molnix_status'
-        ,'name'
-        ,'role'
-        ,'start_date'
-        ,'type'
-        ,'ongoing'
-        ,'inactive_status'
-        ]
+            ['id'
+            ,'ongoing'
+            ,'start_date'
+            ,'end_date'
+            ,'role']
+        if not self.request.user.is_anonymous:
+            context['header'] += \
+            ['name']
+        context['header'] += \
+            ['country_from.iso3'
+            ,'country_from.name'
+            ,'country_from.region'
+            ,'country_from.society_name'
+            ,'country_to.iso3'
+            ,'country_to.name'
+            ,'country_to.region'
+            ,'country_to.society_name'
+            ,'deployment.event_deployed_to.countries.iso3'
+            ,'deployment.event_deployed_to.countries.name'
+            ,'deployment.event_deployed_to.countries.region'
+            ,'deployment.event_deployed_to.countries.society_name'
+            ,'deployment.event_deployed_to.dtype_name'
+            ,'deployment.event_deployed_to.glide'
+            ,'deployment.event_deployed_to.id'
+            ,'deployment.event_deployed_to.ifrc_severity_level'
+            ,'deployment.event_deployed_to.name'
+            ,'molnix_id'
+            ,'molnix_language'
+            ,'molnix_modality'
+            ,'molnix_operation'
+            ,'molnix_region'
+            ,'molnix_role_profile'
+            ,'molnix_scope'
+            ,'molnix_sector']
+        if self.request.user.is_superuser:
+            context['header'] += \
+            ['molnix_status'
+            ,'inactive_status']
+        context['header'] += \
+            ['type'
+            ,'is_active']
         context['labels'] = {i : i.replace('_','-') for i in context['header']}
         # We can change the column titles (called "labels"):
         context['labels']['deployment.event_deployed_to.dtype_name'] = 'disaster-type'
