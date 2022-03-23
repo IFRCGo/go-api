@@ -616,7 +616,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
-            'featured_documents', 'links',
+            'featured_documents', 'links', 'emergency_response_contact_email'
         )
         lookup_field = 'slug'
 
