@@ -700,7 +700,10 @@ class EmergencyProjectActivity(models.Model):
         verbose_name=_('is_disaggregated_for_disabled'),
         null=True, blank=True
     )
-    has_no_data_on_people_reached = models.BooleanField(verbose_name=_('has_no_data_on_people_reached'), default=False)
+    has_no_data_on_people_reached = models.NullBooleanField(
+        verbose_name=_('has_no_data_on_people_reached'),
+        null=True, blank=True
+    )
     # Metrics
     people_households = models.CharField(
         max_length=50,
