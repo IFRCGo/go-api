@@ -435,7 +435,7 @@ class EventLinkSerializer(ModelSerializer):
 class MiniEventSerializer(ModelSerializer):
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'id', 'slug', 'parent_event',)
+        fields = ('name', 'dtype', 'id', 'slug', 'parent_event', 'emergency_response_contact_email')
 
 
 class ListMiniEventSerializer(ModelSerializer):
@@ -443,7 +443,7 @@ class ListMiniEventSerializer(ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
+        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source', 'emergency_response_contact_email')
 
 
 class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
@@ -459,6 +459,7 @@ class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
             'field_reports', 'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
+            'emergency_response_contact_email',
         )
 
 
