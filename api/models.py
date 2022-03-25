@@ -615,6 +615,11 @@ class Event(models.Model):
 
     # visibility
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=1)
+    emergency_response_contact_email = models.CharField(
+        verbose_name=_('emergency response contact email'),
+        null=True, blank=True,
+        max_length=255
+    )
 
     class Meta:
         ordering = ('-disaster_start_date',)

@@ -178,6 +178,78 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             return PersonnelSerializerSuper
         return PersonnelSerializer
 
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        # Force the order from the serializer. Otherwise redundant literal list!
+        # ser_cls = self.get_serializer_class()
+        # instead of "ser_cls.Meta.fields if ser_cls else None":
+        context['header'] = \
+            ['deployment.event_deployed_to.id'
+            ,'deployment.event_deployed_to.glide'
+            ,'deployment.event_deployed_to.name'
+            ,'deployment.event_deployed_to.ifrc_severity_level'
+            ,'deployment.event_deployed_to.dtype_name'
+            ,'deployment.event_deployed_to.countries.name'
+            ,'deployment.event_deployed_to.countries.iso3'
+            ,'deployment.event_deployed_to.countries.society_name'
+            ,'deployment.event_deployed_to.countries.region'
+            ,'role'
+            ,'type']
+        if not self.request.user.is_anonymous:
+            context['header'] += \
+            ['name']
+        context['header'] += \
+            ['id'
+            ,'country_to.name'
+            ,'country_to.iso3'
+            ,'country_to.society_name'
+            ,'country_to.region'
+            ,'country_from.name'
+            ,'country_from.iso3'
+            ,'country_from.society_name'
+            ,'country_from.region'
+            ,'start_date'
+            ,'end_date'
+            ,'ongoing'
+            ,'is_active']
+        if self.request.user.is_superuser:
+            context['header'] += \
+            ['molnix_status']
+        context['header'] += \
+            ['molnix_id'
+            ,'molnix_sector'
+            ,'molnix_role_profile'
+            ,'molnix_language'
+            ,'molnix_region'
+            ,'molnix_scope'
+            ,'molnix_modality'
+            ,'molnix_operation']
+        if self.request.user.is_superuser:
+            context['header'] += \
+            ['inactive_status']
+
+        context['labels'] = {i : i for i in context['header']}
+        # We can change the column titles (called "labels"):
+        context['labels']['deployment.event_deployed_to.id'] = 'event_id'
+        context['labels']['deployment.event_deployed_to.glide'] = 'event_glide_id'
+        context['labels']['deployment.event_deployed_to.name'] = 'event_name'
+        context['labels']['deployment.event_deployed_to.ifrc_severity_level'] = 'event_ifrc_severity_level'
+        context['labels']['deployment.event_deployed_to.dtype_name'] = 'event_disaster_type'
+        context['labels']['deployment.event_deployed_to.countries.name'] = 'event_country_name'
+        context['labels']['deployment.event_deployed_to.countries.iso3'] = 'event_country_iso3'
+        context['labels']['deployment.event_deployed_to.countries.society_name'] = 'event_country_nationalsociety'
+        context['labels']['deployment.event_deployed_to.countries.region'] = 'event_country_regionname'
+        context['labels']['id'] = 'deployed_id'
+        context['labels']['country_to.name'] = 'deployed_to_name'
+        context['labels']['country_to.iso3'] = 'deployed_to_iso3'
+        context['labels']['country_to.society_name'] = 'deployed_to_nationalsociety'
+        context['labels']['country_to.region'] = 'deployed_to_regionname'
+        context['labels']['country_from.name'] = 'deployed_from_name'
+        context['labels']['country_from.iso3'] = 'deployed_from_iso3'
+        context['labels']['country_from.society_name'] = 'deployed_from_nationalsociety'
+        context['labels']['country_from.region'] = 'deployed_from_regionname'
+        return context
+
 
 class AggregateDeployments(APIView):
     '''
