@@ -16,6 +16,7 @@ from .models import (
     Region,
     Country,
     District,
+    Admin2,
     CountryKeyFigure,
     RegionKeyFigure,
     CountrySnippet,
@@ -51,6 +52,28 @@ from .models import (
 )
 from notifications.models import Subscription
 
+
+class GeoSerializerMixin:
+    '''
+        A mixin class to encapsulate common methods
+        used across serializers that deal with geo objects.
+        Will allow us to avoid repeating code to convert objects
+        to GeoJSON, etc.
+
+        FIXME: use this base class for existing serializers using geo objects.
+        FIXME: the methods can probably be thought through a bit better
+    '''
+    def get_bbox(self, district):
+        if district.bbox:
+            return json.loads(district.bbox.geojson)
+        else:
+            return None
+
+    def get_centroid(self, district):
+        if district.centroid:
+            return json.loads(district.centroid.geojson)
+        else:
+            return None
 
 class DisasterTypeSerializer(ModelSerializer):
     class Meta:
@@ -185,13 +208,25 @@ class DistrictSerializer(ModelSerializer):
         fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
 
 
+
+
+class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
+    district_id = serializers.IntegerField(source='admin1.id', read_only=True)
+
+    class Meta:
+        model = Admin2
+        fields = ('district_id', 'name', 'code', 'bbox', 'centroid',)
+
+
 class MiniDistrictSerializer(ModelSerializer):
     class Meta:
         model = District
         fields = ('name', 'code', 'id', 'is_enclave', 'is_deprecated',)
 
 
-class MiniDistrictGeoSerializer(ModelSerializer):
+class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     country_name = serializers.CharField(source='country.name', read_only=True)
