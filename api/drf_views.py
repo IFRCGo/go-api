@@ -36,7 +36,8 @@ from .models import (
     CountrySnippet,
     
     District,
-
+    Admin2,
+    
     Event,
     Snippet,
     SituationReport,
@@ -79,6 +80,8 @@ from .serializers import (
     DistrictSerializer,
     MiniDistrictGeoSerializer,
     DistrictSerializerRMD,
+
+    Admin2Serializer,
 
     SnippetSerializer,
     ListMiniEventSerializer,
@@ -335,6 +338,18 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
             return MiniDistrictGeoSerializer
         else:
             return DistrictSerializer
+
+
+class Admin2Filter(filters.FilterSet):
+    class Meta:
+        model = Admin2
+        fields = ('admin1',)  
+
+
+class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
+    filterset_class = Admin2Filter
+    search_fields = ('name', 'district__name', 'district__country__name')
+    serializer_class = Admin2Serializer
 
 
 class EventFilter(filters.FilterSet):

@@ -85,6 +85,7 @@ router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basena
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'disaster_type', api_views.DisasterTypeViewset, basename='disaster_type')
+router.register(r'admin2', api_views.Admin2Viewset, basename='admin2')
 router.register(r'district', api_views.DistrictViewset, basename='district')
 router.register(r'district_rmd', api_views.DistrictRMDViewset, basename='district_rmd')
 router.register(r'domainwhitelist', registration_views.DomainWhitelistViewset)

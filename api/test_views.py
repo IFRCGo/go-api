@@ -397,3 +397,24 @@ class HistoricalEventTest(APITestCase):
         response = self.client.get(f'/api/v2/go-historical/?region={region1.id}').json()
         self.assertEqual(response['count'], 1)
         self.assertEqual(response['results'][0]['id'], event1.id)
+
+
+class Admin2Test(APITestCase):
+
+    def test_admin2_api(self):
+        region = models.Region.objects.create(name=1)
+        country = models.Country.objects.create(name='Nepal', iso3='NLP', region=region1)
+        admin1_1 = models.District.objects.create(name='admin1 1', code='NLP01', country=country)
+        admin1_2 = models.District.objects.create(name='admin1 2', code='NLP02', country=country)
+        admin2_1 = models.Admin2.objects.create(name='test 1', admin1=admin1_1, code='1')
+        admin2_2 = models.Admin2.objects.create(name='test 2', admin1=admin1_2, code='2')
+
+        # test fetching all admin2
+        response = self.client.get('/api/v2/admin2').json()
+        self.assertEqual(response['count'], 2)
+
+        # test filtering by district
+        response = self.client.get(f'/api/v2/admin2?admin1={admin1_1.id}')
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['name'], 'test 1')
+
