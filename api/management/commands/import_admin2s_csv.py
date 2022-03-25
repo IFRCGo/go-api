@@ -17,15 +17,12 @@ class Command(BaseCommand):
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                print(row)
                 district_code = row['distr_code']
                 district = District.objects.get(code=district_code)
-                print(district.name)
                 adm2_code = row['GOadm2code']
                 try:
                     adm2 = Admin2.objects.get(code=adm2_code)
                 except:
-                    print('HELLO')
                     adm2 = Admin2()
                 adm2.code = adm2_code
                 adm2.admin1 = district
