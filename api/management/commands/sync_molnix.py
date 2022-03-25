@@ -26,7 +26,8 @@ NS_MATCHING_OVERRIDES = {
     'Ifrc Americas': 'IFRC',
     'Ifrc Europe': 'IFRC',
     'IFRC': 'IFRC',
-    'Icrc Staff': 'ICRC'
+    'Icrc Staff': 'ICRC',
+    'ICRC': 'ICRC'
 }
 
 def get_unique_tags(deployments, open_positions):
@@ -41,14 +42,29 @@ def get_unique_tags(deployments, open_positions):
 
 
 def add_tags(molnix_tags):
+    modality = ['In Person', 'Remote']
+    region = ['ASIAP', 'AMER', 'AFRICA', 'MENA', 'EURO']
+    scope = ['REGIONAL', 'GLOBAL']
+    status = ['Archive', 'AVAIL', 'Consult HR', 'HOLD']
+    sector = ['ADMIN', 'ASSESS', 'CEA', 'CIVMIL', 'COM', 'CVA', 'DRR', 'FIN', 'HEALTH', 'HR', 'IDRL', 'IM', 'IT', 'LOGS',
+              'LVES', 'MHPSS', 'MIG', 'NSD', 'OPS-LEAD', 'PER', 'PGI', 'PMER', 'PRD', 'PSS', 'REC', 'REL', 'RFL', 'SEC',
+              'SHCLUSTER', 'SHELTER', 'STAFFHEALTH', 'WASH']
+
     for molnix_tag in molnix_tags:
         tag, created = MolnixTag.objects.get_or_create(molnix_id=molnix_tag['id'])
         tag.molnix_id = molnix_tag['id']
-        tag.name = molnix_tag['name']
+        tag.name = n = molnix_tag['name']
         tag.description = molnix_tag['description']
         tag.tag_type = molnix_tag['type']
+        tag.tag_category = 'molnix_language' if n.startswith('L-') else \
+            'molnix_operation' if n.startswith('OP-') else \
+            'molnix_modality' if n in modality else \
+            'molnix_region' if n in region else \
+            'molnix_scope' if n in scope else \
+            'molnix_sector' if n in sector else \
+            'molnix_status' if n in status else \
+            'molnix_role_profile'
         tag.save()
-
 
 
 def get_go_event(tags):
@@ -184,9 +200,14 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
-        if md['hidden'] == 1 or md['draft'] == 1:
+        if md['hidden'] == 1:
+            personnel.molnix_status = 'hidden'
+            personnel.is_active = False
+        elif md['draft'] == 1:
+            personnel.molnix_status = 'draft'
             personnel.is_active = False
         else:
+            personnel.molnix_status = 'active'
             personnel.is_active = True
         personnel.type = Personnel.RR
         personnel.start_date = get_datetime(md['start'])
@@ -245,6 +266,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     for id in inactive_ids:
         personnel = Personnel.objects.get(molnix_id=id)
+        personnel.molnix_status = 'deleted'
         personnel.is_active = False
         personnel.save()
 

@@ -1,5 +1,4 @@
 import json
-import datetime
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -17,6 +16,7 @@ from .models import (
     Region,
     Country,
     District,
+    Admin2,
     CountryKeyFigure,
     RegionKeyFigure,
     CountrySnippet,
@@ -51,8 +51,29 @@ from .models import (
     MainContact
 )
 from notifications.models import Subscription
-from deployments.models import Personnel
 
+
+class GeoSerializerMixin:
+    '''
+        A mixin class to encapsulate common methods
+        used across serializers that deal with geo objects.
+        Will allow us to avoid repeating code to convert objects
+        to GeoJSON, etc.
+
+        FIXME: use this base class for existing serializers using geo objects.
+        FIXME: the methods can probably be thought through a bit better
+    '''
+    def get_bbox(self, district):
+        if district.bbox:
+            return json.loads(district.bbox.geojson)
+        else:
+            return None
+
+    def get_centroid(self, district):
+        if district.centroid:
+            return json.loads(district.centroid.geojson)
+        else:
+            return None
 
 class DisasterTypeSerializer(ModelSerializer):
     class Meta:
@@ -69,7 +90,8 @@ class RegionSerializer(EnumSupportSerializerMixin, ModelSerializer):
 class RegionGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
-    def get_bbox(self, region):
+    @staticmethod
+    def get_bbox(region):
         return region.bbox and json.loads(region.bbox.geojson)
 
     class Meta:
@@ -97,6 +119,7 @@ class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
             'id', 'url_ifrc', 'record_type', 'record_type_display', 'independent', 'is_deprecated', 'fdrs',
+            'average_household_size',
         )
 
 
@@ -105,10 +128,12 @@ class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
     centroid = serializers.SerializerMethodField()
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
-    def get_bbox(self, country):
+    @staticmethod
+    def get_bbox(country):
         return country.bbox and json.loads(country.bbox.geojson)
 
-    def get_centroid(self, country):
+    @staticmethod
+    def get_centroid(country):
         return country.centroid and json.loads(country.centroid.geojson)
 
     class Meta:
@@ -126,11 +151,12 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
-            'region', 'independent', 'is_deprecated', 'fdrs',
+            'region', 'independent', 'is_deprecated', 'fdrs', 'average_household_size',
         )
 
+
 class CountrySerializerRMD(EnumSupportSerializerMixin, ModelSerializer):
-    
+
     class Meta:
         model = Country
         fields = (
@@ -143,10 +169,23 @@ class DistrictSerializerRMD(ModelSerializer):
         model = District
         fields = ('name', 'code', 'is_deprecated',)
 
+
 class MicroCountrySerializer(ModelSerializer):
     class Meta:
         model = Country
         fields = ('id', 'name', 'iso', 'iso3', 'society_name')
+
+
+class NanoCountrySerializer(ModelSerializer):
+    region = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_region(obj):
+        return obj.region.label if obj.region else None
+
+    class Meta:
+        model = Country
+        fields = ('iso3', 'name', 'society_name', 'region')
 
 
 class RegoCountrySerializer(ModelSerializer):
@@ -169,26 +208,40 @@ class DistrictSerializer(ModelSerializer):
         fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
 
 
+
+
+class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
+    district_id = serializers.IntegerField(source='admin1.id', read_only=True)
+
+    class Meta:
+        model = Admin2
+        fields = ('district_id', 'name', 'code', 'bbox', 'centroid',)
+
+
 class MiniDistrictSerializer(ModelSerializer):
     class Meta:
         model = District
         fields = ('name', 'code', 'id', 'is_enclave', 'is_deprecated',)
 
 
-class MiniDistrictGeoSerializer(ModelSerializer):
+class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     country_name = serializers.CharField(source='country.name', read_only=True)
     country_iso = serializers.CharField(source='country.iso', read_only=True)
     country_iso3 = serializers.CharField(source='country.iso3', read_only=True)
 
-    def get_bbox(self, district):
+    @staticmethod
+    def get_bbox(district):
         if district.bbox:
             return json.loads(district.bbox.geojson)
         else:
             return None
 
-    def get_centroid(self, district):
+    @staticmethod
+    def get_centroid(district):
         if district.centroid:
             return json.loads(district.centroid.geojson)
         else:
@@ -303,10 +356,12 @@ class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
     national_society_count = serializers.SerializerMethodField()
     country_cluster_count = serializers.SerializerMethodField()
 
-    def get_national_society_count(self, obj):
+    @staticmethod
+    def get_national_society_count(obj):
         return obj.get_national_society_count()
 
-    def get_country_cluster_count(self, obj):
+    @staticmethod
+    def get_country_cluster_count(obj):
         return obj.get_country_cluster_count()
 
     class Meta:
@@ -413,17 +468,26 @@ class EventLinkSerializer(ModelSerializer):
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
+    countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
+
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'id', 'slug', 'parent_event',)
+        fields = (
+            'name', 'dtype', 'id', 'slug', 'parent_event',
+            'emergency_response_contact_email', 'countries_for_preview'
+        )
 
 
 class ListMiniEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(read_only=True)
+    countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source')
+        fields = (
+            'id', 'name', 'slug', 'dtype', 'auto_generated_source',
+            'emergency_response_contact_email', 'countries_for_preview'
+        )
 
 
 class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
@@ -439,6 +503,7 @@ class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
             'field_reports', 'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
+            'emergency_response_contact_email',
         )
 
 
@@ -449,13 +514,16 @@ class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSe
     dtype = DisasterTypeSerializer()
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
-    def get_countries(self, obj):
+    @staticmethod
+    def get_countries(obj):
         return get_merged_items_by_fields(obj.countries.all(), ['id', 'name'])
 
-    def get_field_reports(self, obj):
+    @staticmethod
+    def get_field_reports(obj):
         return get_merged_items_by_fields(obj.field_reports.all(), ['id'])
 
-    def get_appeals(self, obj):
+    @staticmethod
+    def get_appeals(obj):
         return get_merged_items_by_fields(obj.appeals.all(), ['id'])
 
     class Meta:
@@ -474,13 +542,16 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
     dtype = DisasterTypeSerializer()
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
 
-    def get_countries(self, obj):
+    @staticmethod
+    def get_countries(obj):
         return get_merged_items_by_fields(obj.countries.all(), ['id', 'name', 'iso', 'iso3', 'society_name'])
 
-    def get_field_reports(self, obj):
+    @staticmethod
+    def get_field_reports(obj):
         return get_merged_items_by_fields(obj.field_reports.all(), ['id'])
 
-    def get_appeals(self, obj):
+    @staticmethod
+    def get_appeals(obj):
         return get_merged_items_by_fields(obj.appeals.all(), ['id'])
 
     class Meta:
@@ -499,19 +570,23 @@ class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers
     dtype_name = serializers.SerializerMethodField()
 
     # NOTE: prefetched at deployments/drf_views.py::PersonnelViewset::get_queryset
-    def get_countries(self, obj):
+    @staticmethod
+    def get_countries(obj):
         fields = ['id', 'name', 'iso', 'iso3', 'society_name']
         return get_merged_items_by_fields(obj.countries.all(), fields)
 
-    def get_field_reports(self, obj):
+    @staticmethod
+    def get_field_reports(obj):
         fields = ['id']
         return get_merged_items_by_fields(obj.field_reports.all(), fields)
 
-    def get_appeals(self, obj):
+    @staticmethod
+    def get_appeals(obj):
         fields = ['id', 'status']
         return get_merged_items_by_fields(obj.appeals.all(), fields)
 
-    def get_dtype_name(self, obj):
+    @staticmethod
+    def get_dtype_name(obj):
         return obj.dtype and obj.dtype.name
 
     class Meta:
@@ -521,6 +596,24 @@ class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers
             'glide', 'disaster_start_date', 'created_at', 'appeals',
             'field_reports', 'updated_at', 'id', 'parent_event',
         )
+
+
+class SmallEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+    countries = serializers.SerializerMethodField()
+    dtype_name = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_countries(obj):
+        fields = ['name', 'iso3', 'society_name', 'region']
+        return get_merged_items_by_fields(obj.countries.all(), fields)
+
+    @staticmethod
+    def get_dtype_name(obj):
+        return obj.dtype and obj.dtype.name
+
+    class Meta:
+        model = Event
+        fields = ('name', 'dtype_name', 'countries', 'ifrc_severity_level', 'glide', 'id')
 
 
 class ListEventDeploymentsSerializer(serializers.Serializer):
@@ -533,7 +626,8 @@ class DeploymentsByEventSerializer(ModelSerializer):
     organizations_from = serializers.SerializerMethodField()
     personnel_count = serializers.IntegerField()
 
-    def get_organizations_from(self, obj):
+    @staticmethod
+    def get_organizations_from(obj):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
@@ -558,6 +652,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
     featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
     links = EventLinkSerializer(many=True, read_only=True)
+    countries_for_preview = MiniCountrySerializer(many=True)
 
     class Meta:
         model = Event
@@ -566,7 +661,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
-            'featured_documents', 'links',
+            'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview'
         )
         lookup_field = 'slug'
 
@@ -623,7 +718,6 @@ class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.Mod
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
-    event = MiniEventSerializer()
     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     code = serializers.CharField(source='appeal.code', read_only=True)
@@ -746,7 +840,8 @@ class UserSerializer(ModelSerializer):
         instance.save()
         return instance
 
-    def get_is_ifrc_admin(self, obj):
+    @staticmethod
+    def get_is_ifrc_admin(obj):
         return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
@@ -767,19 +862,22 @@ class UserMeSerializer(UserSerializer):
             'is_admin_for_countries', 'is_admin_for_regions', 'lang_permissions'
         )
 
-    def get_is_admin_for_countries(self, user):
+    @staticmethod
+    def get_is_admin_for_countries(user):
         return set([
             int(permission[18:]) for permission in user.get_all_permissions()
             if ('api.country_admin_' in permission and permission[18:].isdigit())
         ])
 
-    def get_is_admin_for_regions(self, user):
+    @staticmethod
+    def get_is_admin_for_regions(user):
         return set([
             int(permission[17:]) for permission in user.get_all_permissions()
             if ('api.region_admin_' in permission and permission[17:].isdigit())
         ])
 
-    def get_lang_permissions(self, user):
+    @staticmethod
+    def get_lang_permissions(user):
         return String.get_user_permissions_per_language(user)
 
 
@@ -862,16 +960,20 @@ class ListFieldReportTableauSerializer(FieldReportEnumDisplayMixin, ModelSeriali
     event = MiniEventSerializer()
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
 
-    def get_countries(self, obj):
+    @staticmethod
+    def get_countries(obj):
         return get_merged_items_by_fields(obj.countries.all(), ['id', 'name'])
 
-    def get_districts(self, obj):
+    @staticmethod
+    def get_districts(obj):
         return get_merged_items_by_fields(obj.districts.all(), ['id', 'name'])
 
-    def get_regions(self, obj):
+    @staticmethod
+    def get_regions(obj):
         return get_merged_items_by_fields(obj.regions.all(), ['id', 'region_name'])
 
-    def get_actions_taken_for_organization(self, obj):
+    @staticmethod
+    def get_actions_taken_for_organization(obj):
         actions_data = {}
         actions_taken = obj.actions_taken.all()
         for action in actions_taken:
@@ -900,16 +1002,20 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
     event = MiniEventSerializer()
     actions_taken = serializers.SerializerMethodField('get_actions_taken_for_organization')
 
-    def get_countries(self, obj):
+    @staticmethod
+    def get_countries(obj):
         return get_merged_items_by_fields(obj.countries.all(), ['id', 'name', 'iso', 'iso3', 'society_name'])
 
-    def get_districts(self, obj):
+    @staticmethod
+    def get_districts(obj):
         return get_merged_items_by_fields(obj.districts.all(), ['id', 'name'])
 
-    def get_regions(self, obj):
+    @staticmethod
+    def get_regions(obj):
         return get_merged_items_by_fields(obj.regions.all(), ['id', 'region_name'])
 
-    def get_actions_taken_for_organization(self, obj):
+    @staticmethod
+    def get_actions_taken_for_organization(obj):
         actions_data = {}
         actions_taken = obj.actions_taken.all()
         for action in actions_taken:

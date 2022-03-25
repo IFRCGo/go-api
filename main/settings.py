@@ -46,7 +46,7 @@ env = environ.Env(
     AWS_TRANSLATE_SECRET_KEY=(str, None),
     AWS_TRANSLATE_REGION=(str, None),
     # Celery NOTE: Not used right now
-    CELERY_REDIS_URL=(str, 'redis://redis:6379/0'),
+    CELERY_REDIS_URL=str,
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
@@ -403,6 +403,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'celery': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     },
 }
 
@@ -413,12 +418,12 @@ AWS_TRANSLATE_REGION = env('AWS_TRANSLATE_REGION')
 
 TEST_RUNNER = 'snapshottest.django.TestRunner'
 
-# # CELERY CONFIG
-# CELERY_REDIS_URL = env('CELERY_REDIS_URL', 'redis://redis:6379/0')  # "redis://:{password}@{host}:{port}/{db}"
-# CELERY_BROKER_URL = CELERY_REDIS_URL
-# CELERY_RESULT_BACKEND = CELERY_REDIS_URL
-# CELERY_TIMEZONE = TIME_ZONE
-# CELERY_ACKS_LATE = True
+# CELERY CONFIG
+CELERY_REDIS_URL = env('CELERY_REDIS_URL')  # "redis://:{password}@{host}:{port}/{db}"
+CELERY_BROKER_URL = CELERY_REDIS_URL
+CELERY_RESULT_BACKEND = CELERY_REDIS_URL
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACKS_LATE = True
 
 # CELERY_BEAT_SCHEDULE = {
 #     'translate_remaining_models_fields': {

@@ -1,17 +1,25 @@
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
+from unittest import mock
 
 from main.test_case import APITestCase
+from main.factories import GroupFactory
 import api.models as models
-from flash_update.models import FlashUpdate, FlashEmailSubscriptions, FlashGraphicMap
-from flash_update.factories.flash_update import (
+from flash_update.models import (
+    FlashUpdate,
+    FlashEmailSubscriptions,
+    FlashGraphicMap,
+)
+from flash_update.factories import (
     FlashUpdateFactory,
     FlashGraphicMapFactory,
-    FlashActionFactory
+    FlashActionFactory,
+    DonorFactory,
+    DonorGroupFactory,
 )
-from flash_update.utils import send_email_when_flash_update_created
+from flash_update.tasks import send_flash_update_email
 
 
 class FlashUpdateTest(APITestCase):
@@ -34,7 +42,6 @@ class FlashUpdateTest(APITestCase):
 
         path = os.path.join(settings.TEST_DIR, 'documents')
         self.file = os.path.join(path, 'go.png')
-        print(self.file)
 
         self.body = {
             "country_district": [
@@ -98,11 +105,11 @@ class FlashUpdateTest(APITestCase):
         }
         super().setUp()
 
-    def test_create_and_update(self):
+    @mock.patch('flash_update.tasks.send_flash_update_email')
+    def test_create_and_update(self, send_flash_update_email):
         self.client.force_authenticate(user=self.user)
         with self.capture_on_commit_callbacks(execute=True):
             response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
-            print(response)
         created = FlashUpdate.objects.get(id=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.hazard_type, self.hazard_type)
@@ -266,18 +273,22 @@ class FlashUpdateTest(APITestCase):
         response = self.client.post(url, data2, format='multipart')
         self.assert_400(response)
 
-    def test_send_email(self):
-        group = Group.objects.create(name="flash_email_member")
+    @mock.patch('notifications.notification.send_notification')
+    def test_send_email(self, send_notification):
+        group = GroupFactory(name="group1")
         email_suscription = FlashEmailSubscriptions.objects.get(
             share_with=FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         )
         email_suscription.group = group
         email_suscription.save()
 
+        # check for create
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
         instance = FlashUpdate.objects.get(id=response['id'])
-        email_data = send_email_when_flash_update_created(instance)
+        email_data = send_flash_update_email(instance.id)
+
+        self.assertTrue(send_notification.assert_called)  # check if send_notifications function is called.
         self.assertEqual(email_data['title'], instance.title)
         self.assertEqual(email_data['situational_overview'], instance.situational_overview)
         self.assertIn(
@@ -285,3 +296,47 @@ class FlashUpdateTest(APITestCase):
             [data['id'] for data in instance.actions_taken_flash.all().values('id')]
         )
 
+        # check for update
+        group2 = GroupFactory(name="group2")
+        email_suscription = FlashEmailSubscriptions.objects.get(
+            share_with=FlashUpdate.FlashShareWith.RCRC_NETWORK
+        )
+        email_suscription.group = group2
+        email_suscription.save()
+        self.body['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        response = self.client.put(f'/api/v2/flash-update/{instance.id}/', self.body, format='json').json()
+        instance = FlashUpdate.objects.get(id=response['id'])
+        email_data = send_flash_update_email(instance.id)
+
+        self.assertTrue(send_notification.assert_called)  # check if send_notifications function is called.
+        self.assertEqual(email_data['title'], instance.title)
+        self.assertEqual(email_data['situational_overview'], instance.situational_overview)
+        self.assertIn(
+            email_data['actions_taken'][0]['id'],
+            [data['id'] for data in instance.actions_taken_flash.all().values('id')]
+        )
+
+    @mock.patch('flash_update.utils.render_to_pdf')
+    @mock.patch('notifications.notification.send_notification')
+    def test_flash_update_share(self, send_notification, render_to_pdf):
+        render_to_pdf.return_value = {
+            'filename': "test.pdf",
+            'file': b'pdf content'
+        }
+        donor1, donor2, donor3 = DonorFactory.create_batch(3)
+        donor_group1, donor_group2 = DonorGroupFactory.create_batch(2)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
+        flash_update = FlashUpdate.objects.get(id=response['id'])
+        data = {
+            'flash_update': flash_update.id,
+            'donors': [donor1.id, donor2.id, donor3.id],
+            'donor_groups': [donor_group1.id, donor_group2.id]
+        }
+        response = self.client.post('/api/v2/share-flash-update/', data, format='json').json()
+        self.assertEqual(response['flash_update'], flash_update.id)
+        self.assertIn(donor1.id, response['donors'])
+        self.assertIn(donor_group1.id, response['donor_groups'])
+        self.assertTrue(render_to_pdf.assert_called)
+        # check if send_notifications function is called.
+        self.assertTrue(send_notification.assert_called)

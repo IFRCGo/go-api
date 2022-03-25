@@ -206,6 +206,12 @@ class Country(models.Model):
     wash_rdrt_trained = models.IntegerField(verbose_name=_('RDRT Trained'), null=True, blank=True)
 
     in_search = models.BooleanField(verbose_name=_('Include in Search'), default=True)
+    # Used in Emergency Project
+    average_household_size = models.DecimalField(
+        verbose_name=_('Average Household Size'),
+        null=True, blank=True,
+        max_digits=5, decimal_places=2
+    )
 
     def indexing(self):
         return {
@@ -265,6 +271,22 @@ class District(models.Model):
         return f'{country_name} - {self.name}'
 
 
+class Admin2(models.Model):
+    """ Used for admin2, District refers to admin1 """
+    admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    code = models.CharField(verbose_name=_('code'), max_length=64, unique=True)
+    centroid = models.PointField(srid=4326, blank=True, null=True)
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)    
+
+    class Meta:
+        verbose_name = _('admin2')
+        verbose_name_plural = _('admin2s')
+        ordering = ('code',)
+
+    def __str__(self):
+        return f'{self.admin1} - {self.name}'
+
 class CountryGeoms(models.Model):
     """ Admin0 geometries """
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
@@ -276,6 +298,10 @@ class DistrictGeoms(models.Model):
     geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
     district = models.OneToOneField(District, verbose_name=_('district'), on_delete=models.DO_NOTHING, primary_key=True)
 
+class Admin2Geoms(models.Model):
+    """ Admin2 geometries """
+    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    admin2 = models.OneToOneField(Admin2, verbose_name=_('admin2'), on_delete=models.DO_NOTHING, primary_key=True)
 
 class VisibilityChoices(IntEnum):
     MEMBERSHIP = 1
@@ -523,7 +549,7 @@ class AlertLevel(IntEnum):
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
-    name = models.CharField(verbose_name=_('name'), max_length=100)
+    name = models.CharField(verbose_name=_('name'), max_length=256)
     # Obsolete: slug is not editable until we resolve https://github.com/IFRCGo/go-frontend/issues/1013
     slug = models.CharField(
         verbose_name=_('slug'), max_length=50, editable=True, default=None, unique=True, null=True, blank=True,
@@ -537,6 +563,10 @@ class Event(models.Model):
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
+    countries_for_preview = models.ManyToManyField(
+        Country, verbose_name=_('countries for preview'),
+        blank=True, related_name='countries_for_preview'
+    )
     regions = models.ManyToManyField(Region, verbose_name=_('regions'))
     parent_event = models.ForeignKey(
         'self', null=True, blank=True, verbose_name=_('Parent Emergency'), on_delete=models.SET_NULL,
@@ -585,6 +615,11 @@ class Event(models.Model):
 
     # visibility
     visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=1)
+    emergency_response_contact_email = models.CharField(
+        verbose_name=_('emergency response contact email'),
+        null=True, blank=True,
+        max_length=255
+    )
 
     class Meta:
         ordering = ('-disaster_start_date',)

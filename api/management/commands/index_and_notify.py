@@ -233,8 +233,12 @@ class Command(BaseCommand):
                     sendMe = f"{record.event.name} – {record.country.name}"
             else:
                 sendMe = record.event.name
+            if record.message:
+                sendMe += ' | ' + record.message.split(',', 1)[0]
         elif rtype == RecordType.SURGE_DEPLOYMENT_MESSAGES:
-            sendMe = record.comments
+            sendMe = record.comments if record.comments else record.event_deployed_to.name
+            if sendMe is None:
+                sendMe = '-'
         else:
             sendMe = '?'
         # For contents we allow HTML markup. = autoescape off in generic_notification.html template.

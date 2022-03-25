@@ -86,6 +86,7 @@ class IdentifiedNeed(models.Model):
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
         SHELTER_CLUSTER_COORDINATION = 'shelter_cluster_coordination', _('Shelter Cluster Coordination')
+        MULTI_PURPOSE_CASH_GRANTS = 'multi-purpose_cash_grants', _('Multi-purpose Cash Grants')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
@@ -106,8 +107,9 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.MIGRATION: 'migration.png',
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
-            IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'favicon.png',
-            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'favicon.png'
+            IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
+            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'favicon.png',
+            IdentifiedNeed.Title.MULTI_PURPOSE_CASH_GRANTS: 'cash.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -125,6 +127,9 @@ class PlannedIntervention(models.Model):
             'risk_reduction_climate_adaptation_and_recovery_', _('Risk Reduction, Climate Adaptation And Recovery')
         SECRETARIAT_SERVICES = 'secretariat_services', _('Secretariat Services')
         NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
+        MULTI_PURPOSE_CASH_GRANTS = 'multi-purpose_cash_grants', _('Multi-purpose Cash Grants')
+        ENVIRONMENTAL_SUSTAINABILITY = 'environmental_sustainability', _('Environmental Sustainability')
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 'community_engagement_and_accountability', _('Community Engagement And Accountability')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
@@ -149,6 +154,9 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             PlannedIntervention.Title.SECRETARIAT_SERVICES: 'work.png',
             PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'independence.png',
+            PlannedIntervention.Title.MULTI_PURPOSE_CASH_GRANTS: 'cash.png',
+            PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: 'environment.png',
+            PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 

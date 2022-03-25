@@ -3,6 +3,7 @@ version: '3.5'
 x-server: &base_server_setup
   image: ifrcgo/go-api:latest
   build: .
+  stdin_open: true
   tty: true
   environment:
     # Overwrite this using .env (for additional configuration, look at main/settings.py:env
@@ -20,6 +21,7 @@ x-server: &base_server_setup
     MOLNIX_API_BASE: ${MOLNIX_API_BASE:-https://api.ifrc-staging.rpm.molnix.com/api/}
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
     ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
+    CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
   env_file:
     - .env
   volumes:
@@ -51,9 +53,9 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
 
   # For development only
-  # celery:
-  #   <<: *base_server_setup
-  #   command: python manage.py run_celery_dev
+  celery:
+    <<: *base_server_setup
+    command: python manage.py run_celery_dev
 
   bash:
     <<: *base_server_setup

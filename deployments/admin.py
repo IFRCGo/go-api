@@ -35,6 +35,11 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('national_society_country')
 
 
+@admin.register(models.ERU)
+class ERUAdmin(admin.ModelAdmin):
+    search_fields = ('national_society_country__name',)
+
+
 class PersonnelAdmin(CompareVersionAdmin, TranslationAdmin):
     country_in = 'country_from__in'
     region_in = 'country_from__region__in'
@@ -234,6 +239,45 @@ class ERUReadinessAdmin(CompareVersionAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('national_society')
 
+
+# ----- Emergency Project ----- [Start]
+class EmergencyProjectActivityActionSupplyInline(admin.TabularInline):
+    model = models.EmergencyProjectActivityActionSupply
+
+
+class EmergencyProjectActivityActionInline(admin.TabularInline):
+    model = models.EmergencyProjectActivityAction
+
+
+@admin.register(models.EmergencyProjectActivityAction)
+class EmergencyProjectActivityActionAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+    inlines = (EmergencyProjectActivityActionSupplyInline,)
+
+
+@admin.register(models.EmergencyProjectActivitySector)
+class EmergencyProjectActivitySectorAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+    inlines = (EmergencyProjectActivityActionInline,)
+
+
+class EmergencyProjectActivityInline(admin.TabularInline):
+    model = models.EmergencyProjectActivity
+    autocomplete_fields = ('sector', 'action',)
+    extra = 0
+
+
+@admin.register(models.EmergencyProject)
+class EmergencyProjectAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+    autocomplete_fields = (
+        'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
+        'country', 'districts',
+    )
+    inlines = (EmergencyProjectActivityInline,)
+
+
+# ----- Emergency Project ----- [End]
 
 admin.site.register(models.ERUOwner, ERUOwnerAdmin)
 admin.site.register(models.PersonnelDeployment, PersonnelDeploymentAdmin)
