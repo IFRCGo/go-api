@@ -37,7 +37,7 @@ from .models import (
     
     District,
     Admin2,
-    
+
     Event,
     Snippet,
     SituationReport,
@@ -347,6 +347,7 @@ class Admin2Filter(filters.FilterSet):
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
+    queryset = Admin2.objects.all()
     filterset_class = Admin2Filter
     search_fields = ('name', 'district__name', 'district__country__name')
     serializer_class = Admin2Serializer

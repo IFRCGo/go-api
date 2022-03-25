@@ -203,7 +203,7 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Admin2
-        fields = ('name', 'code', 'bbox', 'centroid')
+        fields = ('district_id', 'name', 'code', 'bbox', 'centroid',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
