@@ -6,9 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.429
+## 1.1.428
+## 1.1.427
+## 1.1.426
+## 1.1.425
+
+### Added
+ - Admin2 basics
+ - Celery workflow with changed docker-compose
+ - Job position into surge alert notification emails
+ - Background task for sending email and pdf generation
+ - Set up celery and add task for flash update
+ - Fixing surge deployments stuck notifications
+ - More sensitive molnix-status
+ - Emergency 3w
  - PersonnelViewset distinct query
  - Changing 1 day limit for registrations to 30
 
+## 1.1.424
+## 1.1.423
+## 1.1.422
+## 1.1.421
 ## 1.1.420
 
 ### Added
@@ -1919,7 +1938,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.420...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.429...HEAD
+[1.1.429]: https://github.com/IFRCGo/go-api/compare/1.1.428...1.1.429
+[1.1.428]: https://github.com/IFRCGo/go-api/compare/1.1.427...1.1.428
+[1.1.427]: https://github.com/IFRCGo/go-api/compare/1.1.426...1.1.427
+[1.1.426]: https://github.com/IFRCGo/go-api/compare/1.1.425...1.1.426
+[1.1.425]: https://github.com/IFRCGo/go-api/compare/1.1.424...1.1.425
+[1.1.424]: https://github.com/IFRCGo/go-api/compare/1.1.423...1.1.424
+[1.1.423]: https://github.com/IFRCGo/go-api/compare/1.1.422...1.1.423
+[1.1.422]: https://github.com/IFRCGo/go-api/compare/1.1.421...1.1.422
+[1.1.421]: https://github.com/IFRCGo/go-api/compare/1.1.420...1.1.421
 [1.1.420]: https://github.com/IFRCGo/go-api/compare/1.1.419...1.1.420
 [1.1.419]: https://github.com/IFRCGo/go-api/compare/1.1.418...1.1.419
 [1.1.418]: https://github.com/IFRCGo/go-api/compare/1.1.417...1.1.418
