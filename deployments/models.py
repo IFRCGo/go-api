@@ -697,10 +697,13 @@ class EmergencyProjectActivity(models.Model):
     )
     is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
     is_disaggregated_for_disabled = models.NullBooleanField(
-        verbose_name=_('is_disaggregated_for_disabled'),
+        verbose_name=_('Is disaggregated for disabled'),
         null=True, blank=True
     )
-    has_no_data_on_people_reached = models.BooleanField(verbose_name=_('has_no_data_on_people_reached'), default=False)
+    has_no_data_on_people_reached = models.NullBooleanField(
+        verbose_name=_('Has no data on people reached'),
+        null=True, blank=True
+    )
     # Metrics
     people_households = models.CharField(
         max_length=50,

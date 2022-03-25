@@ -590,6 +590,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'end_date': '2008-01-01',
             'event': 2,
             'event_detail': {
+                'countries_for_preview': [],
                 'dtype': 1,
                 'id': 2,
                 'name': 'event-KRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt',
@@ -688,6 +689,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'end_date': '2008-01-01',
             'event': 2,
             'event_detail': {
+                'countries_for_preview': [],
                 'dtype': 1,
                 'id': 2,
                 'name': 'event-KRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt',
@@ -778,6 +780,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'end_date': '2008-01-01',
             'event': 4,
             'event_detail': {
+                'countries_for_preview': [],
                 'dtype': 4,
                 'id': 4,
                 'name': 'event-IsCNxZRSZemDffzlsegkrhSjFjnHObsARIiEwACVPbsmebZoHP',
@@ -879,6 +882,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'end_date': '2008-01-01',
     'event': 2,
     'event_detail': {
+        'countries_for_preview': [],
         'dtype': 1,
         'id': 2,
         'name': 'event-KRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt',
@@ -970,6 +974,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'end_date': '2008-01-01',
     'event': 2,
     'event_detail': {
+        'countries_for_preview': [],
         'dtype': 1,
         'id': 2,
         'name': 'event-KRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt',

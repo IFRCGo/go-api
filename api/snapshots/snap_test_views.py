@@ -15,11 +15,14 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
     ],
     'countries': [
     ],
+    'countries_for_preview': [
+    ],
     'created_at': '2008-01-01T00:00:00.123456Z',
     'disaster_start_date': '2009-04-25T12:40:23.062017Z',
     'districts': [
     ],
     'dtype': 1,
+    'emergency_response_contact_email': None,
     'featured_documents': [
         {
             'description': 'event-featured-document-description-QdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHconSKErce',
@@ -90,11 +93,14 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     ],
     'countries': [
     ],
+    'countries_for_preview': [
+    ],
     'created_at': '2008-01-01T00:00:00.123456Z',
     'disaster_start_date': '2009-04-25T12:40:23.062017Z',
     'districts': [
     ],
     'dtype': 1,
+    'emergency_response_contact_email': None,
     'featured_documents': [
     ],
     'field_reports': [

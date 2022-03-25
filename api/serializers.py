@@ -433,17 +433,26 @@ class EventLinkSerializer(ModelSerializer):
 # The list serializer can include a smaller subset of the to-many fields.
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
+    countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
+
     class Meta:
         model = Event
-        fields = ('name', 'dtype', 'id', 'slug', 'parent_event', 'emergency_response_contact_email')
+        fields = (
+            'name', 'dtype', 'id', 'slug', 'parent_event',
+            'emergency_response_contact_email', 'countries_for_preview'
+        )
 
 
 class ListMiniEventSerializer(ModelSerializer):
     dtype = DisasterTypeSerializer(read_only=True)
+    countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'name', 'slug', 'dtype', 'auto_generated_source', 'emergency_response_contact_email')
+        fields = (
+            'id', 'name', 'slug', 'dtype', 'auto_generated_source',
+            'emergency_response_contact_email', 'countries_for_preview'
+        )
 
 
 class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
@@ -608,6 +617,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
     featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
     links = EventLinkSerializer(many=True, read_only=True)
+    countries_for_preview = MiniCountrySerializer(many=True)
 
     class Meta:
         model = Event
@@ -616,7 +626,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
-            'featured_documents', 'links',
+            'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview'
         )
         lookup_field = 'slug'
 
