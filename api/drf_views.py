@@ -34,7 +34,6 @@ from .models import (
     Country,
     CountryKeyFigure,
     CountrySnippet,
-    
     District,
     Admin2,
 
@@ -247,10 +246,9 @@ class DistrictRMDFilter(filters.FilterSet):
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = District.objects.select_related('country').filter(is_deprecated=False)
     filterset_class = DistrictRMDFilter
-    search_fields = ('name', 'country__name',)  
+    search_fields = ('name', 'country__name',)
     serializer_class = DistrictSerializerRMD
 
-   
 
 class RegionKeyFigureFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
@@ -343,7 +341,7 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class Admin2Filter(filters.FilterSet):
     class Meta:
         model = Admin2
-        fields = ('admin1',)  
+        fields = ('admin1',)
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
@@ -388,8 +386,7 @@ class EventViewset(ReadOnlyVisibilityViewset):
             return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
             #Event.objects.filter(parent_event__isnull=True)
-            qset.filter(parent_event__isnull=True)
-            .select_related('dtype')
+            qset.filter(parent_event__isnull=True).select_related('dtype')
             .prefetch_related(
                 'regions',
                 Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
