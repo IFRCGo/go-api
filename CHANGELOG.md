@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.430
+
+### Added
+ - Response_activity_count in event api
+
 ## 1.1.429
 ## 1.1.428
 ## 1.1.427
@@ -1938,7 +1943,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.429...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.430...HEAD
+[1.1.430]: https://github.com/IFRCGo/go-api/compare/1.1.429...1.1.430
 [1.1.429]: https://github.com/IFRCGo/go-api/compare/1.1.428...1.1.429
 [1.1.428]: https://github.com/IFRCGo/go-api/compare/1.1.427...1.1.428
 [1.1.427]: https://github.com/IFRCGo/go-api/compare/1.1.426...1.1.427

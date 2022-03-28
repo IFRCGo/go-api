@@ -51,6 +51,7 @@ from .models import (
     MainContact
 )
 from notifications.models import Subscription
+from deployments.models import EmergencyProject
 
 
 class GeoSerializerMixin:
@@ -653,6 +654,7 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
     featured_documents = EventFeaturedDocumentSerializer(many=True, read_only=True)
     links = EventLinkSerializer(many=True, read_only=True)
     countries_for_preview = MiniCountrySerializer(many=True)
+    response_activity_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -661,9 +663,13 @@ class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
             'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'contacts', 'key_figures', 'is_featured',
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
-            'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview'
+            'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview',
+            'response_activity_count'
         )
         lookup_field = 'slug'
+
+    def get_response_activity_count(self, event):
+        return EmergencyProject.objects.filter(event=event).count()
 
 
 class SituationReportTypeSerializer(ModelSerializer):

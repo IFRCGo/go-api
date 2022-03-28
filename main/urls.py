@@ -12,6 +12,7 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
+If you are looking for an api endpoint, search also url_path in other files.
 """
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
