@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 from django.utils import timezone
+from django.db.models.functions import Coalesce
 
 from main.utils import is_tableau
 from deployments.models import Personnel
@@ -124,6 +125,8 @@ from .serializers import (
     CountryOfFieldReportToReviewSerializer,
 )
 from .logger import logger
+
+from deployments.models import EmergencyProject
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -391,7 +394,17 @@ class EventViewset(ReadOnlyVisibilityViewset):
             return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
             #Event.objects.filter(parent_event__isnull=True)
-            qset.filter(parent_event__isnull=True).select_related('dtype')
+            qset.filter(parent_event__isnull=True).annotate(
+                response_activity_count=Coalesce(
+                    models.Subquery(
+                        EmergencyProject.objects.filter(
+                            event=models.OuterRef('id')
+                        ).order_by().values('event').annotate(
+                            count=models.Count('event')
+                        ).values('count')[:1]
+                    ), 0
+                )
+            ).select_related('dtype')
             .prefetch_related(
                 'regions',
                 Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
