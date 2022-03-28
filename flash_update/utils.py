@@ -1,12 +1,13 @@
 import logging
 from io import BytesIO
 
-from django.conf import settings
 from django.template.loader import render_to_string
 
 from xhtml2pdf import pisa
 
 from main.frontend import get_project_url
+
+from flash_update.models import FlashGraphicMap
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +31,8 @@ def render_to_pdf(template_src, context_dict={}):
 def generate_file_data(data):
     return [
         {
-            'image': item.get('file') and (settings.BASE_URL + item['file']),
-            'caption': item['caption'],
+            'image': item.file.url,
+            'caption': item.caption,
         }
         for item in data
     ]
@@ -41,8 +42,10 @@ def get_email_context(instance):
     from flash_update.serializers import FlashUpdateSerializer
 
     flash_update_data = FlashUpdateSerializer(instance).data
-    map_list = generate_file_data(flash_update_data['map_files'])
-    graphics_list = generate_file_data(flash_update_data['graphics_files'])
+    map_data = FlashGraphicMap.objects.filter(flash_map=instance)
+    graphics_data = FlashGraphicMap.objects.filter(flash_graphics=instance)
+    map_list = generate_file_data(map_data)
+    graphics_list = generate_file_data(graphics_data)
     actions_taken = [dict(action_taken) for action_taken in flash_update_data['actions_taken']]
     resources = [dict(refrence) for refrence in flash_update_data['references']]
     email_context = {
@@ -53,6 +56,5 @@ def get_email_context(instance):
         'graphic_list': graphics_list,
         'actions_taken': actions_taken,
         'resources': resources,
-        'document_url': flash_update_data['extracted_file']
     }
     return email_context
