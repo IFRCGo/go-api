@@ -546,15 +546,9 @@ class EmergencyProjectSerializer(
         )
 
     def validate(self, data):
-        event = data.get('event', self.instance and self.instance.event)
-        countries_id = list(event.countries.values_list('id', flat=True))
         reporting_ns = data.get('reporting_ns', self.instance and self.instance.reporting_ns)
         deployed_eru = data.get('deployed_eru', self.instance and self.instance.deployed_eru)
         country = data.get('country', None)
-        if country and country.id not in countries_id:
-            raise serializers.ValidationError({
-                'country': ugettext("Country should be from event's countries"),
-            })
         for district in data.get('districts') or []:
             if district.country_id != country.id:
                 raise serializers.ValidationError({
