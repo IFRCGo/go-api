@@ -40,17 +40,17 @@
         </div>
         <h1 class="title-heading-main">{{title}}</h1>
         <h2 class="heading">Situational Overview</h2>
-        <p class="desc"> {{situational_overview}}</p>
+        <p class="desc"> {{situational_overview|safe}}</p>
 
         <h2 class="heading">Graphics</h2>
         <div class="d-flex p-2">
         {% for map in map_list %}
-            <img class = 'img-flash' src="http://{{map.image}}" alt="image">
+            <img class = 'img-flash' src="{{map.image}}" alt="image">
         {% endfor %}
         </div><br>
         <div class="d-flex p-2">
         {% for graphic in graphic_list %}
-            <img class = 'img-flash'  src="http://{{graphic.image}}" alt="image">
+            <img class = 'img-flash'  src="{{graphic.image}}" alt="image">
         {% endfor %}
         </div>
 

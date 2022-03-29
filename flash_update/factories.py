@@ -15,10 +15,20 @@ from flash_update.models import (
     DonorGroup,
 )
 
+from django.core.files.base import ContentFile
+
 
 class FlashGraphicMapFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FlashGraphicMap
+
+    file = factory.LazyAttribute(
+        lambda _: ContentFile(
+            factory.django.ImageField()._make_data(
+                {'width': 1024, 'height': 768}
+            ), 'flash_update.jpg'
+        )
+    )
 
 
 class FlashActionFactory(factory.django.DjangoModelFactory):
