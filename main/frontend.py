@@ -6,4 +6,4 @@ def get_project_url(id):
 
 
 def get_flash_update_url(id):
-    return f'{settings.FRONTEND_URL}/flash-update/{id}/'
+    return f'https://{settings.FRONTEND_URL}/flash-update/{id}/'
