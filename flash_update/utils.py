@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 
 from xhtml2pdf import pisa
 
-from main.frontend import get_project_url
+from main.frontend import get_flash_update_url
 
 from flash_update.models import FlashGraphicMap
 
@@ -49,7 +49,7 @@ def get_email_context(instance):
     actions_taken = [dict(action_taken) for action_taken in flash_update_data['actions_taken']]
     resources = [dict(refrence) for refrence in flash_update_data['references']]
     email_context = {
-        'resource_url': get_project_url(instance.id),
+        'resource_url': get_flash_update_url(instance.id),
         'title': flash_update_data['title'],
         'situational_overview': flash_update_data['situational_overview'],
         'map_list': map_list,
