@@ -722,9 +722,9 @@ class EmergencyProjectActivity(models.Model):
     male_count = models.IntegerField(verbose_name=_('Men'), null=True, blank=True)
     female_count = models.IntegerField(verbose_name=_('Female'), null=True, blank=True)
     # -- Age group
-    male_unknown_age = models.IntegerField(verbose_name=_('Male Unknown Age'), null=True, blank=True)
-    female_unknown_age = models.IntegerField(verbose_name=_('Female Unknown Age'), null=True, blank=True)
-    other_unknown_age = models.IntegerField(verbose_name=_('Other Unknown Age'), null=True, blank=True)
+    male_unknown_age_count = models.IntegerField(verbose_name=_('Male Unknown Age'), null=True, blank=True)
+    female_unknown_age_count = models.IntegerField(verbose_name=_('Female Unknown Age'), null=True, blank=True)
+    other_unknown_age_count = models.IntegerField(verbose_name=_('Other Unknown Age'), null=True, blank=True)
     # -- When is_simplified_report is False
     male_0_1_count = models.IntegerField(verbose_name=_('Boys 0-1'), null=True, blank=True)
     male_2_5_count = models.IntegerField(verbose_name=_('Boys 2-5'), null=True, blank=True)
@@ -763,6 +763,10 @@ class EmergencyProjectActivity(models.Model):
     disabled_other_13_17_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 13-17'), null=True, blank=True)
     disabled_other_18_59_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 18-29'), null=True, blank=True)
     disabled_other_60_plus_count = models.IntegerField(verbose_name=_('Disabled Others/Unknown 60+'), null=True, blank=True)
+    disabled_male_unknown_age_count = models.IntegerField(verbose_name=_('Disabled Male Unknown Age'), null=True, blank=True)
+    disabled_female_unknown_age_count = models.IntegerField(verbose_name=_('Disabled Female Unknown Age'), null=True, blank=True)
+    disabled_other_unknown_age_count = models.IntegerField(verbose_name=_('Disabled Other Unknown Age'), null=True, blank=True)
+
     # More Details
     details = models.TextField(verbose_name=_('details'), blank=True, null=True)
     supplies = JSONField(verbose_name=_('supplies'), default=dict)  # key: count (key: System defined id)
