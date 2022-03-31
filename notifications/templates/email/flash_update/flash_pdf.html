@@ -1,9 +1,10 @@
 <html>
     <style>
-        table {    -pdf-keep-in-frame-mode: shrink;}
-        img {
-        -ms-interpolation-mode: bicubic;
-      }
+        table, tr, td {
+            border: 5px solid white;
+            height: 240px;
+            width: 240px;
+        }
       .text-left {
         text-align: left;
       }
@@ -27,10 +28,9 @@
           font-weight: bold;
           padding-left: 20px;
       }
-    .img-flash {
-            width: 120px;
-            height: 120px;
-        }
+    #situational_overview{
+        font-size: 15px;
+    }
 
     </style>
 
@@ -40,19 +40,29 @@
         </div>
         <h1 class="title-heading-main">{{title}}</h1>
         <h2 class="heading">Situational Overview</h2>
-        <p class="desc"> {{situational_overview}}</p>
+        <div id="situational_overview"><p> {{situational_overview|safe}}</p></div>
 
         <h2 class="heading">Graphics</h2>
-        <div class="d-flex p-2">
-        {% for map in map_list %}
-            <img class = 'img-flash' src="http://{{map.image}}" alt="image">
-        {% endfor %}
-        </div><br>
-        <div class="d-flex p-2">
-        {% for graphic in graphic_list %}
-            <img class = 'img-flash'  src="http://{{graphic.image}}" alt="image">
-        {% endfor %}
-        </div>
+
+        <table>
+            <tr>
+            </tr>
+            <tr>
+            {% for map in map_list %}
+                <td><img src="{{map.image}}" alt="image"></td>
+            {% endfor %}
+            </tr>
+        </table>
+
+        <table>
+            <tr>
+            </tr>
+            <tr>
+            {% for graphic in graphic_list %}
+                <td><img src="{{graphic.image}}" alt="image"></td>
+            {% endfor %}
+            </tr>
+        </table>
 
         <h2 class="heading">Actions Taken</h2>
 

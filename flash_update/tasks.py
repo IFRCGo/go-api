@@ -1,7 +1,6 @@
 from celery import shared_task
 
 from django.utils import timezone
-from django.conf import settings
 from django.core.files.base import ContentFile
 from django.template.loader import render_to_string
 from django.contrib.auth.models import User
@@ -26,7 +25,7 @@ def share_flash_update(flash_update_share_id):
 
     # create url for pdf in email
     email_context = {
-        'document_url': settings.BASE_URL + flash_update.extracted_file.url
+        'document_url': flash_update.extracted_file.url
     }
     donors_emails = instance.donors.all().values_list('email', flat=True)
     donor_groups_emails = Donors.objects.filter(
