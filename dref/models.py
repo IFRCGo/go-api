@@ -526,6 +526,10 @@ class Dref(models.Model):
         verbose_name=_('cover image'),
         related_name='cover_image_dref'
     )
+    is_published = models.BooleanField(
+        default=False,
+        verbose_name=_('Is published'),
+    )
     __budget_file_id = None
 
     class Meta:
@@ -577,3 +581,331 @@ class DrefFile(models.Model):
     class Meta:
         verbose_name = _('dref file')
         verbose_name_plural = _('dref files')
+
+
+class DrefOperationalUpdate(models.Model):
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('created by'),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_by_dref_operational_update'
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('modified by'),
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='modified_by_dref_operational_update'
+    )
+    parent = models.ForeignKey(
+        'DrefOperationalUpdate',
+        null=True, blank=True,
+        on_delete=models.CASCADE
+    )
+    dref = models.ForeignKey(
+        Dref, verbose_name=_('Dref'),
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(
+        verbose_name=_('title'),
+        max_length=255,
+        null=True, blank=True
+    )
+    national_society = models.ForeignKey(
+        Country, verbose_name=_('national_society'),
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        related_name='national_society_operational_update'
+    )
+    disaster_type = models.ForeignKey(
+        DisasterType, verbose_name=_('disaster type'),
+        blank=True, null=True,
+        on_delete=models.SET_NULL
+    )
+    type_of_onset = models.IntegerField(
+        choices=Dref.OnsetType.choices,
+        verbose_name=_('onset type'),
+        null=True, blank=True
+    )
+    disaster_category = models.IntegerField(
+        choices=Dref.DisasterCategory.choices,
+        verbose_name=_('disaster category'),
+        null=True, blank=True
+    )
+    number_of_people_targated = models.IntegerField(
+        verbose_name=_('Number of people targated'),
+        blank=True, null=True
+    )
+    number_of_people_affected = models.IntegerField(
+        verbose_name=_('number of people affected'),
+        blank=True, null=True
+    )
+    dref_allocated_so_far = models.IntegerField(
+        verbose_name=_('Dref allocated so far'),
+        null=True, blank=True
+    )
+    additional_allocation = models.IntegerField(
+        verbose_name=_('Additional allocation'),
+        null=True, blank=True
+    )
+    total_dref_allocation = models.IntegerField(
+        verbose_name=_('Total dref allocation'),
+        null=True, blank=True
+    )
+    emergency_appeal_planned = models.BooleanField(
+        verbose_name=_('emergency appeal planned '),
+        null=True, blank=True
+    )
+    images = models.ManyToManyField(
+        DrefFile, blank=True,
+        verbose_name=_('images'),
+        related_name='image_dref_operational_update'
+    )
+    operational_update_number = models.PositiveSmallIntegerField(
+        verbose_name=_('Operational Update Number'),
+        null=True, blank=True
+    )
+    reporting_timeframe = models.DateTimeField(
+        verbose_name=_('Reporting Timeframe'),
+        null=True, blank=True
+    )
+    is_timeframe_extension_required = models.BooleanField(
+        null=True, blank=True,
+        verbose_name=_('Is Timeframe Extension Required')
+    )
+    new_operational_end_date = models.DateTimeField(
+        verbose_name=_('New Operation End Date'),
+        null=True, blank=True
+    )
+    total_operation_timeframe = models.IntegerField(
+        verbose_name=_('Total Operation Timeframe'),
+        null=True, blank=True
+    )
+    date_of_approval = models.DateField(
+        verbose_name=_('Date of Approval'),
+        null=True, blank=True
+    )
+    appeal_code = models.CharField(
+        verbose_name=_('appeal code'),
+        max_length=255,
+        null=True, blank=True
+    )
+    glide_code = models.CharField(
+        verbose_name=_('glide number'),
+        max_length=255,
+        null=True, blank=True
+    )
+    ifrc_appeal_manager_name = models.CharField(
+        verbose_name=_('ifrc appeal manager name'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_appeal_manager_email = models.CharField(
+        verbose_name=_('ifrc appeal manager email'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_appeal_manager_title = models.CharField(
+        verbose_name=_('ifrc appeal manager title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_appeal_manager_phone_number = models.CharField(
+        verbose_name=_('ifrc appeal manager phone number'), max_length=100,
+        null=True, blank=True
+    )
+    ifrc_project_manager_name = models.CharField(
+        verbose_name=_('ifrc project manager name'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_project_manager_email = models.CharField(
+        verbose_name=_('ifrc project manager email'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_project_manager_title = models.CharField(
+        verbose_name=_('ifrc project manager title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_project_manager_phone_number = models.CharField(
+        verbose_name=_('ifrc project manager phone number'), max_length=100,
+        null=True, blank=True
+    )
+    national_society_contact_name = models.CharField(
+        verbose_name=_('national society contact name'), max_length=255,
+        null=True, blank=True
+    )
+    national_society_contact_email = models.CharField(
+        verbose_name=_('national society contact email'), max_length=255,
+        null=True, blank=True
+    )
+    national_society_contact_title = models.CharField(
+        verbose_name=_('national society contact title'), max_length=255,
+        null=True, blank=True
+    )
+    national_society_contact_phone_number = models.CharField(
+        verbose_name=_('national society contact phone number'), max_length=100,
+        null=True, blank=True
+    )
+    media_contact_name = models.CharField(
+        verbose_name=_('media contact name'), max_length=255,
+        null=True, blank=True
+    )
+    media_contact_email = models.CharField(
+        verbose_name=_('media contact email'), max_length=255,
+        null=True, blank=True
+    )
+    media_contact_title = models.CharField(
+        verbose_name=_('media contact title'), max_length=255,
+        null=True, blank=True
+    )
+    media_contact_phone_number = models.CharField(
+        verbose_name=_('media_contact phone number'), max_length=100,
+        null=True, blank=True
+    )
+    ifrc_emergency_name = models.CharField(
+        verbose_name=_('ifrc emergency name'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_emergency_email = models.CharField(
+        verbose_name=_('ifrc emergency email'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_emergency_title = models.CharField(
+        verbose_name=_('ifrc emergency title'), max_length=255,
+        null=True, blank=True
+    )
+    ifrc_emergency_phone_number = models.CharField(
+        verbose_name=_('ifrc emergency phone number'), max_length=100,
+        null=True, blank=True
+    )
+    changing_timeframe_operation = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Changing time operation')
+    )
+    changing_operation_strategy = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Changing operation strategy')
+    )
+    changing_target_population_of_operation = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Changing target population of operation')
+    )
+    changing_geographic_location = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Changing geographic location')
+    )
+    changing_budget = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Changing budget')
+    )
+    request_for_second_allocation = models.BooleanField(
+        null=True, blank=True, verbose_name=_('Request for second allocation')
+    )
+    summary_of_change = models.TextField(
+        verbose_name=_('Summary of change'),
+        null=True, blank=True
+    )
+    change_since_request = models.TextField(
+        verbose_name=_('Change since request'),
+        null=True, blank=True
+    )
+    national_society_actions = models.ManyToManyField(
+        NationalSocietyAction,
+        verbose_name=_('national society actions'),
+        blank=True
+    )
+    ifrc = models.TextField(
+        verbose_name=_('ifrc'),
+        blank=True, null=True
+    )
+    icrc = models.TextField(
+        verbose_name=_('icrc'),
+        blank=True, null=True
+    )
+    partner_national_society = models.TextField(
+        verbose_name=_('partner national society'),
+        blank=True, null=True
+    )
+    government_requested_assistance = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Has government requested assistance')
+    )
+    national_authorities = models.TextField(
+        verbose_name=_('national authorities'),
+        blank=True, null=True
+    )
+    un_or_other_actor = models.TextField(
+        verbose_name=_('un or other'),
+        blank=True, null=True
+    )
+    major_coordination_mechanism = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('major coordination mechanism'),
+    )
+    needs_identified = models.ManyToManyField(
+        IdentifiedNeed, verbose_name=_('needs identified'),
+        blank=True
+    )
+    people_assisted = models.TextField(verbose_name=_('people assisted'), blank=True, null=True)
+    selection_criteria = models.TextField(
+        verbose_name=_('selection criteria'), blank=True, null=True,
+        help_text=_('Selection criteria for affected people')
+    )
+    community_involved = models.TextField(
+        verbose_name=_('community involved'), blank=True, null=True,
+        help_text=_('Community been involved in the analysis of the process')
+    )
+    women = models.IntegerField(verbose_name=_('women'), blank=True, null=True)
+    men = models.IntegerField(verbose_name=_('men'), blank=True, null=True)
+    girls = models.IntegerField(
+        verbose_name=_('girls'), help_text=_('Girls under 18'),
+        blank=True, null=True
+    )
+    boys = models.IntegerField(
+        verbose_name=_('boys'), help_text=_('Boys under 18'),
+        blank=True, null=True
+    )
+    disability_people_per = models.DecimalField(
+        verbose_name=_('disability people per'),
+        blank=True, null=True,
+        max_digits=5, decimal_places=2
+    )
+    people_per_urban = models.DecimalField(
+        verbose_name=_('people per urban'),
+        blank=True, null=True,
+        max_digits=5, decimal_places=2
+    )
+    people_per_local = models.DecimalField(
+        verbose_name=_('people per local'),
+        blank=True, null=True,
+        max_digits=5, decimal_places=2
+    )
+    people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_('people targeted with early actions'),
+        blank=True, null=True
+    )
+    displaced_people = models.IntegerField(
+        verbose_name=_('displaced people'),
+        blank=True, null=True
+    )
+    operation_objective = models.TextField(
+        verbose_name=_('operation objective'),
+        blank=True, null=True,
+    )
+    response_strategy = models.TextField(
+        verbose_name=_('response strategy'),
+        blank=True, null=True,
+    )
+    planned_interventions = models.ManyToManyField(
+        PlannedIntervention,
+        verbose_name=_('planned intervention'),
+        blank=True
+    )
+    country = models.ForeignKey(
+        Country, verbose_name=_('country'),
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+    )
+    district = models.ManyToManyField(
+        District, blank=True,
+        verbose_name=_('district')
+    )
+
+    class Meta:
+        verbose_name = _('Dref Operational Update')
+        verbose_name_plural = _('Dref Operational Updates')

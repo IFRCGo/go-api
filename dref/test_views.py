@@ -363,3 +363,50 @@ class DrefTestCase(APITestCase):
         self.assertIn('planned_interventions', response.data)
         self.assertIn('needs_identified', response.data)
         self.assertIn('national_society_actions', response.data)
+
+    def test_dref_is_published(self):
+        """
+        Test for dref if is_published = True
+        """
+        dref = DrefFactory.create(
+            title='test', created_by=self.user,
+            is_published=True
+        )
+        url = f'/api/v2/dref/{dref.id}/'
+        data = {
+            "title" : "What to update"
+        }
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+        # create new dref with is_published = False
+        not_published_dref = DrefFactory.create(
+            title='test', created_by=self.user,
+        )
+        url = f'/api/v2/dref/{not_published_dref.id}/'
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data)
+        self.assert_201(response)
+
+        # test dref published endpoint
+        url = f'/api/v2/dref/{not_published_dref.id}/publish/'
+        data = {}
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_201(response)
+        self.assertEqual(response.data['is_published'], True)
+
+    def test_dref_operation_update(self):
+        """
+        Test create dref operation update
+        """
+        dref = DrefFactory.create(
+            title='test', created_by=self.user,
+        )
+        print(dref.id)
+        url = f'/api/v2/dref/{dref.id}/operational-update/'
+        data = {}
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_201(response)

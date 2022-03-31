@@ -148,6 +148,7 @@ router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, base
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
+router.register(r'dref/(?P<dref_id>\d+)/operational-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
 
 
 admin.site.site_header = 'IFRC Go administration'

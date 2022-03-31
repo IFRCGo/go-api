@@ -7,7 +7,8 @@ from rest_framework import (
     response,
     permissions,
     status,
-    mixins
+    mixins,
+    serializers
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -16,10 +17,12 @@ from dref.models import (
     PlannedIntervention,
     IdentifiedNeed,
     DrefFile,
+    DrefOperationalUpdate
 )
 from dref.serializers import (
     DrefSerializer,
     DrefFileSerializer,
+    DrefOperationalUpdateSerializer,
 )
 from dref.filter_set import DrefFilter
 
@@ -41,6 +44,28 @@ class DrefViewSet(viewsets.ModelViewSet):
                 'national_society_actions',
                 'users'
             ).order_by('-created_at').distinct()
+
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, pk=None, version=None):
+        dref = self.get_object()
+        dref.is_published = True
+        dref.save(update_fields=['is_published'])
+        serializer = DrefSerializer(dref, partial=True, context={'request': request})
+        return response.Response(serializer.data)
+
+
+class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
+    serializer_class = DrefOperationalUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DrefOperationalUpdate.objects.filter(dref=self.kwargs['dref_id'])
 
 
 class DrefOptionsView(views.APIView):

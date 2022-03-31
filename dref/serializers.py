@@ -2,6 +2,7 @@ import os
 
 from django.utils.translation import ugettext
 from django.db import models
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 
@@ -25,7 +26,8 @@ from dref.models import (
     NationalSocietyAction,
     IdentifiedNeed,
     DrefCountryDistrict,
-    DrefFile
+    DrefFile,
+    DrefOperationalUpdate
 )
 
 
@@ -173,6 +175,8 @@ class DrefSerializer(
             raise serializers.ValidationError({
                 'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
+        if self.instance and self.instance.is_published:
+            raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
         return data
 
     def validate_images(self, images):
@@ -218,4 +222,93 @@ class DrefSerializer(
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
+        return super().update(instance, validated_data)
+
+
+class DrefOperationalUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = '__all__'
+        read_only_fields = ('dref',)
+
+    def validate(self, data):
+        dref_id = self.context['view'].kwargs['dref_id']
+        dref = get_object_or_404(Dref, id=dref_id)
+        if dref.is_published:
+            raise serializers.ValidationError(
+                ugettext('Can\'t create Operational Update for publised %s dref.' % dref_id)
+            )
+        if self.instance and self.instance.parent.is_published:
+            raise serializers.ValidationError(
+                ugettext('Can\'t create Operational Update for whose %s parent is published.' % self.instance.parent_id)
+            )
+        return data
+
+    def create(self, validated_data):
+        dref_id = self.context['view'].kwargs['dref_id']
+        dref = get_object_or_404(Dref, id=dref_id)
+        print(dref, "dddddd")
+        # dref_country_district = get_object_or_404(DrefCountryDistrict, dref=dref_id)
+        validated_data['dref'] = dref
+        validated_data['title'] = dref.title
+        """validated_data['national_society'] = dref.national_society
+        validated_data['disaster_type'] = dref.disaster_type
+        validated_data['type_of_onset'] = dref.type_of_onset
+        validated_data['disaster_category'] = dref.disaster_category
+        validated_data['number_of_people_targated'] = dref.total_targeted_population
+        validated_data['number_of_people_affected'] = dref.num_affected
+        validated_data['dref_allocated_so_far'] = dref.amount_requested
+        validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
+        validated_data['images'] = dref.images
+        validated_data['appeal_code'] = dref.appeal_code
+        validated_data['glide_code'] = dref.glide_code
+        validated_data['ifrc_appeal_manager_name'] = dref.ifrc_appeal_manager_name
+        validated_data['ifrc_appeal_manager_email'] = dref.ifrc_appeal_manager_email
+        validated_data['ifrc_appeal_manager_title'] = dref.ifrc_appeal_manager_title
+        validated_data['ifrc_appeal_manager_phone_number'] = dref.ifrc_appeal_manager_phone_number
+        validated_data['ifrc_project_manager_name'] = dref.ifrc_project_manager_name
+        validated_data['ifrc_project_manager_email'] = dref.ifrc_project_manager_email
+        validated_data['ifrc_project_manager_title'] = dref.ifrc_project_manager_title
+        validated_data['ifrc_project_manager_phone_number'] = dref.ifrc_project_manager_phone_number
+        validated_data['national_society_contact_name'] = dref.national_society_contact_name
+        validated_data['national_society_contact_email'] = dref.national_society_contact_email
+        validated_data['national_society_contact_title'] = dref.national_society_contact_title
+        validated_data['national_society_contact_phone_number'] = dref.national_society_contact_phone_number
+        validated_data['media_contact_name'] = dref.media_contact_name
+        validated_data['media_contact_email'] = dref.media_contact_email
+        validated_data['media_contact_phone_number'] = dref.media_contact_phone_number
+        validated_data['ifrc_emergency_name'] = dref.ifrc_emergency_name
+        validated_data['ifrc_emergency_email'] = dref.ifrc_emergency_email
+        validated_data['ifrc_emergency_title'] = dref.ifrc_emergency_title
+        validated_data['ifrc_emergency_phone_number'] = dref.ifrc_emergency_phone_number
+        validated_data['national_society_actions'] = dref.national_society_actions
+        validated_data['ifrc'] = dref.ifrc
+        validated_data['icrc'] = dref.icrc
+        validated_data['partner_national_society'] = dref.partner_national_society
+        validated_data['government_requested_assistance'] = dref.government_requested_assistance
+        validated_data['national_authorities'] = dref.national_authorities
+        validated_data['un_or_other_actor'] = dref.un_or_other_actor
+        validated_data['major_coordination_mechanism'] = dref.major_coordination_mechanism
+        validated_data['needs_identified'] = dref.needs_identified
+        validated_data['people_assisted'] = dref.people_assisted
+        validated_data['selection_criteria'] = dref.selection_criteria
+        validated_data['community_involved'] = dref.community_involved
+        validated_data['women'] = dref.women
+        validated_data['men'] = dref.men
+        validated_data['girls'] = dref.girls
+        validated_data['boys'] = dref.boys
+        validated_data['disability_people_per'] = dref.disability_people_per
+        validated_data['people_per_urban'] = dref.people_per_urban
+        validated_data['people_per_local'] = dref.people_per_local
+        validated_data['displaced_people'] = dref.displaced_people
+        validated_data['people_targeted_with_early_actions'] = dref.people_targeted_with_early_actions
+        validated_data['operation_objective'] = dref.operation_objective
+        validated_data['response_strategy'] = dref.response_strategy
+        validated_data['planned_interventions'] = dref.planned_interventions
+        validated_data['country'] = dref_country_district.country
+        validated_data['district'] = dref_country_district.district
+        validated_data['created_by'] = self.context['request'].user"""
+        return DrefOperationalUpdate.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
         return super().update(instance, validated_data)
