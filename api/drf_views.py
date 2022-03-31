@@ -11,7 +11,6 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count, Q
 from django.utils import timezone
-from django.db.models.functions import Coalesce
 
 from main.utils import is_tableau
 from deployments.models import Personnel
@@ -120,8 +119,6 @@ from .serializers import (
     GoHistoricalSerializer,
 )
 from .logger import logger
-
-from deployments.models import EmergencyProject
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
