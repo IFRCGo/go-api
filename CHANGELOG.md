@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.431
+
+### Added
+ - Solve link to ifrc-go in email 
+
 ## 1.1.430
 
 ### Added
@@ -1943,7 +1948,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.430...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.431...HEAD
+[1.1.431]: https://github.com/IFRCGo/go-api/compare/1.1.430...1.1.431
 [1.1.430]: https://github.com/IFRCGo/go-api/compare/1.1.429...1.1.430
 [1.1.429]: https://github.com/IFRCGo/go-api/compare/1.1.428...1.1.429
 [1.1.428]: https://github.com/IFRCGo/go-api/compare/1.1.427...1.1.428
