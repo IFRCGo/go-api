@@ -1,3 +1,4 @@
+import reversion
 import os
 
 from pdf2image import convert_from_path
@@ -17,6 +18,7 @@ from api.models import (
 from .enums import TextChoices, IntegerChoices
 
 
+@reversion.register()
 class NationalSocietyAction(models.Model):
     # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
     class Title(TextChoices):
@@ -71,6 +73,7 @@ class NationalSocietyAction(models.Model):
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
+@reversion.register()
 class IdentifiedNeed(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
@@ -114,6 +117,7 @@ class IdentifiedNeed(models.Model):
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
+@reversion.register()
 class PlannedIntervention(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
@@ -161,6 +165,7 @@ class PlannedIntervention(models.Model):
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
 
+@reversion.register()
 class Dref(models.Model):
 
     class OnsetType(IntegerChoices):
@@ -545,6 +550,7 @@ class Dref(models.Model):
         super().save(*args, **kwargs)
 
 
+@reversion.register()
 class DrefCountryDistrict(models.Model):
     dref = models.ForeignKey(Dref, verbose_name=_('dref'),
                              on_delete=models.CASCADE)
