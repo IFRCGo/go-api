@@ -49,43 +49,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## 1.1.442
 
 ### Added
- - Anon users should see public EmergencyProjects
+ - Flash update email design fixes
+ - Not only active deployments to CSV output
+ - Registering tables for reversion (also from frontend changes)
 
-## 1.1.441
-
-### Added
- - Password policy enhancements
- - Return also visibility to event properties
- - EmergencyProject should have visibility itself
-
-## 1.1.440
-## 1.1.439
-
-### Added
- - Django 2.2 critical security fix
- - Nginx setup fixing
-
-## 1.1.438
-## 1.1.437
-
-### Added
- - /docs/ fixing
- - User registration reminder job cleanup
- - Lang: page-number
- - Tidylib - adding
- - Sit_fields_date also to be converted 
-
-## 1.1.436
-
-### Added
- - Tests trailing the changes
- - Adding Description + GeneralDocument to deployment.project
- - Add contact details to the 3w project
- - Countries of Field Report to review
- - Admin page - WikiJS Links
- - Adding reversion.register() decorators to 72 important models
-
-## 1.1.435
 ## 1.1.431
 
 ### Added
