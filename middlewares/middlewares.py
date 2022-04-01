@@ -4,6 +4,7 @@ from rest_framework import permissions
 from django.conf import settings
 from django.http import JsonResponse
 from django.utils.translation import ugettext, get_language
+# from reversion.middleware import RevisionMiddleware
 
 
 _threadlocal = threading.local()
@@ -67,3 +68,14 @@ class RequestMiddleware:
                     'method': request.method
                 },
             }, status=405)
+
+
+# Without this class the 'request revision' still works fine.
+# TODO: how to make it effective?
+# class BypassRevisionMiddleware(RevisionMiddleware):
+#
+#     def request_creates_revision(self, request):
+#         # Bypass the revision according to ...
+#         silent = request.META.get("HTTP_X_NOREVISION", "false")
+#         return super().request_creates_revision(request) and \
+#             silent != "true"

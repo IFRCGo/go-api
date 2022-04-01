@@ -197,6 +197,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'middlewares.middlewares.RequestMiddleware',
+    'reversion.middleware.RevisionMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (

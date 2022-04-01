@@ -1,3 +1,4 @@
+import reversion
 from api.models import Country
 from django.db import models
 from django.conf import settings
@@ -25,6 +26,7 @@ class ProcessPhase(IntEnum):
         ACTION_AND_ACCOUNTABILITY = _('action and accountability')
 
 
+@reversion.register()
 class NSPhase(models.Model):
     """ NS PER Process Phase """
     # default=1 needed only for the migration, can be deleted later
@@ -79,6 +81,7 @@ class Language(IntEnum):
         ENGLISH = _('english')
 
 
+@reversion.register()
 class FormArea(models.Model):
     """ PER Form Areas (top level) """
     title = models.CharField(verbose_name=_('title'), max_length=250)
@@ -88,6 +91,7 @@ class FormArea(models.Model):
         return f'Area {self.area_num} - {self.title}'
 
 
+@reversion.register()
 class FormComponent(models.Model):
     """ PER Form Components inside Areas """
     area = models.ForeignKey(FormArea, verbose_name=_('area'), on_delete=models.PROTECT)
@@ -100,6 +104,7 @@ class FormComponent(models.Model):
         return f'Component {self.component_num} - {self.title}'
 
 
+@reversion.register()
 class FormAnswer(models.Model):
     """ PER Form answer possibilities """
     text = models.CharField(verbose_name=_('text'), max_length=40)
@@ -108,6 +113,7 @@ class FormAnswer(models.Model):
         return self.text
 
 
+@reversion.register()
 class FormQuestion(models.Model):
     """ PER Form individual questions inside Components """
     component = models.ForeignKey(FormComponent, verbose_name=_('component'), on_delete=models.PROTECT)
@@ -136,6 +142,7 @@ class CAssessmentType(IntEnum):
         POST_OPERATIONAL = _('post operational')
 
 
+@reversion.register()
 class AssessmentType(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=200)
 
@@ -147,6 +154,7 @@ class AssessmentType(models.Model):
         return self.name
 
 
+@reversion.register()
 class Overview(models.Model):
     assessment_number = models.IntegerField(verbose_name=_('assessment number'), default=1)
     branches_involved = models.CharField(verbose_name=_('branches involved'), max_length=400, null=True, blank=True)
@@ -214,6 +222,7 @@ class Overview(models.Model):
         return f'{name}{fpname}'
 
 
+@reversion.register()
 class Form(models.Model):
     """ Individually submitted PER Forms """
     area = models.ForeignKey(FormArea, verbose_name=_('area'), null=True, on_delete=models.PROTECT)
@@ -237,6 +246,7 @@ def question_details(question_id, code):
     return questions.get(q, '')
 
 
+@reversion.register()
 class FormData(models.Model):
     """ PER form data """
     form = models.ForeignKey(Form, verbose_name=_('form'), related_name='form_data', on_delete=models.CASCADE)
@@ -292,6 +302,7 @@ class WorkPlanStatus(IntEnum):
         CLOSED = _('closed')
 
 
+@reversion.register()
 class WorkPlan(models.Model):
     prioritization = EnumIntegerField(PriorityValue, verbose_name=_('prioritization'))
     components = models.CharField(verbose_name=_('components'), max_length=900, null=True, blank=True)
@@ -337,6 +348,7 @@ def nice_document_path(instance, filename):
     return 'perdocs/%s/%s' % (instance.country.id, filename)
 
 
+@reversion.register()
 class NiceDocument(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
