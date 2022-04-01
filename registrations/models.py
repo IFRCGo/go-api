@@ -1,3 +1,4 @@
+import reversion
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.db import models
@@ -58,6 +59,7 @@ class Recovery(models.Model):
         return self.user.username
 
 
+@reversion.register()
 class DomainWhitelist(models.Model):
     """ Whitelisted domains """
     domain_name = models.CharField(verbose_name=_('domain name'), max_length=200)
