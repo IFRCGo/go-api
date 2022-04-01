@@ -144,7 +144,10 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
     search_fields = ('name', 'role', 'type',)  # for /docs
 
     def get_queryset(self):
-        qs = super().get_queryset().filter(is_active=True).select_related(
+        qs = super().get_queryset()
+        if self.request.GET.get('format', 'json') != 'csv':
+            qs = qs.filter(is_active=True)
+        qs = qs.select_related(
             'country_from',
             'deployment__country_deployed_to',
             'deployment__event_deployed_to',
