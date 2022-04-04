@@ -611,8 +611,8 @@ class DrefOperationalUpdate(models.Model):
     )
     title = models.CharField(
         verbose_name=_('title'),
+        null=True, blank=True,
         max_length=255,
-        null=True, blank=True
     )
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
@@ -660,23 +660,27 @@ class DrefOperationalUpdate(models.Model):
         null=True, blank=True
     )
     images = models.ManyToManyField(
-        DrefFile, blank=True,
+        'DrefFile', blank=True,
         verbose_name=_('images'),
         related_name='image_dref_operational_update'
     )
-    operational_update_number = models.PositiveSmallIntegerField(
+    operational_update_number = models.IntegerField(
         verbose_name=_('Operational Update Number'),
         null=True, blank=True
     )
-    reporting_timeframe = models.DateTimeField(
+    reporting_timeframe = models.DateField(
         verbose_name=_('Reporting Timeframe'),
         null=True, blank=True
+    )
+    update_date = models.DateField(
+        null=True, blank=True,
+        verbose_name=_('Update Date'),
     )
     is_timeframe_extension_required = models.BooleanField(
         null=True, blank=True,
         verbose_name=_('Is Timeframe Extension Required')
     )
-    new_operational_end_date = models.DateTimeField(
+    new_operational_end_date = models.DateField(
         verbose_name=_('New Operation End Date'),
         null=True, blank=True
     )
@@ -904,6 +908,10 @@ class DrefOperationalUpdate(models.Model):
     district = models.ManyToManyField(
         District, blank=True,
         verbose_name=_('district')
+    )
+    is_published = models.BooleanField(
+        default=False,
+        verbose_name=_('Is published'),
     )
 
     class Meta:

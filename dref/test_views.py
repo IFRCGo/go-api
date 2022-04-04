@@ -5,10 +5,16 @@ from django.conf import settings
 from main.test_case import APITestCase
 from dref.models import Dref, DrefFile
 
-from dref.factories.dref import DrefFactory, DrefFileFactory
+from dref.factories.dref import (
+    DrefFactory,
+    DrefFileFactory,
+    DrefOperationalUpdateFactory
+)
+from dref.models import DrefCountryDistrict
+
 from deployments.factories.user import UserFactory
 
-from api.models import Country, DisasterType
+from api.models import Country, DisasterType, District
 
 
 class DrefTestCase(APITestCase):
@@ -374,7 +380,7 @@ class DrefTestCase(APITestCase):
         )
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "title" : "What to update"
+            "title" : "New Update Title"
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -387,14 +393,14 @@ class DrefTestCase(APITestCase):
         url = f'/api/v2/dref/{not_published_dref.id}/'
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
-        self.assert_201(response)
+        self.assert_200(response)
 
         # test dref published endpoint
         url = f'/api/v2/dref/{not_published_dref.id}/publish/'
         data = {}
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data)
-        self.assert_201(response)
+        self.assert_200(response)
         self.assertEqual(response.data['is_published'], True)
 
     def test_dref_operation_update(self):
@@ -402,11 +408,87 @@ class DrefTestCase(APITestCase):
         Test create dref operation update
         """
         dref = DrefFactory.create(
-            title='test', created_by=self.user,
+            title='Test Title', created_by=self.user,
+            is_published=True,
         )
-        print(dref.id)
-        url = f'/api/v2/dref/{dref.id}/operational-update/'
-        data = {}
+        self.country1 = Country.objects.create(name='abc')
+        self.country2 = Country.objects.create(name='xyz')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        url = f'/api/v2/dref/{dref.id}/op-update/'
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url)
+        self.assert_201(response)
+
+    def test_dref_operation_update_for_published_dref(self):
+        # NOTE: If Dref is not published Can\'t create OperationaL Update
+        dref = DrefFactory.create(
+            title='Test Title', created_by=self.user,
+            is_published=False,
+        )
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        url = f'/api/v2/dref/{dref.id}/op-update/'
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url)
+        self.assert_400(response)
+
+    def test_dref_operational_create_for_parent(self):
+        dref = DrefFactory.create(
+            title='Test Title', created_by=self.user,
+            is_published=True,
+        )
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        dref_operational_update_parent = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            is_published=False
+        )
+        data = {
+            'parent': dref_operational_update_parent.id
+        }
+        url = f'/api/v2/dref/{dref.id}/op-update/'
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data)
+        self.assert_400(response)
+
+        # change the operational_update to the is_published=True
+        dref_operational_update_parent.is_published = True
+        dref_operational_update_parent.save(update_fields=['is_published'])
+
+        response = self.client.post(url, data)
         self.assert_201(response)
+
+    def test_dref_operational_update_patch(self):
+        dref = DrefFactory.create(
+            title='Test Title', created_by=self.user,
+            is_published=True,
+        )
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        dref_operational_update_parent = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            is_published=True
+        )
+        url = f'/api/v2/dref/{dref.id}/op-update/'
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url)
+        self.assert_201(response)
+        response_id = response.data['id']
+        data = {
+            'parent': dref_operational_update_parent.id,
+            'new_operational_end_date': '2022-10-10',
+            'reporting_timeframe': '2022-10-16',
+            'is_timeframe_extension_required': True,
+        }
+        url = f'/api/v2/dref/{dref.id}/op-update/{response_id}/'
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data)
+        self.assert_200(response)

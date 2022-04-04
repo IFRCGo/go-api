@@ -24,6 +24,7 @@ from django.views.static import serve
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
 from django.conf.urls.i18n import i18n_patterns
+
 from api.views import (
     GetAuthToken,
     ChangePassword,
@@ -147,8 +148,12 @@ router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
+<<<<<<< HEAD
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'dref/(?P<dref_id>\d+)/operational-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
+=======
+router.register(r'dref/(?P<dref_id>\d+)/op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
+>>>>>>> d2b4063c (Add test case for dref operational update)
 
 
 admin.site.site_header = 'IFRC Go administration'

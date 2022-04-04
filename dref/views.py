@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 
 from rest_framework import (
     views,
@@ -13,6 +14,7 @@ from rest_framework import (
 from rest_framework.decorators import action
 from dref.models import (
     Dref,
+    DrefCountryDistrict,
     NationalSocietyAction,
     PlannedIntervention,
     IdentifiedNeed,
@@ -66,6 +68,12 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return DrefOperationalUpdate.objects.filter(dref=self.kwargs['dref_id'])
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            'dref_id': self.kwargs.get('dref_id'),
+        }
 
 
 class DrefOptionsView(views.APIView):

@@ -7,7 +7,8 @@ from .models import (
     IdentifiedNeed,
     NationalSocietyAction,
     DrefCountryDistrict,
-    DrefFile
+    DrefFile,
+    DrefOperationalUpdate
 )
 
 
@@ -66,3 +67,17 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
             'national_society_actions',
             'users'
         )
+
+
+@admin.register(DrefOperationalUpdate)
+class DrefOperationalUpdateAdmin(admin.ModelAdmin):
+    list_display = ('title', 'national_society', 'disaster_type')
+    autocomplete_fields = (
+        'planned_interventions',
+        'needs_identified',
+        'national_society_actions',
+        'national_society',
+        'disaster_type',
+        'images',
+        'district',
+    )
