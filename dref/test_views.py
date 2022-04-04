@@ -422,7 +422,7 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
 
     def test_dref_operation_update_for_published_dref(self):
-        # NOTE: If Dref is not published Can\'t create OperationaL Update
+        # NOTE: If Dref is not published can't create OperationaL Update
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,
             is_published=False,
