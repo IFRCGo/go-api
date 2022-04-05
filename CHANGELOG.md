@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.434
 ## 1.1.433
 ## 1.1.432
 
@@ -1955,7 +1956,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.433...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.434...HEAD
+[1.1.434]: https://github.com/IFRCGo/go-api/compare/1.1.433...1.1.434
 [1.1.433]: https://github.com/IFRCGo/go-api/compare/1.1.432...1.1.433
 [1.1.432]: https://github.com/IFRCGo/go-api/compare/1.1.431...1.1.432
 [1.1.431]: https://github.com/IFRCGo/go-api/compare/1.1.430...1.1.431
