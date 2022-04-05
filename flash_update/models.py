@@ -19,7 +19,7 @@ from api.models import (
 from main.enums import TextChoices
 
 
-@reversion.register()
+# @reversion.register()
 class FlashGraphicMap(models.Model):
     file = models.FileField(
         verbose_name=_('file'),
@@ -37,7 +37,7 @@ class FlashGraphicMap(models.Model):
         verbose_name_plural = _('flash graphic maps')
 
 
-@reversion.register()
+# @reversion.register()
 class FlashReferences(models.Model):
     date = models.DateField(verbose_name=_('date'), blank=True)
     source_description = models.CharField(verbose_name=_('Name or Source Description'), max_length=225, blank=True)
@@ -58,7 +58,7 @@ class FlashReferences(models.Model):
         return f'{self.source_description} - {self.date}'
 
 
-@reversion.register()
+# @reversion.register()
 class FlashUpdate(models.Model):
     '''
     This is a base model for Flas Update
@@ -135,7 +135,7 @@ class FlashUpdate(models.Model):
         return f'{self.title}'
 
 
-@reversion.register()
+# @reversion.register()
 class FlashCountryDistrict(models.Model):
     flash_update = models.ForeignKey(
         FlashUpdate, on_delete=models.CASCADE,
@@ -160,7 +160,7 @@ class FlashCountryDistrict(models.Model):
         return f'{self.country} - {self.district}'
 
 
-@reversion.register()
+# @reversion.register()
 class FlashAction(models.Model):
     """ Action taken for Flash Update """
 
@@ -188,7 +188,7 @@ class FlashAction(models.Model):
         return self.name
 
 
-@reversion.register()
+# @reversion.register()
 class FlashActionsTaken(models.Model):
     """ All the actions taken by an organization in Flash Update """
 
@@ -211,7 +211,7 @@ class FlashActionsTaken(models.Model):
         return f'{self.organization} - {self.actions}'
 
 
-@reversion.register()
+# @reversion.register()
 class FlashEmailSubscriptions(models.Model):
     share_with = models.CharField(
         max_length=50, choices=FlashUpdate.FlashShareWith.choices,
@@ -227,7 +227,7 @@ class FlashEmailSubscriptions(models.Model):
         return self.share_with
 
 
-@reversion.register()
+# @reversion.register()
 class DonorGroup(models.Model):
     name = models.CharField(max_length=255, verbose_name=_('name'))
 
@@ -235,7 +235,7 @@ class DonorGroup(models.Model):
         return self.name
 
 
-@reversion.register()
+# @reversion.register()
 class Donors(models.Model):
     organization_name = models.CharField(max_length=500, blank=True, null=True)
     first_name = models.CharField(max_length=300, blank=True, null=True)
@@ -251,7 +251,7 @@ class Donors(models.Model):
         return self.organization_name
 
 
-@reversion.register()
+# @reversion.register()
 class FlashUpdateShare(models.Model):
     flash_update = models.ForeignKey(FlashUpdate, on_delete=models.CASCADE, related_name='flash_update_share')
     donors = models.ManyToManyField(Donors, blank=True)

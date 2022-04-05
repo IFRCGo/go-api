@@ -59,7 +59,7 @@ class Recovery(models.Model):
         return self.user.username
 
 
-@reversion.register()
+# @reversion.register()
 class DomainWhitelist(models.Model):
     """ Whitelisted domains """
     domain_name = models.CharField(verbose_name=_('domain name'), max_length=200)

@@ -133,7 +133,7 @@ class CountryType(IntEnum):
     # update api_country set record_type=3 where name like '%egion%';
 
 
-@reversion.register()
+# @reversion.register()
 class Country(models.Model):
     """ A country """
 
@@ -338,7 +338,7 @@ class VisibilityCharChoices():
 
 # Common parent class for key figures.
 # Country/region variants inherit from this.
-@reversion.register()
+# @reversion.register()
 class AdminKeyFigure(models.Model):
     figure = models.CharField(verbose_name=_('figure'), max_length=100)
     deck = models.CharField(verbose_name=_('deck'), max_length=50)
@@ -396,7 +396,7 @@ class TabNumber(IntEnum):
         TAB_3 = _('Tab 3')
 
 
-@reversion.register()
+# @reversion.register()
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -413,7 +413,7 @@ class RegionSnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+# @reversion.register()
 class RegionEmergencySnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -430,7 +430,7 @@ class RegionEmergencySnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+# @reversion.register()
 class RegionPreparednessSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -447,7 +447,7 @@ class RegionPreparednessSnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+# @reversion.register()
 class RegionProfileSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -473,7 +473,7 @@ class RegionProfileSnippet(models.Model):
 #         return self.title
 
 
-@reversion.register()
+# @reversion.register()
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -490,7 +490,7 @@ class CountrySnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+# @reversion.register()
 class AdminLink(models.Model):
     title = models.CharField(verbose_name=_('title'), max_length=100)
     url = models.URLField(verbose_name=_('url'), max_length=300)
@@ -517,7 +517,7 @@ class CountryLink(AdminLink):
         verbose_name_plural = _('country links')
 
 
-@reversion.register()
+# @reversion.register()
 class AdminContact(models.Model):
     ctype = models.CharField(verbose_name=_('type'), max_length=100, blank=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
@@ -559,7 +559,7 @@ class AlertLevel(IntEnum):
         RED = _('Red')
 
 
-@reversion.register()
+# @reversion.register()
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
 
@@ -695,7 +695,7 @@ class Event(models.Model):
         return self.name
 
 
-@reversion.register()
+# @reversion.register()
 class EventFeaturedDocument(models.Model):
     event = models.ForeignKey(
         Event,
@@ -715,7 +715,7 @@ class EventFeaturedDocument(models.Model):
     )
 
 
-@reversion.register()
+# @reversion.register()
 class EventLink(models.Model):
     """
     Used in emergency overview.
@@ -732,7 +732,7 @@ class EventLink(models.Model):
     url = models.URLField(verbose_name=_('url'))
 
 
-@reversion.register()
+# @reversion.register()
 class EventContact(models.Model):
     """ Contact for event """
 
@@ -751,7 +751,7 @@ class EventContact(models.Model):
         return '%s: %s' % (self.name, self.title)
 
 
-@reversion.register()
+# @reversion.register()
 class KeyFigure(models.Model):
     event = models.ForeignKey(Event, verbose_name=_('event'), related_name='key_figures', on_delete=models.CASCADE)
     number = models.CharField(verbose_name=_('number'), max_length=100, help_text=_('key figure metric'))
@@ -768,7 +768,7 @@ def snippet_image_path(instance, filename):
     return 'emergencies/%s/%s' % (instance.event.id, filename)
 
 
-@reversion.register()
+# @reversion.register()
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -807,7 +807,7 @@ def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
 
-@reversion.register()
+# @reversion.register()
 class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
@@ -889,7 +889,7 @@ class AppealStatus(IntEnum):
         ARCHIVED = _('Archived')
 
 
-@reversion.register()
+# @reversion.register()
 class Appeal(models.Model):
     """ An appeal for a disaster and country, containing documents """
 
@@ -1046,7 +1046,7 @@ class AppealHistory(models.Model):
         return self.aid
 
 
-@reversion.register()
+# @reversion.register()
 class AppealDocument(models.Model):
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
@@ -1070,7 +1070,7 @@ class AppealDocument(models.Model):
         return '%s - %s' % (self.appeal, self.name)
 
 
-@reversion.register()
+# @reversion.register()
 class AppealFilter(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     value = models.CharField(verbose_name=_('value'), max_length=1000)
@@ -1132,7 +1132,7 @@ class EPISourceChoices(IntEnum):
         OTHER = _('OTHER')
 
 
-@reversion.register()
+# @reversion.register()
 class ExternalPartner(models.Model):
     ''' Dropdown items for COVID Field Reports '''
 
@@ -1201,7 +1201,7 @@ class UserRegion(models.Model):
         return self.user.get_username()
 
 
-@reversion.register()
+# @reversion.register()
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
@@ -1437,7 +1437,7 @@ class FieldReport(models.Model):
         return '%s - %s' % (self.id, summary)
 
 
-@reversion.register()
+# @reversion.register()
 class FieldReportContact(models.Model):
     """ Contact for field report """
 
@@ -1500,7 +1500,7 @@ class ActionCategory:
     )
 
 
-@reversion.register()
+# @reversion.register()
 class Action(models.Model):
     """ Action taken """
     name = models.CharField(verbose_name=_('name'), max_length=400)
@@ -1526,7 +1526,7 @@ class Action(models.Model):
         return self.name
 
 
-@reversion.register()
+# @reversion.register()
 class ActionsTaken(models.Model):
     """ All the actions taken by an organization """
 
@@ -1560,7 +1560,7 @@ class SourceType(models.Model):
         return self.name
 
 
-@reversion.register()
+# @reversion.register()
 class Source(models.Model):
     """ Source of information """
     stype = models.ForeignKey(SourceType, verbose_name=_('type'), on_delete=models.PROTECT)
@@ -1577,7 +1577,7 @@ class Source(models.Model):
         return '%s: %s' % (self.stype.name, self.spec)
 
 
-@reversion.register()
+# @reversion.register()
 class Profile(models.Model):
     """ Holds location and identifying information about users """
     NTLS = 'NTLS'
@@ -1623,7 +1623,7 @@ class Profile(models.Model):
         return self.user.username
 
 
-@reversion.register()
+# @reversion.register()
 class EmergencyOperationsBase(models.Model):
     """Common fields used by EmergencyOperations* Tables"""
     is_validated = models.BooleanField(
@@ -1932,7 +1932,7 @@ class EmergencyOperationsFR(EmergencyOperationsBase):
         return self.raw_file_name
 
 
-@reversion.register()
+# @reversion.register()
 class MainContact(models.Model):
     ''' Contacts on the Resources page '''
     extent = models.CharField(verbose_name=_('extent'), max_length=300)
@@ -1962,7 +1962,7 @@ class CronJobStatus(IntEnum):
         ERRONEOUS = _('Erroneous')
 
 
-@reversion.register()
+# @reversion.register()
 class CronJob(models.Model):
     """ CronJob log row about jobs results """
     name = models.CharField(verbose_name=_('name'), max_length=100, default='')
