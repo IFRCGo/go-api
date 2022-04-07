@@ -1,3 +1,5 @@
+from datetime import datetime
+from pytz import utc
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -821,6 +823,9 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data:
                 del data[prop]
 
+        if 'start_date' in data:
+            data['start_date'] = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
+                .replace(tzinfo=utc)
         return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
