@@ -208,7 +208,9 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     appeals.short_description = 'Appeals'
 
     # To add the 'Notify subscribers now' button
-    change_form_template = "admin/emergency_changeform.html"
+    # WikiJS links added
+    change_form_template = "admin/emergency_change_form.html"
+    change_list_template = "admin/emergency_change_list.html"
 
     # Overwriting readonly fields for Edit mode
     def changeform_view(self, request, *args, **kwargs):
@@ -292,6 +294,9 @@ class FieldReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAd
     readonly_fields = ('report_date', 'created_at', 'updated_at')
     list_filter = [MembershipFilter]
     actions = ['create_events', 'export_field_reports', ]
+    # WikiJS links added
+    change_form_template = "admin/fieldreport_change_form.html"
+    change_list_template = "admin/fieldreport_change_list.html"
 
     def create_events(self, request, queryset):
         for report in queryset:
@@ -369,6 +374,10 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     list_filter = [HasRelatedEventFilter, AppealTypeFilter]
     actions = ['create_events', 'confirm_events']
     autocomplete_fields = ('event', 'country',)
+
+    # WikiJS links added
+    change_form_template = "admin/appeal_change_form.html"
+    change_list_template = "admin/appeal_change_list.html"
 
     def create_events(self, request, queryset):
         for appeal in queryset:
@@ -594,6 +603,10 @@ class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translati
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
+
+    # WikiJS links added
+    change_form_template = "admin/situationreport_change_form.html"
+    change_list_template = "admin/situationreport_change_list.html"
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('type', 'event')
