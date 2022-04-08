@@ -29,6 +29,7 @@ class PendingAdmin(CompareVersionAdmin):
     list_filter = ['email_verified']
 
     change_form_template = "admin/pending_changeform.html"
+    change_list_template = "admin/pending_change_list.html"
 
     # Get the 'user' objects with a JOIN query
     def get_queryset(self, request):
