@@ -31,7 +31,10 @@ from dref.models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
+    DrefFinalReportCountryDistrict,
+    DrefFileUpload
 )
+from dref.utils import extract_file
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -60,11 +63,32 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
-class PlannedInterventionSerializer(
-    NestedUpdateMixin,
-    NestedCreateMixin,
-    ModelSerializer
-):
+class DrefFileUploadSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    FILE_EXTENSIONS = ['docx']
+
+    class Meta:
+        model = DrefFileUpload
+        fields = '__all__'
+        read_only_fields = ('created_by',)
+
+    def validate_file(self, file):
+        extension = os.path.splitext(file.name)[1].replace(".", "")
+        if extension.lower() not in self.FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
+            )
+        return file
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        file = validated_data.get('file', None)
+        if file:
+            extract_file(file)
+        return super().create(validated_data)
+
+
+class PlannedInterventionSerializer(ModelSerializer):
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
