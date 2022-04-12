@@ -65,7 +65,15 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return DrefOperationalUpdate.objects.filter(dref=self.kwargs['dref_id'])
+        return DrefOperationalUpdate.objects.filter(
+            dref=self.kwargs['dref_id']
+        ).prefetch_related(
+            'dref__planned_interventions',
+            'dref__needs_identified',
+            'dref__national_society_actions',
+            'country',
+            'district'
+        ).order_by('-created_at').distinct()
 
     def get_serializer_context(self):
         return {

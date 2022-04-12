@@ -237,6 +237,7 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     country_details = CountrySerializer(source='country', read_only=True)
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+    disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
 
     class Meta:
         model = DrefOperationalUpdate

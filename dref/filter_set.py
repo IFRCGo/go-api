@@ -17,4 +17,4 @@ class DrefFilter(filters.FilterSet):
 
     class Meta:
         model = Dref
-        fields = ()
+        fields = ['is_published']
