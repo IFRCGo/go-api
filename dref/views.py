@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext
 
 from rest_framework import (
     views,
@@ -8,7 +9,8 @@ from rest_framework import (
     permissions,
     status,
     mixins,
-    serializers
+    serializers,
+    exceptions
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -80,6 +82,25 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
             **super().get_serializer_context(),
             'dref_id': self.kwargs.get('dref_id'),
         }
+
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefOperationalUpdateSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, dref_id, pk=None, version=None):
+        operational_update = self.get_object()
+        if operational_update.parent and operational_update.parent.is_published:
+            operational_update.is_published = True
+            operational_update.save(update_fields=['is_published'])
+            serializer = DrefOperationalUpdateSerializer(operational_update, partial=True, context={'request': request})
+            return response.Response(serializer.data)
+        else:
+            raise exceptions.ValidationError(
+                ugettext('Can\'t publish Operational Update for whose parent_id %s is not published.' % operational_update.id)
+            )
 
 
 class DrefOptionsView(views.APIView):

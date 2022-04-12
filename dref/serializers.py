@@ -121,6 +121,16 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         return data
 
 
+class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = [
+            'id',
+            'title',
+            'is_published'
+        ]
+
+
 class DrefSerializer(
     EnumSupportSerializerMixin,
     NestedUpdateMixin,
@@ -146,6 +156,7 @@ class DrefSerializer(
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
+    operational_update = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
 
     class Meta:
         model = Dref
