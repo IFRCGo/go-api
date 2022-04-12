@@ -624,9 +624,8 @@ class SituationReportTypeAdmin(CompareVersionAdmin):
 class CronJobAdmin(CompareVersionAdmin):
     list_display = ('name', 'created_at', 'num_result', 'status')
     search_fields = ('name', 'created_at',)
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'message_display',)
     list_filter = ('status', 'name')
-    readonly_fields = ('message_display',)
 
     def message_display(self, obj):
         style_class = {
@@ -770,6 +769,26 @@ class ReversionDifferenceLogAdmin(admin.ModelAdmin):
         return actions
 
 
+class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
+    list_display = ('country',)
+
+    @classmethod
+    def has_delete_permission(cls, request, obj=None):
+        return request.user.is_superuser
+
+    @classmethod
+    def has_view_permission(cls, request, obj=None):
+        return request.user.is_superuser
+
+    @classmethod
+    def has_change_permission(cls, request, obj=None):
+        return request.user.is_superuser
+
+    @classmethod
+    def has_add_permission(cls, request, obj=None):
+        return request.user.is_superuser
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
@@ -797,6 +816,7 @@ admin.site.register(models.ReversionDifferenceLog, ReversionDifferenceLogAdmin)
 admin.site.register(models.MainContact, MainContactAdmin)
 admin.site.register(models.UserCountry, UserCountryAdmin)
 admin.site.register(models.UserRegion, UserRegionAdmin)
+admin.site.register(models.CountryOfFieldReportToReview, CountryOfFieldReportToReviewAdmin)
 # admin.site.register(Revision, RevisionAdmin)
 
 admin.site.site_url = 'https://' + settings.FRONTEND_URL

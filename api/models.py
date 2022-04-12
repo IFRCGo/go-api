@@ -2117,5 +2117,9 @@ class ERPGUID(models.Model):
     )
     field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=models.CASCADE)
 
-class ReviewFieldReportInCountry(models.Model):
-    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.CASCADE)
+class CountryOfFieldReportToReview(models.Model):
+    country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
+
+    class Meta:
+        verbose_name = "Country of Field Report to review"
+        verbose_name_plural = "Countries of Field Report to review"

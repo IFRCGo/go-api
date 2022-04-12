@@ -58,7 +58,7 @@ from .models import (
     EPISourceChoices,
     MainContact,
     UserCountry,
-    ReviewFieldReportInCountry,
+    CountryOfFieldReportToReview,
 )
 
 from .serializers import (
@@ -120,6 +120,8 @@ from .serializers import (
 
     # Go Historical
     GoHistoricalSerializer,
+
+    CountryOfFieldReportToReviewSerializer,
 )
 from .logger import logger
 
@@ -1030,13 +1032,11 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
 
-class ReviewFieldReportInCountryViewset(viewsets.ReadOnlyModelViewSet):
+class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = CountryOfFieldReportToReview.objects.order_by('country')
+    serializer_class = CountryOfFieldReportToReviewSerializer
+    search_fields = ('country__name',)  # for /docs
 
     class Meta:
-        model = ReviewFieldReportInCountry
-        serializer_class = CountrySerializerRMD
+        model = CountryOfFieldReportToReview
         fields = ('country_id')
-
-    @staticmethod
-    def get_extra_actions():
-        return []

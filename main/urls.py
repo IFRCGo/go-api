@@ -147,7 +147,7 @@ router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
-router.register(r'review-country', api_views.ReviewFieldReportInCountryViewset, basename='review_country')
+router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 
 
 admin.site.site_header = 'IFRC Go administration'
