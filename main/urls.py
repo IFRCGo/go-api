@@ -102,7 +102,7 @@ router.register(r'language', lang_views.LanguageViewSet, basename='language')
 router.register(r'latest_country_overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
-router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='pertner_deployment')
+router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
 router.register(r'per', per_views.FormViewset, basename='per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
 router.register(r'perdata', per_views.FormDataViewset)
@@ -147,6 +147,7 @@ router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
+router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 
 
 admin.site.site_header = 'IFRC Go administration'

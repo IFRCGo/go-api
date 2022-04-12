@@ -48,7 +48,9 @@ from .models import (
     Action,
     Source,
     FieldReport,
-    MainContact
+    MainContact,
+
+    CountryOfFieldReportToReview,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject
@@ -1088,3 +1090,8 @@ class GoHistoricalSerializer(ModelSerializer):
             'id', 'name', 'dtype', 'countries', 'num_affected',
             'disaster_start_date', 'created_at', 'appeals',
         )
+
+class CountryOfFieldReportToReviewSerializer(ModelSerializer):
+    class Meta:
+        model = CountryOfFieldReportToReview
+        fields = '__all__'
