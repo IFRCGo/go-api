@@ -2116,3 +2116,6 @@ class ERPGUID(models.Model):
         help_text='Can be used to do a GET request to check on the microservice API side.'
     )
     field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=models.CASCADE)
+
+class ReviewFieldReportInCountry(models.Model):
+    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.CASCADE)
