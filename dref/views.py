@@ -67,21 +67,13 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return DrefOperationalUpdate.objects.filter(
-            dref=self.kwargs['dref_id']
-        ).prefetch_related(
+        return DrefOperationalUpdate.objects.prefetch_related(
             'dref__planned_interventions',
             'dref__needs_identified',
             'dref__national_society_actions',
             'country',
             'district'
         ).order_by('-created_at').distinct()
-
-    def get_serializer_context(self):
-        return {
-            **super().get_serializer_context(),
-            'dref_id': self.kwargs.get('dref_id'),
-        }
 
     @action(
         detail=True,
@@ -90,17 +82,12 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
         serializer_class=DrefOperationalUpdateSerializer,
         permission_classes=[permissions.IsAuthenticated]
     )
-    def get_published(self, request, dref_id, pk=None, version=None):
+    def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
-        if operational_update.parent and operational_update.parent.is_published:
-            operational_update.is_published = True
-            operational_update.save(update_fields=['is_published'])
-            serializer = DrefOperationalUpdateSerializer(operational_update, partial=True, context={'request': request})
-            return response.Response(serializer.data)
-        else:
-            raise exceptions.ValidationError(
-                ugettext('Can\'t publish Operational Update for whose parent_id %s is not published.' % operational_update.id)
-            )
+        operational_update.is_published = True
+        operational_update.save(update_fields=['is_published'])
+        serializer = DrefOperationalUpdateSerializer(operational_update, partial=True, context={'request': request})
+        return response.Response(serializer.data)
 
 
 class DrefOptionsView(views.APIView):
