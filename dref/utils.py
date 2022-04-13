@@ -3,10 +3,13 @@ import zipfile
 import datetime
 
 import docx
-from docx.oxml.ns import qn
 
 from django.conf import settings
-from dref.models import Dref, PlannedIntervention
+from dref.models import (
+    Dref,
+    PlannedIntervention,
+    IdentifiedNeed
+)
 from api.models import DisasterType
 
 
@@ -129,8 +132,8 @@ def extract_file(doc):
     table_affected_list = table_row_four_column_one[1::]
     affected_data = []
     for affected in table_affected_list:
-        affected_data.append(affected.text.strip('"').replace(',', ''))
-    data['affected_areas'] = affected_data
+        affected_data.append(affected.text)
+    data['affected_areas'] = ''.join(affected_data) if affected_data else None
 
     paragraph5 = document.paragraphs[5]
     paragraph_element5 = paragraph5._element.xpath('.//w:t')
@@ -146,17 +149,28 @@ def extract_file(doc):
             affect_same_population.append(std.text)
     data['affect_same_population'] = affect_same_population[0].lower() if len(affect_same_population) > 0 else None
     # TODO: Left with `Scope and Scale`
+    scope_paragraph = document.paragraphs[11]._element.xml
     # TODO: Left with Previous Action and National Society Action
     # MOVEMENT PARTNERS Actions
     # this is a table for national society actions
     table2 = document.tables[2]
+    # print(table2._element.xml)
     national_society_actions = []
-    for row in table2.rows:
-        for cell in row.cells:
-            checkBoxes = cell._tc.xpath('.//w:checkBox//w:default[@w:val="0"]')
-            if checkBoxes:
-                national_society_actions.append(cell.text)
-    data['national_society_actions'] = national_society_actions if len(national_society_actions) > 0 else None
+    table_row_zero_column_one = table2.cell(0, 0)._tc.xml('.//w14:checkBox//w14:checked[@w14:val="1"]')
+    print(table_row_zero_column_one[0].text)
+    """if table_row_zero_column_one:
+        title = table2.cell(1, 2)._tc.xpath('.//w:t')[0].text
+        description = table2.cell(1, 3)._tc.xpath('.//w:t')
+        description_list = []
+        if len(description) > 0:
+            for desc in description:
+                description_list.append(desc.text)
+        data_new = {
+            'title': title,
+            'description': ''.join(description_list)
+        }
+        national_society_actions.append(data_new)"""
+    #print(national_society_actions, "actions")
 
     table3 = document.tables[3]
     table_row_zero_column_zero = table3.cell(0 , 1)._tc.xpath('.//w:t')
@@ -202,25 +216,25 @@ def extract_file(doc):
     data['major_coordination_mechanism'] = ''.join(coordination_mechanism)
     # NeedsIdentified
     table5 = document.tables[5]
-    """for i in range(0, len(table5.rows) + 1):
-        table_row_zero_column_one = table5.cell(i, 1)._tc.xpath('.//w:checkBox//w:default[@w:val="1"]')
-        print(table_row_zero_column_one)
-        needs_identified = []
-        if table_row_zero_column_one:
-            title = table5.cell(i, 2)._tc.xpath('.//w:t')[0].text
-            description = table5.cell(i, 3)._tc.xpath('.//w:t')
-            description_list = []
-            if len(description) > 0:
-                for desc in description:
-                    description_list.append(desc.text)
-            data_new = {
-                'title': title,
-                'description': ''.join(description_list)
-            }
-            needs_identified.append(data_new)
-    print(needs_identified)"""
-
-
+    table_row_zero_column_one = table5.cell(0, 1)._tc.xpath('.//w:checkBox//w:default[@w:val="1"]')
+    needs_identified = []
+    if table_row_zero_column_one:
+        title = table5.cell(0, 2)._tc.xpath('.//w:t')[0].text
+        description = table5.cell(0, 3)._tc.xpath('.//w:t')
+        description_list = []
+        if len(description) > 0:
+            for desc in description:
+                description_list.append(desc.text)
+        data_new = {
+            'title': title,
+            'description': ''.join(description_list)
+        }
+        needs_identified.append(data_new)
+    data['needs_identified'] = needs_identified
+    needs = []
+    for data in needs_identified:
+        planned_object = IdentifiedNeed.objects.create(**data)
+        needs.append(planned_object)
     # targeting strategy
     paragraph22 = document.paragraphs[22]._element.xpath('.//w:t')
     people_assisted = []
@@ -260,7 +274,7 @@ def extract_file(doc):
     for paragraph in paragraph30:
         overall_objectives.append(paragraph.text)
     data['operation_objectives'] = ''.join(overall_objectives)
-    paragraph32 = document.paragraphs[33]._element.xpath('.//w:t')
+    paragraph32 = document.paragraphs[34]._element.xpath('.//w:t')
     response_strategy = []
     for paragraph in paragraph32:
         response_strategy.append(paragraph.text)
@@ -344,7 +358,6 @@ def extract_file(doc):
     data['media_email'] = media_list[2].strip()
     data['media_phone_number'] = media_list[3].strip()
     data['media_name'] = media_list[0].strip()
-
     # PlannedIntervention Table
     planned_intervention = []
     for i in range(7, 17):
@@ -366,17 +379,15 @@ def extract_file(doc):
                 priority_actions_list.append(priority_action)
             priority_actions = ''.join(priority_actions_list) if len(priority_actions_list) > 0 else None
             planned = {
-                'title': title,
+                'title': title.lower(),
                 'budget': budget[0].text if len(budget) > 0 else None,
                 'person_targeted': targated_population[0].text if len(targated_population) > 0 else None,
                 'indicator': indicator,
-                #'priority_actions': priority_actions
+                # 'priority_actions': priority_actions # NOTE: This is not in database field
             }
             planned_intervention.append(planned)
     data['planned_intervention'] = planned_intervention
-    print(planned_intervention, "pppppppp")
     planned = []
     for data in planned_intervention:
         planned_object = PlannedIntervention.objects.create(**data)
         planned.append(planned_object)
-    print(planned)
