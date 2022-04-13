@@ -403,10 +403,29 @@ class Project(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project
+    # -- Reporting NS
     reporting_ns = models.ForeignKey(
         Country, verbose_name=_('reporting national society'), on_delete=models.CASCADE,
         related_name='ns_projects',
     )  # this is the national society that is reporting the project
+    reporting_ns_contact_name = models.CharField(
+        verbose_name=_('NS Contanct Information: Name'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_role = models.CharField(
+        verbose_name=_('NS Contanct Information: Role'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_email = models.CharField(
+        verbose_name=_('NS Contanct Information: Email'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
     project_country = models.ForeignKey(
         Country, verbose_name=_('country'), on_delete=models.CASCADE,
         null=True,  # NOTE: Added due to migrations issue
