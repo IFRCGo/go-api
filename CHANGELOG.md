@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.436
+
+### Added
+ - Tests trailing the changes
+ - Adding Description + GeneralDocument to deployment.project
+ - Add contact details to the 3w project
+ - Countries of Field Report to review
+ - Admin page - WikiJS Links
+ - Adding reversion.register() decorators to 72 important models
+
 ## 1.1.435
 ## 1.1.431
 
@@ -1949,8 +1959,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.435...HEAD
-[1.1.435]: https://github.com/IFRCGo/go-api/compare/1.1.431...1.1.435
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.436...HEAD
+[1.1.436]: https://github.com/IFRCGo/go-api/compare/1.1.435...1.1.436
+[1.1.435]: https://github.com/IFRCGo/go-api/compare/1.1.434...1.1.435
+[1.1.434]: https://github.com/IFRCGo/go-api/compare/1.1.433...1.1.434
+[1.1.433]: https://github.com/IFRCGo/go-api/compare/1.1.432...1.1.433
+[1.1.432]: https://github.com/IFRCGo/go-api/compare/1.1.431...1.1.432
 [1.1.431]: https://github.com/IFRCGo/go-api/compare/1.1.430...1.1.431
 [1.1.430]: https://github.com/IFRCGo/go-api/compare/1.1.429...1.1.430
 [1.1.429]: https://github.com/IFRCGo/go-api/compare/1.1.428...1.1.429
