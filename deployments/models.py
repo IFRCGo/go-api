@@ -2,6 +2,7 @@ import reversion
 from datetime import datetime
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+from tinymce import HTMLField
 
 from django.db import models
 from django.utils import timezone
@@ -25,6 +26,7 @@ from api.models import (
     Profile,
     UserCountry,
     VisibilityCharChoices,
+    GeneralDocument,
 )
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
@@ -439,6 +441,8 @@ class Project(models.Model):
     )  # this is the current operation
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
     name = models.TextField(verbose_name=_('name'))
+    description = HTMLField(verbose_name=_('description'), blank=True, default='')
+    document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
     programme_type = EnumIntegerField(ProgrammeTypes, verbose_name=_('programme type'))
     primary_sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
     secondary_sectors = ArrayField(
