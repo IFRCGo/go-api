@@ -1105,6 +1105,8 @@ class GeneralDocument(models.Model):
         return super(GeneralDocument, self).save(*args, **kwargs)
 
     def __str__(self):
+        if self.document_url:
+            return ('%s' % self.document_url)[8:]  # 8 = len('https://')
         return ('%s' % self.document)[10:]  # 10 = len('documents/')
 
 
