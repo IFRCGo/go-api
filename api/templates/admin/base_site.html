@@ -12,8 +12,7 @@
     </a>
     {% if HAVING_INGEST_ISSUE and request.user.is_superuser %}
         <span title="Ingest issue – please check erroneous api/CronJob item">
-            <a 
-                href="/api/cronjob/{{ INGEST_ISSUE_ID }}"
+            <a href="/api/cronjob/{{ INGEST_ISSUE_ID }}"
                 style="padding-left: 10px; color: red; font-size: 1.8rem; text-shadow: 0px 0px 16px #f40, 0px 0px 6px #f40;"
             >&#9888;</a>
         </span>
@@ -25,6 +24,9 @@
     <form action="{% url 'set_language' %}" method="post">
         {% csrf_token %}
         <input name="next" type="hidden" value="{{ redirect_to }}">
+    <span>  
+        <a href="https://go-wiki.ifrc.org/en/admin_guide/admin_site_overview" target="_blank"  style="text-decoration: none;border-radius: 50%; color: rgb(255, 255, 255); background-color: #79aec8; font-size: 1rem; padding: 3px 9px;">?</a>
+    </span>
         <select name="language" style="border: 1px solid rgba(34,36,38,.15);">
             {% get_current_language as LANGUAGE_CODE %}
             {% get_available_languages as LANGUAGES %}
@@ -39,9 +41,6 @@
     </form>
 {% endblock %}
 
-
 {% block extrastyle %}
-  {{block.super}}
-  {# Didn't dare to remove this part, not sure if it does anything as it is right now #}
-{# use PRODUCTION_URL to create logic //PRODUCTION_URL// #}
+{{block.super}}
 {% endblock %}

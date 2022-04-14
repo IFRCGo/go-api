@@ -44,4 +44,4 @@ class RegionalProjectTO(TranslationOptions):
 
 @register(Project)
 class ProjectTO(TranslationOptions):
-    fields = ('name',)
+    fields = ('name', 'description', )

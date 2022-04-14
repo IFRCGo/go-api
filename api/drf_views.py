@@ -1,3 +1,5 @@
+from datetime import datetime
+from pytz import utc
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
@@ -55,7 +57,8 @@ from .models import (
     RequestChoices,
     EPISourceChoices,
     MainContact,
-    UserCountry
+    UserCountry,
+    CountryOfFieldReportToReview,
 )
 
 from .serializers import (
@@ -117,6 +120,8 @@ from .serializers import (
 
     # Go Historical
     GoHistoricalSerializer,
+
+    CountryOfFieldReportToReviewSerializer,
 )
 from .logger import logger
 
@@ -821,6 +826,9 @@ class GenericFieldReportView(GenericAPIView):
             if prop in data:
                 del data[prop]
 
+        if 'start_date' in data:
+            data['start_date'] = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
+                .replace(tzinfo=utc)
         return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
@@ -1023,3 +1031,12 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
+
+class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = CountryOfFieldReportToReview.objects.order_by('country')
+    serializer_class = CountryOfFieldReportToReviewSerializer
+    search_fields = ('country__name',)  # for /docs
+
+    class Meta:
+        model = CountryOfFieldReportToReview
+        fields = ('country_id')

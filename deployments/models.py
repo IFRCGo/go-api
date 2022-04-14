@@ -1,6 +1,8 @@
+import reversion
 from datetime import datetime
 from enumfields import EnumIntegerField
 from enumfields import IntEnum
+from tinymce import HTMLField
 
 from django.db import models
 from django.utils import timezone
@@ -24,6 +26,7 @@ from api.models import (
     Profile,
     UserCountry,
     VisibilityCharChoices,
+    GeneralDocument,
 )
 
 DATE_FORMAT = '%Y/%m/%d %H:%M'
@@ -68,6 +71,7 @@ class ERUType(IntEnum):
         BASECAMP_L = _('Base Camp – L')
 
 
+@reversion.register()
 class ERUOwner(models.Model):
     """ A resource that may or may not be deployed """
 
@@ -88,6 +92,7 @@ class ERUOwner(models.Model):
         return self.national_society_country.name
 
 
+@reversion.register()
 class ERU(models.Model):
     """ A resource that can be deployed """
     type = EnumIntegerField(ERUType, verbose_name=_('type'), default=0)
@@ -123,6 +128,7 @@ class ERU(models.Model):
         return str(self.type.label)
 
 
+@reversion.register()
 class PersonnelDeployment(models.Model):
     country_deployed_to = models.ForeignKey(Country, verbose_name=_('country deployed to'), on_delete=models.CASCADE)
     region_deployed_to = models.ForeignKey(Region, verbose_name=_('region deployed to'), null=True, on_delete=models.SET_NULL)
@@ -156,6 +162,7 @@ class PersonnelDeployment(models.Model):
         return '%s, %s' % (self.country_deployed_to, self.region_deployed_to)
 
 
+@reversion.register()
 class MolnixTag(models.Model):
     '''
     We store tags from molnix in its own model, to make m2m relations
@@ -172,6 +179,7 @@ class MolnixTag(models.Model):
         return self.name
 
 
+@reversion.register()
 class DeployedPerson(models.Model):
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
@@ -246,6 +254,7 @@ class Personnel(DeployedPerson):
         names = [tag['name'] for tag in tags]
         return ", ".join(names)
 
+@reversion.register()
 class PartnerSocietyActivities(models.Model):
     activity = models.CharField(verbose_name=_('activity'), max_length=50)
 
@@ -369,6 +378,7 @@ class OperationTypes(IntEnum):
         EMERGENCY_OPERATION = _('Emergency Operation')
 
 
+@reversion.register()
 class RegionalProject(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
@@ -383,6 +393,7 @@ class RegionalProject(models.Model):
 
 
 # 3W
+@reversion.register()
 class Project(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
     modified_by = models.ForeignKey(
@@ -394,10 +405,29 @@ class Project(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), null=True, blank=True, on_delete=models.SET_NULL,
     )  # user who created this project
+    # -- Reporting NS
     reporting_ns = models.ForeignKey(
         Country, verbose_name=_('reporting national society'), on_delete=models.CASCADE,
         related_name='ns_projects',
     )  # this is the national society that is reporting the project
+    reporting_ns_contact_name = models.CharField(
+        verbose_name=_('NS Contanct Information: Name'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_role = models.CharField(
+        verbose_name=_('NS Contanct Information: Role'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    reporting_ns_contact_email = models.CharField(
+        verbose_name=_('NS Contanct Information: Email'),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
     project_country = models.ForeignKey(
         Country, verbose_name=_('country'), on_delete=models.CASCADE,
         null=True,  # NOTE: Added due to migrations issue
@@ -411,6 +441,8 @@ class Project(models.Model):
     )  # this is the current operation
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, blank=True, on_delete=models.SET_NULL)
     name = models.TextField(verbose_name=_('name'))
+    description = HTMLField(verbose_name=_('description'), blank=True, default='')
+    document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
     programme_type = EnumIntegerField(ProgrammeTypes, verbose_name=_('programme type'))
     primary_sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
     secondary_sectors = ArrayField(
@@ -486,6 +518,7 @@ class Project(models.Model):
         )
 
 
+@reversion.register()
 class ProjectImport(models.Model):
     """
     Track Project Imports (For Django Admin Panel)
@@ -517,6 +550,7 @@ class ProjectImport(models.Model):
 
 
 # -------------- Emergency 3W [Start]
+@reversion.register()
 class EmergencyProject(models.Model):
     class ActivityLead(TextChoices):
         NATIONAL_SOCIETY = 'national_society', _('National Society')
@@ -624,6 +658,7 @@ class EmergencyProject(models.Model):
         return self.title
 
 
+@reversion.register()
 class EmergencyProjectActivitySector(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
     order = models.SmallIntegerField(default=0)
@@ -632,6 +667,7 @@ class EmergencyProjectActivitySector(models.Model):
         return self.title
 
 
+@reversion.register()
 class EmergencyProjectActivityAction(models.Model):
     sector = models.ForeignKey(
         EmergencyProjectActivitySector,
@@ -648,6 +684,7 @@ class EmergencyProjectActivityAction(models.Model):
         return self.title
 
 
+@reversion.register()
 class EmergencyProjectActivityActionSupply(models.Model):
     action = models.ForeignKey(
         EmergencyProjectActivityAction,
@@ -662,6 +699,7 @@ class EmergencyProjectActivityActionSupply(models.Model):
         return self.title
 
 
+@reversion.register()
 class EmergencyProjectActivityLocation(models.Model):
     # Location Data
     latitude = models.FloatField(verbose_name=_('latitude'))
@@ -672,6 +710,7 @@ class EmergencyProjectActivityLocation(models.Model):
         return f'{self.latitude} - {self.longitude}'
 
 
+@reversion.register()
 class EmergencyProjectActivity(models.Model):
     class PeopleHouseholds(TextChoices):
         PEOPLE = 'people', _('People'),
@@ -785,6 +824,7 @@ class EmergencyProjectActivity(models.Model):
 
 
 # -------------- Emergency 3W [END]
+@reversion.register()
 class ERUReadiness(models.Model):
     """ ERU Readiness concerning personnel and equipment """
     national_society = models.ForeignKey(
