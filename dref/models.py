@@ -854,6 +854,10 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('community involved'), blank=True, null=True,
         help_text=_('Community been involved in the analysis of the process')
     )
+    entity_affected = models.TextField(
+        verbose_name=_('entity affected'), blank=True, null=True,
+        help_text=_('Protection, gender, Inclusion affected in this process')
+    )
     women = models.IntegerField(verbose_name=_('women'), blank=True, null=True)
     men = models.IntegerField(verbose_name=_('men'), blank=True, null=True)
     girls = models.IntegerField(

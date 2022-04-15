@@ -324,6 +324,7 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
             validated_data['needs_identified'] = dref.needs_identified.all()
             validated_data['people_assisted'] = dref.people_assisted
             validated_data['selection_criteria'] = dref.selection_criteria
+            validated_data['entity_affected'] = dref.entity_affected
             validated_data['women'] = dref.women
             validated_data['men'] = dref.men
             validated_data['girls'] = dref.girls
@@ -385,6 +386,7 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
             validated_data['needs_identified'] = operational_object.needs_identified.all()
             validated_data['people_assisted'] = operational_object.people_assisted
             validated_data['selection_criteria'] = operational_object.selection_criteria
+            validated_data['entity_affected'] = operational_object.entity_affected
             validated_data['women'] = operational_object.women
             validated_data['men'] = operational_object.men
             validated_data['girls'] = operational_object.girls
