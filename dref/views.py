@@ -26,7 +26,10 @@ from dref.serializers import (
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
 )
-from dref.filter_set import DrefFilter
+from dref.filter_set import (
+    DrefFilter,
+    DrefOperationalUpdateFilter
+)
 
 
 class DrefViewSet(viewsets.ModelViewSet):
@@ -65,6 +68,7 @@ class DrefViewSet(viewsets.ModelViewSet):
 class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
     serializer_class = DrefOperationalUpdateSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = DrefOperationalUpdateFilter
 
     def get_queryset(self):
         return DrefOperationalUpdate.objects.prefetch_related(

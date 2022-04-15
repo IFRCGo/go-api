@@ -127,7 +127,8 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'title',
-            'is_published'
+            'is_published',
+            'operational_update_number',
         ]
 
 
@@ -156,7 +157,7 @@ class DrefSerializer(
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    operational_update = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
+    operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
 
     class Meta:
         model = Dref
