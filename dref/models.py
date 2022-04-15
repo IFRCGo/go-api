@@ -635,8 +635,8 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('disaster category'),
         null=True, blank=True
     )
-    number_of_people_targated = models.IntegerField(
-        verbose_name=_('Number of people targated'),
+    number_of_people_targeted = models.IntegerField(
+        verbose_name=_('Number of people targeted'),
         blank=True, null=True
     )
     number_of_people_affected = models.IntegerField(
