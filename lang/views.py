@@ -1,4 +1,7 @@
 from django.db import transaction
+from django.db.models import Q
+import functools
+import operator
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action as djaction
@@ -34,17 +37,33 @@ class LanguageViewSet(viewsets.ViewSet):
         })
 
     def retrieve(self, request, pk=None, version=None):
+        page_name = self.request.query_params.getlist('page_name')
+        page_name_list = []
+        for xs in page_name:
+            for x in xs.split(','):
+                page_name_list.append(x)
         if pk == 'all':
             obj = StringSerializer(String.objects.all(), many=True).data
+            if page_name:
+                for page in page_name_list:
+                    obj = StringSerializer(String.objects.filter(page_name__icontains=page), many=True).data
         else:
             languages = settings.LANGUAGES
             code, title = next((lang for lang in languages if lang[0] == pk), (None, None))
-
-            obj = {
-                'code': code,
-                'title': title,
-                'strings': StringSerializer(String.objects.filter(language=code), many=True).data,
-            }
+            if page_name:
+                pages = (Q(page_name__icontains=page) for page in page_name_list)
+                query = functools.reduce(operator.or_, pages)
+                queryset = String.objects.filter(query)
+                obj = {
+                    'title': title,
+                    'strings': StringSerializer(queryset, many=True).data,
+                }
+            else:
+                obj = {
+                    'code': code,
+                    'title': title,
+                    'strings': StringSerializer(String.objects.filter(language=code), many=True).data,
+                }
 
         return response.Response(obj)
 

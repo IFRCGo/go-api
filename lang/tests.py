@@ -37,6 +37,35 @@ class LangTest(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(j_resp['strings']), current_strings_count + 1)
 
+    def test_page_number_filter(self):
+        language = settings.LANGUAGES[0][0]
+        String.objects.create(
+            language=language,
+            key='random-key-for-language-test1',
+            value='Random value',
+            hash='random hash',
+            page_name="home"
+        )
+        String.objects.create(
+            language=language,
+            key='random-key-for-language-test2',
+            value='Random value',
+            hash='random hash',
+            page_name="risk-module"
+        )
+        String.objects.create(
+            language=language,
+            key='random-key-for-language-test3',
+            value='Random value',
+            hash='random hash',
+            page_name="dref"
+        )
+        self.authenticate(self.user)
+        resp = self.client.get(f'/api/v2/language/{language}/?page_name=home,dref')
+        j_resp = resp.json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(j_resp['strings']), 2)
+
     def test_bulk_action(self):
         language = settings.LANGUAGES[0][0]
         string_1 = {
