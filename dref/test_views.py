@@ -512,6 +512,7 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
         response_id = response.data['id']
         data = {
+            'title': "hey title",
             'new_operational_end_date': '2022-10-10',
             'reporting_timeframe': '2022-10-16',
             'is_timeframe_extension_required': True,

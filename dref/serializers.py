@@ -258,7 +258,7 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         dref = data.get('dref')
-        if dref:
+        if not self.instance and dref:
             dref = get_object_or_404(Dref, id=dref.id)
             if not dref.is_published:
                 raise serializers.ValidationError(
