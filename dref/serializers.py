@@ -238,7 +238,7 @@ class DrefSerializer(
         return super().update(instance, validated_data)
 
 
-class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
+class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerializer):
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -408,6 +408,5 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        print(validated_data, )
         validated_data['updated_by'] = self.context['request'].user
         return super().update(instance, validated_data)
