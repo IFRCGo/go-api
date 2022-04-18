@@ -282,13 +282,16 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
         dref = Dref.objects.get(pk=dref_id)
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref)
         if dref_operational_update.count() == 0:
-            dref_country_district = get_object_or_404(DrefCountryDistrict, dref=dref)
+            if DrefCountryDistrict.objects.filter(dref=dref).exists():
+                dref_country_district = DrefCountryDistrict.objects.get(dref=dref)
+                validated_data['country'] = dref_country_district.country
+                validated_data['district'] = dref_country_district.district.all()
             validated_data['title'] = dref.title
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset
             validated_data['disaster_category'] = dref.disaster_category
-            validated_data['number_of_people_targated'] = dref.total_targeted_population
+            validated_data['number_of_people_targeted'] = dref.total_targeted_population
             validated_data['number_of_people_affected'] = dref.num_affected
             validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
             validated_data['images'] = dref.images.all()
@@ -338,8 +341,6 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
             validated_data['operation_objective'] = dref.operation_objective
             validated_data['response_strategy'] = dref.response_strategy
             validated_data['planned_interventions'] = dref.planned_interventions.all()
-            validated_data['country'] = dref_country_district.country
-            validated_data['district'] = dref_country_district.district.all()
             validated_data['created_by'] = self.context['request'].user
             validated_data['operational_update_number'] = 1  # if no any dref operational update created so far
         else:
@@ -350,7 +351,7 @@ class DrefOperationalUpdateSerializer(serializers.ModelSerializer):
             validated_data['disaster_type'] = operational_object.disaster_type
             validated_data['type_of_onset'] = operational_object.type_of_onset
             validated_data['disaster_category'] = operational_object.disaster_category
-            validated_data['number_of_people_targated'] = operational_object.number_of_people_targated
+            validated_data['number_of_people_targeted'] = operational_object.number_of_people_targeted
             validated_data['number_of_people_affected'] = operational_object.number_of_people_affected
             validated_data['emergency_appeal_planned'] = operational_object.emergency_appeal_planned
             validated_data['images'] = operational_object.images.all()
