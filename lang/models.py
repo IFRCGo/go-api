@@ -9,6 +9,12 @@ class String(models.Model):
     # Used by go-frontend translation management dashboard to detect changes.
     hash = models.CharField(max_length=32, null=True, blank=True, verbose_name=_('hash'))
     value = models.TextField(verbose_name=_('value'))
+    page_name = models.CharField(
+        max_length=255,
+        verbose_name=_('Page name'),
+        null=True,
+        blank=True
+    )
 
     class Meta:
         unique_together = ('language', 'key')
