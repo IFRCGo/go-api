@@ -66,6 +66,16 @@ class LangTest(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(j_resp['strings']), 2)
 
+        resp = self.client.get(f'/api/v2/language/{language}/?page_name=common')
+        j_resp = resp.json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(j_resp['strings']), 0)
+
+        resp = self.client.get(f'/api/v2/language/{language}/?page_name=dref,common')
+        j_resp = resp.json()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(j_resp['strings']), 1)
+
     def test_bulk_action(self):
         language = settings.LANGUAGES[0][0]
         string_1 = {
