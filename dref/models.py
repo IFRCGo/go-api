@@ -904,15 +904,6 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('planned intervention'),
         blank=True
     )
-    country = models.ForeignKey(
-        Country, verbose_name=_('country'),
-        null=True, blank=True,
-        on_delete=models.CASCADE,
-    )
-    district = models.ManyToManyField(
-        District, blank=True,
-        verbose_name=_('district')
-    )
     is_published = models.BooleanField(
         default=False,
         verbose_name=_('Is published'),
@@ -921,3 +912,22 @@ class DrefOperationalUpdate(models.Model):
     class Meta:
         verbose_name = _('Dref Operational Update')
         verbose_name_plural = _('Dref Operational Updates')
+
+
+class DrefOperationalUpdateCountryDistrict(models.Model):
+    dref_operational_update = models.ForeignKey(
+        DrefOperationalUpdate, verbose_name=_('Dref Operational Update'),
+        on_delete=models.CASCADE
+    )
+    country = models.ForeignKey(
+        Country, verbose_name=_('country'),
+        on_delete=models.CASCADE,
+        help_text=_('Affected County')
+    )
+    district = models.ManyToManyField(
+        District, blank=True,
+        verbose_name=_('district')
+    )
+
+    class Meta:
+        unique_together = ('dref_operational_update', 'country')

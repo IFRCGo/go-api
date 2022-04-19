@@ -8,7 +8,8 @@ from .models import (
     NationalSocietyAction,
     DrefCountryDistrict,
     DrefFile,
-    DrefOperationalUpdate
+    DrefOperationalUpdate,
+    DrefOperationalUpdateCountryDistrict
 )
 
 
@@ -69,6 +70,12 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
         )
 
 
+class DrefOperationalUpdateCountryDistrictAdminInline(admin.TabularInline):
+    model = DrefOperationalUpdateCountryDistrict
+    extra = 0
+    autocomplete_fields = ('country', 'district',)
+
+
 @admin.register(DrefOperationalUpdate)
 class DrefOperationalUpdateAdmin(admin.ModelAdmin):
     list_display = ('title', 'national_society', 'disaster_type')
@@ -79,5 +86,5 @@ class DrefOperationalUpdateAdmin(admin.ModelAdmin):
         'national_society',
         'disaster_type',
         'images',
-        'district',
     )
+    inlines = [DrefOperationalUpdateCountryDistrictAdminInline]

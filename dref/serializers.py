@@ -28,7 +28,8 @@ from dref.models import (
     IdentifiedNeed,
     DrefCountryDistrict,
     DrefFile,
-    DrefOperationalUpdate
+    DrefOperationalUpdate,
+    DrefOperationalUpdateCountryDistrict
 )
 
 
@@ -109,6 +110,26 @@ class DrefCountryDistrictSerializer(ModelSerializer):
         model = DrefCountryDistrict
         fields = ('id', 'country', 'district', 'country_details', 'district_details')
         read_only_fields = ('dref',)
+
+    def validate(self, data):
+        districts = data['district']
+        if isinstance(districts, list) and len(districts):
+            for district in districts:
+                if district.country != data['country']:
+                    raise serializers.ValidationError({
+                        'district': ugettext('Different districts found for given country')
+                    })
+        return data
+
+
+class DrefOperationalUpdateCountryDistrictSerializer(ModelSerializer):
+    country_details = CountrySerializer(source='country', read_only=True)
+    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+
+    class Meta:
+        model = DrefOperationalUpdateCountryDistrict
+        fields = ('id', 'country', 'district', 'country_details', 'district_details')
+        read_only_fields = ('dref_operational_update',)
 
     def validate(self, data):
         districts = data['district']
@@ -238,7 +259,11 @@ class DrefSerializer(
         return super().update(instance, validated_data)
 
 
-class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerializer):
+class DrefOperationalUpdateSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    serializers.ModelSerializer
+):
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -247,9 +272,12 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    country_details = CountrySerializer(source='country', read_only=True)
-    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
+    country_district = DrefOperationalUpdateCountryDistrictSerializer(
+        source='drefoperationalupdatecountrydistrict_set',
+        many=True,
+        required=False
+    )
 
     class Meta:
         model = DrefOperationalUpdate
@@ -282,19 +310,14 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
         dref = Dref.objects.get(pk=dref_id)
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref)
         if dref_operational_update.count() == 0:
-            if DrefCountryDistrict.objects.filter(dref=dref).exists():
-                dref_country_district = DrefCountryDistrict.objects.get(dref=dref)
-                validated_data['country'] = dref_country_district.country
-                validated_data['district'] = dref_country_district.district.all()
             validated_data['title'] = dref.title
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset
             validated_data['disaster_category'] = dref.disaster_category
-            validated_data['number_of_people_targeted'] = dref.total_targeted_population
+            validated_data['number_of_people_targeted'] = dref.num_assisted
             validated_data['number_of_people_affected'] = dref.num_affected
             validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
-            validated_data['images'] = dref.images.all()
             validated_data['appeal_code'] = dref.appeal_code
             validated_data['glide_code'] = dref.glide_code
             validated_data['ifrc_appeal_manager_name'] = dref.ifrc_appeal_manager_name
@@ -317,7 +340,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['ifrc_emergency_title'] = dref.ifrc_emergency_title
             validated_data['ifrc_emergency_phone_number'] = dref.ifrc_emergency_phone_number
             validated_data['ifrc_emergency_email'] = dref.ifrc_emergency_email
-            validated_data['national_society_actions'] = dref.national_society_actions.all()
             validated_data['ifrc'] = dref.ifrc
             validated_data['icrc'] = dref.icrc
             validated_data['partner_national_society'] = dref.partner_national_society
@@ -325,7 +347,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['national_authorities'] = dref.national_authorities
             validated_data['un_or_other_actor'] = dref.un_or_other_actor
             validated_data['major_coordination_mechanism'] = dref.major_coordination_mechanism
-            validated_data['needs_identified'] = dref.needs_identified.all()
             validated_data['people_assisted'] = dref.people_assisted
             validated_data['selection_criteria'] = dref.selection_criteria
             validated_data['entity_affected'] = dref.entity_affected
@@ -340,9 +361,21 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['displaced_people'] = dref.displaced_people
             validated_data['operation_objective'] = dref.operation_objective
             validated_data['response_strategy'] = dref.response_strategy
-            validated_data['planned_interventions'] = dref.planned_interventions.all()
             validated_data['created_by'] = self.context['request'].user
             validated_data['operational_update_number'] = 1  # if no any dref operational update created so far
+            operational_update = super().create(validated_data)
+            operational_update.planned_interventions.add(*dref.planned_interventions.all())
+            operational_update.images.add(*dref.images.all())
+            operational_update.national_society_actions.add(*dref.national_society_actions.all())
+            operational_update.needs_identified.add(*dref.needs_identified.all())
+            if DrefCountryDistrict.objects.filter(dref=dref).exists():
+                dref_country_district = DrefCountryDistrict.objects.filter(dref=dref)
+                for cd in dref_country_district:
+                    country_district = DrefOperationalUpdateCountryDistrict.objects.create(
+                        country=cd.country,
+                        dref_operational_update=operational_update
+                    )
+                    country_district.district.add(*cd.district.all())
         else:
             # get the latest dref operational update
             operational_object = dref_operational_update.order_by('-operational_update_number')[0]
@@ -354,7 +387,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['number_of_people_targeted'] = operational_object.number_of_people_targeted
             validated_data['number_of_people_affected'] = operational_object.number_of_people_affected
             validated_data['emergency_appeal_planned'] = operational_object.emergency_appeal_planned
-            validated_data['images'] = operational_object.images.all()
             validated_data['appeal_code'] = operational_object.appeal_code
             validated_data['glide_code'] = operational_object.glide_code
             validated_data['ifrc_appeal_manager_name'] = operational_object.ifrc_appeal_manager_name
@@ -377,7 +409,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['ifrc_emergency_title'] = operational_object.ifrc_emergency_title
             validated_data['ifrc_emergency_phone_number'] = operational_object.ifrc_emergency_phone_number
             validated_data['ifrc_emergency_email'] = operational_object.ifrc_emergency_email
-            validated_data['national_society_actions'] = operational_object.national_society_actions.all()
             validated_data['ifrc'] = operational_object.ifrc
             validated_data['icrc'] = operational_object.icrc
             validated_data['partner_national_society'] = operational_object.partner_national_society
@@ -385,7 +416,6 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['national_authorities'] = operational_object.national_authorities
             validated_data['un_or_other_actor'] = operational_object.un_or_other_actor
             validated_data['major_coordination_mechanism'] = operational_object.major_coordination_mechanism
-            validated_data['needs_identified'] = operational_object.needs_identified.all()
             validated_data['people_assisted'] = operational_object.people_assisted
             validated_data['selection_criteria'] = operational_object.selection_criteria
             validated_data['entity_affected'] = operational_object.entity_affected
@@ -400,12 +430,22 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, serializers.ModelSerial
             validated_data['displaced_people'] = operational_object.displaced_people
             validated_data['operation_objective'] = operational_object.operation_objective
             validated_data['response_strategy'] = operational_object.response_strategy
-            validated_data['planned_interventions'] = operational_object.planned_interventions.all()
-            validated_data['country'] = operational_object.country
-            validated_data['district'] = operational_object.district.all()
             validated_data['created_by'] = self.context['request'].user
             validated_data['operational_update_number'] = operational_object.operational_update_number + 1
-        return super().create(validated_data)
+            operational_update = super().create(validated_data)
+            operational_update.planned_interventions.add(*operational_object.planned_interventions.all())
+            operational_update.images.add(*operational_object.images.all())
+            operational_update.national_society_actions.add(*operational_object.national_society_actions.all())
+            operational_update.needs_identified.add(*operational_object.needs_identified.all())
+            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=operational_object).exists():
+                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=operational_object)
+                for cd in dref_country_district:
+                    country_district = DrefOperationalUpdateCountryDistrict.objects.create(
+                        country=cd.country,
+                        dref_operational_update=operational_update
+                    )
+                    country_district.district.add(*cd.district.all())
+        return operational_update
 
     def update(self, instance, validated_data):
         validated_data['updated_by'] = self.context['request'].user

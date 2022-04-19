@@ -75,8 +75,6 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
             'dref__planned_interventions',
             'dref__needs_identified',
             'dref__national_society_actions',
-            'country',
-            'district'
         ).order_by('-created_at').distinct()
 
     @action(
