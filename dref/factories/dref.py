@@ -49,6 +49,14 @@ class DrefFactory(factory.django.DjangoModelFactory):
             for national_society_action in extracted:
                 self.national_society_actions.add(national_society_action)
 
+    @factory.post_generation
+    def users(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            for user in extracted:
+                self.users.add(user)
+
 
 class DrefFileFactory(factory.django.DjangoModelFactory):
     class Meta:

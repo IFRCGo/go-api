@@ -407,10 +407,12 @@ class DrefTestCase(APITestCase):
         """
         Test create dref operation update
         """
+        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,
             is_published=True,
         )
+        dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
         self.country2 = Country.objects.create(name='xyz')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
@@ -418,20 +420,22 @@ class DrefTestCase(APITestCase):
         country.district.add(self.district1)
         old_count = DrefOperationalUpdate.objects.count()
         url = '/api/v2/dref-op-update/'
-        self.client.force_authenticate(self.user)
         data = {
             'dref': dref.id,
         }
+        self.authenticate(self.user)
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefOperationalUpdate.objects.count(), old_count + 1)
 
     def test_dref_operation_update_for_published_dref(self):
         # NOTE: If Dref is not published can't create OperationaL Update
+        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,
             is_published=False,
         )
+        dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
         country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
@@ -440,15 +444,17 @@ class DrefTestCase(APITestCase):
         data = {
             'dref': dref.id
         }
-        self.client.force_authenticate(self.user)
+        self.client.force_authenticate(user1)
         response = self.client.post(url, data=data)
         self.assert_400(response)
 
     def test_dref_operational_create_for_parent(self):
+        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,
             is_published=True,
         )
+        dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
         country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
@@ -462,16 +468,18 @@ class DrefTestCase(APITestCase):
             'dref': dref.id,
         }
         url = '/api/v2/dref-op-update/'
-        self.client.force_authenticate(self.user)
+        self.authenticate(user1)
         response = self.client.post(url, data)
         self.assert_201(response)
         self.assertEqual(response.data['operational_update_number'], 2)
 
     def test_operational_update_create_for_not_published_parent(self):
+        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,
             is_published=True,
         )
+        dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
         country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
@@ -485,15 +493,17 @@ class DrefTestCase(APITestCase):
             'dref': dref.id,
         }
         url = '/api/v2/dref-op-update/'
-        self.client.force_authenticate(self.user)
+        self.client.force_authenticate(user1)
         response = self.client.post(url, data)
         self.assert_400(response)
 
     def test_dref_operational_update_patch(self):
+        user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title='Test Title', created_by=user1,
             is_published=True,
         )
+        dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
         country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
@@ -507,7 +517,7 @@ class DrefTestCase(APITestCase):
         data = {
             'dref': dref.id,
         }
-        self.client.force_authenticate(self.user)
+        self.authenticate(user=user1)
         response = self.client.post(url, data=data)
         self.assert_201(response)
         response_id = response.data['id']
@@ -518,6 +528,6 @@ class DrefTestCase(APITestCase):
             'is_timeframe_extension_required': True,
         }
         url = f'/api/v2/dref-op-update/{response_id}/'
-        self.client.force_authenticate(self.user)
+        self.authenticate(user=user1)
         response = self.client.patch(url, data)
         self.assert_200(response)

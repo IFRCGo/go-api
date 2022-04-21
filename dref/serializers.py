@@ -4,7 +4,6 @@ from django.utils.translation import ugettext
 from django.db import models
 from django.shortcuts import get_object_or_404
 
-
 from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
