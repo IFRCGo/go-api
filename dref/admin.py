@@ -88,3 +88,4 @@ class DrefOperationalUpdateAdmin(admin.ModelAdmin):
         'images',
     )
     inlines = [DrefOperationalUpdateCountryDistrictAdminInline]
+    list_filter = ['dref']

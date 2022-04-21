@@ -600,11 +600,6 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         related_name='modified_by_dref_operational_update'
     )
-    parent = models.ForeignKey(
-        'DrefOperationalUpdate',
-        null=True, blank=True,
-        on_delete=models.CASCADE
-    )
     dref = models.ForeignKey(
         Dref, verbose_name=_('Dref'),
         on_delete=models.CASCADE

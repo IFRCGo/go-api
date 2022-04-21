@@ -305,8 +305,7 @@ class DrefOperationalUpdateSerializer(
         return data
 
     def create(self, validated_data):
-        dref_id = self.initial_data.get('dref')
-        dref = Dref.objects.get(pk=dref_id)
+        dref = validated_data.get('dref')
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref)
         if dref_operational_update.count() == 0:
             validated_data['title'] = dref.title
