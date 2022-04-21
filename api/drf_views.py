@@ -829,6 +829,9 @@ class GenericFieldReportView(GenericAPIView):
         if 'start_date' in data:
             data['start_date'] = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
                 .replace(tzinfo=utc)
+        if 'sit_fields_date' in data:
+            data['sit_fields_date'] = datetime.strptime(data['sit_fields_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
+                .replace(tzinfo=utc)
         return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
