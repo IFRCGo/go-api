@@ -7,12 +7,13 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
-from enumfields import IntEnum, EnumIntegerField
+from choicesenum.django.fields import EnumIntegerField
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
 from datetime import datetime, timedelta
 import pytz
+import enum
 from .utils import (
     validate_slug_number,
     # is_user_ifrc,
@@ -48,7 +49,7 @@ class DisasterType(models.Model):
         return self.name
 
 
-class RegionName(IntEnum):
+class RegionName(enum.Enum):
     AFRICA = 0
     AMERICAS = 1
     ASIA_PACIFIC = 2
@@ -65,7 +66,7 @@ class RegionName(IntEnum):
 
 class Region(models.Model):
     """ A region """
-    name = EnumIntegerField(RegionName, verbose_name=_('name'))
+    name = EnumIntegerField(choices=enumerate(RegionName), verbose_name=_('name'))
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
     additional_tab_name = models.CharField(verbose_name='Label for Additional Tab', max_length=100, blank=True)
@@ -109,7 +110,7 @@ def logo_document_path(instance, filename):
     return 'logos/%s/%s' % (instance.iso, filename)
 
 
-class CountryType(IntEnum):
+class CountryType(enum.Enum):
     '''
         We use the Country model for some things that are not "Countries". This helps classify the type.
     '''
@@ -138,7 +139,7 @@ class Country(models.Model):
     """ A country """
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    record_type = EnumIntegerField(CountryType, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
+    record_type = EnumIntegerField(choices=enumerate(CountryType), verbose_name=_('type'), default=1, help_text=_('Type of entity'))
     iso = models.CharField(
         verbose_name=_('ISO'), max_length=2, null=True, blank=True,
         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
@@ -308,7 +309,7 @@ class Admin2Geoms(models.Model):
     admin2 = models.OneToOneField(Admin2, verbose_name=_('admin2'), on_delete=models.DO_NOTHING, primary_key=True)
 
 
-class VisibilityChoices(IntEnum):
+class VisibilityChoices(enum.Enum):
     MEMBERSHIP = 1
     IFRC = 2
     PUBLIC = 3
@@ -343,7 +344,7 @@ class AdminKeyFigure(models.Model):
     figure = models.CharField(verbose_name=_('figure'), max_length=100)
     deck = models.CharField(verbose_name=_('deck'), max_length=50)
     source = models.CharField(verbose_name=_('source'), max_length=256)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
 
     class Meta:
         ordering = ('source',)
@@ -370,7 +371,7 @@ class CountryKeyFigure(AdminKeyFigure):
         verbose_name_plural = _('country key figures')
 
 
-class PositionType(IntEnum):
+class PositionType(enum.Enum):
     TOP = 1
     HIGH = 2
     MIDDLE = 3
@@ -385,7 +386,7 @@ class PositionType(IntEnum):
         BOTTOM = _('Bottom')
 
 
-class TabNumber(IntEnum):
+class TabNumber(enum.Enum):
     TAB_1 = 1
     TAB_2 = 2
     TAB_3 = 3
@@ -401,8 +402,8 @@ class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to='regions/%Y/%m/%d/')
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -418,8 +419,8 @@ class RegionEmergencySnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+    # visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -435,8 +436,8 @@ class RegionPreparednessSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+    # visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -452,8 +453,8 @@ class RegionProfileSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
-    # visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+    # visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -478,8 +479,8 @@ class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to='countries/%Y/%m/%d/')
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -548,7 +549,7 @@ class CountryContact(AdminContact):
         verbose_name_plural = _('country contacts')
 
 
-class AlertLevel(IntEnum):
+class AlertLevel(enum.Enum):
     YELLOW = 0
     ORANGE = 1
     RED = 2
@@ -597,7 +598,7 @@ class Event(models.Model):
     num_affected = models.IntegerField(verbose_name=_('number of affected'), null=True, blank=True)
     num_displaced = models.IntegerField(verbose_name=_('number of displaced'), null=True, blank=True)
 
-    ifrc_severity_level = EnumIntegerField(AlertLevel, default=0, verbose_name=_('IFRC Severity level'))
+    ifrc_severity_level = EnumIntegerField(choices=enumerate(AlertLevel), default=0, verbose_name=_('IFRC Severity level'))
     glide = models.CharField(verbose_name=_('glide'), max_length=18, blank=True)
 
     disaster_start_date = models.DateTimeField(verbose_name=_('disaster start date'))
@@ -628,7 +629,7 @@ class Event(models.Model):
     tab_three_title = models.CharField(verbose_name=_('tab three title'), max_length=50, null=True, blank=True)
 
     # visibility
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=1)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=1)
     emergency_response_contact_email = models.CharField(
         verbose_name=_('emergency response contact email'),
         null=True, blank=True,
@@ -774,9 +775,9 @@ class Snippet(models.Model):
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
     image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path)
     event = models.ForeignKey(Event, verbose_name=_('event'), related_name='snippets', on_delete=models.CASCADE)
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=3)
-    position = EnumIntegerField(PositionType, verbose_name=_('position'), default=3)
-    tab = EnumIntegerField(TabNumber, verbose_name=_('tab'), default=1)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=3)
+    position = EnumIntegerField(choices=enumerate(PositionType), verbose_name=_('position'), default=3)
+    tab = EnumIntegerField(choices=enumerate(TabNumber), verbose_name=_('tab'), default=1)
 
     class Meta:
         ordering = ('position', 'id',)
@@ -818,7 +819,7 @@ class SituationReport(models.Model):
     type = models.ForeignKey(
         SituationReportType, verbose_name=_('type'), related_name='situation_reports', null=True, on_delete=models.SET_NULL
     )
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=VisibilityChoices.MEMBERSHIP)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=VisibilityChoices.MEMBERSHIP)
     is_pinned = models.BooleanField(verbose_name=_('is pinned?'), default=False, help_text=_('pin this report at the top'))
 
     class Meta:
@@ -842,7 +843,7 @@ class GDACSEvent(models.Model):
     lat = models.FloatField(verbose_name=_('latitude'))
     lon = models.FloatField(verbose_name=_('longitude'))
     event_type = models.CharField(verbose_name=_('event type'), max_length=16)
-    alert_level = EnumIntegerField(AlertLevel, verbose_name=_('alert level'), default=0)
+    alert_level = EnumIntegerField(choices=enumerate(AlertLevel), verbose_name=_('alert level'), default=0)
     alert_score = models.CharField(verbose_name=_('alert score'), max_length=16, null=True)
     severity = models.TextField(verbose_name=_('severity'))
     severity_unit = models.CharField(verbose_name=_('severity unit'), max_length=16)
@@ -861,7 +862,7 @@ class GDACSEvent(models.Model):
         return self.title
 
 
-class AppealType(IntEnum):
+class AppealType(enum.Enum):
     """ summarys of appeals """
     DREF = 0
     APPEAL = 1
@@ -876,7 +877,7 @@ class AppealType(IntEnum):
 # If you augment these lists ^, do not forget about index_and_notify: optypes
 
 
-class AppealStatus(IntEnum):
+class AppealStatus(enum.Enum):
     ACTIVE = 0
     CLOSED = 1
     FROZEN = 2
@@ -897,9 +898,9 @@ class Appeal(models.Model):
     aid = models.CharField(verbose_name=_('appeal ID'), max_length=20)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
-    atype = EnumIntegerField(AppealType, verbose_name=_('appeal type'), default=0)
+    atype = EnumIntegerField(choices=enumerate(AppealType), verbose_name=_('appeal type'), default=0)
 
-    status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
+    status = EnumIntegerField(choices=enumerate(AppealStatus), verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True, unique=True)
     sector = models.CharField(verbose_name=_('sector'), max_length=100, blank=True)
 
@@ -1017,13 +1018,13 @@ class AppealHistory(models.Model):
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), null=True, on_delete=models.SET_NULL)
-    atype = EnumIntegerField(AppealType, verbose_name=_('appeal type'), default=0)
+    atype = EnumIntegerField(choices=enumerate(AppealType), verbose_name=_('appeal type'), default=0)
     # name = models.CharField(verbose_name=_('name'), max_length=100)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
-    status = EnumIntegerField(AppealStatus, verbose_name=_('status'), default=0)
+    status = EnumIntegerField(choices=enumerate(AppealStatus), verbose_name=_('status'), default=0)
     code = models.CharField(verbose_name=_('code'), max_length=20, null=True)
     # deleted_at = models.DateTimeField(verbose_name=_('deleted at'), null=True, blank=True)
     triggering_amount = models.DecimalField(
@@ -1110,7 +1111,7 @@ class GeneralDocument(models.Model):
         return ('%s' % self.document)[10:]  # 10 = len('documents/')
 
 
-class RequestChoices(IntEnum):
+class RequestChoices(enum.Enum):
     NO = 0
     REQUESTED = 1
     PLANNED = 2
@@ -1123,7 +1124,7 @@ class RequestChoices(IntEnum):
         COMPLETE = _('Complete')
 
 
-class EPISourceChoices(IntEnum):
+class EPISourceChoices(enum.Enum):
     MINISTRY_OF_HEALTH = 0
     WHO = 1
     OTHER = 2
@@ -1261,7 +1262,7 @@ class FieldReport(models.Model):
     epi_probable_cases = models.IntegerField(verbose_name=_('number of probable cases (epidemic)'), null=True, blank=True)
     epi_confirmed_cases = models.IntegerField(verbose_name=_('number of confirmed cases (epidemic)'), null=True, blank=True)
     epi_num_dead = models.IntegerField(verbose_name=_('number of dead (epidemic)'), null=True, blank=True)
-    epi_figures_source = EnumIntegerField(
+    epi_figures_source = EnumIntegerField(choices=
         EPISourceChoices, verbose_name=_('figures source (epidemic)'), null=True, blank=True
     )
     epi_cases_since_last_fr = models.IntegerField(
@@ -1305,57 +1306,57 @@ class FieldReport(models.Model):
     actions_others = models.TextField(verbose_name=_('actions taken (others)'), null=True, blank=True)
 
     # visibility
-    visibility = EnumIntegerField(VisibilityChoices, verbose_name=_('visibility'), default=1)
+    visibility = EnumIntegerField(choices=enumerate(VisibilityChoices), verbose_name=_('visibility'), default=1)
 
     # information
-    bulletin = EnumIntegerField(RequestChoices, verbose_name=_('bullentin'), default=0)
-    dref = EnumIntegerField(RequestChoices, verbose_name=_('DREF'), default=0)
+    bulletin = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('bullentin'), default=0)
+    dref = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('DREF'), default=0)
     dref_amount = models.IntegerField(verbose_name=_('DREF amount'), null=True, blank=True)
-    appeal = EnumIntegerField(RequestChoices, verbose_name=_('appeal'), default=0)
+    appeal = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('appeal'), default=0)
     appeal_amount = models.IntegerField(verbose_name=_('appeal amount'), null=True, blank=True)
-    imminent_dref = EnumIntegerField(RequestChoices, verbose_name=_('imminent dref'), default=0)  # only EW
+    imminent_dref = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('imminent dref'), default=0)  # only EW
     imminent_dref_amount = models.IntegerField(null=True, verbose_name=_('imminent dref amount'), blank=True)  # only EW
-    forecast_based_action = EnumIntegerField(RequestChoices, verbose_name=_('forecast based action'), default=0)  # only EW
+    forecast_based_action = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('forecast based action'), default=0)  # only EW
     forecast_based_action_amount = models.IntegerField(
         verbose_name=_('forecast based action amount'), null=True, blank=True)  # only EW
 
     # disaster response
-    rdrt = EnumIntegerField(RequestChoices, verbose_name=_('RDRT'), default=0)
+    rdrt = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('RDRT'), default=0)
     num_rdrt = models.IntegerField(verbose_name=_('number of RDRT'), null=True, blank=True)
-    fact = EnumIntegerField(RequestChoices, verbose_name=_('fact'), default=0)
+    fact = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('fact'), default=0)
     num_fact = models.IntegerField(verbose_name=_('number of fact'), null=True, blank=True)
-    ifrc_staff = EnumIntegerField(RequestChoices, verbose_name=_('IFRC staff'), default=0)
+    ifrc_staff = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('IFRC staff'), default=0)
     num_ifrc_staff = models.IntegerField(verbose_name=_('number of IFRC staff'), null=True, blank=True)
 
     # ERU units
-    eru_base_camp = EnumIntegerField(RequestChoices, verbose_name=_('ERU base camp'), default=0)
+    eru_base_camp = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU base camp'), default=0)
     eru_base_camp_units = models.IntegerField(verbose_name=_('ERU base camp units'), null=True, blank=True)
 
-    eru_basic_health_care = EnumIntegerField(RequestChoices, verbose_name=_('ERU basic health care'), default=0)
+    eru_basic_health_care = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU basic health care'), default=0)
     eru_basic_health_care_units = models.IntegerField(null=True, verbose_name=_('ERU basic health units'), blank=True)
 
-    eru_it_telecom = EnumIntegerField(RequestChoices, verbose_name=_('ERU IT telecom'), default=0)
+    eru_it_telecom = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU IT telecom'), default=0)
     eru_it_telecom_units = models.IntegerField(verbose_name=_('ERU IT telecom units'), null=True, blank=True)
 
-    eru_logistics = EnumIntegerField(RequestChoices, verbose_name=_('ERU logistics'), default=0)
+    eru_logistics = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU logistics'), default=0)
     eru_logistics_units = models.IntegerField(verbose_name=_('ERU logistics units'), null=True, blank=True)
 
-    eru_deployment_hospital = EnumIntegerField(RequestChoices, verbose_name=_('ERU deployment hospital'), default=0)
+    eru_deployment_hospital = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU deployment hospital'), default=0)
     eru_deployment_hospital_units = models.IntegerField(verbose_name=_('ERU deployment hospital units'), null=True, blank=True)
 
-    eru_referral_hospital = EnumIntegerField(RequestChoices, verbose_name=_('ERU referral hospital'), default=0)
+    eru_referral_hospital = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU referral hospital'), default=0)
     eru_referral_hospital_units = models.IntegerField(verbose_name=_('ERU referral hospital units'), null=True, blank=True)
 
-    eru_relief = EnumIntegerField(RequestChoices, verbose_name=_('ERU relief'), default=0)
+    eru_relief = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU relief'), default=0)
     eru_relief_units = models.IntegerField(null=True, verbose_name=_('ERU relief units'), blank=True)
 
-    eru_water_sanitation_15 = EnumIntegerField(RequestChoices, verbose_name=_('ERU water sanitaion M15'), default=0)
+    eru_water_sanitation_15 = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU water sanitaion M15'), default=0)
     eru_water_sanitation_15_units = models.IntegerField(verbose_name=_('ERU water sanitaion M15 units'), null=True, blank=True)
 
-    eru_water_sanitation_40 = EnumIntegerField(RequestChoices, verbose_name=_('ERU water sanitaion M40'), default=0)
+    eru_water_sanitation_40 = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU water sanitaion M40'), default=0)
     eru_water_sanitation_40_units = models.IntegerField(verbose_name=_('ERU water sanitaion M40 units'), null=True, blank=True)
 
-    eru_water_sanitation_20 = EnumIntegerField(RequestChoices, verbose_name=_('ERU water sanitaion MSM20'), default=0)
+    eru_water_sanitation_20 = EnumIntegerField(choices=enumerate(RequestChoices), verbose_name=_('ERU water sanitaion MSM20'), default=0)
     eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitaion MSM20 units'), null=True, blank=True)
 
     # Ugly solution to a design problem with handling Actions
@@ -1949,7 +1950,7 @@ class MainContact(models.Model):
         return f'{self.extent} - {self.name} - {self.email}'
 
 
-class CronJobStatus(IntEnum):
+class CronJobStatus(enum.Enum):
     ACKNOWLEDGED = -2
     NEVER_RUN = -1
     SUCCESSFUL = 0
@@ -1968,7 +1969,7 @@ class CronJobStatus(IntEnum):
 class CronJob(models.Model):
     """ CronJob log row about jobs results """
     name = models.CharField(verbose_name=_('name'), max_length=100, default='')
-    status = EnumIntegerField(CronJobStatus, verbose_name=_('status'), default=-1)
+    status = EnumIntegerField(choices=enumerate(CronJobStatus), verbose_name=_('status'), default=-1)
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     message = models.TextField(verbose_name=_('message'), null=True, blank=True)
     num_result = models.IntegerField(verbose_name=_('number of results'), default=0)

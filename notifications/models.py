@@ -2,12 +2,12 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
 from api.models import Country, Region, Event, DisasterType
 from deployments.models import MolnixTag
+from choicesenum.django.fields import EnumIntegerField
+import enum
 
-class SurgeAlertType(IntEnum):
+class SurgeAlertType(enum.Enum):
     FACT = 0
     SIMS = 1
     ERU = 2
@@ -26,7 +26,7 @@ class SurgeAlertType(IntEnum):
         RAPID_RESPONSE = _('rapid response')
 
 
-class SurgeAlertCategory(IntEnum):
+class SurgeAlertCategory(enum.Enum):
     INFO = 0
     DEPLOYMENT = 1
     ALERT = 2
@@ -43,8 +43,8 @@ class SurgeAlertCategory(IntEnum):
 
 class SurgeAlert(models.Model):
 
-    atype = EnumIntegerField(SurgeAlertType, verbose_name=_('alert type'), default=0)
-    category = EnumIntegerField(SurgeAlertCategory, verbose_name=_('category'), default=0)
+    atype = EnumIntegerField(choices=enumerate(SurgeAlertType), verbose_name=_('alert type'), default=0)
+    category = EnumIntegerField(choices=enumerate(SurgeAlertCategory), verbose_name=_('category'), default=0)
     operation = models.CharField(verbose_name=_('operation'), max_length=100)
     message = models.TextField(verbose_name=_('message'))
     deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
@@ -91,7 +91,7 @@ class SurgeAlert(models.Model):
             return self.event.name
 
 
-class SubscriptionType(IntEnum):
+class SubscriptionType(enum.Enum):
     """ New or edit to existing record """
     NEW = 0
     EDIT = 1
@@ -101,7 +101,7 @@ class SubscriptionType(IntEnum):
         EDIT = _('edit')
 
 
-class RecordType(IntEnum):
+class RecordType(enum.Enum):
     """ Types of notifications a user can subscribe to """
     EVENT = 0        # will be obsolete, migrated to NEW_EMERGENCIES
     APPEAL = 1       # will be obsolete, migrated to                 NEW_OPERATIONS
@@ -155,8 +155,8 @@ class Subscription(models.Model):
         related_name='subscription',
     )
 
-    stype = EnumIntegerField(SubscriptionType, verbose_name=_('subscription type'), default=0)
-    rtype = EnumIntegerField(RecordType, verbose_name=_('record type'), default=0)
+    stype = EnumIntegerField(choices=enumerate(SubscriptionType), verbose_name=_('subscription type'), default=0)
+    rtype = EnumIntegerField(choices=enumerate(RecordType), verbose_name=_('record type'), default=0)
 
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, blank=True, on_delete=models.SET_NULL)

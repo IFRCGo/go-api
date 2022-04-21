@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class PerConfig(AppConfig):
-    name = _('per')
+    name = 'per'
+    verbose_name = _('per')

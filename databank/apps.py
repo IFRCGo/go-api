@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class DatabankConfig(AppConfig):
-    name = _('databank')
+    name = 'databank'
+    verbose_name = _('databank')

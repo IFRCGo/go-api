@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class LangConfig(AppConfig):
-    name = _('lang')
+    name = 'lang'
+    vebose_name = _('lang')

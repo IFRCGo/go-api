@@ -3,13 +3,13 @@ from api.models import Country
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
 from .questions_data import questions
 from tinymce import HTMLField
+from choicesenum.django.fields import EnumIntegerField
+import enum
 
 
-class ProcessPhase(IntEnum):
+class ProcessPhase(enum.Enum):
     BASELINE = 0
     ORIENTATION = 1
     ASSESSMENT = 2
@@ -31,7 +31,7 @@ class NSPhase(models.Model):
     """ NS PER Process Phase """
     # default=1 needed only for the migration, can be deleted later
     country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1)
-    phase = EnumIntegerField(ProcessPhase, default=ProcessPhase.BASELINE)
+    phase = EnumIntegerField(choices=enumerate(ProcessPhase), default=ProcessPhase.BASELINE)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -48,7 +48,7 @@ class NSPhase(models.Model):
 
 
 # FIXME: should be removable in some way (?)
-class Status(IntEnum):
+class Status(enum.Enum):
     NO = 0
     YES = 1
     NOT_REVIEWED = 2
@@ -70,7 +70,7 @@ class Status(IntEnum):
 
 
 # FIXME: can't remove because it's in the 0020 migration...
-class Language(IntEnum):
+class Language(enum.Enum):
     SPANISH = 0
     FRENCH = 1
     ENGLISH = 2
@@ -129,7 +129,7 @@ class FormQuestion(models.Model):
 
 
 # FIXME: can't remove because it's in the 0020 migration...
-class CAssessmentType(IntEnum):
+class CAssessmentType(enum.Enum):
     SELF_ASSESSMENT = 0
     SIMULATION = 1
     OPERATIONAL = 2
@@ -268,7 +268,7 @@ class FormData(models.Model):
         return ''
 
 
-class PriorityValue(IntEnum):
+class PriorityValue(enum.Enum):
     LOW = 0
     MID = 1
     HIGH = 2
@@ -279,7 +279,7 @@ class PriorityValue(IntEnum):
         HIGH = _('high')
 
 
-class WorkPlanStatus(IntEnum):
+class WorkPlanStatus(enum.Enum):
     STANDBY = 0
     ONGOING = 1
     CANCELLED = 2
@@ -304,13 +304,13 @@ class WorkPlanStatus(IntEnum):
 
 @reversion.register()
 class WorkPlan(models.Model):
-    prioritization = EnumIntegerField(PriorityValue, verbose_name=_('prioritization'))
+    prioritization = EnumIntegerField(choices=enumerate(PriorityValue), verbose_name=_('prioritization'))
     components = models.CharField(verbose_name=_('components'), max_length=900, null=True, blank=True)
     benchmark = models.CharField(verbose_name=_('benchmark'), max_length=900, null=True, blank=True)
     actions = models.CharField(verbose_name=_('actions'), max_length=900, null=True, blank=True)
     comments = models.CharField(verbose_name=_('comments'), max_length=900, null=True, blank=True)
     timeline = models.DateTimeField(verbose_name=_('timeline'))
-    status = EnumIntegerField(WorkPlanStatus, verbose_name=_('status'))
+    status = EnumIntegerField(choices=enumerate(WorkPlanStatus), verbose_name=_('status'))
     support_required = models.BooleanField(verbose_name=_('support required'), default=False)
     focal_point = models.CharField(verbose_name=_('focal point'), max_length=90, null=True, blank=True)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
@@ -335,7 +335,7 @@ class WorkPlan(models.Model):
         return '%s [%s %s]' % (name, self.code, self.question_id)
 
 
-class Visibilities(IntEnum):
+class Visibilities(enum.Enum):
     HIDDEN = 0
     VISIBLE = 1
 
@@ -357,7 +357,7 @@ class NiceDocument(models.Model):
     country = models.ForeignKey(
         Country, verbose_name=_('country'), related_name='perdoc_country', null=True, blank=True, on_delete=models.SET_NULL
     )
-    visibility = EnumIntegerField(Visibilities, verbose_name=_('visibility'), default=Visibilities.VISIBLE)
+    visibility = EnumIntegerField(choices=enumerate(Visibilities), verbose_name=_('visibility'), default=Visibilities.VISIBLE)
 
     class Meta:
         ordering = ('visibility', 'country')

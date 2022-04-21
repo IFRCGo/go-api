@@ -1,7 +1,5 @@
 import reversion
 from datetime import datetime
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
 from tinymce import HTMLField
 
 from django.db import models
@@ -11,9 +9,11 @@ from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
-from django.contrib.gis.db import models as gid_models
+# from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
 from django.contrib.postgres.fields import JSONField
+from choicesenum.django.fields import EnumIntegerField
+import enum
 
 from dref.enums import TextChoices
 from api.models import (
@@ -32,7 +32,7 @@ from api.models import (
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 
-class ERUType(IntEnum):
+class ERUType(enum.Enum):
     BASECAMP = 0
     TELECOM = 1
     LOGISTICS = 2
@@ -95,7 +95,7 @@ class ERUOwner(models.Model):
 @reversion.register()
 class ERU(models.Model):
     """ A resource that can be deployed """
-    type = EnumIntegerField(ERUType, verbose_name=_('type'), default=0)
+    type = EnumIntegerField(choices=enumerate(ERUType), verbose_name=_('type'), default=0)
     units = models.IntegerField(verbose_name=_('units'), default=0)
     equipment_units = models.IntegerField(verbose_name=_('equipment units'), default=0)
     num_people_deployed = models.IntegerField(
@@ -289,7 +289,7 @@ class PartnerSocietyDeployment(DeployedPerson):
         return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
 
 
-class ProgrammeTypes(IntEnum):
+class ProgrammeTypes(enum.Enum):
     BILATERAL = 0
     MULTILATERAL = 1
     DOMESTIC = 2
@@ -300,7 +300,7 @@ class ProgrammeTypes(IntEnum):
         DOMESTIC = _('Domestic')
 
 
-class Sectors(IntEnum):
+class Sectors(enum.Enum):
     WASH = 0
     PGI = 1
     CEA = 2
@@ -325,7 +325,7 @@ class Sectors(IntEnum):
         LIVELIHOODS_AND_BASIC_NEEDS = _('Livelihoods and basic needs')
 
 
-class SectorTags(IntEnum):
+class SectorTags(enum.Enum):
     WASH = 0
     PGI = 1
     CEA = 2
@@ -358,7 +358,7 @@ class SectorTags(IntEnum):
         COVID_19 = _('COVID-19')
 
 
-class Statuses(IntEnum):
+class Statuses(enum.Enum):
     PLANNED = 0
     ONGOING = 1
     COMPLETED = 2
@@ -369,7 +369,7 @@ class Statuses(IntEnum):
         COMPLETED = _('Completed')
 
 
-class OperationTypes(IntEnum):
+class OperationTypes(enum.Enum):
     PROGRAMME = 0
     EMERGENCY_OPERATION = 1
 
@@ -443,17 +443,17 @@ class Project(models.Model):
     name = models.TextField(verbose_name=_('name'))
     description = HTMLField(verbose_name=_('description'), blank=True, default='')
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
-    programme_type = EnumIntegerField(ProgrammeTypes, verbose_name=_('programme type'))
-    primary_sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
+    programme_type = EnumIntegerField(choices=enumerate(ProgrammeTypes), verbose_name=_('programme type'))
+    primary_sector = EnumIntegerField(choices=enumerate(Sectors), verbose_name=_('sector'))
     secondary_sectors = ArrayField(
-        EnumIntegerField(SectorTags), verbose_name=_('tags'), default=list, blank=True,
+        EnumIntegerField(choices=enumerate(SectorTags)), verbose_name=_('tags'), default=list, blank=True,
     )
-    operation_type = EnumIntegerField(OperationTypes, verbose_name=_('operation type'))
+    operation_type = EnumIntegerField(choices=enumerate(OperationTypes), verbose_name=_('operation type'))
     start_date = models.DateField(verbose_name=_('start date'))
     end_date = models.DateField(verbose_name=_('end date'))
     budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True)
     actual_expenditure = models.IntegerField(verbose_name=_('actual expenditure'), null=True, blank=True)
-    status = EnumIntegerField(Statuses, verbose_name=_('status'))
+    status = EnumIntegerField(choices=enumerate(Statuses), verbose_name=_('status'))
 
     # Target Metric
     target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
@@ -830,7 +830,7 @@ class ERUReadiness(models.Model):
     national_society = models.ForeignKey(
         Country, verbose_name=_('national society'), null=True, blank=True, on_delete=models.SET_NULL
     )
-    ERU_type = EnumIntegerField(ERUType, verbose_name=_('ERU type'), default=0)
+    ERU_type = EnumIntegerField(choices=enumerate(ERUType), verbose_name=_('ERU type'), default=0)
     is_personnel = models.BooleanField(verbose_name=_('is personnel?'), default=False)
     is_equipment = models.BooleanField(verbose_name=_('is equipment?'), default=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)

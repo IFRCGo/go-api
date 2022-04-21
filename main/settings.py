@@ -126,7 +126,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_admin_listfilter_dropdown',
     'corsheaders',
-    'tastypie',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
