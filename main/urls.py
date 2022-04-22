@@ -193,7 +193,7 @@ urlpatterns = [
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
-    url(r'^docs/', include_docs_urls(title='IFRC Go API')),
+    url(r'^docs/', include_docs_urls(title='IFRC Go API', public=False)),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
     # url(r'^', admin.site.urls),
