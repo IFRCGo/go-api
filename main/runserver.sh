@@ -9,8 +9,8 @@ python manage.py collectstatic --noinput -l
 python manage.py make_permissions
 
 # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
-if [ "$API_FQDN"x = prddsgocdnapi.azureedge.netx ]; then
-    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org goadmin.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+if [ "$API_FQDN"x = goadmin.ifrc.orgx ]; then
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
 else
     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
 fi
