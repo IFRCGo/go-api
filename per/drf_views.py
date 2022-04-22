@@ -338,6 +338,7 @@ class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
 
 class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
     """Global Preparedness Highlights"""
+    # Probably not used. E.g. no 'code' in Form
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -351,13 +352,13 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = tmz.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = FormData.objects.filter(form__updated_at__gt=last_duedate, selected_option=7).select_related('form')
+        queryset = FormData.objects.filter(form__updated_at__gt=last_duedate, selected_answer_id=7).select_related('form')
         result = []
-        for i in queryset:
-            j = {'id': i.form.id}
-            j.update({'code': i.form.code})
-            j.update({'question_id': i.question_id})
-            result.append(j)
+        # for i in queryset:
+        #     j = {'id': i.form.id}
+        #     j.update({'code': i.form.code})
+        #     j.update({'question_id': i.question_id})
+        #     result.append(j)
         return result
 
 

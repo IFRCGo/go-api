@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework.authentication import TokenAuthentication
@@ -41,7 +41,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         limit = 14  # days
         cond1 = Q(is_stood_down=True)
-        cond2 = Q(end__lt=datetime.now()-timedelta(days=limit))
+        cond2 = Q(end__lt=datetime.utcnow().replace(tzinfo=timezone.utc)-timedelta(days=limit))
         return SurgeAlert.objects.exclude(cond1 & cond2)
 
 
