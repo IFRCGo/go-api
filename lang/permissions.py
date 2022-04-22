@@ -13,7 +13,7 @@ class LangStringPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         if request.method == 'POST' and \
-                hasattr(request, '_request') and request.path == '/docs/' and \
+                hasattr(request, '_request') and request.path[:6] == '/docs/' and \
                 hasattr(view, 'basename') and view.basename == 'language':
             return True
         return String.has_perm(request.user, view.kwargs['pk'])
