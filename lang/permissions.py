@@ -12,6 +12,10 @@ class LangStringPermission(permissions.BasePermission):
         # so we'll always allow GET, HEAD or OPTIONS requests. (`view` is allowed for all)
         if request.method in permissions.SAFE_METHODS:
             return True
+        if request.method == 'POST' and \
+                hasattr(request, '_request') and request.path[:6] == '/docs/' and \
+                hasattr(view, 'basename') and view.basename == 'language':
+            return True
         return String.has_perm(request.user, view.kwargs['pk'])
 
     def has_object_permission(self, request, view, obj):

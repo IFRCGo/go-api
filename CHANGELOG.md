@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.438
+## 1.1.437
+
+### Added
+ - Nginx setup fixing
+ - /docs/ fixing
+ - User registration reminder job cleanup
+ - Lang: page-number
+ - Tidylib - adding
+ - Sit_fields_date also to be converted 
+
 ## 1.1.436
 
 ### Added
@@ -1959,7 +1970,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.436...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.438...HEAD
+[1.1.438]: https://github.com/IFRCGo/go-api/compare/1.1.437...1.1.438
+[1.1.437]: https://github.com/IFRCGo/go-api/compare/1.1.436...1.1.437
 [1.1.436]: https://github.com/IFRCGo/go-api/compare/1.1.435...1.1.436
 [1.1.435]: https://github.com/IFRCGo/go-api/compare/1.1.434...1.1.435
 [1.1.434]: https://github.com/IFRCGo/go-api/compare/1.1.433...1.1.434
