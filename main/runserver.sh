@@ -14,6 +14,12 @@ if [ "$API_FQDN"x = goadmin.ifrc.orgx ]; then
 else
     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
 fi
+# Just a temporary test:
+if [ "$GO_ENVIRONMENT"x = productionx ]; then
+    sed -i 's/CHANGE_ME_BEFORE_START/prod/' /etc/nginx/sites-available/nginx.conf
+else
+    sed -i 's/CHANGE_ME_BEFORE_START/'$GO_ENVIRONMENT'/' /etc/nginx/sites-available/nginx.conf
+fi
 
 # Prepare log files and start outputting logs to stdout
 touch $HOME/logs/gunicorn.log
