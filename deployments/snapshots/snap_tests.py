@@ -29,12 +29,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 4,
+            'count': 5,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 3,
+            'count': 2,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
@@ -83,6 +83,11 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'PGI'
         },
         {
+            'count': 1,
+            'primary_sector': 2,
+            'primary_sector_display': 'CEA'
+        },
+        {
             'count': 3,
             'primary_sector': 3,
             'primary_sector_display': 'Migration'
@@ -103,7 +108,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'NS Strengthening'
         },
         {
-            'count': 3,
+            'count': 2,
             'primary_sector': 8,
             'primary_sector_display': 'Education'
         },
@@ -310,8 +315,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 8,
-                    'primary_sector_display': 'Education'
+                    'primary_sector': 2,
+                    'primary_sector_display': 'CEA'
                 }
             ],
             'society_name': 'society-name-qJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjD',
