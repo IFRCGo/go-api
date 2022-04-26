@@ -190,7 +190,7 @@ class DrefSerializer(
             # eg: 100.00% be replaced with 100%
             if value and len(value.split('.')[0]) == 3:
                 return value.split('.')[0]
-            return None
+            return value
 
         data = super().to_representation(instance)
         for key in [
