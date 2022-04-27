@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.441
+
+### Added
+ - Password policy enhancements
+ - Return also visibility to event properties
+ - EmergencyProject should have visibility itself
+
 ## 1.1.440
 ## 1.1.439
 
@@ -1976,7 +1983,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.440...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.441...HEAD
+[1.1.441]: https://github.com/IFRCGo/go-api/compare/1.1.440...1.1.441
 [1.1.440]: https://github.com/IFRCGo/go-api/compare/1.1.439...1.1.440
 [1.1.439]: https://github.com/IFRCGo/go-api/compare/1.1.438...1.1.439
 [1.1.438]: https://github.com/IFRCGo/go-api/compare/1.1.437...1.1.438
