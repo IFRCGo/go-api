@@ -653,6 +653,12 @@ class EmergencyProject(models.Model):
         on_delete=models.CASCADE,
         related_name='+',
     )  # Country to be among the country in event
+    visibility = models.CharField(
+        max_length=32,
+        verbose_name=_('visibility'),
+        choices=VisibilityCharChoices.CHOICES,
+        default=VisibilityCharChoices.PUBLIC,
+    )
 
     def __str__(self):
         return self.title
