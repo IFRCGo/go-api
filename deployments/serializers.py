@@ -534,6 +534,7 @@ class EmergencyProjectSerializer(
     activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     country_details = MiniCountrySerializer(source='country', read_only=True)
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = EmergencyProject
