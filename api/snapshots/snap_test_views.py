@@ -83,7 +83,8 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
     'tab_one_title': 'XKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJgupDhrC',
     'tab_three_title': 'zxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZEHDjMG',
     'tab_two_title': 'pjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIagBiqUxW',
-    'updated_at': '2008-01-01T00:00:00.123456Z'
+    'updated_at': '2008-01-01T00:00:00.123456Z',
+    'visibility': 3
 }
 
 snapshots['EventSnaphostTest::test_event_link_api 1'] = {
@@ -157,5 +158,6 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     'tab_one_title': 'XKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJgupDhrC',
     'tab_three_title': 'zxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZEHDjMG',
     'tab_two_title': 'pjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIagBiqUxW',
-    'updated_at': '2008-01-01T00:00:00.123456Z'
+    'updated_at': '2008-01-01T00:00:00.123456Z',
+    'visibility': 3
 }
