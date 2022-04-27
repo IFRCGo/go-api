@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.439
+
+### Added
+ - Django 2.2 critical security fix
+ - Nginx setup fixing
+
 ## 1.1.438
 ## 1.1.437
 
 ### Added
- - Nginx setup fixing
  - /docs/ fixing
  - User registration reminder job cleanup
  - Lang: page-number
@@ -1970,7 +1975,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.438...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.439...HEAD
+[1.1.439]: https://github.com/IFRCGo/go-api/compare/1.1.438...1.1.439
 [1.1.438]: https://github.com/IFRCGo/go-api/compare/1.1.437...1.1.438
 [1.1.437]: https://github.com/IFRCGo/go-api/compare/1.1.436...1.1.437
 [1.1.436]: https://github.com/IFRCGo/go-api/compare/1.1.435...1.1.436
