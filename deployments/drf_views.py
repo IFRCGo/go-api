@@ -710,7 +710,8 @@ class EmergencyProjectViewSet(
     queryset = EmergencyProject.objects.order_by('-modified_at').prefetch_related(
         'created_by', 'reporting_ns', 'districts', 'event', 'country'
     ).all()
-    permission_classes = [IsAuthenticated]
+    # Intentionally not IsAuthenticated. Anons should see public EmergencyProjects:
+    permission_classes = []
     filterset_class = EmergencyProjectFilter
     serializer_class = EmergencyProjectSerializer
     ordering_fields = ('title',)
