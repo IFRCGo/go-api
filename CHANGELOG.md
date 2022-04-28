@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.442
+
+### Added
+ - Anon users should see public EmergencyProjects
+
 ## 1.1.441
 
 ### Added
@@ -1983,7 +1988,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.441...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.442...HEAD
+[1.1.442]: https://github.com/IFRCGo/go-api/compare/1.1.441...1.1.442
 [1.1.441]: https://github.com/IFRCGo/go-api/compare/1.1.440...1.1.441
 [1.1.440]: https://github.com/IFRCGo/go-api/compare/1.1.439...1.1.440
 [1.1.439]: https://github.com/IFRCGo/go-api/compare/1.1.438...1.1.439
