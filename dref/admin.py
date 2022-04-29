@@ -9,13 +9,19 @@ from .models import (
     DrefCountryDistrict,
     DrefFile,
     DrefOperationalUpdate,
-    DrefOperationalUpdateCountryDistrict
+    DrefOperationalUpdateCountryDistrict,
+    PlannedInterventionIndicators
 )
 
 
 @admin.register(DrefFile)
 class DrefFileAdmin(admin.ModelAdmin):
     search_fields = ('file',)
+
+
+@admin.register(PlannedInterventionIndicators)
+class PlannedInterventionIndicatorsAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(PlannedIntervention)

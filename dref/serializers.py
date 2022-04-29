@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from django.utils.translation import ugettext
 from django.db import models
@@ -23,6 +24,7 @@ from api.serializers import (
 from dref.models import (
     Dref,
     PlannedIntervention,
+    PlannedInterventionIndicators,
     NationalSocietyAction,
     IdentifiedNeed,
     DrefCountryDistrict,
@@ -30,6 +32,12 @@ from dref.models import (
     DrefOperationalUpdate,
     DrefOperationalUpdateCountryDistrict
 )
+
+
+class PlannedInterventionIndicatorsSerializer(ModelSerializer):
+    class Meta:
+        model = PlannedInterventionIndicators
+        fields = '__all__'
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -45,9 +53,14 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
-class PlannedInterventionSerializer(ModelSerializer):
+class PlannedInterventionSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer
+):
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     image_url = serializers.SerializerMethodField()
+    indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
 
     class Meta:
         model = PlannedIntervention
@@ -304,6 +317,13 @@ class DrefOperationalUpdateSerializer(
                     )
         return data
 
+    def get_total_timeframe(self, start_date, end_date):
+        if start_date and end_date:
+            start_date_month = datetime.datetime.strftime('%m')
+            end_date_month = datetime.datetime.strptime('%m')
+            return abs(end_date_month - start_date_month)
+        return None
+
     def create(self, validated_data):
         dref = validated_data.get('dref')
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref)
@@ -360,7 +380,9 @@ class DrefOperationalUpdateSerializer(
             validated_data['operation_objective'] = dref.operation_objective
             validated_data['response_strategy'] = dref.response_strategy
             validated_data['created_by'] = self.context['request'].user
+            validated_data['new_operational_start_date'] = dref.date_of_approval
             validated_data['operational_update_number'] = 1  # if no any dref operational update created so far
+            validated_data['dref_allocated_so_far'] = dref.amount_requested
             operational_update = super().create(validated_data)
             operational_update.planned_interventions.add(*dref.planned_interventions.all())
             operational_update.images.add(*dref.images.all())
@@ -430,6 +452,8 @@ class DrefOperationalUpdateSerializer(
             validated_data['response_strategy'] = operational_object.response_strategy
             validated_data['created_by'] = self.context['request'].user
             validated_data['operational_update_number'] = operational_object.operational_update_number + 1
+            validated_data['new_operational_start_date'] = operational_object.dref.date_of_approval
+            validated_data['dref_allocated_so_far'] = operational_object.total_dref_allocation
             operational_update = super().create(validated_data)
             operational_update.planned_interventions.add(*operational_object.planned_interventions.all())
             operational_update.images.add(*operational_object.images.all())

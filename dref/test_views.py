@@ -184,14 +184,30 @@ class DrefTestCase(APITestCase):
                     "title": "shelter_and_basic_household_items",
                     "description": "matrix",
                     "budget": 23444,
-                    "person_targated": 12222
+                    "male": 12222,
+                    "female": 2255,
+                    "indicators": [
+                        {
+                            'title': "test_title",
+                            'actual': 21232,
+                            'target': 44444,
+                        }
+                    ]
                 },
                 {
                     "id": 2,
                     "title": "health",
                     "description": "matrix reloaded",
                     "budget": 451111111,
-                    "person_targated": 345
+                    "male": 12222,
+                    "female": 2255,
+                    "indicators": [
+                        {
+                            'title': "test_title",
+                            'actual': 21232,
+                            'target': 44444,
+                        }
+                    ]
                 }
             ],
         }

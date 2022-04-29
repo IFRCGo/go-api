@@ -8,7 +8,8 @@ from dref.models import (
     IdentifiedNeed,
     NationalSocietyAction,
     DrefFile,
-    DrefOperationalUpdate
+    DrefOperationalUpdate,
+    PlannedInterventionIndicators
 )
 
 
@@ -63,11 +64,26 @@ class DrefFileFactory(factory.django.DjangoModelFactory):
         model = DrefFile
 
 
+class PlannedInterventionIndicatorsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PlannedInterventionIndicators
+    title = fuzzy.FuzzyText(length=50, prefix='title-')
+
+
 class PlannedInterventionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PlannedIntervention
 
     title = fuzzy.FuzzyChoice(PlannedIntervention.Title)
+
+    @factory.post_generation
+    def indicators(self, extracted, create, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for indicator in extracted:
+                self.indicators.add(indicator)
 
 
 class IdentifiedNeedFactory(factory.django.DjangoModelFactory):

@@ -118,6 +118,19 @@ class IdentifiedNeed(models.Model):
 
 
 @reversion.register()
+class PlannedInterventionIndicators(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Title')
+    target = models.IntegerField(verbose_name='Target', null=True, blank=True)
+    actual = models.IntegerField(verbose_name='Actual', null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('planned intervention indicator')
+        verbose_name_plural = _('planned intervention indicators')
+
+    def __str__(self):
+        return self.title
+
+
 class PlannedIntervention(models.Model):
     class Title(TextChoices):
         SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
@@ -137,9 +150,19 @@ class PlannedIntervention(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
+    person_targeted = models.IntegerField(verbose_name=_('person targeted'), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
-    person_targeted = models.IntegerField(verbose_name=_('person targeted'), blank=True, null=True)
-    indicator = models.TextField(verbose_name=_('indicator'), blank=True, null=True)
+    male = models.IntegerField(verbose_name=_('male'), blank=True, null=True)
+    female = models.IntegerField(verbose_name=_('female'), blank=True, null=True)
+    indicators = models.ManyToManyField(
+        PlannedInterventionIndicators,
+        verbose_name=_('Indicators'),
+        blank=True,
+    )
+    progress_towards_outcome = models.TextField(
+        verbose_name=_('Progress Towards Outcome'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('planned intervention')
@@ -675,16 +698,16 @@ class DrefOperationalUpdate(models.Model):
         null=True, blank=True,
         verbose_name=_('Is Timeframe Extension Required')
     )
+    new_operational_start_date = models.DateField(
+        verbose_name=_('New Operation Start Date'),
+        null=True, blank=True
+    )
     new_operational_end_date = models.DateField(
         verbose_name=_('New Operation End Date'),
         null=True, blank=True
     )
     total_operation_timeframe = models.IntegerField(
         verbose_name=_('Total Operation Timeframe'),
-        null=True, blank=True
-    )
-    date_of_approval = models.DateField(
-        verbose_name=_('Date of Approval'),
         null=True, blank=True
     )
     appeal_code = models.CharField(
