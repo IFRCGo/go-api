@@ -25,13 +25,13 @@ class ProjectFilter(filters.FilterSet):
     country = filters.CharFilter(label='Country ISO/ISO3', field_name='country', method='filter_countries')
     region = filters.ModelMultipleChoiceFilter(
         label='Region', queryset=Region.objects.all(), widget=filters.widgets.CSVWidget, method='filter_regions')
-    operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices(), widget=filters.widgets.CSVWidget)
-    programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices(), widget=filters.widgets.CSVWidget)
-    primary_sector = filters.MultipleChoiceFilter(choices=Sectors.choices(), widget=filters.widgets.CSVWidget)
+    operation_type = filters.MultipleChoiceFilter(choices=OperationTypes, widget=filters.widgets.CSVWidget)
+    programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes, widget=filters.widgets.CSVWidget)
+    primary_sector = filters.MultipleChoiceFilter(choices=Sectors, widget=filters.widgets.CSVWidget)
     secondary_sectors = filters.MultipleChoiceFilter(
-        choices=SectorTags.choices(), widget=filters.widgets.CSVWidget, method='filter_secondary_sectors',
+        choices=SectorTags, widget=filters.widgets.CSVWidget, method='filter_secondary_sectors',
     )
-    status = filters.MultipleChoiceFilter(choices=Statuses.choices(), widget=filters.widgets.CSVWidget)
+    status = filters.MultipleChoiceFilter(choices=Statuses, widget=filters.widgets.CSVWidget)
 
     # Supporting/Receiving NS Filters (Multiselect)
     reporting_ns = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)

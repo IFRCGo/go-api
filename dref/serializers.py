@@ -6,7 +6,6 @@ from django.db import models
 from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
@@ -119,7 +118,6 @@ class DrefCountryDistrictSerializer(ModelSerializer):
 
 
 class DrefSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer

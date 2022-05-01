@@ -4,8 +4,6 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 
-from enumfields.drf.serializers import EnumSupportSerializerMixin
-
 from main.utils import get_merged_items_by_fields
 from main.writable_nested_serializers import (
     NestedCreateMixin,
@@ -56,7 +54,7 @@ class MiniUserSerializer(ModelSerializer):
         )
 
 
-class ERUSetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class ERUSetSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
@@ -74,7 +72,7 @@ class ERUOwnerSerializer(ModelSerializer):
         fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
 
 
-class ERUSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
     event = ListEventSerializer()
     eru_owner = ERUOwnerSerializer()
@@ -93,7 +91,7 @@ class ERUOwnerMiniSerializer(ModelSerializer):
         fields = ('id', 'national_society_country_details',)
 
 
-class ERUMiniSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class ERUMiniSerializer(ModelSerializer):
     eru_owner_details = ERUOwnerMiniSerializer(source='eru_owner', read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
@@ -336,7 +334,7 @@ class RegionalProjectSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class ProjectSerializer(ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
@@ -518,7 +516,6 @@ class EmergencyProjectActivitySerializer(
 
 
 class EmergencyProjectSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer,

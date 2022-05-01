@@ -3,7 +3,6 @@ from django.utils.translation import ugettext
 
 from rest_framework import serializers
 
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 from .tasks import share_flash_update, send_flash_update_email
 
 from api.serializers import (
@@ -109,7 +108,6 @@ class FlashCountryDistrictSerializer(serializers.ModelSerializer):
 
 
 class FlashUpdateSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer

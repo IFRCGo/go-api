@@ -49,24 +49,24 @@ class DisasterType(models.Model):
         return self.name
 
 
-class RegionName(enum.Enum):
+class RegionName(models.IntegerChoices):
+    """ A region """
     AFRICA = 0
     AMERICAS = 1
     ASIA_PACIFIC = 2
     EUROPE = 3
     MENA = 4
-
-    class Labels:
-        AFRICA = _('Africa')
-        AMERICAS = _('Americas')
-        ASIA_PACIFIC = _('Asia Pacific')
-        EUROPE = _('Europe')
-        MENA = _('Middle East & North Africa')
-
+    Choices = [
+        (AFRICA, _('Africa')),
+        (AMERICAS, _('Americas')),
+        (ASIA_PACIFIC, _('Asia Pacific')),
+        (EUROPE, _('Europe')),
+        (MENA, _('Middle East & North Africa')),
+        ]
 
 class Region(models.Model):
     """ A region """
-    name = EnumIntegerField(choices=enumerate(RegionName), verbose_name=_('name'))
+    name = models.SmallIntegerField(choices=RegionName, default=0, verbose_name=_('name'))
     bbox = models.PolygonField(srid=4326, blank=True, null=True)
     label = models.CharField(verbose_name=_('name of the region'), max_length=250, blank=True)
     additional_tab_name = models.CharField(verbose_name='Label for Additional Tab', max_length=100, blank=True)
