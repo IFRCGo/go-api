@@ -61,6 +61,7 @@ class PlannedInterventionSerializer(
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
+    title_display = serializers.CharField(source='get_title_display', read_only=True)
 
     class Meta:
         model = PlannedIntervention
@@ -76,6 +77,7 @@ class PlannedInterventionSerializer(
 
 class NationalSocietyActionSerializer(ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    title_display = serializers.CharField(source='get_title_display', read_only=True)
 
     class Meta:
         model = NationalSocietyAction
@@ -84,6 +86,7 @@ class NationalSocietyActionSerializer(ModelSerializer):
             'title',
             'description',
             'image_url',
+            'title_display',
         )
 
     def get_image_url(self, nationalsocietyactions):
@@ -96,6 +99,7 @@ class NationalSocietyActionSerializer(ModelSerializer):
 
 class IdentifiedNeedSerializer(ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    title_display = serializers.CharField(source='get_title_display', read_only=True)
 
     class Meta:
         model = IdentifiedNeed
@@ -104,6 +108,7 @@ class IdentifiedNeedSerializer(ModelSerializer):
             'title',
             'description',
             'image_url',
+            'title_display',
         )
 
     def get_image_url(self, identifiedneed):
