@@ -539,7 +539,7 @@ class Command(BaseCommand):
                     'report_date': record.report_date,
                     'rid': record.rid,
                     'start_date': record.start_date,
-                    'status': 'Early Warning' if record.status == 8 else "Event-related",
+                    'status': 'Early Warning' if record.status == 8 else 'Event-related',
                     'supported_activities': ', '.join(i.name for i in record.supported_activities.all()),
                 },
             }
