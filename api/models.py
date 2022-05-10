@@ -8,6 +8,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
+from dref.enums import IntegerChoices
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
@@ -1207,6 +1208,14 @@ class UserRegion(models.Model):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
+    class Status(IntegerChoices):
+        UNKNOWN = 0, _('Unknown')
+        TWO = 2, _('Two')  # legacy usage
+        THREE = 3, _('Three')  # legacy usage
+        EW = 8, _('Early Warning')
+        EVT = 9, _('Event-related')
+        TEN = 10, _('Ten')  # legacy usage. Covid?
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='user',
         null=True, blank=True, on_delete=models.SET_NULL,
@@ -1229,7 +1238,8 @@ class FieldReport(models.Model):
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
-    status = models.IntegerField(verbose_name=_('status'), default=0)
+    # This entity is more a type than a status, so let's label it this way on admin page:
+    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0)
     request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
     ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
