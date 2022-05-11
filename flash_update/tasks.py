@@ -25,7 +25,8 @@ def share_flash_update(flash_update_share_id):
 
     # create url for pdf in email
     email_context = {
-        'document_url': flash_update.extracted_file.url
+        'document_url': flash_update.extracted_file.url,
+        'situational_overview': flash_update.situational_overview
     }
     donors_emails = instance.donors.all().values_list('email', flat=True)
     donor_groups_emails = Donors.objects.filter(
@@ -61,3 +62,14 @@ def send_flash_update_email(flash_update_id):
             'Flash Update'
         )
     return email_context
+
+
+@shared_task
+def export_to_pdf(flash_update):
+    context_for_pdf = get_email_context(flash_update)
+    if flash_update.extracted_at is None or flash_update.modified_at > flash_update.extracted_at:
+        pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
+        # save the generated pdf
+        flash_update.extracted_file.save(pdf['filename'], ContentFile(pdf['file']))
+        flash_update.extracted_at = timezone.now()
+        flash_update.save(update_fields=('extracted_at',))

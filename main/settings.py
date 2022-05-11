@@ -279,7 +279,8 @@ TINYMCE_DEFAULT_CONFIG = {
     'toolbar2': '''
             media embed
             ''',
-    'force_p_newlines': False,
+    'force_p_newlines': True,
+    'force_br_newlines': True,
     'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
