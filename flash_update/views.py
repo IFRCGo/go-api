@@ -116,15 +116,13 @@ class ExportFlashUpdateView(views.APIView):
 
     def get(self, request, pk, format=None):
         flash_update = get_object_or_404(FlashUpdate, pk=pk)
-        if not flash_update.extracted_file:
-            res = {'status': 'pending', 'url': None}
-            transaction.on_commit(
-                lambda: export_to_pdf(flash_update)
-            )
-            return Response(res)
-        else:
-            res = {
+        if flash_update.extracted_file and flash_update.modified_at < flash_update.extracted_at:
+            return Response({
                 'status': 'ready',
                 'url': request.build_absolute_uri(flash_update.extracted_file.url)
-            }
-            return Response(res)
+            })
+        else:
+            transaction.on_commit(
+                lambda: export_to_pdf.delay(flash_update.id)
+            )
+            return Response({'status': 'pending', 'url': None})

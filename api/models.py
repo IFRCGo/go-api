@@ -1468,7 +1468,7 @@ class ActionOrg:
 
     CHOICES = (
         (NATIONAL_SOCIETY, _('National Society')),
-        (FOREIGN_SOCIETY, _('Foreign Society')),
+        (FOREIGN_SOCIETY, _('RCRC')),
         (FEDERATION, _('Federation')),
         (GOVERNMENT, _('Government')),
     )

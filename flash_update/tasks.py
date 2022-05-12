@@ -65,11 +65,12 @@ def send_flash_update_email(flash_update_id):
 
 
 @shared_task
-def export_to_pdf(flash_update):
+def export_to_pdf(id):
+    flash_update = FlashUpdate.objects.get(id=id)
     context_for_pdf = get_email_context(flash_update)
     if flash_update.extracted_at is None or flash_update.modified_at > flash_update.extracted_at:
         pdf = render_to_pdf('email/flash_update/flash_pdf.html', context_for_pdf)
         # save the generated pdf
-        flash_update.extracted_file.save(pdf['filename'], ContentFile(pdf['file']))
+        flash_update.extracted_file.save(pdf['filename'], ContentFile(pdf['file']), save=False)
         flash_update.extracted_at = timezone.now()
-        flash_update.save(update_fields=('extracted_at',))
+        flash_update.save(update_fields=('extracted_at', 'extracted_file',))
