@@ -147,7 +147,8 @@ class FlashCountryDistrict(models.Model):
     )
     district = models.ManyToManyField(
         District, verbose_name=_('district'),
-        related_name='flash_district'
+        related_name='flash_district',
+        blank=True
     )
     client_id = models.CharField(max_length=50, null=True, blank=True)
 

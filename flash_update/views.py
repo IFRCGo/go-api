@@ -1,3 +1,6 @@
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import (
@@ -27,6 +30,7 @@ from .serializers import (
     ShareFlashUpdateSerializer,
 )
 from .filter_set import FlashUpdateFilter
+from .tasks import export_to_pdf
 
 
 class FlashUpdateViewSet(viewsets.ModelViewSet):
@@ -105,3 +109,20 @@ class ShareFlashUpdateViewSet(
     queryset = FlashUpdateShare.objects.all()
     serializer_class = ShareFlashUpdateSerializer
     permission_class = [permissions.IsAuthenticated]
+
+
+class ExportFlashUpdateView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk, format=None):
+        flash_update = get_object_or_404(FlashUpdate, pk=pk)
+        if flash_update.extracted_file and flash_update.modified_at < flash_update.extracted_at:
+            return Response({
+                'status': 'ready',
+                'url': request.build_absolute_uri(flash_update.extracted_file.url)
+            })
+        else:
+            transaction.on_commit(
+                lambda: export_to_pdf.delay(flash_update.id)
+            )
+            return Response({'status': 'pending', 'url': None})
