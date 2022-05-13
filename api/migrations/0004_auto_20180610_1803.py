@@ -3,7 +3,6 @@
 import api.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -30,7 +29,7 @@ class Migration(migrations.Migration):
                 ('figure', models.CharField(max_length=100)),
                 ('deck', models.CharField(max_length=50)),
                 ('source', models.CharField(max_length=256)),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices)),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices)),
             ],
             options={
                 'ordering': ('source',),
@@ -50,7 +49,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('snippet', models.TextField(blank=True, null=True)),
                 ('image', models.ImageField(blank=True, null=True, upload_to='countries/%Y/%m/%d/')),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices)),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices)),
                 ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='snippets', to='api.Country')),
             ],
         ),
@@ -60,7 +59,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('snippet', models.TextField(blank=True, null=True)),
                 ('image', models.ImageField(blank=True, null=True, upload_to='regions/%Y/%m/%d/')),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices)),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices)),
                 ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='snippets', to='api.Region')),
             ],
         ),
@@ -72,7 +71,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='snippet',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices).choices,
         ),
         migrations.AlterField(
             model_name='keyfigure',

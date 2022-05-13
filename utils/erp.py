@@ -2,7 +2,7 @@ import requests
 import pytz
 from itertools import chain
 from datetime import datetime
-from api.models import RequestChoices, ERPGUID
+from api.models import Request, ERPGUID
 from api.logger import logger
 from django.conf import settings
 
@@ -53,9 +53,9 @@ def push_fr_data(data, retired=False):
             (if both DREF and Appeal, then the type must be EA)
         '''
 
-    if data.appeal != RequestChoices.NO:
+    if data.appeal != Request.NO:
         InitialRequestType, InitialRequestValue =  "EA", data.appeal_amount
-    elif data.dref != RequestChoices.NO:
+    elif data.dref != Request.NO:
         InitialRequestType, InitialRequestValue =  "DREF", data.dref_amount
     else:
         InitialRequestType, InitialRequestValue =  "Empty", 0

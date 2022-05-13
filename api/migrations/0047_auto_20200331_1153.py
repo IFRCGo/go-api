@@ -2,7 +2,6 @@
 
 import api.models
 from django.db import migrations, models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -30,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='snippet',
             name='tab',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.TabNumber),
+            field=models.IntegerField(default=1, choices=api.models.TabNumber).choices,
         ),
         migrations.AlterField(
             model_name='country',

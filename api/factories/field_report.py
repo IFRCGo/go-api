@@ -56,7 +56,7 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     epi_probable_cases = fuzzy.FuzzyInteger(0, 9)
     epi_confirmed_cases = fuzzy.FuzzyInteger(0, 9)
     epi_num_dead = fuzzy.FuzzyInteger(0, 9)
-    epi_figures_source = fuzzy.FuzzyChoice(models.EPISourceChoices)
+    epi_figures_source = fuzzy.FuzzyChoice(models.EPISource)
     epi_cases_since_last_fr = fuzzy.FuzzyInteger(0, 9)
     epi_deaths_since_last_fr = fuzzy.FuzzyInteger(0, 9)
     epi_notes_since_last_fr = fuzzy.FuzzyText(length=50)
@@ -94,53 +94,53 @@ class FieldReportFactory(factory.django.DjangoModelFactory):
     visibility = fuzzy.FuzzyChoice(models.VisibilityChoices)
 
     # information
-    bulletin = fuzzy.FuzzyChoice(models.RequestChoices)
-    dref = fuzzy.FuzzyChoice(models.RequestChoices)
+    bulletin = fuzzy.FuzzyChoice(models.Request)
+    dref = fuzzy.FuzzyChoice(models.Request)
     dref_amount = fuzzy.FuzzyInteger(0, 9999)
-    appeal = fuzzy.FuzzyChoice(models.RequestChoices)
+    appeal = fuzzy.FuzzyChoice(models.Request)
     appeal_amount = fuzzy.FuzzyInteger(0, 9999)
-    imminent_dref = fuzzy.FuzzyChoice(models.RequestChoices)
+    imminent_dref = fuzzy.FuzzyChoice(models.Request)
     imminent_dref_amount = fuzzy.FuzzyInteger(0, 9999)
-    forecast_based_action = fuzzy.FuzzyChoice(models.RequestChoices)  # only EW
+    forecast_based_action = fuzzy.FuzzyChoice(models.Request)  # only EW
     forecast_based_action_amount = fuzzy.FuzzyInteger(0, 9999)  # only EW
 
     # disaster response
-    rdrt = fuzzy.FuzzyChoice(models.RequestChoices)
+    rdrt = fuzzy.FuzzyChoice(models.Request)
     num_rdrt = fuzzy.FuzzyInteger(0, 9)
-    fact = fuzzy.FuzzyChoice(models.RequestChoices)
+    fact = fuzzy.FuzzyChoice(models.Request)
     num_fact = fuzzy.FuzzyInteger(0, 9)
-    ifrc_staff = fuzzy.FuzzyChoice(models.RequestChoices)
+    ifrc_staff = fuzzy.FuzzyChoice(models.Request)
     num_ifrc_staff = fuzzy.FuzzyInteger(0, 9)
 
     # ERU units
-    eru_base_camp = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_base_camp = fuzzy.FuzzyChoice(models.Request)
     eru_base_camp_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_basic_health_care = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_basic_health_care = fuzzy.FuzzyChoice(models.Request)
     eru_basic_health_care_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_it_telecom = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_it_telecom = fuzzy.FuzzyChoice(models.Request)
     eru_it_telecom_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_logistics = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_logistics = fuzzy.FuzzyChoice(models.Request)
     eru_logistics_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_deployment_hospital = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_deployment_hospital = fuzzy.FuzzyChoice(models.Request)
     eru_deployment_hospital_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_referral_hospital = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_referral_hospital = fuzzy.FuzzyChoice(models.Request)
     eru_referral_hospital_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_relief = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_relief = fuzzy.FuzzyChoice(models.Request)
     eru_relief_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_water_sanitation_15 = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_water_sanitation_15 = fuzzy.FuzzyChoice(models.Request)
     eru_water_sanitation_15_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_water_sanitation_40 = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_water_sanitation_40 = fuzzy.FuzzyChoice(models.Request)
     eru_water_sanitation_40_units = fuzzy.FuzzyInteger(0, 9)
 
-    eru_water_sanitation_20 = fuzzy.FuzzyChoice(models.RequestChoices)
+    eru_water_sanitation_20 = fuzzy.FuzzyChoice(models.Request)
     eru_water_sanitation_20_units = fuzzy.FuzzyInteger(0, 9)
 
     notes_health = fuzzy.FuzzyText(length=50)

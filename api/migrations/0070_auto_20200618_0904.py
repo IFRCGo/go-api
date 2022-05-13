@@ -7,7 +7,6 @@ import django.contrib.postgres.fields
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import re
 import tinymce.models
 
@@ -258,7 +257,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='adminkeyfigure',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='adminlink',
@@ -288,7 +287,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='appeal',
             name='atype',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.AppealType, verbose_name='appeal type'),
+            field=models.IntegerField(default=0, choices=api.models.AppealType.choices, verbose_name='appeal type'),
         ),
         migrations.AlterField(
             model_name='appeal',
@@ -368,7 +367,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='appeal',
             name='status',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.AppealStatus, verbose_name='status'),
+            field=models.IntegerField(default=0, choices=api.models.AppealStatus.choices, verbose_name='status'),
         ),
         migrations.AlterField(
             model_name='appealdocument',
@@ -448,7 +447,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='country',
             name='record_type',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.CountryType, help_text='Type of entity', verbose_name='type'),
+            field=models.IntegerField(default=1, choices=api.models.CountryType.choices, help_text='Type of entity', verbose_name='type'),
         ),
         migrations.AlterField(
             model_name='country',
@@ -498,7 +497,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countrysnippet',
             name='position',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position'),
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position'),
         ),
         migrations.AlterField(
             model_name='countrysnippet',
@@ -508,7 +507,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countrysnippet',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='cronjob',
@@ -538,7 +537,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cronjob',
             name='status',
-            field=enumfields.fields.EnumIntegerField(default=-1, enum=api.models.CronJobStatus, verbose_name='status'),
+            field=models.IntegerField(default=-1, choices=api.models.CronJobStatus.choices, verbose_name='status'),
         ),
         migrations.AlterField(
             model_name='cronjob',
@@ -2463,7 +2462,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='appeal',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='appeal'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='appeal'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2473,7 +2472,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='bulletin',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='bullentin'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='bullentin'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2508,7 +2507,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='dref',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='DREF'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='DREF'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2533,7 +2532,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='epi_figures_source',
-            field=enumfields.fields.EnumIntegerField(blank=True, enum=api.models.EPISourceChoices, null=True, verbose_name='figures source (epidemic)'),
+            field=models.IntegerField(blank=True, choices=api.models.EPISource.choices, null=True, verbose_name='figures source (epidemic)'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2553,7 +2552,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_base_camp',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU base camp'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU base camp'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2563,7 +2562,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_basic_health_care',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU basic health care'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU basic health care'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2573,7 +2572,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_deployment_hospital',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU deployment hospital'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU deployment hospital'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2583,7 +2582,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_it_telecom',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU IT telecom'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU IT telecom'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2593,7 +2592,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_logistics',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU logistics'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU logistics'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2603,7 +2602,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_referral_hospital',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU referral hospital'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU referral hospital'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2613,7 +2612,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_relief',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU relief'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU relief'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2623,7 +2622,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_water_sanitation_15',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU water sanitaion M15'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU water sanitaion M15'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2633,7 +2632,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_water_sanitation_20',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU water sanitaion MSM20'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU water sanitaion MSM20'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2643,7 +2642,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='eru_water_sanitation_40',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='ERU water sanitaion M40'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='ERU water sanitaion M40'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2658,12 +2657,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='fact',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='fact'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='fact'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
             name='forecast_based_action',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='forecast based action'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='forecast based action'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2748,12 +2747,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='ifrc_staff',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='IFRC staff'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='IFRC staff'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
             name='imminent_dref',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='imminent dref'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='imminent dref'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2923,7 +2922,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='rdrt',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices, verbose_name='RDRT'),
+            field=models.IntegerField(default=0, choices=api.models.Request.choices, verbose_name='RDRT'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -2983,7 +2982,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=1, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
@@ -3048,7 +3047,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='gdacsevent',
             name='alert_level',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.AlertLevel, verbose_name='alert level'),
+            field=models.IntegerField(default=0, choices=api.models.AlertLevel.choices, verbose_name='alert level'),
         ),
         migrations.AlterField(
             model_name='gdacsevent',
@@ -3208,7 +3207,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='region',
             name='name',
-            field=enumfields.fields.EnumIntegerField(enum=api.models.RegionName, verbose_name='name'),
+            field=models.IntegerField(choices=api.models.RegionName.choices, verbose_name='name'),
         ),
         migrations.AlterField(
             model_name='regioncontact',
@@ -3233,7 +3232,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='regionsnippet',
             name='position',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position'),
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position'),
         ),
         migrations.AlterField(
             model_name='regionsnippet',
@@ -3248,7 +3247,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='regionsnippet',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='reversiondifferencelog',
@@ -3328,7 +3327,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='situationreport',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=1, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='situationreporttype',
@@ -3353,7 +3352,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='snippet',
             name='position',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position'),
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position'),
         ),
         migrations.AlterField(
             model_name='snippet',
@@ -3363,12 +3362,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='snippet',
             name='tab',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.TabNumber, verbose_name='tab'),
+            field=models.IntegerField(default=1, choices=api.models.TabNumber.choices, verbose_name='tab'),
         ),
         migrations.AlterField(
             model_name='snippet',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility'),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='source',

@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import per.models
 
 
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
             name='NSPhase',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('phase', enumfields.fields.EnumIntegerField(default=0, enum=per.models.ProcessPhase)),
+                ('phase', models.IntegerField(default=0, choices=per.models.ProcessPhase.choices)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('country', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Country')),
             ],

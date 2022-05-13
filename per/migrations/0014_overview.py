@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import per.models
 
 
@@ -19,7 +18,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_of_current_capacity_assessment', models.DateTimeField(auto_now=True)),
-                ('type_of_capacity_assessment', enumfields.fields.EnumIntegerField(default=0, enum=per.models.CAssessmentType)),
+                ('type_of_capacity_assessment', models.IntegerField(default=0, choices=per.models.CAssessmentType.choices)),
                 ('branch_involved', models.CharField(blank=True, max_length=90, null=True)),
                 ('focal_point_name', models.CharField(blank=True, max_length=90, null=True)),
                 ('focal_point_email', models.CharField(blank=True, max_length=90, null=True)),

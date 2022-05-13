@@ -5,7 +5,6 @@ from django.conf import settings
 import django.contrib.postgres.fields
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -125,7 +124,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='eru',
             name='type',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=deployments.models.ERUType, verbose_name='type'),
+            field=models.IntegerField(default=0, choices=deployments.models.ERUType.choices, verbose_name='type'),
         ),
         migrations.AlterField(
             model_name='eru',
@@ -150,7 +149,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='erureadiness',
             name='ERU_type',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=deployments.models.ERUType, verbose_name='ERU type'),
+            field=models.IntegerField(default=0, choices=deployments.models.ERUType.choices, verbose_name='ERU type'),
         ),
         migrations.AlterField(
             model_name='erureadiness',
@@ -310,17 +309,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='project',
             name='operation_type',
-            field=enumfields.fields.EnumIntegerField(enum=deployments.models.OperationTypes, verbose_name='operation type'),
+            field=models.IntegerField(choices=deployments.models.OperationTypes.choices, verbose_name='operation type'),
         ),
         migrations.AlterField(
             model_name='project',
             name='primary_sector',
-            field=enumfields.fields.EnumIntegerField(enum=deployments.models.Sectors, verbose_name='sector'),
+            field=models.IntegerField(choices=deployments.models.Sectors.choices, verbose_name='sector'),
         ),
         migrations.AlterField(
             model_name='project',
             name='programme_type',
-            field=enumfields.fields.EnumIntegerField(enum=deployments.models.ProgrammeTypes, verbose_name='programme type'),
+            field=models.IntegerField(choices=deployments.models.ProgrammeTypes.choices, verbose_name='programme type'),
         ),
         migrations.AlterField(
             model_name='project',
@@ -365,7 +364,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='project',
             name='secondary_sectors',
-            field=django.contrib.postgres.fields.ArrayField(base_field=enumfields.fields.EnumIntegerField(enum=deployments.models.SectorTags), blank=True, default=list, size=None, verbose_name='tags'),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(choices=deployments.models.SectorTags).choices, blank=True, default=list, size=None, verbose_name='tags'),
         ),
         migrations.AlterField(
             model_name='project',
@@ -375,7 +374,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='project',
             name='status',
-            field=enumfields.fields.EnumIntegerField(enum=deployments.models.Statuses, verbose_name='status'),
+            field=models.IntegerField(choices=deployments.models.Statuses.choices, verbose_name='status'),
         ),
         migrations.AlterField(
             model_name='project',

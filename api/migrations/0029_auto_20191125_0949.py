@@ -2,7 +2,6 @@
 
 import api.models
 from django.db import migrations, models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -15,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fieldreport',
             name='forecast_based_action',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices),
+            field=models.IntegerField(default=0, choices=api.models.Request).choices,
         ),
         migrations.AddField(
             model_name='fieldreport',
@@ -25,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fieldreport',
             name='imminent_dref',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.RequestChoices),
+            field=models.IntegerField(default=0, choices=api.models.Request).choices,
         ),
         migrations.AddField(
             model_name='fieldreport',

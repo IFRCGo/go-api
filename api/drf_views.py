@@ -54,8 +54,8 @@ from .models import (
     SourceType,
 
     VisibilityChoices,
-    RequestChoices,
-    EPISourceChoices,
+    Request,
+    EPISource,
     MainContact,
     UserCountry,
     CountryOfFieldReportToReview,
@@ -716,11 +716,11 @@ class GenericFieldReportView(GenericAPIView):
         # Handle EPI Figures' Source dropdown saving
         if 'epi_figures_source' in data:
             if data['epi_figures_source'] == 0 or data['epi_figures_source'] == '0':
-                data['epi_figures_source'] = EPISourceChoices.MINISTRY_OF_HEALTH
+                data['epi_figures_source'] = EPISource.MINISTRY_OF_HEALTH
             elif data['epi_figures_source'] == 1 or data['epi_figures_source'] == '1':
-                data['epi_figures_source'] = EPISourceChoices.WHO
+                data['epi_figures_source'] = EPISource.WHO
             elif data['epi_figures_source'] == 2 or data['epi_figures_source'] == '2':
-                data['epi_figures_source'] = EPISourceChoices.OTHER
+                data['epi_figures_source'] = EPISource.OTHER
             else:
                 data['epi_figures_source'] = None
         else:
@@ -749,13 +749,13 @@ class GenericFieldReportView(GenericAPIView):
         for prop in request_choices:
             if prop in data:
                 if data[prop] == 1 or data[prop] == '1':
-                    data[prop] = RequestChoices.REQUESTED
+                    data[prop] = Request.REQUESTED
                 elif data[prop] == 2 or data[prop] == '2':
-                    data[prop] = RequestChoices.PLANNED
+                    data[prop] = Request.PLANNED
                 elif data[prop] == 3 or data[prop] == '3':
-                    data[prop] = RequestChoices.COMPLETE
+                    data[prop] = Request.COMPLETE
                 else:
-                    data[prop] = RequestChoices.NO
+                    data[prop] = Request.NO
 
         if instance is not None:
             serializer = CreateFieldReportSerializer(instance, data=data)

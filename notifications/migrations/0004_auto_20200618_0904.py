@@ -3,7 +3,6 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import notifications.models
 
 
@@ -65,12 +64,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='subscription',
             name='rtype',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.RecordType, verbose_name='record type'),
+            field=models.IntegerField(default=0, choices=notifications.models.RecordType.choices, verbose_name='record type'),
         ),
         migrations.AlterField(
             model_name='subscription',
             name='stype',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SubscriptionType, verbose_name='subscription type'),
+            field=models.IntegerField(default=0, choices=notifications.models.SubscriptionType.choices, verbose_name='subscription type'),
         ),
         migrations.AlterField(
             model_name='subscription',
@@ -80,12 +79,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='surgealert',
             name='atype',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SurgeAlertType, verbose_name='alert type'),
+            field=models.IntegerField(default=0, choices=notifications.models.SurgeAlertType.choices, verbose_name='alert type'),
         ),
         migrations.AlterField(
             model_name='surgealert',
             name='category',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SurgeAlertCategory, verbose_name='category'),
+            field=models.IntegerField(default=0, choices=notifications.models.SurgeAlertCategory.choices, verbose_name='category'),
         ),
         migrations.AlterField(
             model_name='surgealert',

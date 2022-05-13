@@ -5,25 +5,15 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from .questions_data import questions
 from tinymce import HTMLField
-from choicesenum.django.fields import EnumIntegerField
-import enum
 
 
-class ProcessPhase(enum.Enum):
-    BASELINE = 0
-    ORIENTATION = 1
-    ASSESSMENT = 2
-    PRIORITIZATION = 3
-    PLAN_OF_ACTION = 4
-    ACTION_AND_ACCOUNTABILITY = 5
-
-    class Labels:
-        BASELINE = _('baseline')
-        ORIENTATION = _('orientation')
-        ASSESSMENT = _('assessment')
-        PRIORITIZATION = _('prioritization')
-        PLAN_OF_ACTION = _('plan of action')
-        ACTION_AND_ACCOUNTABILITY = _('action and accountability')
+class ProcessPhase(models.IntegerChoices):
+    BASELINE = 0, _('baseline')
+    ORIENTATION = 1, _('orientation')
+    ASSESSMENT = 2, _('assessment')
+    PRIORITIZATION = 3, _('prioritization')
+    PLAN_OF_ACTION = 4, _('plan of action')
+    ACTION_AND_ACCOUNTABILITY = 5, _('action and accountability')
 
 
 @reversion.register()
@@ -31,7 +21,7 @@ class NSPhase(models.Model):
     """ NS PER Process Phase """
     # default=1 needed only for the migration, can be deleted later
     country = models.OneToOneField(Country, on_delete=models.CASCADE, default=1)
-    phase = EnumIntegerField(choices=enumerate(ProcessPhase), default=ProcessPhase.BASELINE)
+    phase = models.IntegerField(choices=ProcessPhase.choices, default=ProcessPhase.BASELINE)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -48,37 +38,22 @@ class NSPhase(models.Model):
 
 
 # FIXME: should be removable in some way (?)
-class Status(enum.Enum):
-    NO = 0
-    YES = 1
-    NOT_REVIEWED = 2
-    DOES_NOT_EXIST = 3
-    PARTIALLY_EXISTS = 4
-    NEED_IMPROVEMENTS = 5
-    EXIST_COULD_BE_STRENGTHENED = 6
-    HIGH_PERFORMANCE = 7
-
-    class Labels:
-        NO = _('no')
-        YES = _('yes')
-        NOT_REVIEWED = _('not reviewed')
-        DOES_NOT_EXIST = _('does not exist')
-        PARTIALLY_EXISTS = _('partially exists')
-        NEED_IMPROVEMENTS = _('needs improvement')
-        EXIST_COULD_BE_STRENGTHENED = _('exists could be strengthened')
-        HIGH_PERFORMANCE = _('high performance')
+class Status(models.IntegerChoices):
+    NO = 0, _('no')
+    YES = 1, _('yes')
+    NOT_REVIEWED = 2, _('not reviewed')
+    DOES_NOT_EXIST = 3, _('does not exist')
+    PARTIALLY_EXISTS = 4, _('partially exists')
+    NEED_IMPROVEMENTS = 5, _('needs improvement')
+    EXIST_COULD_BE_STRENGTHENED = 6, _('exists could be strengthened')
+    HIGH_PERFORMANCE = 7, _('high performance')
 
 
 # FIXME: can't remove because it's in the 0020 migration...
-class Language(enum.Enum):
-    SPANISH = 0
-    FRENCH = 1
-    ENGLISH = 2
-
-    class Labels:
-        SPANISH = _('spanish')
-        FRENCH = _('french')
-        ENGLISH = _('english')
+class Language(models.IntegerChoices):
+    SPANISH = 0, _('spanish')
+    FRENCH = 1, _('french')
+    ENGLISH = 2, _('english')
 
 
 @reversion.register()
@@ -129,17 +104,11 @@ class FormQuestion(models.Model):
 
 
 # FIXME: can't remove because it's in the 0020 migration...
-class CAssessmentType(enum.Enum):
-    SELF_ASSESSMENT = 0
-    SIMULATION = 1
-    OPERATIONAL = 2
-    POST_OPERATIONAL = 3
-
-    class Labels:
-        SELF_ASSESSMENT = _('self assessment')
-        SIMULATION = _('simulation')
-        OPERATIONAL = _('operational')
-        POST_OPERATIONAL = _('post operational')
+class CAssessmentType(models.IntegerChoices):
+    SELF_ASSESSMENT = 0, _('self assessment')
+    SIMULATION = 1, _('simulation')
+    OPERATIONAL = 2, _('operational')
+    POST_OPERATIONAL = 3, _('post operational')
 
 
 @reversion.register()
@@ -268,49 +237,33 @@ class FormData(models.Model):
         return ''
 
 
-class PriorityValue(enum.Enum):
-    LOW = 0
-    MID = 1
-    HIGH = 2
-
-    class Labels:
-        LOW = _('low')
-        MID = _('medium')
-        HIGH = _('high')
+class PriorityValue(models.IntegerChoices):
+    LOW = 0, _('low')
+    MID = 1, _('medium')
+    HIGH = 2, _('high')
 
 
-class WorkPlanStatus(enum.Enum):
-    STANDBY = 0
-    ONGOING = 1
-    CANCELLED = 2
-    DELAYED = 3
-    PENDING = 4
-    NEED_IMPROVEMENTS = 5
-    FINISHED = 6
-    APPROVED = 7
-    CLOSED = 8
-
-    class Labels:
-        STANDBY = _('standby')
-        ONGOING = _('ongoing')
-        CANCELLED = _('cancelled')
-        DELAYED = _('delayed')
-        PENDING = _('pending')
-        NEED_IMPROVEMENTS = _('need improvements')
-        FINISHED = _('finished')
-        APPROVED = _('approved')
-        CLOSED = _('closed')
+class WorkPlanStatus(models.IntegerChoices):
+    STANDBY = 0, _('standby')
+    ONGOING = 1, _('ongoing')
+    CANCELLED = 2, _('cancelled')
+    DELAYED = 3, _('delayed')
+    PENDING = 4, _('pending')
+    NEED_IMPROVEMENTS = 5, _('need improvements')
+    FINISHED = 6, _('finished')
+    APPROVED = 7, _('approved')
+    CLOSED = 8, _('closed')
 
 
 @reversion.register()
 class WorkPlan(models.Model):
-    prioritization = EnumIntegerField(choices=enumerate(PriorityValue), verbose_name=_('prioritization'))
+    prioritization = models.IntegerField(choices=PriorityValue.choices, default=0, verbose_name=_('prioritization'))
     components = models.CharField(verbose_name=_('components'), max_length=900, null=True, blank=True)
     benchmark = models.CharField(verbose_name=_('benchmark'), max_length=900, null=True, blank=True)
     actions = models.CharField(verbose_name=_('actions'), max_length=900, null=True, blank=True)
     comments = models.CharField(verbose_name=_('comments'), max_length=900, null=True, blank=True)
     timeline = models.DateTimeField(verbose_name=_('timeline'))
-    status = EnumIntegerField(choices=enumerate(WorkPlanStatus), verbose_name=_('status'))
+    status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_('status'))
     support_required = models.BooleanField(verbose_name=_('support required'), default=False)
     focal_point = models.CharField(verbose_name=_('focal point'), max_length=90, null=True, blank=True)
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
@@ -335,13 +288,9 @@ class WorkPlan(models.Model):
         return '%s [%s %s]' % (name, self.code, self.question_id)
 
 
-class Visibilities(enum.Enum):
-    HIDDEN = 0
-    VISIBLE = 1
-
-    class Labels:
-        HIDDEN = _('hidden')
-        VISIBLE = _('visible')
+class Visibilities(models.IntegerChoices):
+    HIDDEN = 0, _('hidden')
+    VISIBLE = 1, _('visible')
 
 
 def nice_document_path(instance, filename):
@@ -357,7 +306,7 @@ class NiceDocument(models.Model):
     country = models.ForeignKey(
         Country, verbose_name=_('country'), related_name='perdoc_country', null=True, blank=True, on_delete=models.SET_NULL
     )
-    visibility = EnumIntegerField(choices=enumerate(Visibilities), verbose_name=_('visibility'), default=Visibilities.VISIBLE)
+    visibility = models.IntegerField(choices=Visibilities.choices, verbose_name=_('visibility'), default=Visibilities.VISIBLE)
 
     class Meta:
         ordering = ('visibility', 'country')
