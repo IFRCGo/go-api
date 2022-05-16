@@ -401,7 +401,7 @@ class ProjectCsvSerializer(ProjectSerializer):
 
     @staticmethod
     def get_secondary_sectors(obj):
-        return ', '.join([str(sector.value) for sector in obj.secondary_sectors])
+        return ', '.join([str(sector) for sector in obj.secondary_sectors])
 
     @staticmethod
     def get_secondary_sectors_display(obj):

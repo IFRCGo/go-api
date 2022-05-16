@@ -423,7 +423,7 @@ class Project(models.Model):
         return '%s (%s)' % (self.name, postfix)
 
     def get_secondary_sectors_display(self):
-        choices_dict = dict(make_hashable(SectorTags.choices()))
+        choices_dict = dict(make_hashable(SectorTags.choices))
         return [
             force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
             for value in self.secondary_sectors or []
