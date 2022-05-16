@@ -699,14 +699,14 @@ jsmin = "*"
 
 [[package]]
 name = "djangorestframework"
-version = "3.12.4"
+version = "3.11.2"
 description = "Web APIs for Django, made easy."
 category = "main"
 optional = false
 python-versions = ">=3.5"
 
 [package.dependencies]
-django = ">=2.2"
+django = ">=1.11"
 
 [[package]]
 name = "djangorestframework-camel-case"
@@ -2004,7 +2004,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "c6d92588a3843f763cbe991f5218e9ca2b60dfc7731825f7c8f0dc26f6f92dd0"
+content-hash = "33c500b396763d6eced706a0e6327e4c24c46c14c4021869a040dc591928e048"
 
 [metadata.files]
 amqp = [
@@ -2347,8 +2347,8 @@ django-tinymce4-lite = [
     {file = "django_tinymce4_lite-1.7.4-py2.py3-none-any.whl", hash = "sha256:cf4a41abc704e56515eb48d9d8fd3c56ceeb9705419bdff2b8a375e2131524f8"},
 ]
 djangorestframework = [
-    {file = "djangorestframework-3.12.4-py3-none-any.whl", hash = "sha256:6d1d59f623a5ad0509fe0d6bfe93cbdfe17b8116ebc8eda86d45f6e16e819aaf"},
-    {file = "djangorestframework-3.12.4.tar.gz", hash = "sha256:f747949a8ddac876e879190df194b925c177cdeb725a099db1460872f7c0a7f2"},
+    {file = "djangorestframework-3.11.2-py3-none-any.whl", hash = "sha256:5cc724dc4b076463497837269107e1995b1fbc917468d1b92d188fd1af9ea789"},
+    {file = "djangorestframework-3.11.2.tar.gz", hash = "sha256:a5967b68a04e0d97d10f4df228e30f5a2d82ba63b9d03e1759f84993b7bf1b53"},
 ]
 djangorestframework-camel-case = [
     {file = "djangorestframework-camel-case-1.2.0.tar.gz", hash = "sha256:9714d43fba5bb654057c29501649684d3d9f11a92319ae417fd4d65e80d1159d"},

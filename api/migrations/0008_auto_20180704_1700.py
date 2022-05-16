@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='situationreport',
             name='visibility',
-            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices).choices,
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices),
         ),
         migrations.AddField(
             model_name='situationreport',

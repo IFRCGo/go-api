@@ -25,16 +25,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='snippet',
             name='position',
-            field=models.IntegerField(default=3, choices=api.models.PositionType).choices,
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices),
         ),
         migrations.AddField(
             model_name='countrysnippet',
             name='position',
-            field=models.IntegerField(default=3, choices=api.models.PositionType).choices,
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices),
         ),
         migrations.AddField(
             model_name='regionsnippet',
             name='position',
-            field=models.IntegerField(default=3, choices=api.models.PositionType).choices,
+            field=models.IntegerField(default=3, choices=api.models.PositionType.choices),
         ),
     ]

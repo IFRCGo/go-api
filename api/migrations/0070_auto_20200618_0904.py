@@ -3364,11 +3364,11 @@ class Migration(migrations.Migration):
             name='tab',
             field=models.IntegerField(default=1, choices=api.models.TabNumber.choices, verbose_name='tab'),
         ),
-        migrations.AlterField(
-            model_name='snippet',
-            name='visibility',
-            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
-        ),
+      #  migrations.AlterField(
+      #      model_name='snippet',
+      #      name='visibility',
+      #      field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility'),
+      #  ),
         migrations.AlterField(
             model_name='source',
             name='field_report',

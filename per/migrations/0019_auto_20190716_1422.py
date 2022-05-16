@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='overview',
             name='type_of_last_capacity_assessment',
-            field=models.IntegerField(default=0, choices=per.models.CAssessmentType).choices,
+            field=models.IntegerField(default=0, choices=per.models.CAssessmentType.choices),
         ),
     ]

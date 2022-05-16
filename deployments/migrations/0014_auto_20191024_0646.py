@@ -20,14 +20,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='project',
             name='operation_type',
-            field=models.IntegerField(default=0, choices=deployments.models.OperationTypes).choices,
+            field=models.IntegerField(default=0, choices=deployments.models.OperationTypes.choices),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='project',
             name='secondary_sectors',
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.IntegerField(choices=deployments.models.Sectors).choices,
+                base_field=models.IntegerField(choices=deployments.models.Sectors.choices),
                 blank=True, default=list, size=None,
             ),
         ),

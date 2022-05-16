@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='snippet',
             name='visibility',
-            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices).choices,
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices),
         ),
         migrations.AlterField(
             model_name='keyfigure',

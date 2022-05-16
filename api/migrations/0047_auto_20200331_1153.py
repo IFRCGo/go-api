@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='snippet',
             name='tab',
-            field=models.IntegerField(default=1, choices=api.models.TabNumber).choices,
+            field=models.IntegerField(default=1, choices=api.models.TabNumber.choices),
         ),
         migrations.AlterField(
             model_name='country',

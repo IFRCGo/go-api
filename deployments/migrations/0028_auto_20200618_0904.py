@@ -364,7 +364,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='project',
             name='secondary_sectors',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(choices=deployments.models.SectorTags).choices, blank=True, default=list, size=None, verbose_name='tags'),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(choices=deployments.models.SectorTags.choices), blank=True, default=list, size=None, verbose_name='tags'),
         ),
         migrations.AlterField(
             model_name='project',
