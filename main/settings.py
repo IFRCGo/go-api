@@ -126,7 +126,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_admin_listfilter_dropdown',
     'corsheaders',
-    'tastypie',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
@@ -245,14 +244,18 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',  },
-    {'NAME': 'main.validators.NumberValidator', },
-    {'NAME': 'main.validators.UppercaseValidator', },
-    {'NAME': 'main.validators.LowercaseValidator', },
-    {'NAME': 'main.validators.SymbolValidator', },
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
@@ -279,8 +282,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'toolbar2': '''
             media embed
             ''',
-    'force_p_newlines': True,
-    'force_br_newlines': True,
+    'force_p_newlines': False,
     'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
