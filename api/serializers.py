@@ -2,7 +2,6 @@ import json
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
@@ -84,13 +83,13 @@ class DisasterTypeSerializer(ModelSerializer):
         fields = ('name', 'summary', 'id',)
 
 
-class RegionSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionSerializer(ModelSerializer):
     class Meta:
         model = Region
         fields = ('name', 'id', 'region_name', 'label',)
 
 
-class RegionGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionGeoSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
 
     @staticmethod
@@ -102,7 +101,7 @@ class RegionGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = ('name', 'id', 'region_name', 'bbox', 'label',)
 
 
-class CountryTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class CountryTableauSerializer(ModelSerializer):
     region = RegionSerializer()
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
@@ -114,7 +113,7 @@ class CountryTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
+class CountrySerializer(ModelSerializer):
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
     class Meta:
@@ -126,7 +125,7 @@ class CountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class CountryGeoSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
@@ -147,7 +146,7 @@ class CountryGeoSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
+class MiniCountrySerializer(ModelSerializer):
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
     class Meta:
@@ -158,7 +157,7 @@ class MiniCountrySerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class CountrySerializerRMD(EnumSupportSerializerMixin, ModelSerializer):
+class CountrySerializerRMD(ModelSerializer):
 
     class Meta:
         model = Country
@@ -270,7 +269,7 @@ class CountryKeyFigureSerializer(ModelSerializer):
         fields = ('country', 'figure', 'deck', 'source', 'visibility', 'id',)
 
 
-class RegionSnippetTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionSnippetTableauSerializer(ModelSerializer):
     region = RegionSerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
@@ -279,7 +278,7 @@ class RegionSnippetTableauSerializer(EnumSupportSerializerMixin, ModelSerializer
         fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class RegionSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionSnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
@@ -287,28 +286,28 @@ class RegionSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
         fields = ('region', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class RegionEmergencySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionEmergencySnippetSerializer(ModelSerializer):
 
     class Meta:
         model = RegionEmergencySnippet
         fields = ('region', 'title', 'snippet', 'id',)
 
 
-class RegionProfileSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionProfileSnippetSerializer(ModelSerializer):
 
     class Meta:
         model = RegionProfileSnippet
         fields = ('region', 'title', 'snippet', 'id',)
 
 
-class RegionPreparednessSnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionPreparednessSnippetSerializer(ModelSerializer):
 
     class Meta:
         model = RegionPreparednessSnippet
         fields = ('region', 'title', 'snippet', 'id',)
 
 
-class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class CountrySnippetTableauSerializer(serializers.ModelSerializer):
     country = CountrySerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
@@ -317,7 +316,7 @@ class CountrySnippetTableauSerializer(EnumSupportSerializerMixin, serializers.Mo
         fields = ('country', 'snippet', 'image', 'visibility', 'visibility_display', 'id',)
 
 
-class CountrySnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class CountrySnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
@@ -349,7 +348,7 @@ class CountryContactSerializer(ModelSerializer):
         fields = ('ctype', 'name', 'title', 'email', 'id',)
 
 
-class RegionRelationSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RegionRelationSerializer(ModelSerializer):
     links = RegionLinkSerializer(many=True, read_only=True)
     contacts = RegionContactSerializer(many=True, read_only=True)
     snippets = RegionSnippetSerializer(many=True, read_only=True)
@@ -392,7 +391,7 @@ class CountryRelationSerializer(ModelSerializer):
         )
 
 
-class RelatedAppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class RelatedAppealSerializer(ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -408,7 +407,7 @@ class KeyFigureSerializer(ModelSerializer):
         fields = ('number', 'deck', 'source', 'id',)
 
 
-class SnippetSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class SnippetSerializer(ModelSerializer):
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     position_display = serializers.CharField(source='get_position_display', read_only=True)
     tab_display = serializers.CharField(source='get_tab_display', read_only=True)
@@ -433,7 +432,7 @@ class FieldReportContactSerializer(ModelSerializer):
         fields = ('ctype', 'name', 'title', 'email', 'phone', 'id',)
 
 
-class MiniFieldReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class MiniFieldReportSerializer(ModelSerializer):
     contacts = FieldReportContactSerializer(many=True)
     countries = MiniCountrySerializer(many=True)
     epi_figures_source_display = serializers.CharField(source='get_epi_figures_source_display', read_only=True)
@@ -493,7 +492,7 @@ class ListMiniEventSerializer(ModelSerializer):
         )
 
 
-class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class ListEventSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
@@ -510,7 +509,7 @@ class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListEventTableauSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
@@ -538,7 +537,7 @@ class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSe
         )
 
 
-class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListEventCsvSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
@@ -566,7 +565,7 @@ class ListEventCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerial
         )
 
 
-class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListEventForPersonnelCsvSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
@@ -601,7 +600,7 @@ class ListEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers
         )
 
 
-class SmallEventForPersonnelCsvSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class SmallEventForPersonnelCsvSerializer(serializers.ModelSerializer):
     countries = serializers.SerializerMethodField()
     dtype_name = serializers.SerializerMethodField()
 
@@ -645,7 +644,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         )
 
 
-class DetailEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class DetailEventSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     contacts = EventContactSerializer(many=True, read_only=True)
     key_figures = KeyFigureSerializer(many=True, read_only=True)
@@ -680,7 +679,7 @@ class SituationReportTypeSerializer(ModelSerializer):
         fields = ('type', 'id', 'is_primary',)
 
 
-class SituationReportTableauSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class SituationReportTableauSerializer(ModelSerializer):
     type = SituationReportTypeSerializer()
     event = MiniEventSerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
@@ -693,7 +692,7 @@ class SituationReportTableauSerializer(EnumSupportSerializerMixin, ModelSerializ
         )
 
 
-class SituationReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class SituationReportSerializer(ModelSerializer):
     type = SituationReportTypeSerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
@@ -705,7 +704,7 @@ class SituationReportSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class AppealTableauSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
@@ -722,7 +721,7 @@ class AppealTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSeria
         )
 
 
-class AppealHistoryTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class AppealHistoryTableauSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
@@ -752,7 +751,7 @@ class MiniAppealSerializer(serializers.ModelSerializer):
         fields = ('name', 'id', 'code')
 
 
-class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class AppealSerializer(ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
@@ -768,7 +767,7 @@ class AppealSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-class AppealHistorySerializer(EnumSupportSerializerMixin, ModelSerializer):
+class AppealHistorySerializer(ModelSerializer):
     country = MiniCountrySerializer()
     dtype = DisasterTypeSerializer()
     region = RegionSerializer()
@@ -923,7 +922,7 @@ class SourceSerializer(ModelSerializer):
         fields = ('stype', 'spec', 'id',)
 
 
-class FieldReportEnumDisplayMixin(EnumSupportSerializerMixin):
+class FieldReportEnumDisplayMixin():
     """
     Use for fields = '__all__'
     """

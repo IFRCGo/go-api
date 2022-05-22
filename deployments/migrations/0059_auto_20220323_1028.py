@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='emergencyprojectactivity',
             name='is_disaggregated_for_disabled',
-            field=models.NullBooleanField(verbose_name='is_disaggregated_for_disabled'),
+            field=models.BooleanField(verbose_name='is_disaggregated_for_disabled'),
         ),
     ]

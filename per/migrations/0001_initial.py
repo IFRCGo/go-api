@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import per.models
 
 
@@ -20,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('code', models.CharField(max_length=10)),
                 ('name', models.CharField(max_length=100)),
-                ('language', enumfields.fields.EnumIntegerField(enum=per.models.Language)),
+                ('language', models.IntegerField(choices=per.models.Language.choices, default=0)),
                 ('user', models.CharField(blank=True, max_length=100, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
@@ -36,7 +35,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('question_id', models.CharField(max_length=10)),
-                ('selected_option', enumfields.fields.EnumIntegerField(enum=per.models.Status)),
+                ('selected_option', models.IntegerField(choices=per.models.Status.choices, default=0)),
                 ('notes', models.TextField()),
                 ('form', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='per.Form')),
             ],

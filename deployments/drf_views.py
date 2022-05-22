@@ -268,7 +268,7 @@ class AggregateDeployments(APIView):
             deployments_qset = deployments_qset.filter(deployment__event_deployed_to=event_id)
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
-            type=Personnel.RR,
+            type=Personnel.TypeChoices.RR,
             start_date__lt=now,
             end_date__gt=now
         ).count()
@@ -475,7 +475,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 country_projects.filter(status=status).values('project_country').annotate(
                     count=models.Count('id', distinct=True)).values('count')[:1],
                 output_field=models.IntegerField(),
-            ), 0) for status, status_label in Statuses.choices()
+            ), 0) for status, status_label in Statuses.choices
         }
 
         return Response({

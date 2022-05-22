@@ -133,7 +133,7 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                                 personnel_count=Count(
                                     'personneldeployment__personnel',
                                     filter=Q(
-                                        personneldeployment__personnel__type=Personnel.RR,
+                                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
                                         personneldeployment__personnel__start_date__lte=timezone.now(),
                                         personneldeployment__personnel__end_date__gte=timezone.now(),
                                         personneldeployment__personnel__is_active=True

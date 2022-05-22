@@ -4,7 +4,6 @@ import deployments.models
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -21,12 +20,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.TextField()),
-                ('programme_type', enumfields.fields.EnumIntegerField(enum=deployments.models.ProgrammeTypes)),
-                ('sector', enumfields.fields.EnumIntegerField(enum=deployments.models.Sectors)),
+                ('programme_type', models.IntegerField(choices=deployments.models.ProgrammeTypes.choices, default=0)),
+                ('sector', models.IntegerField(choices=deployments.models.Sectors.choices, default=0)),
                 ('start_date', models.DateField()),
                 ('end_date', models.DateField()),
                 ('budget_amount', models.IntegerField()),
-                ('status', enumfields.fields.EnumIntegerField(enum=deployments.models.Statuses)),
+                ('status', models.IntegerField(choices=deployments.models.Statuses.choices, default=0)),
                 ('project_district', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.District')),
                 ('reporting_ns', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.Country')),
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),

@@ -88,7 +88,7 @@ class MembershipFilter(admin.SimpleListFilter):
     parameter_name = 'membership'
 
     def lookups(self, request, model_admin):
-        return models.VisibilityChoices.choices()
+        return models.VisibilityChoices.choices
 
     def queryset(self, request, queryset):
         if self.value():
@@ -100,7 +100,7 @@ class AppealTypeFilter(admin.SimpleListFilter):
     parameter_name = 'appeal_type'
 
     def lookups(self, request, model_admin):
-        return models.AppealType.choices()
+        return models.AppealType.choices
 
     def queryset(self, request, queryset):
         if self.value():

@@ -2,7 +2,7 @@
 
 from django.contrib.postgres.operations import CreateExtension
 import django.contrib.gis.db.models.fields
-from django.db import migrations
+from django.db import models, migrations
 
 
 class Migration(migrations.Migration):

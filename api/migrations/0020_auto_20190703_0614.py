@@ -2,7 +2,6 @@
 
 import api.models
 from django.db import migrations, models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -15,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='record_type',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=api.models.CountryType, help_text='Type of entity'),
+            field=models.IntegerField(default=1, choices=api.models.CountryType.choices, help_text='Type of entity'),
         ),
         migrations.AddField(
             model_name='district',

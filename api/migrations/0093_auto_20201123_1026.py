@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='nsi_annual_fdrs_reporting',
-            field=models.NullBooleanField(verbose_name='Annual Reporting to FDRS'),
+            field=models.BooleanField(verbose_name='Annual Reporting to FDRS'),
         ),
         migrations.AddField(
             model_name='country',
@@ -23,12 +23,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='nsi_cmc_dashboard_compliance',
-            field=models.NullBooleanField(verbose_name='Complying with CMC Dashboard'),
+            field=models.BooleanField(verbose_name='Complying with CMC Dashboard'),
         ),
         migrations.AddField(
             model_name='country',
             name='nsi_domestically_generated_income',
-            field=models.NullBooleanField(verbose_name='>50% Domestically Generated Income'),
+            field=models.BooleanField(verbose_name='>50% Domestically Generated Income'),
         ),
         migrations.AddField(
             model_name='country',
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='nsi_gov_financial_support',
-            field=models.NullBooleanField(verbose_name='Gov Financial Support'),
+            field=models.BooleanField(verbose_name='Gov Financial Support'),
         ),
         migrations.AddField(
             model_name='country',
@@ -48,12 +48,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='nsi_policy_implementation',
-            field=models.NullBooleanField(verbose_name='Your Policy / Programme Implementation'),
+            field=models.BooleanField(verbose_name='Your Policy / Programme Implementation'),
         ),
         migrations.AddField(
             model_name='country',
             name='nsi_risk_management_framework',
-            field=models.NullBooleanField(verbose_name='Risk Management Framework'),
+            field=models.BooleanField(verbose_name='Risk Management Framework'),
         ),
         migrations.AddField(
             model_name='country',

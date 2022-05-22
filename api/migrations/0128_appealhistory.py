@@ -3,7 +3,6 @@
 import api.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -25,7 +24,7 @@ class Migration(migrations.Migration):
                 ('aid', models.CharField(max_length=20, verbose_name='appeal ID')),
                 ('start_date', models.DateTimeField(null=True, verbose_name='start date')),
                 ('end_date', models.DateTimeField(null=True, verbose_name='end date')),
-                ('atype', enumfields.fields.EnumIntegerField(default=0, enum=api.models.AppealType, verbose_name='appeal type')),
+                ('atype', models.IntegerField(default=0, choices=api.models.AppealType.choices, verbose_name='appeal type')),
                 ('appeal', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Appeal', verbose_name='appeal')),
                 ('country', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Country', verbose_name='country')),
                 ('region', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Region', verbose_name='region')),

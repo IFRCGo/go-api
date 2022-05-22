@@ -43,7 +43,7 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['secondary_sectors'].widget = EnumArrayWidget(
-            choices=SectorTags.choices(),
+            choices=SectorTags.choices,
         )
 
 
@@ -85,11 +85,11 @@ class ProjectImportForm(forms.Form):
         )
         countries = Country.objects.values_list('name', flat=True)
         disaster_types = DisasterType.objects.values_list('name', flat=True)
-        operation_types = {label for _, label in OperationTypes.choices()}
-        programme_types = {label for _, label in ProgrammeTypes.choices()}
-        sectors = {label for _, label in Sectors.choices()}
-        sector_tags = {label for _, label in SectorTags.choices()}
-        statuses = {label for _, label in Statuses.choices()}
+        operation_types = {label for _, label in OperationTypes.choices}
+        programme_types = {label for _, label in ProgrammeTypes.choices}
+        sectors = {label for _, label in Sectors.choices}
+        sector_tags = {label for _, label in SectorTags.choices}
+        statuses = {label for _, label in Statuses.choices}
 
         # Headers
         c = cls.Columns
@@ -174,11 +174,11 @@ class ProjectImportForm(forms.Form):
         projects = []
 
         # Enum options
-        operation_types = {label.lower(): value for value, label in OperationTypes.choices()}
-        programme_types = {label.lower(): value for value, label in ProgrammeTypes.choices()}
-        sectors = {label.lower(): value for value, label in Sectors.choices()}
-        sector_tags = {label.lower(): value for value, label in SectorTags.choices()}
-        statuses = {label.lower(): value for value, label in Statuses.choices()}
+        operation_types = {label.lower(): value for value, label in OperationTypes.choices}
+        programme_types = {label.lower(): value for value, label in ProgrammeTypes.choices}
+        sectors = {label.lower(): value for value, label in Sectors.choices}
+        sector_tags = {label.lower(): value for value, label in SectorTags.choices}
+        statuses = {label.lower(): value for value, label in Statuses.choices}
 
         c = self.Columns
         # Extract from import csv file

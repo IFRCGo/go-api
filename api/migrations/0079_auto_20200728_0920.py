@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='country',
             name='independent',
-            field=models.NullBooleanField(default=None, help_text='Is this an independent country?'),
+            field=models.BooleanField(default=None, help_text='Is this an independent country?'),
         )
     ]

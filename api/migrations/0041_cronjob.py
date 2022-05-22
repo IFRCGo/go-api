@@ -2,7 +2,6 @@
 
 import api.models
 from django.db import migrations, models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -17,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(default='', max_length=100)),
-                ('status', enumfields.fields.EnumIntegerField(default=-1, enum=api.models.CronJobStatus)),
+                ('status', models.IntegerField(default=-1, choices=api.models.CronJobStatus.choices)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('message', models.TextField(blank=True, null=True)),
             ],

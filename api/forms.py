@@ -5,8 +5,8 @@ from .models import Action, ActionOrg, ActionType
 
 
 class ActionForm(forms.ModelForm):
-    organizations = forms.MultipleChoiceField(label=_('organizations'), choices=ActionOrg.CHOICES)
-    field_report_types = forms.MultipleChoiceField(label=_('field report types'), choices=ActionType.CHOICES)
+    organizations = forms.MultipleChoiceField(label=_('organizations'), choices=ActionOrg.choices)
+    field_report_types = forms.MultipleChoiceField(label=_('field report types'), choices=ActionType.choices)
 
     class Meta:
         model = Action

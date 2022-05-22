@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from requests.packages.urllib3.util.retry import Retry
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 env = environ.Env(
     # Django

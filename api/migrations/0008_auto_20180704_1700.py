@@ -3,7 +3,6 @@
 import api.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -23,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='situationreport',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices),
+            field=models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices),
         ),
         migrations.AddField(
             model_name='situationreport',

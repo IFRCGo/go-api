@@ -6,8 +6,8 @@ from api.models import ActionOrg, ActionType
 
 
 class ActionForm(forms.ModelForm):
-    organizations = forms.MultipleChoiceField(label=_('organizations'), choices=ActionOrg.CHOICES)
-    Flash_update_types = forms.MultipleChoiceField(label=_('flash update types'), choices=ActionType.CHOICES)
+    organizations = forms.MultipleChoiceField(label=_('organizations'), choices=ActionOrg.choices)
+    Flash_update_types = forms.MultipleChoiceField(label=_('flash update types'), choices=ActionType.choices)
 
     class Meta:
         model = FlashAction

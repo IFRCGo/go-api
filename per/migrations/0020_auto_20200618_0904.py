@@ -4,7 +4,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-import enumfields.fields
 import per.models
 import uuid
 
@@ -79,7 +78,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='form',
             name='language',
-            field=enumfields.fields.EnumIntegerField(enum=per.models.Language, verbose_name='language'),
+            field=models.IntegerField(choices=per.models.Language.choices, default=0, verbose_name='language'),
         ),
         migrations.AlterField(
             model_name='form',
@@ -139,7 +138,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='formdata',
             name='selected_option',
-            field=enumfields.fields.EnumIntegerField(enum=per.models.Status, verbose_name='selected option'),
+            field=models.IntegerField(choices=per.models.Status.choices, default=0, verbose_name='selected option'),
         ),
         migrations.AlterField(
             model_name='nicedocument',
@@ -169,7 +168,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='nicedocument',
             name='visibility',
-            field=enumfields.fields.EnumIntegerField(default=1, enum=per.models.Visibilities, verbose_name='visibility'),
+            field=models.IntegerField(default=1, choices=per.models.Visibilities.choices, verbose_name='visibility'),
         ),
         migrations.AlterField(
             model_name='overview',
@@ -244,12 +243,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='overview',
             name='type_of_capacity_assessment',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=per.models.CAssessmentType, verbose_name='type of capacity assessment'),
+            field=models.IntegerField(default=0, choices=per.models.CAssessmentType.choices, verbose_name='type of capacity assessment'),
         ),
         migrations.AlterField(
             model_name='overview',
             name='type_of_last_capacity_assessment',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=per.models.CAssessmentType, verbose_name='type of last capacity assessment'),
+            field=models.IntegerField(default=0, choices=per.models.CAssessmentType.choices, verbose_name='type of last capacity assessment'),
         ),
         migrations.AlterField(
             model_name='overview',
@@ -294,7 +293,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='workplan',
             name='prioritization',
-            field=enumfields.fields.EnumIntegerField(enum=per.models.PriorityValue, verbose_name='prioritization'),
+            field=models.IntegerField(choices=per.models.PriorityValue.choices, default=0, verbose_name='prioritization'),
         ),
         migrations.AlterField(
             model_name='workplan',
@@ -304,7 +303,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='workplan',
             name='status',
-            field=enumfields.fields.EnumIntegerField(enum=per.models.WorkPlanStatus, verbose_name='status'),
+            field=models.IntegerField(choices=per.models.WorkPlanStatus.choices, default=0, verbose_name='status'),
         ),
         migrations.AlterField(
             model_name='workplan',

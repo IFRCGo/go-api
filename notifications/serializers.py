@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from api.serializers import MiniEventSerializer, ListEventSerializer, MiniCountrySerializer
 from lang.serializers import ModelSerializer
@@ -8,7 +7,7 @@ from .models import SurgeAlert, Subscription
 from deployments.serializers import MolnixTagSerializer
 
 
-class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class SurgeAlertSerializer(ModelSerializer):
     event = ListEventSerializer()
     country = MiniCountrySerializer()
     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
@@ -24,7 +23,7 @@ class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
-# class UnauthenticatedSurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
+# class UnauthenticatedSurgeAlertSerializer(ModelSerializer):
 #     event = MiniEventSerializer()
 #     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
 #     category_display = serializers.CharField(source='get_category_display', read_only=True)
@@ -37,7 +36,7 @@ class SurgeAlertSerializer(EnumSupportSerializerMixin, ModelSerializer):
 #         )
 
 
-class SubscriptionSerializer(EnumSupportSerializerMixin, ModelSerializer):
+class SubscriptionSerializer(ModelSerializer):
     country = MiniCountrySerializer()
     event = MiniEventSerializer()
     stype_display = serializers.CharField(source='get_stype_display', read_only=True)

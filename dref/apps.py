@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class DrefConfig(AppConfig):
-    name = _('dref')
+    name = 'dref'
+    verbose_name = _('dref')

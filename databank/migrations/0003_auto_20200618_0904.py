@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countryoverview',
             name='fts_data',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=list, verbose_name='FTS data'),
+            field=django.db.models.JSONField(default=list, verbose_name='FTS data'),
         ),
         migrations.AlterField(
             model_name='countryoverview',
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countryoverview',
             name='inform_indicators',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=list, verbose_name='inform indicators data'),
+            field=django.db.models.JSONField(default=list, verbose_name='inform indicators data'),
         ),
         migrations.AlterField(
             model_name='countryoverview',
@@ -60,12 +60,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countryoverview',
             name='past_crises_events',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=list, verbose_name='past crises data'),
+            field=django.db.models.JSONField(default=list, verbose_name='past crises data'),
         ),
         migrations.AlterField(
             model_name='countryoverview',
             name='past_epidemics',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=list, verbose_name='past epidemics data'),
+            field=django.db.models.JSONField(default=list, verbose_name='past epidemics data'),
         ),
         migrations.AlterField(
             model_name='countryoverview',
@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='countryoverview',
             name='start_network_data',
-            field=django.contrib.postgres.fields.jsonb.JSONField(default=list, verbose_name='start network data'),
+            field=django.db.models.JSONField(default=list, verbose_name='start network data'),
         ),
         migrations.AlterField(
             model_name='countryoverview',

@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class NotificationsConfig(AppConfig):
-    name = _('notifications')
+    name = 'notifications'
+    verbose_name = _('notifications')

@@ -3,4 +3,5 @@ from django.apps import AppConfig
 
 
 class RegistrationsConfig(AppConfig):
-    name = _('registrations')
+    name = 'registrations'
+    verbose_name = _('registrations')
