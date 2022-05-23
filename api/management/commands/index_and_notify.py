@@ -438,6 +438,10 @@ class Command(BaseCommand):
                     shortened[max_length:].split(' ', 1)[0] + '...'  # look for the first space
 
         if rtype == RecordType.FIELD_REPORT:
+            contacts = ' | '.join((i.ctype + ' · ' if i.ctype else '') +
+                       i.name + ' ' + i.title +
+                       (': ' + i.email if i.email else '')
+                       for i in record.contacts.all()[::-1])
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
@@ -477,6 +481,7 @@ class Command(BaseCommand):
                     'appeal_amount': record.appeal_amount,
                     'bulletin': record.bulletin,
                     'countries': ', '.join(i.name for i in record.countries.all()),
+                    'contacts': contacts,
                     'description': record.description,
                     'districts': ', '.join(i.name for i in record.districts.all()),
                     'dref': record.dref,
