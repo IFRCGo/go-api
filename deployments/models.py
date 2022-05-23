@@ -4,7 +4,7 @@ from tinymce import HTMLField
 
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
@@ -410,7 +410,7 @@ class Project(models.Model):
         return '%s (%s)' % (self.name, postfix)
 
     def get_secondary_sectors_display(self):
-        choices_dict = dict(make_hashable(SectorTags.choices()))
+        choices_dict = dict(make_hashable(SectorTags.choices))
         return [
             force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
             for value in self.secondary_sectors or []

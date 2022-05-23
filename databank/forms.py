@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 from .models import CountryOverview, SeasonalCalender
 
@@ -15,7 +15,7 @@ class SeasonalCalenderForm(forms.ModelForm):
         start = self.cleaned_data['date_start']
         end = self.cleaned_data['date_end']
         if start >= end:
-            raise forms.ValidationError(ugettext('Invalid End Date'))
+            raise forms.ValidationError(gettext('Invalid End Date'))
         return end
 
     class Meta:

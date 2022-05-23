@@ -1,5 +1,5 @@
 import reversion
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 # from django.db import models
 from django.contrib.gis.db import models
 from django.conf import settings
@@ -67,9 +67,9 @@ class Region(models.Model):
             'id': self.id,
             'event_id': None,
             'type': 'region',
-            'name': str(self.name.label),
+            'name': self.label,
             'keyword': None,
-            'body': str(self.name.label),
+            'body': self.label,
             'date': None
         }
 
@@ -91,7 +91,7 @@ class Region(models.Model):
         verbose_name_plural = _('regions')
 
     def __str__(self):
-        return str(self.name.label)
+        return self.label
 
     def region_name(self):
         return str(self.name)

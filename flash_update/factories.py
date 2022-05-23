@@ -36,9 +36,9 @@ class FlashActionFactory(factory.django.DjangoModelFactory):
         model = FlashAction
 
     name = fuzzy.FuzzyText(length=50)
-    organizations = fuzzy.FuzzyChoice(ActionOrg.CHOICES)
-    flash_update_types = fuzzy.FuzzyChoice(ActionType.CHOICES)
-    category = fuzzy.FuzzyChoice(ActionCategory.CHOICES)
+    organizations = fuzzy.FuzzyChoice(ActionOrg.choices)
+    flash_update_types = fuzzy.FuzzyChoice(ActionType.choices)
+    category = fuzzy.FuzzyChoice(ActionCategory.choices)
     tooltip_text = fuzzy.FuzzyText(length=50)
 
 

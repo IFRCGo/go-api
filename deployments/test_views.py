@@ -44,13 +44,13 @@ class ProjectGetTest(APITestCase):
             user=self.user,
             reporting_ns=self.country1,
             name='aaa',
-            programme_type=ProgrammeTypes.BILATERAL.value,
-            primary_sector=Sectors.WASH.value,
-            operation_type=OperationTypes.EMERGENCY_OPERATION.value,
+            programme_type=ProgrammeTypes.BILATERAL,
+            primary_sector=Sectors.WASH,
+            operation_type=OperationTypes.EMERGENCY_OPERATION,
             start_date=datetime.date(2011, 11, 11),
             end_date=datetime.date(2011, 11, 11),
             budget_amount=6000,
-            status=Statuses.COMPLETED.value,
+            status=Statuses.COMPLETED,
         )
         first.project_districts.set([self.district1])
 
@@ -58,14 +58,14 @@ class ProjectGetTest(APITestCase):
             user=self.user,
             reporting_ns=self.country1,
             name='bbb',
-            programme_type=ProgrammeTypes.MULTILATERAL.value,
-            primary_sector=Sectors.SHELTER.value,
-            secondary_sectors=[SectorTags.WASH.value, SectorTags.MIGRATION.value],
-            operation_type=OperationTypes.PROGRAMME.value,
+            programme_type=ProgrammeTypes.MULTILATERAL,
+            primary_sector=Sectors.SHELTER,
+            secondary_sectors=[SectorTags.WASH, SectorTags.MIGRATION.value],
+            operation_type=OperationTypes.PROGRAMME,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
             budget_amount=3000,
-            status=Statuses.ONGOING.value,
+            status=Statuses.ONGOING,
         )
         second.project_districts.set([self.district2])
 
@@ -76,10 +76,10 @@ class ProjectGetTest(APITestCase):
             start_date=datetime.date(2011, 11, 11),
             end_date=datetime.date(2011, 11, 11),
             reporting_ns=self.country1,
-            programme_type=ProgrammeTypes.BILATERAL.value,
-            primary_sector=Sectors.WASH.value,
-            operation_type=OperationTypes.PROGRAMME.value,
-            status=Statuses.PLANNED.value,
+            programme_type=ProgrammeTypes.BILATERAL,
+            primary_sector=Sectors.WASH,
+            operation_type=OperationTypes.PROGRAMME,
+            status=Statuses.PLANNED,
             budget_amount=1000,
             target_total=8000,
             reached_total=1000,
@@ -102,15 +102,15 @@ class ProjectGetTest(APITestCase):
             'project_country': district2.country.id,
             'project_districts': [district2.id],
             'name': 'CreateMePls',
-            'programme_type': ProgrammeTypes.BILATERAL.value,
-            'primary_sector': Sectors.WASH.value,
-            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
-            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+            'programme_type': ProgrammeTypes.BILATERAL,
+            'primary_sector': Sectors.WASH,
+            'secondary_sectors': [Sectors.CEA, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-11-12',
             'end_date': '2013-11-13',
             'budget_amount': 7000,
             'target_total': 100,
-            'status': Statuses.PLANNED.value,
+            'status': Statuses.PLANNED,
         }
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 201, resp.content)
@@ -118,8 +118,8 @@ class ProjectGetTest(APITestCase):
         # Validation Tests
 
         # Event should be provided if operation type is Emergency Operation and programme type is Multilateral
-        body['operation_type'] = OperationTypes.EMERGENCY_OPERATION.value
-        body['programme_type'] = ProgrammeTypes.MULTILATERAL.value
+        body['operation_type'] = OperationTypes.EMERGENCY_OPERATION
+        body['programme_type'] = ProgrammeTypes.MULTILATERAL
         body['event'] = ''
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
@@ -390,7 +390,7 @@ class ProjectGetTest(APITestCase):
         project = ProjectFactory.create(
             start_date=datetime.date(2012, 11, 12),
             end_date=datetime.date(2012, 12, 13),
-            status=Statuses.PLANNED.value,
+            status=Statuses.PLANNED,
         )
         self.authenticate()
 
@@ -407,7 +407,7 @@ class ProjectGetTest(APITestCase):
             management.call_command('update_project_status')
             response = self.client.get(f'/api/v2/project/{project.id}/')
             self.assert_200(response)
-            self.assertEqual(response.data['status_display'], str(current_status))
+            self.assertEqual(response.data['status_display'], current_status.label)
         patcher.stop()
 
     def test_modified_by_field(self):
@@ -415,20 +415,20 @@ class ProjectGetTest(APITestCase):
         project = ProjectFactory.create(
             start_date=datetime.date(2012, 11, 12),
             end_date=datetime.date(2012, 12, 13),
-            status=Statuses.PLANNED.value,
+            status=Statuses.PLANNED,
         )
         data = {
             'name': 'CreateMePls',
             'project_districts': [district.id],
-            'programme_type': ProgrammeTypes.BILATERAL.value,
-            'primary_sector': Sectors.WASH.value,
-            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
-            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+            'programme_type': ProgrammeTypes.BILATERAL,
+            'primary_sector': Sectors.WASH,
+            'secondary_sectors': [Sectors.CEA, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-11-12',
             'end_date': '2013-11-13',
             'budget_amount': 7000,
             'target_total': 100,
-            'status': Statuses.PLANNED.value,
+            'status': Statuses.PLANNED,
         }
         self.authenticate(self.user)
         response = self.client.patch(f'/api/v2/project/{project.id}/', data)
@@ -445,15 +445,15 @@ class ProjectGetTest(APITestCase):
         data = {
             'name': 'CreateMeNot',
             'project_districts': [district.id],
-            'programme_type': ProgrammeTypes.BILATERAL.value,
-            'primary_sector': Sectors.WASH.value,
-            'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
-            'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+            'programme_type': ProgrammeTypes.BILATERAL,
+            'primary_sector': Sectors.WASH,
+            'secondary_sectors': [Sectors.CEA, Sectors.PGI.value],
+            'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-10-15',
             'end_date': '2013-12-13',
             'budget_amount': 7000,
             'target_total': 100,
-            'status': Statuses.PLANNED.value,
+            'status': Statuses.PLANNED,
         }
         response = self.client.patch(f'/api/v2/project/{project.id}/', data)
         self.assertEqual(response.status_code, 200)
@@ -497,15 +497,15 @@ class TranslationTest(APITestCase):
                     'dtype': disaster_type.pk,
                     'project_districts': [district.id],
                     'name': names[current_language],
-                    'programme_type': ProgrammeTypes.BILATERAL.value,
-                    'primary_sector': Sectors.WASH.value,
-                    'secondary_sectors': [Sectors.CEA.value, Sectors.PGI.value],
-                    'operation_type': OperationTypes.EMERGENCY_OPERATION.value,
+                    'programme_type': ProgrammeTypes.BILATERAL,
+                    'primary_sector': Sectors.WASH,
+                    'secondary_sectors': [Sectors.CEA, Sectors.PGI.value],
+                    'operation_type': OperationTypes.EMERGENCY_OPERATION,
                     'start_date': '2012-11-12',
                     'end_date': '2013-11-13',
                     'budget_amount': 7000,
                     'target_total': 100,
-                    'status': Statuses.PLANNED.value,
+                    'status': Statuses.PLANNED,
                 }
 
                 # POST (Creation)

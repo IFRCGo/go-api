@@ -10,7 +10,7 @@ from modeltranslation.manager import (
     append_fallback,
 )
 
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.contrib import admin
 from django.urls import reverse
 from django.shortcuts import redirect
@@ -58,7 +58,7 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
 
     def get_additional_addlinks(self, request):
         url = reverse(self.get_url_namespace('toggle_edit_all_language')) + f'?next={request.get_full_path()}'
-        label = ugettext('hide all language') if self._go__show_all_language_in_form() else ugettext('show all language')
+        label = gettext('hide all language') if self._go__show_all_language_in_form() else ugettext('show all language')
         return [{'url': url, 'label': label}]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

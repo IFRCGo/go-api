@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 from rest_framework import serializers
 
@@ -102,7 +102,7 @@ class FlashCountryDistrictSerializer(serializers.ModelSerializer):
             for district in districts:
                 if district.country != data['country']:
                     raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
+                        'district': gettext('Different districts found for given country')
                     })
         return data
 

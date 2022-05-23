@@ -4,7 +4,7 @@ import pytz
 from datetime import datetime
 import environ
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 # from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 

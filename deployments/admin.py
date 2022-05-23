@@ -6,8 +6,8 @@ from django.urls import path
 from django.contrib.admin import helpers
 from django.shortcuts import redirect, render
 from django.http import StreamingHttpResponse
-from django.utils.translation import ugettext
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 from admin_auto_filters.filters import AutocompleteFilter
 
 from api.utils import Echo
@@ -130,13 +130,13 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
         pi_meta = models.ProjectImport._meta
         extra_context['additional_addlinks'] = [{
             'namespace': self.get_url_namespace('bulk_import'),
-            'label': ugettext('New Import'),
+            'label': gettext('New Import'),
         }, {
             'namespace': f'admin:{pi_meta.app_label}_{pi_meta.model_name}_changelist',
-            'label': ugettext('Recent Imports'),
+            'label': gettext('Recent Imports'),
         }, {
             'namespace': self.get_url_namespace('bulk_import_template'),
-            'label': ugettext('Import Template'),
+            'label': gettext('Import Template'),
         }]
         return super().changelist_view(request, extra_context=extra_context)
 

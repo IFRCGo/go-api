@@ -3,7 +3,7 @@ import time
 from django.contrib.gis import admin as geoadmin
 from django.contrib import admin, messages
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html_join, format_html
 from django.utils.safestring import mark_safe
 from django.contrib.auth.admin import UserAdmin

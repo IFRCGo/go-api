@@ -1,6 +1,6 @@
 import os
 
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.db import models
 
 from rest_framework import serializers
@@ -112,7 +112,7 @@ class DrefCountryDistrictSerializer(ModelSerializer):
             for district in districts:
                 if district.country != data['country']:
                     raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
+                        'district': gettext('Different districts found for given country')
                     })
         return data
 
@@ -170,7 +170,7 @@ class DrefSerializer(
         event_date = data.get('event_date')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
-                'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
+                'event_date': gettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
         return data
 
@@ -178,7 +178,7 @@ class DrefSerializer(
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(
-                ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
+                gettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
         images_id = [image.id for image in images]
         images_without_access_qs = DrefFile.objects.filter(
@@ -195,7 +195,7 @@ class DrefSerializer(
         images_id_without_access = images_without_access_qs.values_list('id', flat=True)
         if images_id_without_access:
             raise serializers.ValidationError(
-                ugettext(
+                gettext(
                     'Only image owner can attach image. Not allowed image ids: %s' % ','.join(map(str, images_id_without_access))
                 )
             )

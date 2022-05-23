@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.contrib.auth.models import User
 
 from rest_framework import serializers
@@ -369,14 +369,14 @@ class ProjectSerializer(ModelSerializer):
             data['project_country'] = data['project_districts'][0].country
             for project in data['project_districts'][1:]:
                 if project.country != data['project_country']:
-                    raise serializers.ValidationError(ugettext('Different country found for given districts'))
+                    raise serializers.ValidationError(gettext('Different country found for given districts'))
         if (
             data['operation_type'] == OperationTypes.EMERGENCY_OPERATION and
             data['programme_type'] == ProgrammeTypes.MULTILATERAL and
             data.get('event') is None
         ):
             raise serializers.ValidationError(
-                ugettext('Event should be provided if operation type is Emergency Operation and programme type is Multilateral')
+                gettext('Event should be provided if operation type is Emergency Operation and programme type is Multilateral')
             )
         return data
 
@@ -402,7 +402,7 @@ class ProjectCsvSerializer(ProjectSerializer):
 
     @staticmethod
     def get_secondary_sectors(obj):
-        return ', '.join([str(sector.value) for sector in obj.secondary_sectors])
+        return ', '.join([str(sector) for sector in obj.secondary_sectors])
 
     @staticmethod
     def get_secondary_sectors_display(obj):
@@ -502,14 +502,14 @@ class EmergencyProjectActivitySerializer(
             data['sector'] = sector = action.sector
         if sector is None:
             raise serializers.ValidationError({
-                'sector': ugettext('This is required, Or provide a valid action.')
+                'sector': gettext('This is required, Or provide a valid action.')
             })
         if supplies:
             supplies_keys = supplies.keys()
             action_supplies_id = list(action.supplies.values_list('id', flat=True))
             if invalid_keys := [key for key in supplies_keys if int(key) not in action_supplies_id]:
                 raise serializers.ValidationError({
-                    'supplies': ugettext(
+                    'supplies': gettext(
                         'Invalid supplies keys: %s' % ', '.join(invalid_keys)
                     ),
                 })
@@ -552,17 +552,17 @@ class EmergencyProjectSerializer(
         for district in data.get('districts') or []:
             if district.country_id != country.id:
                 raise serializers.ValidationError({
-                    'districts': ugettext("All region/province should be from selected country"),
+                    'districts': gettext("All region/province should be from selected country"),
                 })
         if data['activity_lead'] == EmergencyProject.ActivityLead.NATIONAL_SOCIETY:
             if reporting_ns is None:
                 raise serializers.ValidationError({
-                    'reporting_ns': ugettext('Reporting NS is required when National Society is leading the activity'),
+                    'reporting_ns': gettext('Reporting NS is required when National Society is leading the activity'),
                 })
         else:
             if deployed_eru is None:
                 raise serializers.ValidationError({
-                    'deployed_eru': ugettext('Deployed ERU is required when Deployed ERU is leading the activity'),
+                    'deployed_eru': gettext('Deployed ERU is required when Deployed ERU is leading the activity'),
                 })
         return data
 

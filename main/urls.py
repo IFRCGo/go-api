@@ -17,7 +17,7 @@ If you are looking for an api endpoint, search also url_path in other files.
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
 from django.conf import settings
-from django.urls import path
+from django.urls import path, re_path
 from django.contrib import admin
 from django.conf.urls import static
 from django.views.static import serve
