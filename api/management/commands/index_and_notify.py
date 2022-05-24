@@ -438,10 +438,12 @@ class Command(BaseCommand):
                     shortened[max_length:].split(' ', 1)[0] + '...'  # look for the first space
 
         if rtype == RecordType.FIELD_REPORT:
-            contacts = ' | '.join((i.ctype + ' · ' if i.ctype else '') +
-                       i.name + ' ' + i.title +
-                       (': ' + i.email if i.email else '')
-                       for i in record.contacts.all()[::-1])
+            contacts = [('<strong>' + c.ctype + ' ·</strong> ' if c.ctype else '') +
+                        '<strong>' + c.name + '</strong>' +
+                        (', ' + c.title if c.title else '') +
+                        (', <a href=mailto:"' + c.email + '">' + c.email + '</a>' if c.email else '') +
+                        (', ' + c.phone if c.phone else '')
+                        for c in record.contacts.all()[::-1]]
             rec_obj = {
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
@@ -538,7 +540,7 @@ class Command(BaseCommand):
                     'other_affected_pop_centres': record.other_affected_pop_centres,
                     'other_num_highest_risk': record.other_num_highest_risk,
                     'other_num_potentially_affected': record.other_num_potentially_affected,
-                    'other_sources': record.other_sources,
+                    'other_sources': record.other_sources.split("\n"),
                     'rdrt': record.rdrt,
                     'regions': ', '.join(i.label for i in record.regions.all()),
                     'report_date': record.report_date,
