@@ -1,5 +1,5 @@
   <!-- Main -->
-{% load humanize %}
+{% load humanize %}{% load custom_filters %}{% lineless %}
 
 {% if records|length %}
   {% for fr in records %}
@@ -732,7 +732,7 @@
                           {% if fr.other_fields.report_date %}
                               <tr>
                                   <td align="left">
-                                      Report Date:
+                                      Report date
                                   </td>
                                   <td align="left" style="font-weight: bold">
                                       {{ fr.other_fields.report_date }} </td>
@@ -829,7 +829,7 @@
                                   </td>
                                   <td align="left">
                                   {% for contact in fr.other_fields.contacts %}
-                                      {% if forloop.counter0 %}<br/><br/>{% endif %}{{ contact|safe }}
+                                      {% if forloop.counter0 %}<br/><br/>{% endif %}{% if contact.ctype %}<strong>{{ contact.ctype }} · </strong>{% endif %}{% if contact.name %}<strong>{{ contact.name }}</strong>, {% endif %}{% if contact.title %}{{ contact.title }}, {% endif %}{% if contact.email %}<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>, {% endif %}{% if contact.phone %}{{ contact.phone }}{% endif %}
                                   {% endfor %}
                                   </td>
                               </tr>
@@ -852,4 +852,5 @@
     </table>
   {% endfor %}
 {% endif %}
+{% endlineless %}
   <!-- END Main -->
