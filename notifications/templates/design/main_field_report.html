@@ -555,15 +555,6 @@
                                       {{ fr.other_fields.external_partners }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.fact %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      FACT
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.fact }} </td>
-                              </tr>
-                          {% endif %}
                           {% if fr.other_fields.forecast_based_action %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
@@ -576,19 +567,10 @@
                           {% if fr.other_fields.forecast_based_action_amount %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
-                                      Forecast Based Action Amount
+                                      FBA amount
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.forecast_based_action_amount }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.ifrc_staff %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      IFRC Staff
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.ifrc_staff }} </td>
+                                      {{ fr.other_fields.forecast_based_action_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.is_covid_report %}
