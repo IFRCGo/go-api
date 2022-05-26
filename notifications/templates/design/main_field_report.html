@@ -20,10 +20,54 @@
                     <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Description</td>
                   </tr>
                   <tr>
-                    <td class="text-default text-light pb-40" style="padding-bottom: 40px;font-weight: 300;">
+                    <td class="text-default text-light pb-20" style="padding-bottom: 20px;font-weight: 300;">
                       {% autoescape off %}
-                        {{ fr.description }}
+                      {% for descr_line in fr.description %}
+                          {% if forloop.counter0 %}<br/>{% endif %}{{ descr_line }}
+                      {% endfor %}
                       {% endautoescape %}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="bp-20" style="padding-bottom: 20px">
+                      <table cellpadding="4">
+                      {% if fr.other_fields.start_date %}
+                          <tr>
+                              <td align="left" class="text-default text-light" style="font-weight: bold;white-space: nowrap">
+                                  Start date:
+                              </td>
+                              <td align="left" class="text-default text-light">
+                                  {{ fr.other_fields.start_date|date:"Y-m-d" }} </td>
+                          </tr>
+                      {% endif %}
+                      {% if fr.other_fields.countries %}
+                          <tr>
+                              <td align="left" class="text-default text-light" style="font-weight: bold;white-space: nowrap">
+                                  Affected Country:
+                              </td>
+                              <td align="left" class="text-default text-light">
+                                  {{ fr.other_fields.countries }} </td>
+                          </tr>
+                      {% endif %}
+                      {% if fr.other_fields.districts %}
+                          <tr>
+                              <td align="left" class="text-default text-light" style="font-weight: bold;white-space: nowrap">
+                                  Province / Region:
+                              </td>
+                              <td align="left" class="text-default text-light">
+                                  {{ fr.other_fields.districts }} </td>
+                          </tr>
+                      {% endif %}
+                      {% if fr.other_fields.event.name %}
+                          <tr>
+                              <td align="left" class="text-default text-light" style="font-weight: bold;white-space: nowrap">
+                                  Related Emergency:
+                              </td>
+                              <td align="left" class="text-default text-light">
+                                  {{ fr.other_fields.event.name }} </td>
+                          </tr>
+                      {% endif %}
+                      </table>
                     </td>
                   </tr>
                   <tr>
@@ -34,10 +78,9 @@
                             Key Figures {% if fr.sit_fields_date %}({{ fr.sit_fields_date|date:"F j, Y" }}){% endif %}
                           </td>
                         </tr>
-
                         <!-- if NOT EPI () type Field Report -->
                         {% if fr.dtype_id != 1 %}
-                          {% if fr.key_figures.affected %}            
+                          {% if fr.key_figures.affected %}
                             <tr>
                               <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Affected</td>
                               <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
@@ -64,7 +107,7 @@
                           {% if fr.key_figures.missing %}
                             <tr>
                               <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Missing</td>
-                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;"> 
+                              <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.key_figures.missing|floatformat:"1"|intcomma|slice:":-2" }}
                               </td>
                             </tr>
@@ -87,7 +130,7 @@
                           {% endif %}
                         {% else %} <!-- If EPI Field Report -->
                           {% if fr.epi_key_figures.epi_cases %}
-                            <tr>  
+                            <tr>
                               <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">Cases:</td>
                               <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
                                 {{ fr.epi_key_figures.epi_cases|floatformat:"1"|intcomma|slice:":-2" }}
@@ -128,7 +171,7 @@
                           {% endif %}
                           <tr>
                             <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;font-size:15px;">
-                              Source: 
+                              Source:
                               <span class="font-weight: 800;">{{ fr.epi_figures_source }}</span>
                             </td>
                           </tr>
@@ -136,8 +179,62 @@
                       </table>
                     </td>
                   </tr>
+                  {% if fr.other_fields.epi_notes_since_last_fr %}
                   <tr>
-                    <td class="text-default table-heading-title pt-40 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 40px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">International Assistance Requested</td>
+                    <td class="text-default pt-30 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 30px;padding-bottom: 10px;font-weight: bold;">Notes</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
+                    {% for noteline in fr.other_fields.epi_notes_since_last_fr %}
+                        {% if forloop.counter0 %}<br/>{% endif %}{{ noteline }}
+                    {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.notes_health %}
+                  <tr>
+                    <td class="text-default pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-weight: bold;">Notes (health)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
+                      {{ fr.other_fields.notes_health }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.notes_ns %}
+                  <tr>
+                    <td class="text-default pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-weight: bold;">Notes (NS)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
+                      {{ fr.other_fields.notes_ns }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.notes_socioeco %}
+                  <tr>
+                    <td class="text-default pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-weight: bold;">Notes (socioeco.)</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
+                      {{ fr.other_fields.notes_socioeco }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.other_sources %}
+                  <tr>
+                    <td class="text-default pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-weight: bold;">Source details</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
+                    {% for sourceline in fr.other_fields.other_sources %}
+                        {% if forloop.counter0 %}<br/>{% endif %}{{ sourceline }}
+                    {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">International Assistance Requested</td>
                   </tr>
                   <tr>
                     <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
@@ -145,11 +242,18 @@
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
+                    <td class="text-default text-light" style="color: #000000;font-family:'Lato', Arial, sans-serif;font-weight: 300;">
                       National Society: {{ fr.ns_assistance }}
                     </td>
                   </tr>
+                  {% if fr.other_fields.bulletin %}
                   <tr>
+                    <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
+                      Information Bulletin: {{ fr.other_fields.bulletin }}
+                    </td>
+                  </tr>
+                  {% endif %}
+                 <tr>
                     <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Actions Taken by National Society</td>
                   </tr>
                   {% for at in fr.actions_taken.NTLS %}
@@ -188,645 +292,518 @@
                       <td class="text-default pt-10 pb-10" style="font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 10px;">{{ at.action_summary }}</td>
                     </tr>
                   {% endfor %}
+                  {% if fr.actions_others %}
                   <tr>
                     <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Actions Taken by Others</td>
                   </tr>
                   <tr>
                     <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
-                      {{ fr.actions_others }}
+                      {% for actionline in fr.actions_others %}
+                          {% if forloop.counter0 %}<br/>{% endif %}{{ actionline }}
+                      {% endfor %}
                     </td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Response</td>
+                  </tr>
+                  <tr>
+                    <td class="text-default table-heading-title pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Planned Interventions</td>
                   </tr>
                   <tr>
                       <table width="100%" border="0" cellspacing="0" cellpadding="6" bgcolor="#ffffff" style="font-family: 'Lato', Arial, sans-serif">
-                          {% if fr.other_fields.status %}
-                              <tr>
-                                  <td align="left">
-                                      Field Report Status
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.status }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.regions %}
-                              <tr>
-                                  <td align="left">
-                                      Province / Region
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.regions }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.countries %}
-                              <tr>
-                                  <td align="left">
-                                      Affected Country
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.countries }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.districts %}
-                              <tr>
-                                  <td align="left">
-                                      District
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.districts }} </td>
-                              </tr>
-                          {% endif %}
                           {% if fr.other_fields.dref %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold" width="30%">
                                       DREF Request
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.dref }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.dref_amount %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Initial CHF estimate
                                   </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.dref_amount }} </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.dref_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.imminent_dref %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold" width="30%">
                                       Imminent DREF
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.imminent_dref }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.imminent_dref_amount %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Initial CHF estimate
                                   </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.imminent_dref_amount }} </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.imminent_dref_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.epi_cases_since_last_fr %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Epi. cases since last FR
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.epi_cases_since_last_fr }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.epi_deaths_since_last_fr %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Epi. deaths since last FR
                                   </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.epi_deaths_since_last_fr }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.epi_notes_since_last_fr %}
-                              <tr>
                                   <td align="left">
-                                      Notes
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.epi_notes_since_last_fr }} </td>
+                                      {{ fr.other_fields.epi_deaths_since_last_fr }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_base_camp %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Base Camp
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_base_camp }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_base_camp_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Base Camp Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_base_camp_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_basic_health_care %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU basic health care
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_basic_health_care }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_basic_health_care_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU basic health care Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_basic_health_care_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_deployment_hospital %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU deployment Hospital
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_deployment_hospital }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_deployment_hospital_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU deployment Hospital Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_deployment_hospital_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_it_telecom %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU IT Telecom
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_it_telecom }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_it_telecom_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU IT Telecom Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_it_telecom_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_logistics %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Logistics
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_logistics }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_logistics_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Logistics Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_logistics_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_referral_hospital %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU referral Hospital
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_referral_hospital }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_referral_hospital_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU referral Hospital Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_referral_hospital_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_relief %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Relief
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_relief }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_relief_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU Relief Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_relief_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_15 %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 15:
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_water_sanitation_15 }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_15_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 15 Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_water_sanitation_15_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_20 %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 20
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_water_sanitation_20 }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_20_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 20 Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_water_sanitation_20_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_40 %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 40
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.eru_water_sanitation_40 }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_40_units %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       ERU water sanitation 40 Units
                                   </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.eru_water_sanitation_40_units }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.event.name %}
-                              <tr>
                                   <td align="left">
-                                      Emergency
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.event.name }} </td>
+                                      {{ fr.other_fields.eru_water_sanitation_40_units }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.external_partners %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       External partners
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.external_partners }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.fact %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       FACT
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.fact }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.forecast_based_action %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Forecast Based Action
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.forecast_based_action }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.forecast_based_action_amount %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Forecast Based Action Amount
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.forecast_based_action_amount }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.gov_affected_pop_centres %}
-                              <tr>
-                                  <td align="left">
-                                      Affected pop. Centres (gov)
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.gov_affected_pop_centres }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.gov_num_highest_risk %}
-                              <tr>
-                                  <td align="left">
-                                      Highest risk (gov)
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.gov_num_highest_risk }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.gov_num_potentially_affected %}
-                              <tr>
-                                  <td align="left">
-                                      Potentially affected (gov)
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.gov_num_potentially_affected }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.health_min_num_assisted %}
-                              <tr>
-                                  <td align="left">
-                                      Health min num Assisted
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.health_min_num_assisted }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.ifrc_staff %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       IFRC Staff
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.ifrc_staff }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.is_covid_report %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       COVID report?
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.is_covid_report }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.notes_health %}
+{% comment %} 590 - 743
+                          {% if fr.other_fields.gov_affected_pop_centres %}
                               <tr>
-                                  <td align="left">
-                                      Notes (Health)
-                                  </td>
                                   <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.notes_health }} </td>
+                                      Affected pop. Centres (gov)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.gov_affected_pop_centres }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.notes_ns %}
+                          {% if fr.other_fields.gov_num_highest_risk %}
                               <tr>
-                                  <td align="left">
-                                      Notes (NS)
-                                  </td>
                                   <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.notes_ns }} </td>
+                                      Highest risk (gov)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.gov_num_highest_risk }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.notes_socioeco %}
+                          {% if fr.other_fields.gov_num_potentially_affected %}
                               <tr>
-                                  <td align="left">
-                                      Notes (socioeco)
-                                  </td>
                                   <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.notes_socioeco }} </td>
+                                      Potentially affected (gov)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.gov_num_potentially_affected }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.health_min_num_assisted %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Health min num Assisted
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.health_min_num_assisted }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_expats_delegates %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Partner Personnel
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_expats_delegates }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_fact %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       FACT
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_fact }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_highest_risk %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Highest risk
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_highest_risk }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_ifrc_staff %}
                               <tr>
-                                  <td align="left">
-                                      Num IFRC Staff
-                                  </td>
                                   <td align="left" style="font-weight: bold">
+                                      IFRC Staff
+                                  </td>
+                                  <td align="left">
                                       {{ fr.other_fields.num_ifrc_staff }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.affected_pop_centres %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Affected pop. centres
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.affected_pop_centres }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_localstaff %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Local Staff
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_localstaff }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_potentially_affected %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Potentially affected
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_potentially_affected }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_rdrt %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       RDRT
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_rdrt }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_volunteers %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Volunteers
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.num_volunteers }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.other_affected_pop_centres %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Affected pop. centres (other)
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.other_affected_pop_centres }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.other_num_highest_risk %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Highest risk (other)
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.other_num_highest_risk }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.other_num_potentially_affected %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Potentially affected (other)
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.other_num_potentially_affected }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.rdrt %}
-                              <tr>
-                                  <td align="left">
-                                      RDRT
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.rdrt }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.start_date %}
-                              <tr>
-                                  <td align="left">
-                                      Start date
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.start_date }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.report_date %}
-                              <tr>
-                                  <td align="left">
-                                      Report date
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.report_date }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.rid %}
-                              <tr>
-                                  <td align="left">
-                                      RID
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.rid }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.summary %}
-                              <tr>
-                                  <td align="left">
-                                      Summary
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.summary }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.supported_activities %}
-                              <tr>
-                                  <td align="left">
-                                      Supported activities
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.supported_activities }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.user %}
-                              <tr>
-                                  <td align="left">
-                                      User
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.user }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.who_num_assisted %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Assisted (WHO)
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.who_num_assisted }} </td>
+                              </tr>
+                          {% endif %}
+590 - 743 {% endcomment %}
+                          {% if fr.other_fields.rdrt %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      RDRT
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.rdrt }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.supported_activities %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Supported activities
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.supported_activities }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.appeal.name != 'NO' %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold" width="30%">
                                       Emergency Appeal
                                   </td>
-                                  <td align="left" style="font-weight: bold">
+                                  <td align="left">
                                       {{ fr.other_fields.appeal.name }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.appeal_amount %}
                               <tr>
-                                  <td align="left">
+                                  <td align="left" style="font-weight: bold">
                                       Initial CHF estimate
                                   </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.appeal_amount }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.bulletin %}
-                              <tr>
                                   <td align="left">
-                                      Information Bulletin
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                      {{ fr.other_fields.bulletin }} </td>
+                                      {{ fr.other_fields.appeal_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.other_sources %}
-                              <tr>
-                                  <td align="left">
-                                      Other sources
-                                  </td>
-                                  <td align="left" style="font-weight: bold">
-                                  {% for sourceline in fr.other_fields.other_sources %}
-                                      {% if forloop.counter0 %}<br/>{% endif %}{{ sourceline }}
-                                  {% endfor %}
-                                  </td>
-                              </tr>
-                          {% endif %}
+                      </table>
+                    </td>
+                  </tr>
+                  {% if fr.other_fields.contacts %}
+                  <tr>
+                    <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Contacts</td>
+                  </tr>
+                  {% endif %}
+                  <tr>
+                    <td>
+                      <table width="100%" border="0" cellspacing="0" cellpadding="6" bgcolor="#ffffff" style="font-family: 'Lato', Arial, sans-serif">
                           {% if fr.other_fields.contacts %}
                               <tr>
-                                  <td align="left">
-                                      Contacts
-                                  </td>
                                   <td align="left">
                                   {% for contact in fr.other_fields.contacts %}
                                       {% if forloop.counter0 %}<br/><br/>{% endif %}{% if contact.ctype %}<strong>{{ contact.ctype }} · </strong>{% endif %}{% if contact.name %}<strong>{{ contact.name }}</strong>, {% endif %}{% if contact.title %}{{ contact.title }}, {% endif %}{% if contact.email %}<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>, {% endif %}{% if contact.phone %}{{ contact.phone }}{% endif %}
@@ -834,7 +811,15 @@
                                   </td>
                               </tr>
                           {% endif %}
+                          {% if fr.visibility %}
+                              <tr>
+                                  <td align="left" class="pt-20 pb-10" style="padding-top: 20px;padding-bottom: 10px;white-space: nowrap;font-weight: bold">
+                                      This field report is visible to {{ fr.visibility }}
+                                  </td>
+                              </tr>
+                          {% endif %}
                       </table>
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-default td-global-font-style text-italic pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;font-style: italic;font-weight: 300;font-size: 18px;">
