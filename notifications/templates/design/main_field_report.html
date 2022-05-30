@@ -176,6 +176,22 @@
                             </td>
                           </tr>
                         {% endif %}
+                        {% if fr.other_fields.epi_cases_since_last_fr %}
+                          <tr>
+                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">CASES since last Field Report:</td>
+                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                              {{ fr.other_fields.epi_cases_since_last_fr|floatformat:"1"|intcomma|slice:":-2" }}
+                            </td>
+                          </tr>
+                        {% endif %}
+                        {% if fr.other_fields.epi_deaths_since_last_fr %}
+                          <tr>
+                            <td class="text-default text-light text-uppercase pl-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-left: 20px;text-transform: uppercase;font-weight: 300;">DEATHS since last Field Report:</td>
+                            <td class="text-default text-bold pr-20" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-right: 20px;font-weight: 700;">
+                              {{ fr.other_fields.epi_deaths_since_last_fr|floatformat:"1"|intcomma|slice:":-2" }}
+                            </td>
+                          </tr>
+                        {% endif %}
                       </table>
                     </td>
                   </tr>
@@ -292,15 +308,31 @@
                       <td class="text-default pt-10 pb-10" style="font-family:'Lato', Arial, sans-serif;padding-top: 10px;padding-bottom: 10px;">{{ at.action_summary }}</td>
                     </tr>
                   {% endfor %}
-                  {% if fr.actions_others %}
+                  {% if fr.actions_others or fr.other_fields.external_partners or fr.other_fields.supported_activities %}
                   <tr>
                     <td class="text-default table-heading-title pt-20 pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-top: 20px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Actions Taken by Others</td>
                   </tr>
+                  {% endif %}
+                  {% if fr.actions_others %}
                   <tr>
                     <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
                       {% for actionline in fr.actions_others %}
                           {% if forloop.counter0 %}<br/>{% endif %}{{ actionline }}
                       {% endfor %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.external_partners %}
+                  <tr>
+                    <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
+                      <b>External partners:</b> &nbsp; {{ fr.other_fields.external_partners }} 
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if fr.other_fields.supported_activities %}
+                  <tr>
+                    <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
+                      <b>Supported activities:</b> &nbsp; {{ fr.other_fields.supported_activities }}
                     </td>
                   </tr>
                   {% endif %}
@@ -311,6 +343,7 @@
                     <td class="text-default table-heading-title pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Planned Interventions</td>
                   </tr>
                   <tr>
+                    <td>
                       <table width="100%" border="0" cellspacing="0" cellpadding="6" bgcolor="#ffffff" style="font-family: 'Lato', Arial, sans-serif">
                           {% if fr.other_fields.dref %}
                               <tr>
@@ -348,24 +381,6 @@
                                       {{ fr.other_fields.imminent_dref_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.epi_cases_since_last_fr %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Epi. cases since last FR
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.epi_cases_since_last_fr }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.epi_deaths_since_last_fr %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Epi. deaths since last FR
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.epi_deaths_since_last_fr }} </td>
-                              </tr>
-                          {% endif %}
                           {% if fr.other_fields.eru_base_camp %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
@@ -381,7 +396,7 @@
                                       ERU Base Camp Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_base_camp_units }} </td>
+                                      {{ fr.other_fields.eru_base_camp_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_basic_health_care %}
@@ -399,7 +414,7 @@
                                       ERU basic health care Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_basic_health_care_units }} </td>
+                                      {{ fr.other_fields.eru_basic_health_care_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_deployment_hospital %}
@@ -417,7 +432,7 @@
                                       ERU deployment Hospital Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_deployment_hospital_units }} </td>
+                                      {{ fr.other_fields.eru_deployment_hospital_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_it_telecom %}
@@ -435,7 +450,7 @@
                                       ERU IT Telecom Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_it_telecom_units }} </td>
+                                      {{ fr.other_fields.eru_it_telecom_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_logistics %}
@@ -453,7 +468,7 @@
                                       ERU Logistics Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_logistics_units }} </td>
+                                      {{ fr.other_fields.eru_logistics_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_referral_hospital %}
@@ -471,7 +486,7 @@
                                       ERU referral Hospital Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_referral_hospital_units }} </td>
+                                      {{ fr.other_fields.eru_referral_hospital_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_relief %}
@@ -489,7 +504,7 @@
                                       ERU Relief Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_relief_units }} </td>
+                                      {{ fr.other_fields.eru_relief_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_15 %}
@@ -507,7 +522,7 @@
                                       ERU water sanitation 15 Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_water_sanitation_15_units }} </td>
+                                      {{ fr.other_fields.eru_water_sanitation_15_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_20 %}
@@ -525,7 +540,7 @@
                                       ERU water sanitation 20 Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_water_sanitation_20_units }} </td>
+                                      {{ fr.other_fields.eru_water_sanitation_20_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.eru_water_sanitation_40 %}
@@ -543,16 +558,7 @@
                                       ERU water sanitation 40 Units
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.eru_water_sanitation_40_units }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.external_partners %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      External partners
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.external_partners }} </td>
+                                      {{ fr.other_fields.eru_water_sanitation_40_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.forecast_based_action %}
@@ -573,6 +579,7 @@
                                       {{ fr.other_fields.forecast_based_action_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
+{% comment %} 583 - 753
                           {% if fr.other_fields.is_covid_report %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
@@ -582,14 +589,13 @@
                                       {{ fr.other_fields.is_covid_report }} </td>
                               </tr>
                           {% endif %}
-{% comment %} 604 - 755
                           {% if fr.other_fields.gov_affected_pop_centres %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       Affected pop. Centres (gov)
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.gov_affected_pop_centres }} </td>
+                                      {{ fr.other_fields.gov_affected_pop_centres|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.gov_num_highest_risk %}
@@ -598,7 +604,7 @@
                                       Highest risk (gov)
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.gov_num_highest_risk }} </td>
+                                      {{ fr.other_fields.gov_num_highest_risk|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.gov_num_potentially_affected %}
@@ -607,7 +613,7 @@
                                       Potentially affected (gov)
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.gov_num_potentially_affected }} </td>
+                                      {{ fr.other_fields.gov_num_potentially_affected|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.health_min_num_assisted %}
@@ -616,7 +622,7 @@
                                       Health min num Assisted
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.health_min_num_assisted }} </td>
+                                      {{ fr.other_fields.health_min_num_assisted|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_expats_delegates %}
@@ -625,7 +631,7 @@
                                       Partner Personnel
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_expats_delegates }} </td>
+                                      {{ fr.other_fields.num_expats_delegates|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_fact %}
@@ -634,7 +640,7 @@
                                       FACT
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_fact }} </td>
+                                      {{ fr.other_fields.num_fact|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_highest_risk %}
@@ -643,7 +649,7 @@
                                       Highest risk
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_highest_risk }} </td>
+                                      {{ fr.other_fields.num_highest_risk|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_ifrc_staff %}
@@ -652,7 +658,7 @@
                                       IFRC Staff
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_ifrc_staff }} </td>
+                                      {{ fr.other_fields.num_ifrc_staff|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.affected_pop_centres %}
@@ -661,7 +667,7 @@
                                       Affected pop. centres
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.affected_pop_centres }} </td>
+                                      {{ fr.other_fields.affected_pop_centres|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_localstaff %}
@@ -670,7 +676,7 @@
                                       Local Staff
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_localstaff }} </td>
+                                      {{ fr.other_fields.num_localstaff|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_potentially_affected %}
@@ -679,64 +685,9 @@
                                       Potentially affected
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.num_potentially_affected }} </td>
+                                      {{ fr.other_fields.num_potentially_affected|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.num_rdrt %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      RDRT
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.num_rdrt }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.num_volunteers %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Volunteers
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.num_volunteers }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.other_affected_pop_centres %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Affected pop. centres (other)
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.other_affected_pop_centres }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.other_num_highest_risk %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Highest risk (other)
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.other_num_highest_risk }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.other_num_potentially_affected %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Potentially affected (other)
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.other_num_potentially_affected }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.who_num_assisted %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Assisted (WHO)
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.who_num_assisted }} </td>
-                              </tr>
-                          {% endif %}
-604 - 755 {% endcomment %}
                           {% if fr.other_fields.rdrt %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
@@ -746,15 +697,61 @@
                                       {{ fr.other_fields.rdrt }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.supported_activities %}
+                          {% if fr.other_fields.num_rdrt %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
-                                      Supported activities
+                                      RDRT
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.supported_activities }} </td>
+                                      {{ fr.other_fields.num_rdrt|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
+                          {% if fr.other_fields.num_volunteers %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Volunteers
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.num_volunteers|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.other_affected_pop_centres %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Affected pop. centres (other)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.other_affected_pop_centres|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.other_num_highest_risk %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Highest risk (other)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.other_num_highest_risk|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.other_num_potentially_affected %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Potentially affected (other)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.other_num_potentially_affected|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                              </tr>
+                          {% endif %}
+                          {% if fr.other_fields.who_num_assisted %}
+                              <tr>
+                                  <td align="left" style="font-weight: bold">
+                                      Assisted (WHO)
+                                  </td>
+                                  <td align="left">
+                                      {{ fr.other_fields.who_num_assisted|floatformat:"1"|intcomma|slice:":-2" }} </td>
+                              </tr>
+                          {% endif %}
+583 - 753 {% endcomment %}
                           {% if fr.other_fields.appeal.name != 'NO' %}
                               <tr>
                                   <td align="left" style="font-weight: bold" width="30%">
