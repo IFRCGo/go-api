@@ -7,24 +7,11 @@ from snapshottest import Snapshot
 
 snapshots = Snapshot()
 
-snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
-,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
-'''
-
 snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 9,
+            'count': 8,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
@@ -34,7 +21,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 2,
+            'count': 3,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
@@ -93,7 +80,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'Migration'
         },
         {
-            'count': 3,
+            'count': 2,
             'primary_sector': 5,
             'primary_sector_display': 'DRR'
         },
@@ -108,7 +95,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'NS Strengthening'
         },
         {
-            'count': 2,
+            'count': 3,
             'primary_sector': 8,
             'primary_sector_display': 'Education'
         },
@@ -235,32 +222,10 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 460000,
+            'budget_amount_total': 9800000,
             'id': 15,
-            'iso3': 'tHB',
-            'name': 'country-iuvNEEDjBuMFysbJmJxVIbubeTshXCgXyvEJLmKeiLwzwZfIIC',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 5,
-                    'primary_sector_display': 'DRR'
-                }
-            ],
-            'society_name': 'society-name-cdPxXcaTMlqrMTOlHCJFwODdOoPbXjLmbhgUjvOaePGzOcFrkK',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 6050000,
-            'id': 17,
-            'iso3': 'PJN',
-            'name': 'country-VeiQGOKHLNUoaRFrygVhVpUKMWOEKMiDgOvSzdYonHRFVIHRwj',
+            'iso3': 'Pht',
+            'name': 'country-IgiuvNEEDjBuMFysbJmJxVIbubeTshXCgXyvEJLmKeiLwzwZfI',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -275,14 +240,36 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'Migration'
                 }
             ],
-            'society_name': 'society-name-GzGPgIXXqXpKDzSpdTKaPaEpFLsNLNYUPtYruDRPQqZtrhcCzL',
+            'society_name': 'society-name-HBcdPxXcaTMlqrMTOlHCJFwODdOoPbXjLmbhgUjvOaePGzOcFr',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 7500000,
+            'id': 17,
+            'iso3': 'HRw',
+            'name': 'country-daGmrDBRVeiQGOKHLNUoaRFrygVhVpUKMWOEKMiDgOvSzdYonH',
+            'ongoing_projects': 1,
+            'operation_types': [
+                0
+            ],
+            'operation_types_display': [
+                'Programme'
+            ],
+            'projects_per_sector': [
+                {
+                    'count': 1,
+                    'primary_sector': 8,
+                    'primary_sector_display': 'Education'
+                }
+            ],
+            'society_name': 'society-name-jGxUPJNGzGPgIXXqXpKDzSpdTKaPaEpFLsNLNYUPtYruDRPQqZ',
             'target_total': 0
         },
         {
             'budget_amount_total': 8290000,
             'id': 19,
             'iso3': 'NTS',
-            'name': 'country-PhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAkalhovT',
+            'name': 'country-NPhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAkalhov',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -478,6 +465,19 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         }
     ]
 }
+
+snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
+,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
+'''
 
 snapshots['TestProjectAPI::test_project_create 1'] = {
     'actual_expenditure': 0,
