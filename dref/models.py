@@ -120,8 +120,8 @@ class IdentifiedNeed(models.Model):
 @reversion.register()
 class PlannedInterventionIndicators(models.Model):
     title = models.CharField(max_length=255, verbose_name='Title')
-    target = models.IntegerField(verbose_name='Target', null=True, blank=True)
-    actual = models.IntegerField(verbose_name='Actual', null=True, blank=True)
+    target = models.IntegerField(verbose_name=_('Target'), null=True, blank=True)
+    actual = models.IntegerField(verbose_name=_('Actual'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('planned intervention indicator')

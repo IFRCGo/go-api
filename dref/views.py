@@ -59,9 +59,10 @@ class DrefViewSet(viewsets.ModelViewSet):
     )
     def get_published(self, request, pk=None, version=None):
         dref = self.get_object()
-        dref.is_published = True
-        dref.save(update_fields=['is_published'])
-        serializer = DrefSerializer(dref, partial=True, context={'request': request})
+        if not dref.is_published:
+            dref.is_published = True
+            dref.save(update_fields=['is_published'])
+        serializer = DrefSerializer(dref, context={'request': request})
         return response.Response(serializer.data)
 
 
@@ -86,9 +87,10 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
     )
     def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
-        operational_update.is_published = True
-        operational_update.save(update_fields=['is_published'])
-        serializer = DrefOperationalUpdateSerializer(operational_update, partial=True, context={'request': request})
+        if not operational_update.is_published:
+            operational_update.is_published = True
+            operational_update.save(update_fields=['is_published'])
+        serializer = DrefOperationalUpdateSerializer(operational_update, context={'request': request})
         return response.Response(serializer.data)
 
 

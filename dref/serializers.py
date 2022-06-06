@@ -304,22 +304,19 @@ class DrefOperationalUpdateSerializer(
     def validate(self, data):
         dref = data.get('dref')
         if not self.instance and dref:
-            dref = get_object_or_404(Dref, id=dref.id)
             if not dref.is_published:
                 raise serializers.ValidationError(
                     ugettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
                 )
             # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
-            operational_update_queryset = DrefOperationalUpdate.objects.filter(dref=dref)
-            if not operational_update_queryset.count() == 0:
-                dref_operational_update = operational_update_queryset.order_by('-operational_update_number')[0]
-                if dref_operational_update and not dref_operational_update.is_published:
-                    raise serializers.ValidationError(
-                        ugettext(
-                            'Can\'t create Operational Update for not published Operational Update %s id and Operational Update Number %i.'
-                            % (dref_operational_update.id, dref_operational_update.operational_update_number)
-                        )
+            dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
+            if dref_operational_update and not dref_operational_update.is_published:
+                raise serializers.ValidationError(
+                    ugettext(
+                        'Can\'t create Operational Update for not published Operational Update %s id and Operational Update Number %i.'
+                        % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
+                )
         return data
 
     def get_total_timeframe(self, start_date, end_date):
@@ -330,9 +327,9 @@ class DrefOperationalUpdateSerializer(
         return None
 
     def create(self, validated_data):
-        dref = validated_data.get('dref')
-        dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref)
-        if dref_operational_update.count() == 0:
+        dref = validated_data['dref']
+        dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
+        if not dref_operational_update:
             validated_data['title'] = dref.title
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
@@ -403,69 +400,68 @@ class DrefOperationalUpdateSerializer(
                     country_district.district.add(*cd.district.all())
         else:
             # get the latest dref operational update
-            operational_object = dref_operational_update.order_by('-operational_update_number')[0]
-            validated_data['title'] = operational_object.title
-            validated_data['national_society'] = operational_object.national_society
-            validated_data['disaster_type'] = operational_object.disaster_type
-            validated_data['type_of_onset'] = operational_object.type_of_onset
-            validated_data['disaster_category'] = operational_object.disaster_category
-            validated_data['number_of_people_targeted'] = operational_object.number_of_people_targeted
-            validated_data['number_of_people_affected'] = operational_object.number_of_people_affected
-            validated_data['emergency_appeal_planned'] = operational_object.emergency_appeal_planned
-            validated_data['appeal_code'] = operational_object.appeal_code
-            validated_data['glide_code'] = operational_object.glide_code
-            validated_data['ifrc_appeal_manager_name'] = operational_object.ifrc_appeal_manager_name
-            validated_data['ifrc_appeal_manager_email'] = operational_object.ifrc_appeal_manager_email
-            validated_data['ifrc_appeal_manager_title'] = operational_object.ifrc_appeal_manager_title
-            validated_data['ifrc_appeal_manager_phone_number'] = operational_object.ifrc_appeal_manager_phone_number
-            validated_data['ifrc_project_manager_name'] = operational_object.ifrc_project_manager_name
-            validated_data['ifrc_project_manager_email'] = operational_object.ifrc_project_manager_email
-            validated_data['ifrc_project_manager_title'] = operational_object.ifrc_project_manager_title
-            validated_data['ifrc_project_manager_phone_number'] = operational_object.ifrc_project_manager_phone_number
-            validated_data['national_society_contact_name'] = operational_object.national_society_contact_name
-            validated_data['national_society_contact_email'] = operational_object.national_society_contact_email
-            validated_data['national_society_contact_title'] = operational_object.national_society_contact_title
-            validated_data['national_society_contact_phone_number'] = operational_object.national_society_contact_phone_number
-            validated_data['media_contact_name'] = operational_object.media_contact_name
-            validated_data['media_contact_email'] = operational_object.media_contact_email
-            validated_data['media_contact_title'] = operational_object.media_contact_title
-            validated_data['media_contact_phone_number'] = operational_object.media_contact_phone_number
-            validated_data['ifrc_emergency_name'] = operational_object.ifrc_emergency_name
-            validated_data['ifrc_emergency_title'] = operational_object.ifrc_emergency_title
-            validated_data['ifrc_emergency_phone_number'] = operational_object.ifrc_emergency_phone_number
-            validated_data['ifrc_emergency_email'] = operational_object.ifrc_emergency_email
-            validated_data['ifrc'] = operational_object.ifrc
-            validated_data['icrc'] = operational_object.icrc
-            validated_data['partner_national_society'] = operational_object.partner_national_society
-            validated_data['government_requested_assistance'] = operational_object.government_requested_assistance
-            validated_data['national_authorities'] = operational_object.national_authorities
-            validated_data['un_or_other_actor'] = operational_object.un_or_other_actor
-            validated_data['major_coordination_mechanism'] = operational_object.major_coordination_mechanism
-            validated_data['people_assisted'] = operational_object.people_assisted
-            validated_data['selection_criteria'] = operational_object.selection_criteria
-            validated_data['entity_affected'] = operational_object.entity_affected
-            validated_data['women'] = operational_object.women
-            validated_data['men'] = operational_object.men
-            validated_data['girls'] = operational_object.girls
-            validated_data['boys'] = operational_object.boys
-            validated_data['disability_people_per'] = operational_object.disability_people_per
-            validated_data['people_per_urban'] = operational_object.people_per_urban
-            validated_data['people_per_local'] = operational_object.people_per_local
-            validated_data['people_targeted_with_early_actions'] = operational_object.people_targeted_with_early_actions
-            validated_data['displaced_people'] = operational_object.displaced_people
-            validated_data['operation_objective'] = operational_object.operation_objective
-            validated_data['response_strategy'] = operational_object.response_strategy
+            validated_data['title'] = dref_operational_update.title
+            validated_data['national_society'] = dref_operational_update.national_society
+            validated_data['disaster_type'] = dref_operational_update.disaster_type
+            validated_data['type_of_onset'] = dref_operational_update.type_of_onset
+            validated_data['disaster_category'] = dref_operational_update.disaster_category
+            validated_data['number_of_people_targeted'] = dref_operational_update.number_of_people_targeted
+            validated_data['number_of_people_affected'] = dref_operational_update.number_of_people_affected
+            validated_data['emergency_appeal_planned'] = dref_operational_update.emergency_appeal_planned
+            validated_data['appeal_code'] = dref_operational_update.appeal_code
+            validated_data['glide_code'] = dref_operational_update.glide_code
+            validated_data['ifrc_appeal_manager_name'] = dref_operational_update.ifrc_appeal_manager_name
+            validated_data['ifrc_appeal_manager_email'] = dref_operational_update.ifrc_appeal_manager_email
+            validated_data['ifrc_appeal_manager_title'] = dref_operational_update.ifrc_appeal_manager_title
+            validated_data['ifrc_appeal_manager_phone_number'] = dref_operational_update.ifrc_appeal_manager_phone_number
+            validated_data['ifrc_project_manager_name'] = dref_operational_update.ifrc_project_manager_name
+            validated_data['ifrc_project_manager_email'] = dref_operational_update.ifrc_project_manager_email
+            validated_data['ifrc_project_manager_title'] = dref_operational_update.ifrc_project_manager_title
+            validated_data['ifrc_project_manager_phone_number'] = dref_operational_update.ifrc_project_manager_phone_number
+            validated_data['national_society_contact_name'] = dref_operational_update.national_society_contact_name
+            validated_data['national_society_contact_email'] = dref_operational_update.national_society_contact_email
+            validated_data['national_society_contact_title'] = dref_operational_update.national_society_contact_title
+            validated_data['national_society_contact_phone_number'] = dref_operational_update.national_society_contact_phone_number
+            validated_data['media_contact_name'] = dref_operational_update.media_contact_name
+            validated_data['media_contact_email'] = dref_operational_update.media_contact_email
+            validated_data['media_contact_title'] = dref_operational_update.media_contact_title
+            validated_data['media_contact_phone_number'] = dref_operational_update.media_contact_phone_number
+            validated_data['ifrc_emergency_name'] = dref_operational_update.ifrc_emergency_name
+            validated_data['ifrc_emergency_title'] = dref_operational_update.ifrc_emergency_title
+            validated_data['ifrc_emergency_phone_number'] = dref_operational_update.ifrc_emergency_phone_number
+            validated_data['ifrc_emergency_email'] = dref_operational_update.ifrc_emergency_email
+            validated_data['ifrc'] = dref_operational_update.ifrc
+            validated_data['icrc'] = dref_operational_update.icrc
+            validated_data['partner_national_society'] = dref_operational_update.partner_national_society
+            validated_data['government_requested_assistance'] = dref_operational_update.government_requested_assistance
+            validated_data['national_authorities'] = dref_operational_update.national_authorities
+            validated_data['un_or_other_actor'] = dref_operational_update.un_or_other_actor
+            validated_data['major_coordination_mechanism'] = dref_operational_update.major_coordination_mechanism
+            validated_data['people_assisted'] = dref_operational_update.people_assisted
+            validated_data['selection_criteria'] = dref_operational_update.selection_criteria
+            validated_data['entity_affected'] = dref_operational_update.entity_affected
+            validated_data['women'] = dref_operational_update.women
+            validated_data['men'] = dref_operational_update.men
+            validated_data['girls'] = dref_operational_update.girls
+            validated_data['boys'] = dref_operational_update.boys
+            validated_data['disability_people_per'] = dref_operational_update.disability_people_per
+            validated_data['people_per_urban'] = dref_operational_update.people_per_urban
+            validated_data['people_per_local'] = dref_operational_update.people_per_local
+            validated_data['people_targeted_with_early_actions'] = dref_operational_update.people_targeted_with_early_actions
+            validated_data['displaced_people'] = dref_operational_update.displaced_people
+            validated_data['operation_objective'] = dref_operational_update.operation_objective
+            validated_data['response_strategy'] = dref_operational_update.response_strategy
             validated_data['created_by'] = self.context['request'].user
-            validated_data['operational_update_number'] = operational_object.operational_update_number + 1
-            validated_data['new_operational_start_date'] = operational_object.dref.date_of_approval
-            validated_data['dref_allocated_so_far'] = operational_object.total_dref_allocation
+            validated_data['operational_update_number'] = dref_operational_update.operational_update_number + 1
+            validated_data['new_operational_start_date'] = dref_operational_update.dref.date_of_approval
+            validated_data['dref_allocated_so_far'] = dref_operational_update.total_dref_allocation
             operational_update = super().create(validated_data)
-            operational_update.planned_interventions.add(*operational_object.planned_interventions.all())
-            operational_update.images.add(*operational_object.images.all())
-            operational_update.national_society_actions.add(*operational_object.national_society_actions.all())
-            operational_update.needs_identified.add(*operational_object.needs_identified.all())
-            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=operational_object).exists():
-                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=operational_object)
+            operational_update.planned_interventions.add(*dref_operational_update.planned_interventions.all())
+            operational_update.images.add(*dref_operational_update.images.all())
+            operational_update.national_society_actions.add(*dref_operational_update.national_society_actions.all())
+            operational_update.needs_identified.add(*dref_operational_update.needs_identified.all())
+            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update).exists():
+                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update)
                 for cd in dref_country_district:
                     country_district = DrefOperationalUpdateCountryDistrict.objects.create(
                         country=cd.country,
