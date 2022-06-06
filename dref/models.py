@@ -1405,7 +1405,10 @@ class DrefFinalReport(models.Model):
     )
 
     class Meta:
-        unique_together = ('dref_final_report', 'country')
+        verbose_name = _('Dref Final Report')
+        verbose_name_plural = _('Dref Final Reports')
+
+
 class DrefFileUpload(models.Model):
     file = models.FileField(
         verbose_name=_('file'),
@@ -1416,6 +1419,11 @@ class DrefFileUpload(models.Model):
         verbose_name=_('created_by'),
         on_delete=models.SET_NULL,
         null=True,
+    )
+    dref = models.ForeignKey(
+        Dref, verbose_name=_('Dref'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
     )
 
     class Meta:

@@ -6,8 +6,7 @@ from .models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
-    DrefFinalReportCountryDistrict,
-    DrefFileUpload
+    DrefFileUpload,
 )
 
 

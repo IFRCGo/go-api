@@ -31,7 +31,6 @@ from dref.models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
-    DrefFinalReportCountryDistrict,
     DrefFileUpload
 )
 from dref.utils import extract_file
@@ -63,14 +62,33 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
+class MiniDrefSerializer(serializers.ModelSerializer):
+    type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
+    disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
+
+    class Meta:
+        model = Dref
+        fields = [
+            'id',
+            'title',
+            'national_society',
+            'disaster_type',
+            'type_of_onset',
+            'disaster_category',
+            'disaster_category_display',
+            'type_of_onset_display'
+        ]
+
+
 class DrefFileUploadSerializer(ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     FILE_EXTENSIONS = ['docx']
+    dref_details = MiniDrefSerializer(source='dref', read_only=True)
 
     class Meta:
         model = DrefFileUpload
         fields = '__all__'
-        read_only_fields = ('created_by',)
+        read_only_fields = ('created_by', 'dref')
 
     def validate_file(self, file):
         extension = os.path.splitext(file.name)[1].replace(".", "")
@@ -84,7 +102,9 @@ class DrefFileUploadSerializer(ModelSerializer):
         validated_data['created_by'] = self.context['request'].user
         file = validated_data.get('file', None)
         if file:
-            extract_file(file)
+            created_by = self.context['request'].user
+            dref = extract_file(file, created_by)
+            validated_data['dref'] = dref
         return super().create(validated_data)
 
 
