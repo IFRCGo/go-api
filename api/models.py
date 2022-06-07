@@ -69,6 +69,7 @@ class Region(models.Model):
             'type': 'region',
             'name': self.label,
             'keyword': None,
+            'visibility': None,
             'body': self.label,
             'date': None
         }
@@ -207,6 +208,7 @@ class Country(models.Model):
             'type': 'country',
             'name': self.name,
             'keyword': None,
+            'visibility': None,
             'body': '%s %s' % (
                 self.name,
                 self.society_name,
@@ -618,6 +620,7 @@ class Event(models.Model):
             'type': 'event',
             'name': self.name,
             'keyword': None,
+            'visibility': self.visibility,
             'body': '%s %s' % (
                 self.name,
                 ' '.join(map(str, countries)) if len(countries) else None,
@@ -921,6 +924,7 @@ class Appeal(models.Model):
             'type': 'appeal',
             'name': self.name,
             'keyword': self.code,
+            'visibility': self.event.visibility if self.event else None,
             'body': '%s %s' % (
                 self.name,
                 getattr(self.country, 'name', None)
@@ -1351,6 +1355,7 @@ class FieldReport(models.Model):
             'type': 'report',
             'name': self.summary,
             'keyword': None,
+            'visibility': self.visibility,
             'body': '%s %s' % (
                 self.summary,
                 ' '.join(map(str, countries)) if len(countries) else None

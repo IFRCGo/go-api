@@ -384,13 +384,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
-        #import pdb; pdb.set_trace();
+        # import pdb; pdb.set_trace();
         qset = super().get_queryset()
         if self.action == 'mini_events':
-            #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
             return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
-            #Event.objects.filter(parent_event__isnull=True)
+            # Event.objects.filter(parent_event__isnull=True)
             qset.filter(parent_event__isnull=True).select_related('dtype')
             .prefetch_related(
                 'regions',
