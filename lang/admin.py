@@ -58,7 +58,7 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
 
     def get_additional_addlinks(self, request):
         url = reverse(self.get_url_namespace('toggle_edit_all_language')) + f'?next={request.get_full_path()}'
-        label = gettext('hide all language') if self._go__show_all_language_in_form() else ugettext('show all language')
+        label = gettext('hide all language') if self._go__show_all_language_in_form() else gettext('show all language')
         return [{'url': url, 'label': label}]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):

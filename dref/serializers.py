@@ -153,7 +153,7 @@ class DrefOperationalUpdateCountryDistrictSerializer(ModelSerializer):
             for district in districts:
                 if district.country != data['country']:
                     raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
+                        'district': gettext('Different districts found for given country')
                     })
         return data
 
@@ -305,13 +305,13 @@ class DrefOperationalUpdateSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
+                    gettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
                 )
             # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
             dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
             if dref_operational_update and not dref_operational_update.is_published:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Operational Update for not published Operational Update %s id and Operational Update Number %i.'
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
