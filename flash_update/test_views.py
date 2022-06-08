@@ -148,13 +148,13 @@ class FlashUpdateTest(APITestCase):
         ]
 
         data['hazard_type'] = str(self.hazard_type_updated.id)
-        data['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        data['share_with'] = FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
 
         response = self.client.put(f'/api/v2/flash-update/{created.id}/', data, format='json').json()
         updated = FlashUpdate.objects.get(id=response['id'])
         self.assertEqual(updated.id, created.id)
         self.assertEqual(updated.modified_by, self.user)
-        self.assertEqual(updated.share_with, FlashUpdate.FlashShareWith.RCRC_NETWORK)
+        self.assertEqual(updated.share_with, FlashUpdate.FlashShareWith.IFRC_SECRETARIAT)
         self.assertEqual(updated.hazard_type, self.hazard_type_updated)
         self.assertNotEqual(response['hazard_type'], created.hazard_type)
         self.assertEqual(updated.actions_taken_flash.count(), 2)
@@ -299,11 +299,11 @@ class FlashUpdateTest(APITestCase):
         # check for update
         group2 = GroupFactory(name="group2")
         email_suscription = FlashEmailSubscriptions.objects.get(
-            share_with=FlashUpdate.FlashShareWith.RCRC_NETWORK
+            share_with=FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         )
         email_suscription.group = group2
         email_suscription.save()
-        self.body['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        self.body['share_with'] = FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         response = self.client.put(f'/api/v2/flash-update/{instance.id}/', self.body, format='json').json()
         instance = FlashUpdate.objects.get(id=response['id'])
         email_data = send_flash_update_email(instance.id)
