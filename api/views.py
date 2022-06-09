@@ -26,6 +26,7 @@ from registrations.models import Recovery, Pending
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
 from .indexes import ES_PAGE_NAME
+from .logger import logger
 
 
 def bad_request(message):
@@ -341,10 +342,20 @@ class GetAuthToken(APIView):
         username = request.data.get('username', None)
         password = request.data.get('password', None)
 
+        if 'ifrc' in password.lower() or 'redcross' in password.lower():
+            logger.warning('User should be warned to use a stronger password.')
+
         if username is None or password is None:
+            logger.error('Should not happen. Frontend prevents login without username/password')
             return bad_request('Body must contain `email/username` and `password`')
 
         user = authenticate(username=username, password=password)
+        logger.info('%s attempted to log in from %s: %s (%s) %s'
+            % (username,
+            request.META['REMOTE_ADDR'] if 'REMOTE_ADDR' in request.META else '',
+            'ok' if user else 'ERR',
+            request.META['HTTP_ACCEPT_LANGUAGE'] if 'HTTP_ACCEPT_LANGUAGE' in request.META else '',
+            request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else ''))
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
