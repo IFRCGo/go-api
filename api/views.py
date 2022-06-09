@@ -350,9 +350,18 @@ class GetAuthToken(APIView):
             return bad_request('Body must contain `email/username` and `password`')
 
         user = authenticate(username=username, password=password)
+        IP = ''
+# temporary:
+        if 'REMOTE_ADDR' in request.META:             IP += 'R' + request.META['REMOTE_ADDR']
+        if 'HTTP_CLIENT_IP' in request.META:          IP += 'C' + request.META['HTTP_CLIENT_IP']
+        if 'HTTP_X_FORWARDED_FOR' in request.META:    IP += 'X' + request.META['HTTP_X_FORWARDED_FOR']
+        if 'HTTP_X_FORWARDED' in request.META:        IP += 'x' + request.META['HTTP_X_FORWARDED']
+        if 'HTTP_FORWARDED_FOR' in request.META:      IP += 'F' + request.META['HTTP_FORWARDED_FOR']
+        if 'HTTP_FORWARDED' in request.META:          IP += 'f' + request.META['HTTP_FORWARDED']
+
         logger.info('%s attempted to log in from %s: %s (%s) %s'
             % (username,
-            request.META['REMOTE_ADDR'] if 'REMOTE_ADDR' in request.META else '',
+            IP,
             'ok' if user else 'ERR',
             request.META['HTTP_ACCEPT_LANGUAGE'] if 'HTTP_ACCEPT_LANGUAGE' in request.META else '',
             request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else ''))
