@@ -350,12 +350,24 @@ class GetAuthToken(APIView):
             return bad_request('Body must contain `email/username` and `password`')
 
         user = authenticate(username=username, password=password)
-        logger.info('%s attempted to log in from %s: %s (%s) %s'
+
+        # Determining the client IP is not always straightforward:
+        clientIP = ''
+        # if 'REMOTE_ADDR' in request.META:        clientIP += 'R' + request.META['REMOTE_ADDR']
+        # if 'HTTP_CLIENT_IP' in request.META:     clientIP += 'C' + request.META['HTTP_CLIENT_IP']
+        # if 'HTTP_X_FORWARDED' in request.META:   clientIP += 'x' + request.META['HTTP_X_FORWARDED']
+        # if 'HTTP_FORWARDED_FOR' in request.META: clientIP += 'F' + request.META['HTTP_FORWARDED_FOR']
+        # if 'HTTP_FORWARDED' in request.META:     clientIP += 'f' + request.META['HTTP_FORWARDED']
+        if 'HTTP_X_FORWARDED_FOR' in request.META:
+            clientIP += request.META['HTTP_X_FORWARDED_FOR']. split(',')[0]
+
+        logger.info('%s FROM %s: %s (%s) %s'
             % (username,
-            request.META['REMOTE_ADDR'] if 'REMOTE_ADDR' in request.META else '',
+            clientIP,
             'ok' if user else 'ERR',
             request.META['HTTP_ACCEPT_LANGUAGE'] if 'HTTP_ACCEPT_LANGUAGE' in request.META else '',
             request.META['HTTP_USER_AGENT'] if 'HTTP_USER_AGENT' in request.META else ''))
+
         if user is not None:
             api_key, created = Token.objects.get_or_create(user=user)
 
