@@ -682,6 +682,18 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('images'),
         related_name='image_dref_operational_update'
     )
+    cover_image = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        blank=True, null=True,
+        verbose_name=_('cover image'),
+        related_name='cover_image_dref_operational_update'
+    )
+    budget_file = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        blank=True, null=True,
+        verbose_name=_('budget file'),
+        related_name='budget_file_dref_operational_update'
+    )
     operational_update_number = models.IntegerField(
         verbose_name=_('Operational Update Number'),
         null=True, blank=True
@@ -822,8 +834,20 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('Summary of change'),
         null=True, blank=True
     )
-    change_since_request = models.TextField(
-        verbose_name=_('Change since request'),
+    has_change_since_request = models.BooleanField(
+        verbose_name=_('Has change since request'),
+        null=True, blank=True
+    )
+    event_description = models.TextField(
+        verbose_name=_('Event description'),
+        null=True, blank=True
+    )
+    anticipatory_actions = models.TextField(
+        verbose_name=_('Anticipatory actions'),
+        null=True, blank=True
+    )
+    event_scope = models.TextField(
+        verbose_name=_('Event scope'),
         null=True, blank=True
     )
     national_society_actions = models.ManyToManyField(

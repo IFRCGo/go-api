@@ -295,6 +295,8 @@ class DrefOperationalUpdateSerializer(
         many=True,
         required=False
     )
+    budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
+    cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -385,6 +387,11 @@ class DrefOperationalUpdateSerializer(
             validated_data['new_operational_start_date'] = dref.date_of_approval
             validated_data['operational_update_number'] = 1  # if no any dref operational update created so far
             validated_data['dref_allocated_so_far'] = dref.amount_requested
+            validated_data['event_description'] = dref.event_description
+            validated_data['anticipatory_actions'] = dref.anticipatory_actions
+            validated_data['event_scope'] = dref.event_scope
+            validated_data['cover_image'] = dref.cover_image
+            validated_data['budget_file'] = dref.budget_file
             operational_update = super().create(validated_data)
             operational_update.planned_interventions.add(*dref.planned_interventions.all())
             operational_update.images.add(*dref.images.all())
@@ -455,6 +462,11 @@ class DrefOperationalUpdateSerializer(
             validated_data['operational_update_number'] = dref_operational_update.operational_update_number + 1
             validated_data['new_operational_start_date'] = dref_operational_update.dref.date_of_approval
             validated_data['dref_allocated_so_far'] = dref_operational_update.total_dref_allocation
+            validated_data['event_description'] = dref_operational_update.event_description
+            validated_data['anticipatory_actions'] = dref_operational_update.anticipatory_actions
+            validated_data['event_scope'] = dref_operational_update.event_scope
+            validated_data['cover_image'] = dref_operational_update.cover_image
+            validated_data['budget_file'] = dref_operational_update.budget_file
             operational_update = super().create(validated_data)
             operational_update.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             operational_update.images.add(*dref_operational_update.images.all())
