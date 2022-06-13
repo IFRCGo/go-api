@@ -19,15 +19,13 @@
                   <tr>
                     <td class="text-default table-heading-title pt-10 pb-10" style="padding-top: 10px;padding-bottom: 10px;text-transform: uppercase;font-weight: bold;">Description</td>
                   </tr>
+                  {% if fr.description %}
                   <tr>
                     <td class="text-default text-light pb-20" style="padding-bottom: 20px;font-weight: 300;">
-                      {% autoescape off %}
-                      {% for descr_line in fr.description %}
-                          {% if forloop.counter0 %}<br/>{% endif %}{{ descr_line }}
-                      {% endfor %}
-                      {% endautoescape %}
+                      {% autoescape off %}{{ fr.description }}{% endautoescape %}
                     </td>
                   </tr>
+                  {% endif %}
                   <tr>
                     <td class="bp-20" style="padding-bottom: 20px">
                       <table cellpadding="4">
