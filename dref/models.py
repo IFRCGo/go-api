@@ -694,6 +694,11 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('budget file'),
         related_name='budget_file_dref_operational_update'
     )
+    photos = models.ManyToManyField(
+        'DrefFile', blank=True,
+        verbose_name=_('images'),
+        related_name='photos_dref_operational_update'
+    )
     operational_update_number = models.IntegerField(
         verbose_name=_('Operational Update Number'),
         null=True, blank=True
