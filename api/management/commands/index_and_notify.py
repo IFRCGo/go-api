@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from elasticsearch.helpers import bulk
 from utils.elasticsearch import construct_es_data
@@ -23,7 +24,7 @@ time_1_day = timedelta(days=1)
 time_1_week = timedelta(days=7)  # for digest mode
 digest_time = int(10314)  # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
 daily_retro = int(654)  # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length = 860  # after this length (at the first space) we cut the sent content
+max_length = 860  # after this length (at the first space) we cut the sent content. In case of HTML tags we remove tags (to avoid chunked tags)
 events_sent_to = {}  # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
@@ -36,13 +37,19 @@ template_types = {
 
 
 # Used for 'Notification GUID' record creation in 'send_notification(4th param)'
+# Should be ~ github.com/IFRCGo/go-frontend/blob/develop/src/root/views/account.js#L80
 RTYPE_NAMES = {
-    0: 'Emergency',
-    1: 'Appeal',
-    2: 'Field Report',
+    0: 'Emergency',     # should be obsolate
+    1: 'Appeal',        # should be obsolate
+    2: 'Field Report',  # should be obsolate, but L752 depends on it: RTYPE_NAMES[rtype]
     3: 'Surge Alert',
+    4: 'Country',
+    5: 'Region',
+    6: 'Disaster Type',
+    7: 'PER Due Date',
     8: 'Followed Emergency',
     9: 'Surge Deployment',
+    10: 'Surge Approaching end of Mission',
     11: 'Weekly Digest',
     12: 'Field Report/Emergency',
     13: 'New Operation',
@@ -434,6 +441,7 @@ class Command(BaseCommand):
         if rtype != RecordType.WEEKLY_DIGEST:
             shortened = self.get_record_content(record, rtype)
             if len(shortened) > max_length:
+                shortened = strip_tags(shortened)
                 shortened = shortened[:max_length] + \
                     shortened[max_length:].split(' ', 1)[0] + '...'  # look for the first space
 
@@ -442,7 +450,7 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'description': shortened.split("\n") if shortened else None,
+                'description': shortened if shortened else None,
                 'key_figures': {
                     'affected': self.get_fieldreport_keyfigures(
                         [record.num_affected, record.gov_num_affected, record.other_num_affected]),
