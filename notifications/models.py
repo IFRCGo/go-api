@@ -103,9 +103,9 @@ class SubscriptionType(IntEnum):
 
 class RecordType(IntEnum):
     """ Types of notifications a user can subscribe to """
-    EVENT = 0        # will be obsolete, migrated to NEW_EMERGENCIES
-    APPEAL = 1       # will be obsolete, migrated to                 NEW_OPERATIONS
-    FIELD_REPORT = 2  # will be obsolete, migrated to NEW_EMERGENCIES
+    EVENT = 0         # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
+    APPEAL = 1        # not to use in rtype_of_subscr, migrated to                 NEW_OPERATIONS
+    FIELD_REPORT = 2  # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
     SURGE_ALERT = 3
     COUNTRY = 4
     REGION = 5
@@ -177,18 +177,17 @@ class Subscription(models.Model):
             'appeal': RecordType.APPEAL,
             'fieldReport': RecordType.FIELD_REPORT,
             'surge': RecordType.SURGE_ALERT,
-            'surgeDM': RecordType.SURGE_DEPLOYMENT_MESSAGES,
-            'surgeAEM': RecordType.SURGE_APPROACHING_END_OF_MISSION,
-            'regions': RecordType.REGION,
-            'countries': RecordType.COUNTRY,
-            'disasterTypes': RecordType.DTYPE,
+            'country': RecordType.COUNTRY,
+            'region': RecordType.REGION,
+            'disasterType': RecordType.DTYPE,
             'perDueDate': RecordType.PER_DUE_DATE,
             'followedEvent': RecordType.FOLLOWED_EVENT,
+            'surgeDM': RecordType.SURGE_DEPLOYMENT_MESSAGES,
+            'surgeAEM': RecordType.SURGE_APPROACHING_END_OF_MISSION,
             'weeklyDigest': RecordType.WEEKLY_DIGEST,
             'newEmergencies': RecordType.NEW_EMERGENCIES,
             'newOperations': RecordType.NEW_OPERATIONS,
             'general': RecordType.GENERAL_ANNOUNCEMENTS,
-
         }
 
         stype_map = {
