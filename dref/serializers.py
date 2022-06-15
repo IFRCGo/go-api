@@ -189,7 +189,6 @@ class DrefSerializer(
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     event_map_details = DrefFileSerializer(source='event_map', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
-    photos_details = DrefFileSerializer(source='photos', many=True, read_only=True)
     field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
@@ -289,6 +288,7 @@ class DrefOperationalUpdateSerializer(
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     images_details = DrefFileSerializer(source='images', many=True, read_only=True)
+    photos_details = DrefFileSerializer(source='photos', many=True, read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     country_district = DrefOperationalUpdateCountryDistrictSerializer(
