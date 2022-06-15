@@ -39,9 +39,9 @@ template_types = {
 # Used for 'Notification GUID' record creation in 'send_notification(4th param)'
 # Should be ~ github.com/IFRCGo/go-frontend/blob/develop/src/root/views/account.js#L80
 RTYPE_NAMES = {
-    0: 'Emergency',     # should be obsolate
-    1: 'Appeal',        # should be obsolate
-    2: 'Field Report',  # should be obsolate, but L752 depends on it: RTYPE_NAMES[rtype]
+    0: 'Emergency',     # not to use in rtype_of_subscr
+    1: 'Appeal',        # not to use in rtype_of_subscr
+    2: 'Field Report',  # not to use in rtype_of_subscr – L752 depends: RTYPE_NAMES[rtype]
     3: 'Surge Alert',
     4: 'Country',
     5: 'Region',
