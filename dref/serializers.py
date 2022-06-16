@@ -517,6 +517,7 @@ class DrefFinalReportSerializer(
     NestedCreateMixin,
     serializers.ModelSerializer
 ):
+    MAX_NUMBER_OF_PHOTOS = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -554,6 +555,11 @@ class DrefFinalReportSerializer(
                     )
                 )
         return data
+
+    def validate_photos(self, photos):
+        if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
+            raise serializers.ValidationError('Can add utmost %s photos' % self.MAX_NUMBER_OF_PHOTOS)
+        return photos
 
     def create(self, validated_data):
         # here check if there is operational update for corresponding dref
