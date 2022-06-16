@@ -7,6 +7,8 @@ from .models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefOperationalUpdateCountryDistrict,
+    DrefFinalReport,
+    DrefFinalReportCountryDistrict,
 )
 
 
@@ -61,4 +63,22 @@ class DrefOperationalUpdateAdmin(admin.ModelAdmin):
         'images',
     )
     inlines = [DrefOperationalUpdateCountryDistrictAdminInline]
+    list_filter = ['dref']
+
+
+class DrefFinalReportCountryDistrictAdminInline(admin.TabularInline):
+    model = DrefFinalReportCountryDistrict
+    extra = 0
+    autocomplete_fields = ('country', 'district',)
+
+
+@admin.register(DrefFinalReport)
+class DrefFinalReportAdmin(admin.ModelAdmin):
+    list_display = ('title', 'national_society', 'disaster_type')
+    autocomplete_fields = (
+        'national_society',
+        'disaster_type',
+        'photos',
+    )
+    inlines = [DrefFinalReportCountryDistrictAdminInline]
     list_filter = ['dref']

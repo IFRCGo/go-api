@@ -19,18 +19,21 @@ from dref.models import (
     PlannedIntervention,
     IdentifiedNeed,
     DrefFile,
-    DrefOperationalUpdate
+    DrefOperationalUpdate,
+    DrefFinalReport,
 )
 from dref.serializers import (
     DrefSerializer,
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
+    DrefFinalReportSerializer,
 )
 from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter
 )
 from dref.permissions import DrefOperationalUpdateCreatePermission
+
 
 class DrefViewSet(viewsets.ModelViewSet):
     serializer_class = DrefSerializer
@@ -92,6 +95,17 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
             operational_update.save(update_fields=['is_published'])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={'request': request})
         return response.Response(serializer.data)
+
+
+class DrefFinalReportViewSet(viewsets.ModelViewSet):
+    serializer_class = DrefFinalReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DrefFinalReport.objects.prefetch_related(
+            'dref__planned_interventions',
+            'dref__needs_identified',
+        ).order_by('-created_at').distinct()
 
 
 class DrefOptionsView(views.APIView):
