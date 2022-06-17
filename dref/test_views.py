@@ -8,9 +8,14 @@ from dref.models import Dref, DrefFile
 from dref.factories.dref import (
     DrefFactory,
     DrefFileFactory,
-    DrefOperationalUpdateFactory
+    DrefOperationalUpdateFactory,
+    DrefFinalReportFactory,
 )
-from dref.models import DrefCountryDistrict, DrefOperationalUpdate
+from dref.models import (
+    DrefCountryDistrict,
+    DrefOperationalUpdate,
+    DrefFinalReport,
+)
 
 from deployments.factories.user import UserFactory
 
@@ -547,3 +552,84 @@ class DrefTestCase(APITestCase):
         self.authenticate(user=user1)
         response = self.client.patch(url, data)
         self.assert_200(response)
+
+    def test_dref_change_on_final_report_create(self):
+        user1 = UserFactory.create()
+        dref = DrefFactory.create(
+            title='Test Title',
+            created_by=user1,
+        )
+        DrefFinalReportFactory.create(
+            dref=dref,
+        )
+        # try to patch to dref
+        data = {
+            'title': "hey title",
+            'new_operational_end_date': '2022-10-10',
+            'reporting_timeframe': '2022-10-16',
+            'is_timeframe_extension_required': True,
+        }
+        url = f'/api/v2/dref/{dref.id}/'
+        self.authenticate(user=user1)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+    def test_dref_fields_copied_to_final_report(self):
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title='Test Title', created_by=self.user,
+            is_published=True,
+        )
+        dref.users.add(user1)
+        self.country1 = Country.objects.create(name='abc')
+        self.country2 = Country.objects.create(name='xyz')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        old_count = DrefFinalReport.objects.count()
+        url = '/api/v2/dref-final-report/'
+        data = {
+            'dref': dref.id,
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
+        self.assertEqual(response.data['title'], dref.title)
+
+    def test_dref_operational_update_copied_to_final_report(self):
+        """
+        Here fields in final report should be copied from operational update if dref have
+        operational update created for it
+        """
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title='Test Title', created_by=user1,
+            is_published=True,
+        )
+        dref.users.add(user1)
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
+        country.district.add(self.district1)
+        operational_update = DrefOperationalUpdateFactory.create(
+            dref=dref,
+            title='Operational Update Title',
+            is_published=False,
+            operational_update_number=1
+        )
+        old_count = DrefFinalReport.objects.count()
+        url = '/api/v2/dref-final-report/'
+        data = {
+            'dref': dref.id,
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_400(response)
+        # update the operational_update
+        operational_update.is_published = True
+        operational_update.save(update_fields=['is_published'])
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
+        self.assertEqual(response.data['title'], operational_update.title)

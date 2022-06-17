@@ -579,7 +579,7 @@ class DrefFinalReportSerializer(
             validated_data['total_dref_allocation'] = dref_operational_update.total_dref_allocation
             validated_data['total_operation_timeframe'] = dref_operational_update.total_operation_timeframe
             validated_data['operation_start_date'] = dref_operational_update.dref.date_of_approval
-            validated_data['emergency_appeal_planned'] = dref_operational_update.emergency_appeal_planned
+            # validated_data['emergency_appeal_planned'] = dref_operational_update.emergency_appeal_planned
             validated_data['appeal_code'] = dref_operational_update.appeal_code
             validated_data['glide_code'] = dref_operational_update.glide_code
             validated_data['ifrc_appeal_manager_name'] = dref_operational_update.ifrc_appeal_manager_name
@@ -632,8 +632,8 @@ class DrefFinalReportSerializer(
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref_operational_update.needs_identified.all())
-            if DrefFinalReportCountryDistrict.objects.filter(dref_final_report=dref_final_report).exists():
-                dref_country_district = DrefFinalReportCountryDistrict.objects.filter(dref_final_report=dref_final_report)
+            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update).exists():
+                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update)
                 for cd in dref_country_district:
                     country_district = DrefFinalReportCountryDistrict.objects.create(
                         country=cd.country,
@@ -650,7 +650,7 @@ class DrefFinalReportSerializer(
             # validated_data['total_dref_allocation'] = dref.total_dref_allocation
             # validated_data['total_operation_timeframe'] = dref.total_operation_timeframe
             validated_data['operation_start_date'] = dref.date_of_approval
-            #validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
+            # validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
             validated_data['appeal_code'] = dref.appeal_code
             validated_data['glide_code'] = dref.glide_code
             validated_data['ifrc_appeal_manager_name'] = dref.ifrc_appeal_manager_name

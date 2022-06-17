@@ -137,7 +137,7 @@ class DrefOperationalUpdateFactory(factory.django.DjangoModelFactory):
                 self.national_society_actions.add(national_society_action)
 
 
-class DrefFinalReport(factory.django.DjangoModelFactory):
+class DrefFinalReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = DrefFinalReport
 
@@ -145,6 +145,7 @@ class DrefFinalReport(factory.django.DjangoModelFactory):
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     national_society = factory.SubFactory(CountryFactory)
+    dref = factory.SubFactory(DrefFactory)
 
     @factory.post_generation
     def planned_interventions(self, create, extracted, **kwargs):
