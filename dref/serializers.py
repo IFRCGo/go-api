@@ -3,7 +3,6 @@ import datetime
 
 from django.utils.translation import ugettext
 from django.db import models
-from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 
@@ -536,6 +535,11 @@ class DrefFinalReportSerializer(
         model = DrefFinalReport
         fields = '__all__'
 
+    def validate_dref(self, dref):
+        if DrefFinalReport.objects.filter(dref=dref).exists():
+            raise serializers.ValidationError('Final report already created for dref %s' % dref.id)
+        return dref
+
     def validate(self, data):
         dref = data.get('dref')
         # check if dref is published and operational_update associated with it is also published
@@ -648,7 +652,7 @@ class DrefFinalReportSerializer(
             validated_data['disaster_category'] = dref.disaster_category
             validated_data['number_of_people_targeted'] = dref.num_assisted
             # validated_data['total_dref_allocation'] = dref.total_dref_allocation
-            # validated_data['total_operation_timeframe'] = dref.total_operation_timeframe
+            validated_data['total_operation_timeframe'] = dref.operation_timeframe
             validated_data['operation_start_date'] = dref.date_of_approval
             # validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
             validated_data['appeal_code'] = dref.appeal_code

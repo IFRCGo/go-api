@@ -19,7 +19,11 @@ from dref.models import (
 
 from deployments.factories.user import UserFactory
 
-from api.models import Country, DisasterType, District
+from api.models import (
+    Country,
+    DisasterType,
+    District
+)
 
 
 class DrefTestCase(APITestCase):
@@ -633,3 +637,22 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
         self.assertEqual(response.data['title'], operational_update.title)
+
+    def test_final_report_for_dref(self):
+        # here a final report is already created for dref
+        # no multiple final report allowed for a dref
+        user1 = UserFactory.create()
+        dref = DrefFactory.create(
+            title='Test Title',
+            created_by=user1,
+        )
+        DrefFinalReportFactory.create(
+            dref=dref,
+        )
+        url = '/api/v2/dref-final-report/'
+        data = {
+            'dref': dref.id
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_400(response)

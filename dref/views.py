@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext
 
 from rest_framework import (
     views,
@@ -9,8 +8,6 @@ from rest_framework import (
     permissions,
     status,
     mixins,
-    serializers,
-    exceptions
 )
 from rest_framework.decorators import action
 from dref.models import (

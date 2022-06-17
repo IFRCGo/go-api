@@ -141,7 +141,7 @@ class DrefFinalReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = DrefFinalReport
 
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyText(length=50, prefix='Final-Report-')
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     national_society = factory.SubFactory(CountryFactory)
