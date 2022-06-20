@@ -583,7 +583,6 @@ class DrefFinalReportSerializer(
             validated_data['total_dref_allocation'] = dref_operational_update.total_dref_allocation
             validated_data['total_operation_timeframe'] = dref_operational_update.total_operation_timeframe
             validated_data['operation_start_date'] = dref_operational_update.dref.date_of_approval
-            # validated_data['emergency_appeal_planned'] = dref_operational_update.emergency_appeal_planned
             validated_data['appeal_code'] = dref_operational_update.appeal_code
             validated_data['glide_code'] = dref_operational_update.glide_code
             validated_data['ifrc_appeal_manager_name'] = dref_operational_update.ifrc_appeal_manager_name
@@ -651,10 +650,8 @@ class DrefFinalReportSerializer(
             validated_data['type_of_onset'] = dref.type_of_onset
             validated_data['disaster_category'] = dref.disaster_category
             validated_data['number_of_people_targeted'] = dref.num_assisted
-            # validated_data['total_dref_allocation'] = dref.total_dref_allocation
             validated_data['total_operation_timeframe'] = dref.operation_timeframe
             validated_data['operation_start_date'] = dref.date_of_approval
-            # validated_data['emergency_appeal_planned'] = dref.emergency_appeal_planned
             validated_data['appeal_code'] = dref.appeal_code
             validated_data['glide_code'] = dref.glide_code
             validated_data['ifrc_appeal_manager_name'] = dref.ifrc_appeal_manager_name

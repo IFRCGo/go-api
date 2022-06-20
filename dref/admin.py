@@ -82,3 +82,4 @@ class DrefFinalReportAdmin(admin.ModelAdmin):
     )
     inlines = [DrefFinalReportCountryDistrictAdminInline]
     list_filter = ['dref']
+    search_fields = ['title', 'national_society__name']

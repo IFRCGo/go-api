@@ -82,6 +82,7 @@ router.register(r'flash-update-action', flash_views.FlashActionViewset, basename
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
+router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country_rmd')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
@@ -146,9 +147,10 @@ router.register(r'flash-update-file', flash_views.FlashUpdateFileViewSet, basena
 router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_group')
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
+
+# Dref apis
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
-router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 
