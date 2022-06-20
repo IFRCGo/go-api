@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <style>
         table, tr, td {
@@ -21,12 +22,18 @@
         font-weight: bold;
       }
       .desc {
+        word-wrap: break-word;
         font-size: 15px;
+      }
+      .resource {
+        font-size: 15px;
+        padding: 5px;
       }
       .actions {
           font-size: 13px;
           font-weight: bold;
           padding-left: 20px;
+          text-decoration: none;
       }
     #situational_overview{
         font-size: 15px;
@@ -46,8 +53,6 @@
 
         <table>
             <tr>
-            </tr>
-            <tr>
             {% for map in map_list %}
                 <td><img src="{{map.image}}" alt="image"></td>
             {% endfor %}
@@ -55,8 +60,6 @@
         </table>
 
         <table>
-            <tr>
-            </tr>
             <tr>
             {% for graphic in graphic_list %}
                 <td><img src="{{graphic.image}}" alt="image"></td>
@@ -70,20 +73,21 @@
             <p class="sub-heading">Actions Taken by {{act_taken.organization_display}}</p>
 
             <p class="sub-heading">Descriptions</p>
-            <p class="desc"> {{act_taken.summary}}</p>
+            <span class='desc'>{{act_taken.summary|linebreaks}}</span>
 
             <p class="sub-heading">Actions</p>
             {% for action in act_taken.action_details %}
-                    <p class="actions">{{action.name}}</p>
+                <p class="actions">{{action.name}}</p>
             {%endfor%}
         {% endfor %}
 
     <h2 class="heading">Resources</h2>
     {% for resource in resources %}
-        <p class="desc">{{resource.date}}</p>
-        <p class="desc">{{resource.source_description}}</p>
-        <a class="actions">{{resource.url}}</a>
+        <p class="desc">{{resource.date}} <br>
+        {{resource.source_description}} <br>
+        url :<a class="actions">{{resource.url}}</a><br>
+        <a class="actions" href={{resource.flash_file}}> Download document</a>
+        </p>
     {%endfor%}
-
     </body>
 </html>
