@@ -8,7 +8,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
-from dref.enums import IntegerChoices
+from main.enums import IntegerChoices
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField

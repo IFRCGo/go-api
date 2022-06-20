@@ -1,4 +1,5 @@
 #  Note: This is already implemented in the newer version of Django and need to use that instead of this only upgrade is done.
+# Source: https://github.com/django/django/blob/main/django/db/models/enums.py
 
 import enum
 from types import DynamicClassAttribute

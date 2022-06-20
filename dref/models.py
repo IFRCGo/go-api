@@ -15,7 +15,7 @@ from api.models import (
     District,
     FieldReport
 )
-from .enums import TextChoices, IntegerChoices
+from main.enums import TextChoices, IntegerChoices
 
 
 @reversion.register()

@@ -15,7 +15,7 @@ from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
 from django.contrib.postgres.fields import JSONField
 
-from dref.enums import TextChoices
+from main.enums import TextChoices
 from api.models import (
     District,
     Country,
