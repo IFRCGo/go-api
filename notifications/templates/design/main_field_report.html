@@ -577,7 +577,7 @@
                                       {{ fr.other_fields.forecast_based_action_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-{% comment %} 583 - 753
+{% comment %} 581 - 733
                           {% if fr.other_fields.is_covid_report %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
@@ -612,15 +612,6 @@
                                   </td>
                                   <td align="left">
                                       {{ fr.other_fields.gov_num_potentially_affected|floatformat:"1"|intcomma|slice:":-2" }} </td>
-                              </tr>
-                          {% endif %}
-                          {% if fr.other_fields.health_min_num_assisted %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Health min num Assisted
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.health_min_num_assisted|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.num_expats_delegates %}
@@ -740,16 +731,7 @@
                                       {{ fr.other_fields.other_num_potentially_affected|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.who_num_assisted %}
-                              <tr>
-                                  <td align="left" style="font-weight: bold">
-                                      Assisted (WHO)
-                                  </td>
-                                  <td align="left">
-                                      {{ fr.other_fields.who_num_assisted|floatformat:"1"|intcomma|slice:":-2" }} </td>
-                              </tr>
-                          {% endif %}
-583 - 753 {% endcomment %}
+581 - 733 {% endcomment %}
                           {% if fr.other_fields.appeal.name != 'NO' %}
                               <tr>
                                   <td align="left" style="font-weight: bold" width="30%">
