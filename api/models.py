@@ -1286,8 +1286,8 @@ class FieldReport(models.Model):
     )
     epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
-    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
-    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
+    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True, help_text=_('not used any more'))
+    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (ministry of health)'), null=True, blank=True, help_text=_('not used any more'))
 
     # Early Warning fields
     gov_num_potentially_affected = models.IntegerField(verbose_name=_('potentially affected (goverment)'), null=True, blank=True)
