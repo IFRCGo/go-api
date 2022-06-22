@@ -174,7 +174,7 @@ class DrefFinalReportCountryDistrictSerializer(ModelSerializer):
             for district in districts:
                 if district.country != data['country']:
                     raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
+                        'district': gettext('Different districts found for given country')
                     })
         return data
 
@@ -545,7 +545,7 @@ class DrefFinalReportSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Final Report for not published dref %s.' % dref.id)
+                    gettext('Can\'t create Final Report for not published dref %s.' % dref.id)
                 )
             dref_operational_update = DrefOperationalUpdate.objects.filter(
                 dref=dref,
@@ -553,7 +553,7 @@ class DrefFinalReportSerializer(
             ).values_list('id', flat=True)
             if dref_operational_update:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Final Report for not published Operational Update %s ids ' % ','.join(map(str, dref_operational_update))
                     )
                 )
