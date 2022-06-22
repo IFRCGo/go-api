@@ -58,7 +58,7 @@ def get_email_context(instance):
         ).only('id', 'file')
     }
     for resource in resources:
-        resource['flash_file'] = documents_map[resource['document']]
+        resource['flash_file'] = documents_map.get(resource['document'])
 
     email_context = {
         'resource_url': get_flash_update_url(instance.id),

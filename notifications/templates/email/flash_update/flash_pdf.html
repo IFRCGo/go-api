@@ -85,8 +85,12 @@
     {% for resource in resources %}
         <p class="desc">{{resource.date}} <br>
         {{resource.source_description}} <br>
-        url :<a class="actions">{{resource.url}}</a><br>
-        <a class="actions" href={{resource.flash_file}}> Download document</a>
+        {% if resource.url %}
+            url: <a class="actions">{{resource.url}}</a><br>
+        {% endif %}
+        {% if resource.flash_file %}
+            <a class="actions" href={{resource.flash_file}}> Download document</a>
+        {% endif %}
         </p>
     {%endfor%}
     </body>
