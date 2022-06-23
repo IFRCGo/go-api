@@ -264,27 +264,31 @@ TINYMCE_DEFAULT_CONFIG = {
     'selector': 'textarea',
     'theme': 'modern',
     'plugins': '''
-            textcolor save link image media preview codesample contextmenu
-            table code lists fullscreen  insertdatetime  nonbreaking
-            contextmenu directionality searchreplace wordcount visualblocks
-            visualchars code fullscreen autolink lists  charmap print  hr
-            anchor pagebreak
-            ''',
+        textcolor save link image media preview codesample contextmenu
+        table code lists fullscreen  insertdatetime  nonbreaking
+        contextmenu directionality searchreplace wordcount visualblocks
+        visualchars code fullscreen autolink lists  charmap print  hr
+        anchor pagebreak
+        ''',
     'toolbar1': '''
-            bold italic underline fontsizeselect
-            | forecolor | alignleft alignright | aligncenter alignjustify
-            | indent outdent | bullist numlist |
-            | link visualchars charmap hr nonbreaking | code preview fullscreen
-            ''',
+        bold italic underline fontsizeselect
+        | forecolor | alignleft alignright | aligncenter alignjustify
+        | indent outdent | bullist numlist |
+        | link visualchars charmap hr nonbreaking | code preview fullscreen
+        ''',
     'toolbar2': '''
-            media embed
-            ''',
+        media embed
+        ''',
     'force_p_newlines': True,
     'force_br_newlines': True,
     'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': True,
     'statusbar': True,
+    # https://www.tiny.cloud/docs/configure/content-filtering/#invalid_styles
+    'invalid_styles': {
+        '*': 'opacity'  # Global invalid style
+    }
     # 'extended_valid_elements': 'iframe[src|frameborder|style|scrolling|class|width|height|name|align]',
 
     # If more formatting possibilities needed (or more rows), choose from these:
