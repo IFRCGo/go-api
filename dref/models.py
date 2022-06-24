@@ -1043,6 +1043,10 @@ class DrefFinalReport(models.Model):
         verbose_name=_('Number of people targeted'),
         blank=True, null=True
     )
+    number_of_people_affected = models.IntegerField(
+        verbose_name=_('number of people affected'),
+        blank=True, null=True
+    )
     total_dref_allocation = models.IntegerField(
         verbose_name=_('Total dref allocation'),
         null=True, blank=True

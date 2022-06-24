@@ -580,6 +580,7 @@ class DrefFinalReportSerializer(
             validated_data['type_of_onset'] = dref_operational_update.type_of_onset
             validated_data['disaster_category'] = dref_operational_update.disaster_category
             validated_data['number_of_people_targeted'] = dref_operational_update.number_of_people_targeted
+            validated_data['number_of_people_affected'] = dref_operational_update.number_of_people_affected
             validated_data['total_dref_allocation'] = dref_operational_update.total_dref_allocation
             validated_data['total_operation_timeframe'] = dref_operational_update.total_operation_timeframe
             validated_data['operation_start_date'] = dref_operational_update.dref.date_of_approval
@@ -650,6 +651,7 @@ class DrefFinalReportSerializer(
             validated_data['type_of_onset'] = dref.type_of_onset
             validated_data['disaster_category'] = dref.disaster_category
             validated_data['number_of_people_targeted'] = dref.num_assisted
+            validated_data['number_of_people_affected'] = dref.num_affected
             validated_data['total_operation_timeframe'] = dref.operation_timeframe
             validated_data['operation_start_date'] = dref.date_of_approval
             validated_data['appeal_code'] = dref.appeal_code
