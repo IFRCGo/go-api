@@ -562,6 +562,7 @@ class DrefTestCase(APITestCase):
         dref = DrefFactory.create(
             title='Test Title',
             created_by=user1,
+            is_final_report_created=True
         )
         DrefFinalReportFactory.create(
             dref=dref,
@@ -656,3 +657,20 @@ class DrefTestCase(APITestCase):
         self.authenticate(self.user)
         response = self.client.post(url, data)
         self.assert_400(response)
+
+    def test_update_dref_for_final_report_created(self):
+        user1 = UserFactory.create()
+        dref = DrefFactory.create(
+            title='Test Title',
+            created_by=user1,
+            is_published=True
+        )
+        url = '/api/v2/dref-final-report/'
+        data = {
+            'dref': dref.id
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_201(response)
+        dref_response = Dref.objects.get(id=dref.id)
+        self.assertEqual(dref_response.is_final_report_created, True)

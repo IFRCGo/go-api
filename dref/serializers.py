@@ -249,7 +249,7 @@ class DrefSerializer(
             })
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
-        if self.instance and DrefFinalReport.objects.filter(dref=self.instance).exists():
+        if self.instance and self.instance.is_final_report_created:
             raise serializers.ValidationError('Field Report already generated for dref %s' % self.instance.id)
         return data
 
@@ -713,6 +713,9 @@ class DrefFinalReportSerializer(
                         dref_final_report=dref_final_report
                     )
                     country_district.district.add(*cd.district.all())
+            # also update is_final_report_created for dref
+            dref.is_final_report_created = True
+            dref.save(update_fields=['is_final_report_created'])
         return dref_final_report
 
     def update(self, instance, validated_data):

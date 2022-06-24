@@ -565,6 +565,11 @@ class Dref(models.Model):
         default=False,
         verbose_name=_('Is published'),
     )
+    is_final_report_created = models.BooleanField(
+        default=False,
+        verbose_name=_('Is final report created'),
+    )
+
     __budget_file_id = None
 
     class Meta:
