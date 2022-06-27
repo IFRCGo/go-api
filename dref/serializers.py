@@ -191,6 +191,16 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            'id',
+            'title',
+            'is_published',
+        ]
+
+
 class DrefSerializer(
     EnumSupportSerializerMixin,
     NestedUpdateMixin,
@@ -217,6 +227,7 @@ class DrefSerializer(
     cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
+    dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport_set', many=True, read_only=True)
 
     class Meta:
         model = Dref
@@ -558,6 +569,12 @@ class DrefFinalReportSerializer(
                         'Can\'t create Final Report for not published Operational Update %s ids ' % ','.join(map(str, dref_operational_update))
                     )
                 )
+        if self.instance and self.instance.is_published:
+            raise serializers.ValidationError(
+                ugettext(
+                    'Can\'t update published final report %s.' % self.instance.id
+                )
+            )
         return data
 
     def validate_photos(self, photos):

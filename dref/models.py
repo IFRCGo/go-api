@@ -1288,6 +1288,10 @@ class DrefFinalReport(models.Model):
         verbose_name=_('planned intervention'),
         blank=True
     )
+    is_published = models.BooleanField(
+        verbose_name=_('Is Published'),
+        default=False
+    )
 
 
 class DrefFinalReportCountryDistrict(models.Model):

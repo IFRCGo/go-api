@@ -105,6 +105,22 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
         ).order_by('-created_at').distinct()
 
 
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefFinalReportSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, pk=None, version=None):
+        field_report = self.get_object()
+        if not field_report.is_published:
+            field_report.is_published = True
+            field_report.save(update_fields=['is_published'])
+        serializer = DrefFinalReportSerializer(field_report, context={'request': request})
+        return response.Response(serializer.data)
+
+
 class DrefOptionsView(views.APIView):
     """
     Options for various attrivute related to Dref

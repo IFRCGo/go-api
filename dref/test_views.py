@@ -674,3 +674,24 @@ class DrefTestCase(APITestCase):
         self.assert_201(response)
         dref_response = Dref.objects.get(id=dref.id)
         self.assertEqual(dref_response.is_final_report_created, True)
+
+    def test_final_report_update_once_published(self):
+        user1 = UserFactory.create()
+        final_report = DrefFinalReportFactory(
+            title='Test title',
+            created_by=user1,
+        )
+        # try to publish this report
+        url = f'/api/v2/dref-final-report/{final_report.id}/publish/'
+        data = {}
+        self.client.force_authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_200(response)
+        self.assertEqual(response.data['is_published'], True)
+        # now try to patch to the final report
+        url = f'/api/v2/dref-final-report/{final_report.id}/'
+        data = {
+            'title': 'New Field Report Title',
+        }
+        response = self.client.patch(url, data)
+        self.assert_400(response)
