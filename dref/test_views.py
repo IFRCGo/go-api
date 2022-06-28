@@ -566,6 +566,7 @@ class DrefTestCase(APITestCase):
         )
         DrefFinalReportFactory.create(
             dref=dref,
+            is_published=True,
         )
         # try to patch to dref
         data = {
