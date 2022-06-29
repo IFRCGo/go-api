@@ -49,7 +49,7 @@
         <h2 class="heading">Situational Overview</h2>
         <div id="situational_overview"><p> {{situational_overview|safe}}</p></div>
 
-        <h2 class="heading">Graphics</h2>
+        <h2 class="heading">Graphics and Maps</h2>
 
         <table>
             <tr>
@@ -86,7 +86,7 @@
         <p class="desc">{{resource.date}} <br>
         {{resource.source_description}} <br>
         {% if resource.url %}
-            url: <a class="actions">{{resource.url}}</a><br>
+            <a class="actions">{{resource.url}}</a><br>
         {% endif %}
         {% if resource.flash_file %}
             <a class="actions" href={{resource.flash_file}}> Download document</a>
