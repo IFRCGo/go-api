@@ -546,11 +546,6 @@ class DrefFinalReportSerializer(
         model = DrefFinalReport
         fields = '__all__'
 
-    def validate_dref(self, dref):
-        if DrefFinalReport.objects.filter(dref=dref).exists():
-            raise serializers.ValidationError('Final report already created for dref %s' % dref.id)
-        return dref
-
     def validate(self, data):
         dref = data.get('dref')
         # check if dref is published and operational_update associated with it is also published
