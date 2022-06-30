@@ -56,7 +56,7 @@ def send_flash_update_email(flash_update_id):
     ).values_list('email', flat=True)
     if users_emails:
         send_notification(
-            f'Flash Update :{instance.title}',
+            f'Flash Update: {instance.title}',
             users_emails,
             render_to_string('email/flash_update/flash_update.html', email_context),
             'Flash Update'
