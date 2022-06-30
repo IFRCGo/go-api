@@ -1014,7 +1014,7 @@ class DrefFinalReport(models.Model):
         null=True,
         related_name='modified_by_dref_final_report'
     )
-    dref = models.ForeignKey(
+    dref = models.OneToOneField(
         Dref, verbose_name=_('Dref'),
         on_delete=models.CASCADE
     )

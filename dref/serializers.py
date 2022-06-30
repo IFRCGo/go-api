@@ -227,7 +227,7 @@ class DrefSerializer(
     cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
-    dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport_set', many=True, read_only=True)
+    dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport', read_only=True)
 
     class Meta:
         model = Dref
