@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Flash update notification
+ - Real_data_update date comparison to appeal endpoint
+ - Rich Text Editor enhancements
+ - Adding Notes to AppealFilter
+ - Fixing flash update PDF
+ - Logging frontend login attempts
+ - Search output enhanced with visibility
+ - Contacts to FR notification
 
 ## 1.1.442
 

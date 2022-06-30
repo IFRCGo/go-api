@@ -35,7 +35,7 @@ def share_flash_update(flash_update_share_id):
 
     users_emails = set([*donors_emails, *donor_groups_emails])
     send_notification(
-        f'Flash Update :{flash_update.title}',
+        f'Flash Update: {flash_update.title}',
         users_emails,
         render_to_string('email/flash_update/donor_email.html', email_context),
         'Flash Update',
