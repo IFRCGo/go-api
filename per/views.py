@@ -1,7 +1,7 @@
 import logging
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
+from datetime import datetime, timezone
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from .models import (
@@ -15,8 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_now_str():
-    return str(timezone.now())
+    return datetime.now(timezone.utc)
 
+def parse_date(date_string):
+    dateformat = '%Y-%m-%d'
+    return datetime.strptime(date_string[:10], dateformat).replace(tzinfo=timezone.utc)
 
 # class CreatePerForm(APIView):
 #     authentication_classes = (authentication.TokenAuthentication,)
@@ -337,17 +340,17 @@ class CreatePerOverview(APIView):
             else:
                 return bad_request('You don\'t have permission to create an Overview for the selected Country.')
 
-        # prev_overview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
+        prevOverview = Overview.objects.filter(country_id=country_id).order_by('-created_at').first()
+        prevOverview_assessmentNumber = prevOverview.assessment_number + 1 if prevOverview else 1
 
         try:
             overview = Overview.objects.create(
-                # assessment_number=prev_overview.assessment_number + 1 if prev_overview else 1,
-                assessment_number=assessment_number,
+                assessment_number=assessment_number if assessment_number else prevOverview_assessmentNumber,
                 branches_involved=branches_involved,
                 country_id=country_id,
-                date_of_assessment=date_of_assessment or None,
-                date_of_mid_term_review=date_of_mid_term_review or None,
-                date_of_next_asmt=date_of_next_asmt or None,
+                date_of_assessment=parse_date(date_of_assessment) if date_of_assessment else None,
+                date_of_mid_term_review=parse_date(date_of_mid_term_review) if date_of_mid_term_review else None,
+                date_of_next_asmt=parse_date(date_of_next_asmt) if date_of_next_asmt else None,
                 facilitator_name=facilitator_name,
                 facilitator_email=facilitator_email,
                 facilitator_phone=facilitator_phone,
@@ -467,9 +470,9 @@ class UpdatePerOverview(APIView):
             ov.assessment_number = assessment_number
             ov.branches_involved = branches_involved
             ov.country_id = country_id
-            ov.date_of_assessment = date_of_assessment
-            ov.date_of_mid_term_review = date_of_mid_term_review
-            ov.date_of_next_asmt = date_of_next_asmt
+            ov.date_of_assessment = parse_date(date_of_assessment) if date_of_assessment else None
+            ov.date_of_mid_term_review = parse_date(date_of_mid_term_review) if date_of_mid_term_review else None
+            ov.date_of_next_asmt = parse_date(date_of_next_asmt) if date_of_next_asmt else None
             ov.facilitator_name = facilitator_name
             ov.facilitator_email = facilitator_email
             ov.facilitator_phone = facilitator_phone
