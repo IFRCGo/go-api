@@ -117,6 +117,9 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
         if not field_report.is_published:
             field_report.is_published = True
             field_report.save(update_fields=['is_published'])
+        if not field_report.dref.is_final_report_created:
+            field_report.dref.is_final_report_created = True
+            field_report.dref.save(update_fields=['is_final_report_created'])
         serializer = DrefFinalReportSerializer(field_report, context={'request': request})
         return response.Response(serializer.data)
 
