@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Notification GUID details - also created_at
  - Flash update notification
  - Real_data_update date comparison to appeal endpoint
  - Rich Text Editor enhancements
