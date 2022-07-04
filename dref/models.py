@@ -167,7 +167,7 @@ class PlannedIntervention(models.Model):
         verbose_name=_('Narrative description of achievements'),
         blank=True, null=True
     )
-    challanges = models.TextField(
+    challenges = models.TextField(
         verbose_name=_('Challenges'),
         null=True, blank=True
     )
