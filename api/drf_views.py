@@ -531,6 +531,7 @@ class AppealHistoryFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'appeal__real_data_update': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
 
@@ -542,7 +543,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+    ordering_fields = ('start_date', 'end_date', 'appeal__name', 'aid', 'dtype', 'num_beneficiaries',
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
