@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 1.1.445
+## 1.1.444
+## 1.1.443
+ - DREF final report
  - Flash update notification
+ - Notification GUID details - showing "created_at"
  - Real_data_update date comparison to appeal endpoint
  - Rich Text Editor enhancements
  - Adding Notes to AppealFilter
@@ -1996,7 +2002,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.442...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.445...HEAD
+[1.1.445]: https://github.com/IFRCGo/go-api/compare/1.1.444...1.1.445
+[1.1.444]: https://github.com/IFRCGo/go-api/compare/1.1.443...1.1.444
+[1.1.443]: https://github.com/IFRCGo/go-api/compare/1.1.442...1.1.443
 [1.1.442]: https://github.com/IFRCGo/go-api/compare/1.1.441...1.1.442
 [1.1.441]: https://github.com/IFRCGo/go-api/compare/1.1.440...1.1.441
 [1.1.440]: https://github.com/IFRCGo/go-api/compare/1.1.439...1.1.440
