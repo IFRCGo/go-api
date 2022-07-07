@@ -60,7 +60,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     ],
     'projects_per_sector': [
         {
-            'count': 4,
+            'count': 5,
             'primary_sector': 0,
             'primary_sector_display': 'WASH'
         },
@@ -95,7 +95,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'NS Strengthening'
         },
         {
-            'count': 2,
+            'count': 1,
             'primary_sector': 8,
             'primary_sector_display': 'Education'
         },
@@ -394,8 +394,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 8,
-                    'primary_sector_display': 'Education'
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
                 }
             ],
             'society_name': 'society-name-DCwyszNZGXQmypnWjcKsHVgAGwmfLLQMaSHEceWtyhGEdYOTkE',
