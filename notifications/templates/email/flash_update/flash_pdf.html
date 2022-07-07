@@ -36,6 +36,10 @@
           padding-left: 20px;
           text-decoration: none;
       }
+      .caption {
+          font-size: 13px;
+          padding-left: 6px;
+      }
     #situational_overview{
         font-size: 15px;
     }
@@ -55,7 +59,7 @@
         <table>
             <tr>
             {% for map in map_list %}
-                <td><img style='width:100%; height:100%;' src="{{map.image}}" alt="image"></td>
+                <td><img style='width:100%; height:100%;' src="{{map.image}}" alt="image"><br><p class='caption'>{{map.caption}}</p></td>
             {% endfor %}
             </tr>
         </table>
@@ -63,7 +67,7 @@
         <table>
             <tr>
             {% for graphic in graphic_list %}
-                <td><img style='width:100%; height:100%;' src="{{graphic.image}}" alt="image"></td>
+                <td><img style='width:100%; height:100%;' src="{{graphic.image}}" alt="image"><br><p class='caption'>{{graphic.caption}}</p></td>
             {% endfor %}
             </tr>
         </table>
