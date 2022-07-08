@@ -139,7 +139,7 @@ class EAPPartner(models.Model):
         return f'{self.name}'
 
 
-class EAPRefrence(models.Model):
+class EAPReference(models.Model):
     eap = models.ForeignKey(EAP, on_delete=models.CASCADE, related_name='eap_reference', verbose_name=_('EAP'))
     source = models.CharField(max_length=255, verbose_name=_('Name'), null=True, blank=True)
     url = models.URLField(verbose_name=_('URL'), null=True, blank=True)
