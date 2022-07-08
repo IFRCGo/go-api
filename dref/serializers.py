@@ -261,7 +261,9 @@ class DrefSerializer(
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
-            raise serializers.ValidationError('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+            raise serializers.ValidationError(
+                ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+            )
         return data
 
     def validate_images(self, images):
