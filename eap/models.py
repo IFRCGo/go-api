@@ -145,8 +145,8 @@ class EAPReference(models.Model):
     url = models.URLField(verbose_name=_('URL'), null=True, blank=True)
 
     class Meta:
-        verbose_name = _('EAP Refrence')
-        verbose_name_plural = _('EAP Refrences')
+        verbose_name = _('EAP Reference')
+        verbose_name_plural = _('EAP References')
 
     def __str__(self):
         return f'{self.source}'
