@@ -66,10 +66,25 @@ class EarlyAction(models.Model):
         return f'{self.sector}'
 
 
+class EAPDocument(models.Model):
+    file = models.FileField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('Created by'), related_name='document_created_by',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        verbose_name = _('Document')
+        verbose_name_plural = _('Documents')
+
+    def __str__(self):
+        return str(self.id)
+
+
 class EAP(models.Model):
-    class Status(TextChoices):  # TODO some more status choices are to be expected by client.
+    class Status(TextChoices):
         APPROVED = 'approved', _('Approved')
-        IN_PROCESS = 'in_process', _('In Process')
+        ACTIVATED = 'activated', _('Activated')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('Created by'), related_name='eap_created_by',
@@ -94,10 +109,10 @@ class EAP(models.Model):
         DisasterType, on_delete=models.SET_NULL, verbose_name=_('Disaster Type'),
         related_name='eap_disaster_type', null=True
     )
-    eap_number = models.CharField(max_length=50, verbose_name=_('EAP Number'))
+    eap_number = models.CharField(max_length=50, editable=False, verbose_name=_('EAP Number'))
     approval_date = models.DateField(verbose_name=_('Date of EAP Approval'))
     status = models.CharField(
-        max_length=255, choices=Status.choices, default=Status.IN_PROCESS,
+        max_length=255, choices=Status.choices, default=Status.APPROVED,
         verbose_name=_('EAP Status')
     )
     operational_timeframe = models.IntegerField(verbose_name=_('Operational Timeframe (Months)'))
@@ -110,8 +125,9 @@ class EAP(models.Model):
     early_action_budget = models.IntegerField(verbose_name=_('Early Actions Budget (CHF)'), null=True, blank=True)
     trigger_statement = models.TextField(verbose_name=_('Trigger Statement (Threshold for Activation)'))
     overview = models.TextField(verbose_name=_('EAP Overview'))
-    document = models.FileField(
-        verbose_name=_('EAP Documents'), upload_to='eap/documents/',
+    document = models.ForeignKey(
+        EAPDocument, on_delete=models.SET_NULL,
+        verbose_name=_('EAP Documents'), related_name='eap_document',
         null=True, blank=True
     )
     early_actions = models.ManyToManyField(

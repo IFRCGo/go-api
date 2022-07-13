@@ -68,6 +68,7 @@ from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from api import drf_views as api_views
 from flash_update import views as flash_views
+from eap import views as eap_views
 from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
@@ -148,6 +149,9 @@ router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_g
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 
+router.register(r'eap', eap_views.EAPViewSet, basename='eap')
+router.register(r'eap-file', eap_views.EAPDocumentViewSet, basename='eap_file')
+
 # Dref apis
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
@@ -177,6 +181,8 @@ urlpatterns = [
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^api/v2/flash-update-options/', flash_views.FlashUpdateOptions.as_view()),
     url(r'^api/v2/export-flash-update/(?P<pk>\d+)/', flash_views.ExportFlashUpdateView.as_view()),
+    url(r'^api/v2/eap-status/', eap_views.EAPStatusOptions.as_view()),
+    url(r'^api/v2/eap-indicators/', eap_views.EarlyActionIndicatorOptions.as_view()),
     url(r'^register', NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),

@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('modified_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
                 ('eap_number', models.CharField(max_length=50, verbose_name='EAP Number')),
                 ('approval_date', models.DateField(verbose_name='Date of EAP Approval')),
-                ('status', models.CharField(choices=[('approved', 'Approved'), ('in_process', 'In Process')], default=eap.models.EAP.Status('in_process'), max_length=255, verbose_name='EAP Status')),
+                ('status', models.CharField(choices=[('approved', 'Approved'), ('activated', 'Activated')], default=eap.models.EAP.Status('activated'), max_length=255, verbose_name='EAP Status')),
                 ('operational_timeframe', models.IntegerField(verbose_name='Operational Timeframe (Months)')),
                 ('lead_time', models.IntegerField(verbose_name='Lead Time')),
                 ('eap_timeframe', models.IntegerField(verbose_name='EAP Timeframe (Years)')),
