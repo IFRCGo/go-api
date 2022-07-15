@@ -689,6 +689,11 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assert_200(response)
         self.assertEqual(response.data['is_published'], True)
+
+        # againt try to publish final
+        response = self.client.post(url, data)
+        self.assert_400(response)
+
         # now try to patch to the final report
         url = f'/api/v2/dref-final-report/{final_report.id}/'
         data = {

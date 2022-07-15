@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext
 
 from rest_framework import (
     views,
@@ -8,6 +9,7 @@ from rest_framework import (
     permissions,
     status,
     mixins,
+    serializers,
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -114,6 +116,10 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
     )
     def get_published(self, request, pk=None, version=None):
         field_report = self.get_object()
+        if field_report.is_published:
+            raise serializers.ValidationError(
+                ugettext('Final Report %s is already published' % field_report)
+            )
         if not field_report.is_published:
             field_report.is_published = True
             field_report.save(update_fields=['is_published'])
