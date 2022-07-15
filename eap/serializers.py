@@ -19,6 +19,7 @@ from eap.models import (
     EarlyAction,
     EarlyActionIndicator,
     EAPDocument,
+    PrioritizedRisk,
 )
 
 from main.writable_nested_serializers import (
@@ -54,6 +55,13 @@ class ActionSerializer(serializers.ModelSerializer):
         read_only_fields = ('early_action',)
 
 
+class PrioritizedRiskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrioritizedRisk
+        fields = ('__all__')
+        read_only_fields = ('early_action',)
+
+
 class EarlyActionSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
@@ -61,6 +69,7 @@ class EarlyActionSerializer(
 ):
     indicators = EarlyActionIndicatorSerializer(many=True, required=False)
     actions = ActionSerializer(source='action', many=True, required=False)
+    prioritized_risks = PrioritizedRiskSerializer(source='early_actions_prioritized_risk', many=True, required=False)
     sector_display = serializers.CharField(source='get_sector_display', read_only=True)
 
     class Meta:

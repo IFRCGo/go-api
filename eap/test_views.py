@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from main.test_case import APITestCase
-from eap.models import EAP
+from eap.models import EAP, EarlyAction
 
 from api.factories.country import CountryFactory
 from api.factories.district import DistrictFactory
@@ -81,9 +81,16 @@ class EAPTest(APITestCase):
             "disaster_type": self.disaster_type.id,
             "early_actions": [
                 {
-                    "sector": "Health",
+                    "sector": EarlyAction.Sector.LIVELIHOODS,
                     "budget_per_sector": 1000,
-                    "prioritized_risk": "test",
+                    "prioritized_risks": [
+                        {
+                            "risks": "test1"
+                        },
+                        {
+                            "risks": "test2"
+                        }
+                    ],
                     "targeted_people": 100,
                     "readiness_activities": "test",
                     "prepositioning_activities": "test",
@@ -108,9 +115,16 @@ class EAPTest(APITestCase):
 
                 },
                 {
-                    "sector": "Health",
+                    "sector": EarlyAction.Sector.MIGRATION,
                     "budget_per_sector": 1000,
-                    "prioritized_risk": "prioritized_risk",
+                    "prioritized_risks": [
+                        {
+                            "risks": "test1"
+                        },
+                        {
+                            "risks": "test2"
+                        }
+                    ],
                     "targeted_people": 200,
                     "readiness_activities": "test",
                     "prepositioning_activities": "test",

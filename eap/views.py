@@ -1,9 +1,9 @@
 # Create your views here.
 
-from rest_framework.response import Response
 from rest_framework import (
     views,
     viewsets,
+    response,
     permissions,
     mixins,
 )
@@ -11,6 +11,7 @@ from .models import (
     EarlyActionIndicator,
     EAP,
     EAPDocument,
+    EarlyAction,
 )
 from .serializers import (
     EAPSerializer,
@@ -38,27 +39,31 @@ class EAPViewSet(viewsets.ModelViewSet):
         return EAP.objects.all().order_by('-created_at')
 
 
-class EAPStatusOptions(views.APIView):
-    def get(self, request, format=None):
-        options = {
-            'eap_status': [
-                {
-                    'value': value,
-                    'label': label,
-                } for value, label in EAP.Status.choices
-            ]
-        }
-        return Response(options)
+class EAPOptionsView(views.APIView):
+    """
+    Options for various attribute related to eap
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
-
-class EarlyActionIndicatorOptions(views.APIView):
-    def get(self, request, format=None):
+    def get(self, request, version=None):
         options = {
-            'eap_status': [
+            "status": [
                 {
-                    'value': value,
-                    'label': label,
-                } for value, label in EarlyActionIndicator.IndicatorChoices.choices
-            ]
+                    "key": status.value,
+                    "value": status.label
+                } for status in EAP.Status
+            ],
+            "early_actions_indicators": [
+                {
+                    "key": indicator.value,
+                    "value": indicator.label
+                } for indicator in EarlyActionIndicator.IndicatorChoices
+            ],
+            "sectors": [
+                {
+                    "key": sector.value,
+                    "value": sector.label
+                } for sector in EarlyAction.Sector
+            ],
         }
-        return Response(options)
+        return response.Response(options)

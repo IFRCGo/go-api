@@ -2,9 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from main.enums import TextChoices
+from main.enums import TextChoices, IntegerChoices
 from deployments.models import Sectors
-from main.enums import IntegerChoices
 from api.models import (
     Country,
     District,
@@ -51,10 +50,7 @@ class EarlyAction(models.Model):
     sector = models.IntegerField(choices=Sector.choices, verbose_name=_('sector'))
     budget_per_sector = models.IntegerField(verbose_name=_('Budget per sector (CHF)'), null=True, blank=True)
     indicators = models.ManyToManyField(EarlyActionIndicator, verbose_name=_('Indicators'), blank=True)
-
-    prioritized_risk = models.TextField(verbose_name=_('Prioritized risk'), null=True, blank=True)
     targeted_people = models.IntegerField(verbose_name=_('Targeted people'), null=True, blank=True,)
-
     readiness_activities = models.TextField(verbose_name=_('Readiness Activities'), null=True, blank=True)
     prepositioning_activities = models.TextField(verbose_name=_('Pre-positioning Activities'), null=True, blank=True)
 
@@ -109,7 +105,7 @@ class EAP(models.Model):
         DisasterType, on_delete=models.SET_NULL, verbose_name=_('Disaster Type'),
         related_name='eap_disaster_type', null=True
     )
-    eap_number = models.CharField(max_length=50, editable=False, verbose_name=_('EAP Number'))
+    eap_number = models.CharField(max_length=50, verbose_name=_('EAP Number'))
     approval_date = models.DateField(verbose_name=_('Date of EAP Approval'))
     status = models.CharField(
         max_length=255, choices=Status.choices, default=Status.APPROVED,
@@ -194,6 +190,23 @@ class Action(models.Model):
     class Meta:
         verbose_name = _('Action')
         verbose_name_plural = _('Actions')
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+class PrioritizedRisk(models.Model):
+    early_action = models.ForeignKey(
+        EarlyAction,
+        on_delete=models.CASCADE,
+        related_name='early_actions_prioritized_risk',
+        verbose_name=_('early action')
+    )
+    risks = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Prioritized risk')
+        verbose_name_plural = _('Prioritized risks')
 
     def __str__(self):
         return f'{self.id}'
