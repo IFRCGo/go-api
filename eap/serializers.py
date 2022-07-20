@@ -20,6 +20,7 @@ from eap.models import (
     EarlyActionIndicator,
     EAPDocument,
     PrioritizedRisk,
+    EAPActivation,
 )
 
 from main.writable_nested_serializers import (
@@ -136,3 +137,14 @@ class EAPSerializer(
         eap = super().update(instance, validated_data)
         return eap
 
+
+class EAPActivationSerializer(serializers.ModelSerializer):
+    document_detail = EAPDocumentSerializer(source='document', read_only=True)
+
+    class Meta:
+        model = EAPActivation
+        exclude = ('eap', 'field_report')
+
+    def update(self, instance, validated_data):
+        eap_activation = super().update(instance, validated_data)
+        return eap_activation

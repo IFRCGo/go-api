@@ -18,6 +18,8 @@ from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
+from eap.models import EAPActivation, EAP, EAPDocument
+
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -914,6 +916,14 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         report.save()
         return event
 
+    def create_eap_activation(self, eap_activation_data, fieldreport):
+        eap_id = eap_activation_data.pop('eap')
+        document_id = eap_activation_data.pop('document')
+        eap = EAP.objects.get(id=eap_id)
+        document = EAPDocument.objects.get(id=document_id)
+        eap_activation = EAPActivation.objects.create(eap=eap, field_report=fieldreport, document=document, **eap_activation_data)
+        return eap_activation
+
     def create(self, request, *args, **kwargs):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
@@ -928,7 +938,9 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             # TODO: Use serializer to create fieldreport
+            eap_activation_data = data.pop('eap_activation')
             fieldreport = FieldReport.objects.create(**data)
+            self.create_eap_activation(eap_activation_data, fieldreport)
             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
@@ -970,11 +982,21 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
 
+from eap.serializers import EAPActivationSerializer
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = FieldReport.objects.all()
     serializer_class = CreateFieldReportSerializer
+
+    def update_eap_activation(self, eap_activation_data, fieldreport):
+        eap_activation_data.pop('eap')
+        document_id = eap_activation_data.pop('document')
+        eap_activation_obj = EAPActivation.objects.get(field_report=fieldreport)
+        eap_activation = EAPActivationSerializer().update(eap_activation_obj, eap_activation_data)
+        eap_activation_obj.document = EAPDocument.objects.get(id=document_id)
+        eap_activation_obj.save(update_fields=['document'])
+        return eap_activation
 
     def partial_update(self, request, *args, **kwargs):
         self.update(request, *args, **kwargs)
@@ -989,7 +1011,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
         data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
-            serializer.save()
+            field_report = serializer.save()
+            self.update_eap_activation(request.data['eap_activation'], field_report)
         except Exception:
             logger.error('Faild to update field report', exc_info=True)
             raise BadRequest('Could not update field report')

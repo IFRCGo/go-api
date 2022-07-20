@@ -12,6 +12,7 @@ from api.factories.event import (
     EventLinkFactory,
     AppealFactory
 )
+from eap.factories import EAPFactory, EAPDocumentFactory
 
 
 class AuthTokenTest(APITestCase):
@@ -82,6 +83,10 @@ class FieldReportTest(APITestCase):
     def test_create_and_update(self):
         user = User.objects.create(username='jo')
         region = models.Region.objects.create(name=1)
+        eap1 = EAPFactory.create(created_by=user)
+        eap2 = EAPFactory.create(created_by=user)
+        document1 = EAPDocumentFactory.create(created_by=self.user)
+        document2 = EAPDocumentFactory.create(created_by=self.user)
         country1 = models.Country.objects.create(name='abc', region=region)
         country2 = models.Country.objects.create(name='xyz')
         body = {
@@ -105,6 +110,13 @@ class FieldReportTest(APITestCase):
                 {'ctype': 'Originator', 'name': 'jo', 'title': 'head', 'email': '123'}
             ],
             'user': user.id,
+            'eap_activation': {
+                'title': 'eap activation title',
+                'eap': eap1.id,
+                'description': 'test eap description',
+                'trigger_met_date': '2022-11-11 00:00',
+                'document': document1.id,
+            }
         }
         self.client.force_authenticate(user=user)
         with self.capture_on_commit_callbacks(execute=True):
@@ -149,6 +161,17 @@ class FieldReportTest(APITestCase):
         ]
         body['actions_taken'] = []
         body['visibility'] = models.VisibilityChoices.PUBLIC
+        body['eap_activation'] = {
+            'title': 'eap activation title updated',
+            'eap': eap2.id,
+            'description': 'test eap description updated',
+            'trigger_met_date': '2022-11-11 01:00',
+            'document': document2.id,
+            'originator_name': 'test name',
+            'nsc_name_operational': 'test name operational',
+            'ifrc_focal_email': 'testemail@gmail.com'
+        }
+
         response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
         updated = models.FieldReport.objects.get(pk=response['id'])
 

@@ -54,6 +54,7 @@ from .models import (
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject
+from eap.models import EAPActivation
 
 
 class GeoSerializerMixin:
@@ -1059,7 +1060,7 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
         model = FieldReport
         fields = '__all__'
 
-
+from eap.serializers import EAPActivationSerializer
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
@@ -1071,6 +1072,13 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     districts = MiniDistrictSerializer(many=True)
     external_partners = ExternalPartnerSerializer(many=True)
     supported_activities = SupportedActivitySerializer(many=True)
+    eap_activation = serializers.SerializerMethodField('get_eap_activation')
+
+    @staticmethod
+    def get_eap_activation(obj):
+        eap_activation = EAPActivation.objects.get(field_report=obj)
+        eap_activation_data = EAPActivationSerializer(eap_activation).data
+        return eap_activation_data
 
     class Meta:
         model = FieldReport
@@ -1078,6 +1086,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
 
 
 class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
+
     class Meta:
         model = FieldReport
         fields = '__all__'

@@ -8,6 +8,7 @@ from api.models import (
     Country,
     District,
     DisasterType,
+    FieldReport,
 )
 
 
@@ -210,3 +211,42 @@ class PrioritizedRisk(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class EAPActivation(models.Model):
+    title = models.CharField(max_length=250, null=True, blank=True)
+    field_report = models.ForeignKey(
+        FieldReport,
+        on_delete=models.SET_NULL,
+        related_name='field_report_eap_activation',
+        verbose_name=_('field report'),
+        null=True, blank=True
+    )
+    eap = models.ForeignKey(
+        EAP,
+        on_delete=models.SET_NULL,
+        related_name='eap_activation',
+        verbose_name=_('eap'),
+        null=True, blank=True
+    )
+    trigger_met_date = models.DateTimeField(verbose_name=_('Date the trigger was met'))
+    description = models.TextField(verbose_name=_('Description of EAP Activation'))
+    document = models.ForeignKey(
+        EAPDocument,
+        on_delete=models.SET_NULL,
+        verbose_name=_('EAP Activation Documents'),
+        related_name='eap_activation_document',
+        null=True, blank=True
+    )
+    originator_name = models.CharField(max_length=250, verbose_name=_('Originator name'), null=True, blank=True)
+    originator_title = models.CharField(max_length=250, verbose_name=_('Originator title'), null=True, blank=True)
+    originator_email = models.CharField(max_length=250, verbose_name=_('Originator email'), null=True, blank=True)
+    nsc_name_operational = models.CharField(max_length=250, verbose_name=_('National Society Contact (Operational)'), null=True, blank=True)
+    nsc_title_operational = models.CharField(max_length=250, verbose_name=_('National Society Contact (Operational)'), null=True, blank=True)
+    nsc_email_operational = models.CharField(max_length=250, verbose_name=_('National Society Contact (Operational)'), null=True, blank=True)
+    nsc_name_secretary = models.CharField(max_length=250, verbose_name=_('National Society Contact (Secretary)'), null=True, blank=True)
+    nsc_title_secretary = models.CharField(max_length=250, verbose_name=_('National Society Contact (Secretary)'), null=True, blank=True)
+    nsc_email_secretary = models.CharField(max_length=250, verbose_name=_('National Society Contact (Secretary)'), null=True, blank=True)
+    ifrc_focal_name = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Name'), null=True, blank=True)
+    ifrc_focal_title = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Title'), null=True, blank=True)
+    ifrc_focal_email = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Email'), null=True, blank=True)
