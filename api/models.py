@@ -1226,6 +1226,7 @@ class FieldReport(models.Model):
         EW = 8, _('Early Warning')
         EVT = 9, _('Event-related')
         TEN = 10, _('Ten')  # legacy usage. Covid?
+        EAP_ACTV = 11, _('EAP Activation')  # EAP Activation
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='user',

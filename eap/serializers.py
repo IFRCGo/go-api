@@ -44,6 +44,8 @@ class EAPPartnerSerializer(serializers.ModelSerializer):
 
 
 class EarlyActionIndicatorSerializer(serializers.ModelSerializer):
+    indicator_display = serializers.CharField(source='get_indicator_display', read_only=True)
+
     class Meta:
         model = EarlyActionIndicator
         fields = ('__all__')
@@ -100,7 +102,6 @@ class EAPDocumentSerializer(serializers.ModelSerializer):
 
 
 class EAPSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer
@@ -113,6 +114,7 @@ class EAPSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     document_details = EAPDocumentSerializer(source='document', read_only=True, required=False)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = EAP
