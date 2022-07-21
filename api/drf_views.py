@@ -916,12 +916,15 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         report.save()
         return event
 
-    def create_eap_activation(self, eap_activation_data, fieldreport):
-        eap_id = eap_activation_data.pop('eap')
-        document_id = eap_activation_data.pop('document')
-        eap = EAP.objects.get(id=eap_id)
-        document = EAPDocument.objects.get(id=document_id)
-        eap_activation = EAPActivation.objects.create(eap=eap, field_report=fieldreport, document=document, **eap_activation_data)
+    def create_eap_activation(self, data, fieldreport):
+        eap = EAP.objects.filter(id=data.pop('eap', None)).first()
+        document = EAPDocument.objects.filter(id=data.pop('document', None)).first()
+        eap_activation = EAPActivation.objects.create(
+            eap=eap,
+            field_report=fieldreport,
+            document=document,
+            **data
+        )
         return eap_activation
 
     def create(self, request, *args, **kwargs):
@@ -940,7 +943,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             # TODO: Use serializer to create fieldreport
             eap_activation_data = data.pop('eap_activation')
             fieldreport = FieldReport.objects.create(**data)
-            self.create_eap_activation(eap_activation_data, fieldreport)
+            self.create_eap_activation(eap_activation_data, fieldreport)  # activate respected eap for field report
             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
@@ -982,20 +985,22 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
 
-from eap.serializers import EAPActivationSerializer
+from eap.serializers import EAPActivationSerializer # It is imported here to avoid circular import issue
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = FieldReport.objects.all()
     serializer_class = CreateFieldReportSerializer
 
-    def update_eap_activation(self, eap_activation_data, fieldreport):
-        eap_activation_data.pop('eap')
-        document_id = eap_activation_data.pop('document')
-        eap_activation_obj = EAPActivation.objects.get(field_report=fieldreport)
-        eap_activation = EAPActivationSerializer().update(eap_activation_obj, eap_activation_data)
-        eap_activation_obj.document = EAPDocument.objects.get(id=document_id)
-        eap_activation_obj.save(update_fields=['document'])
+    # function for updating eap-activate in field report
+    def update_eap_activation(self, data, fieldreport):
+        eap_id = data.pop('eap', None)
+        document_id = data.pop('document', None)
+        instance = EAPActivation.objects.get(field_report=fieldreport)
+        eap_activation = EAPActivationSerializer().update(instance, data)
+        instance.document = EAPDocument.objects.filter(id=document_id).first()
+        instance.eap = EAP.objects.filter(id=eap_id).first()
+        instance.save(update_fields=['document', 'eap'])
         return eap_activation
 
     def partial_update(self, request, *args, **kwargs):
@@ -1012,6 +1017,7 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 
         try:
             field_report = serializer.save()
+            # update respected eap-activation
             self.update_eap_activation(request.data['eap_activation'], field_report)
         except Exception:
             logger.error('Faild to update field report', exc_info=True)

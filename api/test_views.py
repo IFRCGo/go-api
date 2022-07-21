@@ -13,6 +13,7 @@ from api.factories.event import (
     AppealFactory
 )
 from eap.factories import EAPFactory, EAPDocumentFactory
+from eap.models import EAPActivation
 
 
 class AuthTokenTest(APITestCase):
@@ -64,7 +65,6 @@ class SituationReportTypeTest(APITestCase):
 
         # Filter by event
         response = self.client.get('/api/v2/situation_report/?limit=100&event=%s' % event1.id)
-        print(response)
         self.assertEqual(response.status_code, 200)
         count = response.json()['count']
         self.assertEqual(count, 3)
@@ -116,6 +116,15 @@ class FieldReportTest(APITestCase):
                 'description': 'test eap description',
                 'trigger_met_date': '2022-11-11 00:00',
                 'document': document1.id,
+                'originator_name': 'test name',
+                'originator_title': 'test originator title',
+                'originator_email': 'test@email.com',
+                'nsc_name_operational': 'test name operational',
+                'nsc_title_operational': 'test nsc operational',
+                'nsc_email_operational': 'test nsc operational',
+                'ifrc_focal_name': 'test focal name',
+                'ifrc_focal_title': 'test focal title',
+                'ifrc_focal_email': 'testemail@gmail.com'
             }
         }
         self.client.force_authenticate(user=user)
@@ -149,6 +158,13 @@ class FieldReportTest(APITestCase):
             self.aws_translator._fake_translation('test', 'es', 'en')
         )
 
+        # check eap-activation data
+        eap_activation_obj = EAPActivation.objects.get(field_report=created)
+        self.assertEqual(eap_activation_obj.title, 'eap activation title')
+        self.assertEqual(eap_activation_obj.eap.id, eap1.id)
+        self.assertEqual(eap_activation_obj.document.id, document1.id)
+        self.assertEqual(eap_activation_obj.field_report.id, created.id)
+
         # created an emergency automatically
         self.assertEqual(created.event.name, 'test')
         event_pk = created.event.id
@@ -168,7 +184,13 @@ class FieldReportTest(APITestCase):
             'trigger_met_date': '2022-11-11 01:00',
             'document': document2.id,
             'originator_name': 'test name',
+            'originator_title': 'test originator title',
+            'originator_email': 'test@email.com',
             'nsc_name_operational': 'test name operational',
+            'nsc_title_operational': 'test nsc operational',
+            'nsc_email_operational': 'test nsc operational',
+            'ifrc_focal_name': 'test focal name',
+            'ifrc_focal_title': 'test focal title',
             'ifrc_focal_email': 'testemail@gmail.com'
         }
 
@@ -199,6 +221,13 @@ class FieldReportTest(APITestCase):
             updated.description_es,
             self.aws_translator._fake_translation('this is a test description', 'es', 'en'),
         )  # This has not been reset
+
+        # check eap-activation data
+        eap_activation_obj = EAPActivation.objects.get(field_report=updated)
+        self.assertEqual(eap_activation_obj.title, 'eap activation title updated')
+        self.assertEqual(eap_activation_obj.eap.id, eap2.id)
+        self.assertEqual(eap_activation_obj.document.id, document2.id)
+        self.assertEqual(eap_activation_obj.field_report.id, updated.id)
 
         body['summary'] = 'test [updated again]'
         with self.capture_on_commit_callbacks(execute=True):

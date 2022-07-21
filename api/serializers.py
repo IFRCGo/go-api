@@ -1060,7 +1060,8 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
         model = FieldReport
         fields = '__all__'
 
-from eap.serializers import EAPActivationSerializer
+
+from eap.serializers import EAPActivationSerializer  # It is imported here to avoid circular import issue
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     user = UserSerializer()
     dtype = DisasterTypeSerializer()

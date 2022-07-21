@@ -145,6 +145,3 @@ class EAPActivationSerializer(serializers.ModelSerializer):
         model = EAPActivation
         exclude = ('eap', 'field_report')
 
-    def update(self, instance, validated_data):
-        eap_activation = super().update(instance, validated_data)
-        return eap_activation
