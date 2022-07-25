@@ -12,7 +12,6 @@ from dref.factories.dref import (
     DrefFinalReportFactory,
 )
 from dref.models import (
-    DrefCountryDistrict,
     DrefOperationalUpdate,
     DrefFinalReport,
 )
@@ -333,7 +332,7 @@ class DrefTestCase(APITestCase):
         dref.users.add(self.ifrc_user)
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "images": [file1.id, file2.id, file3.id]
+            "images": [file1.id, file2.id]
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -341,7 +340,7 @@ class DrefTestCase(APITestCase):
 
         # now remove one file and add one file by `self.ifrc_user`
         data = {
-            "images": [file1.id, file2.id, file4.id]
+            "images": [file1.id, file4.id]
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -439,14 +438,13 @@ class DrefTestCase(APITestCase):
         )
         dref.users.add(user1)
         self.country1 = Country.objects.create(name='abc')
-        self.country2 = Country.objects.create(name='xyz')
         self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         old_count = DrefOperationalUpdate.objects.count()
         url = '/api/v2/dref-op-update/'
         data = {
             'dref': dref.id,
+            'country': self.country1.id,
+            'district': [self.district1.id],
         }
         self.authenticate(self.user)
         response = self.client.post(url, data=data)
@@ -461,10 +459,6 @@ class DrefTestCase(APITestCase):
             is_published=False,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         url = '/api/v2/dref-op-update/'
         data = {
             'dref': dref.id
@@ -480,10 +474,6 @@ class DrefTestCase(APITestCase):
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         DrefOperationalUpdateFactory.create(
             dref=dref,
             is_published=True,
@@ -505,10 +495,6 @@ class DrefTestCase(APITestCase):
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         DrefOperationalUpdateFactory.create(
             dref=dref,
             is_published=False,
@@ -529,10 +515,6 @@ class DrefTestCase(APITestCase):
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         DrefOperationalUpdateFactory.create(
             dref=dref,
             is_published=True,
@@ -587,11 +569,6 @@ class DrefTestCase(APITestCase):
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.country2 = Country.objects.create(name='xyz')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         old_count = DrefFinalReport.objects.count()
         url = '/api/v2/dref-final-report/'
         data = {
@@ -614,10 +591,6 @@ class DrefTestCase(APITestCase):
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
-        country = DrefCountryDistrict.objects.create(country=self.country1, dref=dref)
-        country.district.add(self.district1)
         operational_update = DrefOperationalUpdateFactory.create(
             dref=dref,
             title='Operational Update Title',
