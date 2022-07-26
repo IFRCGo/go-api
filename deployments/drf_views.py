@@ -147,13 +147,14 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         if self.request.GET.get('format', 'json') != 'csv':
             qs = qs.filter(is_active=True)
         qs = qs.select_related(
-            'country_from',
             'deployment__country_deployed_to',
             'deployment__event_deployed_to',
             'deployment__event_deployed_to__dtype',
         ).prefetch_related(
             'deployment__event_deployed_to__countries',
             'deployment__event_deployed_to__appeals',
+            'country_from',
+            'country_to',
             'molnix_tags',
         )
         return qs
