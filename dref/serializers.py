@@ -155,6 +155,7 @@ class DrefSerializer(
     MAX_NUMBER_OF_IMAGES = 2
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
+    MAX_OPERATION_TIMEFRAME = 30
 
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
@@ -260,7 +261,13 @@ class DrefSerializer(
             raise serializers.ValidationError(
                 f'Invalid uploaded file extension: {extension}, Supported only {self.ALLOWED_ASSESSmentREPORT_EXTENSIONS} Files'
             )
-        return budget_file
+        return assessment_report
+
+    def validate_operation_timeframe(self, operation_timeframe):
+        if operation_timeframe and operation_timeframe > self.MAX_OPERATION_TIMEFRAME:
+            raise serializers.ValidationError(
+                ugettext('Operation timeframe can\'t be greater than %s', self.MAX_OPERATION_TIMEFRAME)
+            )
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
