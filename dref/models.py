@@ -411,6 +411,10 @@ class Dref(models.Model):
         PlannedIntervention,
         verbose_name=_('planned intervention'), blank=True
     )
+    did_national_society = models.BooleanField(
+        verbose_name=_('Did National Society'),
+        null=True, blank=True
+    )
     ns_request_date = models.DateField(verbose_name=_('ns request date'), null=True, blank=True)
     submission_to_geneva = models.DateField(verbose_name=_('submission to geneva'), null=True, blank=True)
     date_of_approval = models.DateField(verbose_name=_('date of approval'), null=True, blank=True)
@@ -577,6 +581,12 @@ class Dref(models.Model):
         null=True, blank=True,
         verbose_name=_('Assessment Report'),
         related_name='dref_assessment_report'
+    )
+    suporting_document = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('Supporting Document'),
+        related_name='dref_supporting_document'
     )
     cover_image = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,
