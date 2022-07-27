@@ -199,11 +199,7 @@ class PlannedIntervention(models.Model):
 
 @reversion.register()
 class RiskSecurity(models.Model):
-    class Title(TextChoices):
-        RISK = 'risk', _('Risk')
-        MITIGATION_ACTION = 'mitigation_action', _('Mitigation Action')
-
-    title = models.CharField(max_length=50, verbose_name=_('Title'), choices=Title.choices)
+    title = models.CharField(max_length=50, verbose_name=_('Title'))
     security_concern = models.TextField(
         blank=True, null=True,
         verbose_name=_('Security Concern')

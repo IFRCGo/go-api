@@ -332,7 +332,16 @@ class DrefTestCase(APITestCase):
         dref.users.add(self.ifrc_user)
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "images": [file1.id, file2.id]
+            "images": [
+                {
+                    "file": file1.id,
+                    "caption": "Test Caption"
+                },
+                {
+                    "file": file2.id,
+                    "caption": "Test Caption"
+                }
+            ]
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -340,15 +349,29 @@ class DrefTestCase(APITestCase):
 
         # now remove one file and add one file by `self.ifrc_user`
         data = {
-            "images": [file1.id, file4.id]
+            "images": [
+                {
+                    "file": file1.id,
+                    "caption": "Test Caption"
+                },
+                {
+                    "file": file4.id,
+                    "caption": "Test Caption"
+                }
+            ]
         }
         self.client.force_authenticate(self.ifrc_user)
-        response = self.client.patch(url, data)
+        response = self.client.patch(url, data, format='multipart')
         self.assert_200(response)
 
         # add from another user
         data = {
-            "images": [file4.id]
+            "images": [
+                {
+                    "file": file4.id,
+                    "caption": "Test Caption"
+                }
+            ]
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -356,7 +379,12 @@ class DrefTestCase(APITestCase):
 
         # add file created_by another user
         data = {
-            "images": [file5.id]
+            "images": [
+                {
+                    "file": file5.id,
+                    "caption": "Test Caption"
+                }
+            ]
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
