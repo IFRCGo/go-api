@@ -15,6 +15,7 @@ from lang.serializers import ModelSerializer
 from api.serializers import (
     DisasterTypeSerializer,
     ListEventSerializer,
+    SurgeEventSerializer,
     SmallEventForPersonnelCsvSerializer,
     MiniEventSerializer,
     MiniCountrySerializer,
@@ -106,7 +107,7 @@ class ERUMiniSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
 class PersonnelDeploymentSerializer(ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
-    event_deployed_to = ListEventSerializer()
+    event_deployed_to = SurgeEventSerializer()
 
     class Meta:
         model = PersonnelDeployment

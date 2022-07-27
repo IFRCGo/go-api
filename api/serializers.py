@@ -510,6 +510,22 @@ class ListEventSerializer(EnumSupportSerializerMixin, ModelSerializer):
         )
 
 
+class SurgeEventSerializer(ModelSerializer):
+    appeals = RelatedAppealSerializer(many=True, read_only=True)
+    countries = MiniCountrySerializer(many=True)
+    dtype = DisasterTypeSerializer()
+    ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
+            'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
+            'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
+            'emergency_response_contact_email',  # omitted intentionally: field_reports
+        )
+
+
 class ListEventTableauSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()

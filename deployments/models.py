@@ -182,7 +182,7 @@ class MolnixTag(models.Model):
 @reversion.register()
 class DeployedPerson(models.Model):
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
-    end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
+    end_date = models.DateTimeField(verbose_name=_('end date'), null=True, db_index=True)
     name = models.CharField(verbose_name=_('name'), null=True, blank=True, max_length=255)
     role = models.CharField(verbose_name=_('role'), null=True, blank=True, max_length=512)
 
