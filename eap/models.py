@@ -250,3 +250,73 @@ class EAPActivation(models.Model):
     ifrc_focal_name = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Name'), null=True, blank=True)
     ifrc_focal_title = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Title'), null=True, blank=True)
     ifrc_focal_email = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Email'), null=True, blank=True)
+
+
+class EAPOperationalPlan(models.Model):
+    early_action = models.OneToOneField(
+        EarlyAction,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    budget = models.IntegerField(verbose_name=_('Budget per sector (CHF)'), null=True, blank=True)
+    indicator_value = models.IntegerField(verbose_name=_('Indicator'), null=True, blank=True)
+    no_of_people_reached = models.IntegerField(verbose_name=_('People Reached'), null=True, blank=True)
+    readiness_activities_achievements = models.TextField(verbose_name=_('Readiness Activities Achievements'), null=True, blank=True)
+    prepo_activities_achievements = models.TextField(verbose_name=_('Pre-positioning Activities Achievements'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('EAP Operational Plan')
+        verbose_name_plural = _('EAP Operational Plans')
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+class ActionAchievements(models.Model):
+    operational_plan = models.ForeignKey(
+        EAPOperationalPlan, on_delete=models.SET_NULL,
+        related_name="action_achievement", verbose_name=_('Action Achievement'),
+        null=True, blank=True
+    )
+    action = models.OneToOneField(Action, on_delete=models.SET_NULL, null=True, blank=True)
+    early_act_achievement = models.TextField(verbose_name=_('Early Actions Achievements'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Action Achievement')
+        verbose_name_plural = _('Action Achievements')
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+class EAPActivationReport(models.Model):
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
+    eap_activation = models.ForeignKey(
+        EAPActivation,
+        on_delete=models.SET_NULL,
+        verbose_name=_('EAP Activation Report'),
+        related_name='eap_activation_report',
+        null=True, blank=True
+    )
+    number_of_people_reached = models.IntegerField(verbose_name=_('Number Of People Reached'))
+    description = models.TextField(verbose_name=_('Description of Event & Overview of Implementation'))
+    overall_objectives = models.TextField(verbose_name=_('Overall Objective of the Intervention'))
+    document = models.ForeignKey(
+        EAPDocument,
+        on_delete=models.SET_NULL,
+        verbose_name=_('EAP Activation Report Document'),
+        related_name='eap_activation_report_document',
+        null=True, blank=True
+    )
+    challenges_and_lesson = models.TextField(verbose_name=_('Challenges & Lesson Learned per Sector'))
+    general_lesson_and_recomendations = models.TextField(verbose_name=_('General Lessons Learned and Recomendations'))
+    ifrc_financial_report = models.ForeignKey(
+        EAPDocument,
+        on_delete=models.SET_NULL,
+        verbose_name=_('IFRC Financial Report'),
+        related_name='eap_activation_ifrc_report',
+        null=True, blank=True
+    )
+
