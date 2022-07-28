@@ -189,7 +189,7 @@ class DrefTestCase(APITestCase):
             ],
             "planned_interventions": [
                 {
-                    "title": "shelter_and_basic_household_items",
+                    "title": "shelter_housing_and_settlements",
                     "description": "matrix",
                     "budget": 23444,
                     "male": 12222,
@@ -221,7 +221,7 @@ class DrefTestCase(APITestCase):
         }
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
 
@@ -298,7 +298,7 @@ class DrefTestCase(APITestCase):
             ],
             "planned_interventions": [
                 {
-                    "title": "shelter_and_basic_household_items",
+                    "title": "shelter_housing_and_settlements",
                     "description": "matrix",
                     "budget": 23444,
                     "person_targated": 12222
@@ -314,7 +314,7 @@ class DrefTestCase(APITestCase):
         }
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, 201)
         id = response.data['id']
         url = f'/api/v2/dref/{id}/'
@@ -344,8 +344,9 @@ class DrefTestCase(APITestCase):
             ]
         }
         self.client.force_authenticate(self.user)
-        response = self.client.patch(url, data)
-        self.assert_200(response)
+        response = self.client.patch(url, data=data, format="json")
+        print(response.content)
+        self.assert_400(response)
 
         # now remove one file and add one file by `self.ifrc_user`
         data = {

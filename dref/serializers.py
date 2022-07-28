@@ -48,6 +48,7 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
 
 class DrefFileSerializer(ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    file = serializers.FileField(required=False)
 
     class Meta:
         model = DrefFile
@@ -164,20 +165,20 @@ class DrefSerializer(
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    event_map = DrefFileSerializer(required=False, allow_null=True)
-    images = DrefFileSerializer(many=True, required=False, allow_null=True)
+    event_map_file = DrefFileSerializer(required=False, allow_null=True, source='event_map')
+    images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
     field_report = MiniFieldReportSerializer(required=False, allow_null=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
-    budget_file = DrefFileSerializer(required=False, allow_null=True)
-    cover_image = DrefFileSerializer(required=False, allow_null=True)
+    budget_file_file = DrefFileSerializer(required=False, allow_null=True, source='budget_file')
+    cover_image_file = DrefFileSerializer(required=False, allow_null=True, source='cover_image')
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
     dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport', read_only=True)
     country_details = MiniCountrySerializer(source='country', read_only=True)
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
-    assessment_report = DrefFileSerializer(required=False, allow_null=True)
-    suporting_document = DrefFileSerializer(required=False, allow_null=True)
+    assessment_report_file = DrefFileSerializer(required=False, allow_null=True, source='assessment_report')
+    suporting_document_file = DrefFileSerializer(required=False, allow_null=True, source='suporting_docuement_file')
     risk_security = RiskSecuritySerializer(many=True, required=False)
 
     class Meta:

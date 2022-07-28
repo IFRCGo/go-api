@@ -199,11 +199,9 @@ class PlannedIntervention(models.Model):
 
 @reversion.register()
 class RiskSecurity(models.Model):
-    title = models.CharField(max_length=50, verbose_name=_('Title'))
-    security_concern = models.TextField(
-        blank=True, null=True,
-        verbose_name=_('Security Concern')
-    )
+    client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_('client_id'))
+    risk = models.CharField(max_length=255, verbose_name=_('Risk'), null=True, blank=True)
+    mitigation = models.CharField(max_length=255, verbose_name=_('Mitigation'), null=True, blank=True)
 
 
 @reversion.register()
@@ -612,6 +610,10 @@ class Dref(models.Model):
     risk_security = models.ManyToManyField(
         RiskSecurity, blank=True,
         verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
     )
     __budget_file_id = None
 
