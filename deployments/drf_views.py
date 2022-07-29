@@ -698,10 +698,10 @@ class EmergencyProjectViewSet(
     # ReadOnlyVisibilityViewsetMixin,  # FIXME: This is required?
     viewsets.ModelViewSet,
 ):
-    # FIXME: N+1 Query
-    queryset = EmergencyProject.objects.order_by('-modified_at').prefetch_related(
-        'created_by', 'reporting_ns', 'districts', 'event', 'country'
-    ).all()
+    queryset = EmergencyProject.objects.\
+        select_related('created_by', 'reporting_ns', 'event', 'country', 'deployed_eru', 'modified_by').\
+        prefetch_related('districts', 'activities').\
+        order_by('-modified_at').all()
     # Intentionally not IsAuthenticated. Anons should see public EmergencyProjects:
     permission_classes = []
     filterset_class = EmergencyProjectFilter
