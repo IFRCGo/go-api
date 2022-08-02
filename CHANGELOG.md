@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+ - Surge map performance tuning:
+   - eliminated FR queries
+   - molnix and country stuff to prefetch
+   - so there are only 10 queries now by personnel end-point call
+   - end_date index matters (is_active not), so end_date index added
+ - Accounts with identical email addresses - use the active one.
+ - PER Overview creation fix
 
 ## 1.1.445
 ## 1.1.444
