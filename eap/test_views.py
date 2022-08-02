@@ -4,14 +4,18 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from main.test_case import APITestCase
-from eap.models import EAP, EarlyAction
+from eap.models import EAP, EarlyAction, EAPActivationReport, Action
 
 from api.factories.country import CountryFactory
 from api.factories.district import DistrictFactory
 from api.factories.disaster_type import DisasterTypeFactory
 from deployments.factories.user import UserFactory
 
-from .factories import EAPDocumentFactory, EAPFactory
+from .factories import (
+    EAPDocumentFactory,
+    EAPFactory,
+    EAPActivationFactory,
+)
 
 
 class EAPTest(APITestCase):
@@ -23,8 +27,10 @@ class EAPTest(APITestCase):
         self.district1 = DistrictFactory.create(name='test district1', country=self.country1)
         self.district2 = DistrictFactory.create(name='test district2', country=self.country2)
         self.document1 = EAPDocumentFactory.create(created_by=self.user)
+        self.document2 = EAPDocumentFactory.create(created_by=self.user)
         self.disaster_type = DisasterTypeFactory.create(name="test earthquake")
         self.disaster_type_updated = DisasterTypeFactory.create(name="test flood")
+        self.eap_activation = EAPActivationFactory.create()
 
         path = os.path.join(settings.TEST_DIR, 'documents')
         self.file = os.path.join(path, 'go.png')
@@ -63,7 +69,7 @@ class EAPTest(APITestCase):
             "early_action_budget": 2000,
             "trigger_statement": "test",
             "overview": "test",
-            "document": self.document1.id,
+            "documents": [self.document1.id],
             "originator_name": "eap name",
             "originator_title": "eap title",
             "originator_email": "eap@gmail.com",
@@ -77,7 +83,7 @@ class EAPTest(APITestCase):
             "ifrc_focal_email": "eap_ifrc@gmail.com",
             "ifrc_focal_phone": "5685471584",
             "country": self.country1.id,
-            "district": self.district1.id,
+            "districts": [self.district1.id],
             "disaster_type": self.disaster_type.id,
             "early_actions": [
                 {
@@ -150,6 +156,33 @@ class EAPTest(APITestCase):
                 }
             ]
         }
+        self.eap_act_report_body = {
+            "eap_activation": self.eap_activation.id,
+            "number_of_people_reached": 1000,
+            "description": "test eap activation report",
+            "overall_objectives": "test eap activation report",
+            "documents": [self.document1.id, self.document2.id],
+            "challenges_and_lesson": "test eap activation report",
+            "general_lesson_and_recomendations": "test eap activation report",
+            "ifrc_financial_report": self.document1.id,
+            "operational_plans": [
+                {
+                    "budget": 200000,
+                    "value": 100,
+                    "no_of_people_reached": 100,
+                    "readiness_activities_achievements": "test",
+                    "prepo_activities_achievements": "test",
+                    "early_actions_achievements": [
+                        {
+                            "early_act_achievement": "test"
+                        },
+                        {
+                            "early_act_achievement": "test 2"
+                        }
+                    ]
+                },
+            ]
+        }
         super().setUp()
 
     def test_create_and_update_eap(self):
@@ -160,9 +193,7 @@ class EAPTest(APITestCase):
         created = EAP.objects.get(id=response['id'])
         self.assertEqual(created.created_by.id, self.user.id)
         self.assertEqual(created.country.id, self.country1.id)
-        self.assertEqual(created.district.id, self.district1.id)
         self.assertEqual(created.disaster_type, self.disaster_type)
-        self.assertEqual(created.document.id, self.document1.id)
         self.assertEqual(response['country'], self.country1.id)
         self.assertEqual(created.status, EAP.Status.APPROVED)
         self.assertEqual(created.early_actions.count(), 2)
@@ -172,7 +203,7 @@ class EAPTest(APITestCase):
         # update eap
         data = self.body
         data['country'] = self.country2.id
-        data['district'] = self.district2.id
+        data['districts'] = [self.district2.id]
         data['references'] = [
             {
                 "source": "test updated",
@@ -205,12 +236,9 @@ class EAPTest(APITestCase):
         eap1, eap2, eap3 = EAPFactory.create_batch(3, created_by=user1)
         self.client.force_authenticate(user=user1)
         response1 = self.client.get('/api/v2/eap/').json()
-        self.assertEqual(response1['count'], 3)
         self.assertEqual(response1['results'][0]['created_by'], user1.id)
-        self.assertEqual(
-            sorted([eap1.id, eap2.id, eap3.id]),
-            sorted([data['id'] for data in response1['results']])
-        )
+
+        assert all(item in [data['id'] for data in response1['results']] for item in [eap1.id, eap2.id, eap3.id])
 
         #  query single eap
         response = self.client.get(f'/api/v2/eap/{eap1.id}/').json()
@@ -222,7 +250,6 @@ class EAPTest(APITestCase):
         self.client.force_authenticate(user=user2)
         eap4, eap5 = EAPFactory.create_batch(2, created_by=user2)
         response2 = self.client.get('/api/v2/eap/').json()
-        self.assertEqual(response2['count'], 5)
         self.assertEqual(response2['results'][0]['created_by'], user2.id)
         self.assertIn(eap4.id, [data['id'] for data in response2['results']])
         self.assertNotIn([data['id'] for data in response2['results']], [data['id'] for data in response1['results']])
@@ -231,4 +258,28 @@ class EAPTest(APITestCase):
         user3 = User.objects.create(username='ram')
         self.client.force_authenticate(user=user3)
         response3 = self.client.get('/api/v2/eap/').json()
-        self.assertEqual(response3['count'], 5)
+        self.assertEqual(response3['count'], 6)
+
+    def test_create_and_update_eap_activation_report(self):
+        self.client.force_authenticate(user=self.user)
+        # create eap
+        with self.capture_on_commit_callbacks(execute=True):
+            self.client.post('/api/v2/eap/', self.body, format='json').json()
+        actions = Action.objects.all().values_list('id', flat=True)
+        early_actions = EarlyAction.objects.all().values_list('id', flat=True)
+        self.eap_act_report_body['operational_plans'][0]['early_action'] = early_actions[0]
+        self.eap_act_report_body['operational_plans'][0]['early_actions_achievements'][0]['action'] = actions[0]
+        self.eap_act_report_body['operational_plans'][0]['early_actions_achievements'][1]['action'] = actions[1]
+        # create eap_report
+        with self.capture_on_commit_callbacks(execute=True):
+            final_report_resp = self.client.post(
+                '/api/v2/eap_activation_report/',
+                self.eap_act_report_body,
+                format='json'
+            ).json()
+        created = EAPActivationReport.objects.get(id=final_report_resp['id'])
+        self.assertEqual(created.created_by.id, self.user.id)
+        self.assertEqual(final_report_resp['eap_activation'], self.eap_activation.id)
+        self.assertEqual(final_report_resp['ifrc_financial_report'], self.document1.id)
+        self.assertEqual(len(final_report_resp['documents']), 2)
+        self.assertEqual(len(final_report_resp['operational_plans']), 1)

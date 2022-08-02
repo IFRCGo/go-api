@@ -918,13 +918,15 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
     def create_eap_activation(self, data, fieldreport):
         eap = EAP.objects.filter(id=data.pop('eap', None)).first()
-        document = EAPDocument.objects.filter(id=data.pop('document', None)).first()
+        documents = EAPDocument.objects.filter(id__in=data.pop('documents', None))
         eap_activation = EAPActivation.objects.create(
             eap=eap,
             field_report=fieldreport,
-            document=document,
             **data
         )
+        if documents:
+            for document in documents:
+                eap_activation.documents.add(document)
         return eap_activation
 
     def create(self, request, *args, **kwargs):
@@ -985,7 +987,6 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
 
 
-from eap.serializers import EAPActivationSerializer # It is imported here to avoid circular import issue
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -994,13 +995,19 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
 
     # function for updating eap-activate in field report
     def update_eap_activation(self, data, fieldreport):
+        from eap.serializers import EAPActivationSerializer
+
         eap_id = data.pop('eap', None)
-        document_id = data.pop('document', None)
+        document_ids = data.pop('documents', None)
         instance = EAPActivation.objects.get(field_report=fieldreport)
         eap_activation = EAPActivationSerializer().update(instance, data)
-        instance.document = EAPDocument.objects.filter(id=document_id).first()
         instance.eap = EAP.objects.filter(id=eap_id).first()
-        instance.save(update_fields=['document', 'eap'])
+        if document_ids:
+            documents = EAPDocument.objects.filter(id__in=document_ids)
+            for document in documents:
+                instance.documents.add(document)
+        instance.save(update_fields=['eap'])
+
         return eap_activation
 
     def partial_update(self, request, *args, **kwargs):
@@ -1073,6 +1080,7 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
+
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     queryset = CountryOfFieldReportToReview.objects.order_by('country')

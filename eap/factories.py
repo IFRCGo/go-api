@@ -9,11 +9,13 @@ from api.factories import (
     disaster_type,
     country,
     district,
+    field_report,
 )
 
 from .models import (
     EAP,
     EAPDocument,
+    EAPActivation,
 )
 
 
@@ -34,10 +36,9 @@ class EAPFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EAP
 
-    district = factory.SubFactory(district.DistrictFactory)
+    # districts = factory.SubFactory(district.DistrictFactory)
     country = factory.SubFactory(country.CountryFactory)
     disaster_type = factory.SubFactory(disaster_type.DisasterTypeFactory)
-    document = factory.SubFactory(EAPDocumentFactory)
     eap_number = fuzzy.FuzzyText(length=20)
     approval_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
     status = fuzzy.FuzzyChoice(EAP.Status)
@@ -74,3 +75,46 @@ class EAPFactory(factory.django.DjangoModelFactory):
         if extracted:
             for early_action in extracted:
                 self.early_actions.add(early_action)
+
+    @factory.post_generation
+    def documents(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for document in extracted:
+                self.documents.add(document)
+
+
+class EAPActivationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EAPActivation
+
+    title = fuzzy.FuzzyText(length=20)
+    field_report = factory.SubFactory(field_report.FieldReportFactory)
+    eap = factory.SubFactory(EAPFactory)
+    trigger_met_date = fuzzy.FuzzyDateTime(datetime.datetime(2008, 1, 1, tzinfo=timezone.utc))
+    description = fuzzy.FuzzyText(length=50)
+
+    originator_name = fuzzy.FuzzyText(length=50)
+    description = fuzzy.FuzzyText(length=50)
+    originator_email = fuzzy.FuzzyText(length=50)
+
+    nsc_name_operational = fuzzy.FuzzyText(length=50)
+    nsc_title_operational = fuzzy.FuzzyText(length=50)
+    nsc_email_operational = fuzzy.FuzzyText(length=50)
+
+    nsc_name_secretary = fuzzy.FuzzyText(length=50)
+    nsc_title_secretary = fuzzy.FuzzyText(length=50)
+    nsc_email_secretary = fuzzy.FuzzyText(length=50)
+
+    @factory.post_generation
+    def documents(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for document in extracted:
+                self.documents.add(document)
+
+

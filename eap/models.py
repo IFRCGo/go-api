@@ -22,6 +22,7 @@ class EarlyActionIndicator(models.Model):
         default=IndicatorChoices.INDICATOR_1, null=True, blank=True
     )
     indicator_value = models.IntegerField(null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Early Action Indicator')
@@ -54,6 +55,7 @@ class EarlyAction(models.Model):
     targeted_people = models.IntegerField(verbose_name=_('Targeted people'), null=True, blank=True,)
     readiness_activities = models.TextField(verbose_name=_('Readiness Activities'), null=True, blank=True)
     prepositioning_activities = models.TextField(verbose_name=_('Pre-positioning Activities'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Early Action')
@@ -69,6 +71,7 @@ class EAPDocument(models.Model):
         settings.AUTH_USER_MODEL, verbose_name=_('Created by'), related_name='document_created_by',
         null=True, blank=True, on_delete=models.SET_NULL,
     )
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Document')
@@ -98,9 +101,9 @@ class EAP(models.Model):
         Country, on_delete=models.SET_NULL, verbose_name=_('Country'),
         related_name='eap_country', null=True
     )
-    district = models.ForeignKey(
-        District, on_delete=models.SET_NULL, verbose_name=_('Provience/Region'),
-        related_name='eap_district', null=True, blank=True
+    districts = models.ManyToManyField(
+        District, verbose_name=_('districts'),
+        related_name='eap_district'
     )
     disaster_type = models.ForeignKey(
         DisasterType, on_delete=models.SET_NULL, verbose_name=_('Disaster Type'),
@@ -122,10 +125,11 @@ class EAP(models.Model):
     early_action_budget = models.IntegerField(verbose_name=_('Early Actions Budget (CHF)'), null=True, blank=True)
     trigger_statement = models.TextField(verbose_name=_('Trigger Statement (Threshold for Activation)'))
     overview = models.TextField(verbose_name=_('EAP Overview'))
-    document = models.ForeignKey(
-        EAPDocument, on_delete=models.SET_NULL,
-        verbose_name=_('EAP Documents'), related_name='eap_document',
-        null=True, blank=True
+    documents = models.ManyToManyField(
+        EAPDocument,
+        verbose_name=_('EAP Documents'),
+        related_name='eap_document',
+        blank=True
     )
     early_actions = models.ManyToManyField(
         EarlyAction,
@@ -159,6 +163,7 @@ class EAPPartner(models.Model):
     eap = models.ForeignKey(EAP, on_delete=models.CASCADE, related_name='eap_partner', verbose_name=_('EAP'))
     name = models.CharField(max_length=255, verbose_name=_('Name'), null=True, blank=True)
     url = models.URLField(verbose_name=_('URL'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('EAP Partner')
@@ -172,6 +177,7 @@ class EAPReference(models.Model):
     eap = models.ForeignKey(EAP, on_delete=models.CASCADE, related_name='eap_reference', verbose_name=_('EAP'))
     source = models.CharField(max_length=255, verbose_name=_('Name'), null=True, blank=True)
     url = models.URLField(verbose_name=_('URL'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('EAP Reference')
@@ -187,6 +193,7 @@ class Action(models.Model):
         related_name="action", verbose_name=_('Early Actions')
     )
     early_act = models.TextField(verbose_name=_('Early Actions'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Action')
@@ -204,6 +211,7 @@ class PrioritizedRisk(models.Model):
         verbose_name=_('early action')
     )
     risks = models.TextField(null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Prioritized risk')
@@ -231,12 +239,11 @@ class EAPActivation(models.Model):
     )
     trigger_met_date = models.DateTimeField(verbose_name=_('Date the trigger was met'))
     description = models.TextField(verbose_name=_('Description of EAP Activation'))
-    document = models.ForeignKey(
+    documents = models.ManyToManyField(
         EAPDocument,
-        on_delete=models.SET_NULL,
         verbose_name=_('EAP Activation Documents'),
         related_name='eap_activation_document',
-        null=True, blank=True
+        blank=True
     )
     originator_name = models.CharField(max_length=250, verbose_name=_('Originator name'), null=True, blank=True)
     originator_title = models.CharField(max_length=250, verbose_name=_('Originator title'), null=True, blank=True)
@@ -251,6 +258,9 @@ class EAPActivation(models.Model):
     ifrc_focal_title = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Title'), null=True, blank=True)
     ifrc_focal_email = models.CharField(max_length=250, verbose_name=_('IFRC Focal Point Email'), null=True, blank=True)
 
+    def __str__(self):
+        return f'{self.eap.eap_number}'
+
 
 class EAPOperationalPlan(models.Model):
     early_action = models.OneToOneField(
@@ -260,10 +270,11 @@ class EAPOperationalPlan(models.Model):
         blank=True
     )
     budget = models.IntegerField(verbose_name=_('Budget per sector (CHF)'), null=True, blank=True)
-    indicator_value = models.IntegerField(verbose_name=_('Indicator'), null=True, blank=True)
+    value = models.IntegerField(verbose_name=_('value'), null=True, blank=True)
     no_of_people_reached = models.IntegerField(verbose_name=_('People Reached'), null=True, blank=True)
     readiness_activities_achievements = models.TextField(verbose_name=_('Readiness Activities Achievements'), null=True, blank=True)
     prepo_activities_achievements = models.TextField(verbose_name=_('Pre-positioning Activities Achievements'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('EAP Operational Plan')
@@ -271,6 +282,28 @@ class EAPOperationalPlan(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class OperationalPlanIndicator(models.Model):
+    operational_plan = models.ForeignKey(
+        EAPOperationalPlan, on_delete=models.SET_NULL,
+        related_name="operational_plan_indicator", verbose_name=_('Operational Plan'),
+        null=True, blank=True
+    )
+    indicator = models.OneToOneField(
+        EarlyActionIndicator,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    indicator_value = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Operational Indicator')
+        verbose_name_plural = _('Operational Indicators')
+
+    def __str__(self):
+        return f'{self.indicator.id}'
 
 
 class ActionAchievements(models.Model):
@@ -281,6 +314,7 @@ class ActionAchievements(models.Model):
     )
     action = models.OneToOneField(Action, on_delete=models.SET_NULL, null=True, blank=True)
     early_act_achievement = models.TextField(verbose_name=_('Early Actions Achievements'), null=True, blank=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('Action Achievement')
@@ -291,8 +325,6 @@ class ActionAchievements(models.Model):
 
 
 class EAPActivationReport(models.Model):
-    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)
     eap_activation = models.ForeignKey(
         EAPActivation,
         on_delete=models.SET_NULL,
@@ -303,12 +335,11 @@ class EAPActivationReport(models.Model):
     number_of_people_reached = models.IntegerField(verbose_name=_('Number Of People Reached'))
     description = models.TextField(verbose_name=_('Description of Event & Overview of Implementation'))
     overall_objectives = models.TextField(verbose_name=_('Overall Objective of the Intervention'))
-    document = models.ForeignKey(
+    documents = models.ManyToManyField(
         EAPDocument,
-        on_delete=models.SET_NULL,
         verbose_name=_('EAP Activation Report Document'),
-        related_name='eap_activation_report_document',
-        null=True, blank=True
+        related_name='eap_act_reports',
+        blank=True
     )
     challenges_and_lesson = models.TextField(verbose_name=_('Challenges & Lesson Learned per Sector'))
     general_lesson_and_recomendations = models.TextField(verbose_name=_('General Lessons Learned and Recomendations'))
@@ -319,4 +350,21 @@ class EAPActivationReport(models.Model):
         related_name='eap_activation_ifrc_report',
         null=True, blank=True
     )
+    operational_plans = models.ManyToManyField(
+        EAPOperationalPlan,
+        verbose_name=_('Operational Plans'),
+        blank=True
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('Created by'), related_name='eap_act_report_created_by',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('Modified by'), related_name='eap_act_modified_by',
+        null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    created_at = models.DateTimeField(verbose_name=_('Created at'), auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name=_('Updated at'), auto_now=True)
 
+    def __str__(self):
+        return f'{self.eap_activation.title}'

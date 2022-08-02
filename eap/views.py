@@ -12,10 +12,12 @@ from .models import (
     EAP,
     EAPDocument,
     EarlyAction,
+    EAPActivationReport,
 )
 from .serializers import (
     EAPSerializer,
     EAPDocumentSerializer,
+    EAPActivationReportSerializer,
 )
 
 
@@ -37,6 +39,14 @@ class EAPViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return EAP.objects.all().order_by('-created_at')
+
+
+class EAPActivationReportViewSet(viewsets.ModelViewSet):
+    serializer_class = EAPActivationReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return EAPActivationReport.objects.all().order_by('-created_at')
 
 
 class EAPOptionsView(views.APIView):

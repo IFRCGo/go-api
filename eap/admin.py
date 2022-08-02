@@ -30,4 +30,4 @@ class EAPDocumentAdmin(admin.ModelAdmin):
 class EAPAdmin(admin.ModelAdmin):
     list_display = ('eap_number', 'country', 'status', 'operational_timeframe',)
     inlines = [ReferenceAdminInline, PartnerAdminInline]
-    autocomplete_fields = ('country', 'district', 'disaster_type', 'created_by', 'modified_by')
+    autocomplete_fields = ('country', 'districts', 'disaster_type', 'created_by', 'modified_by')
