@@ -4,7 +4,13 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 from main.test_case import APITestCase
-from eap.models import EAP, EarlyAction, EAPActivationReport, Action
+from eap.models import (
+    EAP,
+    EarlyAction,
+    EAPActivationReport,
+    Action,
+    EarlyActionIndicator,
+)
 
 from api.factories.country import CountryFactory
 from api.factories.district import DistrictFactory
@@ -174,10 +180,18 @@ class EAPTest(APITestCase):
                     "prepo_activities_achievements": "test",
                     "early_actions_achievements": [
                         {
-                            "early_act_achievement": "test"
+                            "early_act_achievement": "test 1"
                         },
                         {
                             "early_act_achievement": "test 2"
+                        }
+                    ],
+                    "indicators": [
+                        {
+                            "indicator_value": 200
+                        },
+                        {
+                            "indicator_value": 300
                         }
                     ]
                 },
@@ -264,12 +278,17 @@ class EAPTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         # create eap
         with self.capture_on_commit_callbacks(execute=True):
-            self.client.post('/api/v2/eap/', self.body, format='json').json()
-        actions = Action.objects.all().values_list('id', flat=True)
-        early_actions = EarlyAction.objects.all().values_list('id', flat=True)
-        self.eap_act_report_body['operational_plans'][0]['early_action'] = early_actions[0]
+            eap_resp = self.client.post('/api/v2/eap/', self.body, format='json').json()
+        early_action = EarlyAction.objects.get(id=eap_resp['early_actions'][0]['id'])
+
+        actions = list(Action.objects.filter(early_action=early_action).values_list('id', flat=True))
+        actions_indicators = early_action.indicators.all().values_list('id', flat=True)
+        self.eap_act_report_body['operational_plans'][0]['early_action'] = early_action.id
         self.eap_act_report_body['operational_plans'][0]['early_actions_achievements'][0]['action'] = actions[0]
         self.eap_act_report_body['operational_plans'][0]['early_actions_achievements'][1]['action'] = actions[1]
+
+        self.eap_act_report_body['operational_plans'][0]['indicators'][0]['indicator'] = actions_indicators[0]
+        self.eap_act_report_body['operational_plans'][0]['indicators'][1]['indicator'] = actions_indicators[1]
         # create eap_report
         with self.capture_on_commit_callbacks(execute=True):
             final_report_resp = self.client.post(
@@ -283,3 +302,54 @@ class EAPTest(APITestCase):
         self.assertEqual(final_report_resp['ifrc_financial_report'], self.document1.id)
         self.assertEqual(len(final_report_resp['documents']), 2)
         self.assertEqual(len(final_report_resp['operational_plans']), 1)
+        self.assertEqual(len(final_report_resp['operational_plans'][0]['early_actions_achievements']), 2)
+        self.assertEqual(len(final_report_resp['operational_plans'][0]['indicators']), 2)
+
+        # update eap_report
+        data = self.eap_act_report_body
+        data['description'] = 'updated description'
+        data['documents'] = [self.document1.id]
+        data['ifrc_financial_report'] = self.document2.id
+        data['operational_plans'] = [
+            {
+                "budget": 500000,
+                "value": 500,
+                "no_of_people_reached": 500,
+                "readiness_activities_achievements": "test updated",
+                "prepo_activities_achievements": "test updated",
+                "early_actions_achievements": [
+                    {
+                        'action': actions[0],
+                        "early_act_achievement": "test updated"
+                    },
+                    {
+                        'action': actions[1],
+                        "early_act_achievement": "test 2 updated"
+                    }
+                ],
+                "indicators": [
+                    {
+                        "indicator": actions_indicators[0],
+                        "indicator_value": 500
+                    },
+                    {
+                        'indicator': actions_indicators[1],
+                        "indicator_value": 500
+                    }
+                ]
+            },
+        ]
+        with self.capture_on_commit_callbacks(execute=True):
+            final_report_updated_resp = self.client.put(
+                f'/api/v2/eap_activation_report/{created.id}/',
+                data,
+                format='json'
+            ).json()
+        updated = EAPActivationReport.objects.get(id=final_report_updated_resp['id'])
+        self.assertEqual(updated.created_by.id, self.user.id)
+        self.assertEqual(final_report_updated_resp['eap_activation'], self.eap_activation.id)
+        self.assertEqual(final_report_updated_resp['ifrc_financial_report'], self.document2.id)
+        self.assertEqual(len(final_report_updated_resp['documents']), 1)
+        self.assertEqual(len(final_report_updated_resp['operational_plans']), 1)
+        self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['early_actions_achievements']), 2)
+        self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['indicators']), 2)

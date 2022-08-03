@@ -2,8 +2,6 @@ from django.utils.translation import ugettext
 
 from rest_framework import serializers
 
-from enumfields.drf.serializers import EnumSupportSerializerMixin
-
 from api.serializers import (
     UserNameSerializer,
     DisasterTypeSerializer,
@@ -22,8 +20,9 @@ from eap.models import (
     PrioritizedRisk,
     EAPActivation,
     EAPOperationalPlan,
-    ActionAchievements,
+    ActionAchievement,
     EAPActivationReport,
+    OperationalPlanIndicator,
 )
 
 from main.writable_nested_serializers import (
@@ -153,10 +152,17 @@ class EAPActivationSerializer(serializers.ModelSerializer):
         exclude = ('eap', 'field_report')
 
 
-class ActionAchievementsSerializer(serializers.ModelSerializer):
+class ActionAchievementSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ActionAchievements
+        model = ActionAchievement
+        exclude = ('operational_plan',)
+
+
+class OperationalPlanIndicatorSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OperationalPlanIndicator
         exclude = ('operational_plan',)
 
 
@@ -165,8 +171,8 @@ class OperationalPlanSerializer(
     NestedCreateMixin,
     serializers.ModelSerializer
 ):
-    # indicators = EarlyActionIndicatorSerializer(many=True, required=False)
-    early_actions_achievements = ActionAchievementsSerializer(source='action_achievement', many=True, required=False)
+    indicators = OperationalPlanIndicatorSerializer(source='operational_plan_indicator', many=True, required=False)
+    early_actions_achievements = ActionAchievementSerializer(source='action_achievement', many=True, required=False)
 
     class Meta:
         model = EAPOperationalPlan

@@ -290,9 +290,10 @@ class OperationalPlanIndicator(models.Model):
         related_name="operational_plan_indicator", verbose_name=_('Operational Plan'),
         null=True, blank=True
     )
-    indicator = models.OneToOneField(
+    indicator = models.ForeignKey(
         EarlyActionIndicator,
         on_delete=models.SET_NULL,
+        related_name='operational_plan_indicator',
         null=True,
         blank=True
     )
@@ -306,13 +307,18 @@ class OperationalPlanIndicator(models.Model):
         return f'{self.indicator.id}'
 
 
-class ActionAchievements(models.Model):
+class ActionAchievement(models.Model):
     operational_plan = models.ForeignKey(
         EAPOperationalPlan, on_delete=models.SET_NULL,
         related_name="action_achievement", verbose_name=_('Action Achievement'),
         null=True, blank=True
     )
-    action = models.OneToOneField(Action, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.ForeignKey(
+        Action,
+        on_delete=models.SET_NULL,
+        related_name='action_achievement',
+        null=True, blank=True
+    )
     early_act_achievement = models.TextField(verbose_name=_('Early Actions Achievements'), null=True, blank=True)
     client_id = models.CharField(max_length=50, null=True, blank=True)
 
