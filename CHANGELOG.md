@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+## 1.1.446
+
+### Added
+ - Indexing ElasticSearch results by visibilities
  - Surge map performance tuning:
    - eliminated FR queries
    - molnix and country stuff to prefetch
@@ -2009,7 +2014,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.445...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.446...HEAD
+[1.1.446]: https://github.com/IFRCGo/go-api/compare/1.1.445...1.1.446
 [1.1.445]: https://github.com/IFRCGo/go-api/compare/1.1.444...1.1.445
 [1.1.444]: https://github.com/IFRCGo/go-api/compare/1.1.443...1.1.444
 [1.1.443]: https://github.com/IFRCGo/go-api/compare/1.1.442...1.1.443
