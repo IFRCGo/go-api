@@ -148,13 +148,13 @@ class FlashUpdateTest(APITestCase):
         ]
 
         data['hazard_type'] = str(self.hazard_type_updated.id)
-        data['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        data['share_with'] = FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
 
         response = self.client.put(f'/api/v2/flash-update/{created.id}/', data, format='json').json()
         updated = FlashUpdate.objects.get(id=response['id'])
         self.assertEqual(updated.id, created.id)
         self.assertEqual(updated.modified_by, self.user)
-        self.assertEqual(updated.share_with, FlashUpdate.FlashShareWith.RCRC_NETWORK)
+        self.assertEqual(updated.share_with, FlashUpdate.FlashShareWith.IFRC_SECRETARIAT)
         self.assertEqual(updated.hazard_type, self.hazard_type_updated)
         self.assertNotEqual(response['hazard_type'], created.hazard_type)
         self.assertEqual(updated.actions_taken_flash.count(), 2)
@@ -299,11 +299,11 @@ class FlashUpdateTest(APITestCase):
         # check for update
         group2 = GroupFactory(name="group2")
         email_suscription = FlashEmailSubscriptions.objects.get(
-            share_with=FlashUpdate.FlashShareWith.RCRC_NETWORK
+            share_with=FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         )
         email_suscription.group = group2
         email_suscription.save()
-        self.body['share_with'] = FlashUpdate.FlashShareWith.RCRC_NETWORK
+        self.body['share_with'] = FlashUpdate.FlashShareWith.IFRC_SECRETARIAT
         response = self.client.put(f'/api/v2/flash-update/{instance.id}/', self.body, format='json').json()
         instance = FlashUpdate.objects.get(id=response['id'])
         email_data = send_flash_update_email(instance.id)
@@ -340,3 +340,24 @@ class FlashUpdateTest(APITestCase):
         self.assertTrue(render_to_pdf.assert_called)
         # check if send_notifications function is called.
         self.assertTrue(send_notification.assert_called)
+
+    @mock.patch('flash_update.utils.render_to_pdf')
+    def test_flash_update_pdf_export(self, render_to_pdf):
+        render_to_pdf.return_value = {
+            'filename': "test.pdf",
+            'file': b'pdf content'
+        }
+        self.client.force_authenticate(user=self.user)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.post('/api/v2/flash-update/', self.body, format='json').json()
+        flash_update = FlashUpdate.objects.get(id=response['id'])
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.get(f'/api/v2/export-flash-update/{flash_update.id}/', format='json')
+        content = response.json()
+        self.assertEqual(content['status'], "pending")
+        self.assertEqual(content['url'], None)
+        with self.capture_on_commit_callbacks(execute=True):
+            response = self.client.get(f'/api/v2/export-flash-update/{flash_update.id}/', format='json')
+        content = response.json()
+        self.assertEqual(content['status'], "ready")
+        self.assertIsNotNone(content['url'])

@@ -8,6 +8,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 from django.dispatch import receiver
 from django.utils import timezone
 from enumfields import IntEnum, EnumIntegerField
+from main.enums import IntegerChoices
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
@@ -77,6 +78,8 @@ class Region(models.Model):
             'type': 'region',
             'name': str(self.name.label),
             'keyword': None,
+            'visibility': None,
+            'ns': None,
             'body': str(self.name.label),
             'date': None
         }
@@ -222,6 +225,8 @@ class Country(models.Model):
             'type': 'country',
             'name': self.name,
             'keyword': None,
+            'visibility': None,
+            'ns': None,
             'body': '%s %s' % (
                 self.name,
                 self.society_name,
@@ -656,13 +661,16 @@ class Event(models.Model):
         return max(end_dates) if len(end_dates) else None
 
     def indexing(self):
-        countries = [getattr(c, 'name') for c in self.countries.all()]
+        countries = [c.name for c in self.countries.all()]
+        ns =        [c.id   for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.id,
             'type': 'event',
             'name': self.name,
             'keyword': None,
+            'visibility': self.visibility,
+            'ns': ' '.join(map(str, ns)) if len(ns) else None,
             'body': '%s %s' % (
                 self.name,
                 ' '.join(map(str, countries)) if len(countries) else None,
@@ -979,6 +987,8 @@ class Appeal(models.Model):
             'type': 'appeal',
             'name': self.name,
             'keyword': self.code,
+            'visibility': self.event.visibility if self.event else None,
+            'ns': self.country_id if self.country else None,
             'body': '%s %s' % (
                 self.name,
                 getattr(self.country, 'name', None)
@@ -1074,6 +1084,7 @@ class AppealDocument(models.Model):
 class AppealFilter(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     value = models.CharField(verbose_name=_('value'), max_length=1000)
+    notes = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('appeal filter')
@@ -1207,6 +1218,14 @@ class UserRegion(models.Model):
 class FieldReport(models.Model):
     """ A field report for a disaster and country, containing documents """
 
+    class Status(IntegerChoices):
+        UNKNOWN = 0, _('Unknown')
+        TWO = 2, _('Two')  # legacy usage
+        THREE = 3, _('Three')  # legacy usage
+        EW = 8, _('Early Warning')
+        EVT = 9, _('Event-related')
+        TEN = 10, _('Ten')  # legacy usage. Covid?
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='user',
         null=True, blank=True, on_delete=models.SET_NULL,
@@ -1229,7 +1248,8 @@ class FieldReport(models.Model):
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
-    status = models.IntegerField(verbose_name=_('status'), default=0)
+    # This entity is more a type than a status, so let's label it this way on admin page:
+    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0)
     request_assistance = models.NullBooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
     ns_request_assistance = models.NullBooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
@@ -1272,8 +1292,8 @@ class FieldReport(models.Model):
     )
     epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
-    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
-    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True)
+    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True, help_text=_('not used any more'))
+    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (ministry of health)'), null=True, blank=True, help_text=_('not used any more'))
 
     # Early Warning fields
     gov_num_potentially_affected = models.IntegerField(verbose_name=_('potentially affected (goverment)'), null=True, blank=True)
@@ -1405,12 +1425,15 @@ class FieldReport(models.Model):
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
+        ns =        [c.id   for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.event_id,
             'type': 'report',
             'name': self.summary,
             'keyword': None,
+            'visibility': self.visibility,
+            'ns': ' '.join(map(str, ns)) if len(ns) else None,
             'body': '%s %s' % (
                 self.summary,
                 ' '.join(map(str, countries)) if len(countries) else None
@@ -1468,7 +1491,7 @@ class ActionOrg:
 
     CHOICES = (
         (NATIONAL_SOCIETY, _('National Society')),
-        (FOREIGN_SOCIETY, _('Foreign Society')),
+        (FOREIGN_SOCIETY, _('RCRC')),
         (FEDERATION, _('Federation')),
         (GOVERNMENT, _('Government')),
     )

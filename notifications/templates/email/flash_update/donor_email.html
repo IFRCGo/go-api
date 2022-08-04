@@ -4,7 +4,8 @@
         <div class="img text-left">
             <img src="https://go.ifrc.org/assets/graphics/layout/go-logo-2020.png" alt="Logo: International Federation of Red Cross and Red Crescent Societies" height="40" border="0" style="-ms-interpolation-mode:bicubic;" />
         </div>
-
-        <p>Please click <a href="{{ document_url }}">here</a> to view detail flash update.</p>
+        SITUATIONAL OVERVIEW
+        <p style = "font-weight:300;">{{situational_overview|safe}}</p>
+        <p>The full report can be downloaded here:<a href="{{ document_url }}">{{ document_url }}</a></p>
     </body>
 </html>

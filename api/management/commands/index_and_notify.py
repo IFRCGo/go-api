@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from elasticsearch.helpers import bulk
 from utils.elasticsearch import construct_es_data
@@ -23,7 +24,7 @@ time_1_day = timedelta(days=1)
 time_1_week = timedelta(days=7)  # for digest mode
 digest_time = int(10314)  # weekday - hour - min for digest timing (5 minutes once a week, Monday dawn)
 daily_retro = int(654)  # hour - min for daily retropective email timing (5 minutes a day) | Should not contain a leading 0!
-max_length = 860  # after this length (at the first space) we cut the sent content
+max_length = 860  # after this length (at the first space) we cut the sent content. In case of HTML tags we remove tags (to avoid chunked tags)
 events_sent_to = {}  # to document sent events before re-sending them via specific following
 template_types = {
     99: 'design/generic_notification.html',
@@ -36,13 +37,19 @@ template_types = {
 
 
 # Used for 'Notification GUID' record creation in 'send_notification(4th param)'
+# Should be ~ github.com/IFRCGo/go-frontend/blob/develop/src/root/views/account.js#L80
 RTYPE_NAMES = {
-    0: 'Emergency',
-    1: 'Appeal',
-    2: 'Field Report',
+    0: 'Emergency',     # not to use in rtype_of_subscr
+    1: 'Appeal',        # not to use in rtype_of_subscr
+    2: 'Field Report',  # not to use in rtype_of_subscr – L752 depends: RTYPE_NAMES[rtype]
     3: 'Surge Alert',
+    4: 'Country',
+    5: 'Region',
+    6: 'Disaster Type',
+    7: 'PER Due Date',
     8: 'Followed Emergency',
     9: 'Surge Deployment',
+    10: 'Surge Approaching end of Mission',
     11: 'Weekly Digest',
     12: 'Field Report/Emergency',
     13: 'New Operation',
@@ -434,6 +441,7 @@ class Command(BaseCommand):
         if rtype != RecordType.WEEKLY_DIGEST:
             shortened = self.get_record_content(record, rtype)
             if len(shortened) > max_length:
+                shortened = strip_tags(shortened)
                 shortened = shortened[:max_length] + \
                     shortened[max_length:].split(' ', 1)[0] + '...'  # look for the first space
 
@@ -442,7 +450,7 @@ class Command(BaseCommand):
                 'resource_uri': self.get_resource_uri(record, rtype),
                 'admin_uri': self.get_admin_uri(record, rtype),
                 'title': self.get_record_title(record, rtype),
-                'description': shortened,
+                'description': shortened if shortened else None,
                 'key_figures': {
                     'affected': self.get_fieldreport_keyfigures(
                         [record.num_affected, record.gov_num_affected, record.other_num_affected]),
@@ -467,11 +475,87 @@ class Command(BaseCommand):
                 'epi_figures_source': self.get_epi_figures_source_name(record.epi_figures_source),
                 'sit_fields_date': record.sit_fields_date,
                 'actions_taken': self.get_actions_taken(record.id),
-                'actions_others': record.actions_others,
+                'actions_others': record.actions_others.split("\n") if record.actions_others else None,
                 'gov_assistance': 'Yes' if record.request_assistance else 'No',
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
                 'dtype_id': record.dtype_id,
                 'visibility': record.visibility,
+                'other_fields': {
+                    'appeal': record.appeal,
+                    'appeal_amount': record.appeal_amount,
+                    'bulletin': record.bulletin,
+                    'countries': ', '.join(i.name for i in record.countries.all()),
+                    'contacts': [{'ctype': c.ctype,
+                                  'name': c.name,
+                                  'title': c.title,
+                                  'email': c.email,
+                                  'phone': c.phone} for c in record.contacts.all()[::-1]],
+                    #not used this way, but shortened: 'description': record.description,
+                    'districts': ', '.join(i.name for i in record.districts.all()),
+                    'dref': record.dref,
+                    'dref_amount': record.dref_amount,
+                    'epi_cases_since_last_fr': record.epi_cases_since_last_fr,
+                    'epi_deaths_since_last_fr': record.epi_deaths_since_last_fr,
+                    'epi_notes_since_last_fr': record.epi_notes_since_last_fr.split("\n") if record.epi_notes_since_last_fr else None,
+                    'eru_base_camp': record.eru_base_camp,
+                    'eru_base_camp_units': record.eru_base_camp_units,
+                    'eru_basic_health_care': record.eru_basic_health_care,
+                    'eru_basic_health_care_units': record.eru_basic_health_care_units,
+                    'eru_deployment_hospital': record.eru_deployment_hospital,
+                    'eru_deployment_hospital_units': record.eru_deployment_hospital_units,
+                    'eru_it_telecom': record.eru_it_telecom,
+                    'eru_it_telecom_units': record.eru_it_telecom_units,
+                    'eru_logistics': record.eru_logistics,
+                    'eru_logistics_units': record.eru_logistics_units,
+                    'eru_referral_hospital': record.eru_referral_hospital,
+                    'eru_referral_hospital_units': record.eru_referral_hospital_units,
+                    'eru_relief': record.eru_relief,
+                    'eru_relief_units': record.eru_relief_units,
+                    'eru_water_sanitation_15': record.eru_water_sanitation_15,
+                    'eru_water_sanitation_15_units': record.eru_water_sanitation_15_units,
+                    'eru_water_sanitation_20': record.eru_water_sanitation_20,
+                    'eru_water_sanitation_20_units': record.eru_water_sanitation_20_units,
+                    'eru_water_sanitation_40': record.eru_water_sanitation_40,
+                    'eru_water_sanitation_40_units': record.eru_water_sanitation_40_units,
+                    'event': record.event,
+                    'external_partners': ', '.join(i.name for i in record.external_partners.all()),
+                    'forecast_based_action': record.forecast_based_action,
+                    'forecast_based_action_amount': record.forecast_based_action_amount,
+                    'imminent_dref': record.imminent_dref,
+                    'imminent_dref_amount': record.imminent_dref_amount,
+                    'notes_health': record.notes_health,
+                    'notes_ns': record.notes_ns,
+                    'notes_socioeco': record.notes_socioeco,
+                    'other_sources': record.other_sources.split("\n") if record.other_sources else None,
+                    'start_date': record.start_date,
+                    'supported_activities': ', '.join(i.name for i in record.supported_activities.all()),
+                    # not used: 'fact': record.fact,
+                    # not used: 'affected_pop_centres': record.affected_pop_centres,
+                    # not used: 'gov_affected_pop_centres': record.gov_affected_pop_centres,
+                    # not used: 'gov_num_highest_risk': record.gov_num_highest_risk,
+                    # not used: 'gov_num_potentially_affected': record.gov_num_potentially_affected,
+                    # not used: 'health_min_num_assisted': record.health_min_num_assisted,
+                    # not used: 'who_num_assisted': record.who_num_assisted,
+                    # not used: 'ifrc_staff': record.ifrc_staff,
+                    # not used: 'is_covid_report': record.is_covid_report,
+                    # not used: 'num_expats_delegates': record.num_expats_delegates,
+                    # not used: 'num_fact': record.num_fact,
+                    # not used: 'num_highest_risk': record.num_highest_risk,
+                    # not used: 'num_ifrc_staff': record.num_ifrc_staff,
+                    # not used: 'num_localstaff': record.num_localstaff,
+                    # not used: 'num_potentially_affected': record.num_potentially_affected,
+                    # not used: 'rdrt': record.rdrt,
+                    # not used: 'num_rdrt': record.num_rdrt,
+                    # not used: 'num_volunteers': record.num_volunteers,
+                    # not used: 'other_affected_pop_centres': record.other_affected_pop_centres,
+                    # not used: 'other_num_highest_risk': record.other_num_highest_risk,
+                    # not used: 'other_num_potentially_affected': record.other_num_potentially_affected,
+                    # not used: 'regions': ', '.join(i.label for i in record.regions.all()),
+                    # not used: 'report_date': record.report_date,
+                    # not used: 'rid': record.rid,
+                    # not used: 'status': 'Early Warning' if record.status == 8 else 'Event-related',
+                    # not used: 'summary' here, but in the title via "get_record_title"
+                },
             }
         elif rtype == RecordType.APPEAL:
             optypes = {

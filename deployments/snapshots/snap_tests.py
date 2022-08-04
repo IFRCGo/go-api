@@ -16,12 +16,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Bilateral'
         },
         {
-            'count': 5,
+            'count': 4,
             'programme_type': 1,
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 3,
+            'count': 4,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
@@ -60,7 +60,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     ],
     'projects_per_sector': [
         {
-            'count': 3,
+            'count': 5,
             'primary_sector': 0,
             'primary_sector_display': 'WASH'
         },
@@ -70,12 +70,12 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'PGI'
         },
         {
-            'count': 1,
+            'count': 2,
             'primary_sector': 2,
             'primary_sector_display': 'CEA'
         },
         {
-            'count': 3,
+            'count': 2,
             'primary_sector': 3,
             'primary_sector_display': 'Migration'
         },
@@ -95,7 +95,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'NS Strengthening'
         },
         {
-            'count': 3,
+            'count': 1,
             'primary_sector': 8,
             'primary_sector_display': 'Education'
         },
@@ -200,10 +200,10 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 7060000,
+            'budget_amount_total': 6630000,
             'id': 13,
-            'iso3': 'Nvo',
-            'name': 'country-YksnSVShNIoKisIsGeobatgVBMZZeauocjgxeyEUxWZTJySszT',
+            'iso3': 'poQ',
+            'name': 'country-XqYksnSVShNIoKisIsGeobatgVBMZZeauocjgxeyEUxWZTJySs',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -218,58 +218,14 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'Shelter'
                 }
             ],
-            'society_name': 'society-name-tJffaubhWrFAqXjFGZLYBhuEpJvuVWhiIXeCFvZgioLxWKFGgv',
+            'society_name': 'society-name-NvotJffaubhWrFAqXjFGZLYBhuEpJvuVWhiIXeCFvZgioLxWKF',
             'target_total': 0
         },
         {
-            'budget_amount_total': 9800000,
+            'budget_amount_total': 1200000,
             'id': 15,
-            'iso3': 'Pht',
-            'name': 'country-IgiuvNEEDjBuMFysbJmJxVIbubeTshXCgXyvEJLmKeiLwzwZfI',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 3,
-                    'primary_sector_display': 'Migration'
-                }
-            ],
-            'society_name': 'society-name-HBcdPxXcaTMlqrMTOlHCJFwODdOoPbXjLmbhgUjvOaePGzOcFr',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 7500000,
-            'id': 17,
-            'iso3': 'HRw',
-            'name': 'country-daGmrDBRVeiQGOKHLNUoaRFrygVhVpUKMWOEKMiDgOvSzdYonH',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 8,
-                    'primary_sector_display': 'Education'
-                }
-            ],
-            'society_name': 'society-name-jGxUPJNGzGPgIXXqXpKDzSpdTKaPaEpFLsNLNYUPtYruDRPQqZ',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 8290000,
-            'id': 19,
-            'iso3': 'NTS',
-            'name': 'country-NPhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAkalhov',
+            'iso3': 'wzw',
+            'name': 'country-aDsLLpZuKIgiuvNEEDjBuMFysbJmJxVIbubeTshXCgXyvEJLmK',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -282,9 +238,35 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'count': 1,
                     'primary_sector': 0,
                     'primary_sector_display': 'WASH'
+
                 }
             ],
-            'society_name': 'society-name-kjQpKsaFfWCpQsoryydZNvqERdUQdAdYYpKHedCKXwgzmvieqO',
+
+            'society_name': 'society-name-ZfIICfPhtHBcdPxXcaTMlqrMTOlHCJFwODdOoPbXjLmbhgUjvO',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 1610000,
+            'id': 17,
+            'iso3': 'vSz',
+            'name': 'country-lhXnmyTHMXydaGmrDBRVeiQGOKHLNUoaRFrygVhVpUKMWOEKMi',
+            'ongoing_projects': 1,
+            'operation_types': [1],
+            'operation_types_display': ['Emergency Operation'],
+            'projects_per_sector':[{'count': 1, 'primary_sector': 2, 'primary_sector_display': 'CEA'}],
+            'society_name': 'society-name-dYonHRFVIHRwjGxUPJNGzGPgIXXqXpKDzSpdTKaPaEpFLsNLNY',
+            'target_total': 0
+        },
+        {
+            'budget_amount_total': 8290000,
+            'id': 19,
+            'iso3': 'ovT',
+            'name': 'country-IONANNPhnjWOLpxCunHtYGOegfuTFcmtDxzdPfAsRkyltvusAk',
+            'ongoing_projects': 1,
+            'operation_types': [1],
+            'operation_types_display': ['Emergency Operation'],
+            'projects_per_sector': [{'count': 1, 'primary_sector': 0, 'primary_sector_display': 'WASH'}],
+            'society_name': 'society-name-qYyNTSkjQpKsaFfWCpQsoryydZNvqERdUQdAdYYpKHedCKXwgz',
             'target_total': 0
         },
         {
@@ -412,8 +394,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 8,
-                    'primary_sector_display': 'Education'
+                    'primary_sector': 0,
+                    'primary_sector_display': 'WASH'
                 }
             ],
             'society_name': 'society-name-DCwyszNZGXQmypnWjcKsHVgAGwmfLLQMaSHEceWtyhGEdYOTkE',
@@ -467,16 +449,16 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
 }
 
 snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
-,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
 ,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
 '''
 
 snapshots['TestProjectAPI::test_project_create 1'] = {

@@ -16,7 +16,7 @@ def render_to_pdf(template_src, context_dict={}):
     html = render_to_string(template_src, context_dict)
     result = BytesIO()
     try:
-        pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+        pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
         if not pdf.err:
             file = {
                 'filename': 'flash_update.pdf',
@@ -47,7 +47,19 @@ def get_email_context(instance):
     map_list = generate_file_data(map_data)
     graphics_list = generate_file_data(graphics_data)
     actions_taken = [dict(action_taken) for action_taken in flash_update_data['actions_taken']]
-    resources = [dict(refrence) for refrence in flash_update_data['references']]
+    resources = [dict(reference) for reference in flash_update_data['references']]
+    documents_map = {
+        document.id: document.file.url
+        for document in FlashGraphicMap.objects.filter(
+            id__in=[
+                resource['document']
+                for resource in resources
+            ]
+        ).only('id', 'file')
+    }
+    for resource in resources:
+        resource['flash_file'] = documents_map.get(resource['document'])
+
     email_context = {
         'resource_url': get_flash_update_url(instance.id),
         'title': flash_update_data['title'],

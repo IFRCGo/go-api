@@ -24,6 +24,7 @@ from django.views.static import serve
 from django.views.generic import RedirectView
 from graphene_django.views import GraphQLView
 from django.conf.urls.i18n import i18n_patterns
+
 from api.views import (
     GetAuthToken,
     ChangePassword,
@@ -81,6 +82,7 @@ router.register(r'flash-update-action', flash_views.FlashActionViewset, basename
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
+router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country_rmd')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
@@ -145,10 +147,12 @@ router.register(r'flash-update-file', flash_views.FlashUpdateFileViewSet, basena
 router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_group')
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
+
+# Dref apis
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')
 router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files')
-router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
-
+router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
+router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
@@ -172,6 +176,7 @@ urlpatterns = [
     url(r'^api/v2/del_subscription/', DelSubscription.as_view()),
     url(r'^api/v2/add_cronjob_log/', AddCronJobLog.as_view()),
     url(r'^api/v2/flash-update-options/', flash_views.FlashUpdateOptions.as_view()),
+    url(r'^api/v2/export-flash-update/(?P<pk>\d+)/', flash_views.ExportFlashUpdateView.as_view()),
     url(r'^register', NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r'^updateperform', UpdatePerForm.as_view()),
@@ -193,7 +198,7 @@ urlpatterns = [
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
-    url(r'^docs/', include_docs_urls(title='IFRC Go API', public=False)),
+    url(r'^docs/', include_docs_urls(title='IFRC GO API', public=False)),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
     # url(r'^', admin.site.urls),

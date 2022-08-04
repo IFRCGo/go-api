@@ -66,7 +66,6 @@ class FlashUpdate(models.Model):
 
     class FlashShareWith(TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
-        RCRC_NETWORK = 'rcrc_network', _('RCRC Network')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), related_name='flash_update_created_by',
@@ -112,7 +111,7 @@ class FlashUpdate(models.Model):
 
     # Share with
     share_with = models.CharField(
-        max_length=50, choices=FlashShareWith.choices,
+        max_length=50, choices=FlashShareWith.choices, default=FlashShareWith.IFRC_SECRETARIAT,
         null=True, blank=True, verbose_name=_('share with')
     )
     references = models.ManyToManyField(
@@ -147,7 +146,8 @@ class FlashCountryDistrict(models.Model):
     )
     district = models.ManyToManyField(
         District, verbose_name=_('district'),
-        related_name='flash_district'
+        related_name='flash_district',
+        blank=True
     )
     client_id = models.CharField(max_length=50, null=True, blank=True)
 

@@ -384,13 +384,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
-        #import pdb; pdb.set_trace();
+        # import pdb; pdb.set_trace();
         qset = super().get_queryset()
         if self.action == 'mini_events':
-            #return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
+            # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
             return qset.filter(parent_event__isnull=True).select_related('dtype')
         return (
-            #Event.objects.filter(parent_event__isnull=True)
+            # Event.objects.filter(parent_event__isnull=True)
             qset.filter(parent_event__isnull=True).select_related('dtype')
             .prefetch_related(
                 'regions',
@@ -531,6 +531,7 @@ class AppealHistoryFilter(filters.FilterSet):
             'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'appeal__real_data_update': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
 
@@ -542,7 +543,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
-    ordering_fields = ('start_date', 'end_date', 'name', 'aid', 'dtype', 'num_beneficiaries',
+    ordering_fields = ('start_date', 'end_date', 'appeal__name', 'aid', 'dtype', 'num_beneficiaries',
                        'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
@@ -895,6 +896,7 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         event = Event.objects.create(
             name=report.summary,
             dtype=report.dtype,
+            summary=report.description or '',
             disaster_start_date=report.start_date,
             auto_generated=True,
             auto_generated_source=SOURCES['new_report'],

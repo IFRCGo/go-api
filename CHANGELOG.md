@@ -6,6 +6,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.446
+
+### Added
+ - Indexing ElasticSearch results by visibilities
+ - Surge map performance tuning:
+   - eliminated FR queries
+   - molnix and country stuff to prefetch
+   - so there are only 10 queries now by personnel end-point call
+   - end_date index matters (is_active not), so end_date index added
+ - Accounts with identical email addresses - use the active one.
+ - PER Overview creation fix
+
+## 1.1.445
+## 1.1.444
+## 1.1.443
+ - DREF final report
+ - Flash update notification
+ - Notification GUID details - showing "created_at"
+ - Real_data_update date comparison to appeal endpoint
+ - Rich Text Editor enhancements
+ - Adding Notes to AppealFilter
+ - Fixing flash update PDF
+ - Logging frontend login attempts
+ - Search output enhanced with visibility
+ - Contacts to FR notification
+
 ## 1.1.442
 
 ### Added
@@ -1988,7 +2014,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.442...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.446...HEAD
+[1.1.446]: https://github.com/IFRCGo/go-api/compare/1.1.445...1.1.446
+[1.1.445]: https://github.com/IFRCGo/go-api/compare/1.1.444...1.1.445
+[1.1.444]: https://github.com/IFRCGo/go-api/compare/1.1.443...1.1.444
+[1.1.443]: https://github.com/IFRCGo/go-api/compare/1.1.442...1.1.443
 [1.1.442]: https://github.com/IFRCGo/go-api/compare/1.1.441...1.1.442
 [1.1.441]: https://github.com/IFRCGo/go-api/compare/1.1.440...1.1.441
 [1.1.440]: https://github.com/IFRCGo/go-api/compare/1.1.439...1.1.440

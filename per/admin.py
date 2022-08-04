@@ -34,7 +34,7 @@ class FormAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     inlines = [FormDataInline]
     exclude = ("ip_address", )
     list_display = ('area', 'overview', 'overview__date_of_assessment')
-    search_fields = ('area__name',)
+    search_fields = ('area__title',)
     readonly_fields = ('overview', 'area')
     ordering = ('-created_at',)
 
@@ -120,7 +120,7 @@ class WorkPlanAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
 class OverviewAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     country_in = 'country_id__in'
     region_in = 'country__region_id__in'
-    search_fields = ('country',)
+    search_fields = ('country__name',)
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('country')

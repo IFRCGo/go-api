@@ -7,7 +7,7 @@ from rest_framework import (
     response,
     permissions,
     status,
-    mixins
+    mixins,
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -16,12 +16,20 @@ from dref.models import (
     PlannedIntervention,
     IdentifiedNeed,
     DrefFile,
+    DrefOperationalUpdate,
+    DrefFinalReport,
 )
 from dref.serializers import (
     DrefSerializer,
     DrefFileSerializer,
+    DrefOperationalUpdateSerializer,
+    DrefFinalReportSerializer,
 )
-from dref.filter_set import DrefFilter
+from dref.filter_set import (
+    DrefFilter,
+    DrefOperationalUpdateFilter
+)
+from dref.permissions import DrefOperationalUpdateCreatePermission
 
 
 class DrefViewSet(viewsets.ModelViewSet):
@@ -41,6 +49,60 @@ class DrefViewSet(viewsets.ModelViewSet):
                 'national_society_actions',
                 'users'
             ).order_by('-created_at').distinct()
+
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, pk=None, version=None):
+        dref = self.get_object()
+        if not dref.is_published:
+            dref.is_published = True
+            dref.save(update_fields=['is_published'])
+        serializer = DrefSerializer(dref, context={'request': request})
+        return response.Response(serializer.data)
+
+
+class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
+    serializer_class = DrefOperationalUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated, DrefOperationalUpdateCreatePermission]
+    filterset_class = DrefOperationalUpdateFilter
+
+    def get_queryset(self):
+        return DrefOperationalUpdate.objects.prefetch_related(
+            'dref__planned_interventions',
+            'dref__needs_identified',
+            'dref__national_society_actions',
+        ).order_by('-created_at').distinct()
+
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefOperationalUpdateSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, pk=None, version=None):
+        operational_update = self.get_object()
+        if not operational_update.is_published:
+            operational_update.is_published = True
+            operational_update.save(update_fields=['is_published'])
+        serializer = DrefOperationalUpdateSerializer(operational_update, context={'request': request})
+        return response.Response(serializer.data)
+
+
+class DrefFinalReportViewSet(viewsets.ModelViewSet):
+    serializer_class = DrefFinalReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DrefFinalReport.objects.prefetch_related(
+            'dref__planned_interventions',
+            'dref__needs_identified',
+        ).order_by('-created_at').distinct()
 
 
 class DrefOptionsView(views.APIView):

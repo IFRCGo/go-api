@@ -15,6 +15,7 @@ from lang.serializers import ModelSerializer
 from api.serializers import (
     DisasterTypeSerializer,
     ListEventSerializer,
+    SurgeEventSerializer,
     SmallEventForPersonnelCsvSerializer,
     MiniEventSerializer,
     MiniCountrySerializer,
@@ -106,7 +107,7 @@ class ERUMiniSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
 class PersonnelDeploymentSerializer(ModelSerializer):
     country_deployed_to = MiniCountrySerializer()
-    event_deployed_to = ListEventSerializer()
+    event_deployed_to = SurgeEventSerializer()
 
     class Meta:
         model = PersonnelDeployment
@@ -538,7 +539,12 @@ class EmergencyProjectSerializer(
 
     class Meta:
         model = EmergencyProject
-        fields = '__all__'
+        fields = ('created_by_details', 'modified_by_details', 'reporting_ns_details',
+                  'deployed_eru_details', 'districts_details', 'activities', 'event_details',
+                  'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
+                  'title', 'activity_lead', 'reporting_ns', 'event', 'country',
+                  'created_at', 'modified_at', 'start_date', 'end_date',
+                  ) # '__all__'
         read_only_fields = (
             'created_by',
             'created_at',
