@@ -79,6 +79,7 @@ class Region(models.Model):
             'name': str(self.name.label),
             'keyword': None,
             'visibility': None,
+            'ns': None,
             'body': str(self.name.label),
             'date': None
         }
@@ -225,6 +226,7 @@ class Country(models.Model):
             'name': self.name,
             'keyword': None,
             'visibility': None,
+            'ns': None,
             'body': '%s %s' % (
                 self.name,
                 self.society_name,
@@ -659,7 +661,8 @@ class Event(models.Model):
         return max(end_dates) if len(end_dates) else None
 
     def indexing(self):
-        countries = [getattr(c, 'name') for c in self.countries.all()]
+        countries = [c.name for c in self.countries.all()]
+        ns =        [c.id   for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.id,
@@ -667,6 +670,7 @@ class Event(models.Model):
             'name': self.name,
             'keyword': None,
             'visibility': self.visibility,
+            'ns': ' '.join(map(str, ns)) if len(ns) else None,
             'body': '%s %s' % (
                 self.name,
                 ' '.join(map(str, countries)) if len(countries) else None,
@@ -984,6 +988,7 @@ class Appeal(models.Model):
             'name': self.name,
             'keyword': self.code,
             'visibility': self.event.visibility if self.event else None,
+            'ns': self.country_id if self.country else None,
             'body': '%s %s' % (
                 self.name,
                 getattr(self.country, 'name', None)
@@ -1420,6 +1425,7 @@ class FieldReport(models.Model):
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
+        ns =        [c.id   for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.event_id,
@@ -1427,6 +1433,7 @@ class FieldReport(models.Model):
             'name': self.summary,
             'keyword': None,
             'visibility': self.visibility,
+            'ns': ' '.join(map(str, ns)) if len(ns) else None,
             'body': '%s %s' % (
                 self.summary,
                 ' '.join(map(str, countries)) if len(countries) else None

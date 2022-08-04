@@ -8,6 +8,8 @@ GenericMapping = {
             'type': 'keyword',
             'normalizer': 'lowercase'
         },
+        'visibility': {'type': 'text'},
+        'ns': {'type': 'text'},
         'body': {
             'type': 'text',
             'analyzer': 'autocomplete'
