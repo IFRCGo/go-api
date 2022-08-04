@@ -50,7 +50,7 @@ class EarlyActionIndicatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EarlyActionIndicator
-        fields = ('__all__')
+        fields = '__all__'
 
 
 class ActionSerializer(serializers.ModelSerializer):
@@ -109,14 +109,14 @@ class EAPSerializer(
     serializers.ModelSerializer
 ):
     country_details = CountrySerializer(source='country', read_only=True)
-    district_details = MiniDistrictSerializer(source='district', read_only=True)
+    districts_details = MiniDistrictSerializer(source='districts', many=True, read_only=True)
     references = EAPReferenceSerializer(source='eap_reference', many=True, required=False)
     partners = EAPPartnerSerializer(source='eap_partner', many=True, required=False)
     early_actions = EarlyActionSerializer(many=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    document_details = EAPDocumentSerializer(source='document', read_only=True, required=False)
+    documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -187,7 +187,7 @@ class EAPActivationReportSerializer(
     operational_plans = OperationalPlanSerializer(many=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    document_details = EAPDocumentSerializer(source='document', read_only=True, many=True, required=False)
+    document_details = EAPDocumentSerializer(source='documents', read_only=True, many=True, required=False)
     ifrc_financial_report_details = EAPDocumentSerializer(source='ifrc_financial_report', read_only=True)
 
     class Meta:

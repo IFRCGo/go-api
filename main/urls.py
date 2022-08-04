@@ -150,7 +150,7 @@ router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 
 router.register(r'eap', eap_views.EAPViewSet, basename='eap')
-router.register(r'eap_activation_report', eap_views.EAPActivationReportViewSet, basename='eap-activation-report')
+router.register(r'eap-activation-report', eap_views.EAPActivationReportViewSet, basename='eap-activation-report')
 router.register(r'eap-file', eap_views.EAPDocumentViewSet, basename='eap_file')
 
 # Dref apis

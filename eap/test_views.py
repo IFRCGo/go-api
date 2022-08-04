@@ -292,7 +292,7 @@ class EAPTest(APITestCase):
         # create eap_report
         with self.capture_on_commit_callbacks(execute=True):
             final_report_resp = self.client.post(
-                '/api/v2/eap_activation_report/',
+                '/api/v2/eap-activation-report/',
                 self.eap_act_report_body,
                 format='json'
             ).json()
@@ -341,7 +341,7 @@ class EAPTest(APITestCase):
         ]
         with self.capture_on_commit_callbacks(execute=True):
             final_report_updated_resp = self.client.put(
-                f'/api/v2/eap_activation_report/{created.id}/',
+                f'/api/v2/eap-activation-report/{created.id}/',
                 data,
                 format='json'
             ).json()

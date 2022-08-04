@@ -8,7 +8,6 @@ from django.core.files.base import ContentFile
 from api.factories import (
     disaster_type,
     country,
-    district,
     field_report,
 )
 
@@ -36,7 +35,6 @@ class EAPFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EAP
 
-    # districts = factory.SubFactory(district.DistrictFactory)
     country = factory.SubFactory(country.CountryFactory)
     disaster_type = factory.SubFactory(disaster_type.DisasterTypeFactory)
     eap_number = fuzzy.FuzzyText(length=20)
@@ -116,5 +114,7 @@ class EAPActivationFactory(factory.django.DjangoModelFactory):
         if extracted:
             for document in extracted:
                 self.documents.add(document)
+
+
 
 

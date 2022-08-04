@@ -18,7 +18,7 @@ class EarlyActionIndicator(models.Model):
         INDICATOR_2 = 'indicator_2', _('Indicator 2')
 
     indicator = models.CharField(
-        IndicatorChoices.choices, max_length=255,
+        max_length=255, choices=IndicatorChoices.choices,
         default=IndicatorChoices.INDICATOR_1, null=True, blank=True
     )
     indicator_value = models.IntegerField(null=True, blank=True)

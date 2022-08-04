@@ -7,6 +7,8 @@ from .models import (
     EAPPartner,
     EAPReference,
     EAPDocument,
+    EAPActivation,
+    EAPActivationReport,
 )
 
 
@@ -31,3 +33,13 @@ class EAPAdmin(admin.ModelAdmin):
     list_display = ('eap_number', 'country', 'status', 'operational_timeframe',)
     inlines = [ReferenceAdminInline, PartnerAdminInline]
     autocomplete_fields = ('country', 'districts', 'disaster_type', 'created_by', 'modified_by')
+
+
+@admin.register(EAPActivation)
+class EAPActivation(admin.ModelAdmin):
+    model = EAPActivation
+
+
+@admin.register(EAPActivationReport)
+class EAPActivationReport(admin.ModelAdmin):
+    model = EAPActivationReport
