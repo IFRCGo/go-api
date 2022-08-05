@@ -39,7 +39,23 @@ class FlashUpdateViewSet(viewsets.ModelViewSet):
     filterset_class = FlashUpdateFilter
 
     def get_queryset(self):
-        return FlashUpdate.objects.all().order_by('-created_at').distinct()
+        return FlashUpdate.objects.all().select_related(
+            'hazard_type',
+            'created_by',
+            'modified_by',
+        ).prefetch_related(
+            'references',
+            'references__document',
+            'map',
+            'map__created_by',
+            'graphics',
+            'graphics__created_by',
+            'actions_taken_flash__flash_update',
+            'actions_taken_flash__actions',
+            'flash_country_district__flash_update',
+            'flash_country_district__country',
+            'flash_country_district__district'
+        ).order_by('-created_at').distinct()
 
 
 class FlashUpdateFileViewSet(
@@ -51,7 +67,7 @@ class FlashUpdateFileViewSet(
     serializer_class = FlashGraphicMapSerializer
 
     def get_queryset(self):
-        return FlashGraphicMap.objects.all()
+        return FlashGraphicMap.objects.all().select_related('created_by')
 
     @action(
         detail=False,

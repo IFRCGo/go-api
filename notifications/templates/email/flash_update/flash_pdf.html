@@ -56,6 +56,7 @@
 
         <h2 class="heading">Graphics and Maps</h2>
 
+        {% if not map_list|length == 0 %}
         <table>
             <tr>
             {% for map in map_list %}
@@ -63,7 +64,9 @@
             {% endfor %}
             </tr>
         </table>
+        {% endif %}
 
+        {% if not graphic_list|length == 0 %}
         <table>
             <tr>
             {% for graphic in graphic_list %}
@@ -71,6 +74,7 @@
             {% endfor %}
             </tr>
         </table>
+        {% endif %}
 
         <h2 class="heading">Actions Taken</h2>
 
