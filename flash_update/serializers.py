@@ -114,7 +114,7 @@ class FlashUpdateSerializer(
     NestedCreateMixin,
     serializers.ModelSerializer
 ):
-    country_district = FlashCountryDistrictSerializer(source='flashcountrydistrict_set', many=True, required=False)
+    country_district = FlashCountryDistrictSerializer(source='flash_country_district', many=True, required=False)
     references = FlashReferencesSerializer(many=True, required=False)
     actions_taken = FlashActionsTakenSerializer(source='actions_taken_flash', many=True, required=False)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
