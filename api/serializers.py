@@ -1061,8 +1061,9 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
         fields = '__all__'
 
 
-from eap.serializers import EAPActivationSerializer  # It is imported here to avoid circular import issue
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
+    from eap.serializers import EAPActivationSerializer
+
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -1116,6 +1117,7 @@ class GoHistoricalSerializer(ModelSerializer):
             'id', 'name', 'dtype', 'countries', 'num_affected',
             'disaster_start_date', 'created_at', 'appeals',
         )
+
 
 class CountryOfFieldReportToReviewSerializer(ModelSerializer):
     class Meta:

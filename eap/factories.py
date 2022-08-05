@@ -15,6 +15,7 @@ from .models import (
     EAP,
     EAPDocument,
     EAPActivation,
+    EAPActivationReport,
 )
 
 
@@ -114,6 +115,36 @@ class EAPActivationFactory(factory.django.DjangoModelFactory):
         if extracted:
             for document in extracted:
                 self.documents.add(document)
+
+
+class EAPActivationReportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = EAPActivationReport
+
+    eap_activation = factory.SubFactory(EAPActivationFactory)
+    number_of_people_reached = fuzzy.FuzzyInteger(0, 9)
+    description = fuzzy.FuzzyText(length=20)
+    overall_objectives = fuzzy.FuzzyText(length=50)
+    challenges_and_lesson = fuzzy.FuzzyText(length=50)
+    general_lesson_and_recomendations = fuzzy.FuzzyText(length=50)
+
+    @factory.post_generation
+    def documents(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for document in extracted:
+                self.documents.add(document)
+
+    @factory.post_generation
+    def operational_plans(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            for plan in extracted:
+                self.operational_plans.add(plan)
 
 
 

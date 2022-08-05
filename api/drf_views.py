@@ -232,10 +232,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
 class CountryFilterRMD(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    
+
     class Meta:
         model = Country
         fields = ('region', 'record_type',)
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
@@ -247,7 +248,7 @@ class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
 class DistrictRMDFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country','country__name')
+        fields = ('country', 'country__name')
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):

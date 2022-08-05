@@ -112,19 +112,60 @@ class EAPSerializer(
     districts_details = MiniDistrictSerializer(source='districts', many=True, read_only=True)
     references = EAPReferenceSerializer(source='eap_reference', many=True, required=False)
     partners = EAPPartnerSerializer(source='eap_partner', many=True, required=False)
-    early_actions = EarlyActionSerializer(many=True)
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
+    # early_actions = EarlyActionSerializer(many=True)
+    # created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    # modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
+    # hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
+    # documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = EAP
-        fields = '__all__'
+        fields = [
+            "id",
+            "created_at",
+            "modified_at",
+            "eap_number",
+            "approval_date",
+            "status",
+            "operational_timeframe",
+            "lead_time",
+            "eap_timeframe",
+            "num_of_people",
+            "total_budget",
+            "readiness_budget",
+            "pre_positioning_budget",
+            "early_action_budget",
+            "trigger_statement",
+            "overview",
+            "originator_name",
+            "originator_title",
+            "originator_email",
+            "originator_phone",
+            "nsc_name",
+            "nsc_title",
+            "nsc_email",
+            "nsc_phone",
+            "ifrc_focal_name",
+            "ifrc_focal_title",
+            "ifrc_focal_email",
+            "ifrc_focal_phone",
+            "created_by",
+            "modified_by",
+            "country",
+            "disaster_type",
+            "status_display",
+            "country_details",
+            "districts_details",
+            "references",
+            "partners",
+
+        ]
 
     def validate(self, validated_data):
-        districts = validated_data['districts']
+        if self.partial:
+            return validated_data
+        districts = validated_data.get('districts', None)
         if districts:
             for district in districts:
                 if district.country != validated_data['country']:

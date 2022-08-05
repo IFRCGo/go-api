@@ -6,10 +6,10 @@ from django.contrib.auth.models import User
 from main.test_case import APITestCase
 from eap.models import (
     EAP,
-    EarlyAction,
-    EAPActivationReport,
     Action,
-    EarlyActionIndicator,
+    EarlyAction,
+    EAPDocument,
+    EAPActivationReport,
 )
 
 from api.factories.country import CountryFactory
@@ -21,6 +21,7 @@ from .factories import (
     EAPDocumentFactory,
     EAPFactory,
     EAPActivationFactory,
+    EAPActivationReportFactory,
 )
 
 
@@ -245,6 +246,12 @@ class EAPTest(APITestCase):
         self.assertEqual(len(response['references']), 1)
         self.assertEqual(len(response['partners']), 1)
 
+        # test patch
+        data = {'status': EAP.Status.APPROVED}
+        response = self.client.patch(f'/api/v2/eap/{created.id}/', data=data, format='json').json()
+        pached = EAP.objects.get(id=response['id'])
+        self.assertEqual(pached.status, EAP.Status.APPROVED)
+
     def test_get_eap(self):
         user1 = UserFactory.create(username='abc')
         eap1, eap2, eap3 = EAPFactory.create_batch(3, created_by=user1)
@@ -353,3 +360,56 @@ class EAPTest(APITestCase):
         self.assertEqual(len(final_report_updated_resp['operational_plans']), 1)
         self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['early_actions_achievements']), 2)
         self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['indicators']), 2)
+
+        # test patch
+        data = {'ifrc_financial_report': self.document1.id}
+        with self.capture_on_commit_callbacks(execute=True):
+            final_report_patched_resp = self.client.patch(
+                f'/api/v2/eap-activation-report/{created.id}/',
+                data,
+                format='json'
+            ).json()
+        updated = EAPActivationReport.objects.get(id=final_report_patched_resp['id'])
+        self.assertEqual(final_report_patched_resp['ifrc_financial_report'], self.document1.id)
+
+    def test_get_eap_activation_report(self):
+        user1 = UserFactory.create(username='abc')
+        report1, report2, report3 = EAPActivationReportFactory.create_batch(3, created_by=user1)
+        self.client.force_authenticate(user=user1)
+        response1 = self.client.get('/api/v2/eap-activation-report/').json()
+        self.assertEqual(response1['results'][0]['created_by'], user1.id)
+        self.assertEqual(len(response1['results']), 3)
+        assert all(item in [data['id'] for data in response1['results']] for item in [report1.id, report2.id, report3.id])
+
+        #  query single eap
+        response = self.client.get(f'/api/v2/eap-activation-report/{report1.id}/').json()
+        self.assertEqual(response['created_by'], user1.id)
+        self.assertEqual(response['id'], report1.id)
+
+        #  try with another user
+        user2 = User.objects.create(username='xyz')
+        self.client.force_authenticate(user=user2)
+        report4, report5 = EAPActivationReportFactory.create_batch(2, created_by=user2)
+        response2 = self.client.get('/api/v2/eap-activation-report/').json()
+        self.assertEqual(response2['results'][0]['created_by'], user2.id)
+        self.assertIn(report4.id, [data['id'] for data in response2['results']])
+        self.assertNotIn([data['id'] for data in response2['results']], [data['id'] for data in response1['results']])
+
+        # try with users who has no any eap created
+        user3 = User.objects.create(username='ram')
+        self.client.force_authenticate(user=user3)
+        response3 = self.client.get('/api/v2/eap-activation-report/').json()
+        self.assertEqual(response3['count'], 5)
+
+    def test_eap_upload_multiple_file(self):
+        file_count = EAPDocument.objects.count()
+        url = '/api/v2/eap-file/multiple/'
+        data = {
+            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
+        }
+
+        self.authenticate()
+        response = self.client.post(url, data, format='multipart')
+        self.assert_201(response)
+        self.assertEqual(EAPDocument.objects.count(), file_count + 3)
+

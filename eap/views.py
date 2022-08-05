@@ -6,7 +6,9 @@ from rest_framework import (
     response,
     permissions,
     mixins,
+    status,
 )
+from rest_framework.decorators import action
 from .models import (
     EarlyActionIndicator,
     EAP,
@@ -32,13 +34,38 @@ class EAPDocumentViewSet(
     def get_queryset(self):
         return EAPDocument.objects.all()
 
+    @action(
+        detail=False,
+        url_path='multiple',
+        methods=['POST'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def multiple_file(self, request, pk=None, version=None):
+        # converts querydict to original dict
+        files = dict((request.data).lists())['file']
+        data = [{'file': file} for file in files]
+        file_serializer = EAPDocumentSerializer(data=data, context={'request': request}, many=True)
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EAPViewSet(viewsets.ModelViewSet):
     serializer_class = EAPSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return EAP.objects.all().order_by('-created_at')
+        return EAP.objects.all().order_by(
+            '-created_at'
+        ).select_related(
+            'country',
+        ).prefetch_related(
+            'districts',
+            'eap_reference__eap',
+            'eap_partner__eap'
+        )
 
 
 class EAPActivationReportViewSet(viewsets.ModelViewSet):
