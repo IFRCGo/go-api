@@ -71,7 +71,7 @@ class FlashCountryDistrictAdminInline(admin.TabularInline):
 class FlashUpdateAdmin(TranslationAdmin):
     inlines = [FlashCountryDistrictAdminInline, FlashActionTakenAdminInline]
     search_fields = ('title',)
-    list_filter = ('hazard_type', 'share_with', 'flashcountrydistrict__country',)
+    list_filter = ('hazard_type', 'share_with', 'flash_country_district__country')
 
 
 admin.site.register(FlashAction, FlashActionAdmin)
