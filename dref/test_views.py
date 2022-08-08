@@ -311,6 +311,7 @@ class DrefTestCase(APITestCase):
                     "person_targated": 345
                 }
             ],
+            "images_file": [],
         }
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
