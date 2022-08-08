@@ -60,7 +60,7 @@ class ActionSerializer(serializers.ModelSerializer):
         read_only_fields = ('early_action',)
 
 
-class PrioritizedRiskSerializer(serializers.ModelSerializer):
+class PrioritizedRiskSerializer(serializers.ModelSerializer): 
     class Meta:
         model = PrioritizedRisk
         fields = ('__all__')
@@ -90,13 +90,10 @@ class EAPActionSerializer(serializers.ModelSerializer):
 
 
 class EAPDocumentSerializer(serializers.ModelSerializer):
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    file = serializers.FileField(required=False)
 
     class Meta:
         model = EAPDocument
-        fields = '__all__'
-        read_only_fields = ('created_by',)
+        fields = ['id', 'file']
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
@@ -112,11 +109,11 @@ class EAPSerializer(
     districts_details = MiniDistrictSerializer(source='districts', many=True, read_only=True)
     references = EAPReferenceSerializer(source='eap_reference', many=True, required=False)
     partners = EAPPartnerSerializer(source='eap_partner', many=True, required=False)
-    # early_actions = EarlyActionSerializer(many=True)
-    # created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    # modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    # hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    # documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
+    early_actions = EarlyActionSerializer(many=True)
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
+    hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
+    documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -151,15 +148,21 @@ class EAPSerializer(
             "ifrc_focal_email",
             "ifrc_focal_phone",
             "created_by",
+            "created_by_details",
             "modified_by",
+            "modified_by_details",
             "country",
-            "disaster_type",
-            "status_display",
             "country_details",
+            # "districts",
             "districts_details",
+            "disaster_type",
+            "hazard_type_details",
+            "status_display",
             "references",
             "partners",
-
+            "documents",
+            "documents_details",
+            "early_actions",
         ]
 
     def validate(self, validated_data):

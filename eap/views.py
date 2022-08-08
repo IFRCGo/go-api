@@ -57,14 +57,23 @@ class EAPViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # return EAP.objects.all()
         return EAP.objects.all().order_by(
             '-created_at'
         ).select_related(
             'country',
+            'created_by',
+            # 'modified_by',
+            'disaster_type',
         ).prefetch_related(
             'districts',
-            'eap_reference__eap',
-            'eap_partner__eap'
+            'documents',
+            'early_actions',
+            'early_actions__action',
+            'early_actions__early_actions_prioritized_risk',
+            'early_actions__indicators',
+            'eap_reference',
+            'eap_partner',
         )
 
 
@@ -73,7 +82,17 @@ class EAPActivationReportViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return EAPActivationReport.objects.all().order_by('-created_at')
+        return EAPActivationReport.objects.all().order_by(
+            '-created_at'
+        ).select_related(
+            'created_by',
+            'modified_by',
+            'eap_activation',
+            'ifrc_financial_report',
+        ).prefetch_related(
+            'documents',
+            'operational_plans',
+        )
 
 
 class EAPOptionsView(views.APIView):
