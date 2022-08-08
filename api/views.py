@@ -350,6 +350,11 @@ class GetAuthToken(APIView):
             return bad_request('Body must contain `email/username` and `password`')
 
         user = authenticate(username=username, password=password)
+        if user == None and User.objects.filter(email=username).count() > 1:
+            users = User.objects.filter(email=username, is_active=True)
+            if users:
+                # We get the first one if there are still multiple available is_active:
+                user = authenticate(username=users[0].username, password=password)
 
         # Determining the client IP is not always straightforward:
         clientIP = ''

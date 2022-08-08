@@ -143,6 +143,7 @@ INSTALLED_APPS = [
     'lang',
     'dref',
     'flash_update',
+    'eap',
 
     # Utils Apps
     'tinymce',

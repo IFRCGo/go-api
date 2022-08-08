@@ -138,7 +138,8 @@ class FlashUpdate(models.Model):
 class FlashCountryDistrict(models.Model):
     flash_update = models.ForeignKey(
         FlashUpdate, on_delete=models.CASCADE,
-        verbose_name=_('Flash update')
+        verbose_name=_('Flash update'),
+        related_name='flash_country_district'
     )
     country = models.ForeignKey(
         Country, verbose_name=_('country'), on_delete=models.CASCADE,

@@ -47,7 +47,7 @@ def get_email_context(instance):
     map_list = generate_file_data(map_data)
     graphics_list = generate_file_data(graphics_data)
     actions_taken = [dict(action_taken) for action_taken in flash_update_data['actions_taken']]
-    resources = [dict(refrence) for refrence in flash_update_data['references']]
+    resources = [dict(reference) for reference in flash_update_data['references']]
     documents_map = {
         document.id: document.file.url
         for document in FlashGraphicMap.objects.filter(

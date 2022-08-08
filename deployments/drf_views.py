@@ -23,7 +23,6 @@ from main.serializers import CsvListMixin
 from api.models import (
     Country,
     Region,
-    FieldReport,
 )
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
@@ -148,24 +147,17 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         if self.request.GET.get('format', 'json') != 'csv':
             qs = qs.filter(is_active=True)
         qs = qs.select_related(
-            'country_from',
             'deployment__country_deployed_to',
             'deployment__event_deployed_to',
-            'deployment__event_deployed_to__dtype'
+            'deployment__event_deployed_to__dtype',
         ).prefetch_related(
             'deployment__event_deployed_to__countries',
             'deployment__event_deployed_to__appeals',
+            'country_from',
+            'country_to',
+            'molnix_tags',
         )
-
-        if self.request.GET.get('format') == 'csv':
-            return qs.prefetch_related(
-                models.Prefetch(
-                    'deployment__event_deployed_to__field_reports',
-                    queryset=FieldReport.objects.only('id', 'event_id')
-                )
-            ).distinct()
-
-        return qs.prefetch_related('deployment__event_deployed_to__field_reports').distinct()
+        return qs
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get('format', 'json')
@@ -706,10 +698,10 @@ class EmergencyProjectViewSet(
     # ReadOnlyVisibilityViewsetMixin,  # FIXME: This is required?
     viewsets.ModelViewSet,
 ):
-    # FIXME: N+1 Query
-    queryset = EmergencyProject.objects.order_by('-modified_at').prefetch_related(
-        'created_by', 'reporting_ns', 'districts', 'event', 'country'
-    ).all()
+    queryset = EmergencyProject.objects.\
+        select_related('created_by', 'reporting_ns', 'event', 'country', 'deployed_eru', 'modified_by').\
+        prefetch_related('districts', 'activities').\
+        order_by('-modified_at').all()
     # Intentionally not IsAuthenticated. Anons should see public EmergencyProjects:
     permission_classes = []
     filterset_class = EmergencyProjectFilter
