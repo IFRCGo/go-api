@@ -336,6 +336,7 @@ class DrefOperationalUpdateSerializer(
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
         if not dref_operational_update:
             validated_data['title'] = dref.title
+            validated_data['title_prefix'] = dref.title_prefix
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset
@@ -406,6 +407,7 @@ class DrefOperationalUpdateSerializer(
         else:
             # get the latest dref operational update
             validated_data['title'] = dref_operational_update.title
+            validated_data['title_prefix'] = dref_operational_update.title_prefix
             validated_data['national_society'] = dref_operational_update.national_society
             validated_data['disaster_type'] = dref_operational_update.disaster_type
             validated_data['type_of_onset'] = dref_operational_update.type_of_onset
@@ -543,6 +545,7 @@ class DrefFinalReportSerializer(
         ).order_by('-operational_update_number').first()
         if dref_operational_update:
             validated_data['title'] = dref_operational_update.title
+            validated_data['title_prefix'] = dref_operational_update.title_prefix
             validated_data['national_society'] = dref_operational_update.national_society
             validated_data['disaster_type'] = dref_operational_update.disaster_type
             validated_data['type_of_onset'] = dref_operational_update.type_of_onset
@@ -609,6 +612,7 @@ class DrefFinalReportSerializer(
             dref_final_report.district.add(*dref_operational_update.district.all())
         else:
             validated_data['title'] = dref.title
+            validated_data['title_prefix'] = dref.title_prefix
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset

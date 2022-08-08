@@ -241,6 +241,7 @@ class Dref(models.Model):
         related_name='field_report_dref'
     )
     title = models.CharField(verbose_name=_('title'), max_length=255)
+    title_prefix = models.CharField(verbose_name=_('title prefix'), max_length=255, null=True, blank=True)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
         on_delete=models.CASCADE,
@@ -682,6 +683,10 @@ class DrefOperationalUpdate(models.Model):
         null=True, blank=True,
         max_length=255,
     )
+    title_prefix = models.CharField(
+        verbose_name=_('title prefix'), max_length=255,
+        null=True, blank=True
+    )
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
         null=True, blank=True,
@@ -1061,6 +1066,10 @@ class DrefFinalReport(models.Model):
         verbose_name=_('title'),
         null=True, blank=True,
         max_length=255,
+    )
+    title_prefix = models.CharField(
+        verbose_name=_('title prefix'), max_length=255,
+        null=True, blank=True
     )
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
