@@ -40,6 +40,7 @@ class LanguageBulkActionSerializer(serializers.Serializer):
     key = serializers.CharField()
     value = serializers.CharField(required=False)
     hash = serializers.CharField(max_length=32, required=False)
+    page_name = serializers.CharField(required=False)
 
 
 class LanguageBulkActionsSerializer(serializers.Serializer):

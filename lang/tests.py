@@ -82,16 +82,24 @@ class LangTest(APITestCase):
             'key': 'new-string-101',
             'value': 'New Value 101',
             'hash': 'new-hash-101',
+            'page_name': 'dref'
         }
         string_2 = {
             'key': 'new-string-102',
             'value': 'New Value 102',
             'hash': 'new-hash-102',
+            'page_name': 'risk-module'
+        }
+        string_3 = {
+            'key': 'new-string-103',
+            'value': 'New Value 103',
+            'hash': 'new-hash-103'
         }
         data = {
             'actions': [
                 {'action': LanguageBulkActionSerializer.SET, **string_1},
-                {'action': LanguageBulkActionSerializer.SET, **string_2}
+                {'action': LanguageBulkActionSerializer.SET, **string_2},
+                {'action': LanguageBulkActionSerializer.SET, **string_3}
             ],
         }
 
@@ -102,10 +110,14 @@ class LangTest(APITestCase):
 
         first_string = j_resp['new_strings'][0]
         second_string = j_resp['new_strings'][1]
+        third_string = j_resp['new_strings'][2]
         first_string.pop('id')
         second_string.pop('id')
+        third_string.pop('id')
+        third_string.pop('page_name')
         self.assertEqual(first_string, {**string_1, 'language': language})
         self.assertEqual(second_string, {**string_2, 'language': language})
+        self.assertEqual(third_string, {**string_3, 'language': language})
 
         string_2['value'] = 'updated value 101'
         data = {

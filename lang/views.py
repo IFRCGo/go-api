@@ -55,6 +55,7 @@ class LanguageViewSet(viewsets.ViewSet):
                 query = functools.reduce(operator.or_, pages)
                 queryset = String.objects.filter(query)
                 obj = {
+                    'code': code,
                     'title': title,
                     'strings': StringSerializer(queryset, many=True).data,
                 }
@@ -89,9 +90,11 @@ class LanguageViewSet(viewsets.ViewSet):
             key = meta['key']
             value = meta.get('value')
             value_hash = meta.get('hash')
+            page_name = meta.get('page_name')
             value_meta = {
                 'value': value,
                 'hash': value_hash,
+                'page_name': page_name,
             }
             if action == LanguageBulkActionSerializer.SET:
                 if key in existing_string_keys:
@@ -111,7 +114,8 @@ class LanguageViewSet(viewsets.ViewSet):
             for string in to_update_strings:
                 string.value = changed_strings[string.key]['value']
                 string.hash = changed_strings[string.key]['hash']
-            String.objects.bulk_update(to_update_strings, ['value', 'hash'])
+                string.page_name = changed_strings[string.key]['page_name']
+            String.objects.bulk_update(to_update_strings, ['value', 'hash', 'page_name'])
             changed_strings = to_update_strings
         if len(deleted_string_keys):
             String.objects.filter(key__in=deleted_string_keys).delete()
