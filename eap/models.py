@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from main.enums import TextChoices
 from deployments.models import Sectors
-from enumfields import EnumIntegerField
+from main.enums import IntegerChoices
 from api.models import (
     Country,
     District,
@@ -32,7 +32,23 @@ class EarlyActionIndicator(models.Model):
 
 
 class EarlyAction(models.Model):
-    sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
+    class Sector(IntegerChoices):
+        SHELTER_HOUSING_AND_SETTLEMENTS = 0, _('Shelter, Housing And Settlements')
+        LIVELIHOODS = 1, _('Livelihoods')
+        MULTI_PURPOSE_CASH = 2, _('Multi-purpose Cash')
+        HEALTH_AND_CARE = 3, _('Health And Care')
+        WATER_SANITATION_AND_HYGIENE = 4, _('Water, Sanitation And Hygiene')
+        PROTECTION_GENDER_AND_INCLUSION = 5, _('Protection, Gender And Inclusion')
+        EDUCATION = 6, _('Education')
+        MIGRATION = 7, _('Migration')
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
+            8, _('Risk Reduction, Climate Adaptation And Recovery')
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
+            9, _('Community Engagement And Accountability')
+        ENVIRONMENT_SUSTAINABILITY = 10, _('Environment Sustainability')
+        SHELTER_CLUSTER_COORDINATION = 11, _('Shelter Cluster Coordination')
+
+    sector = models.IntegerField(choices=Sector.choices, verbose_name=_('sector'))
     budget_per_sector = models.IntegerField(verbose_name=_('Budget per sector (CHF)'), null=True, blank=True)
     indicators = models.ManyToManyField(EarlyActionIndicator, verbose_name=_('Indicators'), blank=True)
 
