@@ -1,5 +1,4 @@
 # Create your views here.
-
 from rest_framework import (
     views,
     viewsets,
@@ -57,16 +56,16 @@ class EAPViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # return EAP.objects.all()
-        return EAP.objects.all().order_by(
+        result = EAP.objects.all().order_by(
             '-created_at'
         ).select_related(
             'country',
             'created_by',
-            # 'modified_by',
+            'modified_by',
             'disaster_type',
         ).prefetch_related(
             'districts',
+            'districts__country',
             'documents',
             'early_actions',
             'early_actions__action',
@@ -75,6 +74,7 @@ class EAPViewSet(viewsets.ModelViewSet):
             'eap_reference',
             'eap_partner',
         )
+        return result
 
 
 class EAPActivationReportViewSet(viewsets.ModelViewSet):

@@ -8,6 +8,7 @@ from api.serializers import (
     CountrySerializer,
     MiniDistrictSerializer,
 )
+from api.models import District
 
 from eap.models import (
     EAP,
@@ -60,7 +61,7 @@ class ActionSerializer(serializers.ModelSerializer):
         read_only_fields = ('early_action',)
 
 
-class PrioritizedRiskSerializer(serializers.ModelSerializer): 
+class PrioritizedRiskSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrioritizedRisk
         fields = ('__all__')
@@ -118,74 +119,26 @@ class EAPSerializer(
 
     class Meta:
         model = EAP
-        fields = [
-            "id",
-            "created_at",
-            "modified_at",
-            "eap_number",
-            "approval_date",
-            "status",
-            "operational_timeframe",
-            "lead_time",
-            "eap_timeframe",
-            "num_of_people",
-            "total_budget",
-            "readiness_budget",
-            "pre_positioning_budget",
-            "early_action_budget",
-            "trigger_statement",
-            "overview",
-            "originator_name",
-            "originator_title",
-            "originator_email",
-            "originator_phone",
-            "nsc_name",
-            "nsc_title",
-            "nsc_email",
-            "nsc_phone",
-            "ifrc_focal_name",
-            "ifrc_focal_title",
-            "ifrc_focal_email",
-            "ifrc_focal_phone",
-            "created_by",
-            "created_by_details",
-            "modified_by",
-            "modified_by_details",
-            "country",
-            "country_details",
-            # "districts",
-            "districts_details",
-            "disaster_type",
-            "hazard_type_details",
-            "status_display",
-            "references",
-            "partners",
-            "documents",
-            "documents_details",
-            "early_actions",
-        ]
+        fields = ('__all__')
 
-    def validate(self, validated_data):
-        if self.partial:
-            return validated_data
-        districts = validated_data.get('districts', None)
-        if districts:
+    def validate(self, data):
+        if 'districts' in data:
+            districts = data.get('districts') or []
+            country = data.get('country')
             for district in districts:
-                if district.country != validated_data['country']:
+                if district.country != country:
                     raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
+                        'districts': ugettext('Different districts found for given country')
                     })
-        return validated_data
+        return data
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
-        eap = super().create(validated_data)
-        return eap
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
-        eap = super().update(instance, validated_data)
-        return eap
+        return super().update(instance, validated_data)
 
 
 class EAPActivationSerializer(serializers.ModelSerializer):

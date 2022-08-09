@@ -176,7 +176,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        # 'rest_framework.renderers.BrowsableAPIRenderer', # it is comment out to reduce load time in browsable api
+        'main.utils.BrowsableAPIRendererWithRawForms',  # it is added to reduce load time in browsable api
         'rest_framework_csv.renderers.PaginatedCSVRenderer',
     ),
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
