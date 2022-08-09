@@ -157,7 +157,6 @@ class DrefSerializer(
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
     MAX_OPERATION_TIMEFRAME = 30
-
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -167,7 +166,7 @@ class DrefSerializer(
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     event_map_details = DrefFileSerializer(read_only=True, source='event_map')
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
-    field_report = MiniFieldReportSerializer(required=False, allow_null=True)
+    field_report_details = MiniFieldReportSerializer(required=False, allow_null=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
     budget_file_details = DrefFileSerializer(read_only=True, source='budget_file')
