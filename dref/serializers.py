@@ -164,13 +164,13 @@ class DrefSerializer(
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    event_map_details = DrefFileSerializer(read_only=True, source='event_map')
+    event_map_file = DrefFileSerializer(source='event_map', required=False, allow_null=True)
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
-    field_report_details = MiniFieldReportSerializer(required=False, allow_null=True)
+    # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
-    budget_file_details = DrefFileSerializer(read_only=True, source='budget_file')
-    cover_image_details = DrefFileSerializer(read_only=True, source='cover_image')
+    budget_file_file = DrefFileSerializer(source='budget_file', required=False, allow_null=True)
+    cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
     dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport', read_only=True)
@@ -182,8 +182,8 @@ class DrefSerializer(
 
     class Meta:
         model = Dref
-        fields = '__all__'
         read_only_fields = ('modified_by', 'created_by', 'budget_file_preview')
+        exclude = ('cover_image', 'event_map', 'images')
 
     def to_representation(self, instance):
         def _remove_digits_after_decimal(value):

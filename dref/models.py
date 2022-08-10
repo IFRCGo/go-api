@@ -28,7 +28,7 @@ class NationalSocietyAction(models.Model):
         RESOURCE_MOBILIZATION = 'resource_mobilization', _('Resource Mobilization')
         ACTIVATION_OF_CONTINGENCY_PLANS = 'activation_of_contingency_plans', _('Activation Of Contingency Plans')
         NATIONAL_SOCIETY_EOC = 'national_society_eoc', _('National Society EOC')
-        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter, Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
@@ -40,6 +40,7 @@ class NationalSocietyAction(models.Model):
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
+        MULTI_PURPOSE_CASH = 'multi-purpose_cash', _('Multi-purpose Cash')
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
@@ -52,7 +53,7 @@ class NationalSocietyAction(models.Model):
     @staticmethod
     def get_image_map(title, request):
         title_static_map = {
-            NationalSocietyAction.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            NationalSocietyAction.Title.SHELTER_HOUSING_AND_SETTLEMENTS: 'shelter.png',
             NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             NationalSocietyAction.Title.HEALTH: 'health.png',
             NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
@@ -68,6 +69,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.ACTIVATION_OF_CONTINGENCY_PLANS: 'favicon.png',
             NationalSocietyAction.Title.NATIONAL_SOCIETY_EOC: 'favicon.png',
             NationalSocietyAction.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'favicon.png',
+            NationalSocietyAction.Title.MULTI_PURPOSE_CASH: 'cash.png',
             NationalSocietyAction.Title.OTHER: 'favicon.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
@@ -89,10 +91,10 @@ class IdentifiedNeed(models.Model):
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
         SHELTER_CLUSTER_COORDINATION = 'shelter_cluster_coordination', _('Shelter Cluster Coordination')
-        MULTI_PURPOSE_CASH = 'multi-purpose_cash', _('Multi-purpose Cash')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
+
     class Meta:
         verbose_name = _('identified need')
         verbose_name_plural = _('identified needs')
@@ -192,7 +194,8 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'independence.png',
             PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png',
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: 'environment.png',
-            PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png'
+            PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
+            PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 

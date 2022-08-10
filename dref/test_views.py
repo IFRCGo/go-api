@@ -312,6 +312,7 @@ class DrefTestCase(APITestCase):
                 }
             ],
             "images_file": [],
+            "cover_image_file": None,
         }
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
@@ -333,7 +334,7 @@ class DrefTestCase(APITestCase):
         dref.users.add(self.ifrc_user)
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "images": [
+            "images_file": [
                 {
                     "file": file1.id,
                     "caption": "Test Caption"
@@ -351,7 +352,7 @@ class DrefTestCase(APITestCase):
 
         # now remove one file and add one file by `self.ifrc_user`
         data = {
-            "images": [
+            "images_file": [
                 {
                     "file": file1.id,
                     "caption": "Test Caption"
@@ -368,7 +369,7 @@ class DrefTestCase(APITestCase):
 
         # add from another user
         data = {
-            "images": [
+            "images_file": [
                 {
                     "file": file4.id,
                     "caption": "Test Caption"
@@ -381,7 +382,7 @@ class DrefTestCase(APITestCase):
 
         # add file created_by another user
         data = {
-            "images": [
+            "images_file": [
                 {
                     "file": file5.id,
                     "caption": "Test Caption"
