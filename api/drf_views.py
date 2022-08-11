@@ -389,6 +389,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if self.action == 'mini_events':
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
             return qset.filter(parent_event__isnull=True).select_related('dtype')
+        if self.action == 'response_activity_events':
+            return qset.filter(parent_event__isnull=True).filter(
+                Q(auto_generated=False) | Q(auto_generated_source='New field report')
+                ).select_related('dtype')
         return (
             # Event.objects.filter(parent_event__isnull=True)
             qset.filter(parent_event__isnull=True).select_related('dtype')
@@ -446,6 +450,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
 
     @action(methods=['get'], detail=False, url_path='mini')
     def mini_events(self, request):
+        return super().list(request)
+
+    @action(methods=['get'], detail=False, url_path='response-activity')
+    def response_activity_events(self, request):
         return super().list(request)
 
 
