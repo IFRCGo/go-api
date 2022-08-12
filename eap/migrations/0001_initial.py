@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
             name='EarlyAction',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sector', enumfields.fields.EnumIntegerField(enum=deployments.models.Sectors, verbose_name='sector')),
+                ('sector', models.IntegerField(choices=[(0, 'Shelter, Housing And Settlements'), (1, 'Livelihoods'), (2, 'Multi-purpose Cash'), (3, 'Health And Care'), (4, 'Water, Sanitation And Hygiene'), (5, 'Protection, Gender And Inclusion'), (6, 'Education'), (7, 'Migration'), (8, 'Risk Reduction, Climate Adaptation And Recovery'), (9, 'Community Engagement And Accountability'), (10, 'Environment Sustainability'), (11, 'Shelter Cluster Coordination')], verbose_name='sector')),
                 ('budget_per_sector', models.IntegerField(blank=True, null=True, verbose_name='Budget per sector (CHF)')),
                 ('prioritized_risk', models.TextField(blank=True, null=True, verbose_name='Prioritized risk')),
                 ('targeted_people', models.IntegerField(blank=True, null=True, verbose_name='Targeted people')),

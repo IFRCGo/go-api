@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.448
+
+### Added
+ - Fewer editor features on admin (sync with frontend)
+ - Fix response-activity event search on 3w form
+
 ## 1.1.447
 ## 1.1.446
 
@@ -2016,7 +2022,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.447...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.448...HEAD
+[1.1.448]: https://github.com/IFRCGo/go-api/compare/1.1.447...1.1.448
 [1.1.447]: https://github.com/IFRCGo/go-api/compare/1.1.446...1.1.447
 [1.1.446]: https://github.com/IFRCGo/go-api/compare/1.1.445...1.1.446
 [1.1.445]: https://github.com/IFRCGo/go-api/compare/1.1.444...1.1.445
