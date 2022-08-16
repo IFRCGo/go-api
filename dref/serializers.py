@@ -169,7 +169,7 @@ class DrefSerializer(
     # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
-    budget_file_file = DrefFileSerializer(source='budget_file', required=False, allow_null=True)
+    budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
