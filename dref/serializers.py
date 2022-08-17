@@ -177,7 +177,7 @@ class DrefSerializer(
     country_details = MiniCountrySerializer(source='country', read_only=True)
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
-    suporting_document_details = DrefFileSerializer(read_only=True, source='suporting_docuement')
+    supporting_document_details = DrefFileSerializer(read_only=True, source='supporting_document')
     risk_security = RiskSecuritySerializer(many=True, required=False)
 
     class Meta:

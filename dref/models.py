@@ -260,6 +260,7 @@ class Dref(models.Model):
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
+    people_in_need = models.IntegerField(verbose_name=_('people in need'), blank=True, null=True)
     emergency_appeal_planned = models.BooleanField(
         verbose_name=_('emergency appeal planned '),
         null=True, blank=True
@@ -580,7 +581,7 @@ class Dref(models.Model):
         verbose_name=_('Assessment Report'),
         related_name='dref_assessment_report'
     )
-    suporting_document = models.ForeignKey(
+    supporting_document = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,
         null=True, blank=True,
         verbose_name=_('Supporting Document'),
