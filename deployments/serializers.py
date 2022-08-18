@@ -24,6 +24,7 @@ from api.serializers import (
 )
 
 from .models import (
+    AnnualSplit,
     ERUOwner,
     ERU,
     PersonnelDeployment,
@@ -337,6 +338,13 @@ class RegionalProjectSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class AnnualSplitSerializer(ModelSerializer):
+    class Meta:
+        model = AnnualSplit
+        fields = ('year', 'budget_amount', 'target_male', 'target_female', 'target_other',
+                  'reached_male', 'reached_female', 'reached_other',)
+
+
 class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
@@ -350,6 +358,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
+    annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
     modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
 
     class Meta:
