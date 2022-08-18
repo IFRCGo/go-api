@@ -441,6 +441,27 @@ class Project(models.Model):
         )
 
 
+class AnnualSplit(models.Model):
+    """ Annual split for Project """
+
+    project = models.ForeignKey(Project, verbose_name=_('project'), related_name='annual_splits', on_delete=models.CASCADE)
+    year = models.IntegerField(verbose_name=_('year'), null=True, blank=True)
+    budget_amount = models.IntegerField(verbose_name=_('amount'), null=True, blank=True)
+    target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
+    target_female = models.IntegerField(verbose_name=_('target female'), null=True, blank=True)
+    target_other = models.IntegerField(verbose_name=_('target other'), null=True, blank=True)
+    reached_male = models.IntegerField(verbose_name=_('reached male'), null=True, blank=True)
+    reached_female = models.IntegerField(verbose_name=_('reached female'), null=True, blank=True)
+    reached_other = models.IntegerField(verbose_name=_('reached other'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Annual Split')
+        verbose_name_plural = _('Annual Splits')
+
+    def __str__(self):
+        return '%s: %s %s | %s %s' % (str(self.project_id), str(self.year), str(self.budget_amount), str(self.target_male), str(self.reached_male),)
+
+
 @reversion.register()
 class ProjectImport(models.Model):
     """

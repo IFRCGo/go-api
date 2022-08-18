@@ -104,6 +104,10 @@ class ProjectCountryFilter(AutocompleteFilter):
     field_name = 'project_country'
 
 
+class ProjectAnnualSplitAdminInline(admin.TabularInline):
+    model = models.AnnualSplit
+
+
 class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
@@ -113,6 +117,7 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
         'event', 'dtype',
     )
+    inlines = [ProjectAnnualSplitAdminInline]
 
     class Media:  # Required by AutocompleteFilter
         pass

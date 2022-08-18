@@ -368,7 +368,7 @@ class ProjectViewset(
     viewsets.ModelViewSet,
 ):
     queryset = Project.objects.prefetch_related(
-        'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project',
+        'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project', 'annual_splits',
     ).all()
     filterset_class = ProjectFilter
     serializer_class = ProjectSerializer

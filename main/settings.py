@@ -265,27 +265,23 @@ TINYMCE_DEFAULT_CONFIG = {
     'selector': 'textarea',
     'theme': 'modern',
     'plugins': '''
-        textcolor save link image media preview codesample contextmenu
-        table code lists fullscreen  insertdatetime  nonbreaking
-        contextmenu directionality searchreplace wordcount visualblocks
-        visualchars code fullscreen autolink lists  charmap print  hr
-        anchor pagebreak
+        anchor autolink charmap code codesample contextmenu directionality
+        fullscreen hr image insertdatetime link lists media nonbreaking
+        pagebreak preview print save searchreplace table textcolor
+        visualblocks visualchars
         ''',
     'toolbar1': '''
-        bold italic underline fontsizeselect
+        bold italic underline superscript subscript fontsizeselect
         | forecolor | alignleft alignright | aligncenter alignjustify
         | indent outdent | bullist numlist |
         | link visualchars charmap hr nonbreaking | code preview fullscreen
-        ''',
-    'toolbar2': '''
-        media embed
         ''',
     'force_p_newlines': True,  # TODO: could be False?
     'force_br_newlines': True,  # TODO: could be False?
     'forced_root_block': '',
     'contextmenu': 'formats | link',
-    'menubar': True,
-    'statusbar': True,
+    'menubar': False,
+    'statusbar': False,
     # https://www.tiny.cloud/docs/configure/content-filtering/#invalid_styles
     'invalid_styles': {
         '*': 'opacity'  # Global invalid style
@@ -439,7 +435,7 @@ CELERY_ACKS_LATE = True
 RETRY_STRATEGY = Retry(
     total=3,
     status_forcelist=[429, 500, 502, 503, 504],
-    method_whitelist=["HEAD", "GET", "OPTIONS"]
+    allowed_methods=["HEAD", "GET", "OPTIONS"]
 )
 
 MOLNIX_API_BASE = env('MOLNIX_API_BASE')
