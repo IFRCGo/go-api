@@ -1,5 +1,5 @@
 import json
-import datetime
+import datetime, pytz
 from unittest import mock
 from django.core import management
 
@@ -13,6 +13,7 @@ from api.models import VisibilityCharChoices
 
 
 from .models import (
+    AnnualSplit,
     Project,
     ProgrammeTypes,
     Sectors,
@@ -36,9 +37,14 @@ class ProjectGetTest(APITestCase):
         self.maxDiff = None
         self.country1 = Country.objects.create(name='country1', iso='XX')
         self.country2 = Country.objects.create(name='country2', iso='YY')
+        self.country3 = Country.objects.create(name='country3', iso='ZZ')
 
         self.district1 = District.objects.create(name='district1', country=self.country1)
         self.district2 = District.objects.create(name='district2', country=self.country2)
+        self.district3 = District.objects.create(name='district3', country=self.country3)
+
+        self.split1 = AnnualSplit.objects.create(project_id=0, year=2009, budget_amount=333, target_male=40)
+
 
         first = Project.objects.create(
             user=self.user,
@@ -68,6 +74,22 @@ class ProjectGetTest(APITestCase):
             status=Statuses.ONGOING.value,
         )
         second.project_districts.set([self.district2])
+
+        third = Project.objects.create(
+            id=0,
+            user=self.user,
+            reporting_ns=self.country3,
+            name='ccc',
+            programme_type=ProgrammeTypes.MULTILATERAL.value,
+            primary_sector=Sectors.SHELTER.value,
+            secondary_sectors=[SectorTags.WASH.value, SectorTags.MIGRATION.value],
+            operation_type=OperationTypes.PROGRAMME.value,
+            start_date=datetime.date(2012, 12, 12),
+            end_date=datetime.date(2013, 1, 1),
+            budget_amount=3000,
+            status=Statuses.ONGOING.value,
+        )
+        third.project_districts.set([self.district3])
 
     def create_project(self, **kwargs):
         project = Project.objects.create(
@@ -124,14 +146,14 @@ class ProjectGetTest(APITestCase):
         resp = self.client.post('/api/v2/project/', body)
         self.assertEqual(resp.status_code, 400, resp.content)
 
-        self.assertEqual(len(Project.objects.all()), 3)  # we created 3 projects until now here
+        self.assertEqual(len(Project.objects.all()), 4)  # we created 4 projects until now here
 
     def test_get_projects(self):
         self.authenticate(self.user)
         resp = self.client.get('/api/v2/project/', format='json')
         self.assertEqual(resp.status_code, 200)
         data = json.loads(resp.content)
-        self.assertEqual(data['count'], 2)
+        self.assertEqual(data['count'], 3)
         self.assertEqual(data['results'][0]['name'], 'aaa')
         resp_country_filter = self.client.get('/api/v2/project/?country=YY', format='json')
         self.assertEqual(resp_country_filter.status_code, 200)
@@ -143,6 +165,10 @@ class ProjectGetTest(APITestCase):
         data = json.loads(resp_budget_filter.content)
         self.assertEqual(data['count'], 1)
         self.assertEqual(data['results'][0]['name'], 'aaa')
+        resp_third = self.client.get('/api/v2/project/?country=ZZ', format='json')
+        data = json.loads(resp_third.content)
+        self.assertEqual(data['count'], 1)
+        self.assertEqual(data['results'][0]['annual_split_detail'][0]['year'], 2009)
 
     def test_visibility_project_get(self):
         # Create country for scoping new projects
@@ -190,7 +216,7 @@ class ProjectGetTest(APITestCase):
         district2 = District.objects.create(name='district2', country=country2)
         district2a = District.objects.create(name='district2a', country=country2)
 
-        mock_now.return_value = datetime.datetime(2011, 11, 11)
+        mock_now.return_value = datetime.datetime(2011, 11, 11, tzinfo=pytz.utc)
         # Create new Projects
         for i, pdata in enumerate([
             (
