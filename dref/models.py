@@ -620,6 +620,10 @@ class Dref(models.Model):
         blank=True, null=True,
         verbose_name=_('Risk Security Concern')
     )
+    is_man_made_event = models.BooleanField(
+        verbose_name=_('Is Man-made Event'),
+        default=False,
+    )
     __budget_file_id = None
 
     class Meta:
