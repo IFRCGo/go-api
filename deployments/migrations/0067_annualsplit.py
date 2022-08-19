@@ -20,9 +20,11 @@ class Migration(migrations.Migration):
                 ('target_male', models.IntegerField(blank=True, null=True, verbose_name='target male')),
                 ('target_female', models.IntegerField(blank=True, null=True, verbose_name='target female')),
                 ('target_other', models.IntegerField(blank=True, null=True, verbose_name='target other')),
+                ('target_total', models.IntegerField(blank=True, null=True, verbose_name='target total')),
                 ('reached_male', models.IntegerField(blank=True, null=True, verbose_name='reached male')),
                 ('reached_female', models.IntegerField(blank=True, null=True, verbose_name='reached female')),
                 ('reached_other', models.IntegerField(blank=True, null=True, verbose_name='reached other')),
+                ('reached_total', models.IntegerField(blank=True, null=True, verbose_name='reached total')),
                 ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='annual_splits', to='deployments.Project', verbose_name='project')),
             ],
             options={
