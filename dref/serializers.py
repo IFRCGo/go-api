@@ -157,6 +157,7 @@ class DrefSerializer(
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
     MAX_OPERATION_TIMEFRAME = 30
+    ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -205,6 +206,8 @@ class DrefSerializer(
 
     def validate(self, data):
         event_date = data.get('event_date')
+        operation_timeframe = data.get('operation_timeframe')
+        is_assessment_report = data.get('is_assessment_report')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
                 'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
@@ -214,6 +217,10 @@ class DrefSerializer(
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
             raise serializers.ValidationError(
                 ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+            )
+        if operation_timeframe and is_assessment_report and operation_timeframe > 2:
+            raise serializers.ValidationError(
+                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
             )
         return data
 
@@ -269,9 +276,32 @@ class DrefSerializer(
             raise serializers.ValidationError(
                 ugettext('Operation timeframe can\'t be greater than %s', self.MAX_OPERATION_TIMEFRAME)
             )
+        return operation_timeframe
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
+        is_assessment_report = validated_data.get('is_assessment_report')
+        if is_assessment_report:
+            # Previous Operations
+            validated_data['lessons_learned'] = None
+            validated_data['affect_same_area'] = None
+            validated_data['affect_same_population'] = None
+            validated_data['ns_respond'] = None
+            validated_data['ns_request_fund'] = None
+            # Event Description
+            validated_data['event_scope'] = None
+            # Targeted Population
+            validated_data['women'] = None
+            validated_data['men'] = None
+            validated_data['girls'] = None
+            validated_data['boys'] = None
+            # Support Services
+            validated_data['logistic_capacity_of_ns'] = None
+            validated_data['pmer'] = None
+            validated_data['communication'] = None
+            dref_assessment_report = super().create(validated_data)
+            dref_assessment_report.needs_identified.clear()
+            return dref_assessment_report
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

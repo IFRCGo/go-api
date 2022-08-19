@@ -624,6 +624,10 @@ class Dref(models.Model):
         verbose_name=_('Is Man-made Event'),
         default=False,
     )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        default=False
+    )
     __budget_file_id = None
 
     class Meta:
