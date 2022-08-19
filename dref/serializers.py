@@ -288,8 +288,10 @@ class DrefSerializer(
             validated_data['affect_same_population'] = None
             validated_data['ns_respond'] = None
             validated_data['ns_request_fund'] = None
+            validated_data['assessment_report'] = None
             # Event Description
             validated_data['event_scope'] = None
+            validated_data['identified_gaps'] = None
             # Targeted Population
             validated_data['women'] = None
             validated_data['men'] = None
@@ -306,6 +308,32 @@ class DrefSerializer(
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
+        is_assessment_report = validated_data.get('is_assessment_report')
+        if is_assessment_report:
+            # Previous Operations
+            validated_data['lessons_learned'] = None
+            validated_data['affect_same_area'] = None
+            validated_data['affect_same_population'] = None
+            validated_data['ns_respond'] = None
+            validated_data['ns_request_fund'] = None
+            validated_data['ns_request_text'] = None
+            validated_data['dref_recurrent_text'] = None
+            validated_data['assessment_report'] = None
+            # Event Description
+            validated_data['event_scope'] = None
+            validated_data['identified_gaps'] = None
+            # Targeted Population
+            validated_data['women'] = None
+            validated_data['men'] = None
+            validated_data['girls'] = None
+            validated_data['boys'] = None
+            # Support Services
+            validated_data['logistic_capacity_of_ns'] = None
+            validated_data['pmer'] = None
+            validated_data['communication'] = None
+            dref_assessment_report = super().update(instance, validated_data)
+            dref_assessment_report.needs_identified.clear()
+            return dref_assessment_report
         return super().update(instance, validated_data)
 
 

@@ -622,7 +622,7 @@ class Dref(models.Model):
     )
     is_man_made_event = models.BooleanField(
         verbose_name=_('Is Man-made Event'),
-        default=False,
+        null=True, blank=True
     )
     is_assessment_report = models.BooleanField(
         verbose_name=_('Is assessment Report'),
