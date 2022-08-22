@@ -45,7 +45,6 @@ class ProjectGetTest(APITestCase):
 
         self.split1 = AnnualSplit.objects.create(project_id=0, year=2009, budget_amount=333, target_male=40)
 
-
         first = Project.objects.create(
             user=self.user,
             reporting_ns=self.country1,
@@ -91,21 +90,6 @@ class ProjectGetTest(APITestCase):
         )
         third.project_districts.set([self.district3])
 
-        third = Project.objects.create(
-            id=0,
-            user=self.user,
-            reporting_ns=self.country3,
-            name='ccc',
-            programme_type=ProgrammeTypes.MULTILATERAL.value,
-            primary_sector=Sectors.SHELTER.value,
-            secondary_sectors=[SectorTags.WASH.value, SectorTags.MIGRATION.value],
-            operation_type=OperationTypes.PROGRAMME.value,
-            start_date=datetime.date(2012, 12, 12),
-            end_date=datetime.date(2013, 1, 1),
-            budget_amount=3000,
-            status=Statuses.ONGOING.value,
-        )
-        third.project_districts.set([self.district3])
 
     def create_project(self, **kwargs):
         project = Project.objects.create(
