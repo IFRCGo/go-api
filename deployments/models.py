@@ -450,9 +450,11 @@ class AnnualSplit(models.Model):
     target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
     target_female = models.IntegerField(verbose_name=_('target female'), null=True, blank=True)
     target_other = models.IntegerField(verbose_name=_('target other'), null=True, blank=True)
+    target_total = models.IntegerField(verbose_name=_('target total'), null=True, blank=True)
     reached_male = models.IntegerField(verbose_name=_('reached male'), null=True, blank=True)
     reached_female = models.IntegerField(verbose_name=_('reached female'), null=True, blank=True)
     reached_other = models.IntegerField(verbose_name=_('reached other'), null=True, blank=True)
+    reached_total = models.IntegerField(verbose_name=_('reached total'), null=True, blank=True)
 
     class Meta:
         verbose_name = _('Annual Split')

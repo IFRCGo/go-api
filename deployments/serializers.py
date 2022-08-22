@@ -340,8 +340,11 @@ class RegionalProjectSerializer(ModelSerializer):
 class AnnualSplitSerializer(ModelSerializer):
     class Meta:
         model = AnnualSplit
-        fields = ('year', 'budget_amount', 'target_male', 'target_female', 'target_other',
-                  'reached_male', 'reached_female', 'reached_other',)
+        fields = (
+            'year', 'budget_amount',
+            'target_male', 'target_female', 'target_other', 'target_total',
+            'reached_male', 'reached_female', 'reached_other', 'reached_total',
+        )
 
 
 class ProjectSerializer(ModelSerializer):
