@@ -203,8 +203,8 @@ class PlannedIntervention(models.Model):
 @reversion.register()
 class RiskSecurity(models.Model):
     client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_('client_id'))
-    risk = models.CharField(max_length=255, verbose_name=_('Risk'), null=True, blank=True)
-    mitigation = models.CharField(max_length=255, verbose_name=_('Mitigation'), null=True, blank=True)
+    risk = models.TextField(verbose_name=_('Risk'), null=True, blank=True)
+    mitigation = models.TextField(verbose_name=_('Mitigation'), null=True, blank=True)
 
 
 @reversion.register()
