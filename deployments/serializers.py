@@ -342,7 +342,7 @@ class AnnualSplitSerializer(ModelSerializer):
     class Meta:
         model = AnnualSplit
         fields = (
-            'year', 'budget_amount',
+            'id', 'year', 'budget_amount',  # id: needed for appropriate update
             'target_male', 'target_female', 'target_other', 'target_total',
             'reached_male', 'reached_female', 'reached_other', 'reached_total',
         )
