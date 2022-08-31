@@ -496,8 +496,11 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
 
         if hasattr(self, 'annual_split_detail') and self.annual_split_detail:
+            # Remove the records frontend has not sent, due to frontend-wise row removal:
+            arrivingIds = [asd['id'] for asd in self.annual_split_detail]
+            AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
             for split in self.annual_split_detail:
-                annual_split = AnnualSplit.objects.get(pk=split['id'])
+                annual_split, created = AnnualSplit.objects.get_or_create(pk=split['id'], project_id=self.id)
                 annual_split.year           = split['year']            if 'year'           in split else None
                 annual_split.budget_amount  = split['budget_amount']   if 'budget_amount'  in split else None
                 annual_split.target_male    = split['target_male']     if 'target_male'    in split else None
