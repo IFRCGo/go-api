@@ -341,7 +341,7 @@ class AnnualSplitSerializer(ModelSerializer):
     class Meta:
         model = AnnualSplit
         fields = (
-            'year', 'budget_amount',
+            'id', 'year', 'budget_amount',  # id: needed for appropriate update
             'target_male', 'target_female', 'target_other', 'target_total',
             'reached_male', 'reached_female', 'reached_other', 'reached_total',
         )
@@ -376,6 +376,9 @@ class ProjectSerializer(ModelSerializer):
         }
 
     def validate(self, data):
+        if self.context and 'request' in self.context \
+            and 'annual_split_detail' in self.context['request'].data:
+            data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         d_project_districts = data['project_districts']
         # Override country with district's country
         if isinstance(d_project_districts, list) and len(d_project_districts):
