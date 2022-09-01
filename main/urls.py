@@ -155,7 +155,8 @@ router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, base
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 
-router.register(r'dref-file-upload', dref_views.DrefFileUploadViewSet, basename='dref_file_upload')
+router.register(r'dref-file-slow-sudden', dref_views.DrefFileUploadViewSet, basename='dref_file_upload')
+router.register(r'dref-file-imminent', dref_views.DrefImminentFileUploadViewSet, basename='dref_file_upload_imminent')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
