@@ -494,24 +494,27 @@ class Project(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-
-        if hasattr(self, 'annual_split_detail') and self.annual_split_detail:
-            # Remove the records frontend has not sent, due to frontend-wise row removal:
-            arrivingIds = [asd['id'] for asd in self.annual_split_detail]
-            AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
-            for split in self.annual_split_detail:
-                annual_split, created = AnnualSplit.objects.get_or_create(pk=split['id'], project_id=self.id)
-                annual_split.year           = split['year']            if 'year'           in split else None
-                annual_split.budget_amount  = split['budget_amount']   if 'budget_amount'  in split else None
-                annual_split.target_male    = split['target_male']     if 'target_male'    in split else None
-                annual_split.target_female  = split['target_female']   if 'target_female'  in split else None
-                annual_split.target_other   = split['target_other']    if 'target_other'   in split else None
-                annual_split.target_total   = split['target_total']    if 'target_total'   in split else None
-                annual_split.reached_male   = split['reached_male']    if 'reached_male'   in split else None
-                annual_split.reached_female = split['reached_female']  if 'reached_female' in split else None
-                annual_split.reached_other  = split['reached_other']   if 'reached_other'  in split else None
-                annual_split.reached_total  = split['reached_total']   if 'reached_total'  in split else None
-                annual_split.save()
+        if hasattr(self, 'annual_split_detail'):
+        # NO NEED: and self.annual_split_detail – because we want to get here in case of [] also:
+            if hasattr(self, 'is_annual_report') and self.is_annual_report:
+                arrivingIds = [asd['id'] for asd in self.annual_split_detail]
+                # Remove the records frontend has not sent, due to frontend-wise row removal:
+                AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
+                for split in self.annual_split_detail:
+                    annual_split, created = AnnualSplit.objects.get_or_create(pk=split['id'], project_id=self.id)
+                    annual_split.year           = split['year']            if 'year'           in split else None
+                    annual_split.budget_amount  = split['budget_amount']   if 'budget_amount'  in split else None
+                    annual_split.target_male    = split['target_male']     if 'target_male'    in split else None
+                    annual_split.target_female  = split['target_female']   if 'target_female'  in split else None
+                    annual_split.target_other   = split['target_other']    if 'target_other'   in split else None
+                    annual_split.target_total   = split['target_total']    if 'target_total'   in split else None
+                    annual_split.reached_male   = split['reached_male']    if 'reached_male'   in split else None
+                    annual_split.reached_female = split['reached_female']  if 'reached_female' in split else None
+                    annual_split.reached_other  = split['reached_other']   if 'reached_other'  in split else None
+                    annual_split.reached_total  = split['reached_total']   if 'reached_total'  in split else None
+                    annual_split.save()
+            else:
+                AnnualSplit.objects.filter(project_id=self.id).delete()
 
         # Automatically assign status according to the start_date and end_date
         # Cronjob will change the status automatically in future
