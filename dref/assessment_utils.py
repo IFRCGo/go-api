@@ -7,6 +7,7 @@ from dref.models import (
     IdentifiedNeed,
     NationalSocietyAction,
     PlannedInterventionIndicators,
+    RiskSecurity,
 )
 from api.models import (
     DisasterType,
@@ -103,7 +104,7 @@ def parse_type_of_onset(type):
     elif type == 'Sudden':
         type = Dref.OnsetType.SUDDEN
     elif type == 'Imminent':
-        type = Dref.OnsetType.Imminent
+        type = Dref.OnsetType.IMMINENT
     return type
 
 
@@ -124,7 +125,7 @@ def parse_boolean(string):
     return None
 
 
-def extract_file(doc, created_by):
+def extract_assessment_file(doc, created_by):
     document = docx.Document(doc)
     data = {}
     # NOTE: Second Paragraph for Country and Region and Dref Title
@@ -156,6 +157,7 @@ def extract_file(doc, created_by):
     data['operation_timeframe'] = int(table_row_five_colum_three[0].text)
     table_row_six_colum_zero = table.cell(6, 0)._tc.xpath('.//w:t')
     data['country'] = Country.objects.get(name_en__icontains=table_row_six_colum_zero[1].text)
+    # TODO: Check for District
     paragraph7 = document.paragraphs[7]
     paragraph_element7 = paragraph7._element.xpath('.//w:t')
     description = []
@@ -163,60 +165,9 @@ def extract_file(doc, created_by):
         for desc in paragraph_element7:
             description.append(desc.text)
     data['event_description'] = ''.join(description) if description else None
-    paragraph13 = document.paragraphs[9]
-    paragraph_element13 = paragraph13._element.xpath('.//w:t')
-    event_scope = []
-    if len(paragraph_element13) > 0:
-        for desc in paragraph_element13:
-            event_scope.append(desc.text)
-    data['event_scope'] = ''.join(event_scope) if event_scope else None
 
-    # Previous Operation
-    table1 = document.tables[1]
-    table_one_row_zero_column_one = table1.cell(0, 1)._tc.xpath('.//w:t')
-    data['affect_same_area'] = parse_boolean(table_one_row_zero_column_one[0].text)
-    table_one_row_one_column_one = table1.cell(1, 1)._tc.xpath('.//w:t')
-    data['affect_same_population'] = parse_boolean(table_one_row_one_column_one[0].text)
-    table_one_row_two_column_one = table1.cell(2, 1)._tc.xpath('.//w:t')
-    data['ns_respond'] = parse_boolean(table_one_row_two_column_one[0].text)
-    table_one_row_three_column_one = table1.cell(3, 1)._tc.xpath('.//w:t')
-    data['ns_request_fund'] = parse_boolean(table_one_row_three_column_one[0].text)
-    table_one_row_four_column_one = table1.cell(4, 1)._tc.xpath('.//w:t')
-    data['ns_request_text'] = table_one_row_four_column_one[0].text
-    if table_one_row_four_column_one == 'Yes':
-        table_one_row_five_column_one = table1.cell(5, 1)._tc.xpath('.//w:t')
-        data['dref_recurrent_text'] = table_one_row_five_column_one[0].text
-    if table_one_row_zero_column_one == 'Yes' and table_one_row_one_column_one == 'Yes' and table_one_row_two_column_one == 'Yes' and table_one_row_three_column_one == 'Yes' and table_one_row_four_column_one == 'Yes':
-        table_one_row_seven_column_one = table1.cell(7, 1)._tc.xpath('.//w:t')
-        recurrent_text = []
-        if len(table_one_row_seven_column_one) > 0:
-            for desc in table_one_row_seven_column_one:
-                recurrent_text.append(desc.text)
-        data['dref_recurrent_text'] = ''.join(recurrent_text) if recurrent_text else None
-    table_one_row_eight_column_one = table1.cell(8, 1)._tc.xpath('.//w:t')
-    data['lessons_learned'] = table_one_row_eight_column_one[0].text
-    ## Movement Parameters
-    table3 = document.tables[3]
-    table_row_zero_column_zero = table3.cell(0 , 1)._tc.xpath('.//w:t')
-    ifrc_desc = []
-    if len(table_row_zero_column_zero) > 0:
-        for desc in table_row_zero_column_zero:
-            ifrc_desc.append(desc.text)
-    data['ifrc'] = ''.join(ifrc_desc) if ifrc_desc else None
-    table_row_one_column_one = table3.cell(1 , 1)._tc.xpath('.//w:t')
-    partner_national_society_desc = []
-    if len(table_row_one_column_one) > 0:
-        for desc in table_row_one_column_one:
-            partner_national_society_desc.append(desc.text)
-    data['partner_national_society'] = ''.join(partner_national_society_desc) if partner_national_society_desc else None
-    table_row_two_column_two = table3.cell(2, 1)._tc.xpath('.//w:t')
-    icrc_desc = []
-    if len(table_row_two_column_two) > 0:
-        for desc in table_row_two_column_two:
-            icrc_desc.append(desc.text)
-    data['icrc'] = ''.join(icrc_desc) if icrc_desc else None
     # National Socierty Actions
-    table2 = document.tables[2]
+    table2 = document.tables[1]
     # National Society
     national_society_actions = []
     table_row_zero_column_one = table2.cell(0, 1)._tc.xpath('.//w:t')
@@ -360,8 +311,29 @@ def extract_file(doc, created_by):
     for national_data in national_society_actions:
         national = NationalSocietyAction.objects.create(**national_data)
         national_societys.append(national)
+
+    ## Movement Parameters
+    table3 = document.tables[2]
+    table_row_zero_column_zero = table3.cell(0 , 1)._tc.xpath('.//w:t')
+    ifrc_desc = []
+    if len(table_row_zero_column_zero) > 0:
+        for desc in table_row_zero_column_zero:
+            ifrc_desc.append(desc.text)
+    data['ifrc'] = ''.join(ifrc_desc) if ifrc_desc else None
+    table_row_one_column_one = table3.cell(1 , 1)._tc.xpath('.//w:t')
+    partner_national_society_desc = []
+    if len(table_row_one_column_one) > 0:
+        for desc in table_row_one_column_one:
+            partner_national_society_desc.append(desc.text)
+    data['partner_national_society'] = ''.join(partner_national_society_desc) if partner_national_society_desc else None
+    table_row_two_column_two = table3.cell(2, 1)._tc.xpath('.//w:t')
+    icrc_desc = []
+    if len(table_row_two_column_two) > 0:
+        for desc in table_row_two_column_two:
+            icrc_desc.append(desc.text)
+    data['icrc'] = ''.join(icrc_desc) if icrc_desc else None
     # Other actors
-    table4 = document.tables[4]
+    table4 = document.tables[3]
     table_row_zero_column_one = table4.cell(0 , 1)._tc.xpath('.//w:t')
     if len(table_row_zero_column_zero) > 0:
         data['government_requested_assistance'] = parse_boolean(table_row_zero_column_one[0].text)
@@ -372,7 +344,7 @@ def extract_file(doc, created_by):
             national_authorities.append(authorities.text)
     data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
     un_and_other_actors = []
-    table_row_two_column_one = table4.cell(1 , 2)._tc.xpath('.//w:t')
+    table_row_two_column_one = table4.cell(2 , 1)._tc.xpath('.//w:t')
     if len(table_row_two_column_one) > 0:
         for authorities in table_row_two_column_one:
             un_and_other_actors.append(authorities.text)
@@ -383,103 +355,16 @@ def extract_file(doc, created_by):
         for coordination in table_row_three_column_one:
             coordination_mechanism.append(coordination.text)
     data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
-    # NeedsIdentified
-    table5 = document.tables[5]
-    needs_identified = []
-    table_row_one_column_zero = table5.cell(1, 0)._tc.xpath('.//w:t')
-    column_one_description = table_row_one_column_zero[0].text
-    if column_one_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
-            'description': column_one_description
-        }
-        needs_identified.append(data_new)
-    table_row_three_column_zero = table5.cell(3, 0)._tc.xpath('.//w:t')
-    column_three_description = table_row_three_column_zero[0].text
-    if column_three_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION,
-            'description': column_three_description
-        }
-        needs_identified.append(data_new)
-    table_row_five_column_zero = table5.cell(5, 0)._tc.xpath('.//w:t')
-    column_five_description = table_row_five_column_zero[0].text
-    if column_five_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.HEALTH,
-            'description': column_five_description
-        }
-        needs_identified.append(data_new)
-    table_row_seven_column_zero = table5.cell(7, 0)._tc.xpath('.//w:t')
-    column_seven_description = table_row_seven_column_zero[0].text
-    if column_seven_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE,
-            'description': column_seven_description
-        }
-        needs_identified.append(data_new)
-    table_row_nine_column_zero = table5.cell(9, 0)._tc.xpath('.//w:t')
-    column_nine_description = table_row_nine_column_zero[0].text
-    if column_nine_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION,
-            'description': column_nine_description
-        }
-        needs_identified.append(data_new)
-    table_row_eleven_column_zero = table5.cell(11, 0)._tc.xpath('.//w:t')
-    column_eleven_description = table_row_eleven_column_zero[0].text
-    if column_eleven_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.EDUCATION,
-            'description': column_eleven_description
-        }
-        needs_identified.append(data_new)
-    table_row_thirteen_column_zero = table5.cell(13, 0)._tc.xpath('.//w:t')
-    column_thirteen_description = table_row_thirteen_column_zero[0].text
-    if column_thirteen_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,
-            'description': column_thirteen_description
-        }
-        needs_identified.append(data_new)
-    ## this for community enagagement and accountability
-    table_row_fifteen_column_zero = table5.cell(15, 0)._tc.xpath('.//w:t')
-    column_fifteen_description = table_row_fifteen_column_zero[0].text
-    if column_fifteen_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,
-            'description': column_fifteen_description
-        }
-        needs_identified.append(data_new)
-    table_row_sixteen_column_zero = table5.cell(17, 0)._tc.xpath('.//w:t')
-    column_sixteen_description = table_row_sixteen_column_zero[0].text
-    if column_sixteen_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY,
-            'description': column_sixteen_description
-        }
-        needs_identified.append(data_new)
-    ## Shelter and Cluster Coordination
-    table_row_nineteen_column_zero = table5.cell(19, 0)._tc.xpath('.//w:t')
-    column_nineteen_description = table_row_nineteen_column_zero[0].text
-    if column_nineteen_description:
-        data_new = {
-            'title': IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
-            'description': column_nineteen_description
-        }
-        needs_identified.append(data_new)
-    needs = []
-    for need in needs_identified:
-        identified = IdentifiedNeed.objects.create(**need)
-        needs.append(identified)
-    operation_objective = document.paragraphs[23]._element.xpath('.//w:t')
+    # Operational Strategy
+
+    operation_objective = document.paragraphs[20]._element.xpath('.//w:t')
     operation_description = []
     if len(operation_objective) > 0:
         for desc in operation_objective:
             operation_description.append(desc.text)
     data['operation_objective'] = ''.join(operation_description) if operation_description else None
     # targeting strategy
-    response_strategy = document.paragraphs[25]._element.xpath('.//w:t')
+    response_strategy = document.paragraphs[23]._element.xpath('.//w:t')
     response_description = []
     if len(response_strategy) > 0:
         for desc in response_strategy:
@@ -487,13 +372,13 @@ def extract_file(doc, created_by):
     data['response_strategy'] = ''.join(response_description) if response_description else None
 
     # Targeting Strategy
-    paragraph34 = document.paragraphs[31]._element.xpath('.//w:t')
+    paragraph34 = document.paragraphs[27]._element.xpath('.//w:t')
     people_assisted_description = []
     if len(paragraph34) > 0:
         for desc in paragraph34:
             people_assisted_description.append(desc.text)
     data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
-    paragraph30 = document.paragraphs[33]._element.xpath('.//w:t')
+    paragraph30 = document.paragraphs[31]._element.xpath('.//w:t')
     selection_criteria_description = []
     if len(paragraph30) > 0:
         for desc in paragraph30:
@@ -501,7 +386,7 @@ def extract_file(doc, created_by):
     data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
 
     # Targeting Population
-    table5 = document.tables[6]
+    table5 = document.tables[4]
     table_one_row_zero_column_one = table5.cell(0, 1)._tc.xpath('.//w:t')
     data['women'] = parse_string_to_int(table_one_row_zero_column_one[0].text)
     table_one_row_one_column_one = table5.cell(1, 1)._tc.xpath('.//w:t')
@@ -520,7 +405,7 @@ def extract_file(doc, created_by):
     data['disability_people_per'] = float(table_one_row_three_column_two[0].text)
 
     # Risk And Security Considerations
-    table6 = document.tables[7]
+    table6 = document.tables[5]
     mitigation_action = []
     table_six_row_two_column_zero = table6.cell(2, 0)._tc.xpath('.//w:t')
     risk = table_six_row_two_column_zero[0].text
@@ -549,89 +434,16 @@ def extract_file(doc, created_by):
         'mitigation': mitigation,
     }
     mitigation_action.append(data_row_one)
+    mitigation_list = []
+    for action in mitigation_action:
+        risk_security = RiskSecurity.objects.create(**action)
+        mitigation_list.append(risk_security)
     table_six_row_two_column_one = table6.cell(6, 0)._tc.xpath('.//w:t')
     data['risk_security_concern'] = table_six_row_two_column_one[0].text
 
-    # Planned Intervention
-    table7 = document.tables[8]
-    # About Support Service
-    paragraph55 = document.paragraphs[57]._element.xpath('.//w:t')
-    human_resource_description = []
-    if len(paragraph55) > 0:
-        for desc in paragraph55:
-            human_resource_description.append(desc.text)
-    data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
-
-    paragraph57 = document.paragraphs[60]._element.xpath('.//w:t')
-    surge_personnel_deployed_description = []
-    if len(paragraph57) > 0:
-        for desc in paragraph57:
-            surge_personnel_deployed_description.append(desc.text)
-    data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
-    paragraph62 = document.paragraphs[62]._element.xpath('.//w:t')
-    logistic_capacity_of_ns_description = []
-    if len(paragraph62) > 0:
-        for desc in paragraph62:
-            logistic_capacity_of_ns_description.append(desc.text)
-    data['logistic_capacity_of_ns'] = ''.join(logistic_capacity_of_ns_description) if logistic_capacity_of_ns_description else None
-    paragraph64 = document.paragraphs[64]._element.xpath('.//w:t')
-    pmer_description = []
-    if len(paragraph64) > 0:
-        for desc in paragraph64:
-            pmer_description.append(desc.text)
-    data['pmer'] = ''.join(pmer_description) if pmer_description else None
-    paragraph66 = document.paragraphs[66]._element.xpath('.//w:t')
-    communication_description = []
-    if len(paragraph66) > 0:
-        for desc in paragraph66:
-            communication_description.append(desc.text)
-    data['communication'] = ''.join(pmer_description) if pmer_description else None
-    paragraph72 = document.paragraphs[71]._element.xpath('.//w:t')
-    national_society_contact = []
-    for paragraph in paragraph72:
-        national_society_contact.append(paragraph.text)
-    data['national_society_contact_title'] = national_society_contact[3]
-    data['national_society_contact_email'] = national_society_contact[5]
-    data['national_society_contact_phone_number'] = national_society_contact[7]
-    data['national_society_contact_name'] = national_society_contact[0]
-    paragraph73 = document.paragraphs[72]._element.xpath('.//w:t')
-    ifrc_appeal_manager = []
-    for paragraph in paragraph73:
-        ifrc_appeal_manager.append(paragraph.text)
-    data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3]
-    data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5]
-    data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7]
-    data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0]
-    paragraph74 = document.paragraphs[73]._element.xpath('.//w:t')
-    ifrc_project_manager = []
-    for paragraph in paragraph74:
-        ifrc_project_manager.append(paragraph.text)
-    data['ifrc_project_manager_title'] = ifrc_project_manager[3]
-    data['ifrc_project_manager_email'] = ifrc_project_manager[5]
-    data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7]
-    data['ifrc_project_manager_name'] = ifrc_project_manager[0]
-
-    paragraph75 = document.paragraphs[74]._element.xpath('.//w:t')
-    ifrc_emergency = []
-    for paragraph in paragraph75:
-        ifrc_emergency.append(paragraph.text)
-    data['ifrc_emergency_title'] = ifrc_emergency[3]
-    data['ifrc_emergency_email'] = ifrc_emergency[5]
-    data['ifrc_emergency_phone_number'] = ifrc_emergency[7]
-    data['ifrc_emergency_name'] = ifrc_emergency[0]
-
-    paragraph76 = document.paragraphs[75]._element.xpath('.//w:t')
-    media = []
-    for paragraph in paragraph76:
-        media.append(paragraph.text)
-    data['media_contact_title'] = media[3]
-    data['media_contact_email'] = media[5]
-    data['media_contact_phone_number'] = media[7]
-    data['media_contact_name'] = media[0]
-
     # PlannedIntervention Table
     planned_intervention = []
-    for i in range(8, 19):
+    for i in range(6, 19):
         table = document.tables[i]
         title = table.cell(0, 1)._tc.xpath('.//w:t')[0].text
         budget = table.cell(0, 3)._tc.xpath('.//w:t')[1].text
@@ -675,13 +487,71 @@ def extract_file(doc, created_by):
         planned = PlannedIntervention.objects.create(**planned_data)
         planned.indicators.add(*indicators_object_list)
         planned_intervention.append(planned)
-    # Create dref objects
-    # map m2m fields
+
+    # About Support Service
+    paragraph55 = document.paragraphs[55]._element.xpath('.//w:t')
+    human_resource_description = []
+    if len(paragraph55) > 0:
+        for desc in paragraph55:
+            human_resource_description.append(desc.text)
+    data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+
+    paragraph57 = document.paragraphs[57]._element.xpath('.//w:t')
+    surge_personnel_deployed_description = []
+    if len(paragraph57) > 0:
+        for desc in paragraph57:
+            surge_personnel_deployed_description.append(desc.text)
+    data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
+
+    paragraph63 = document.paragraphs[63]._element.xpath('.//w:t')
+    national_society_contact = []
+    for paragraph in paragraph63:
+        national_society_contact.append(paragraph.text)
+    data['national_society_contact_title'] = national_society_contact[3]
+    data['national_society_contact_email'] = national_society_contact[5]
+    data['national_society_contact_phone_number'] = national_society_contact[7]
+    data['national_society_contact_name'] = national_society_contact[0]
+    paragraph64 = document.paragraphs[64]._element.xpath('.//w:t')
+    ifrc_appeal_manager = []
+    for paragraph in paragraph64:
+        ifrc_appeal_manager.append(paragraph.text)
+    data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3]
+    data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5]
+    data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7]
+    data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0]
+    paragraph65 = document.paragraphs[65]._element.xpath('.//w:t')
+    ifrc_project_manager = []
+    for paragraph in paragraph65:
+        ifrc_project_manager.append(paragraph.text)
+    data['ifrc_project_manager_title'] = ifrc_project_manager[3]
+    data['ifrc_project_manager_email'] = ifrc_project_manager[5]
+    data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7]
+    data['ifrc_project_manager_name'] = ifrc_project_manager[0]
+
+    paragraph66 = document.paragraphs[66]._element.xpath('.//w:t')
+    ifrc_emergency = []
+    for paragraph in paragraph66:
+        ifrc_emergency.append(paragraph.text)
+    data['ifrc_emergency_title'] = ifrc_emergency[3]
+    data['ifrc_emergency_email'] = ifrc_emergency[5]
+    data['ifrc_emergency_phone_number'] = ifrc_emergency[7]
+    data['ifrc_emergency_name'] = ifrc_emergency[0]
+
+    paragraph67 = document.paragraphs[67]._element.xpath('.//w:t')
+    media = []
+    for paragraph in paragraph67:
+        media.append(paragraph.text)
+    data['media_contact_title'] = media[3]
+    data['media_contact_email'] = media[5]
+    data['media_contact_phone_number'] = media[7]
+    data['media_contact_name'] = media[0]
+
     data['is_published'] = False
     data['national_society'] = Country.objects.get(name_en__icontains=table_row_six_colum_zero[1].text)
     data['created_by'] = created_by
+    data['is_assessment_report'] = True
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
-    dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societys)
+    dref.risk_security.add(*mitigation_list)
     return dref

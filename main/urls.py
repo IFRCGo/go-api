@@ -157,6 +157,7 @@ router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset
 
 router.register(r'dref-file-slow-sudden', dref_views.DrefFileUploadViewSet, basename='dref_file_upload')
 router.register(r'dref-file-imminent', dref_views.DrefImminentFileUploadViewSet, basename='dref_file_upload_imminent')
+router.register(r'dref-file-assessment', dref_views.DrefAssessmentFileUploadViewSet, basename='dref_file_upload_assessment')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

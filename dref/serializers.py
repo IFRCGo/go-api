@@ -35,6 +35,7 @@ from dref.models import (
 )
 from dref.utils import extract_file
 from dref.imminent_utils import extract_imminent_file
+from dref.assessment_utils import extract_assessment_file
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -133,6 +134,36 @@ class DrefImminentFileUploadSerializer(ModelSerializer):
         if file:
             created_by = self.context['request'].user
             dref = extract_imminent_file(file, created_by)
+            validated_data['dref'] = dref
+        return super().create(validated_data)
+
+
+class DrefAssessmentFileUploadSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    FILE_EXTENSIONS = ['docx']
+    dref_details = MiniDrefSerializer(source='dref', read_only=True)
+
+    class Meta:
+        model = DrefFileUpload
+        fields = '__all__'
+        read_only_fields = ('created_by', 'dref')
+
+    def validate_file(self, file):
+        extension = os.path.splitext(file.name)[1].replace(".", "")
+        if extension.lower() not in self.FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
+            )
+        return file
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        file = validated_data.get('file', None)
+        if file:
+            created_by = self.context['request'].user
+            dref = extract_assessment_file(file, created_by)
+            if not dref:
+                raise serializers.ValidationError(ugettext('Can\'t dref from supplied data'))
             validated_data['dref'] = dref
         return super().create(validated_data)
 

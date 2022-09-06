@@ -29,6 +29,7 @@ from dref.serializers import (
     DrefFinalReportSerializer,
     DrefFileUploadSerializer,
     DrefImminentFileUploadSerializer,
+    DrefAssessmentFileUploadSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -238,6 +239,18 @@ class DrefImminentFileUploadViewSet(
 ):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = DrefImminentFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
+
+
+class DrefAssessmentFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefAssessmentFileUploadSerializer
 
     def get_queryset(self):
         return DrefFileUpload.objects.filter(created_by=self.request.user)
