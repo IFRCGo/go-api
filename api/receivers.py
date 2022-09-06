@@ -89,6 +89,8 @@ def create_global_reversion_log(versions, revision):
             changes_from = []
             changes_to = []
             for key, value in version._local_field_dict.items():
+                if key not in previous_version._local_field_dict:
+                    previous_version._local_field_dict[key] = ''
                 if previous_version._local_field_dict[key] != value:
                     changes_from.append('{}: {}'.format(key, previous_version._local_field_dict[key]))
                     changes_to.append('{}: {}'.format(key, value))
