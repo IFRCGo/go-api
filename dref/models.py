@@ -744,6 +744,12 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('emergency appeal planned '),
         null=True, blank=True
     )
+    event_map = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('event map'),
+        related_name='event_map_dref_operational_update'
+    )
     images = models.ManyToManyField(
         'DrefFile', blank=True,
         verbose_name=_('images'),
@@ -1046,6 +1052,30 @@ class DrefOperationalUpdate(models.Model):
     district = models.ManyToManyField(
         District, blank=True,
         verbose_name=_('district')
+    )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref_operational_update'
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
+    has_forcasted_event_materialize = models.BooleanField(
+        verbose_name=_('Has Forcasted Event Materialize'),
+        null=True, blank=True
+    )
+    anticipatory_to_response = models.TextField(
+        verbose_name=_('Please explain how is the operation is transitioning from Anticipatory to Response'),
+        null=True, blank=True
+    )
+    specified_trigger_met = models.TextField(
+        verbose_name=_('Specified Trigger Met'),
+        null=True, blank=True
     )
 
     class Meta:
