@@ -556,7 +556,7 @@ class EmergencyProjectSerializer(
 
     class Meta:
         model = EmergencyProject
-        fields = ('created_by_details', 'modified_by_details', 'reporting_ns_details',
+        fields = ('id', 'created_by_details', 'modified_by_details', 'reporting_ns_details',
                   'deployed_eru_details', 'districts_details', 'activities', 'event_details',
                   'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
                   'title', 'activity_lead', 'reporting_ns', 'event', 'country',
