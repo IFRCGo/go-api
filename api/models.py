@@ -518,6 +518,10 @@ class AlertLevel(models.IntegerChoices):
     RED = 2, _('Red')
 
 
+def snippet_image_path(instance, filename):
+    return 'emergencies/%s/%s' % (instance.id, filename)
+
+
 @reversion.register()
 class Event(models.Model):
     """ A disaster, which could cover multiple countries """
@@ -548,6 +552,7 @@ class Event(models.Model):
             ' etc to point to the parent Emergency manually.'
         )
     )
+    image = models.ImageField(verbose_name=_('image'), null=True, blank=True, upload_to=snippet_image_path)
     summary = HTMLField(verbose_name=_('summary'), blank=True, default='')
 
     num_injured = models.IntegerField(verbose_name=_('number of injured'), null=True, blank=True)
@@ -724,10 +729,6 @@ class KeyFigure(models.Model):
         verbose_name = _('key figure')
         verbose_name_plural = _('key figures')
         ordering = ('id',)
-
-
-def snippet_image_path(instance, filename):
-    return 'emergencies/%s/%s' % (instance.event.id, filename)
 
 
 @reversion.register()
