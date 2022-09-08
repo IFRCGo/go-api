@@ -218,11 +218,11 @@ class DrefSerializer(
             raise serializers.ValidationError(
                 ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
             )
-        if operation_timeframe and is_assessment_report and operation_timeframe > 2:
+        if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
-                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
+                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
             )
-        if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 30:
+        if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 2:
             raise serializers.ValidationError(
                 ugettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
             )
@@ -353,6 +353,7 @@ class DrefOperationalUpdateSerializer(
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     event_map_file = DrefFileSerializer(source='event_map', required=False, allow_null=True)
+    cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
     photos_file = DrefFileSerializer(source='photos', many=True, required=False, allow_null=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
@@ -361,11 +362,12 @@ class DrefOperationalUpdateSerializer(
     country_details = MiniCountrySerializer(source='country', read_only=True)
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
     assessment_report_file = DrefFileSerializer(source='assessment_report', required=False, allow_null=True)
+    risk_security = RiskSecuritySerializer(many=True, required=False)
 
     class Meta:
         model = DrefOperationalUpdate
         read_only_fields = ('operational_update_number', )
-        exclude = ('images', 'photos', 'event_map', 'assessment_report')
+        exclude = ('images', 'photos', 'event_map', 'assessment_report', 'cover_image')
 
     def validate(self, data):
         dref = data.get('dref')

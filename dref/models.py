@@ -1077,6 +1077,10 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('Specified Trigger Met'),
         null=True, blank=True
     )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _('Dref Operational Update')
