@@ -112,6 +112,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
+            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'migration.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
