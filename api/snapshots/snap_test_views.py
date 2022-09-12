@@ -18,52 +18,52 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
     'countries_for_preview': [
     ],
     'created_at': '2008-01-01T00:00:00.123456Z',
-    'disaster_start_date': '2009-04-25T12:40:23.062017Z',
+    'disaster_start_date': '2022-09-08T13:17:29.218728Z',
     'districts': [
     ],
     'dtype': 1,
     'emergency_response_contact_email': None,
     'featured_documents': [
         {
-            'description': 'event-featured-document-description-QdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHconSKErce',
+            'description': 'event-featured-document-description-IPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHcon',
             'file': None,
             'id': 5,
             'thumbnail': None,
-            'title': 'event-featured-document-title-AcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIFlIPdHce'
+            'title': 'event-featured-document-title-EWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIFl'
         },
         {
-            'description': 'event-featured-document-description-yYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZUEWunxu',
+            'description': 'event-featured-document-description-JFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZU',
             'file': None,
             'id': 4,
             'thumbnail': None,
-            'title': 'event-featured-document-title-MRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlORBJFdwPQ'
+            'title': 'event-featured-document-title-negMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlORB'
         },
         {
-            'description': 'event-featured-document-description-GCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXbpnegMcC',
+            'description': 'event-featured-document-description-RnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXbp',
             'file': None,
             'id': 3,
             'thumbnail': None,
-            'title': 'event-featured-document-title-oiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHChRnTLFf'
+            'title': 'event-featured-document-title-hOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHCh'
         },
         {
-            'description': 'event-featured-document-description-lAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXtShOsxNo',
+            'description': 'event-featured-document-description-KoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXtS',
             'file': None,
             'id': 2,
             'thumbnail': None,
-            'title': 'event-featured-document-title-JSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXfPKoIVUc'
+            'title': 'event-featured-document-title-VEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXfP'
         },
         {
-            'description': 'event-featured-document-description-XyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCPqVEnmIr',
+            'description': 'event-featured-document-description-EkHOUNXyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCPq',
             'file': None,
             'id': 1,
             'thumbnail': None,
-            'title': 'event-featured-document-title-iuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUdLEkHOUN'
+            'title': 'event-featured-document-title-EHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUdL'
         }
     ],
     'field_reports': [
     ],
     'glide': 'JKxDZJiNfetzTUEHAX',
-    'hide_attached_field_reports': False,
+    'hide_attached_field_reports': True,
     'hide_field_report_map': True,
     'id': 2,
     'ifrc_severity_level': 1,
@@ -80,9 +80,9 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
     'response_activity_count': 0,
     'slug': 'ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki',
     'summary': 'MGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziMTftJyPYviQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGoh',
-    'tab_one_title': 'XKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJgupDhrC',
-    'tab_three_title': 'zxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZEHDjMG',
-    'tab_two_title': 'pjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIagBiqUxW',
+    'tab_one_title': 'PXKqPnXKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJg',
+    'tab_three_title': 'BiqUxWzxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZ',
+    'tab_two_title': 'upDhrCpjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIag',
     'updated_at': '2008-01-01T00:00:00.123456Z',
     'visibility': 3
 }
@@ -98,7 +98,7 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     'countries_for_preview': [
     ],
     'created_at': '2008-01-01T00:00:00.123456Z',
-    'disaster_start_date': '2009-04-25T12:40:23.062017Z',
+    'disaster_start_date': '2022-09-08T13:17:29.218728Z',
     'districts': [
     ],
     'dtype': 1,
@@ -108,7 +108,7 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     'field_reports': [
     ],
     'glide': 'JKxDZJiNfetzTUEHAX',
-    'hide_attached_field_reports': False,
+    'hide_attached_field_reports': True,
     'hide_field_report_map': True,
     'id': 2,
     'ifrc_severity_level': 1,
@@ -119,33 +119,33 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     ],
     'links': [
         {
-            'description': 'event-link-description-QdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHconSKErce',
+            'description': 'event-link-description-IPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHcon',
             'id': 5,
-            'title': 'event-link-title-AcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIFlIPdHce',
+            'title': 'event-link-title-EWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIFl',
             'url': ''
         },
         {
-            'description': 'event-link-description-yYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZUEWunxu',
+            'description': 'event-link-description-JFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZU',
             'id': 4,
-            'title': 'event-link-title-MRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlORBJFdwPQ',
+            'title': 'event-link-title-negMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlORB',
             'url': ''
         },
         {
-            'description': 'event-link-description-GCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXbpnegMcC',
+            'description': 'event-link-description-RnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXbp',
             'id': 3,
-            'title': 'event-link-title-oiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHChRnTLFf',
+            'title': 'event-link-title-hOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHCh',
             'url': ''
         },
         {
-            'description': 'event-link-description-lAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXtShOsxNo',
+            'description': 'event-link-description-KoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXtS',
             'id': 2,
-            'title': 'event-link-title-JSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXfPKoIVUc',
+            'title': 'event-link-title-VEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXfP',
             'url': ''
         },
         {
-            'description': 'event-link-description-XyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCPqVEnmIr',
+            'description': 'event-link-description-EkHOUNXyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCPq',
             'id': 1,
-            'title': 'event-link-title-iuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUdLEkHOUN',
+            'title': 'event-link-title-EHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUdL',
             'url': ''
         }
     ],
@@ -155,9 +155,9 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     'response_activity_count': 0,
     'slug': 'ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki',
     'summary': 'MGyDLJYVcCZKPmuMEGjdCgZvTfGPlcpTCCHHNkxxsyAXvRMdYOPvevgJRysqUQMjvfLQjwtPSQziMTftJyPYviQSVRHfPQBGxbxtlnvXFmoijesYgGXIVHcQvXNiMyjklSXNZkUCcAxRUpCNsWVYCoIptZYEmxRKCDXsXyGHAkmZMiqdPExJgTHhsfWkrCGjBfoCwbAdzGxpyfxobugTPvYjicsESiWTECNafbqnjJUMHBhXspthdpAOYNDehFMIbOGKpTjsBaNwpKAlQQfHxeHIGYGJbyEcOyxqVbwYewpUQOgXLVWvicwIvPlXRDSEOlZieTXDcsmcYmcutGzIEqcWPmswXdPvrhZxBzVCyvlFSFxZHrZfUBfBMlIsugfuQstCMTBkSCwCcUwNBrOYdeQOzxGZVRkbjMRYCciepXPxxyKcMjRCxxCWeKiHxzuPrphbVlFHyJhqXqTCnNsSFmhieClTCfZRuQwTeJIstkTTSOlYxGoh',
-    'tab_one_title': 'XKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJgupDhrC',
-    'tab_three_title': 'zxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZEHDjMG',
-    'tab_two_title': 'pjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIagBiqUxW',
+    'tab_one_title': 'PXKqPnXKANObFOIsPtEpZZRztDeSdkCAEDnvMjuTuUwziWxGJg',
+    'tab_three_title': 'BiqUxWzxczdKJmxJseyGCWJrNRNhigzxYvJxWjmMGzGccciTvZ',
+    'tab_two_title': 'upDhrCpjgdsyNApkuKUumWkFGDFtFbfzGDpnLwddsFMPREsIag',
     'updated_at': '2008-01-01T00:00:00.123456Z',
     'visibility': 3
 }
