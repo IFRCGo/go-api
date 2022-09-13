@@ -8,6 +8,7 @@ from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from lang.models import String
 
+
 from .models import (
     DisasterType,
     ExternalPartner,
@@ -1062,8 +1063,6 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
 
 
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
-    from eap.serializers import EAPActivationSerializer
-
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -1078,6 +1077,8 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
 
     @staticmethod
     def get_eap_activation(obj):
+        from eap.serializers import EAPActivationSerializer
+
         eap_activation = EAPActivation.objects.get(field_report=obj)
         eap_activation_data = EAPActivationSerializer(eap_activation).data
         return eap_activation_data

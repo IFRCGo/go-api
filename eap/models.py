@@ -3,7 +3,6 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from main.enums import TextChoices, IntegerChoices
-from deployments.models import Sectors
 from api.models import (
     Country,
     District,
@@ -67,6 +66,7 @@ class EarlyAction(models.Model):
 
 class EAPDocument(models.Model):
     file = models.FileField(null=True, blank=True)
+    caption = models.CharField(max_length=225, null=True, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('Created by'), related_name='document_created_by',
         null=True, blank=True, on_delete=models.SET_NULL,

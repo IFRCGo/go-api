@@ -94,7 +94,7 @@ class EAPDocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EAPDocument
-        fields = ['id', 'file']
+        fields = ['id', 'file', 'caption', ]
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
@@ -114,7 +114,7 @@ class EAPSerializer(
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     hazard_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    documents_details = EAPDocumentSerializer(source='documents', many=True, read_only=True, required=False)
+    documents = EAPDocumentSerializer(many=True, required=False)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -142,7 +142,18 @@ class EAPSerializer(
 
 
 class EAPActivationSerializer(serializers.ModelSerializer):
-    document_detail = EAPDocumentSerializer(source='document', read_only=True)
+    document_details = serializers.SerializerMethodField('get_eap_documents')
+
+    @staticmethod
+    def get_eap_documents(obj):
+        eap_documents = obj.documents.all()
+        return [
+            {
+                'id': document.id,
+                'file': document.file.url,
+                'caption': document.caption
+            } for document in eap_documents
+        ]
 
     class Meta:
         model = EAPActivation
@@ -184,7 +195,7 @@ class EAPActivationReportSerializer(
     operational_plans = OperationalPlanSerializer(many=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    document_details = EAPDocumentSerializer(source='documents', read_only=True, many=True, required=False)
+    documents = EAPDocumentSerializer(many=True, required=False)
     ifrc_financial_report_details = EAPDocumentSerializer(source='ifrc_financial_report', read_only=True)
 
     class Meta:

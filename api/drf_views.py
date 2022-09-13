@@ -919,14 +919,18 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
     def create_eap_activation(self, data, fieldreport):
         eap = EAP.objects.filter(id=data.pop('eap', None)).first()
-        documents = EAPDocument.objects.filter(id__in=data.pop('documents', None))
+        documents_data = data.pop('documents', None)
         eap_activation = EAPActivation.objects.create(
             eap=eap,
             field_report=fieldreport,
             **data
         )
-        if documents:
-            for document in documents:
+        if documents_data:
+            for data in documents_data:
+                document = EAPDocument.objects.filter(id=data['id']).first()
+                document.caption = data['caption']
+                document.save(update_fields=['caption'])
+                # save m2m
                 eap_activation.documents.add(document)
         return eap_activation
 
@@ -999,13 +1003,18 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
         from eap.serializers import EAPActivationSerializer
 
         eap_id = data.pop('eap', None)
-        document_ids = data.pop('documents', None)
+        documents_data = data.pop('documents', None)
         instance = EAPActivation.objects.get(field_report=fieldreport)
         eap_activation = EAPActivationSerializer().update(instance, data)
         instance.eap = EAP.objects.filter(id=eap_id).first()
-        if document_ids:
-            documents = EAPDocument.objects.filter(id__in=document_ids)
-            for document in documents:
+
+        instance.documents.clear()
+        if documents_data:
+            for data in documents_data:
+                document = EAPDocument.objects.filter(id=data['id']).first()
+                document.caption = data['caption']
+                document.save(update_fields=['caption'])
+                # save m2m
                 instance.documents.add(document)
         instance.save(update_fields=['eap'])
 

@@ -115,7 +115,12 @@ class FieldReportTest(APITestCase):
                 'eap': eap1.id,
                 'description': 'test eap description',
                 'trigger_met_date': '2022-11-11 00:00',
-                'documents': [document1.id],
+                'documents': [
+                    {
+                        "id": document1.id,
+                        "caption": "test eap"
+                    }
+                ],
                 'originator_name': 'test name',
                 'originator_title': 'test originator title',
                 'originator_email': 'test@email.com',
@@ -181,7 +186,16 @@ class FieldReportTest(APITestCase):
             'eap': eap2.id,
             'description': 'test eap description updated',
             'trigger_met_date': '2022-11-11 01:00',
-            'documents': [document2.id],
+            'documents': [
+                {
+                    "id": document1.id,
+                    "caption": "test eap updated"
+                },
+                {
+                    "id": document2.id,
+                    "caption": "test eap updated 2"
+                }
+            ],
             'originator_name': 'test name',
             'originator_title': 'test originator title',
             'originator_email': 'test@email.com',

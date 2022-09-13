@@ -76,7 +76,16 @@ class EAPTest(APITestCase):
             "early_action_budget": 2000,
             "trigger_statement": "test",
             "overview": "test",
-            "documents": [self.document1.id],
+            "documents": [
+                {
+                    "id": self.document1.id,
+                    "caption": "test caption"
+                },
+                {
+                    "id": self.document2.id,
+                    "caption": "test caption 2"
+                },
+            ],
             "originator_name": "eap name",
             "originator_title": "eap title",
             "originator_email": "eap@gmail.com",
@@ -168,7 +177,16 @@ class EAPTest(APITestCase):
             "number_of_people_reached": 1000,
             "description": "test eap activation report",
             "overall_objectives": "test eap activation report",
-            "documents": [self.document1.id, self.document2.id],
+            "documents": [
+                {
+                    "id": self.document1.id,
+                    "caption": "test caption"
+                },
+                {
+                    "id": self.document2.id,
+                    "caption": "test caption 2"
+                },
+            ],
             "challenges_and_lesson": "test eap activation report",
             "general_lesson_and_recomendations": "test eap activation report",
             "ifrc_financial_report": self.document1.id,
@@ -315,7 +333,16 @@ class EAPTest(APITestCase):
         # update eap_report
         data = self.eap_act_report_body
         data['description'] = 'updated description'
-        data['documents'] = [self.document1.id]
+        data['documents'] = [
+            {
+                "id": self.document2.id,
+                "caption": "test caption updated"
+            },
+            {
+                "id": self.document1.id,
+                "caption": "test caption updated"
+            }
+        ]
         data['ifrc_financial_report'] = self.document2.id
         data['operational_plans'] = [
             {
@@ -356,7 +383,6 @@ class EAPTest(APITestCase):
         self.assertEqual(updated.created_by.id, self.user.id)
         self.assertEqual(final_report_updated_resp['eap_activation'], self.eap_activation.id)
         self.assertEqual(final_report_updated_resp['ifrc_financial_report'], self.document2.id)
-        self.assertEqual(len(final_report_updated_resp['documents']), 1)
         self.assertEqual(len(final_report_updated_resp['operational_plans']), 1)
         self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['early_actions_achievements']), 2)
         self.assertEqual(len(final_report_updated_resp['operational_plans'][0]['indicators']), 2)
