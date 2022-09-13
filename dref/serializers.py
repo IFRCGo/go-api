@@ -549,18 +549,18 @@ class DrefOperationalUpdateSerializer(
 
     def update(self, instance, validated_data):
         validated_data['updated_by'] = self.context['request'].user
-        changing_timeframe_operation = validated_data.get('changing_timeframe_operation')
-        total_operation_timeframe = validated_data.get('total_operation_timeframe')
-        number_of_people_targeted = validated_data.get('number_of_people_targeted')
-        request_for_second_allocation = validated_data.get('request_for_second_allocation')
-        additional_allocation = validated_data.get('additional_allocation')
-        changing_target_population_of_operation = validated_data.get('changing_target_population_of_operation')
-        changing_geographic_location = validated_data.get('changing_geographic_location')
-        district = validated_data.get('district')
-        dref_operation_timeframe = validated_data['dref'].operation_timeframe
-        dref_target_population_of_operation = validated_data['dref'].total_targeted_population
-        dref_amount_requested = validated_data['dref'].amount_requested
-        dref_district = validated_data['dref'].district.all()
+        changing_timeframe_operation = validated_data.get('changing_timeframe_operation', instance.changing_timeframe_operation)
+        total_operation_timeframe = validated_data.get('total_operation_timeframe', instance.total_operation_timeframe)
+        number_of_people_targeted = validated_data.get('number_of_people_targeted', instance.number_of_people_targeted)
+        request_for_second_allocation = validated_data.get('request_for_second_allocation', instance.request_for_second_allocation)
+        additional_allocation = validated_data.get('additional_allocation', instance.additional_allocation)
+        changing_target_population_of_operation = validated_data.get('changing_target_population_of_operation', instance.changing_target_population_of_operation)
+        changing_geographic_location = validated_data.get('changing_geographic_location', instance.changing_geographic_location)
+        district = validated_data.get('district', instance.district)
+        dref_operation_timeframe = validated_data.get('dref', instance.dref).operation_timeframe
+        dref_target_population_of_operation = validated_data.get('dref', instance.dref).total_targeted_population
+        dref_amount_requested = validated_data.get('dref', instance.dref).amount_requested
+        dref_district = validated_data.get('dref', instance.dref).district.all()
         if changing_timeframe_operation and total_operation_timeframe and dref_operation_timeframe and\
         total_operation_timeframe != dref_operation_timeframe:
             raise serializers.ValidationError('Found diffrent operation timeframe for dref and operational update')
