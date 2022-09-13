@@ -1,3 +1,5 @@
+from django.core.files.base import ContentFile
+
 import factory
 from factory import fuzzy
 
@@ -59,10 +61,26 @@ class DrefFactory(factory.django.DjangoModelFactory):
             for user in extracted:
                 self.users.add(user)
 
+    @factory.post_generation
+    def images(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted:
+            for image in extracted:
+                self.images.add(image)
+
 
 class DrefFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = DrefFile
+
+    file = factory.LazyAttribute(
+        lambda _: ContentFile(
+            factory.django.ImageField()._make_data(
+                {'width': 1024, 'height': 768}
+            ), 'dref.jpg'
+        )
+    )
 
 
 class PlannedInterventionIndicatorsFactory(factory.django.DjangoModelFactory):

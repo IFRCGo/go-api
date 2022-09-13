@@ -27,7 +27,7 @@ class NationalSocietyAction(models.Model):
         RESOURCE_MOBILIZATION = 'resource_mobilization', _('Resource Mobilization')
         ACTIVATION_OF_CONTINGENCY_PLANS = 'activation_of_contingency_plans', _('Activation Of Contingency Plans')
         NATIONAL_SOCIETY_EOC = 'national_society_eoc', _('National Society EOC')
-        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter, Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
@@ -39,6 +39,7 @@ class NationalSocietyAction(models.Model):
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
+        MULTI_PURPOSE_CASH = 'multi-purpose_cash', _('Multi-purpose Cash')
         OTHER = 'other', _('Other')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
@@ -51,7 +52,7 @@ class NationalSocietyAction(models.Model):
     @staticmethod
     def get_image_map(title, request):
         title_static_map = {
-            NationalSocietyAction.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            NationalSocietyAction.Title.SHELTER_HOUSING_AND_SETTLEMENTS: 'shelter.png',
             NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             NationalSocietyAction.Title.HEALTH: 'health.png',
             NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
@@ -67,6 +68,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.ACTIVATION_OF_CONTINGENCY_PLANS: 'favicon.png',
             NationalSocietyAction.Title.NATIONAL_SOCIETY_EOC: 'favicon.png',
             NationalSocietyAction.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'favicon.png',
+            NationalSocietyAction.Title.MULTI_PURPOSE_CASH: 'cash.png',
             NationalSocietyAction.Title.OTHER: 'favicon.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
@@ -75,7 +77,7 @@ class NationalSocietyAction(models.Model):
 @reversion.register()
 class IdentifiedNeed(models.Model):
     class Title(models.TextChoices):
-        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
@@ -88,7 +90,6 @@ class IdentifiedNeed(models.Model):
             'community_engagement_and _accountability', _('Community Engagement And Accountability')
         ENVIRONMENT_SUSTAINABILITY = 'environment_sustainability ', _('Environment Sustainability')
         SHELTER_CLUSTER_COORDINATION = 'shelter_cluster_coordination', _('Shelter Cluster Coordination')
-        MULTI_PURPOSE_CASH_GRANTS = 'multi-purpose_cash_grants', _('Multi-purpose Cash Grants')
 
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
@@ -100,7 +101,7 @@ class IdentifiedNeed(models.Model):
     @staticmethod
     def get_image_map(title, request):
         title_static_map = {
-            IdentifiedNeed.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS: 'shelter.png',
             IdentifiedNeed.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             IdentifiedNeed.Title.HEALTH: 'health.png',
             IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
@@ -110,8 +111,6 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
-            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'favicon.png',
-            IdentifiedNeed.Title.MULTI_PURPOSE_CASH_GRANTS: 'cash.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -132,7 +131,7 @@ class PlannedInterventionIndicators(models.Model):
 
 class PlannedIntervention(models.Model):
     class Title(models.TextChoices):
-        SHELTER_AND_BASIC_HOUSEHOLD_ITEMS = 'shelter_and_basic_household_items', _('Shelter And Basic Household Items')
+        SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
         WATER_SANITATION_AND_HYGIENE = 'water_sanitation_and_hygiene', _('Water, Sanitation And Hygiene')
@@ -143,7 +142,7 @@ class PlannedIntervention(models.Model):
             'risk_reduction_climate_adaptation_and_recovery_', _('Risk Reduction, Climate Adaptation And Recovery')
         SECRETARIAT_SERVICES = 'secretariat_services', _('Secretariat Services')
         NATIONAL_SOCIETY_STRENGTHENING = 'national_society_strengthening', _('National Society Strengthening')
-        MULTI_PURPOSE_CASH_GRANTS = 'multi-purpose_cash_grants', _('Multi-purpose Cash Grants')
+        MULTI_PURPOSE_CASH = 'multi-purpose_cash', _('Multi-purpose Cash')
         ENVIRONMENTAL_SUSTAINABILITY = 'environmental_sustainability', _('Environmental Sustainability')
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = 'community_engagement_and_accountability', _('Community Engagement And Accountability')
 
@@ -166,7 +165,7 @@ class PlannedIntervention(models.Model):
         verbose_name=_('Narrative description of achievements'),
         blank=True, null=True
     )
-    challanges = models.TextField(
+    challenges = models.TextField(
         verbose_name=_('Challenges'),
         null=True, blank=True
     )
@@ -182,7 +181,7 @@ class PlannedIntervention(models.Model):
     @staticmethod
     def get_image_map(title, request):
         title_static_map = {
-            PlannedIntervention.Title.SHELTER_AND_BASIC_HOUSEHOLD_ITEMS: 'shelter.png',
+            PlannedIntervention.Title.SHELTER_HOUSING_AND_SETTLEMENTS: 'shelter.png',
             PlannedIntervention.Title.LIVELIHOODS_AND_BASIC_NEEDS: 'livelihood.png',
             PlannedIntervention.Title.HEALTH: 'health.png',
             PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
@@ -192,11 +191,19 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             PlannedIntervention.Title.SECRETARIAT_SERVICES: 'work.png',
             PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: 'independence.png',
-            PlannedIntervention.Title.MULTI_PURPOSE_CASH_GRANTS: 'cash.png',
+            PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png',
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: 'environment.png',
-            PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png'
+            PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
+            PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
+
+
+@reversion.register()
+class RiskSecurity(models.Model):
+    client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_('client_id'))
+    risk = models.TextField(verbose_name=_('Risk'), null=True, blank=True)
+    mitigation = models.TextField(verbose_name=_('Mitigation'), null=True, blank=True)
 
 
 @reversion.register()
@@ -236,6 +243,7 @@ class Dref(models.Model):
         related_name='field_report_dref'
     )
     title = models.CharField(verbose_name=_('title'), max_length=255)
+    title_prefix = models.CharField(verbose_name=_('title prefix'), max_length=255, null=True, blank=True)
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
         on_delete=models.CASCADE,
@@ -251,6 +259,7 @@ class Dref(models.Model):
     num_assisted = models.IntegerField(verbose_name=_('number of assisted'), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_('number of affected'), blank=True, null=True)
     amount_requested = models.IntegerField(verbose_name=_('amount requested'), blank=True, null=True)
+    people_in_need = models.IntegerField(verbose_name=_('people in need'), blank=True, null=True)
     emergency_appeal_planned = models.BooleanField(
         verbose_name=_('emergency appeal planned '),
         null=True, blank=True
@@ -320,6 +329,10 @@ class Dref(models.Model):
     icrc = models.TextField(verbose_name=_('icrc'), blank=True, null=True)
     partner_national_society = models.TextField(verbose_name=_('partner national society'), blank=True, null=True)
     un_or_other_actor = models.TextField(verbose_name=_('un or other'), blank=True, null=True)
+    is_there_major_coordination_mechanism = models.BooleanField(
+        blank=True, null=True,
+        verbose_name=_('Is major coordination mechanism'),
+    )
     major_coordination_mechanism = models.TextField(
         blank=True, null=True,
         verbose_name=_('major coordination mechanism'),
@@ -396,7 +409,10 @@ class Dref(models.Model):
         PlannedIntervention,
         verbose_name=_('planned intervention'), blank=True
     )
-    go_field_report_date = models.DateField(verbose_name=_('go field report date'), null=True, blank=True)
+    did_national_society = models.BooleanField(
+        verbose_name=_('Did National Society'),
+        null=True, blank=True
+    )
     ns_request_date = models.DateField(verbose_name=_('ns request date'), null=True, blank=True)
     submission_to_geneva = models.DateField(verbose_name=_('submission to geneva'), null=True, blank=True)
     date_of_approval = models.DateField(verbose_name=_('date of approval'), null=True, blank=True)
@@ -506,6 +522,10 @@ class Dref(models.Model):
         verbose_name=_('human resource'),
         help_text=_('how many volunteers and staff involved in the response?')
     )
+    is_surge_personnel_deployed = models.BooleanField(
+        blank=True, null=True,
+        verbose_name=_('Is surge personnel deployed')
+    )
     surge_personnel_deployed = models.TextField(
         blank=True, null=True,
         verbose_name=_('surge personnel deployed'),
@@ -554,6 +574,18 @@ class Dref(models.Model):
         null=True, blank=True,
         upload_to='dref/images/'
     )
+    assessment_report = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('Assessment Report'),
+        related_name='dref_assessment_report'
+    )
+    supporting_document = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('Supporting Document'),
+        related_name='dref_supporting_document'
+    )
     cover_image = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -563,6 +595,37 @@ class Dref(models.Model):
     is_published = models.BooleanField(
         default=False,
         verbose_name=_('Is published'),
+    )
+    is_final_report_created = models.BooleanField(
+        default=False,
+        verbose_name=_('Is final report created'),
+    )
+    country = models.ForeignKey(
+        Country, verbose_name=_('country'),
+        on_delete=models.CASCADE,
+        help_text=_('Affected County'),
+        null=True, blank=True,
+        related_name='dref_country'
+    )
+    district = models.ManyToManyField(
+        District, blank=True,
+        verbose_name=_('district')
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
+    is_man_made_event = models.BooleanField(
+        verbose_name=_('Is Man-made Event'),
+        null=True, blank=True
+    )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        default=False
     )
     __budget_file_id = None
 
@@ -588,20 +651,6 @@ class Dref(models.Model):
         super().save(*args, **kwargs)
 
 
-@reversion.register()
-class DrefCountryDistrict(models.Model):
-    dref = models.ForeignKey(Dref, verbose_name=_('dref'),
-                             on_delete=models.CASCADE)
-    country = models.ForeignKey(Country, verbose_name=_('country'),
-                                on_delete=models.CASCADE,
-                                help_text=_('Affected County'))
-    district = models.ManyToManyField(District, blank=True,
-                                      verbose_name=_('district'))
-
-    class Meta:
-        unique_together = ('dref', 'country')
-
-
 class DrefFile(models.Model):
     file = models.FileField(
         verbose_name=_('file'),
@@ -611,6 +660,8 @@ class DrefFile(models.Model):
         settings.AUTH_USER_MODEL, verbose_name=_('created_by'),
         on_delete=models.SET_NULL, null=True,
     )
+    caption = models.CharField(max_length=225, blank=True, null=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         verbose_name = _('dref file')
@@ -642,6 +693,10 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('title'),
         null=True, blank=True,
         max_length=255,
+    )
+    title_prefix = models.CharField(
+        verbose_name=_('title prefix'), max_length=255,
+        null=True, blank=True
     )
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
@@ -688,6 +743,12 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('emergency appeal planned '),
         null=True, blank=True
     )
+    event_map = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('event map'),
+        related_name='event_map_dref_operational_update'
+    )
     images = models.ManyToManyField(
         'DrefFile', blank=True,
         verbose_name=_('images'),
@@ -704,6 +765,12 @@ class DrefOperationalUpdate(models.Model):
         blank=True, null=True,
         verbose_name=_('budget file'),
         related_name='budget_file_dref_operational_update'
+    )
+    assessment_report = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('Assessment Report'),
+        related_name='dref_operational_update_assessment_report'
     )
     photos = models.ManyToManyField(
         'DrefFile', blank=True,
@@ -891,9 +958,17 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('national authorities'),
         blank=True, null=True
     )
+    is_there_un_or_other_actor = models.BooleanField(
+        null=True, blank=True,
+        verbose_name=_('Is there un_or_other_actor')
+    )
     un_or_other_actor = models.TextField(
         verbose_name=_('un or other'),
         blank=True, null=True
+    )
+    is_there_major_coordination_mechanism = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Is there major coordinate mechanism')
     )
     major_coordination_mechanism = models.TextField(
         blank=True, null=True,
@@ -966,29 +1041,49 @@ class DrefOperationalUpdate(models.Model):
         default=False,
         verbose_name=_('Is published'),
     )
-
-    class Meta:
-        verbose_name = _('Dref Operational Update')
-        verbose_name_plural = _('Dref Operational Updates')
-
-
-class DrefOperationalUpdateCountryDistrict(models.Model):
-    dref_operational_update = models.ForeignKey(
-        DrefOperationalUpdate, verbose_name=_('Dref Operational Update'),
-        on_delete=models.CASCADE
-    )
     country = models.ForeignKey(
         Country, verbose_name=_('country'),
         on_delete=models.CASCADE,
-        help_text=_('Affected County')
+        help_text=_('Affected County'),
+        null=True, blank=True,
+        related_name='operational_update_country'
     )
     district = models.ManyToManyField(
         District, blank=True,
         verbose_name=_('district')
     )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref_operational_update'
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
+    has_forcasted_event_materialize = models.BooleanField(
+        verbose_name=_('Has Forcasted Event Materialize'),
+        null=True, blank=True
+    )
+    anticipatory_to_response = models.TextField(
+        verbose_name=_('Please explain how is the operation is transitioning from Anticipatory to Response'),
+        null=True, blank=True
+    )
+    specified_trigger_met = models.TextField(
+        verbose_name=_('Specified Trigger Met'),
+        null=True, blank=True
+    )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        null=True, blank=True
+    )
 
     class Meta:
-        unique_together = ('dref_operational_update', 'country')
+        verbose_name = _('Dref Operational Update')
+        verbose_name_plural = _('Dref Operational Updates')
 
 
 class DrefFinalReport(models.Model):
@@ -1008,7 +1103,7 @@ class DrefFinalReport(models.Model):
         null=True,
         related_name='modified_by_dref_final_report'
     )
-    dref = models.ForeignKey(
+    dref = models.OneToOneField(
         Dref, verbose_name=_('Dref'),
         on_delete=models.CASCADE
     )
@@ -1016,6 +1111,10 @@ class DrefFinalReport(models.Model):
         verbose_name=_('title'),
         null=True, blank=True,
         max_length=255,
+    )
+    title_prefix = models.CharField(
+        verbose_name=_('title prefix'), max_length=255,
+        null=True, blank=True
     )
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
@@ -1040,6 +1139,10 @@ class DrefFinalReport(models.Model):
     )
     number_of_people_targeted = models.IntegerField(
         verbose_name=_('Number of people targeted'),
+        blank=True, null=True
+    )
+    number_of_people_affected = models.IntegerField(
+        verbose_name=_('number of people affected'),
         blank=True, null=True
     )
     total_dref_allocation = models.IntegerField(
@@ -1158,6 +1261,12 @@ class DrefFinalReport(models.Model):
         'DrefFile', blank=True,
         verbose_name=_('images'),
         related_name='photos_dref_final_report'
+    )
+    assessment_report = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('Assessment Report'),
+        related_name='dref_final_report_assessment_report'
     )
     event_description = models.TextField(
         verbose_name=_('Event description'),
@@ -1278,17 +1387,16 @@ class DrefFinalReport(models.Model):
         verbose_name=_('planned intervention'),
         blank=True
     )
-
-
-class DrefFinalReportCountryDistrict(models.Model):
-    dref_final_report = models.ForeignKey(
-        DrefFinalReport, verbose_name=_('Dref Final Report'),
-        on_delete=models.CASCADE
+    is_published = models.BooleanField(
+        verbose_name=_('Is Published'),
+        default=False
     )
     country = models.ForeignKey(
         Country, verbose_name=_('country'),
         on_delete=models.CASCADE,
-        help_text=_('Affected County')
+        help_text=_('Affected County'),
+        null=True, blank=True,
+        related_name='final_report_country'
     )
     district = models.ManyToManyField(
         District, blank=True,
@@ -1296,4 +1404,5 @@ class DrefFinalReportCountryDistrict(models.Model):
     )
 
     class Meta:
-        unique_together = ('dref_final_report', 'country')
+        verbose_name = _('Dref Final Report')
+        verbose_name_plural = _('Dref Final Reports')
