@@ -178,6 +178,20 @@ class PlannedInterventionSerializer(ModelSerializer):
         model = PlannedIntervention
         fields = '__all__'
 
+    def create(self, validated_data):
+        indicators = validated_data.pop('indicators', [])
+        intervention = super().create(validated_data)
+        for indicator in indicators:
+            ind_object = PlannedInterventionIndicators.objects.create(**indicator)
+            intervention.indicators.add(ind_object)
+        return intervention
+
+    def update(self, instance, validated_data):
+        # TODO: implement this
+        indicators = validated_data.pop('indicators', [])
+        intervention = super().update(instance, validated_data)
+        return intervention
+
     def get_image_url(self, plannedintervention):
         request = self.context['request']
         title = plannedintervention.title
