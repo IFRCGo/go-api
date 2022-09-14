@@ -542,9 +542,9 @@ class EmergencyProjectSerializer(
         fields = ('id', 'created_by_details', 'modified_by_details', 'reporting_ns_details',
                   'deployed_eru_details', 'districts_details', 'activities', 'event_details',
                   'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
-                  'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts',
+                  'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts', 'status',
                   'created_at', 'modified_at', 'start_date', 'end_date',
-                  ) # '__all__'
+                  )  # '__all__' | Both X_details + X fields are needed: outgoing + incoming data.
         read_only_fields = (
             'created_by',
             'created_at',

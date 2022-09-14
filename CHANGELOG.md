@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.452
+
+### Added
+ - Fixes for EmergencyProject serializer (X, X_details both needed)
+
 ## 1.1.451
 
 ### Added
@@ -2033,7 +2038,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.451...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.452...HEAD
+[1.1.452]: https://github.com/IFRCGo/go-api/compare/1.1.451...1.1.452
 [1.1.451]: https://github.com/IFRCGo/go-api/compare/1.1.450...1.1.451
 [1.1.450]: https://github.com/IFRCGo/go-api/compare/1.1.449...1.1.450
 [1.1.449]: https://github.com/IFRCGo/go-api/compare/1.1.448...1.1.449
