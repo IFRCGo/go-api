@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.451
+
+### Added
+ - Add Annual Figures to 3W Records
+
 ## 1.1.450
 ## 1.1.449
 
@@ -2028,7 +2033,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.450...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.451...HEAD
+[1.1.451]: https://github.com/IFRCGo/go-api/compare/1.1.450...1.1.451
 [1.1.450]: https://github.com/IFRCGo/go-api/compare/1.1.449...1.1.450
 [1.1.449]: https://github.com/IFRCGo/go-api/compare/1.1.448...1.1.449
 [1.1.448]: https://github.com/IFRCGo/go-api/compare/1.1.447...1.1.448
