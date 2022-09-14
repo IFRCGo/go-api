@@ -542,7 +542,7 @@ class EmergencyProjectSerializer(
         fields = ('id', 'created_by_details', 'modified_by_details', 'reporting_ns_details',
                   'deployed_eru_details', 'districts_details', 'activities', 'event_details',
                   'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
-                  'title', 'activity_lead', 'reporting_ns', 'event', 'country',
+                  'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts',
                   'created_at', 'modified_at', 'start_date', 'end_date',
                   ) # '__all__'
         read_only_fields = (
