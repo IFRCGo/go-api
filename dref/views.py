@@ -20,12 +20,16 @@ from dref.models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
+    DrefFileUpload
 )
 from dref.serializers import (
     DrefSerializer,
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
+    DrefFileUploadSerializer,
+    DrefImminentFileUploadSerializer,
+    DrefAssessmentFileUploadSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -214,3 +218,39 @@ class DrefFileViewSet(
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DrefFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
+
+
+class DrefImminentFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefImminentFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
+
+
+class DrefAssessmentFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefAssessmentFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
