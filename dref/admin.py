@@ -6,6 +6,7 @@ from .models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
+    DrefFileUpload,
 )
 
 
@@ -59,3 +60,6 @@ class DrefFinalReportAdmin(admin.ModelAdmin):
     )
     list_filter = ['dref']
     search_fields = ['title', 'national_society__name']
+@admin.register(DrefFileUpload)
+class DrefFileUploadAdmin(admin.ModelAdmin):
+    pass

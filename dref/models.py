@@ -112,6 +112,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: 'environment.png',
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
+            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: 'migration.png',
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -1407,3 +1408,25 @@ class DrefFinalReport(models.Model):
     class Meta:
         verbose_name = _('Dref Final Report')
         verbose_name_plural = _('Dref Final Reports')
+
+
+class DrefFileUpload(models.Model):
+    file = models.FileField(
+        verbose_name=_('file'),
+        upload_to='dref/file-upload/',
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('created_by'),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    dref = models.ForeignKey(
+        Dref, verbose_name=_('Dref'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        verbose_name = _('dref file upload')
+        verbose_name_plural = _('dref files upload')
