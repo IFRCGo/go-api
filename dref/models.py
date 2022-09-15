@@ -251,7 +251,6 @@ class Dref(models.Model):
     national_society = models.ForeignKey(
         Country, verbose_name=_('national_society'),
         on_delete=models.CASCADE,
-        null=True, blank=True,
     )
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_('disaster type'),
