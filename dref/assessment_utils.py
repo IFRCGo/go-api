@@ -1,6 +1,7 @@
 import docx
 from typing import List, Any
 
+from rest_framework import serializers
 from dref.models import (
     Dref,
     PlannedIntervention,
@@ -95,7 +96,7 @@ def parse_disaster_category(disaster_category):
         disaster_category = Dref.DisasterCategory.ORANGE
     elif disaster_category == 'Red':
         disaster_category = Dref.DisasterCategory.RED
-    return disaster_category
+    return None
 
 
 def parse_disaster_type(disaster_type):
@@ -109,11 +110,10 @@ def parse_type_of_onset(type):
         type = Dref.OnsetType.SUDDEN
     elif type == 'Imminent':
         type = Dref.OnsetType.IMMINENT
-    return type
+    return None
 
 
 def extract_assessment_file(doc, created_by):
-    document = docx.Document(doc)
     tables = get_table_data(doc)
     paragraphs = get_paragraphs_data(doc)
 
@@ -134,6 +134,8 @@ def extract_assessment_file(doc, created_by):
     data = {}
     # NOTE: Second Paragraph for Country and Region and Dref Title
     data['title'] = paragraphs[1][0] if paragraphs[1] else None
+    if data['title'] is None:
+        raise serializers.ValidationError('Title should be present')
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
@@ -149,6 +151,8 @@ def extract_assessment_file(doc, created_by):
     data['operation_timeframe'] = parse_int(cells(5, 3))
     country_name = cells(6, 0, 1)
     data['country'] = Country.objects.filter(name_en__icontains=country_name).first()
+    if data['country'] is None:
+        raise serializers.ValidationError('A valid country is required')
 
     # TODO: Check for District
     description = paragraphs[7] or []
@@ -271,33 +275,25 @@ def extract_assessment_file(doc, created_by):
         for j in range(3, 6):
             indicators.append({
                 'title': cells(j, 0),
-                'target': cells(j, 2)
+                'target': parse_int(cells(j, 2)),
             })
 
         indicators_object_list = []
         for indicator in indicators:
-            try:
-                planned_object = PlannedInterventionIndicators.objects.create(**indicator)
-                indicators_object_list.append(planned_object)
-            except ValueError:
-                # FIXME raise validation error
-                pass
+            planned_object = PlannedInterventionIndicators.objects.create(**indicator)
+            indicators_object_list.append(planned_object)
 
         priority_description = cells(6, 1)
         planned_data = {
             'title': parse_planned_intervention_title(title),
-            'budget': budget,
-            'person_targeted': targeted_population,
+            'budget': parse_int(budget),
+            'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
 
-        try:
-            planned = PlannedIntervention.objects.create(**planned_data)
-            planned.indicators.add(*indicators_object_list)
-            planned_intervention.append(planned)
-        except ValueError:
-            # FIXME raise validation error
-            pass
+        planned = PlannedIntervention.objects.create(**planned_data)
+        planned.indicators.add(*indicators_object_list)
+        planned_intervention.append(planned)
 
     # About Support Service
     human_resource_description = paragraphs[55] or []
