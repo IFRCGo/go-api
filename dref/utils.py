@@ -23,7 +23,6 @@ from .common_utils import (
     parse_string_to_int,
     parse_date,
     parse_float,
-    get_text_or_null,
     parse_boolean,
     get_table_data,
     get_paragraphs_data,
