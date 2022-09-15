@@ -575,13 +575,22 @@ class DrefOperationalUpdateSerializer(
             validated_data['event_description'] = dref.event_description
             validated_data['anticipatory_actions'] = dref.anticipatory_actions
             validated_data['event_scope'] = dref.event_scope
-            validated_data['cover_image'] = dref.cover_image
             validated_data['budget_file'] = dref.budget_file
-            validated_data['assessment_report'] = dref.assessment_report
             validated_data['country'] = dref.country
-            validated_data['event_map'] = dref.event_map
             validated_data['risk_security_concern'] = dref.risk_security_concern
             operational_update = super().create(validated_data)
+            # XXX: Copy files from DREF (Only nested serialized fields)
+            nested_serialized_file_fields = [
+                'assessment_report',
+                'cover_image',
+                'event_map',
+            ]
+            for file_field in nested_serialized_file_fields:
+                dref_file = getattr(dref, file_field, None)
+                if dref_file:
+                    setattr(operational_update, file_field, dref_file.clone(self.context['request'].user))
+            operational_update.save(update_fields=nested_serialized_file_fields)
+            # M2M Fields
             operational_update.planned_interventions.add(*dref.planned_interventions.all())
             operational_update.images.add(*dref.images.all())
             operational_update.national_society_actions.add(*dref.national_society_actions.all())

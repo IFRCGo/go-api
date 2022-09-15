@@ -1,5 +1,6 @@
 import reversion
 import os
+import copy
 
 from pdf2image import convert_from_bytes
 
@@ -668,6 +669,14 @@ class DrefFile(models.Model):
     class Meta:
         verbose_name = _('dref file')
         verbose_name_plural = _('dref files')
+
+    def clone(self, user):
+        clone = copy.deepcopy(self)
+        clone.id = None
+        clone.client_id = None
+        clone.created_by = user
+        clone.save()
+        return clone
 
 
 class DrefOperationalUpdate(models.Model):
