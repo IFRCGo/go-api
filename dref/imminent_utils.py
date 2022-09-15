@@ -1,5 +1,5 @@
-import datetime
 import docx
+from rest_framework import serializers
 
 from typing import Any, List
 
@@ -106,7 +106,6 @@ def parse_type_of_onset(type):
 
 def extract_imminent_file(doc, created_by):
     tables = get_table_data(doc)
-    paragraphs = get_paragraphs_data(doc)
 
     # Get item form an array
     def _t(items: List[Any], index=0):
@@ -127,6 +126,8 @@ def extract_imminent_file(doc, created_by):
     paragraph2 = document.paragraphs[1]
     paragraph_element2 = paragraph2._element.xpath('.//w:t')
     data['title'] = get_text_or_null(paragraph_element2)
+    if not data['title']:
+        raise serializers.ValidationError('A title is required')
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
@@ -140,7 +141,9 @@ def extract_imminent_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5,1))
     data['end_date'] = parse_date(cells(5,2))
     data['operation_timeframe'] = parse_int(cells(5,3))
-    data['country'] = Country.objects.get(name__icontains=cells(6,0,1))
+    data['country'] = Country.objects.filter(name__icontains=cells(6,0,1)).first()
+    if data['country'] is None:
+        raise serializers.ValidationError('A valid country is required')
 
     paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
     event_desc = []
@@ -193,7 +196,7 @@ def extract_imminent_file(doc, created_by):
                 recurrent_text.append(desc.text)
         data['dref_recurrent_text'] = ''.join(recurrent_text) if recurrent_text else None
 
-    # TODO: uncomment this. was not being used though. This was creating error
+    # TODO: uncomment this. However it was not being used. This was creating error
     # so has been commented out
     # table_one_row_eight_column_zero = table1.cell(8, 0)._tc.xpath('.//w:t')
     lessons_learned_text = []
@@ -202,143 +205,43 @@ def extract_imminent_file(doc, created_by):
             lessons_learned_text.append(desc.text)
     data['lessons_learned'] = ''.join(lessons_learned_text) if lessons_learned_text else None
     # National Socierty Actions
-    table2 = document.tables[1]
     cells = get_table_cells(1)
     # National Society
     national_society_actions = []
-    column_zero_description = cells(0, 1)
-    if column_zero_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
-            'description': column_zero_description
-        }
-        national_society_actions.append(data_new)
-    column_one_description = cells(1,1)
-    if column_one_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.ASSESSMENT,
-            'description': column_one_description
-        }
-        national_society_actions.append(data_new)
-    column_two_description = cells(2, 1)
-    if column_two_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.COORDINATION,
-            'description': column_two_description
-        }
-        national_society_actions.append(data_new)
-    column_three_description = cells(3, 1)
-    if column_three_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.RESOURCE_MOBILIZATION,
-            'description': column_three_description
-        }
-        national_society_actions.append(data_new)
-    column_four_description = cells(4, 1)
-    if column_four_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.ACTIVATION_OF_CONTINGENCY_PLANS,
-            'description': column_four_description
-        }
-        national_society_actions.append(data_new)
-    column_five_description = cells(5, 1)
-    if column_five_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_EOC,
-            'description': column_five_description
-        }
-        national_society_actions.append(data_new)
-    column_six_description = cells(6, 1)
-    if column_six_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
-            'description': column_six_description
-        }
-        national_society_actions.append(data_new)
-    column_seven_description = cells(7, 1)
-    if column_seven_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS,
-            'description': column_seven_description
-        }
-        national_society_actions.append(data_new)
-    column_eight_description = cells(8, 1)
-    if column_eight_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.HEALTH,
-            'description': column_eight_description
-        }
-        national_society_actions.append(data_new)
-    column_nine_description = cells(9, 1)
-    if column_nine_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE,
-            'description': column_nine_description
-        }
-        national_society_actions.append(data_new)
-    column_ten_description = cells(10, 1)
-    if column_ten_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCLUSION,
-            'description': column_ten_description
-        }
-        national_society_actions.append(data_new)
-    column_eleven_description = cells(11, 1)
-    if column_eleven_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.EDUCATION,
-            'description': column_eleven_description
-        }
-        national_society_actions.append(data_new)
-    column_tweleve_description = cells(12, 1)
-    if column_tweleve_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.MIGRATION,
-            'description': column_tweleve_description
-        }
-        national_society_actions.append(data_new)
-    column_thirteen_description = cells(13, 1)
-    if column_thirteen_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,
-            'description': column_thirteen_description
-        }
-        national_society_actions.append(data_new)
-    column_fourteen_description = cells(14, 1)
-    if column_fourteen_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY,
-            'description': column_fourteen_description
-        }
-        national_society_actions.append(data_new)
-    column_fifteen_description = cells(15, 1)
-    if column_fifteen_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY,
-            'description': column_fifteen_description
-        }
-        national_society_actions.append(data_new)
-    column_sixteen_description = cells(16, 1)
-    if column_sixteen_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.MULTI_PURPOSE_CASH,
-            'description': column_sixteen_description
-        }
-        national_society_actions.append(data_new)
-    column_sixteen_description = cells(17, 1)
-    if column_sixteen_description:
-        data_new = {
-            'title': NationalSocietyAction.Title.OTHER,
-            'description': column_sixteen_description
-        }
-        national_society_actions.append(data_new)
-    # Crete national Society objects db level
+    national_society_titles = [
+        NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
+        NationalSocietyAction.Title.ASSESSMENT,
+        NationalSocietyAction.Title.COORDINATION,
+        NationalSocietyAction.Title.RESOURCE_MOBILIZATION,
+        NationalSocietyAction.Title.ACTIVATION_OF_CONTINGENCY_PLANS,
+        NationalSocietyAction.Title.NATIONAL_SOCIETY_EOC,
+        NationalSocietyAction.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
+        NationalSocietyAction.Title.LIVELIHOODS_AND_BASIC_NEEDS,
+        NationalSocietyAction.Title.HEALTH,
+        NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE,
+        NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCLUSION,
+        NationalSocietyAction.Title.EDUCATION,
+        NationalSocietyAction.Title.MIGRATION,
+        NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,
+        NationalSocietyAction.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY,
+        NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY,
+        NationalSocietyAction.Title.MULTI_PURPOSE_CASH,
+        NationalSocietyAction.Title.OTHER,
+    ]
+    for i, title in enumerate(national_society_titles):
+        description = cells(i, 1)
+        if description:
+             national_society_actions.append({
+                'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
+                'description': description
+            })
+
+    # Create national Society objects db level
     national_societys = []
     for national_data in national_society_actions:
         national = NationalSocietyAction.objects.create(**national_data)
         national_societys.append(national)
 
-    table3 = document.tables[2]
     cells = get_table_cells(2)
     ifrc_desc = cells(0, 1, as_list=True) or []
 
@@ -423,34 +326,17 @@ def extract_imminent_file(doc, created_by):
     # PlannedIntervention Table
     planned_intervention = []
     for i in range(6, 19):
-        table = document.tables[i]
         cells = get_table_cells(i)
         title = cells(0, 1, 0)
         budget = cells(0, 3, 1)
         targated_population = cells(1, 3)
 
         indicators = []
-        title_1 = cells(3, 0)
-        target_1 = cells(3, 2)
-        indicator_1 = {
-            'title': title_1,
-            'target': target_1
-        }
-        indicators.append(indicator_1)
-        title_2 = cells(4, 0)
-        target_2 = cells(4, 2)
-        indicator_2 = {
-            'title': title_2,
-            'target': target_2
-        }
-        indicators.append(indicator_2)
-        title_3 = cells(5, 0)
-        target_3 = cells(5, 2)
-        indicator_3 = {
-            'title': title_3,
-            'target': target_3
-        }
-        indicators.append(indicator_3)
+        for j in range(3, 6):
+            indicators.append({
+                'title': cells(j, 0),
+                'target': parse_int(cells(j, 2)),
+            })
         indicators_object_list = []
         for indicator in indicators:
             if indicator['title'] is None:
@@ -461,8 +347,8 @@ def extract_imminent_file(doc, created_by):
         priority_description = cells(6, 1)
         planned_data = {
             'title': parse_planned_intervention_title(title),
-            'budget': budget,
-            'person_targeted': targated_population,
+            'budget': parse_int(budget),
+            'person_targeted': parse_int(targated_population),
             'description': priority_description
         }
 

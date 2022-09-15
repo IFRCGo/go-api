@@ -8,7 +8,7 @@ from dref.models import Dref
 def parse_int(s):
     try:
         return int(s)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 
