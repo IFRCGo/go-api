@@ -638,7 +638,7 @@ class Dref(models.Model):
 
     def save(self, *args, **kwargs):
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
-            pages = convert_from_bytes(self.budget_file.file.open())
+            pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
                 budget_file_preview = pages[0]  # get first page
                 filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
