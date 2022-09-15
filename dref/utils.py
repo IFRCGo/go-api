@@ -100,13 +100,13 @@ def parse_disaster_type(disaster_type):
     return DisasterType.objects.filter(name__icontains=disaster_type).first()
 
 
-def parse_type_of_onset(type):
-    if type == 'Slow':
-        type = Dref.OnsetType.SLOW
-    elif type == 'Sudden':
-        type = Dref.OnsetType.SUDDEN
-    elif type == 'Imminent':
-        type = Dref.OnsetType.IMMINENT
+def parse_type_of_onset(onset_type):
+    if onset_type == 'Slow':
+        return Dref.OnsetType.SLOW
+    elif onset_type == 'Sudden':
+        return Dref.OnsetType.SUDDEN
+    elif onset_type == 'Imminent':
+        return Dref.OnsetType.IMMINENT
     return None
 
 
@@ -474,7 +474,7 @@ def extract_file(doc, created_by):
         cells = get_table_cells(i)
         title = cells(0, 1)
         budget = cells(0, 3, 1)
-        targated_population = cells(1, 3)
+        targeted_population = cells(1, 3)
 
         indicators = []
         for j in range(3, 6):
@@ -496,7 +496,7 @@ def extract_file(doc, created_by):
         planned_data = {
             'title': parse_planned_intervention_title(title),
             'budget': parse_int(budget),
-            'person_targeted': parse_int(targated_population),
+            'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
 

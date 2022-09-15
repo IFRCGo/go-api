@@ -1,4 +1,3 @@
-import docx
 from typing import List, Any
 
 from rest_framework import serializers

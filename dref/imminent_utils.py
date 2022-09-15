@@ -24,7 +24,6 @@ from .common_utils import (
     parse_string_to_int,
     parse_boolean,
     get_table_data,
-    get_paragraphs_data,
     parse_disaster_category,
 )
 
@@ -94,14 +93,14 @@ def parse_disaster_type(disaster_type):
     return DisasterType.objects.filter(name__icontains=disaster_type).first()
 
 
-def parse_type_of_onset(type):
-    if type == 'Slow':
-        type = Dref.OnsetType.SLOW
-    elif type == 'Sudden':
-        type = Dref.OnsetType.SUDDEN
-    elif type == 'Imminent':
-        type = Dref.OnsetType.IMMINENT
-    return type
+def parse_type_of_onset(onset_type):
+    if onset_type == 'Slow':
+        return Dref.OnsetType.SLOW
+    elif onset_type == 'Sudden':
+        return Dref.OnsetType.SUDDEN
+    elif onset_type == 'Imminent':
+        return Dref.OnsetType.IMMINENT
+    return None
 
 
 def extract_imminent_file(doc, created_by):
@@ -131,17 +130,17 @@ def extract_imminent_file(doc, created_by):
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
-    data['amount_requested'] = parse_string_to_int(cells(1,1,1))
+    data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
     data['disaster_category'] = parse_disaster_category(cells(1, 2))
-    data['disaster_type'] = parse_disaster_type(cells(1,4))
+    data['disaster_type'] = parse_disaster_type(cells(1, 4))
     data['glide_code'] = cells(3, 0)
-    data['num_affected'] = parse_string_to_int(cells(3,1))
-    data['num_assisted'] = parse_string_to_int(cells(3,2))
-    data['type_of_onset'] = parse_type_of_onset(cells(5,0))
-    data['date_of_approval'] = parse_date(cells(5,1))
-    data['end_date'] = parse_date(cells(5,2))
-    data['operation_timeframe'] = parse_int(cells(5,3))
-    data['country'] = Country.objects.filter(name__icontains=cells(6,0,1)).first()
+    data['num_affected'] = parse_string_to_int(cells(3, 1))
+    data['num_assisted'] = parse_string_to_int(cells(3, 2))
+    data['type_of_onset'] = parse_type_of_onset(cells(5, 0))
+    data['date_of_approval'] = parse_date(cells(5, 1))
+    data['end_date'] = parse_date(cells(5, 2))
+    data['operation_timeframe'] = parse_int(cells(5, 3))
+    data['country'] = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
     if data['country'] is None:
         raise serializers.ValidationError('A valid country is required')
 
@@ -176,15 +175,15 @@ def extract_imminent_file(doc, created_by):
     table1 = document.tables[1]
     cells = get_table_cells(1)
 
-    data['affect_same_area'] = parse_boolean(cells(0,1))
-    data['affect_same_population'] = parse_boolean(cells(1,1))
-    data['ns_respond'] = parse_boolean(cells(2,1))
+    data['affect_same_area'] = parse_boolean(cells(0, 1))
+    data['affect_same_population'] = parse_boolean(cells(1, 1))
+    data['ns_respond'] = parse_boolean(cells(2, 1))
     data['ns_request_fund'] = parse_boolean(cells(3, 1))
-    data['ns_request_text'] = cells(4,1)
-    if cells(4,1) == 'Yes':
+    data['ns_request_text'] = cells(4, 1)
+    if cells(4, 1) == 'Yes':
         table_one_row_five_column_one = table1.cell(5, 1)._tc.xpath('.//w:t')
         data['dref_recurrent_text'] = get_text_or_null(table_one_row_five_column_one)
-    if cells(0,1) == 'Yes' and \
+    if cells(0, 1) == 'Yes' and \
             cells(1, 1) == 'Yes' and \
             cells(2, 1) == 'Yes' and \
             cells(3, 1) == 'Yes' and \
@@ -295,7 +294,7 @@ def extract_imminent_file(doc, created_by):
     cells = get_table_cells(4)
     data['women'] = parse_string_to_int(cells(0, 1))
     data['girls'] = parse_string_to_int(cells(1, 1))
-    data['men'] = parse_string_to_int(cells(2,1))
+    data['men'] = parse_string_to_int(cells(2, 1))
     data['boys'] = parse_string_to_int(cells(3, 1))
     data['total_targeted_population'] = parse_string_to_int(cells(4, 1))
     data['people_per_local'] = parse_float(cells(1, 2))
@@ -448,7 +447,7 @@ def extract_imminent_file(doc, created_by):
 
     data['is_published'] = False
     # FIXME: The country name access is not reliable.
-    data['national_society'] = Country.objects.filter(name_en__icontains=cells(6,0)).first()
+    data['national_society'] = Country.objects.filter(name_en__icontains=cells(6, 0)).first()
     data['created_by'] = created_by
 
     dref = Dref.objects.create(**data)

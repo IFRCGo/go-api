@@ -80,9 +80,9 @@ def get_paragraphs_data(doc):
 
 def parse_disaster_category(disaster_category):
     if disaster_category == 'Yellow':
-        disaster_category = Dref.DisasterCategory.YELLOW
+        return Dref.DisasterCategory.YELLOW
     elif disaster_category == 'Orange':
-        disaster_category = Dref.DisasterCategory.ORANGE
+        return Dref.DisasterCategory.ORANGE
     elif disaster_category == 'Red':
-        disaster_category = Dref.DisasterCategory.RED
+        return Dref.DisasterCategory.RED
     return None
