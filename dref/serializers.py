@@ -14,9 +14,7 @@ from main.writable_nested_serializers import (
 )
 from api.serializers import (
     UserNameSerializer,
-    MiniFieldReportSerializer,
     DisasterTypeSerializer,
-    CountrySerializer,
     MiniDistrictSerializer,
     MiniCountrySerializer
 )

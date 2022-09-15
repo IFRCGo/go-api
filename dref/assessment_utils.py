@@ -1,4 +1,3 @@
-import datetime
 import docx
 from typing import List, Any
 
@@ -136,24 +135,18 @@ def extract_assessment_file(doc, created_by):
     # NOTE: Second Paragraph for Country and Region and Dref Title
     data['title'] = paragraphs[1][0] if paragraphs[1] else None
 
-    table = document.tables[0]
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
-    table_row_one_column_one = table.cell(1, 1)._tc.xpath('.//w:t')
     data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
     data['disaster_category'] = parse_disaster_category(cells(1, 2))
     data['disaster_type'] = parse_disaster_type(cells(1, 4))
-    table_row_three_column_one = table.cell(3, 0)._tc.xpath('.//w:t')
     data['glide_code'] = cells(3, 0)
-    table_row_three_column_one = table.cell(3, 1)._tc.xpath('.//w:t')
     data['num_affected'] = parse_string_to_int(cells(3, 1))
     data['num_assisted'] = parse_string_to_int(cells(3, 2))
     data['type_of_onset'] = parse_type_of_onset(cells(5, 0))
-    table_row_five_column_one = table.cell(5, 1)._tc.xpath('.//w:t')
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    table_row_six_colum_zero = table.cell(6, 0)._tc.xpath('.//w:t')
     country_name = cells(6, 0, 1)
     data['country'] = Country.objects.filter(name_en__icontains=country_name).first()
 
@@ -269,7 +262,6 @@ def extract_assessment_file(doc, created_by):
     # PlannedIntervention Table
     planned_intervention = []
     for i in range(6, 19):
-        table = document.tables[i]
         cells = get_table_cells(i)
         title = cells(0, 1)
         budget = cells(0, 3, 1)

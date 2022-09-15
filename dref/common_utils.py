@@ -85,4 +85,4 @@ def parse_disaster_category(disaster_category):
         disaster_category = Dref.DisasterCategory.ORANGE
     elif disaster_category == 'Red':
         disaster_category = Dref.DisasterCategory.RED
-    return disaster_category
+    return None

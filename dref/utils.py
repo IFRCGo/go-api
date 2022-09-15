@@ -106,8 +106,8 @@ def parse_type_of_onset(type):
     elif type == 'Sudden':
         type = Dref.OnsetType.SUDDEN
     elif type == 'Imminent':
-        type = Dref.OnsetType.Imminent
-    return type
+        type = Dref.OnsetType.IMMINENT
+    return None
 
 
 def extract_file(doc, created_by):
@@ -136,9 +136,7 @@ def extract_file(doc, created_by):
     if len(title_paragraph) > 0:
         data['title'] = title_paragraph[0]
     else:
-        # FIXME: raise validation error
-        data['title'] = None
-        # raise serializers.ValidationError('Title is required to create dref')
+        raise serializers.ValidationError('Title is required to create dref')
 
     table = document.tables[0]
     cells = get_table_cells(0)
@@ -191,9 +189,9 @@ def extract_file(doc, created_by):
         data['country'] = Country.objects.get(name_en__icontains=country_name)
     except IndexError:
         raise serializers.ValidationError('Country is required')
-    # FIXME: raise validation error if no country
     except Country.DoesNotExist:
         data['country'] = None
+        raise serializers.ValidationError('Valid country is required')
 
     try:
         description = paragraphs[7]
@@ -205,6 +203,7 @@ def extract_file(doc, created_by):
         data['event_scope'] = ''.join(event_scope) if event_scope else None
     except(IndexError, ValueError):
         pass
+
     # Previous Operation
     cells = get_table_cells(1)
     try:
@@ -295,7 +294,6 @@ def extract_file(doc, created_by):
             national = NationalSocietyAction.objects.create(**national_data)
             national_societys.append(national)
     # Other actors
-    table4 = document.tables[4]
     cells = get_table_cells(4)
     try:
         if cells(0, 0):
@@ -320,7 +318,6 @@ def extract_file(doc, created_by):
     except (IndexError, ValueError):
         pass
     # NeedsIdentified
-    table5 = document.tables[5]
     cells = get_table_cells(5)
     needs_identified = []
     needs_titles = [
@@ -474,7 +471,6 @@ def extract_file(doc, created_by):
     # PlannedIntervention Table
     planned_intervention = []
     for i in range(8, 19):
-        table = document.tables[i]
         cells = get_table_cells(i)
         title = cells(0, 1)
         budget = cells(0, 3, 1)
@@ -485,7 +481,7 @@ def extract_file(doc, created_by):
             try:
                 indicators.append({
                     'title': cells(j, 0),
-                    'target': cells(j, 2),
+                    'target': parse_int(cells(j, 2)),
                 })
             except(IndexError, ValueError):
                 pass
@@ -493,32 +489,25 @@ def extract_file(doc, created_by):
         indicators_object_list = []
         for indicator in indicators:
             if indicator['title']:
-                try:
-                    planned_object = PlannedInterventionIndicators.objects.create(**indicator)
-                    indicators_object_list.append(planned_object)
-                except ValueError:  # FIXME: this try except should ideally not exist
-                    logger.warning(f'Could not insert planned object for indicator {indicator}')
-                    pass
-        try:
-            description_text = table.cell(6, 1)._tc.xpath('.//w:t')
-            priority_description = description_text[0].text
-            planned_data = {
-                'title': parse_planned_intervention_title(title),
-                'budget': budget,
-                'person_targeted': targated_population,
-                'description': priority_description
-            }
+                planned_object = PlannedInterventionIndicators.objects.create(**indicator)
+                indicators_object_list.append(planned_object)
 
-            planned = PlannedIntervention.objects.create(**planned_data)
-            planned.indicators.add(*indicators_object_list)
-            planned_intervention.append(planned)
-        except(IndexError, ValueError):
-            pass
+        priority_description = cells(6, 1)
+        planned_data = {
+            'title': parse_planned_intervention_title(title),
+            'budget': parse_int(budget),
+            'person_targeted': parse_int(targated_population),
+            'description': priority_description
+        }
+
+        planned = PlannedIntervention.objects.create(**planned_data)
+        planned.indicators.add(*indicators_object_list)
+        planned_intervention.append(planned)
 
     # Create dref objects
     # map m2m fields
     data['is_published'] = False
-    data['national_society'] = Country.objects.filter(name_en__icontains=country_name).first()
+    data['national_society'] = Country.objects.get(name_en__icontains=country_name)
     data['created_by'] = created_by
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
