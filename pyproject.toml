@@ -71,7 +71,7 @@ pytz = "==2019.1"
 requests = "==2.27.1"
 tabula-py = "==1.2.0"
 typing = "==3.6.2"
-# urllib3 = "==1.26.8"
+urllib3 = "==1.26.12"
 xmltodict = "==0.11.0"
 xhtml2pdf = "==0.2.5"
 reportlab = "==3.6.6"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now

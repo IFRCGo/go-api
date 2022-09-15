@@ -573,13 +573,22 @@ class DrefOperationalUpdateSerializer(
             validated_data['event_description'] = dref.event_description
             validated_data['anticipatory_actions'] = dref.anticipatory_actions
             validated_data['event_scope'] = dref.event_scope
-            validated_data['cover_image'] = dref.cover_image
             validated_data['budget_file'] = dref.budget_file
-            validated_data['assessment_report'] = dref.assessment_report
             validated_data['country'] = dref.country
-            validated_data['event_map'] = dref.event_map
             validated_data['risk_security_concern'] = dref.risk_security_concern
             operational_update = super().create(validated_data)
+            # XXX: Copy files from DREF (Only nested serialized fields)
+            nested_serialized_file_fields = [
+                'assessment_report',
+                'cover_image',
+                'event_map',
+            ]
+            for file_field in nested_serialized_file_fields:
+                dref_file = getattr(dref, file_field, None)
+                if dref_file:
+                    setattr(operational_update, file_field, dref_file.clone(self.context['request'].user))
+            operational_update.save(update_fields=nested_serialized_file_fields)
+            # M2M Fields
             operational_update.planned_interventions.add(*dref.planned_interventions.all())
             operational_update.images.add(*dref.images.all())
             operational_update.national_society_actions.add(*dref.national_society_actions.all())
@@ -677,16 +686,33 @@ class DrefOperationalUpdateSerializer(
         dref_target_population_of_operation = validated_data.get('dref', instance.dref).total_targeted_population
         dref_amount_requested = validated_data.get('dref', instance.dref).amount_requested
         dref_district = validated_data.get('dref', instance.dref).district.all()
-        if changing_timeframe_operation and total_operation_timeframe and dref_operation_timeframe and\
+
+        if (not changing_timeframe_operation) and total_operation_timeframe and dref_operation_timeframe and\
         total_operation_timeframe != dref_operation_timeframe:
-            raise serializers.ValidationError('Found diffrent operation timeframe for dref and operational update')
-        if changing_target_population_of_operation and number_of_people_targeted and dref_target_population_of_operation and\
+            raise serializers.ValidationError('Found diffrent operation timeframe for dref and operational update with changing not set to true')
+
+        if changing_timeframe_operation and total_operation_timeframe and dref_operation_timeframe and\
+        total_operation_timeframe == dref_operation_timeframe:
+            raise serializers.ValidationError('Found same operation timeframe for dref and operational update with changing set to true')
+
+        if (not changing_target_population_of_operation) and number_of_people_targeted and dref_target_population_of_operation and\
         dref_target_population_of_operation != number_of_people_targeted:
-            raise serializers.ValidationError('Found diffrent targeted population for dref and operation update')
-        if request_for_second_allocation and additional_allocation and dref_amount_requested != additional_allocation:
-            raise serializers.ValidationError('Found diffrent allocation for dref and operation update')
-        if changing_geographic_location and district and dref_district and district != dref_district:
-            raise serializers.ValidationError('Found different district for dref and operation update')
+            raise serializers.ValidationError('Found diffrent targeted population for dref and operational update with changing not set to true')
+
+        if changing_target_population_of_operation and number_of_people_targeted and dref_target_population_of_operation and\
+        dref_target_population_of_operation == number_of_people_targeted:
+            raise serializers.ValidationError('Found same targeted population for dref and operational update with changing set to true')
+
+        # if request_for_second_allocation and additional_allocation and dref_amount_requested != additional_allocation:
+        #     raise serializers.ValidationError('Found diffrent allocation for dref and operation update')
+
+        # FIXME: district order might different but they should be considered same
+        # if (not changing_geographic_location) and district and dref_district and district != dref_district:
+        #     raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
+
+        # if changing_geographic_location and district and dref_district and district == dref_district:
+        #     raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
+
         return super().update(instance, validated_data)
 
 

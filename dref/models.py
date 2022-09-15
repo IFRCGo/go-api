@@ -1,7 +1,8 @@
 import reversion
 import os
+import copy
 
-from pdf2image import convert_from_path
+from pdf2image import convert_from_bytes
 
 from django.db import models
 from django.conf import settings
@@ -636,7 +637,7 @@ class Dref(models.Model):
 
     def save(self, *args, **kwargs):
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
-            pages = convert_from_path(self.budget_file.file.path)
+            pages = convert_from_bytes(self.budget_file.file.open())
             if len(pages) > 0:
                 budget_file_preview = pages[0]  # get first page
                 filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
@@ -667,6 +668,14 @@ class DrefFile(models.Model):
     class Meta:
         verbose_name = _('dref file')
         verbose_name_plural = _('dref files')
+
+    def clone(self, user):
+        clone = copy.deepcopy(self)
+        clone.id = None
+        clone.client_id = None
+        clone.created_by = user
+        clone.save()
+        return clone
 
 
 class DrefOperationalUpdate(models.Model):
