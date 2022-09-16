@@ -111,7 +111,6 @@ def parse_type_of_onset(onset_type):
 
 
 def extract_file(doc, created_by):
-    document = docx.Document(doc)
     tables = get_table_data(doc)
     paragraphs = get_paragraphs_data(doc)
 
@@ -138,7 +137,6 @@ def extract_file(doc, created_by):
     else:
         raise serializers.ValidationError('Title is required to create dref')
 
-    table = document.tables[0]
     cells = get_table_cells(0)
     try:
         data['appeal_code'] = cells(1, 0)
@@ -184,14 +182,10 @@ def extract_file(doc, created_by):
         data['operation_timeframe'] = parse_int(cells(5, 3))
     except(IndexError, ValueError):
         pass
-    country_name = cells(6, 0, 1)
-    try:
-        data['country'] = Country.objects.get(name_en__icontains=country_name)
-    except IndexError:
-        raise serializers.ValidationError('Country is required')
-    except Country.DoesNotExist:
-        data['country'] = None
-        raise serializers.ValidationError('Valid country is required')
+    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    if country is None:
+        raise serializers.ValidationError('A valid country name is required')
+    data['country'] = country
 
     try:
         description = paragraphs[7]
@@ -507,7 +501,7 @@ def extract_file(doc, created_by):
     # Create dref objects
     # map m2m fields
     data['is_published'] = False
-    data['national_society'] = Country.objects.get(name_en__icontains=country_name)
+    data['national_society'] = country
     data['created_by'] = created_by
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)

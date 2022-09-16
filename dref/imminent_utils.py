@@ -140,9 +140,10 @@ def extract_imminent_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    data['country'] = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
-    if data['country'] is None:
-        raise serializers.ValidationError('A valid country is required')
+    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    if country is None:
+        raise serializers.ValidationError('A valid country name is required')
+    data['country'] = country
 
     paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
     event_desc = []
@@ -446,8 +447,7 @@ def extract_imminent_file(doc, created_by):
     data['media_contact_name'] = media[0]
 
     data['is_published'] = False
-    # FIXME: The country name access is not reliable.
-    data['national_society'] = Country.objects.filter(name_en__icontains=cells(6, 0)).first()
+    data['national_society'] = country
     data['created_by'] = created_by
 
     dref = Dref.objects.create(**data)

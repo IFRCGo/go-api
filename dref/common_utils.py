@@ -17,7 +17,7 @@ def parse_date(date):
     for fmt in formats:
         try:
             return datetime.datetime.strptime(date, fmt)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
     return None
 
@@ -25,7 +25,7 @@ def parse_date(date):
 def parse_float(s):
     try:
         return float(s)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 def get_text_or_null(colitems: List[Any]):
@@ -48,7 +48,7 @@ def parse_string_to_int(string):
             concat_string = new_strings[0] + new_strings[1]
             return int(concat_string)
         return int(string)
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 

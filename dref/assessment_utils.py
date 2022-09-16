@@ -88,16 +88,6 @@ def parse_planned_intervention_title(title):
     return title_dict.get(title)
 
 
-def parse_disaster_category(disaster_category):
-    if disaster_category == 'Yellow':
-        disaster_category = Dref.DisasterCategory.YELLOW
-    elif disaster_category == 'Orange':
-        disaster_category = Dref.DisasterCategory.ORANGE
-    elif disaster_category == 'Red':
-        disaster_category = Dref.DisasterCategory.RED
-    return None
-
-
 def parse_disaster_type(disaster_type):
     return DisasterType.objects.filter(name__icontains=disaster_type).first()
 
@@ -148,10 +138,10 @@ def extract_assessment_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    country_name = cells(6, 0, 1)
-    data['country'] = Country.objects.filter(name_en__icontains=country_name).first()
-    if data['country'] is None:
-        raise serializers.ValidationError('A valid country is required')
+    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    if country is None:
+        raise serializers.ValidationError('A valid country name is required')
+    data['country'] = country
 
     # TODO: Check for District
     description = paragraphs[7] or []
@@ -340,7 +330,7 @@ def extract_assessment_file(doc, created_by):
         pass
 
     data['is_published'] = False
-    data['national_society'] = Country.objects.filter(name_en__icontains=country_name).first()
+    data['national_society'] = country
     data['created_by'] = created_by
     data['is_assessment_report'] = True
     dref = Dref.objects.create(**data)
