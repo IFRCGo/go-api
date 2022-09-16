@@ -377,11 +377,6 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         }
 
     def validate(self, data):
-        if self.context and 'request' in self.context:
-            if 'is_annual_report' in self.context['request'].data:
-                data['is_annual_report'] = self.context['request'].data['is_annual_report']
-            if 'annual_split_detail' in self.context['request'].data:
-                data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         d_project_districts = data['project_districts']
         # Override country with district's country
         if isinstance(d_project_districts, list) and len(d_project_districts):
@@ -401,12 +396,23 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
 
     def create(self, validated_data):
         project = super().create(validated_data)
+        # create does not bear the non-Project extra fields (which are needed for AnnualSplits), so we must đouble:
+        if self.context and 'request' in self.context:
+            if 'is_annual_report' in self.context['request'].data:
+                project.is_annual_report = self.context['request'].data['is_annual_report']
+            if 'annual_split_detail' in self.context['request'].data:
+                project.annual_split_detail = self.context['request'].data['annual_split_detail']
         project.user = self.context['request'].user
         project.save()
         return project
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
+        if self.context and 'request' in self.context:  # code đuplication
+            if 'is_annual_report' in self.context['request'].data:
+                validated_data['is_annual_report'] = self.context['request'].data['is_annual_report']
+            if 'annual_split_detail' in self.context['request'].data:
+                validated_data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         return super().update(instance, validated_data)
 
 
