@@ -377,11 +377,11 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         }
 
     def validate(self, data):
-        #if self.context and 'request' in self.context:
-        #    if 'is_annual_report' in self.context['request'].data:
-        #        data['is_annual_report'] = self.context['request'].data['is_annual_report']
-        #    if 'annual_split_detail' in self.context['request'].data:
-        #        data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
+        if self.context and 'request' in self.context:
+            if 'is_annual_report' in self.context['request'].data:
+                data['is_annual_report'] = self.context['request'].data['is_annual_report']
+            if 'annual_split_detail' in self.context['request'].data:
+                data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         d_project_districts = data['project_districts']
         # Override country with district's country
         if isinstance(d_project_districts, list) and len(d_project_districts):
