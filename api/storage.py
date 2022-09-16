@@ -73,7 +73,7 @@ class AzureStorage(Storage):
             blob_name=name
         )
 
-        return ContentFile(contents)
+        return ContentFile(contents.content)
 
     def _save(self, name, content):
         """
