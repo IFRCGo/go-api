@@ -13,9 +13,7 @@ from main.writable_nested_serializers import (
 )
 from api.serializers import (
     UserNameSerializer,
-    MiniFieldReportSerializer,
     DisasterTypeSerializer,
-    CountrySerializer,
     MiniDistrictSerializer,
     MiniCountrySerializer
 )
@@ -387,14 +385,14 @@ class DrefSerializer(
         extension = os.path.splitext(assessment_report.file.name)[1].replace(".", "")
         if extension.lower() not in self.ALLOWED_ASSESSMENT_REPORT_EXTENSIONS:
             raise serializers.ValidationError(
-                f'Invalid uploaded file extension: {extension}, Supported only {self.ALLOWED_ASSESSmentREPORT_EXTENSIONS} Files'
+                f'Invalid uploaded file extension: {extension}, Supported only {self.ALLOWED_ASSESSMENT_REPORT_EXTENSIONS} Files'
             )
         return assessment_report
 
     def validate_operation_timeframe(self, operation_timeframe):
         if operation_timeframe and operation_timeframe > self.MAX_OPERATION_TIMEFRAME:
             raise serializers.ValidationError(
-                gettext('Operation timeframe can\'t be greater than %s', self.MAX_OPERATION_TIMEFRAME)
+                gettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
             )
         return operation_timeframe
 

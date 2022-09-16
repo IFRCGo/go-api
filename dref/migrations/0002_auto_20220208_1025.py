@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='dref',
-            name='total_targated_population',
+            name='total_targeted_population',
         ),
         migrations.AddField(
             model_name='dref',

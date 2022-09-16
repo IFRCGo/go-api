@@ -85,6 +85,7 @@ class IdentifiedNeed(models.Model):
         PROTECTION_GENDER_AND_INCLUSION = 'protection_gender_and_inclusion', _('Protection, Gender And Inclusion')
         EDUCATION = 'education', _('Education')
         MIGRATION = 'migration', _('Migration')
+        MULTI_PURPOSE_CASH_GRANTS = 'multi_purpose_cash_grants', _('Multi purpose cash grants')
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = \
             'risk_reduction_climate_adaptation_and_recovery', _('Risk Reduction, Climate Adaptation And Recovery')
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = \
@@ -107,6 +108,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.HEALTH: 'health.png',
             IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE: 'water.png',
             IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION: 'protection.png',
+            IdentifiedNeed.Title.MULTI_PURPOSE_CASH_GRANTS: 'cash.png',
             IdentifiedNeed.Title.EDUCATION: 'education.png',
             IdentifiedNeed.Title.MIGRATION: 'migration.png',
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: 'risk.png',
@@ -637,7 +639,7 @@ class Dref(models.Model):
 
     def save(self, *args, **kwargs):
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
-            pages = convert_from_bytes(self.budget_file.file.open())
+            pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
                 budget_file_preview = pages[0]  # get first page
                 filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'

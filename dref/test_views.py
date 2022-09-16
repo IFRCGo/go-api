@@ -301,14 +301,14 @@ class DrefTestCase(APITestCase):
                     "title": "shelter_housing_and_settlements",
                     "description": "matrix",
                     "budget": 23444,
-                    "person_targated": 12222
+                    "person_targeted": 12222
                 },
                 {
                     "id": 2,
                     "title": "health",
                     "description": "matrix reloaded",
                     "budget": 451111111,
-                    "person_targated": 345
+                    "person_targeted": 345
                 }
             ],
             "images_file": [],
@@ -482,7 +482,7 @@ class DrefTestCase(APITestCase):
         self.assertEqual(DrefOperationalUpdate.objects.count(), old_count + 1)
 
     def test_dref_operation_update_for_published_dref(self):
-        # NOTE: If Dref is not published can't create OperationaL Update
+        # NOTE: If DREF is not published can't create Operational Update
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
             title='Test Title', created_by=self.user,

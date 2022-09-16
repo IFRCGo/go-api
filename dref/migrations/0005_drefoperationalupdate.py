@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(blank=True, max_length=255, null=True, verbose_name='title')),
                 ('type_of_onset', models.IntegerField(blank=True, choices=[(0, 'Imminent'), (1, 'Slow'), (2, 'Sudden')], null=True, verbose_name='onset type')),
                 ('disaster_category', models.IntegerField(blank=True, choices=[(0, 'Yellow'), (1, 'Orange'), (2, 'Red')], null=True, verbose_name='disaster category')),
-                ('number_of_people_targated', models.IntegerField(blank=True, null=True, verbose_name='Number of people targated')),
+                ('number_of_people_targeted', models.IntegerField(blank=True, null=True, verbose_name='Number of people targeted')),
                 ('number_of_people_affected', models.IntegerField(blank=True, null=True, verbose_name='number of people affected')),
                 ('dref_allocated_so_far', models.IntegerField(blank=True, null=True, verbose_name='Dref allocated so far')),
                 ('additional_allocation', models.IntegerField(blank=True, null=True, verbose_name='Additional allocation')),

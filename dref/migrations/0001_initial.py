@@ -115,7 +115,7 @@ class Migration(migrations.Migration):
                 ('men', models.IntegerField(blank=True, null=True, verbose_name='men')),
                 ('girls', models.IntegerField(blank=True, help_text='Girls under 18', null=True, verbose_name='girls')),
                 ('boys', models.IntegerField(blank=True, help_text='Boys under 18', null=True, verbose_name='boys')),
-                ('total_targated_population', models.IntegerField(blank=True, help_text='Estimated number of targated people', null=True, verbose_name='total targated population')),
+                ('total_targeted_population', models.IntegerField(blank=True, help_text='Estimated number of targeted people', null=True, verbose_name='total targeted population')),
                 ('disability_people_per', models.DecimalField(blank=True, decimal_places=2, help_text='Estimated % people disability', max_digits=5, null=True, verbose_name='disability people per')),
                 ('people_per_urban', models.DecimalField(blank=True, decimal_places=2, help_text='Estimated % people Urban', max_digits=5, null=True, verbose_name='people per urban')),
                 ('people_per_local', models.DecimalField(blank=True, decimal_places=2, help_text='Estimated % people Rural', max_digits=5, null=True, verbose_name='people per local')),
