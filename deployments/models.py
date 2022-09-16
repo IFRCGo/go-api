@@ -494,6 +494,28 @@ class Project(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        if hasattr(self, 'annual_split_detail'):
+        # NO NEED: and self.annual_split_detail – because we want to get here in case of [] also:
+            if hasattr(self, 'is_annual_report') and self.is_annual_report:
+                arrivingIds = [asd['id'] for asd in self.annual_split_detail]
+                # Remove the records frontend has not sent, due to frontend-wise row removal:
+                AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
+                for split in self.annual_split_detail:
+                    annual_split, created = AnnualSplit.objects.get_or_create(pk=split['id'], project_id=self.id)
+                    annual_split.year           = split['year']            if 'year'           in split else None
+                    annual_split.budget_amount  = split['budget_amount']   if 'budget_amount'  in split else None
+                    annual_split.target_male    = split['target_male']     if 'target_male'    in split else None
+                    annual_split.target_female  = split['target_female']   if 'target_female'  in split else None
+                    annual_split.target_other   = split['target_other']    if 'target_other'   in split else None
+                    annual_split.target_total   = split['target_total']    if 'target_total'   in split else None
+                    annual_split.reached_male   = split['reached_male']    if 'reached_male'   in split else None
+                    annual_split.reached_female = split['reached_female']  if 'reached_female' in split else None
+                    annual_split.reached_other  = split['reached_other']   if 'reached_other'  in split else None
+                    annual_split.reached_total  = split['reached_total']   if 'reached_total'  in split else None
+                    annual_split.save()
+            else:
+                AnnualSplit.objects.filter(project_id=self.id).delete()
+
         # Automatically assign status according to the start_date and end_date
         # Cronjob will change the status automatically in future
         now = timezone.now().date()
@@ -516,6 +538,29 @@ class Project(models.Model):
             ~Q(project_country__in=countries_qs) &
             ~Q(reporting_ns__in=countries_qs)
         )
+
+
+class AnnualSplit(models.Model):
+    """ Annual split for Project """
+
+    project = models.ForeignKey(Project, verbose_name=_('project'), related_name='annual_splits', on_delete=models.CASCADE)
+    year = models.IntegerField(verbose_name=_('year'), null=True, blank=True)
+    budget_amount = models.IntegerField(verbose_name=_('amount'), null=True, blank=True)
+    target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
+    target_female = models.IntegerField(verbose_name=_('target female'), null=True, blank=True)
+    target_other = models.IntegerField(verbose_name=_('target other'), null=True, blank=True)
+    target_total = models.IntegerField(verbose_name=_('target total'), null=True, blank=True)
+    reached_male = models.IntegerField(verbose_name=_('reached male'), null=True, blank=True)
+    reached_female = models.IntegerField(verbose_name=_('reached female'), null=True, blank=True)
+    reached_other = models.IntegerField(verbose_name=_('reached other'), null=True, blank=True)
+    reached_total = models.IntegerField(verbose_name=_('reached total'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Annual Split')
+        verbose_name_plural = _('Annual Splits')
+
+    def __str__(self):
+        return '%s: %s %s | %s %s' % (str(self.project_id), str(self.year), str(self.budget_amount), str(self.target_male), str(self.reached_male),)
 
 
 @reversion.register()

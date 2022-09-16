@@ -24,6 +24,7 @@ from api.serializers import (
 )
 
 from .models import (
+    AnnualSplit,
     ERUOwner,
     ERU,
     PersonnelDeployment,
@@ -337,6 +338,16 @@ class RegionalProjectSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class AnnualSplitSerializer(ModelSerializer):
+    class Meta:
+        model = AnnualSplit
+        fields = (
+            'id', 'year', 'budget_amount',  # id: needed for appropriate update
+            'target_male', 'target_female', 'target_other', 'target_total',
+            'reached_male', 'reached_female', 'reached_other', 'reached_total',
+        )
+
+
 class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
@@ -350,6 +361,7 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
+    annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
     modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
 
     class Meta:
@@ -365,6 +377,11 @@ class ProjectSerializer(EnumSupportSerializerMixin, ModelSerializer):
         }
 
     def validate(self, data):
+        #if self.context and 'request' in self.context:
+        #    if 'is_annual_report' in self.context['request'].data:
+        #        data['is_annual_report'] = self.context['request'].data['is_annual_report']
+        #    if 'annual_split_detail' in self.context['request'].data:
+        #        data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         d_project_districts = data['project_districts']
         # Override country with district's country
         if isinstance(d_project_districts, list) and len(d_project_districts):

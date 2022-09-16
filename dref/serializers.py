@@ -14,10 +14,9 @@ from main.writable_nested_serializers import (
 )
 from api.serializers import (
     UserNameSerializer,
-    MiniFieldReportSerializer,
     DisasterTypeSerializer,
-    CountrySerializer,
     MiniDistrictSerializer,
+    MiniCountrySerializer
 )
 
 from dref.models import (
@@ -26,13 +25,21 @@ from dref.models import (
     PlannedInterventionIndicators,
     NationalSocietyAction,
     IdentifiedNeed,
-    DrefCountryDistrict,
+    RiskSecurity,
     DrefFile,
     DrefOperationalUpdate,
-    DrefOperationalUpdateCountryDistrict,
     DrefFinalReport,
-    DrefFinalReportCountryDistrict,
+    DrefFileUpload
 )
+from dref.utils import extract_file
+from dref.imminent_utils import extract_imminent_file
+from dref.assessment_utils import extract_assessment_file
+
+
+class RiskSecuritySerializer(ModelSerializer):
+    class Meta:
+        model = RiskSecurity
+        fields = '__all__'
 
 
 class PlannedInterventionIndicatorsSerializer(ModelSerializer):
@@ -43,6 +50,7 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
 
 class DrefFileSerializer(ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    file = serializers.FileField(required=False)
 
     class Meta:
         model = DrefFile
@@ -54,11 +62,111 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
-class PlannedInterventionSerializer(
-    NestedUpdateMixin,
-    NestedCreateMixin,
-    ModelSerializer
-):
+class MiniDrefSerializer(serializers.ModelSerializer):
+    type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
+    disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
+
+    class Meta:
+        model = Dref
+        fields = [
+            'id',
+            'title',
+            'national_society',
+            'disaster_type',
+            'type_of_onset',
+            'disaster_category',
+            'disaster_category_display',
+            'type_of_onset_display'
+        ]
+
+
+class DrefFileUploadSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    FILE_EXTENSIONS = ['docx']
+    dref_details = MiniDrefSerializer(source='dref', read_only=True)
+
+    class Meta:
+        model = DrefFileUpload
+        fields = '__all__'
+        read_only_fields = ('created_by', 'dref')
+
+    def validate_file(self, file):
+        extension = os.path.splitext(file.name)[1].replace(".", "")
+        if extension.lower() not in self.FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
+            )
+        return file
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        file = validated_data.get('file', None)
+        if file:
+            created_by = self.context['request'].user
+            dref = extract_file(file, created_by)
+            validated_data['dref'] = dref
+        return super().create(validated_data)
+
+
+class DrefImminentFileUploadSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    FILE_EXTENSIONS = ['docx']
+    dref_details = MiniDrefSerializer(source='dref', read_only=True)
+
+    class Meta:
+        model = DrefFileUpload
+        fields = '__all__'
+        read_only_fields = ('created_by', 'dref')
+
+    def validate_file(self, file):
+        extension = os.path.splitext(file.name)[1].replace(".", "")
+        if extension.lower() not in self.FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
+            )
+        return file
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        file = validated_data.get('file', None)
+        if file:
+            created_by = self.context['request'].user
+            dref = extract_imminent_file(file, created_by)
+            validated_data['dref'] = dref
+        return super().create(validated_data)
+
+
+class DrefAssessmentFileUploadSerializer(ModelSerializer):
+    created_by_details = UserNameSerializer(source='created_by', read_only=True)
+    FILE_EXTENSIONS = ['docx']
+    dref_details = MiniDrefSerializer(source='dref', read_only=True)
+
+    class Meta:
+        model = DrefFileUpload
+        fields = '__all__'
+        read_only_fields = ('created_by', 'dref')
+
+    def validate_file(self, file):
+        extension = os.path.splitext(file.name)[1].replace(".", "")
+        if extension.lower() not in self.FILE_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
+            )
+        return file
+
+    def create(self, validated_data):
+        validated_data['created_by'] = self.context['request'].user
+        file = validated_data.get('file', None)
+        if file:
+            created_by = self.context['request'].user
+            dref = extract_assessment_file(file, created_by)
+            if not dref:
+                raise serializers.ValidationError(ugettext('Can\'t dref from supplied data'))
+            validated_data['dref'] = dref
+        return super().create(validated_data)
+
+
+class PlannedInterventionSerializer(ModelSerializer):
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
@@ -67,6 +175,20 @@ class PlannedInterventionSerializer(
     class Meta:
         model = PlannedIntervention
         fields = '__all__'
+
+    def create(self, validated_data):
+        indicators = validated_data.pop('indicators', [])
+        intervention = super().create(validated_data)
+        for indicator in indicators:
+            ind_object = PlannedInterventionIndicators.objects.create(**indicator)
+            intervention.indicators.add(ind_object)
+        return intervention
+
+    def update(self, instance, validated_data):
+        # TODO: implement this
+        indicators = validated_data.pop('indicators', [])
+        intervention = super().update(instance, validated_data)
+        return intervention
 
     def get_image_url(self, plannedintervention):
         request = self.context['request']
@@ -120,66 +242,6 @@ class IdentifiedNeedSerializer(ModelSerializer):
         return None
 
 
-class DrefCountryDistrictSerializer(ModelSerializer):
-    country_details = CountrySerializer(source='country', read_only=True)
-    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
-
-    class Meta:
-        model = DrefCountryDistrict
-        fields = ('id', 'country', 'district', 'country_details', 'district_details')
-        read_only_fields = ('dref',)
-
-    def validate(self, data):
-        districts = data['district']
-        if isinstance(districts, list) and len(districts):
-            for district in districts:
-                if district.country != data['country']:
-                    raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
-                    })
-        return data
-
-
-class DrefOperationalUpdateCountryDistrictSerializer(ModelSerializer):
-    country_details = CountrySerializer(source='country', read_only=True)
-    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
-
-    class Meta:
-        model = DrefOperationalUpdateCountryDistrict
-        fields = ('id', 'country', 'district', 'country_details', 'district_details')
-        read_only_fields = ('dref_operational_update',)
-
-    def validate(self, data):
-        districts = data['district']
-        if isinstance(districts, list) and len(districts):
-            for district in districts:
-                if district.country != data['country']:
-                    raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
-                    })
-        return data
-
-
-class DrefFinalReportCountryDistrictSerializer(ModelSerializer):
-    country_details = CountrySerializer(source='country', read_only=True)
-    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
-
-    class Meta:
-        model = DrefFinalReportCountryDistrict
-        fields = ('id', 'country', 'district', 'country_details', 'district_details')
-        read_only_fields = ('dref_final_report',)
-
-    def validate(self, data):
-        districts = data['district']
-        if isinstance(districts, list) and len(districts):
-            for district in districts:
-                if district.country != data['country']:
-                    raise serializers.ValidationError({
-                        'district': ugettext('Different districts found for given country')
-                    })
-        return data
-
-
 class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = DrefOperationalUpdate
@@ -191,16 +253,27 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            'id',
+            'title',
+            'is_published',
+        ]
+
+
 class DrefSerializer(
     EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer
 ):
-    MAX_NUMBER_OF_IMAGES = 6
+    MAX_NUMBER_OF_IMAGES = 2
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
-
-    country_district = DrefCountryDistrictSerializer(source='drefcountrydistrict_set', many=True, required=False)
+    ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
+    MAX_OPERATION_TIMEFRAME = 30
+    ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -208,20 +281,26 @@ class DrefSerializer(
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
-    event_map_details = DrefFileSerializer(source='event_map', read_only=True)
-    images_details = DrefFileSerializer(source='images', many=True, read_only=True)
-    field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
+    event_map_file = DrefFileSerializer(source='event_map', required=False, allow_null=True)
+    images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
+    # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
     users_details = UserNameSerializer(source='users', many=True, read_only=True)
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
-    cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
+    cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
     operational_update_details = MiniOperationalUpdateSerializer(source='drefoperationalupdate_set', many=True, read_only=True)
+    dref_final_report_details = MiniDrefFinalReportSerializer(source='dreffinalreport', read_only=True)
+    country_details = MiniCountrySerializer(source='country', read_only=True)
+    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+    assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
+    supporting_document_details = DrefFileSerializer(read_only=True, source='supporting_document')
+    risk_security = RiskSecuritySerializer(many=True, required=False)
 
     class Meta:
         model = Dref
-        fields = '__all__'
         read_only_fields = ('modified_by', 'created_by', 'budget_file_preview')
+        exclude = ('cover_image', 'event_map', 'images')
 
     def to_representation(self, instance):
         def _remove_digits_after_decimal(value):
@@ -243,14 +322,26 @@ class DrefSerializer(
 
     def validate(self, data):
         event_date = data.get('event_date')
+        operation_timeframe = data.get('operation_timeframe')
+        is_assessment_report = data.get('is_assessment_report')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
                 'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
-        if self.instance and DrefFinalReport.objects.filter(dref=self.instance).exists():
-            raise serializers.ValidationError('Field Report already generated for dref %s' % self.instance.id)
+        if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
+            raise serializers.ValidationError(
+                ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+            )
+        if operation_timeframe and is_assessment_report and operation_timeframe > 30:
+            raise serializers.ValidationError(
+                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
+            )
+        if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 2:
+            raise serializers.ValidationError(
+                ugettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
+            )
         return data
 
     def validate_images(self, images):
@@ -290,12 +381,79 @@ class DrefSerializer(
             )
         return budget_file
 
+    def validate_assessment_report(self, assessment_report):
+        if assessment_report is None:
+            return
+        extension = os.path.splitext(assessment_report.file.name)[1].replace(".", "")
+        if extension.lower() not in self.ALLOWED_ASSESSMENT_REPORT_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'Invalid uploaded file extension: {extension}, Supported only {self.ALLOWED_ASSESSMENT_REPORT_EXTENSIONS} Files'
+            )
+        return assessment_report
+
+    def validate_operation_timeframe(self, operation_timeframe):
+        if operation_timeframe and operation_timeframe > self.MAX_OPERATION_TIMEFRAME:
+            raise serializers.ValidationError(
+                ugettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
+            )
+        return operation_timeframe
+
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
+        is_assessment_report = validated_data.get('is_assessment_report')
+        if is_assessment_report:
+            # Previous Operations
+            validated_data['lessons_learned'] = None
+            validated_data['affect_same_area'] = None
+            validated_data['affect_same_population'] = None
+            validated_data['ns_respond'] = None
+            validated_data['ns_request_fund'] = None
+            validated_data['assessment_report'] = None
+            # Event Description
+            validated_data['event_scope'] = None
+            validated_data['identified_gaps'] = None
+            # Targeted Population
+            validated_data['women'] = None
+            validated_data['men'] = None
+            validated_data['girls'] = None
+            validated_data['boys'] = None
+            # Support Services
+            validated_data['logistic_capacity_of_ns'] = None
+            validated_data['pmer'] = None
+            validated_data['communication'] = None
+            dref_assessment_report = super().create(validated_data)
+            dref_assessment_report.needs_identified.clear()
+            return dref_assessment_report
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
+        is_assessment_report = validated_data.get('is_assessment_report')
+        if is_assessment_report:
+            # Previous Operations
+            validated_data['lessons_learned'] = None
+            validated_data['affect_same_area'] = None
+            validated_data['affect_same_population'] = None
+            validated_data['ns_respond'] = None
+            validated_data['ns_request_fund'] = None
+            validated_data['ns_request_text'] = None
+            validated_data['dref_recurrent_text'] = None
+            validated_data['assessment_report'] = None
+            # Event Description
+            validated_data['event_scope'] = None
+            validated_data['identified_gaps'] = None
+            # Targeted Population
+            validated_data['women'] = None
+            validated_data['men'] = None
+            validated_data['girls'] = None
+            validated_data['boys'] = None
+            # Support Services
+            validated_data['logistic_capacity_of_ns'] = None
+            validated_data['pmer'] = None
+            validated_data['communication'] = None
+            dref_assessment_report = super().update(instance, validated_data)
+            dref_assessment_report.needs_identified.clear()
+            return dref_assessment_report
         return super().update(instance, validated_data)
 
 
@@ -310,22 +468,22 @@ class DrefOperationalUpdateSerializer(
     type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    images_details = DrefFileSerializer(source='images', many=True, read_only=True)
-    photos_details = DrefFileSerializer(source='photos', many=True, read_only=True)
+    event_map_file = DrefFileSerializer(source='event_map', required=False, allow_null=True)
+    cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
+    images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
+    photos_file = DrefFileSerializer(source='photos', many=True, required=False, allow_null=True)
     modified_by_details = UserNameSerializer(source='modified_by', read_only=True)
     disaster_type_details = DisasterTypeSerializer(source='disaster_type', read_only=True)
-    country_district = DrefOperationalUpdateCountryDistrictSerializer(
-        source='drefoperationalupdatecountrydistrict_set',
-        many=True,
-        required=False
-    )
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
-    cover_image_details = DrefFileSerializer(source='cover_image', read_only=True)
+    country_details = MiniCountrySerializer(source='country', read_only=True)
+    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+    assessment_report_file = DrefFileSerializer(source='assessment_report', required=False, allow_null=True)
+    risk_security = RiskSecuritySerializer(many=True, required=False)
 
     class Meta:
         model = DrefOperationalUpdate
-        fields = '__all__'
         read_only_fields = ('operational_update_number', )
+        exclude = ('images', 'photos', 'event_map', 'assessment_report', 'cover_image')
 
     def validate(self, data):
         dref = data.get('dref')
@@ -357,6 +515,7 @@ class DrefOperationalUpdateSerializer(
         dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
         if not dref_operational_update:
             validated_data['title'] = dref.title
+            validated_data['title_prefix'] = dref.title_prefix
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset
@@ -414,24 +573,33 @@ class DrefOperationalUpdateSerializer(
             validated_data['event_description'] = dref.event_description
             validated_data['anticipatory_actions'] = dref.anticipatory_actions
             validated_data['event_scope'] = dref.event_scope
-            validated_data['cover_image'] = dref.cover_image
             validated_data['budget_file'] = dref.budget_file
+            validated_data['country'] = dref.country
+            validated_data['risk_security_concern'] = dref.risk_security_concern
             operational_update = super().create(validated_data)
+            # XXX: Copy files from DREF (Only nested serialized fields)
+            nested_serialized_file_fields = [
+                'assessment_report',
+                'cover_image',
+                'event_map',
+            ]
+            for file_field in nested_serialized_file_fields:
+                dref_file = getattr(dref, file_field, None)
+                if dref_file:
+                    setattr(operational_update, file_field, dref_file.clone(self.context['request'].user))
+            operational_update.save(update_fields=nested_serialized_file_fields)
+            # M2M Fields
             operational_update.planned_interventions.add(*dref.planned_interventions.all())
             operational_update.images.add(*dref.images.all())
             operational_update.national_society_actions.add(*dref.national_society_actions.all())
             operational_update.needs_identified.add(*dref.needs_identified.all())
-            if DrefCountryDistrict.objects.filter(dref=dref).exists():
-                dref_country_district = DrefCountryDistrict.objects.filter(dref=dref)
-                for cd in dref_country_district:
-                    country_district = DrefOperationalUpdateCountryDistrict.objects.create(
-                        country=cd.country,
-                        dref_operational_update=operational_update
-                    )
-                    country_district.district.add(*cd.district.all())
+            operational_update.district.add(*dref.district.all())
+            operational_update.users.add(*dref.users.all())
+            operational_update.risk_security.add(*dref.risk_security.all())
         else:
             # get the latest dref operational update
             validated_data['title'] = dref_operational_update.title
+            validated_data['title_prefix'] = dref_operational_update.title_prefix
             validated_data['national_society'] = dref_operational_update.national_society
             validated_data['disaster_type'] = dref_operational_update.disaster_type
             validated_data['type_of_onset'] = dref_operational_update.type_of_onset
@@ -491,23 +659,60 @@ class DrefOperationalUpdateSerializer(
             validated_data['event_scope'] = dref_operational_update.event_scope
             validated_data['cover_image'] = dref_operational_update.cover_image
             validated_data['budget_file'] = dref_operational_update.budget_file
+            validated_data['assessment_report'] = dref_operational_update.assessment_report
+            validated_data['country'] = dref_operational_update.country
+            validated_data['risk_security_concern'] = dref_operational_update.risk_security_concern
             operational_update = super().create(validated_data)
             operational_update.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             operational_update.images.add(*dref_operational_update.images.all())
             operational_update.national_society_actions.add(*dref_operational_update.national_society_actions.all())
             operational_update.needs_identified.add(*dref_operational_update.needs_identified.all())
-            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update).exists():
-                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update)
-                for cd in dref_country_district:
-                    country_district = DrefOperationalUpdateCountryDistrict.objects.create(
-                        country=cd.country,
-                        dref_operational_update=operational_update
-                    )
-                    country_district.district.add(*cd.district.all())
+            operational_update.district.add(*dref_operational_update.district.all())
+            operational_update.users.add(*dref_operational_update.users.all())
+            operational_update.risk_security.add(*dref_operational_update.risk_security.all())
         return operational_update
 
     def update(self, instance, validated_data):
         validated_data['updated_by'] = self.context['request'].user
+        changing_timeframe_operation = validated_data.get('changing_timeframe_operation', instance.changing_timeframe_operation)
+        total_operation_timeframe = validated_data.get('total_operation_timeframe', instance.total_operation_timeframe)
+        number_of_people_targeted = validated_data.get('number_of_people_targeted', instance.number_of_people_targeted)
+        request_for_second_allocation = validated_data.get('request_for_second_allocation', instance.request_for_second_allocation)
+        additional_allocation = validated_data.get('additional_allocation', instance.additional_allocation)
+        changing_target_population_of_operation = validated_data.get('changing_target_population_of_operation', instance.changing_target_population_of_operation)
+        changing_geographic_location = validated_data.get('changing_geographic_location', instance.changing_geographic_location)
+        district = validated_data.get('district', instance.district)
+        dref_operation_timeframe = validated_data.get('dref', instance.dref).operation_timeframe
+        dref_target_population_of_operation = validated_data.get('dref', instance.dref).total_targeted_population
+        dref_amount_requested = validated_data.get('dref', instance.dref).amount_requested
+        dref_district = validated_data.get('dref', instance.dref).district.all()
+
+        if (not changing_timeframe_operation) and total_operation_timeframe and dref_operation_timeframe and\
+        total_operation_timeframe != dref_operation_timeframe:
+            raise serializers.ValidationError('Found diffrent operation timeframe for dref and operational update with changing not set to true')
+
+        if changing_timeframe_operation and total_operation_timeframe and dref_operation_timeframe and\
+        total_operation_timeframe == dref_operation_timeframe:
+            raise serializers.ValidationError('Found same operation timeframe for dref and operational update with changing set to true')
+
+        if (not changing_target_population_of_operation) and number_of_people_targeted and dref_target_population_of_operation and\
+        dref_target_population_of_operation != number_of_people_targeted:
+            raise serializers.ValidationError('Found diffrent targeted population for dref and operational update with changing not set to true')
+
+        if changing_target_population_of_operation and number_of_people_targeted and dref_target_population_of_operation and\
+        dref_target_population_of_operation == number_of_people_targeted:
+            raise serializers.ValidationError('Found same targeted population for dref and operational update with changing set to true')
+
+        # if request_for_second_allocation and additional_allocation and dref_amount_requested != additional_allocation:
+        #     raise serializers.ValidationError('Found diffrent allocation for dref and operation update')
+
+        # FIXME: district order might different but they should be considered same
+        # if (not changing_geographic_location) and district and dref_district and district != dref_district:
+        #     raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
+
+        # if changing_geographic_location and district and dref_district and district == dref_district:
+        #     raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
+
         return super().update(instance, validated_data)
 
 
@@ -523,22 +728,15 @@ class DrefFinalReportSerializer(
     type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    country_district = DrefFinalReportCountryDistrictSerializer(
-        source='dreffinalreportcountrydistrict_set',
-        many=True,
-        required=False
-    )
     event_map_details = DrefFileSerializer(source='event_map', read_only=True)
     photos_details = DrefFileSerializer(source='photos', many=True, read_only=True)
+    country_details = MiniCountrySerializer(source='country', read_only=True)
+    district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
+    assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
 
     class Meta:
         model = DrefFinalReport
         fields = '__all__'
-
-    def validate_dref(self, dref):
-        if DrefFinalReport.objects.filter(dref=dref).exists():
-            raise serializers.ValidationError('Final report already created for dref %s' % dref.id)
-        return dref
 
     def validate(self, data):
         dref = data.get('dref')
@@ -558,6 +756,12 @@ class DrefFinalReportSerializer(
                         'Can\'t create Final Report for not published Operational Update %s ids ' % ','.join(map(str, dref_operational_update))
                     )
                 )
+        if self.instance and self.instance.is_published:
+            raise serializers.ValidationError(
+                ugettext(
+                    'Can\'t update published final report %s.' % self.instance.id
+                )
+            )
         return data
 
     def validate_photos(self, photos):
@@ -575,11 +779,13 @@ class DrefFinalReportSerializer(
         ).order_by('-operational_update_number').first()
         if dref_operational_update:
             validated_data['title'] = dref_operational_update.title
+            validated_data['title_prefix'] = dref_operational_update.title_prefix
             validated_data['national_society'] = dref_operational_update.national_society
             validated_data['disaster_type'] = dref_operational_update.disaster_type
             validated_data['type_of_onset'] = dref_operational_update.type_of_onset
             validated_data['disaster_category'] = dref_operational_update.disaster_category
             validated_data['number_of_people_targeted'] = dref_operational_update.number_of_people_targeted
+            validated_data['number_of_people_affected'] = dref_operational_update.number_of_people_affected
             validated_data['total_dref_allocation'] = dref_operational_update.total_dref_allocation
             validated_data['total_operation_timeframe'] = dref_operational_update.total_operation_timeframe
             validated_data['operation_start_date'] = dref_operational_update.dref.date_of_approval
@@ -632,24 +838,21 @@ class DrefFinalReportSerializer(
             validated_data['anticipatory_actions'] = dref_operational_update.anticipatory_actions
             validated_data['event_scope'] = dref_operational_update.event_scope
             validated_data['event_map'] = dref_operational_update.dref.event_map
+            validated_data['assessment_report'] = dref_operational_update.assessment_report
+            validated_data['country'] = dref_operational_update.country
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref_operational_update.needs_identified.all())
-            if DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update).exists():
-                dref_country_district = DrefOperationalUpdateCountryDistrict.objects.filter(dref_operational_update=dref_operational_update)
-                for cd in dref_country_district:
-                    country_district = DrefFinalReportCountryDistrict.objects.create(
-                        country=cd.country,
-                        dref_final_report=dref_final_report
-                    )
-                    country_district.district.add(*cd.district.all())
+            dref_final_report.district.add(*dref_operational_update.district.all())
         else:
             validated_data['title'] = dref.title
+            validated_data['title_prefix'] = dref.title_prefix
             validated_data['national_society'] = dref.national_society
             validated_data['disaster_type'] = dref.disaster_type
             validated_data['type_of_onset'] = dref.type_of_onset
             validated_data['disaster_category'] = dref.disaster_category
             validated_data['number_of_people_targeted'] = dref.num_assisted
+            validated_data['number_of_people_affected'] = dref.num_affected
             validated_data['total_operation_timeframe'] = dref.operation_timeframe
             validated_data['operation_start_date'] = dref.date_of_approval
             validated_data['appeal_code'] = dref.appeal_code
@@ -700,17 +903,15 @@ class DrefFinalReportSerializer(
             validated_data['anticipatory_actions'] = dref.anticipatory_actions
             validated_data['event_scope'] = dref.event_scope
             validated_data['event_map'] = dref.event_map
+            validated_data['assessment_report'] = dref.assessment_report
+            validated_data['country'] = dref.country
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref.needs_identified.all())
-            if DrefCountryDistrict.objects.filter(dref=dref).exists():
-                dref_country_district = DrefCountryDistrict.objects.filter(dref=dref)
-                for cd in dref_country_district:
-                    country_district = DrefFinalReportCountryDistrict.objects.create(
-                        country=cd.country,
-                        dref_final_report=dref_final_report
-                    )
-                    country_district.district.add(*cd.district.all())
+            dref_final_report.district.add(*dref.district.all())
+            # also update is_final_report_created for dref
+            dref.is_final_report_created = True
+            dref.save(update_fields=['is_final_report_created'])
         return dref_final_report
 
     def update(self, instance, validated_data):

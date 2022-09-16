@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext
 
 from rest_framework import (
     views,
@@ -8,6 +9,7 @@ from rest_framework import (
     permissions,
     status,
     mixins,
+    serializers,
 )
 from rest_framework.decorators import action
 from dref.models import (
@@ -18,12 +20,16 @@ from dref.models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
+    DrefFileUpload
 )
 from dref.serializers import (
     DrefSerializer,
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
+    DrefFileUploadSerializer,
+    DrefImminentFileUploadSerializer,
+    DrefAssessmentFileUploadSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -103,6 +109,29 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
             'dref__planned_interventions',
             'dref__needs_identified',
         ).order_by('-created_at').distinct()
+
+
+    @action(
+        detail=True,
+        url_path='publish',
+        methods=['post'],
+        serializer_class=DrefFinalReportSerializer,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_published(self, request, pk=None, version=None):
+        field_report = self.get_object()
+        if field_report.is_published:
+            raise serializers.ValidationError(
+                ugettext('Final Report %s is already published' % field_report)
+            )
+        if not field_report.is_published:
+            field_report.is_published = True
+            field_report.save(update_fields=['is_published'])
+        if not field_report.dref.is_final_report_created:
+            field_report.dref.is_final_report_created = True
+            field_report.dref.save(update_fields=['is_final_report_created'])
+        serializer = DrefFinalReportSerializer(field_report, context={'request': request})
+        return response.Response(serializer.data)
 
 
 class DrefOptionsView(views.APIView):
@@ -189,3 +218,39 @@ class DrefFileViewSet(
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DrefFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
+
+
+class DrefImminentFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefImminentFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
+
+
+class DrefAssessmentFileUploadViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = DrefAssessmentFileUploadSerializer
+
+    def get_queryset(self):
+        return DrefFileUpload.objects.filter(created_by=self.request.user)
