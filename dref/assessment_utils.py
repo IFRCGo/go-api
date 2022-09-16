@@ -88,27 +88,20 @@ def parse_planned_intervention_title(title):
     return title_dict.get(title)
 
 
-def parse_disaster_category(disaster_category):
-    if disaster_category == 'Yellow':
-        disaster_category = Dref.DisasterCategory.YELLOW
-    elif disaster_category == 'Orange':
-        disaster_category = Dref.DisasterCategory.ORANGE
-    elif disaster_category == 'Red':
-        disaster_category = Dref.DisasterCategory.RED
-    return None
-
-
 def parse_disaster_type(disaster_type):
-    return DisasterType.objects.filter(name__icontains=disaster_type).first()
+    try:
+        return DisasterType.objects.filter(name__icontains=disaster_type).first()
+    except ValueError:
+        return None
 
 
-def parse_type_of_onset(type):
-    if type == 'Slow':
-        type = Dref.OnsetType.SLOW
-    elif type == 'Sudden':
-        type = Dref.OnsetType.SUDDEN
-    elif type == 'Imminent':
-        type = Dref.OnsetType.IMMINENT
+def parse_type_of_onset(onset_type):
+    if onset_type == 'Slow':
+        return Dref.OnsetType.SLOW
+    elif onset_type == 'Sudden':
+        return Dref.OnsetType.SUDDEN
+    elif onset_type == 'Imminent':
+        return Dref.OnsetType.IMMINENT
     return None
 
 
@@ -148,16 +141,16 @@ def extract_assessment_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    country_name = cells(6, 0, 1)
-    data['country'] = Country.objects.filter(name_en__icontains=country_name).first()
-    if data['country'] is None:
-        raise serializers.ValidationError('A valid country is required')
+    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    if country is None:
+        raise serializers.ValidationError('A valid country name is required')
+    data['country'] = country
 
     # TODO: Check for District
     description = paragraphs[7] or []
     data['event_description'] = ''.join(description) if description else None
 
-    # National Socierty Actions
+    # National Society Actions
     cells = get_table_cells(1)
     # National Society
     national_society_titles = [
@@ -188,11 +181,12 @@ def extract_assessment_file(doc, created_by):
                 'description': description
             })
 
-    # Crete national Society objects db level
-    national_societys = []
+    # Create National Society objects db level
+    national_societies = []
     for national_data in national_society_actions:
-        national = NationalSocietyAction.objects.create(**national_data)
-        national_societys.append(national)
+        if national_data['description']:
+            national = NationalSocietyAction.objects.create(**national_data)
+            national_societies.append(national)
 
     ## Movement Parameters
     cells = get_table_cells(2)
@@ -258,8 +252,9 @@ def extract_assessment_file(doc, created_by):
 
     mitigation_list = []
     for action in mitigation_actions:
-        risk_security = RiskSecurity.objects.create(**action)
-        mitigation_list.append(risk_security)
+        if action['risk'] or action['mitigation']:
+            risk_security = RiskSecurity.objects.create(**action)
+            mitigation_list.append(risk_security)
     data['risk_security_concern'] = cells(6, 0)
 
     # PlannedIntervention Table
@@ -279,8 +274,9 @@ def extract_assessment_file(doc, created_by):
 
         indicators_object_list = []
         for indicator in indicators:
-            planned_object = PlannedInterventionIndicators.objects.create(**indicator)
-            indicators_object_list.append(planned_object)
+            if indicator['title']:
+                planned_object = PlannedInterventionIndicators.objects.create(**indicator)
+                indicators_object_list.append(planned_object)
 
         priority_description = cells(6, 1)
         planned_data = {
@@ -289,10 +285,10 @@ def extract_assessment_file(doc, created_by):
             'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
-
-        planned = PlannedIntervention.objects.create(**planned_data)
-        planned.indicators.add(*indicators_object_list)
-        planned_intervention.append(planned)
+        if planned_data['budget'] or planned_data['person_targeted'] or planned_data['description']:
+            planned = PlannedIntervention.objects.create(**planned_data)
+            planned.indicators.add(*indicators_object_list)
+            planned_intervention.append(planned)
 
     # About Support Service
     human_resource_description = paragraphs[55] or []
@@ -326,7 +322,7 @@ def extract_assessment_file(doc, created_by):
         data['ifrc_emergency_phone_number'] = get_nth(ifrc_emergency, 7)
         data['ifrc_emergency_name'] = get_nth(ifrc_emergency, 0)
     except IndexError:
-        # FIXME: raise validation eorrr
+        # FIXME: raise validation error
         pass
 
     try:
@@ -336,15 +332,15 @@ def extract_assessment_file(doc, created_by):
         data['media_contact_phone_number'] = get_nth(media, 7)
         data['media_contact_name'] = get_nth(media, 0)
     except IndexError:
-        # FIXME: raise validation eorrr
+        # FIXME: raise validation error
         pass
 
     data['is_published'] = False
-    data['national_society'] = Country.objects.filter(name_en__icontains=country_name).first()
+    data['national_society'] = country
     data['created_by'] = created_by
     data['is_assessment_report'] = True
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
-    dref.national_society_actions.add(*national_societys)
+    dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
     return dref

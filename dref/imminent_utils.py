@@ -90,7 +90,10 @@ def parse_planned_intervention_title(title):
 
 
 def parse_disaster_type(disaster_type):
-    return DisasterType.objects.filter(name__icontains=disaster_type).first()
+    try:
+        return DisasterType.objects.filter(name__icontains=disaster_type).first()
+    except ValueError:
+        pass
 
 
 def parse_type_of_onset(onset_type):
@@ -114,10 +117,14 @@ def extract_imminent_file(doc, created_by):
 
     def get_table_cells(table_idx):
         table = tables[table_idx]
-        def f(r, c, i=0, as_list=False):
-            if as_list:
-                return table[r][c]
-            return _t(table[r][c], i)
+
+        def f(r, c, d=0, as_list=False):
+            try:
+                if as_list:
+                    return table[r][c]
+                return _t(table[r][c], d)
+            except(IndexError, ValueError):
+                pass
         return f
     document = docx.Document(doc)
     data = {}
@@ -140,9 +147,10 @@ def extract_imminent_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    data['country'] = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
-    if data['country'] is None:
-        raise serializers.ValidationError('A valid country is required')
+    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    if country is None:
+        raise serializers.ValidationError('A valid country name is required')
+    data['country'] = country
 
     paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
     event_desc = []
@@ -203,8 +211,8 @@ def extract_imminent_file(doc, created_by):
         for desc in lessons_learned_text:
             lessons_learned_text.append(desc.text)
     data['lessons_learned'] = ''.join(lessons_learned_text) if lessons_learned_text else None
-    # National Socierty Actions
-    cells = get_table_cells(1)
+    # National Society Actions
+    cells = get_table_cells(2)
     # National Society
     national_society_actions = []
     national_society_titles = [
@@ -230,18 +238,18 @@ def extract_imminent_file(doc, created_by):
     for i, title in enumerate(national_society_titles):
         description = cells(i, 1)
         if description:
-             national_society_actions.append({
+            national_society_actions.append({
                 'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
                 'description': description
             })
-
     # Create national Society objects db level
-    national_societys = []
+    national_societies = []
     for national_data in national_society_actions:
-        national = NationalSocietyAction.objects.create(**national_data)
-        national_societys.append(national)
+        if national_data['description']:
+            national = NationalSocietyAction.objects.create(**national_data)
+            national_societies.append(national)
 
-    cells = get_table_cells(2)
+    cells = get_table_cells(3)
     ifrc_desc = cells(0, 1, as_list=True) or []
 
     data['ifrc'] = ''.join(ifrc_desc) if ifrc_desc else None
@@ -252,7 +260,7 @@ def extract_imminent_file(doc, created_by):
     data['icrc'] = ''.join(icrc_desc) if icrc_desc else None
 
     # Other actors
-    cells = get_table_cells(3)
+    cells = get_table_cells(4)
     data['government_requested_assistance'] = parse_boolean(cells(0, 1))
     national_authorities = cells(1, 1, as_list=True) or []
     data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
@@ -290,8 +298,41 @@ def extract_imminent_file(doc, created_by):
             selection_criteria_description.append(desc.text)
     data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
 
+    # NeedsIdentified
+    cells = get_table_cells(5)
+    needs_identified = []
+    needs_titles = [
+        IdentifiedNeed.Title.SHELTER_HOUSING_AND_SETTLEMENTS,
+        IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION,
+        IdentifiedNeed.Title.HEALTH,
+        IdentifiedNeed.Title.WATER_SANITATION_AND_HYGIENE,
+        IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION,
+        IdentifiedNeed.Title.EDUCATION,
+        IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY,
+        IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY,
+        IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY,
+        IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION,
+    ]
+    for i, needs_title in enumerate(needs_titles):
+        try:
+            description = cells(i * 2 + 1, 0)  # Use Every alternate row, so i*2 + 1
+            if description:
+                data_new = {
+                    'title': needs_title,
+                    'description': description
+                }
+                needs_identified.append(data_new)
+        except IndexError:
+            pass
+
+    needs = []
+    for need in needs_identified:
+        if need['description']:
+            identified = IdentifiedNeed.objects.create(**need)
+            needs.append(identified)
+
     # Targeting Population
-    cells = get_table_cells(4)
+    cells = get_table_cells(6)
     data['women'] = parse_string_to_int(cells(0, 1))
     data['girls'] = parse_string_to_int(cells(1, 1))
     data['men'] = parse_string_to_int(cells(2, 1))
@@ -305,7 +346,7 @@ def extract_imminent_file(doc, created_by):
     data['people_targeted_with_early_actions'] = None
 
     # Risk And Security Considerations
-    cells = get_table_cells(5)
+    cells = get_table_cells(7)
     mitigation_actions = []
     for i in range(2, 5):
         risk = cells(i, 0)
@@ -315,20 +356,21 @@ def extract_imminent_file(doc, created_by):
             'mitigation': mitigation,
         }
         mitigation_actions.append(data_row)
-
     mitigation_list = []
     for action in mitigation_actions:
-        risk_security = RiskSecurity.objects.create(**action)
-        mitigation_list.append(risk_security)
+        if action['risk'] or action['mitigation']:
+            risk_security = RiskSecurity.objects.create(**action)
+            mitigation_list.append(risk_security)
     data['risk_security_concern'] = cells(6, 0)
 
     # PlannedIntervention Table
     planned_intervention = []
-    for i in range(6, 19):
+    for i in range(8, 20):
         cells = get_table_cells(i)
         title = cells(0, 1, 0)
+        print(title)
         budget = cells(0, 3, 1)
-        targated_population = cells(1, 3)
+        targeted_population = cells(1, 3)
 
         indicators = []
         for j in range(3, 6):
@@ -347,13 +389,13 @@ def extract_imminent_file(doc, created_by):
         planned_data = {
             'title': parse_planned_intervention_title(title),
             'budget': parse_int(budget),
-            'person_targeted': parse_int(targated_population),
+            'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
-
-        planned = PlannedIntervention.objects.create(**planned_data)
-        planned.indicators.add(*indicators_object_list)
-        planned_intervention.append(planned)
+        if planned_data['budget'] or planned_data['person_targeted'] or planned_data['description']:
+            planned = PlannedIntervention.objects.create(**planned_data)
+            planned.indicators.add(*indicators_object_list)
+            planned_intervention.append(planned)
 
     # About Support Service
     paragraph53 = document.paragraphs[53]._element.xpath('.//w:t')
@@ -402,58 +444,70 @@ def extract_imminent_file(doc, created_by):
     national_society_contact = []
     for paragraph in paragraph63:
         national_society_contact.append(paragraph.text)
-
-    data['national_society_contact_title'] = national_society_contact[3]
-    data['national_society_contact_email'] = national_society_contact[5]
-    data['national_society_contact_phone_number'] = national_society_contact[7]
-    data['national_society_contact_name'] = national_society_contact[0]
+    try:
+        data['national_society_contact_title'] = national_society_contact[3]
+        data['national_society_contact_email'] = national_society_contact[5]
+        data['national_society_contact_phone_number'] = national_society_contact[7]
+        data['national_society_contact_name'] = national_society_contact[0]
+    except IndexError:
+        pass
 
     paragraph64 = document.paragraphs[64]._element.xpath('.//w:t')
     ifrc_appeal_manager = []
     for paragraph in paragraph64:
         ifrc_appeal_manager.append(paragraph.text)
-
-    data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3]
-    data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5]
-    data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7]
-    data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0]
+    try:
+        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3]
+        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5]
+        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7]
+        data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0]
+    except IndexError:
+        pass
 
     paragraph65 = document.paragraphs[65]._element.xpath('.//w:t')
     ifrc_project_manager = []
     for paragraph in paragraph65:
         ifrc_project_manager.append(paragraph.text)
-    data['ifrc_project_manager_title'] = ifrc_project_manager[3]
-    data['ifrc_project_manager_email'] = ifrc_project_manager[5]
-    data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7]
-    data['ifrc_project_manager_name'] = ifrc_project_manager[0]
+    try:
+        data['ifrc_project_manager_title'] = ifrc_project_manager[3]
+        data['ifrc_project_manager_email'] = ifrc_project_manager[5]
+        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7]
+        data['ifrc_project_manager_name'] = ifrc_project_manager[0]
+    except IndexError:
+        pass
 
     paragraph66 = document.paragraphs[66]._element.xpath('.//w:t')
     ifrc_emergency = []
     for paragraph in paragraph66:
         ifrc_emergency.append(paragraph.text)
-    data['ifrc_emergency_title'] = ifrc_emergency[3]
-    data['ifrc_emergency_email'] = ifrc_emergency[5]
-    data['ifrc_emergency_phone_number'] = ifrc_emergency[7]
-    data['ifrc_emergency_name'] = ifrc_emergency[0]
+    try:
+        data['ifrc_emergency_title'] = ifrc_emergency[3]
+        data['ifrc_emergency_email'] = ifrc_emergency[5]
+        data['ifrc_emergency_phone_number'] = ifrc_emergency[7]
+        data['ifrc_emergency_name'] = ifrc_emergency[0]
+    except IndexError:
+        pass
 
     paragraph67 = document.paragraphs[67]._element.xpath('.//w:t')
     media = []
     for paragraph in paragraph67:
         media.append(paragraph.text)
-    data['media_contact_title'] = media[3]
-    data['media_contact_email'] = media[5]
-    data['media_contact_phone_number'] = media[7]
-    data['media_contact_name'] = media[0]
+    try:
+        data['media_contact_title'] = media[3]
+        data['media_contact_email'] = media[5]
+        data['media_contact_phone_number'] = media[7]
+        data['media_contact_name'] = media[0]
+    except IndexError:
+        pass
 
     data['is_published'] = False
-    # FIXME: The country name access is not reliable.
-    data['national_society'] = Country.objects.filter(name_en__icontains=cells(6, 0)).first()
+    data['national_society'] = country
     data['created_by'] = created_by
 
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
     # NOTE: No need needs for imminent
     # dref.needs_identified.add(*needs)
-    dref.national_society_actions.add(*national_societys)
+    dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
     return dref
