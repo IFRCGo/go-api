@@ -92,13 +92,13 @@ def parse_disaster_type(disaster_type):
     return DisasterType.objects.filter(name__icontains=disaster_type).first()
 
 
-def parse_type_of_onset(type):
-    if type == 'Slow':
-        type = Dref.OnsetType.SLOW
-    elif type == 'Sudden':
-        type = Dref.OnsetType.SUDDEN
-    elif type == 'Imminent':
-        type = Dref.OnsetType.IMMINENT
+def parse_type_of_onset(onset_type):
+    if onset_type == 'Slow':
+        return Dref.OnsetType.SLOW
+    elif onset_type == 'Sudden':
+        return Dref.OnsetType.SUDDEN
+    elif onset_type == 'Imminent':
+        return Dref.OnsetType.IMMINENT
     return None
 
 
@@ -147,7 +147,7 @@ def extract_assessment_file(doc, created_by):
     description = paragraphs[7] or []
     data['event_description'] = ''.join(description) if description else None
 
-    # National Socierty Actions
+    # National Society Actions
     cells = get_table_cells(1)
     # National Society
     national_society_titles = [
@@ -178,11 +178,11 @@ def extract_assessment_file(doc, created_by):
                 'description': description
             })
 
-    # Crete national Society objects db level
-    national_societys = []
+    # Create National Society objects db level
+    national_societies = []
     for national_data in national_society_actions:
         national = NationalSocietyAction.objects.create(**national_data)
-        national_societys.append(national)
+        national_societies.append(national)
 
     ## Movement Parameters
     cells = get_table_cells(2)
@@ -316,7 +316,7 @@ def extract_assessment_file(doc, created_by):
         data['ifrc_emergency_phone_number'] = get_nth(ifrc_emergency, 7)
         data['ifrc_emergency_name'] = get_nth(ifrc_emergency, 0)
     except IndexError:
-        # FIXME: raise validation eorrr
+        # FIXME: raise validation error
         pass
 
     try:
@@ -326,7 +326,7 @@ def extract_assessment_file(doc, created_by):
         data['media_contact_phone_number'] = get_nth(media, 7)
         data['media_contact_name'] = get_nth(media, 0)
     except IndexError:
-        # FIXME: raise validation eorrr
+        # FIXME: raise validation error
         pass
 
     data['is_published'] = False
@@ -335,6 +335,6 @@ def extract_assessment_file(doc, created_by):
     data['is_assessment_report'] = True
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
-    dref.national_society_actions.add(*national_societys)
+    dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
     return dref

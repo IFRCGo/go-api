@@ -244,7 +244,7 @@ def extract_file(doc, created_by):
     except IndexError:
         pass
 
-    # National Socierty Actions
+    # National Society Actions
     action_titles = [
         NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
         NationalSocietyAction.Title.ASSESSMENT,
@@ -282,11 +282,11 @@ def extract_file(doc, created_by):
             pass
 
     # Crete national Society objects db level
-    national_societys = []
+    national_societies = []
     for national_data in national_society_actions:
         if national_data['description']:
             national = NationalSocietyAction.objects.create(**national_data)
-            national_societys.append(national)
+            national_societies.append(national)
     # Other actors
     cells = get_table_cells(4)
     try:
@@ -506,6 +506,6 @@ def extract_file(doc, created_by):
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
     dref.needs_identified.add(*needs)
-    dref.national_society_actions.add(*national_societys)
+    dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*risk_security_list)
     return dref

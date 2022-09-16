@@ -114,10 +114,10 @@ def extract_imminent_file(doc, created_by):
 
     def get_table_cells(table_idx):
         table = tables[table_idx]
-        def f(r, c, i=0, as_list=False):
+        def f(r, c, d=0, as_list=False):
             if as_list:
                 return table[r][c]
-            return _t(table[r][c], i)
+            return _t(table[r][c], d)
         return f
     document = docx.Document(doc)
     data = {}
@@ -204,7 +204,7 @@ def extract_imminent_file(doc, created_by):
         for desc in lessons_learned_text:
             lessons_learned_text.append(desc.text)
     data['lessons_learned'] = ''.join(lessons_learned_text) if lessons_learned_text else None
-    # National Socierty Actions
+    # National Society Actions
     cells = get_table_cells(1)
     # National Society
     national_society_actions = []
@@ -231,16 +231,16 @@ def extract_imminent_file(doc, created_by):
     for i, title in enumerate(national_society_titles):
         description = cells(i, 1)
         if description:
-             national_society_actions.append({
+            national_society_actions.append({
                 'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
                 'description': description
             })
 
     # Create national Society objects db level
-    national_societys = []
+    national_societies = []
     for national_data in national_society_actions:
         national = NationalSocietyAction.objects.create(**national_data)
-        national_societys.append(national)
+        national_societies.append(national)
 
     cells = get_table_cells(2)
     ifrc_desc = cells(0, 1, as_list=True) or []
@@ -329,7 +329,7 @@ def extract_imminent_file(doc, created_by):
         cells = get_table_cells(i)
         title = cells(0, 1, 0)
         budget = cells(0, 3, 1)
-        targated_population = cells(1, 3)
+        targeted_population = cells(1, 3)
 
         indicators = []
         for j in range(3, 6):
@@ -348,7 +348,7 @@ def extract_imminent_file(doc, created_by):
         planned_data = {
             'title': parse_planned_intervention_title(title),
             'budget': parse_int(budget),
-            'person_targeted': parse_int(targated_population),
+            'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
 
@@ -454,6 +454,6 @@ def extract_imminent_file(doc, created_by):
     dref.planned_interventions.add(*planned_intervention)
     # NOTE: No need needs for imminent
     # dref.needs_identified.add(*needs)
-    dref.national_society_actions.add(*national_societys)
+    dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
     return dref
