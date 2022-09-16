@@ -89,8 +89,10 @@ def parse_planned_intervention_title(title):
 
 
 def parse_disaster_type(disaster_type):
-    return DisasterType.objects.filter(name__icontains=disaster_type).first()
-
+    try:
+        return DisasterType.objects.filter(name__icontains=disaster_type).first()
+    except ValueError:
+        return None
 
 def parse_type_of_onset(type):
     if type == 'Slow':
@@ -181,8 +183,9 @@ def extract_assessment_file(doc, created_by):
     # Crete national Society objects db level
     national_societys = []
     for national_data in national_society_actions:
-        national = NationalSocietyAction.objects.create(**national_data)
-        national_societys.append(national)
+        if national_data['description']:
+            national = NationalSocietyAction.objects.create(**national_data)
+            national_societys.append(national)
 
     ## Movement Parameters
     cells = get_table_cells(2)
@@ -248,8 +251,9 @@ def extract_assessment_file(doc, created_by):
 
     mitigation_list = []
     for action in mitigation_actions:
-        risk_security = RiskSecurity.objects.create(**action)
-        mitigation_list.append(risk_security)
+        if action['risk'] or action['mitigation']:
+            risk_security = RiskSecurity.objects.create(**action)
+            mitigation_list.append(risk_security)
     data['risk_security_concern'] = cells(6, 0)
 
     # PlannedIntervention Table
@@ -269,8 +273,9 @@ def extract_assessment_file(doc, created_by):
 
         indicators_object_list = []
         for indicator in indicators:
-            planned_object = PlannedInterventionIndicators.objects.create(**indicator)
-            indicators_object_list.append(planned_object)
+            if indicator['title']:
+                planned_object = PlannedInterventionIndicators.objects.create(**indicator)
+                indicators_object_list.append(planned_object)
 
         priority_description = cells(6, 1)
         planned_data = {
@@ -279,10 +284,10 @@ def extract_assessment_file(doc, created_by):
             'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
-
-        planned = PlannedIntervention.objects.create(**planned_data)
-        planned.indicators.add(*indicators_object_list)
-        planned_intervention.append(planned)
+        if planned_data['budget'] or planned_data['person_targeted'] or planned_data['description']:
+            planned = PlannedIntervention.objects.create(**planned_data)
+            planned.indicators.add(*indicators_object_list)
+            planned_intervention.append(planned)
 
     # About Support Service
     human_resource_description = paragraphs[55] or []
