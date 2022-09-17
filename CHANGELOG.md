@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.454
+
+### Added
+ - Unhiding and fixing Annual Figures input
+ - DREF import fixes
+
 ## 1.1.453
 
 ### Added
@@ -2043,7 +2049,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.453...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.454...HEAD
+[1.1.454]: https://github.com/IFRCGo/go-api/compare/1.1.453...1.1.454
 [1.1.453]: https://github.com/IFRCGo/go-api/compare/1.1.452...1.1.453
 [1.1.452]: https://github.com/IFRCGo/go-api/compare/1.1.451...1.1.452
 [1.1.451]: https://github.com/IFRCGo/go-api/compare/1.1.450...1.1.451
