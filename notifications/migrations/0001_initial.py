@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import notifications.models
 
 
@@ -23,8 +22,8 @@ class Migration(migrations.Migration):
             name='Subscription',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('stype', enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SubscriptionType)),
-                ('rtype', enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.RecordType)),
+                ('stype', models.IntegerField(default=0, choices=notifications.models.SubscriptionType.choices)),
+                ('rtype', models.IntegerField(default=0, choices=notifications.models.RecordType.choices)),
                 ('lookup_id', models.CharField(blank=True, editable=False, max_length=20, null=True)),
                 ('country', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.Country')),
                 ('dtype', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.DisasterType')),
@@ -36,8 +35,8 @@ class Migration(migrations.Migration):
             name='SurgeAlert',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('atype', enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SurgeAlertType)),
-                ('category', enumfields.fields.EnumIntegerField(default=0, enum=notifications.models.SurgeAlertCategory)),
+                ('atype', models.IntegerField(default=0, choices=notifications.models.SurgeAlertType.choices)),
+                ('category', models.IntegerField(default=0, choices=notifications.models.SurgeAlertCategory.choices)),
                 ('operation', models.CharField(max_length=100)),
                 ('message', models.TextField()),
                 ('deployment_needed', models.BooleanField(default=False)),

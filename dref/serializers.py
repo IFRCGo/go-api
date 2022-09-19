@@ -1,13 +1,12 @@
 import os
 import datetime
 
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.db import models
 
 from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
@@ -264,7 +263,6 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
 
 
 class DrefSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer
@@ -326,21 +324,21 @@ class DrefSerializer(
         is_assessment_report = data.get('is_assessment_report')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
-                'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
+                'event_date': gettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
             raise serializers.ValidationError(
-                ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+                gettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
             )
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
-                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
+                gettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
             )
         if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 2:
             raise serializers.ValidationError(
-                ugettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
+                gettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
             )
         return data
 
@@ -348,7 +346,7 @@ class DrefSerializer(
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(
-                ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
+                gettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
         images_id = [image.id for image in images]
         images_without_access_qs = DrefFile.objects.filter(
@@ -365,7 +363,7 @@ class DrefSerializer(
         images_id_without_access = images_without_access_qs.values_list('id', flat=True)
         if images_id_without_access:
             raise serializers.ValidationError(
-                ugettext(
+                gettext(
                     'Only image owner can attach image. Not allowed image ids: %s' % ','.join(map(str, images_id_without_access))
                 )
             )
@@ -394,7 +392,7 @@ class DrefSerializer(
     def validate_operation_timeframe(self, operation_timeframe):
         if operation_timeframe and operation_timeframe > self.MAX_OPERATION_TIMEFRAME:
             raise serializers.ValidationError(
-                ugettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
+                gettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
             )
         return operation_timeframe
 
@@ -490,13 +488,13 @@ class DrefOperationalUpdateSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
+                    gettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
                 )
             # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
             dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
             if dref_operational_update and not dref_operational_update.is_published:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Operational Update for not published Operational Update %s id and Operational Update Number %i.'
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
@@ -744,7 +742,7 @@ class DrefFinalReportSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Final Report for not published dref %s.' % dref.id)
+                    gettext('Can\'t create Final Report for not published dref %s.' % dref.id)
                 )
             dref_operational_update = DrefOperationalUpdate.objects.filter(
                 dref=dref,
@@ -752,13 +750,13 @@ class DrefFinalReportSerializer(
             ).values_list('id', flat=True)
             if dref_operational_update:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Final Report for not published Operational Update %s ids ' % ','.join(map(str, dref_operational_update))
                     )
                 )
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError(
-                ugettext(
+                gettext(
                     'Can\'t update published final report %s.' % self.instance.id
                 )
             )

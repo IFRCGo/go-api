@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='ns_request_assistance',
-            field=models.NullBooleanField(default=None, verbose_name='NS request assistance'),
+            field=models.BooleanField(default=None, verbose_name='NS request assistance'),
         ),
         migrations.AlterField(
             model_name='fieldreport',
             name='request_assistance',
-            field=models.NullBooleanField(default=None, verbose_name='request assistance'),
+            field=models.BooleanField(default=None, verbose_name='request assistance'),
         ),
     ]

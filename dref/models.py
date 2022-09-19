@@ -6,7 +6,7 @@ from pdf2image import convert_from_bytes
 
 from django.db import models
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 
@@ -16,13 +16,12 @@ from api.models import (
     District,
     FieldReport
 )
-from main.enums import TextChoices, IntegerChoices
 
 
 @reversion.register()
 class NationalSocietyAction(models.Model):
     # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         NATIONAL_SOCIETY_READINESS = 'national_society_readiness', _('National Society Readiness')
         ASSESSMENT = 'assessment', _('Assessment')
         COORDINATION = 'coordination', _('Coordination')
@@ -78,7 +77,7 @@ class NationalSocietyAction(models.Model):
 
 @reversion.register()
 class IdentifiedNeed(models.Model):
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
@@ -135,7 +134,7 @@ class PlannedInterventionIndicators(models.Model):
 
 
 class PlannedIntervention(models.Model):
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
@@ -214,17 +213,17 @@ class RiskSecurity(models.Model):
 @reversion.register()
 class Dref(models.Model):
 
-    class OnsetType(IntegerChoices):
+    class OnsetType(models.IntegerChoices):
         IMMINENT = 0, _('Imminent')
         SLOW = 1, _('Slow')
         SUDDEN = 2, _('Sudden')
 
-    class DisasterCategory(IntegerChoices):
+    class DisasterCategory(models.IntegerChoices):
         YELLOW = 0, _('Yellow')
         ORANGE = 1, _('Orange')
         RED = 2, _('Red')
 
-    class Status(IntegerChoices):
+    class Status(models.IntegerChoices):
         IN_PROGRESS = 0, _('In Progress')
         COMPLETED = 1, _('Completed')
 

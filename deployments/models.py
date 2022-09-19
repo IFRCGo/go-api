@@ -1,19 +1,17 @@
 import reversion
 from datetime import datetime
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
 from tinymce import HTMLField
 
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 
 from main.enums import TextChoices
 from api.models import (
@@ -32,43 +30,24 @@ from api.models import (
 DATE_FORMAT = '%Y/%m/%d %H:%M'
 
 
-class ERUType(IntEnum):
-    BASECAMP = 0
-    TELECOM = 1
-    LOGISTICS = 2
-    EMERGENCY_HOSPITAL = 3
-    EMERGENCY_CLINIC = 4
-    RELIEF = 5
-    WASH_15 = 6
-    WASH_20 = 7
-    WASH_40 = 8
-    WATER_SUPPLY = 9
-    WATER_TREATMENT = 10
-    COLERA_MANAGEMENT = 11
-    BURIALS = 12
-    CBS = 13
-    BASECAMP_S = 14
-    BASECAMP_M = 15
-    BASECAMP_L = 16
-
-    class Labels:
-        BASECAMP = _('Basecamp')
-        TELECOM = _('IT & Telecom')
-        LOGISTICS = _('Logistics')
-        EMERGENCY_HOSPITAL = _('RCRC Emergency Hospital')
-        EMERGENCY_CLINIC = _('RCRC Emergency Clinic')
-        RELIEF = _('Relief')
-        WASH_15 = _('Wash M15')
-        WASH_20 = _('Wash MSM20')
-        WASH_40 = _('Wash M40')
-        WATER_SUPPLY = _('Water Supply and rehabilitation')
-        WATER_TREATMENT = _('Household Water Treatment and safe storage')
-        COLERA_MANAGEMENT = _('Cholera Case management at Community level')
-        BURIALS = _('Safe and Dignified Burials')
-        CBS = _('Community Based Surveillance')
-        BASECAMP_S = _('Base Camp – S')
-        BASECAMP_M = _('Base Camp – M')
-        BASECAMP_L = _('Base Camp – L')
+class ERUType(models.IntegerChoices):
+    BASECAMP = 0, _('Basecamp')
+    TELECOM = 1, _('IT & Telecom')
+    LOGISTICS = 2, _('Logistics')
+    EMERGENCY_HOSPITAL = 3, _('RCRC Emergency Hospital')
+    EMERGENCY_CLINIC = 4, _('RCRC Emergency Clinic')
+    RELIEF = 5, _('Relief')
+    WASH_15 = 6, _('Wash M15')
+    WASH_20 = 7, _('Wash MSM20')
+    WASH_40 = 8, _('Wash M40')
+    WATER_SUPPLY = 9, _('Water Supply and rehabilitation')
+    WATER_TREATMENT = 10, _('Household Water Treatment and safe storage')
+    COLERA_MANAGEMENT = 11, _('Cholera Case management at Community level')
+    BURIALS = 12, _('Safe and Dignified Burials')
+    CBS = 13, _('Community Based Surveillance')
+    BASECAMP_S = 14, _('Base Camp – S')
+    BASECAMP_M = 15, _('Base Camp – M')
+    BASECAMP_L = 16, _('Base Camp – L')
 
 
 @reversion.register()
@@ -95,7 +74,7 @@ class ERUOwner(models.Model):
 @reversion.register()
 class ERU(models.Model):
     """ A resource that can be deployed """
-    type = EnumIntegerField(ERUType, verbose_name=_('type'), default=0)
+    type = models.IntegerField(choices=ERUType.choices, verbose_name=_('type'), default=0)
     units = models.IntegerField(verbose_name=_('units'), default=0)
     equipment_units = models.IntegerField(verbose_name=_('equipment units'), default=0)
     num_people_deployed = models.IntegerField(
@@ -200,35 +179,21 @@ class Personnel(DeployedPerson):
     which contains the details, date intervals etc.)
     """
 
-    FACT = 'fact'
-    HEOP = 'heop'
-    RDRT = 'rdrt'
-    IFRC = 'ifrc'
-    ERU = 'eru'
-    RR = 'rr'
+    class TypeChoices(models.TextChoices):
+        FACT = 'fact', _('FACT')
+        HEOP = 'heop', _('HEOP')
+        RDRT = 'rdrt', _('RDRT')
+        IFRC = 'ifrc', _('IFRC')
+        ERU = 'eru', _('ERU HR')
+        RR = 'rr', _('Rapid Response')
 
-    TYPE_CHOICES = (
-        (FACT, _('FACT')),
-        (HEOP, _('HEOP')),
-        (RDRT, _('RDRT')),
-        (IFRC, _('IFRC')),
-        (ERU, _('ERU HR')),
-        (RR, _('Rapid Response')),
-    )
+    class StatusChoices(models.TextChoices):
+        ACTIVE = 'active', _('ACTIVE')
+        HIDDEN = 'hidden', _('HIDDEN')
+        DRAFT = 'draft', _('DRAFT')
+        DELETED = 'deleted', _('DELETED')
 
-    ACTIVE = 'active'
-    HIDDEN = 'hidden'
-    DRAFT = 'draft'
-    DELETED = 'deleted'
-
-    STATUS_CHOICES = (
-        (ACTIVE, _('ACTIVE')),
-        (HIDDEN, _('HIDDEN')),
-        (DRAFT, _('DRAFT')),
-        (DELETED, _('DELETED')),
-    )
-
-    type = models.CharField(verbose_name=_('type'), choices=TYPE_CHOICES, max_length=4)
+    type = models.CharField(verbose_name=_('type'), choices=TypeChoices.choices, max_length=4)
     country_from = models.ForeignKey(
         Country, verbose_name=_('country from'), related_name='personnel_deployments', null=True, on_delete=models.SET_NULL
     )
@@ -238,7 +203,7 @@ class Personnel(DeployedPerson):
     deployment = models.ForeignKey(PersonnelDeployment, verbose_name=_('deployment'), on_delete=models.CASCADE)
     molnix_id = models.IntegerField(blank=True, null=True)
     molnix_tags = models.ManyToManyField(MolnixTag, blank=True)
-    molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=STATUS_CHOICES, default=ACTIVE)
+    molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
     is_active = models.BooleanField(default=True)  # Active in Molnix API
 
 
@@ -289,93 +254,51 @@ class PartnerSocietyDeployment(DeployedPerson):
         return '%s deployment in %s' % (self.parent_society, self.country_deployed_to)
 
 
-class ProgrammeTypes(IntEnum):
-    BILATERAL = 0
-    MULTILATERAL = 1
-    DOMESTIC = 2
-
-    class Labels:
-        BILATERAL = _('Bilateral')
-        MULTILATERAL = _('Multilateral')
-        DOMESTIC = _('Domestic')
+class ProgrammeTypes(models.IntegerChoices):
+    BILATERAL = 0, _('Bilateral')
+    MULTILATERAL = 1, _('Multilateral')
+    DOMESTIC = 2, _('Domestic')
 
 
-class Sectors(IntEnum):
-    WASH = 0
-    PGI = 1
-    CEA = 2
-    MIGRATION = 3
-    HEALTH = 4
-    DRR = 5
-    SHELTER = 6
-    NS_STRENGTHENING = 7
-    EDUCATION = 8
-    LIVELIHOODS_AND_BASIC_NEEDS = 9
-
-    class Labels:
-        WASH = _('WASH')
-        PGI = _('PGI')
-        CEA = _('CEA')
-        MIGRATION = _('Migration')
-        HEALTH = _('Health')
-        DRR = _('DRR')
-        SHELTER = _('Shelter')
-        NS_STRENGTHENING = _('NS Strengthening')
-        EDUCATION = _('Education')
-        LIVELIHOODS_AND_BASIC_NEEDS = _('Livelihoods and basic needs')
+class Sectors(models.IntegerChoices):
+    WASH = 0, _('WASH')
+    PGI = 1, _('PGI')
+    CEA = 2, _('CEA')
+    MIGRATION = 3, _('Migration')
+    HEALTH = 4, _('Health')
+    DRR = 5, _('DRR')
+    SHELTER = 6, _('Shelter')
+    NS_STRENGTHENING = 7, _('NS Strengthening')
+    EDUCATION = 8, _('Education')
+    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
 
 
-class SectorTags(IntEnum):
-    WASH = 0
-    PGI = 1
-    CEA = 2
-    MIGRATION = 3
-    DRR = 5
-    SHELTER = 6
-    NS_STRENGTHENING = 7
-    EDUCATION = 8
-    LIVELIHOODS_AND_BASIC_NEEDS = 9
-    RECOVERY = 10
-    INTERNAL_DISPLACEMENT = 11
-    HEALTH_PUBLIC = 4
-    HEALTH_CLINICAL = 12
-    COVID_19 = 13
-
-    class Labels:
-        WASH = _('WASH')
-        PGI = _('PGI')
-        CEA = _('CEA')
-        MIGRATION = _('Migration')
-        DRR = _('DRR')
-        SHELTER = _('Shelter')
-        NS_STRENGTHENING = _('NS Strengthening')
-        EDUCATION = _('Education')
-        LIVELIHOODS_AND_BASIC_NEEDS = _('Livelihoods and basic needs')
-        RECOVERY = _('Recovery')
-        INTERNAL_DISPLACEMENT = _('Internal displacement')
-        HEALTH_PUBLIC = _('Health (public)')
-        HEALTH_CLINICAL = _('Health (clinical)')
-        COVID_19 = _('COVID-19')
+class SectorTags(models.IntegerChoices):
+    WASH = 0, _('WASH')
+    PGI = 1, _('PGI')
+    CEA = 2, _('CEA')
+    MIGRATION = 3, _('Migration')
+    DRR = 5, _('DRR')
+    SHELTER = 6, _('Shelter')
+    NS_STRENGTHENING = 7, _('NS Strengthening')
+    EDUCATION = 8, _('Education')
+    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+    RECOVERY = 10, _('Recovery')
+    INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
+    HEALTH_PUBLIC = 4, _('Health (public)')
+    HEALTH_CLINICAL = 12, _('Health (clinical)')
+    COVID_19 = 13, _('COVID-19')
 
 
-class Statuses(IntEnum):
-    PLANNED = 0
-    ONGOING = 1
-    COMPLETED = 2
-
-    class Labels:
-        PLANNED = _('Planned')
-        ONGOING = _('Ongoing')
-        COMPLETED = _('Completed')
+class Statuses(models.IntegerChoices):
+    PLANNED = 0, _('Planned')
+    ONGOING = 1, _('Ongoing')
+    COMPLETED = 2, _('Completed')
 
 
-class OperationTypes(IntEnum):
-    PROGRAMME = 0
-    EMERGENCY_OPERATION = 1
-
-    class Labels:
-        PROGRAMME = _('Programme')
-        EMERGENCY_OPERATION = _('Emergency Operation')
+class OperationTypes(models.IntegerChoices):
+    PROGRAMME = 0, _('Programme')
+    EMERGENCY_OPERATION = 1, _('Emergency Operation')
 
 
 @reversion.register()
@@ -443,17 +366,17 @@ class Project(models.Model):
     name = models.TextField(verbose_name=_('name'))
     description = HTMLField(verbose_name=_('description'), blank=True, default='')
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
-    programme_type = EnumIntegerField(ProgrammeTypes, verbose_name=_('programme type'))
-    primary_sector = EnumIntegerField(Sectors, verbose_name=_('sector'))
+    programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'))
+    primary_sector = models.IntegerField(choices=Sectors.choices, default=0, verbose_name=_('sector'))
     secondary_sectors = ArrayField(
-        EnumIntegerField(SectorTags), verbose_name=_('tags'), default=list, blank=True,
+        models.IntegerField(choices=SectorTags.choices), verbose_name=_('tags'), default=list, blank=True,
     )
-    operation_type = EnumIntegerField(OperationTypes, verbose_name=_('operation type'))
+    operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'))
     start_date = models.DateField(verbose_name=_('start date'))
     end_date = models.DateField(verbose_name=_('end date'))
     budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True)
     actual_expenditure = models.IntegerField(verbose_name=_('actual expenditure'), null=True, blank=True)
-    status = EnumIntegerField(Statuses, verbose_name=_('status'))
+    status = models.IntegerField(choices=Statuses.choices, default=0, verbose_name=_('status'))
 
     # Target Metric
     target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)
@@ -472,7 +395,7 @@ class Project(models.Model):
     )
     visibility = models.CharField(
         max_length=32, verbose_name=_('visibility'),
-        choices=VisibilityCharChoices.CHOICES, default=VisibilityCharChoices.PUBLIC
+        choices=VisibilityCharChoices.choices, default=VisibilityCharChoices.PUBLIC
     )
 
     class Meta:
@@ -487,7 +410,7 @@ class Project(models.Model):
         return '%s (%s)' % (self.name, postfix)
 
     def get_secondary_sectors_display(self):
-        choices_dict = dict(make_hashable(SectorTags.choices()))
+        choices_dict = dict(make_hashable(SectorTags.choices))
         return [
             force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
             for value in self.secondary_sectors or []
@@ -568,14 +491,10 @@ class ProjectImport(models.Model):
     """
     Track Project Imports (For Django Admin Panel)
     """
-    PENDING = 'pending'
-    SUCCESS = 'success'
-    FAILURE = 'failure'
-    STATUS_CHOICES = (
-        (PENDING, _('Pending')),
-        (SUCCESS, _('Success')),
-        (FAILURE, _('Failure')),
-    )
+    class ProjImpStatus(models.TextChoices):
+        PENDING = 'pending', _('Pending')
+        SUCCESS = 'success', _('Success')
+        FAILURE = 'failure', _('Failure')
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), on_delete=models.SET_NULL, null=True,
@@ -583,7 +502,7 @@ class ProjectImport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     projects_created = models.ManyToManyField(Project, verbose_name=_('projects created'))
     message = models.TextField(verbose_name=_('message'))
-    status = models.CharField(verbose_name=_('status'), max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    status = models.CharField(verbose_name=_('status'), max_length=10, choices=ProjImpStatus.choices, default=ProjImpStatus.PENDING)
     file = models.FileField(verbose_name=_('file'), upload_to='project-imports/')
 
     class Meta:
@@ -597,11 +516,11 @@ class ProjectImport(models.Model):
 # -------------- Emergency 3W [Start]
 @reversion.register()
 class EmergencyProject(models.Model):
-    class ActivityLead(TextChoices):
+    class ActivityLead(models.TextChoices):
         NATIONAL_SOCIETY = 'national_society', _('National Society')
         DEPLOYED_ERU = 'deployed_eru', _('Deployed ERU')
 
-    class ActivityStatus(TextChoices):
+    class ActivityStatus(models.TextChoices):
         ON_GOING = 'on_going', _('On-Going')
         COMPLETE = 'complete', _('Complete')
         PLANNED = 'planned', _('Planned')
@@ -701,7 +620,7 @@ class EmergencyProject(models.Model):
     visibility = models.CharField(
         max_length=32,
         verbose_name=_('visibility'),
-        choices=VisibilityCharChoices.CHOICES,
+        choices=VisibilityCharChoices.choices,
         default=VisibilityCharChoices.PUBLIC,
     )
 
@@ -763,7 +682,7 @@ class EmergencyProjectActivityLocation(models.Model):
 
 @reversion.register()
 class EmergencyProjectActivity(models.Model):
-    class PeopleHouseholds(TextChoices):
+    class PeopleHouseholds(models.TextChoices):
         PEOPLE = 'people', _('People'),
         HOUSEHOLDS = 'households', _('Households')
 
@@ -786,11 +705,11 @@ class EmergencyProjectActivity(models.Model):
         related_name='activities',
     )
     is_simplified_report = models.BooleanField(verbose_name=_('is_simplified_report'), default=True)
-    is_disaggregated_for_disabled = models.NullBooleanField(
+    is_disaggregated_for_disabled = models.BooleanField(
         verbose_name=_('Is disaggregated for disabled'),
         null=True, blank=True
     )
-    has_no_data_on_people_reached = models.NullBooleanField(
+    has_no_data_on_people_reached = models.BooleanField(
         verbose_name=_('Has no data on people reached'),
         null=True, blank=True
     )
@@ -881,7 +800,7 @@ class ERUReadiness(models.Model):
     national_society = models.ForeignKey(
         Country, verbose_name=_('national society'), null=True, blank=True, on_delete=models.SET_NULL
     )
-    ERU_type = EnumIntegerField(ERUType, verbose_name=_('ERU type'), default=0)
+    ERU_type = models.IntegerField(choices=ERUType.choices, verbose_name=_('ERU type'), default=0)
     is_personnel = models.BooleanField(verbose_name=_('is personnel?'), default=False)
     is_equipment = models.BooleanField(verbose_name=_('is equipment?'), default=False)
     updated_at = models.DateTimeField(verbose_name=_('updated at'), auto_now=True)

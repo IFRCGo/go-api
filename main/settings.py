@@ -4,11 +4,12 @@ import pytz
 from datetime import datetime
 import environ
 
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 # from celery.schedules import crontab
 from requests.packages.urllib3.util.retry import Retry
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 env = environ.Env(
     # Django
@@ -126,7 +127,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_admin_listfilter_dropdown',
     'corsheaders',
-    'tastypie',
     'rest_framework',
     'rest_framework.authtoken',
     'guardian',
@@ -276,8 +276,8 @@ TINYMCE_DEFAULT_CONFIG = {
         | indent outdent | bullist numlist |
         | link visualchars charmap hr nonbreaking | code preview fullscreen
         ''',
-    'force_p_newlines': True,
-    'force_br_newlines': True,
+    'force_p_newlines': True,  # TODO: could be False?
+    'force_br_newlines': True,  # TODO: could be False?
     'forced_root_block': '',
     'contextmenu': 'formats | link',
     'menubar': False,

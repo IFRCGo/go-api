@@ -3,7 +3,6 @@
 import deployments.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
             name='ERUReadiness',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ERU_type', enumfields.fields.EnumIntegerField(default=0, enum=deployments.models.ERUType)),
+                ('ERU_type', models.IntegerField(default=0, choices=deployments.models.ERUType.choices)),
                 ('is_personnel', models.BooleanField(default=False)),
                 ('is_equipment', models.BooleanField(default=False)),
                 ('updated_at', models.DateTimeField(auto_now=True)),

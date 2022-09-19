@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 from rest_framework import (
     views,
@@ -122,7 +122,7 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
         field_report = self.get_object()
         if field_report.is_published:
             raise serializers.ValidationError(
-                ugettext('Final Report %s is already published' % field_report)
+                gettext('Final Report %s is already published' % field_report)
             )
         if not field_report.is_published:
             field_report.is_published = True

@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import per.models
 
 
@@ -22,7 +21,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
                 ('document', models.FileField(blank=True, null=True, upload_to=per.models.nice_document_path)),
                 ('document_url', models.URLField(blank=True)),
-                ('visibility', enumfields.fields.EnumIntegerField(default=1, enum=per.models.Visibilities)),
+                ('visibility', models.IntegerField(default=1, choices=per.models.Visibilities.choices)),
                 ('country', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='perdoc_country', to='api.Country')),
             ],
             options={

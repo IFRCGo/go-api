@@ -3,7 +3,6 @@
 import api.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -26,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='appealhistory',
             name='status',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=api.models.AppealStatus, verbose_name='status'),
+            field=models.IntegerField(default=0, choices=api.models.AppealStatus.choices, verbose_name='status'),
         ),
         migrations.AddField(
             model_name='appealhistory',

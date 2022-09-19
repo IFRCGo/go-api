@@ -1,50 +1,32 @@
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from enumfields import EnumIntegerField
-from enumfields import IntEnum
 from api.models import Country, Region, Event, DisasterType
 from deployments.models import MolnixTag
 
-class SurgeAlertType(IntEnum):
-    FACT = 0
-    SIMS = 1
-    ERU = 2
-    DHEOPS = 3
-    HEOPS = 4
-    SURGE = 5
-    RAPID_RESPONSE = 6
-
-    class Labels:
-        FACT = _('fact')
-        SIMS = _('SIMS')
-        ERU = _('ERU')
-        DHEOPS = _('DHEOPS')
-        HEOPS = _('HEOPS')
-        SURGE = _('surge')
-        RAPID_RESPONSE = _('rapid response')
+class SurgeAlertType(models.IntegerChoices):
+    FACT = 0, _('fact')
+    SIMS = 1, _('SIMS')
+    ERU = 2, _('ERU')
+    DHEOPS = 3, _('DHEOPS')
+    HEOPS = 4, _('HEOPS')
+    SURGE = 5, _('surge')
+    RAPID_RESPONSE = 6, _('rapid response')
 
 
-class SurgeAlertCategory(IntEnum):
-    INFO = 0
-    DEPLOYMENT = 1
-    ALERT = 2
-    SHELTER = 3
-    STAND_DOWN = 4
-
-    class Labels:
-        INFO = _('information')
-        DEPLOYMENT = _('deployment')
-        ALERT = _('alert')
-        SHELTER = _('shelter')
-        STAND_DOWN = _('stand down')
+class SurgeAlertCategory(models.IntegerChoices):
+    INFO = 0, _('information')
+    DEPLOYMENT = 1, _('deployment')
+    ALERT = 2, _('alert')
+    SHELTER = 3, _('shelter')
+    STAND_DOWN = 4, _('stand down')
 
 
 class SurgeAlert(models.Model):
 
-    atype = EnumIntegerField(SurgeAlertType, verbose_name=_('alert type'), default=0)
-    category = EnumIntegerField(SurgeAlertCategory, verbose_name=_('category'), default=0)
+    atype = models.IntegerField(choices=SurgeAlertType.choices, verbose_name=_('alert type'), default=0)
+    category = models.IntegerField(choices=SurgeAlertCategory.choices, verbose_name=_('category'), default=0)
     operation = models.CharField(verbose_name=_('operation'), max_length=100)
     message = models.TextField(verbose_name=_('message'))
     deployment_needed = models.BooleanField(verbose_name=_('deployment needed'), default=False)
@@ -91,50 +73,29 @@ class SurgeAlert(models.Model):
             return self.event.name
 
 
-class SubscriptionType(IntEnum):
+class SubscriptionType(models.IntegerChoices):
     """ New or edit to existing record """
-    NEW = 0
-    EDIT = 1
-
-    class Labels:
-        NEW = _('new')
-        EDIT = _('edit')
+    NEW = 0, _('new')
+    EDIT = 1, _('edit')
 
 
-class RecordType(IntEnum):
+class RecordType(models.IntegerChoices):
     """ Types of notifications a user can subscribe to """
-    EVENT = 0         # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
-    APPEAL = 1        # not to use in rtype_of_subscr, migrated to                 NEW_OPERATIONS
-    FIELD_REPORT = 2  # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
-    SURGE_ALERT = 3
-    COUNTRY = 4
-    REGION = 5
-    DTYPE = 6
-    PER_DUE_DATE = 7
-    FOLLOWED_EVENT = 8
-    SURGE_DEPLOYMENT_MESSAGES = 9
-    SURGE_APPROACHING_END_OF_MISSION = 10
-    WEEKLY_DIGEST = 11
-    NEW_EMERGENCIES = 12
-    NEW_OPERATIONS = 13
-    GENERAL_ANNOUNCEMENTS = 14
-
-    class Labels:
-        EVENT = _('event')
-        APPEAL = _('appeal')
-        FIELD_REPORT = _('field report')
-        SURGE_ALERT = _('surge alert')
-        COUNTRY = _('country')
-        REGION = _('region')
-        DTYPE = _('disaster type')
-        PER_DUE_DATE = _('per due date')
-        FOLLOWED_EVENT = _('followed event')
-        SURGE_DEPLOYMENT_MESSAGES = _('surge deployment messages')
-        SURGE_APPROACHING_END_OF_MISSION = _('surge approaching end of mission')
-        WEEKLY_DIGEST = _('weekly digest')
-        NEW_EMERGENCIES = _('new emergencies')
-        NEW_OPERATIONS = _('new operations')
-        GENERAL_ANNOUNCEMENTS = _('general announcements')
+    EVENT = 0, _('event')               # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
+    APPEAL = 1, _('appeal')             # not to use in rtype_of_subscr, migrated to                 NEW_OPERATIONS
+    FIELD_REPORT = 2, _('field report') # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
+    SURGE_ALERT = 3, _('surge alert')
+    COUNTRY = 4, _('country')
+    REGION = 5, _('region')
+    DTYPE = 6, _('disaster type')
+    PER_DUE_DATE = 7, _('per due date')
+    FOLLOWED_EVENT = 8, _('followed event')
+    SURGE_DEPLOYMENT_MESSAGES = 9, _('surge deployment messages')
+    SURGE_APPROACHING_END_OF_MISSION = 10, _('surge approaching end of mission')
+    WEEKLY_DIGEST = 11, _('weekly digest')
+    NEW_EMERGENCIES = 12, _('new emergencies')
+    NEW_OPERATIONS = 13, _('new operations')
+    GENERAL_ANNOUNCEMENTS = 14, _('general announcements')
 
 # Migration
 # update      notification_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
@@ -155,8 +116,8 @@ class Subscription(models.Model):
         related_name='subscription',
     )
 
-    stype = EnumIntegerField(SubscriptionType, verbose_name=_('subscription type'), default=0)
-    rtype = EnumIntegerField(RecordType, verbose_name=_('record type'), default=0)
+    stype = models.IntegerField(choices=SubscriptionType.choices, verbose_name=_('subscription type'), default=0)
+    rtype = models.IntegerField(choices=RecordType.choices, verbose_name=_('record type'), default=0)
 
     country = models.ForeignKey(Country, verbose_name=_('country'), null=True, blank=True, on_delete=models.SET_NULL)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, blank=True, on_delete=models.SET_NULL)

@@ -125,6 +125,10 @@ services:
     <<: *base_server_setup
     command: python manage.py test -k --snapshot-update
 
+  testr:
+    <<: *base_server_setup
+    command: pytest --reuse-db --durations=10 -s
+
   coverage:
     <<: *base_server_setup
     command: coverage run --source='.' manage.py test -k
