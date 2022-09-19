@@ -96,7 +96,7 @@ class Region(models.Model):
         return self.label
 
     def region_name(self):
-        return str(self.name)
+        return str(self.label)
 
 
 def logo_document_path(instance, filename):
