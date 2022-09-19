@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0156_appealfilter_comment'),
         ('dref', '0016_auto_20220725_0445'),
     ]
 
