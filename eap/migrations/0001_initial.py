@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api', '0156_appealfilter_comment'),
+        ('api', '0150_admin2_admin2geoms'),
     ]
 
     operations = [
