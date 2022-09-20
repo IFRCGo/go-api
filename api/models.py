@@ -946,7 +946,7 @@ class Appeal(models.Model):
 
     def to_dict(self):
         data = to_dict(self)
-        data['atype'] = str(self.atype.label)
+        data['atype'] = self.get_atype_display()
         data['country'] = self.country.name
         return data
 
@@ -1902,9 +1902,9 @@ class CronJob(models.Model):
 
     def __str__(self):
         if self.num_result:
-            return '%s | %s : %s | %s' % (self.name, str(self.status.label), str(self.num_result), str(self.created_at)[5:16])
+            return '%s | %s : %s | %s' % (self.name, self.get_status_display(), str(self.num_result), str(self.created_at)[5:16])
         else:
-            return '%s | %s | %s' % (self.name, str(self.status.label), str(self.created_at)[5:16])  # omit irrelevant 0
+            return '%s | %s | %s' % (self.name, self.get_status_display(), str(self.created_at)[5:16])  # omit irrelevant 0
 
     # Given a request containing new CronJob log row, validate and add the CronJob log row.
     def sync_cron(body):
