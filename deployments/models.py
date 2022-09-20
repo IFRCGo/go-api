@@ -104,7 +104,7 @@ class ERU(models.Model):
         verbose_name_plural = _('Emergency Response Units')
 
     def __str__(self):
-        return str(self.type.label)
+        return self.get_type_display()
 
 
 @reversion.register()
@@ -815,7 +815,7 @@ class ERUReadiness(models.Model):
             name = None
         else:
             name = self.national_society
-        return '%s (%s)' % (str(self.ERU_type.label), name)
+        return f'{self.get_ERU_type_display()} ({name})'
 
 
 ###############################################################################
