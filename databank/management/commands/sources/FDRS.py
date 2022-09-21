@@ -69,7 +69,7 @@ def load(country, overview, fdrs_data):
         value = fdrs_data.get(f'{country.iso.upper()}-{fdrs_indicator}')
         setattr(
             overview,
-            field.field_name,
+            field.field.name,
             value and value['value'],
         )
     overview.save()
