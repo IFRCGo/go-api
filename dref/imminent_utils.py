@@ -516,5 +516,6 @@ def extract_imminent_file(doc, created_by):
     dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
-    dref.district.add(*district_list)
+    if len(district_list) > 0 and None not in district_list:
+        dref.district.add(*district_list)
     return dref

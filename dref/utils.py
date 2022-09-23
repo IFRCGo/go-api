@@ -534,5 +534,6 @@ def extract_file(doc, created_by):
     dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*risk_security_list)
-    dref.district.add(*district_list)
+    if len(district_list) > 0 and None not in district_list:
+        dref.district.add(*district_list)
     return dref
