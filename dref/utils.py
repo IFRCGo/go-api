@@ -16,6 +16,7 @@ from dref.models import (
 from api.models import (
     DisasterType,
     Country,
+    District
 )
 
 from .common_utils import (
@@ -27,6 +28,7 @@ from .common_utils import (
     get_table_data,
     get_paragraphs_data,
     parse_disaster_category,
+    parse_contact_information,
 )
 
 
@@ -124,6 +126,7 @@ def extract_file(doc, created_by):
 
     def get_table_cells(table_idx):
         table = tables[table_idx]
+
         def f(r, c, i=0, as_list=False):
             if as_list:
                 return table[r][c]
@@ -186,6 +189,18 @@ def extract_file(doc, created_by):
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
+    district = cells(6, 2)
+    new_district = district.split(',')
+    district_list = []
+    for d in new_district:
+        try:
+            district = District.objects.filter(
+                country__name__icontains=cells(6, 0, 1),
+                name__icontains=d
+            ).first()
+        except District.DoesNotExist:
+            pass
+        district_list.append(district)
 
     try:
         description = paragraphs[7]
@@ -328,7 +343,7 @@ def extract_file(doc, created_by):
     ]
     for i, needs_title in enumerate(needs_titles):
         try:
-            description = cells(i*2+1, 0)  # Use Every alternate row, so i*2 + 1
+            description = cells(i * 2 + 1, 0)  # Use Every alternate row, so i*2 + 1
             if description:
                 data_new = {
                     'title': needs_title,
@@ -343,25 +358,29 @@ def extract_file(doc, created_by):
         if need['description']:
             identified = IdentifiedNeed.objects.create(**need)
             needs.append(identified)
-    try:
-        data['operation_objective'] = ''.join(paragraphs[23] or [])
-    except (IndexError, ValueError):
-        pass
+    if paragraphs[22][0] == 'Overall objective of the operation':
+        try:
+            data['operation_objective'] = ''.join(paragraphs[23] or [])
+        except (IndexError, ValueError):
+            pass
 
     # targeting strategy
-    try:
-        data['response_strategy'] = ''.join(paragraphs[25] or [])
-    except (IndexError, ValueError):
-        pass
-    # Targeting Strategy
-    try:
-        data['people_assisted'] = ''.join(paragraphs[31] or [])
-    except(IndexError, ValueError):
-        pass
-    try:
-        data['selection_criteria'] = ''.join(paragraphs[33] or [])
-    except(IndexError, ValueError):
-        pass
+    if paragraphs[25][0] == 'Response strategy rationale':
+        try:
+            data['response_strategy'] = ''.join(paragraphs[26] or [])
+        except (IndexError, ValueError):
+            pass
+
+    if paragraphs[29][0] == 'Who will be targeted through this operation?':
+        try:
+            data['people_assisted'] = ''.join(paragraphs[30] or [])
+        except(IndexError, ValueError):
+            pass
+    if paragraphs[32][0] == 'Explain the selection criteria for the targeted population':
+        try:
+            data['selection_criteria'] = ''.join(paragraphs[33] or [])
+        except(IndexError, ValueError):
+            pass
 
     # Targeting Population
     cells = get_table_cells(6)
@@ -411,53 +430,60 @@ def extract_file(doc, created_by):
             risk_security_list.append(risk_security)
 
     # About Support Service
-    data['human_resource'] = ''.join(paragraphs[57] or [])
-    data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
-    data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
-    data['pmer'] = ''.join(paragraphs[64] or [])
-    data['communication'] = ''.join(paragraphs[66] or [])
+    if paragraphs[56][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+        data['human_resource'] = ''.join(paragraphs[57] or [])
+    if paragraphs[60][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+        data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
+        if data['surge_personnel_deployed']:
+            data['is_surge_personnel_deployed'] = True
+    if paragraphs[61][0] == 'If there is procurement, will it be done by National Society or IFRC?':
+        data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
+    if paragraphs[63][0] == 'How will this operation be monitored?':
+        data['pmer'] = ''.join(paragraphs[64] or [])
+    if paragraphs[65][0] == 'Please briefly explain the National Societies communication strategy for this operation.':
+        data['communication'] = ''.join(paragraphs[66] or [])
 
     try:
-        national_society_contact = paragraphs[71] or []
-        data['national_society_contact_title'] = national_society_contact[3] if national_society_contact[3] else None
-        data['national_society_contact_email'] = national_society_contact[5] if national_society_contact[5] else None
-        data['national_society_contact_phone_number'] = national_society_contact[7] if national_society_contact[7] else None
+        national_society_contact = parse_contact_information(paragraphs[71] or [])
+        data['national_society_contact_title'] = national_society_contact[2] if national_society_contact[2] and national_society_contact[2] != ", , " else None
+        data['national_society_contact_email'] = national_society_contact[4] if national_society_contact[4] else None
+        data['national_society_contact_phone_number'] = national_society_contact[6] if national_society_contact[6] else None
         data['national_society_contact_name'] = national_society_contact[0] if national_society_contact[0] else None
     except IndexError:
         pass
     try:
 
-        ifrc_appeal_manager = paragraphs[72] or []
-        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3] if ifrc_appeal_manager[3] else None
-        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5] if ifrc_appeal_manager[5] else None
-        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7] if ifrc_appeal_manager[7] else None
+        ifrc_appeal_manager = parse_contact_information(paragraphs[72] or [])
+        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[2] if ifrc_appeal_manager[2] else None
+        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[4] if ifrc_appeal_manager[4] else None
+        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[6] if ifrc_appeal_manager[6] else None
         data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0] if ifrc_appeal_manager[0] else None
     except IndexError:
         pass
 
     try:
-        ifrc_project_manager = paragraphs[73] or []
-        data['ifrc_project_manager_title'] = ifrc_project_manager[3] if ifrc_project_manager[3] else None
-        data['ifrc_project_manager_email'] = ifrc_project_manager[5] if ifrc_project_manager[5] else None
-        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7] if ifrc_project_manager[7] else None
+        ifrc_project_manager = parse_contact_information(paragraphs[73] or [])
+        data['ifrc_project_manager_title'] = ifrc_project_manager[2] if ifrc_project_manager[2] else None
+        data['ifrc_project_manager_email'] = ifrc_project_manager[4] if ifrc_project_manager[4] else None
+        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[6] if ifrc_project_manager[6] else None
         data['ifrc_project_manager_name'] = ifrc_project_manager[0] if ifrc_project_manager[0] else None
     except IndexError:
         pass
 
     try:
-        ifrc_emergency = paragraphs[74] or []
-        data['ifrc_emergency_title'] = ifrc_emergency[3] if ifrc_emergency[3] else None
-        data['ifrc_emergency_email'] = ifrc_emergency[5] if ifrc_emergency[5] else None
-        data['ifrc_emergency_phone_number'] = ifrc_emergency[7] if ifrc_emergency[7] else None
+        ifrc_emergency = parse_contact_information(paragraphs[74] or [])
+        data['ifrc_emergency_title'] = ifrc_emergency[2] if ifrc_emergency[2] else None
+        data['ifrc_emergency_email'] = ifrc_emergency[4] if ifrc_emergency[4] else None
+        data['ifrc_emergency_phone_number'] = ifrc_emergency[6] if ifrc_emergency[6] else None
         data['ifrc_emergency_name'] = ifrc_emergency[0] if ifrc_emergency[0] else None
     except IndexError:
         pass
 
     try:
-        media = paragraphs[75] or []
-        data['media_contact_title'] = media[3] if media[3] else None
-        data['media_contact_email'] = media[5] if media[5] else None
-        data['media_contact_phone_number'] = media[7] if media[7] else None
+        media = parse_contact_information(paragraphs[75] or [])
+        data['media_contact_title'] = media[2] if media[2] else None
+        data['media_contact_email'] = media[4] if media[4] else None
+        data['media_contact_phone_number'] = media[6] if media[6] else None
         data['media_contact_name'] = media[0] if media[0] else None
     except IndexError:
         pass
@@ -508,4 +534,5 @@ def extract_file(doc, created_by):
     dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*risk_security_list)
+    dref.district.add(*district_list)
     return dref

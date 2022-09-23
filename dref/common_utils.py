@@ -73,6 +73,7 @@ def get_table_data(doc):
         tables.append(rowdata)
     return tables
 
+
 def get_paragraphs_data(doc):
     document = docx.Document(doc)
     return [[y.text for y in x._element.xpath('.//w:t')] for x in document.paragraphs]
@@ -86,3 +87,21 @@ def parse_disaster_category(disaster_category):
     elif disaster_category == 'Red':
         return Dref.DisasterCategory.RED
     return None
+
+
+def parse_contact_information(items: List[Any]):
+    result = []
+    for data in items:
+        if data in [
+            'National Society contact: ',
+            'IFRC Appeal Manager: ',
+            'IFRC Project Manager: ',
+            'IFRC focal point for the emergency: ',
+            'Media Contact: '
+            ', ',
+            '• ',
+            'Media Contact: ',
+        ]:
+            continue
+        result.append(data)
+    return result

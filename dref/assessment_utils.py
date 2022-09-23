@@ -12,6 +12,7 @@ from dref.models import (
 from api.models import (
     DisasterType,
     Country,
+    District,
 )
 
 from .common_utils import (
@@ -23,6 +24,7 @@ from .common_utils import (
     get_table_data,
     get_paragraphs_data,
     parse_disaster_category,
+    parse_contact_information
 )
 
 
@@ -117,6 +119,7 @@ def extract_assessment_file(doc, created_by):
 
     def get_table_cells(table_idx):
         table = tables[table_idx]
+
         def f(r, c, i=0, as_list=False):
             if as_list:
                 return table[r][c]
@@ -146,9 +149,22 @@ def extract_assessment_file(doc, created_by):
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
 
-    # TODO: Check for District
-    description = paragraphs[7] or []
-    data['event_description'] = ''.join(description) if description else None
+    district = cells(6, 2)
+    district_list = []
+    if district:
+        new_district = district.split(',')
+        for d in new_district:
+            try:
+                district = District.objects.filter(
+                    country__name__icontains=cells(6, 0, 1),
+                    name__icontains=d
+                ).first()
+            except District.DoesNotExist:
+                pass
+            district_list.append(district)
+    if paragraphs[6][0] == 'What happened, where and when?':
+        description = paragraphs[7] or []
+        data['event_description'] = ''.join(description) if description else None
 
     # National Society Actions
     cells = get_table_cells(1)
@@ -214,19 +230,23 @@ def extract_assessment_file(doc, created_by):
     data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
 
     # Operational Strategy
-    operation_description = paragraphs[20] or []
-    data['operation_objective'] = ''.join(operation_description) if operation_description else None
+    if paragraphs[18][0] == 'Overall objective of the operation':
+        operation_description = paragraphs[19] or []
+        data['operation_objective'] = ''.join(operation_description) if operation_description else None
 
     # targeting strategy
-    response_description = paragraphs[23] or []
-    data['response_strategy'] = ''.join(response_description) if response_description else None
+    if paragraphs[21][0] == 'Response strategy rationale':
+        response_description = paragraphs[22] or []
+        data['response_strategy'] = ''.join(response_description) if response_description else None
 
     # Targeting Strategy
-    people_assisted_description = paragraphs[27] or []
-    data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
+    if paragraphs[25][0] == 'Who will be targeted through this operation?':
+        people_assisted_description = paragraphs[26] or []
+        data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
 
-    selection_criteria_description = paragraphs[31] or []
-    data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
+    if paragraphs[27][0] == 'Explain the selection criteria for the targeted population':
+        selection_criteria_description = paragraphs[28] or []
+        data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
 
     # Targeting Population
     cells = get_table_cells(4)
@@ -291,45 +311,56 @@ def extract_assessment_file(doc, created_by):
             planned_intervention.append(planned)
 
     # About Support Service
-    human_resource_description = paragraphs[55] or []
-    data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+    if paragraphs[52][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+        human_resource_description = paragraphs[53] or []
+        data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
 
-    surge_personnel_deployed_description = paragraphs[57] or []
-    data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
-
-    national_society_contact = paragraphs[63] or []
-    data['national_society_contact_title'] = get_nth(national_society_contact, 3)
-    data['national_society_contact_email'] = get_nth(national_society_contact, 5)
-    data['national_society_contact_phone_number'] = get_nth(national_society_contact, 7)
-    data['national_society_contact_name'] = get_nth(national_society_contact, 0)
-
-    ifrc_appeal_manager = paragraphs[64] or []
-    data['ifrc_appeal_manager_title'] = get_nth(ifrc_appeal_manager, 3)
-    data['ifrc_appeal_manager_email'] = get_nth(ifrc_appeal_manager, 5)
-    data['ifrc_appeal_manager_phone_number'] = get_nth(ifrc_appeal_manager, 7)
-    data['ifrc_appeal_manager_name'] = get_nth(ifrc_appeal_manager, 0)
-
-    ifrc_project_manager = paragraphs[65] or []
-    data['ifrc_project_manager_title'] = get_nth(ifrc_project_manager, 3)
-    data['ifrc_project_manager_email'] = get_nth(ifrc_project_manager, 5)
-    data['ifrc_project_manager_phone_number'] = get_nth(ifrc_project_manager, 7)
-    data['ifrc_project_manager_name'] = get_nth(ifrc_project_manager, 0)
+    if paragraphs[54][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+        surge_personnel_deployed_description = paragraphs[55] or []
+        data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
 
     try:
-        ifrc_emergency = paragraphs[66] or []
-        data['ifrc_emergency_title'] = get_nth(ifrc_emergency, 3)
-        data['ifrc_emergency_email'] = get_nth(ifrc_emergency, 5)
-        data['ifrc_emergency_phone_number'] = get_nth(ifrc_emergency, 7)
+        national_society_contact = parse_contact_information(paragraphs[60] or [])
+        data['national_society_contact_title'] = get_nth(national_society_contact, 2)
+        data['national_society_contact_email'] = get_nth(national_society_contact, 4)
+        data['national_society_contact_phone_number'] = get_nth(national_society_contact, 6)
+        data['national_society_contact_name'] = get_nth(national_society_contact, 0)
+    except IndexError:
+        pass
+
+    try:
+        ifrc_appeal_manager = parse_contact_information(paragraphs[61] or [])
+        data['ifrc_appeal_manager_title'] = get_nth(ifrc_appeal_manager, 2)
+        data['ifrc_appeal_manager_email'] = get_nth(ifrc_appeal_manager, 4)
+        data['ifrc_appeal_manager_phone_number'] = get_nth(ifrc_appeal_manager, 6)
+        data['ifrc_appeal_manager_name'] = get_nth(ifrc_appeal_manager, 0)
+    except IndexError:
+        pass
+
+    try:
+        ifrc_project_manager = parse_contact_information(paragraphs[62] or [])
+        data['ifrc_project_manager_title'] = get_nth(ifrc_project_manager, 2)
+        data['ifrc_project_manager_email'] = get_nth(ifrc_project_manager, 4)
+        data['ifrc_project_manager_phone_number'] = get_nth(ifrc_project_manager, 6)
+        data['ifrc_project_manager_name'] = get_nth(ifrc_project_manager, 0)
+    except IndexError:
+        pass
+
+    try:
+        ifrc_emergency = parse_contact_information(paragraphs[63] or [])
+        data['ifrc_emergency_title'] = get_nth(ifrc_emergency, 2)
+        data['ifrc_emergency_email'] = get_nth(ifrc_emergency, 4)
+        data['ifrc_emergency_phone_number'] = get_nth(ifrc_emergency, 6)
         data['ifrc_emergency_name'] = get_nth(ifrc_emergency, 0)
     except IndexError:
         # FIXME: raise validation error
         pass
 
     try:
-        media = paragraphs[67] or []
-        data['media_contact_title'] = get_nth(media, 3)
-        data['media_contact_email'] = get_nth(media, 5)
-        data['media_contact_phone_number'] = get_nth(media, 7)
+        media = parse_contact_information(paragraphs[64] or [])
+        data['media_contact_title'] = get_nth(media, 2)
+        data['media_contact_email'] = get_nth(media, 4)
+        data['media_contact_phone_number'] = get_nth(media, 6)
         data['media_contact_name'] = get_nth(media, 0)
     except IndexError:
         # FIXME: raise validation error
@@ -343,4 +374,5 @@ def extract_assessment_file(doc, created_by):
     dref.planned_interventions.add(*planned_intervention)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
+    dref.district.add(*district_list)
     return dref
