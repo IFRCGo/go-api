@@ -521,7 +521,7 @@ class EmergencyProject(models.Model):
         DEPLOYED_ERU = 'deployed_eru', _('Deployed ERU')
 
     class ActivityStatus(models.TextChoices):
-        ON_GOING = 'on_going', _('On-Going')
+        ON_GOING = 'on_going', _('Ongoing')
         COMPLETE = 'complete', _('Complete')
         PLANNED = 'planned', _('Planned')
 

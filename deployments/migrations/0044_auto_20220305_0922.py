@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('reporting_ns_contact_role', models.CharField(blank=True, max_length=255, null=True, verbose_name='NS Contanct Information: Role')),
                 ('reporting_ns_contact_email', models.CharField(blank=True, max_length=255, null=True, verbose_name='NS Contanct Information: Email')),
                 ('start_date', models.DateField(verbose_name='Start Date')),
-                ('status', models.CharField(choices=[('on_going', 'Activity On-Going'), ('complete', 'Activity Complete')], default=deployments.models.EmergencyProject.ActivityStatus('on_going'), max_length=40)),
+                ('status', models.CharField(choices=[('on_going', 'Activity Ongoing'), ('complete', 'Activity Complete')], default=deployments.models.EmergencyProject.ActivityStatus('on_going'), max_length=40)),
                 ('country', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='api.Country', verbose_name='Country')),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='created by')),
                 ('deployed_eru', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='deployments.ERU', verbose_name='Deployed ERU')),
