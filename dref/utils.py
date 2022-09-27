@@ -322,7 +322,7 @@ def extract_file(doc, created_by):
         pass
 
     try:
-        coordination_mechanism = cells(3, 1, as_list=True) or []
+        coordination_mechanism = cells(4, 0, as_list=True) or []
         data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
     except (IndexError, ValueError):
         pass
@@ -358,29 +358,40 @@ def extract_file(doc, created_by):
         if need['description']:
             identified = IdentifiedNeed.objects.create(**need)
             needs.append(identified)
-    if paragraphs[22][0] == 'Overall objective of the operation':
-        try:
-            data['operation_objective'] = ''.join(paragraphs[23] or [])
-        except (IndexError, ValueError):
-            pass
+    try:
+        if paragraphs[23][0] == 'Overall objective of the operation':
+            try:
+                data['operation_objective'] = ''.join(paragraphs[24] or [])
+            except (IndexError, ValueError):
+                pass
+    except IndexError:
+        pass
 
     # targeting strategy
-    if paragraphs[25][0] == 'Response strategy rationale':
-        try:
-            data['response_strategy'] = ''.join(paragraphs[26] or [])
-        except (IndexError, ValueError):
-            pass
-
-    if paragraphs[29][0] == 'Who will be targeted through this operation?':
-        try:
-            data['people_assisted'] = ''.join(paragraphs[30] or [])
-        except(IndexError, ValueError):
-            pass
-    if paragraphs[32][0] == 'Explain the selection criteria for the targeted population':
-        try:
-            data['selection_criteria'] = ''.join(paragraphs[33] or [])
-        except(IndexError, ValueError):
-            pass
+    try:
+        if paragraphs[26][0] == 'Response strategy rationale':
+            try:
+                data['response_strategy'] = ''.join(paragraphs[27] or [])
+            except (IndexError, ValueError):
+                pass
+    except IndexError:
+        pass
+    try:
+        if paragraphs[30][0] == 'Who will be targeted through this operation?':
+            try:
+                data['people_assisted'] = ''.join(paragraphs[31] or [])
+            except(IndexError, ValueError):
+                pass
+    except IndexError:
+        pass
+    try:
+        if paragraphs[33][0] == 'Explain the selection criteria for the targeted population':
+            try:
+                data['selection_criteria'] = ''.join(paragraphs[34] or [])
+            except(IndexError, ValueError):
+                pass
+    except IndexError:
+        pass
 
     # Targeting Population
     cells = get_table_cells(6)
@@ -430,21 +441,36 @@ def extract_file(doc, created_by):
             risk_security_list.append(risk_security)
 
     # About Support Service
-    if paragraphs[56][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
-        data['human_resource'] = ''.join(paragraphs[57] or [])
-    if paragraphs[60][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
-        data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
-        if data['surge_personnel_deployed']:
-            data['is_surge_personnel_deployed'] = True
-    if paragraphs[61][0] == 'If there is procurement, will it be done by National Society or IFRC?':
-        data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
-    if paragraphs[63][0] == 'How will this operation be monitored?':
-        data['pmer'] = ''.join(paragraphs[64] or [])
-    if paragraphs[65][0] == 'Please briefly explain the National Societies communication strategy for this operation.':
-        data['communication'] = ''.join(paragraphs[66] or [])
+    try:
+        if paragraphs[57][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+            data['human_resource'] = ''.join(paragraphs[58] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[59][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+            data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
+            if data['surge_personnel_deployed']:
+                data['is_surge_personnel_deployed'] = True
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[61][0] == 'If there is procurement, will it be done by National Society or IFRC?':
+            data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[65][0] == 'How will this operation be monitored?':
+            data['pmer'] = ''.join(paragraphs[66] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[67][0] == 'Please briefly explain the National Societies communication strategy for this operation.':
+            data['communication'] = ''.join(paragraphs[68] or [])
+    except (IndexError, ValueError):
+        pass
 
     try:
-        national_society_contact = parse_contact_information(paragraphs[71] or [])
+        national_society_contact = parse_contact_information(paragraphs[72] or [])
         data['national_society_contact_title'] = national_society_contact[2] if national_society_contact[2] and national_society_contact[2] != ", , " else None
         data['national_society_contact_email'] = national_society_contact[4] if national_society_contact[4] else None
         data['national_society_contact_phone_number'] = national_society_contact[6] if national_society_contact[6] else None
@@ -453,7 +479,7 @@ def extract_file(doc, created_by):
         pass
     try:
 
-        ifrc_appeal_manager = parse_contact_information(paragraphs[72] or [])
+        ifrc_appeal_manager = parse_contact_information(paragraphs[73] or [])
         data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[2] if ifrc_appeal_manager[2] else None
         data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[4] if ifrc_appeal_manager[4] else None
         data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[6] if ifrc_appeal_manager[6] else None
@@ -462,7 +488,7 @@ def extract_file(doc, created_by):
         pass
 
     try:
-        ifrc_project_manager = parse_contact_information(paragraphs[73] or [])
+        ifrc_project_manager = parse_contact_information(paragraphs[74] or [])
         data['ifrc_project_manager_title'] = ifrc_project_manager[2] if ifrc_project_manager[2] else None
         data['ifrc_project_manager_email'] = ifrc_project_manager[4] if ifrc_project_manager[4] else None
         data['ifrc_project_manager_phone_number'] = ifrc_project_manager[6] if ifrc_project_manager[6] else None
@@ -471,7 +497,7 @@ def extract_file(doc, created_by):
         pass
 
     try:
-        ifrc_emergency = parse_contact_information(paragraphs[74] or [])
+        ifrc_emergency = parse_contact_information(paragraphs[75] or [])
         data['ifrc_emergency_title'] = ifrc_emergency[2] if ifrc_emergency[2] else None
         data['ifrc_emergency_email'] = ifrc_emergency[4] if ifrc_emergency[4] else None
         data['ifrc_emergency_phone_number'] = ifrc_emergency[6] if ifrc_emergency[6] else None
@@ -480,7 +506,7 @@ def extract_file(doc, created_by):
         pass
 
     try:
-        media = parse_contact_information(paragraphs[75] or [])
+        media = parse_contact_information(paragraphs[76] or [])
         data['media_contact_title'] = media[2] if media[2] else None
         data['media_contact_email'] = media[4] if media[4] else None
         data['media_contact_phone_number'] = media[6] if media[6] else None
@@ -519,10 +545,10 @@ def extract_file(doc, created_by):
             'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
-
-        planned = PlannedIntervention.objects.create(**planned_data)
-        planned.indicators.add(*indicators_object_list)
-        planned_intervention.append(planned)
+        if planned_data['budget'] or planned_data['person_targeted'] or planned_data['description']:
+            planned = PlannedIntervention.objects.create(**planned_data)
+            planned.indicators.add(*indicators_object_list)
+            planned_intervention.append(planned)
 
     # Create dref objects
     # map m2m fields
