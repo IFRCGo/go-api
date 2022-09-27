@@ -102,6 +102,7 @@ def parse_contact_information(items: List[Any]):
             '• ',
             'Media Contact: ',
             '• IFRC Project Manager: ',
+            '• IFRC Project Manager:',
         ]:
             continue
         result.append(data)

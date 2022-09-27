@@ -310,13 +310,13 @@ def extract_file(doc, created_by):
     except (ValueError, IndexError):
         pass
     try:
-        national_authorities = cells(1, 1, as_list=True) or []
+        national_authorities = cells(1, 2, as_list=True) or []
         data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
     except (ValueError, IndexError):
         pass
 
     try:
-        un_and_other_actors = cells(1, 2, as_list=True) or []
+        un_and_other_actors = cells(2, 2, as_list=True) or []
         data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
     except (IndexError, ValueError):
         pass
