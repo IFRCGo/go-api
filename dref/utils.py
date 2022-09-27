@@ -200,6 +200,8 @@ def extract_file(doc, created_by):
             ).first()
         except District.DoesNotExist:
             pass
+        if district is None:
+            continue
         district_list.append(district)
 
     try:

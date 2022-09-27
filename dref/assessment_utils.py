@@ -161,10 +161,15 @@ def extract_assessment_file(doc, created_by):
                 ).first()
             except District.DoesNotExist:
                 pass
+            if district is None:
+                continue
             district_list.append(district)
-    if paragraphs[6][0] == 'What happened, where and when?':
-        description = paragraphs[7] or []
-        data['event_description'] = ''.join(description) if description else None
+    try:
+        if paragraphs[6][0] == 'What happened, where and when?':
+            description = paragraphs[7] or []
+            data['event_description'] = ''.join(description) if description else None
+    except IndexError:
+        pass
 
     # National Society Actions
     cells = get_table_cells(1)
@@ -220,33 +225,45 @@ def extract_assessment_file(doc, created_by):
     cells = get_table_cells(3)
     data['government_requested_assistance'] = parse_boolean(cells(0, 1))
 
-    national_authorities = cells(1, 1, as_list=True)
+    national_authorities = cells(1, 2, as_list=True)
     data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
 
-    un_and_other_actors = cells(2, 1, as_list=True)
+    un_and_other_actors = cells(2, 2, as_list=True)
     data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
 
-    coordination_mechanism = cells(3, 1, as_list=True)
+    coordination_mechanism = cells(4, 0, as_list=True)
     data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
 
     # Operational Strategy
-    if paragraphs[18][0] == 'Overall objective of the operation':
-        operation_description = paragraphs[19] or []
-        data['operation_objective'] = ''.join(operation_description) if operation_description else None
+    try:
+        if paragraphs[18][0] == 'Overall objective of the operation':
+            operation_description = paragraphs[19] or []
+            data['operation_objective'] = ''.join(operation_description) if operation_description else None
+    except IndexError:
+        pass
 
     # targeting strategy
-    if paragraphs[21][0] == 'Response strategy rationale':
-        response_description = paragraphs[22] or []
-        data['response_strategy'] = ''.join(response_description) if response_description else None
+    try:
+        if paragraphs[20][0] == 'Response strategy rationale':
+            response_description = paragraphs[21] or []
+            data['response_strategy'] = ''.join(response_description) if response_description else None
+    except IndexError:
+        pass
 
     # Targeting Strategy
-    if paragraphs[25][0] == 'Who will be targeted through this operation?':
-        people_assisted_description = paragraphs[26] or []
-        data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
+    try:
+        if paragraphs[23][0] == 'Who will be targeted through this operation?':
+            people_assisted_description = paragraphs[24] or []
+            data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
+    except IndexError:
+        pass
 
-    if paragraphs[27][0] == 'Explain the selection criteria for the targeted population':
-        selection_criteria_description = paragraphs[28] or []
-        data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
+    try:
+        if paragraphs[26][0] == 'Explain the selection criteria for the targeted population':
+            selection_criteria_description = paragraphs[27] or []
+            data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
+    except IndexError:
+        pass
 
     # Targeting Population
     cells = get_table_cells(4)
@@ -311,13 +328,19 @@ def extract_assessment_file(doc, created_by):
             planned_intervention.append(planned)
 
     # About Support Service
-    if paragraphs[52][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
-        human_resource_description = paragraphs[53] or []
-        data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+    try:
+        if paragraphs[50][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+            human_resource_description = paragraphs[51] or []
+            data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+    except IndexError:
+        pass
 
-    if paragraphs[54][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
-        surge_personnel_deployed_description = paragraphs[55] or []
-        data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
+    try:
+        if paragraphs[52][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+            surge_personnel_deployed_description = paragraphs[53] or []
+            data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
+    except IndexError:
+        pass
 
     try:
         national_society_contact = parse_contact_information(paragraphs[60] or [])
@@ -373,6 +396,7 @@ def extract_assessment_file(doc, created_by):
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
     dref.national_society_actions.add(*national_societies)
+    print(district_list)
     dref.risk_security.add(*mitigation_list)
     if len(district_list) > 0 and None not in district_list:
         dref.district.add(*district_list)

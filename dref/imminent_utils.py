@@ -166,37 +166,50 @@ def extract_imminent_file(doc, created_by):
             ).first()
         except District.DoesNotExist:
             pass
+        if district is None:
+            continue
         district_list.append(district)
-    if paragraphs[6][0] == 'Approximate date of impact':
-        paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
-        event_desc = []
-        if len(paragraph6) > 0:
-            for desc in paragraph6:
-                event_desc.append(desc.text)
-        data['event_text'] = ''.join(event_desc) if event_desc else None
+    try:
+        if paragraphs[6][0] == 'Approximate date of impact':
+            paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
+            event_desc = []
+            if len(paragraph6) > 0:
+                for desc in paragraph6:
+                    event_desc.append(desc.text)
+            data['event_text'] = ''.join(event_desc) if event_desc else None
+    except IndexError:
+        pass
+    try:
+        if paragraphs[8][0] == 'What is expected to happen?':
+            paragraph8 = document.paragraphs[9]._element.xpath('.//w:t')
+            event_description = []
+            if len(paragraph8) > 0:
+                for desc in paragraph8:
+                    event_description.append(desc.text)
+            data['event_description'] = ''.join(event_description) if event_description else None
+    except IndexError:
+        pass
 
-    if paragraphs[8][0] == 'What is expected to happen?':
-        paragraph8 = document.paragraphs[9]._element.xpath('.//w:t')
-        event_description = []
-        if len(paragraph8) > 0:
-            for desc in paragraph8:
-                event_description.append(desc.text)
-        data['event_description'] = ''.join(event_description) if event_description else None
-
-    if paragraphs[11][0] == 'Why your National Society is acting now and what criteria is used to launch this operation.':
-        paragraph11 = document.paragraphs[12]._element.xpath('.//w:t')
-        anticipatory_actions_desc = []
-        if len(paragraph11) > 0:
-            for desc in paragraph11:
-                anticipatory_actions_desc.append(desc.text)
+    try:
+        if paragraphs[11][0] == 'Why your National Society is acting now and what criteria is used to launch this operation.':
+            paragraph11 = document.paragraphs[12]._element.xpath('.//w:t')
+            anticipatory_actions_desc = []
+            if len(paragraph11) > 0:
+                for desc in paragraph11:
+                    anticipatory_actions_desc.append(desc.text)
         data['anticipatory_actions'] = ''.join(anticipatory_actions_desc) if anticipatory_actions_desc else None
-    if paragraphs[14][0] == 'Scope and scale':
-        paragraph13 = document.paragraphs[15]._element.xpath('.//w:t')
-        event_scope_description = []
-        if len(paragraph13) > 0:
-            for desc in paragraph13:
-                event_scope_description.append(desc.text)
-        data['event_scope'] = ''.join(event_scope_description) if event_scope_description else None
+    except IndexError:
+        pass
+    try:
+        if paragraphs[14][0] == 'Scope and scale':
+            paragraph13 = document.paragraphs[15]._element.xpath('.//w:t')
+            event_scope_description = []
+            if len(paragraph13) > 0:
+                for desc in paragraph13:
+                    event_scope_description.append(desc.text)
+            data['event_scope'] = ''.join(event_scope_description) if event_scope_description else None
+    except IndexError:
+        pass
 
     # Previous Operation
     # NOTE: I am not sure about the index 1 being used below - Bibek
