@@ -107,3 +107,30 @@ def parse_contact_information(items: List[Any]):
             continue
         result.append(data)
     return result
+
+
+def parse_people(string):
+    try:
+        if string:
+            people = string.split(' ')
+            return int(people[0])
+    except (IndexError, ValueError):
+        pass
+
+
+def parse_country(country):
+    try:
+        if country:
+            new_country = country.split(' ')
+            return new_country[1]
+    except (IndexError, ValueError):
+        pass
+
+
+def parse_currency(currency):
+    try:
+        if currency:
+            new_currency = currency.split(' ')
+            return int(new_currency[1])
+    except (IndexError, ValueError):
+        pass

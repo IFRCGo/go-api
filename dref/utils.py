@@ -29,6 +29,9 @@ from .common_utils import (
     get_paragraphs_data,
     parse_disaster_category,
     parse_contact_information,
+    parse_people,
+    parse_country,
+    parse_currency,
 )
 
 
@@ -146,7 +149,7 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
+        data['amount_requested'] = parse_currency(cells(1, 1, 1))
     except(IndexError, ValueError):
         pass
     try:
@@ -162,11 +165,11 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['num_affected'] = parse_string_to_int(cells(3, 1))
+        data['num_affected'] = parse_people(cells(3, 1))
     except(IndexError, ValueError):
         pass
     try:
-        data['num_assisted'] = parse_string_to_int(cells(3, 2))
+        data['num_assisted'] = parse_people(cells(3, 2))
     except(IndexError, ValueError):
         pass
     try:
@@ -182,10 +185,11 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['operation_timeframe'] = parse_int(cells(5, 3))
+        data['operation_timeframe'] = parse_people(cells(5, 3))
     except(IndexError, ValueError):
         pass
-    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    print(parse_country(cells(6, 0)), "cccc")
+    country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
@@ -195,7 +199,7 @@ def extract_file(doc, created_by):
     for d in new_district:
         try:
             district = District.objects.filter(
-                country__name__icontains=cells(6, 0, 1),
+                country__name__icontains=parse_country(cells(6, 0)),
                 name__icontains=d
             ).first()
         except District.DoesNotExist:
