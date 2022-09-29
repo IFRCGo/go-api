@@ -188,7 +188,6 @@ def extract_file(doc, created_by):
         data['operation_timeframe'] = parse_people(cells(5, 3))
     except(IndexError, ValueError):
         pass
-    print(parse_country(cells(6, 0)), "cccc")
     country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')

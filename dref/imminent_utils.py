@@ -28,6 +28,7 @@ from .common_utils import (
     parse_disaster_category,
     get_paragraphs_data,
     parse_contact_information,
+    parse_country
 )
 
 
@@ -113,6 +114,8 @@ def extract_imminent_file(doc, created_by):
     tables = get_table_data(doc)
     paragraphs = get_paragraphs_data(doc)
 
+    document = docx.Document(doc)
+
     # Get item form an array
     def _t(items: List[Any], index=0):
         if items and len(items) > index:
@@ -130,18 +133,15 @@ def extract_imminent_file(doc, created_by):
             except(IndexError, ValueError):
                 pass
         return f
-    document = docx.Document(doc)
     data = {}
     # NOTE: Second Paragraph for Country and Region and Dref Title
-    paragraph2 = document.paragraphs[1]
-    paragraph_element2 = paragraph2._element.xpath('.//w:t')
-    data['title'] = get_text_or_null(paragraph_element2)
-    if not data['title']:
-        raise serializers.ValidationError('A title is required')
+    data['title'] = paragraphs[1][0] if paragraphs[1] else None
+    if data['title'] is None:
+        raise serializers.ValidationError('Title should be present')
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
-    data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
+    data['amount_requested'] = parse_string_to_int(cells(1, 1))
     data['disaster_category'] = parse_disaster_category(cells(1, 2))
     data['disaster_type'] = parse_disaster_type(cells(1, 4))
     data['glide_code'] = cells(3, 0)
@@ -151,7 +151,7 @@ def extract_imminent_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country

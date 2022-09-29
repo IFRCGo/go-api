@@ -24,7 +24,10 @@ from .common_utils import (
     get_table_data,
     get_paragraphs_data,
     parse_disaster_category,
-    parse_contact_information
+    parse_contact_information,
+    parse_people,
+    parse_country,
+    parse_currency,
 )
 
 
@@ -134,17 +137,17 @@ def extract_assessment_file(doc, created_by):
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
-    data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
+    data['amount_requested'] = parse_currency(cells(1, 1))
     data['disaster_category'] = parse_disaster_category(cells(1, 2))
     data['disaster_type'] = parse_disaster_type(cells(1, 4))
     data['glide_code'] = cells(3, 0)
-    data['num_affected'] = parse_string_to_int(cells(3, 1))
-    data['num_assisted'] = parse_string_to_int(cells(3, 2))
+    data['num_affected'] = parse_people(cells(3, 1))
+    data['num_assisted'] = parse_people(cells(3, 2))
     data['type_of_onset'] = parse_type_of_onset(cells(5, 0))
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
-    data['operation_timeframe'] = parse_int(cells(5, 3))
-    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    data['operation_timeframe'] = parse_people(cells(5, 3))
+    country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
@@ -156,7 +159,7 @@ def extract_assessment_file(doc, created_by):
         for d in new_district:
             try:
                 district = District.objects.filter(
-                    country__name__icontains=cells(6, 0, 1),
+                    country__name__icontains=parse_country(cells(6, 0)),
                     name__icontains=d
                 ).first()
             except District.DoesNotExist:
@@ -225,13 +228,13 @@ def extract_assessment_file(doc, created_by):
     cells = get_table_cells(3)
     data['government_requested_assistance'] = parse_boolean(cells(0, 1))
 
-    national_authorities = cells(1, 2, as_list=True)
+    national_authorities = cells(1, 1, as_list=True)
     data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
 
-    un_and_other_actors = cells(2, 2, as_list=True)
+    un_and_other_actors = cells(2, 0, as_list=True)
     data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
 
-    coordination_mechanism = cells(4, 0, as_list=True)
+    coordination_mechanism = cells(3, 1, as_list=True)
     data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
 
     # Operational Strategy
@@ -396,7 +399,6 @@ def extract_assessment_file(doc, created_by):
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
     dref.national_society_actions.add(*national_societies)
-    print(district_list)
     dref.risk_security.add(*mitigation_list)
     if len(district_list) > 0 and None not in district_list:
         dref.district.add(*district_list)
