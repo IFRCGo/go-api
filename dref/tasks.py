@@ -12,7 +12,7 @@ def send_dref_email(dref_id):
     users_emails = [t.email for t in instance.users.iterator()]
     if users_emails:
         send_notification(
-            f'Flash Update: {instance.title}',
+            f'New DREF: {instance.title}',
             users_emails,
             render_to_string('email/dref/dref.html', email_context),
             'New DREF'
