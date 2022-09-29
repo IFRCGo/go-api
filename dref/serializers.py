@@ -2,7 +2,7 @@ import os
 import datetime
 
 from django.utils.translation import gettext
-from django.db import models
+from django.db import models, transaction
 
 from rest_framework import serializers
 
@@ -33,6 +33,8 @@ from dref.models import (
 from dref.utils import extract_file
 from dref.imminent_utils import extract_imminent_file
 from dref.assessment_utils import extract_assessment_file
+
+from .tasks import send_dref_email
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -160,7 +162,7 @@ class DrefAssessmentFileUploadSerializer(ModelSerializer):
             created_by = self.context['request'].user
             dref = extract_assessment_file(file, created_by)
             if not dref:
-                raise serializers.ValidationError(ugettext('Can\'t dref from supplied data'))
+                raise serializers.ValidationError(gettext('Can\'t dref from supplied data'))
             validated_data['dref'] = dref
         return super().create(validated_data)
 
@@ -422,7 +424,11 @@ class DrefSerializer(
             dref_assessment_report = super().create(validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
-        return super().create(validated_data)
+        dref = super().create(validated_data)
+        transaction.on_commit(
+            lambda: send_dref_email.delay(dref.id)
+        )
+        return dref
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
@@ -452,7 +458,11 @@ class DrefSerializer(
             dref_assessment_report = super().update(instance, validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
-        return super().update(instance, validated_data)
+        dref = super().update(instance, validated_data)
+        transaction.on_commit(
+            lambda: send_dref_email.delay(dref.id)
+        )
+        return dref
 
 
 class DrefOperationalUpdateSerializer(

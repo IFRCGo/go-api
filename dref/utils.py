@@ -509,3 +509,13 @@ def extract_file(doc, created_by):
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*risk_security_list)
     return dref
+
+
+def get_email_context(instance):
+    from dref.serializers import DrefSerializer
+
+    dref_data = DrefSerializer(instance).data
+    email_context = {
+        'title': dref_data['title'],
+    }
+    return email_context
