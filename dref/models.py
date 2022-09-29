@@ -198,7 +198,6 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png',
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: 'environment.png',
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
-            PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -243,7 +242,7 @@ class Dref(models.Model):
     )
     field_report = models.ForeignKey(
         FieldReport, verbose_name=_('field report'),
-        on_delete=models.SET_NULL, null=True,
+        on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_report_dref'
     )
     title = models.CharField(verbose_name=_('title'), max_length=255)
@@ -1076,8 +1075,8 @@ class DrefOperationalUpdate(models.Model):
         blank=True, null=True,
         verbose_name=_('Risk Security Concern')
     )
-    has_forcasted_event_materialize = models.BooleanField(
-        verbose_name=_('Has Forcasted Event Materialize'),
+    has_forecasted_event_materialize = models.BooleanField(
+        verbose_name=_('Has Forecasted Event Materialize'),
         null=True, blank=True
     )
     anticipatory_to_response = models.TextField(
