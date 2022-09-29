@@ -73,6 +73,7 @@ def get_table_data(doc):
         tables.append(rowdata)
     return tables
 
+
 def get_paragraphs_data(doc):
     document = docx.Document(doc)
     return [[y.text for y in x._element.xpath('.//w:t')] for x in document.paragraphs]
@@ -86,3 +87,50 @@ def parse_disaster_category(disaster_category):
     elif disaster_category == 'Red':
         return Dref.DisasterCategory.RED
     return None
+
+
+def parse_contact_information(items: List[Any]):
+    result = []
+    for data in items:
+        if data in [
+            'National Society contact: ',
+            'IFRC Appeal Manager: ',
+            'IFRC Project Manager: ',
+            'IFRC focal point for the emergency: ',
+            'Media Contact: '
+            ', ',
+            '• ',
+            'Media Contact: ',
+            '• IFRC Project Manager: ',
+            '• IFRC Project Manager:',
+        ]:
+            continue
+        result.append(data)
+    return result
+
+
+def parse_people(string):
+    try:
+        if string:
+            people = string.split(' ')
+            return int(people[0])
+    except (IndexError, ValueError):
+        pass
+
+
+def parse_country(country):
+    try:
+        if country:
+            new_country = country.split(' ')
+            return new_country[1]
+    except (IndexError, ValueError):
+        pass
+
+
+def parse_currency(currency):
+    try:
+        if currency:
+            new_currency = currency.split(' ')
+            return int(new_currency[1])
+    except (IndexError, ValueError):
+        pass

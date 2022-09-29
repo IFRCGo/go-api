@@ -16,6 +16,7 @@ from dref.models import (
 from api.models import (
     DisasterType,
     Country,
+    District
 )
 
 from .common_utils import (
@@ -27,6 +28,10 @@ from .common_utils import (
     get_table_data,
     get_paragraphs_data,
     parse_disaster_category,
+    parse_contact_information,
+    parse_people,
+    parse_country,
+    parse_currency,
 )
 
 
@@ -124,6 +129,7 @@ def extract_file(doc, created_by):
 
     def get_table_cells(table_idx):
         table = tables[table_idx]
+
         def f(r, c, i=0, as_list=False):
             if as_list:
                 return table[r][c]
@@ -143,7 +149,7 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
+        data['amount_requested'] = parse_currency(cells(1, 1, 1))
     except(IndexError, ValueError):
         pass
     try:
@@ -159,11 +165,11 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['num_affected'] = parse_string_to_int(cells(3, 1))
+        data['num_affected'] = parse_people(cells(3, 1))
     except(IndexError, ValueError):
         pass
     try:
-        data['num_assisted'] = parse_string_to_int(cells(3, 2))
+        data['num_assisted'] = parse_people(cells(3, 2))
     except(IndexError, ValueError):
         pass
     try:
@@ -179,13 +185,27 @@ def extract_file(doc, created_by):
     except(IndexError, ValueError):
         pass
     try:
-        data['operation_timeframe'] = parse_int(cells(5, 3))
+        data['operation_timeframe'] = parse_people(cells(5, 3))
     except(IndexError, ValueError):
         pass
-    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
+    district = cells(6, 2)
+    new_district = district.split(',')
+    district_list = []
+    for d in new_district:
+        try:
+            district = District.objects.filter(
+                country__name__icontains=parse_country(cells(6, 0)),
+                name__icontains=d
+            ).first()
+        except District.DoesNotExist:
+            pass
+        if district is None:
+            continue
+        district_list.append(district)
 
     try:
         description = paragraphs[7]
@@ -295,19 +315,19 @@ def extract_file(doc, created_by):
     except (ValueError, IndexError):
         pass
     try:
-        national_authorities = cells(1, 1, as_list=True) or []
+        national_authorities = cells(1, 2, as_list=True) or []
         data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
     except (ValueError, IndexError):
         pass
 
     try:
-        un_and_other_actors = cells(1, 2, as_list=True) or []
+        un_and_other_actors = cells(2, 2, as_list=True) or []
         data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
     except (IndexError, ValueError):
         pass
 
     try:
-        coordination_mechanism = cells(3, 1, as_list=True) or []
+        coordination_mechanism = cells(4, 0, as_list=True) or []
         data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
     except (IndexError, ValueError):
         pass
@@ -328,7 +348,7 @@ def extract_file(doc, created_by):
     ]
     for i, needs_title in enumerate(needs_titles):
         try:
-            description = cells(i*2+1, 0)  # Use Every alternate row, so i*2 + 1
+            description = cells(i * 2 + 1, 0)  # Use Every alternate row, so i*2 + 1
             if description:
                 data_new = {
                     'title': needs_title,
@@ -344,23 +364,38 @@ def extract_file(doc, created_by):
             identified = IdentifiedNeed.objects.create(**need)
             needs.append(identified)
     try:
-        data['operation_objective'] = ''.join(paragraphs[23] or [])
-    except (IndexError, ValueError):
+        if paragraphs[23][0] == 'Overall objective of the operation':
+            try:
+                data['operation_objective'] = ''.join(paragraphs[24] or [])
+            except (IndexError, ValueError):
+                pass
+    except IndexError:
         pass
 
     # targeting strategy
     try:
-        data['response_strategy'] = ''.join(paragraphs[25] or [])
-    except (IndexError, ValueError):
+        if paragraphs[26][0] == 'Response strategy rationale':
+            try:
+                data['response_strategy'] = ''.join(paragraphs[27] or [])
+            except (IndexError, ValueError):
+                pass
+    except IndexError:
         pass
-    # Targeting Strategy
     try:
-        data['people_assisted'] = ''.join(paragraphs[31] or [])
-    except(IndexError, ValueError):
+        if paragraphs[30][0] == 'Who will be targeted through this operation?':
+            try:
+                data['people_assisted'] = ''.join(paragraphs[31] or [])
+            except(IndexError, ValueError):
+                pass
+    except IndexError:
         pass
     try:
-        data['selection_criteria'] = ''.join(paragraphs[33] or [])
-    except(IndexError, ValueError):
+        if paragraphs[33][0] == 'Explain the selection criteria for the targeted population':
+            try:
+                data['selection_criteria'] = ''.join(paragraphs[34] or [])
+            except(IndexError, ValueError):
+                pass
+    except IndexError:
         pass
 
     # Targeting Population
@@ -411,53 +446,75 @@ def extract_file(doc, created_by):
             risk_security_list.append(risk_security)
 
     # About Support Service
-    data['human_resource'] = ''.join(paragraphs[57] or [])
-    data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
-    data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
-    data['pmer'] = ''.join(paragraphs[64] or [])
-    data['communication'] = ''.join(paragraphs[66] or [])
+    try:
+        if paragraphs[57][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+            data['human_resource'] = ''.join(paragraphs[58] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[59][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+            data['surge_personnel_deployed'] = ''.join(paragraphs[60] or [])
+            if data['surge_personnel_deployed']:
+                data['is_surge_personnel_deployed'] = True
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[61][0] == 'If there is procurement, will it be done by National Society or IFRC?':
+            data['logistic_capacity_of_ns'] = ''.join(paragraphs[62] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[65][0] == 'How will this operation be monitored?':
+            data['pmer'] = ''.join(paragraphs[66] or [])
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[67][0] == 'Please briefly explain the National Societies communication strategy for this operation.':
+            data['communication'] = ''.join(paragraphs[68] or [])
+    except (IndexError, ValueError):
+        pass
 
     try:
-        national_society_contact = paragraphs[71] or []
-        data['national_society_contact_title'] = national_society_contact[3] if national_society_contact[3] else None
-        data['national_society_contact_email'] = national_society_contact[5] if national_society_contact[5] else None
-        data['national_society_contact_phone_number'] = national_society_contact[7] if national_society_contact[7] else None
+        national_society_contact = parse_contact_information(paragraphs[72] or [])
+        data['national_society_contact_title'] = national_society_contact[2] if national_society_contact[2] and national_society_contact[2] != ", , " else None
+        data['national_society_contact_email'] = national_society_contact[4] if national_society_contact[4] else None
+        data['national_society_contact_phone_number'] = national_society_contact[6] if national_society_contact[6] else None
         data['national_society_contact_name'] = national_society_contact[0] if national_society_contact[0] else None
     except IndexError:
         pass
     try:
 
-        ifrc_appeal_manager = paragraphs[72] or []
-        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3] if ifrc_appeal_manager[3] else None
-        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5] if ifrc_appeal_manager[5] else None
-        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7] if ifrc_appeal_manager[7] else None
+        ifrc_appeal_manager = parse_contact_information(paragraphs[73] or [])
+        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[2] if ifrc_appeal_manager[2] else None
+        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[4] if ifrc_appeal_manager[4] else None
+        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[6] if ifrc_appeal_manager[6] else None
         data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0] if ifrc_appeal_manager[0] else None
     except IndexError:
         pass
 
     try:
-        ifrc_project_manager = paragraphs[73] or []
-        data['ifrc_project_manager_title'] = ifrc_project_manager[3] if ifrc_project_manager[3] else None
-        data['ifrc_project_manager_email'] = ifrc_project_manager[5] if ifrc_project_manager[5] else None
-        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7] if ifrc_project_manager[7] else None
+        ifrc_project_manager = parse_contact_information(paragraphs[74] or [])
+        data['ifrc_project_manager_title'] = ifrc_project_manager[2] if ifrc_project_manager[2] else None
+        data['ifrc_project_manager_email'] = ifrc_project_manager[4] if ifrc_project_manager[4] else None
+        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[6] if ifrc_project_manager[6] else None
         data['ifrc_project_manager_name'] = ifrc_project_manager[0] if ifrc_project_manager[0] else None
     except IndexError:
         pass
 
     try:
-        ifrc_emergency = paragraphs[74] or []
-        data['ifrc_emergency_title'] = ifrc_emergency[3] if ifrc_emergency[3] else None
-        data['ifrc_emergency_email'] = ifrc_emergency[5] if ifrc_emergency[5] else None
-        data['ifrc_emergency_phone_number'] = ifrc_emergency[7] if ifrc_emergency[7] else None
+        ifrc_emergency = parse_contact_information(paragraphs[75] or [])
+        data['ifrc_emergency_title'] = ifrc_emergency[2] if ifrc_emergency[2] else None
+        data['ifrc_emergency_email'] = ifrc_emergency[4] if ifrc_emergency[4] else None
+        data['ifrc_emergency_phone_number'] = ifrc_emergency[6] if ifrc_emergency[6] else None
         data['ifrc_emergency_name'] = ifrc_emergency[0] if ifrc_emergency[0] else None
     except IndexError:
         pass
 
     try:
-        media = paragraphs[75] or []
-        data['media_contact_title'] = media[3] if media[3] else None
-        data['media_contact_email'] = media[5] if media[5] else None
-        data['media_contact_phone_number'] = media[7] if media[7] else None
+        media = parse_contact_information(paragraphs[76] or [])
+        data['media_contact_title'] = media[2] if media[2] else None
+        data['media_contact_email'] = media[4] if media[4] else None
+        data['media_contact_phone_number'] = media[6] if media[6] else None
         data['media_contact_name'] = media[0] if media[0] else None
     except IndexError:
         pass
@@ -493,10 +550,10 @@ def extract_file(doc, created_by):
             'person_targeted': parse_int(targeted_population),
             'description': priority_description
         }
-
-        planned = PlannedIntervention.objects.create(**planned_data)
-        planned.indicators.add(*indicators_object_list)
-        planned_intervention.append(planned)
+        if planned_data['budget'] or planned_data['person_targeted'] or planned_data['description']:
+            planned = PlannedIntervention.objects.create(**planned_data)
+            planned.indicators.add(*indicators_object_list)
+            planned_intervention.append(planned)
 
     # Create dref objects
     # map m2m fields
@@ -508,6 +565,8 @@ def extract_file(doc, created_by):
     dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*risk_security_list)
+    if len(district_list) > 0 and None not in district_list:
+        dref.district.add(*district_list)
     return dref
 
 

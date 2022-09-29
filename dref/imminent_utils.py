@@ -14,6 +14,7 @@ from dref.models import (
 from api.models import (
     DisasterType,
     Country,
+    District
 )
 
 from .common_utils import (
@@ -25,6 +26,9 @@ from .common_utils import (
     parse_boolean,
     get_table_data,
     parse_disaster_category,
+    get_paragraphs_data,
+    parse_contact_information,
+    parse_country
 )
 
 
@@ -108,6 +112,9 @@ def parse_type_of_onset(onset_type):
 
 def extract_imminent_file(doc, created_by):
     tables = get_table_data(doc)
+    paragraphs = get_paragraphs_data(doc)
+
+    document = docx.Document(doc)
 
     # Get item form an array
     def _t(items: List[Any], index=0):
@@ -126,18 +133,15 @@ def extract_imminent_file(doc, created_by):
             except(IndexError, ValueError):
                 pass
         return f
-    document = docx.Document(doc)
     data = {}
     # NOTE: Second Paragraph for Country and Region and Dref Title
-    paragraph2 = document.paragraphs[1]
-    paragraph_element2 = paragraph2._element.xpath('.//w:t')
-    data['title'] = get_text_or_null(paragraph_element2)
-    if not data['title']:
-        raise serializers.ValidationError('A title is required')
+    data['title'] = paragraphs[1][0] if paragraphs[1] else None
+    if data['title'] is None:
+        raise serializers.ValidationError('Title should be present')
 
     cells = get_table_cells(0)
     data['appeal_code'] = cells(1, 0)
-    data['amount_requested'] = parse_string_to_int(cells(1, 1, 1))
+    data['amount_requested'] = parse_string_to_int(cells(1, 1))
     data['disaster_category'] = parse_disaster_category(cells(1, 2))
     data['disaster_type'] = parse_disaster_type(cells(1, 4))
     data['glide_code'] = cells(3, 0)
@@ -147,36 +151,65 @@ def extract_imminent_file(doc, created_by):
     data['date_of_approval'] = parse_date(cells(5, 1))
     data['end_date'] = parse_date(cells(5, 2))
     data['operation_timeframe'] = parse_int(cells(5, 3))
-    country = Country.objects.filter(name__icontains=cells(6, 0, 1)).first()
+    country = Country.objects.filter(name__icontains=parse_country(cells(6, 0))).first()
     if country is None:
         raise serializers.ValidationError('A valid country name is required')
     data['country'] = country
+    district = cells(6, 2)
+    new_district = district.split(',')
+    district_list = []
+    for d in new_district:
+        try:
+            district = District.objects.filter(
+                country__name__icontains=cells(6, 0, 1),
+                name__icontains=d
+            ).first()
+        except District.DoesNotExist:
+            pass
+        if district is None:
+            continue
+        district_list.append(district)
+    try:
+        if paragraphs[6][0] == 'Approximate date of impact':
+            paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
+            event_desc = []
+            if len(paragraph6) > 0:
+                for desc in paragraph6:
+                    event_desc.append(desc.text)
+            data['event_text'] = ''.join(event_desc) if event_desc else None
+    except IndexError:
+        pass
+    try:
+        if paragraphs[8][0] == 'What is expected to happen?':
+            paragraph8 = document.paragraphs[9]._element.xpath('.//w:t')
+            event_description = []
+            if len(paragraph8) > 0:
+                for desc in paragraph8:
+                    event_description.append(desc.text)
+            data['event_description'] = ''.join(event_description) if event_description else None
+    except IndexError:
+        pass
 
-    paragraph6 = document.paragraphs[7]._element.xpath('.//w:t')
-    event_desc = []
-    if len(paragraph6) > 0:
-        for desc in paragraph6:
-            event_desc.append(desc.text)
-    data['event_text'] = ''.join(event_desc) if event_desc else None
-
-    paragraph8 = document.paragraphs[9]._element.xpath('.//w:t')
-    event_description = []
-    if len(paragraph8) > 0:
-        for desc in paragraph8:
-            event_description.append(desc.text)
-    data['event_description'] = ''.join(event_description) if event_description else None
-    paragraph11 = document.paragraphs[11]._element.xpath('.//w:t')
-    anticipatory_actions_desc = []
-    if len(paragraph11) > 0:
-        for desc in paragraph11:
-            anticipatory_actions_desc.append(desc.text)
-    data['anticipatory_actions'] = ''.join(anticipatory_actions_desc) if anticipatory_actions_desc else None
-    paragraph13 = document.paragraphs[13]._element.xpath('.//w:t')
-    event_scope_description = []
-    if len(paragraph13) > 0:
-        for desc in paragraph13:
-            event_scope_description.append(desc.text)
-    data['event_scope'] = ''.join(event_scope_description) if event_scope_description else None
+    try:
+        if paragraphs[11][0] == 'Why your National Society is acting now and what criteria is used to launch this operation.':
+            paragraph11 = document.paragraphs[12]._element.xpath('.//w:t')
+            anticipatory_actions_desc = []
+            if len(paragraph11) > 0:
+                for desc in paragraph11:
+                    anticipatory_actions_desc.append(desc.text)
+        data['anticipatory_actions'] = ''.join(anticipatory_actions_desc) if anticipatory_actions_desc else None
+    except IndexError:
+        pass
+    try:
+        if paragraphs[14][0] == 'Scope and scale':
+            paragraph13 = document.paragraphs[15]._element.xpath('.//w:t')
+            event_scope_description = []
+            if len(paragraph13) > 0:
+                for desc in paragraph13:
+                    event_scope_description.append(desc.text)
+            data['event_scope'] = ''.join(event_scope_description) if event_scope_description else None
+    except IndexError:
+        pass
 
     # Previous Operation
     # NOTE: I am not sure about the index 1 being used below - Bibek
@@ -203,12 +236,10 @@ def extract_imminent_file(doc, created_by):
                 recurrent_text.append(desc.text)
         data['dref_recurrent_text'] = ''.join(recurrent_text) if recurrent_text else None
 
-    # TODO: uncomment this. However it was not being used. This was creating error
-    # so has been commented out
-    # table_one_row_eight_column_zero = table1.cell(8, 0)._tc.xpath('.//w:t')
+    table_one_row_eight_column_zero = table1.cell(8, 0)._tc.xpath('.//w:t')
     lessons_learned_text = []
-    if len(lessons_learned_text) > 0:
-        for desc in lessons_learned_text:
+    if len(table_one_row_eight_column_zero) > 0:
+        for desc in table_one_row_eight_column_zero:
             lessons_learned_text.append(desc.text)
     data['lessons_learned'] = ''.join(lessons_learned_text) if lessons_learned_text else None
     # National Society Actions
@@ -239,7 +270,7 @@ def extract_imminent_file(doc, created_by):
         description = cells(i, 1)
         if description:
             national_society_actions.append({
-                'title': NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS,
+                'title': title,
                 'description': description
             })
     # Create national Society objects db level
@@ -260,43 +291,73 @@ def extract_imminent_file(doc, created_by):
     data['icrc'] = ''.join(icrc_desc) if icrc_desc else None
 
     # Other actors
+    # Other actors
     cells = get_table_cells(4)
-    data['government_requested_assistance'] = parse_boolean(cells(0, 1))
-    national_authorities = cells(1, 1, as_list=True) or []
-    data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
+    try:
+        if cells(0, 0):
+            data['government_requested_assistance'] = parse_boolean(cells(0, 1))
+    except (ValueError, IndexError):
+        pass
+    try:
+        national_authorities = cells(1, 2, as_list=True) or []
+        data['national_authorities'] = ''.join(national_authorities) if national_authorities else None
+    except (ValueError, IndexError):
+        pass
 
-    un_and_other_actors = cells(2, 0, as_list=True) or []
-    data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
+    try:
+        un_and_other_actors = cells(2, 2, as_list=True) or []
+        data['un_or_other_actor'] = ''.join(un_and_other_actors) if un_and_other_actors else None
+    except (IndexError, ValueError):
+        pass
 
-    coordination_mechanism = cells(3, 1, as_list=True) or []
-    data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
+    try:
+        coordination_mechanism = cells(4, 0, as_list=True) or []
+        data['major_coordination_mechanism'] = ''.join(coordination_mechanism) if coordination_mechanism else None
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[28][0] == 'Overall objective of the operation':
+            operation_objective = document.paragraphs[29]._element.xpath('.//w:t')
+            operation_description = []
+            if len(operation_objective) > 0:
+                for desc in operation_objective:
+                    operation_description.append(desc.text)
+            data['operation_objective'] = ''.join(operation_description) if operation_description else None
+    except(IndexError, ValueError):
+        pass
 
-    operation_objective = document.paragraphs[29]._element.xpath('.//w:t')
-    operation_description = []
-    if len(operation_objective) > 0:
-        for desc in operation_objective:
-            operation_description.append(desc.text)
-    data['operation_objective'] = ''.join(operation_description) if operation_description else None
     # targeting strategy
-    response_strategy = document.paragraphs[31]._element.xpath('.//w:t')
-    response_description = []
-    if len(response_strategy) > 0:
-        for desc in response_strategy:
-            response_description.append(desc.text)
-    data['response_strategy'] = ''.join(response_description) if response_description else None
+    try:
+        if paragraphs[31][0] == 'Response strategy rationale':
+            response_strategy = document.paragraphs[32]._element.xpath('.//w:t')
+            response_description = []
+            if len(response_strategy) > 0:
+                for desc in response_strategy:
+                    response_description.append(desc.text)
+            data['response_strategy'] = ''.join(response_description) if response_description else None
+    except (IndexError, ValueError):
+        pass
 
-    paragraph40 = document.paragraphs[33]._element.xpath('.//w:t')
-    people_assisted_description = []
-    if len(paragraph40) > 0:
-        for desc in paragraph40:
-            people_assisted_description.append(desc.text)
-    data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
-    paragraph42 = document.paragraphs[35]._element.xpath('.//w:t')
-    selection_criteria_description = []
-    if len(paragraph42) > 0:
-        for desc in paragraph42:
-            selection_criteria_description.append(desc.text)
-    data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
+    try:
+        if paragraphs[35][0] == 'Who will be targeted through this operation?':
+            paragraph40 = document.paragraphs[36]._element.xpath('.//w:t')
+            people_assisted_description = []
+            if len(paragraph40) > 0:
+                for desc in paragraph40:
+                    people_assisted_description.append(desc.text)
+            data['people_assisted'] = ''.join(people_assisted_description) if people_assisted_description else None
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[37][0] == 'Explain the selection criteria for the targeted population':
+            paragraph42 = document.paragraphs[38]._element.xpath('.//w:t')
+            selection_criteria_description = []
+            if len(paragraph42) > 0:
+                for desc in paragraph42:
+                    selection_criteria_description.append(desc.text)
+            data['selection_criteria'] = ''.join(selection_criteria_description) if selection_criteria_description else None
+    except (IndexError, ValueError):
+        pass
 
     # NeedsIdentified
     cells = get_table_cells(5)
@@ -341,9 +402,7 @@ def extract_imminent_file(doc, created_by):
     data['people_per_local'] = parse_float(cells(1, 2))
     data['people_per_urban'] = parse_float(cells(1, 3))
     data['disability_people_per'] = parse_float(cells(3, 2))
-    # TODO: the following data was not in imminent docs so null set
-    # data['people_targeted_with_early_actions'] = parse_int(cells(4, 4))
-    data['people_targeted_with_early_actions'] = None
+    data['people_targeted_with_early_actions'] = parse_int(cells(4, 4))
 
     # Risk And Security Considerations
     cells = get_table_cells(7)
@@ -368,7 +427,6 @@ def extract_imminent_file(doc, created_by):
     for i in range(8, 20):
         cells = get_table_cells(i)
         title = cells(0, 1, 0)
-        print(title)
         budget = cells(0, 3, 1)
         targeted_population = cells(1, 3)
 
@@ -398,105 +456,105 @@ def extract_imminent_file(doc, created_by):
             planned_intervention.append(planned)
 
     # About Support Service
-    paragraph53 = document.paragraphs[53]._element.xpath('.//w:t')
-    human_resource_description = []
+    try:
+        if paragraphs[61][0] == 'How many volunteers and staff involved in the response? Briefly describe their role.':
+            paragraph53 = document.paragraphs[62]._element.xpath('.//w:t')
+            human_resource_description = []
 
-    if len(paragraph53) > 0:
-        for desc in paragraph53:
-            human_resource_description.append(desc.text)
+            if len(paragraph53) > 0:
+                for desc in paragraph53:
+                    human_resource_description.append(desc.text)
+            data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+    except (IndexError, ValueError):
+        pass
 
-    data['human_resource'] = ''.join(human_resource_description) if human_resource_description else None
+    try:
+        if paragraphs[63][0] == 'Will surge personnel be deployed? Please provide the role profile needed.':
+            paragraph55 = document.paragraphs[64]._element.xpath('.//w:t')
+            surge_personnel_deployed_description = []
+            if len(paragraph55) > 0:
+                for desc in paragraph55:
+                    surge_personnel_deployed_description.append(desc.text)
+            data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
+    except (IndexError, ValueError):
+        pass
+    try:
+        if paragraphs[65][0] == 'If there is procurement, will it be done by National Society or IFRC?':
+            paragraph70 = document.paragraphs[66]._element.xpath('.//w:t')
+            logistic_capacity_of_ns_description = []
+            if len(paragraph70) > 0:
+                for desc in paragraph70:
+                    logistic_capacity_of_ns_description.append(desc.text)
+            data['logistic_capacity_of_ns'] = ''.join(logistic_capacity_of_ns_description) if logistic_capacity_of_ns_description else None
+    except (IndexError, ValueError):
+        pass
 
-    paragraph55 = document.paragraphs[55]._element.xpath('.//w:t')
-    surge_personnel_deployed_description = []
-    if len(paragraph55) > 0:
-        for desc in paragraph55:
-            surge_personnel_deployed_description.append(desc.text)
-    data['surge_personnel_deployed'] = ''.join(surge_personnel_deployed_description) if surge_personnel_deployed_description else None
+    try:
+        if paragraphs[68] == 'How will this operation be monitored?':
+            paragraph73 = document.paragraphs[69]._element.xpath('.//w:t')
+            pmer_description = []
+            if len(paragraph73) > 0:
+                for desc in paragraph73:
+                    pmer_description.append(desc.text)
+            data['pmer'] = ''.join(pmer_description) if pmer_description else None
+    except(IndexError, ValueError):
+        pass
 
-    # TODO: set none because did not find corresponding data in docx
-    # paragraph70 = document.paragraphs[66]._element.xpath('.//w:t')
-    # logistic_capacity_of_ns_description = []
-    # if len(paragraph70) > 0:
-    #     for desc in paragraph70:
-    #         logistic_capacity_of_ns_description.append(desc.text)
-    # data['logistic_capacity_of_ns'] = ''.join(logistic_capacity_of_ns_description) if logistic_capacity_of_ns_description else None
-    data['logistic_capacity_of_ns'] = None
-
-    # paragraph73 = document.paragraphs[69]._element.xpath('.//w:t')
-    # pmer_description = []
-    # if len(paragraph73) > 0:
-    #     for desc in paragraph73:
-    #         pmer_description.append(desc.text)
-    # data['pmer'] = ''.join(pmer_description) if pmer_description else None
-    data['pmer'] = None
-
-    # paragraph75 = document.paragraphs[71]._element.xpath('.//w:t')
-    # communication_description = []
-    # if len(paragraph75) > 0:
-    #     for desc in paragraph75:
-    #         communication_description.append(desc.text)
-    # data['communication'] = ''.join(communication_description) if communication_description else None
-    data['communication'] = None
+    try:
+        if paragraphs[70][0] == 'Please briefly explain the National Societies communication strategy for this operation.':
+            paragraph75 = document.paragraphs[71]._element.xpath('.//w:t')
+            communication_description = []
+            if len(paragraph75) > 0:
+                for desc in paragraph75:
+                    communication_description.append(desc.text)
+            data['communication'] = ''.join(communication_description) if communication_description else None
+    except(IndexError, ValueError):
+        pass
 
     # Contact Information
-    paragraph63 = document.paragraphs[63]._element.xpath('.//w:t')
-    national_society_contact = []
-    for paragraph in paragraph63:
-        national_society_contact.append(paragraph.text)
     try:
-        data['national_society_contact_title'] = national_society_contact[3]
-        data['national_society_contact_email'] = national_society_contact[5]
-        data['national_society_contact_phone_number'] = national_society_contact[7]
-        data['national_society_contact_name'] = national_society_contact[0]
+        national_society_contact = parse_contact_information(paragraphs[76] or [])
+        data['national_society_contact_title'] = national_society_contact[2] if national_society_contact[2] and national_society_contact[1] != ", , " else None
+        data['national_society_contact_email'] = national_society_contact[4] if national_society_contact[4] else None
+        data['national_society_contact_phone_number'] = national_society_contact[6] if national_society_contact[6] else None
+        data['national_society_contact_name'] = national_society_contact[0] if national_society_contact[0] else None
     except IndexError:
         pass
 
-    paragraph64 = document.paragraphs[64]._element.xpath('.//w:t')
-    ifrc_appeal_manager = []
-    for paragraph in paragraph64:
-        ifrc_appeal_manager.append(paragraph.text)
     try:
-        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[3]
-        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[5]
-        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[7]
-        data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0]
+
+        ifrc_appeal_manager = parse_contact_information(paragraphs[77] or [])
+        data['ifrc_appeal_manager_title'] = ifrc_appeal_manager[2] if ifrc_appeal_manager[2] else None
+        data['ifrc_appeal_manager_email'] = ifrc_appeal_manager[4] if ifrc_appeal_manager[4] else None
+        data['ifrc_appeal_manager_phone_number'] = ifrc_appeal_manager[6] if ifrc_appeal_manager[6] else None
+        data['ifrc_appeal_manager_name'] = ifrc_appeal_manager[0] if ifrc_appeal_manager[0] else None
     except IndexError:
         pass
 
-    paragraph65 = document.paragraphs[65]._element.xpath('.//w:t')
-    ifrc_project_manager = []
-    for paragraph in paragraph65:
-        ifrc_project_manager.append(paragraph.text)
     try:
-        data['ifrc_project_manager_title'] = ifrc_project_manager[3]
-        data['ifrc_project_manager_email'] = ifrc_project_manager[5]
-        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[7]
-        data['ifrc_project_manager_name'] = ifrc_project_manager[0]
+        ifrc_project_manager = parse_contact_information(paragraphs[78] or [])
+        data['ifrc_project_manager_title'] = ifrc_project_manager[2] if ifrc_project_manager[2] else None
+        data['ifrc_project_manager_email'] = ifrc_project_manager[4] if ifrc_project_manager[4] else None
+        data['ifrc_project_manager_phone_number'] = ifrc_project_manager[6] if ifrc_project_manager[6] else None
+        data['ifrc_project_manager_name'] = ifrc_project_manager[0] if ifrc_project_manager[0] else None
     except IndexError:
         pass
 
-    paragraph66 = document.paragraphs[66]._element.xpath('.//w:t')
-    ifrc_emergency = []
-    for paragraph in paragraph66:
-        ifrc_emergency.append(paragraph.text)
     try:
-        data['ifrc_emergency_title'] = ifrc_emergency[3]
-        data['ifrc_emergency_email'] = ifrc_emergency[5]
-        data['ifrc_emergency_phone_number'] = ifrc_emergency[7]
-        data['ifrc_emergency_name'] = ifrc_emergency[0]
+        ifrc_emergency = parse_contact_information(paragraphs[79] or [])
+        data['ifrc_emergency_title'] = ifrc_emergency[2] if ifrc_emergency[2] else None
+        data['ifrc_emergency_email'] = ifrc_emergency[4] if ifrc_emergency[4] else None
+        data['ifrc_emergency_phone_number'] = ifrc_emergency[6] if ifrc_emergency[6] else None
+        data['ifrc_emergency_name'] = ifrc_emergency[0] if ifrc_emergency[0] else None
     except IndexError:
         pass
 
-    paragraph67 = document.paragraphs[67]._element.xpath('.//w:t')
-    media = []
-    for paragraph in paragraph67:
-        media.append(paragraph.text)
     try:
-        data['media_contact_title'] = media[3]
-        data['media_contact_email'] = media[5]
-        data['media_contact_phone_number'] = media[7]
-        data['media_contact_name'] = media[0]
+        media = parse_contact_information(paragraphs[80] or [])
+        data['media_contact_title'] = media[2] if media[2] else None
+        data['media_contact_email'] = media[4] if media[4] else None
+        data['media_contact_phone_number'] = media[6] if media[6] else None
+        data['media_contact_name'] = media[0] if media[0] else None
     except IndexError:
         pass
 
@@ -506,8 +564,9 @@ def extract_imminent_file(doc, created_by):
 
     dref = Dref.objects.create(**data)
     dref.planned_interventions.add(*planned_intervention)
-    # NOTE: No need needs for imminent
-    # dref.needs_identified.add(*needs)
+    dref.needs_identified.add(*needs)
     dref.national_society_actions.add(*national_societies)
     dref.risk_security.add(*mitigation_list)
+    if len(district_list) > 0 and None not in district_list:
+        dref.district.add(*district_list)
     return dref
