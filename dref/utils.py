@@ -1,9 +1,10 @@
 import logging
-import docx
 
 from typing import List, Any
 
 from rest_framework import serializers
+
+from django.conf import settings
 
 from dref.models import (
     Dref,
@@ -575,6 +576,8 @@ def get_email_context(instance):
 
     dref_data = DrefSerializer(instance).data
     email_context = {
+        'id': dref_data['id'],
         'title': dref_data['title'],
+        'frontend_url': settings.FRONTEND_URL,
     }
     return email_context
