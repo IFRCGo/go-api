@@ -192,9 +192,9 @@ class PlannedInterventionSerializer(ModelSerializer):
         return intervention
 
     def get_image_url(self, plannedintervention):
-        request = self.context['request']
         title = plannedintervention.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return PlannedIntervention.get_image_map(title, request)
         return None
 
@@ -214,9 +214,9 @@ class NationalSocietyActionSerializer(ModelSerializer):
         )
 
     def get_image_url(self, nationalsocietyactions):
-        request = self.context['request']
         title = nationalsocietyactions.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return NationalSocietyAction.get_image_map(title, request)
         return None
 
@@ -236,9 +236,9 @@ class IdentifiedNeedSerializer(ModelSerializer):
         )
 
     def get_image_url(self, identifiedneed):
-        request = self.context['request']
         title = identifiedneed.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return IdentifiedNeed.get_image_map(title, request)
         return None
 
