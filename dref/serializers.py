@@ -426,7 +426,7 @@ class DrefSerializer(
             return dref_assessment_report
         dref = super().create(validated_data)
         transaction.on_commit(
-            lambda: send_dref_email.delay(dref.id)
+            lambda: send_dref_email.delay(dref.id, 'New')
         )
         return dref
 
@@ -460,7 +460,7 @@ class DrefSerializer(
             return dref_assessment_report
         dref = super().update(instance, validated_data)
         transaction.on_commit(
-            lambda: send_dref_email.delay(dref.id)
+            lambda: send_dref_email.delay(dref.id, 'Updated')
         )
         return dref
 
