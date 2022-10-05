@@ -33,7 +33,7 @@ def share_flash_update(flash_update_share_id):
         groups__in=instance.donor_groups.all()
     ).values_list('email', flat=True)
 
-    users_emails = set([*donors_emails, *donor_groups_emails])
+    users_emails = list(set([*donors_emails, *donor_groups_emails]))
     send_notification(
         f'Flash Update: {flash_update.title}',
         users_emails,
