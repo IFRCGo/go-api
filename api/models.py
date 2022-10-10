@@ -1259,7 +1259,7 @@ class FieldReport(models.Model):
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_('visibility'), default=1)
 
     # information
-    bulletin = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('bullentin'), default=0)
+    bulletin = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('bulletin'), default=0)
     dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('DREF'), default=0)
     dref_amount = models.IntegerField(verbose_name=_('DREF amount'), null=True, blank=True)
     appeal = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('appeal'), default=0)

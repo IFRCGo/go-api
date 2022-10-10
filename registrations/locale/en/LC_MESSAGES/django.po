@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2022-10-08 17:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,51 +18,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: registrations/apps.py:6
+#: registrations/apps.py:7
 msgid "registrations"
 msgstr "registrations"
 
-#: registrations/models.py:11 registrations/models.py:44
+#: registrations/models.py:12 registrations/models.py:47
 msgid "user"
 msgstr "user"
 
-#: registrations/models.py:17 registrations/models.py:48
+#: registrations/models.py:18 registrations/models.py:51
 msgid "created at"
 msgstr "created at"
 
-#: registrations/models.py:18 registrations/models.py:49
+#: registrations/models.py:19 registrations/models.py:52
 msgid "token"
 msgstr "token"
 
-#: registrations/models.py:20
+#: registrations/models.py:21
 msgid "admin contact 1"
 msgstr "admin contact 1"
 
-#: registrations/models.py:21
+#: registrations/models.py:22
 msgid "admin contact 2"
 msgstr "admin contact 2"
 
-#: registrations/models.py:22
+#: registrations/models.py:23
 msgid "admin token 1"
 msgstr "admin token 1"
 
-#: registrations/models.py:23
+#: registrations/models.py:24
 msgid "admin token 2"
 msgstr "admin token 2"
 
-#: registrations/models.py:24
+#: registrations/models.py:25
 msgid "admin 1 validated"
 msgstr "admin 1 validated"
 
-#: registrations/models.py:25
+#: registrations/models.py:26
 msgid "admin 2 validated"
 msgstr "admin 2 validated"
 
-#: registrations/models.py:26
+#: registrations/models.py:27
 msgid "admin 1 validated date"
 msgstr "admin 1 validated date"
 
-#: registrations/models.py:27
+#: registrations/models.py:28
 msgid "admin 2 validated date"
 msgstr "admin 2 validated date"
 
@@ -70,38 +70,46 @@ msgstr "admin 2 validated date"
 msgid "email verified?"
 msgstr "email verified?"
 
-#: registrations/models.py:32
+#: registrations/models.py:30
+msgid "justification"
+msgstr ""
+
+#: registrations/models.py:31
+msgid "reminder sent to admin?"
+msgstr ""
+
+#: registrations/models.py:35
 msgid "Pending user"
 msgstr "Pending user"
 
-#: registrations/models.py:33
+#: registrations/models.py:36
 msgid "Pending users"
 msgstr "Pending users"
 
-#: registrations/models.py:52
+#: registrations/models.py:55
 msgid "Recovery"
 msgstr "Recovery"
 
-#: registrations/models.py:53
+#: registrations/models.py:56
 msgid "Recoveries"
 msgstr "Recoveries"
 
-#: registrations/models.py:61
+#: registrations/models.py:65
 msgid "domain name"
 msgstr "domain name"
 
-#: registrations/models.py:62
+#: registrations/models.py:66
 msgid "description"
 msgstr "description"
 
-#: registrations/models.py:63
+#: registrations/models.py:67
 msgid "is active?"
 msgstr "is active?"
 
-#: registrations/models.py:66
+#: registrations/models.py:70
 msgid "Domain Whitelist"
 msgstr "Domain Whitelist"
 
-#: registrations/models.py:67
+#: registrations/models.py:71
 msgid "Domains Whitelist"
 msgstr "Domains Whitelist"

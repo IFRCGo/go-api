@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2022-10-08 17:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: databank/admin.py:40
+#: databank/admin.py:55
 msgid "COUNTRY KEY INDICATORS (SOURCE: FDRS)"
 msgstr "LES INDICATEURS CLÉS DU PAYS (SOURCE : FDRS)"
 
-#: databank/admin.py:46
+#: databank/admin.py:61
 msgid "NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)"
 msgstr "LES INDICATEURS NATIONAUX DE LA SOCIÉTÉ (SOURCE : FDRS)"
 
-#: databank/admin.py:49
+#: databank/admin.py:64
 msgid "KEY CLIMATE EVENT"
 msgstr "ÉVÈNEMENT CLÉ SUR LE CLIMAT"
 
-#: databank/apps.py:6
+#: databank/apps.py:7
 msgid "databank"
 msgstr "banque de données"
 
@@ -415,7 +415,7 @@ msgid "inform indicators data"
 msgstr "renseigner les données des indicateurs"
 
 #: databank/models.py:232 databank/models.py:248 databank/models.py:262
-#: databank/models.py:281
+#: databank/models.py:281 databank/models.py:309 databank/models.py:320
 msgid "country overview"
 msgstr "aperçu du pays"
 
@@ -463,7 +463,8 @@ msgstr "Événement clé pour les clients"
 msgid "Key Client Events"
 msgstr "Événements clés pour les clients"
 
-#: databank/models.py:283
+#: databank/models.py:283 databank/models.py:298 databank/models.py:310
+#: databank/models.py:321
 msgid "title"
 msgstr "Intitulé"
 
@@ -486,3 +487,21 @@ msgstr "Calendrier saisonnier"
 #: databank/models.py:291
 msgid "Seasonal Calender Records"
 msgstr "Calendriers saisonniers"
+
+#: databank/models.py:311
+msgid "group"
+msgstr ""
+
+#: databank/models.py:312
+#, fuzzy
+#| msgid "date end"
+msgid "date"
+msgstr "date de fin"
+
+#: databank/models.py:313
+msgid "file"
+msgstr ""
+
+#: databank/models.py:322
+msgid "url"
+msgstr ""
