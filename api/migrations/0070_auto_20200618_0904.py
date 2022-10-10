@@ -2472,7 +2472,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='fieldreport',
             name='bulletin',
-            field=models.IntegerField(default=0, choices=api.models.RequestChoices.choices, verbose_name='bullentin'),
+            field=models.IntegerField(default=0, choices=api.models.RequestChoices.choices, verbose_name='bulletin'),
         ),
         migrations.AlterField(
             model_name='fieldreport',

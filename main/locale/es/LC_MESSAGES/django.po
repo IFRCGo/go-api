@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-24 07:55+0000\n"
+"POT-Creation-Date: 2022-10-08 17:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,18 +18,63 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: main/settings.py:222
+#: main/settings.py:311
 msgid "English"
 msgstr "Inglés"
 
-#: main/settings.py:223
+#: main/settings.py:312
 msgid "Spanish"
 msgstr "Español"
 
-#: main/settings.py:224
+#: main/settings.py:313
 msgid "French"
 msgstr "Francés"
 
-#: main/settings.py:225
+#: main/settings.py:314
 msgid "Arabic"
 msgstr "Árabe"
+
+#: main/validators.py:10
+msgid "The password must contain at least 1 digit, 0-9."
+msgstr ""
+
+#: main/validators.py:16
+msgid "Your password must contain at least 1 digit, 0-9."
+msgstr ""
+
+#: main/validators.py:24
+msgid "The password must contain at least 1 uppercase letter, A-Z."
+msgstr ""
+
+#: main/validators.py:30
+msgid "Your password must contain at least 1 uppercase letter, A-Z."
+msgstr ""
+
+#: main/validators.py:38
+msgid "The password must contain at least 1 lowercase letter, a-z."
+msgstr ""
+
+#: main/validators.py:44
+msgid "Your password must contain at least 1 lowercase letter, a-z."
+msgstr ""
+
+#: main/validators.py:52
+msgid ""
+"The password must contain at least 1 symbol: ()[]{}|\\`~!@#$%^&*_-+=;:'\","
+"<>./?"
+msgstr ""
+
+#: main/validators.py:59
+msgid ""
+"Your password must contain at least 1 symbol: ()[]{}|\\`~!@#$%^&*_-+=;:'\","
+"<>./?"
+msgstr ""
+
+#: main/writable_nested_serializers.py:303
+msgid "Arguments to nested serializer's `save` must be dict's"
+msgstr ""
+
+#: main/writable_nested_serializers.py:346
+#, python-brace-format
+msgid "Cannot delete {instances} because protected relation exists"
+msgstr ""

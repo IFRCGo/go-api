@@ -200,6 +200,8 @@ class DrefFileViewSet(
     serializer_class = DrefFileSerializer
 
     def get_queryset(self):
+        if self.request is None:
+            return DrefFile.objects.none()
         return DrefFile.objects.filter(created_by=self.request.user)
 
     @action(
