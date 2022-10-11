@@ -1091,6 +1091,72 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('Is assessment Report'),
         null=True, blank=True
     )
+    people_in_need = models.IntegerField(
+        verbose_name=_('people in need'),
+        blank=True, null=True
+    )
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+    )
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+    )
+    ns_respond = models.BooleanField(
+        null=True, blank=True,
+        default=False, help_text=_('Did NS respond')
+    )
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'),
+        blank=True, null=True
+    )
+    has_event_occured = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Has Event occured')
+    )
+    reporting_start_date = models.DateField(
+        verbose_name=_('Reporting Time Start Date'),
+        null=True, blank=True
+    )
+    reporting_end_date = models.DateField(
+        verbose_name=_('Reporting Time End Date'),
+        null=True, blank=True
+    )
+    human_resource = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('human resource'),
+        help_text=_('how many volunteers and staff involved in the response?')
+    )
+    is_surge_personnel_deployed = models.BooleanField(
+        blank=True, null=True,
+        verbose_name=_('Is surge personnel deployed')
+    )
+    surge_personnel_deployed = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('surge personnel deployed'),
+        help_text=_('Will a Surge personnel be deployed?')
+    )
+    logistic_capacity_of_ns = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('logistic capacity of ns'),
+        help_text=_('what is the logistics capacity of the National Society?')
+    )
+    safety_concerns = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('safety concerns'),
+        help_text=_('Are there any safety/security concerns which may impact the implementation of this operation?')
+    )
+    pmer = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('pmer'),
+        help_text=_('Does the NS have PMER capacity?')
+    )
+    communication = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('organization'),
+        help_text=_('Does the NS have Communications capacity?')
+    )
 
     class Meta:
         verbose_name = _('Dref Operational Update')

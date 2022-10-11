@@ -521,7 +521,14 @@ class DrefOperationalUpdateSerializer(
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
+        if self.instance and dref and dref.field_report is None:
+            raise serializers.ValidationError('Can\'t edit Operational Update for which dref field report is empty.')
         return data
+
+    def validate_appeal_code(self, appeal_code):
+        if appeal_code and self.instance:
+            raise serializers.ValidationError('Can\'t edit Appeal Code')
+        return appeal_code
 
     def get_total_timeframe(self, start_date, end_date):
         if start_date and end_date:
@@ -596,6 +603,20 @@ class DrefOperationalUpdateSerializer(
             validated_data['budget_file'] = dref.budget_file
             validated_data['country'] = dref.country
             validated_data['risk_security_concern'] = dref.risk_security_concern
+            validated_data['is_assessment_report'] = dref.is_assessment_report
+            validated_data['event_date'] = dref.event_date
+            validated_data['ns_respond_date'] = dref.ns_respond_date
+            validated_data['ns_respond'] = dref.ns_respond
+            validated_data['total_targeted_population'] = dref.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref.is_there_major_coordination_mechanism
+            validated_data['human_resource'] = dref.human_resource
+            validated_data['is_surge_personnel_deployed'] = dref.is_surge_personnel_deployed
+            validated_data['surge_personnel_deployed'] = dref.surge_personnel_deployed
+            validated_data['logistic_capacity_of_ns'] = dref.logistic_capacity_of_ns
+            validated_data['safety_concerns'] = dref.safety_concerns
+            validated_data['pmer'] = dref.pmer
+            validated_data['people_in_need'] = dref.people_in_need
+            validated_data['communication'] = dref.communication
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -682,7 +703,22 @@ class DrefOperationalUpdateSerializer(
             validated_data['assessment_report'] = dref_operational_update.assessment_report
             validated_data['country'] = dref_operational_update.country
             validated_data['risk_security_concern'] = dref_operational_update.risk_security_concern
+            validated_data['is_assessment_report'] = dref_operational_update.is_assessment_report
+            validated_data['event_date'] = dref_operational_update.event_date
+            validated_data['ns_respond_date'] = dref_operational_update.ns_respond_date
+            validated_data['ns_respond'] = dref_operational_update.ns_respond
+            validated_data['total_targeted_population'] = dref_operational_update.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data['human_resource'] = dref_operational_update.human_resource
+            validated_data['is_surge_personnel_deployed'] = dref_operational_update.is_surge_personnel_deployed
+            validated_data['surge_personnel_deployed'] = dref_operational_update.surge_personnel_deployed
+            validated_data['logistic_capacity_of_ns'] = dref_operational_update.logistic_capacity_of_ns
+            validated_data['safety_concerns'] = dref_operational_update.safety_concerns
+            validated_data['pmer'] = dref_operational_update.pmer
+            validated_data['communication'] = dref_operational_update.communication
+            validated_data['people_in_need'] = dref_operational_update.people_in_need
             operational_update = super().create(validated_data)
+            # XXX COPY M2M fields
             operational_update.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             operational_update.images.add(*dref_operational_update.images.all())
             operational_update.national_society_actions.add(*dref_operational_update.national_society_actions.all())
@@ -726,12 +762,11 @@ class DrefOperationalUpdateSerializer(
         # if request_for_second_allocation and additional_allocation and dref_amount_requested != additional_allocation:
         #     raise serializers.ValidationError('Found diffrent allocation for dref and operation update')
 
-        # FIXME: district order might different but they should be considered same
-        # if (not changing_geographic_location) and district and dref_district and district != dref_district:
-        #     raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
+        if (not changing_geographic_location) and district and dref_district and set(district) != set(dref_district):
+            raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
 
-        # if changing_geographic_location and district and dref_district and district == dref_district:
-        #     raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
+        if changing_geographic_location and district and dref_district and set(district) == set(dref_district):
+            raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
 
         return super().update(instance, validated_data)
 
