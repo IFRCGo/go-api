@@ -1111,9 +1111,9 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_('total targeted population'),
         blank=True, null=True
     )
-    has_event_occured = models.BooleanField(
+    has_event_occurred = models.BooleanField(
         null=True, blank=True,
-        help_text=_('Has Event occured')
+        help_text=_('Has Event occurred')
     )
     reporting_start_date = models.DateField(
         verbose_name=_('Reporting Time Start Date'),
