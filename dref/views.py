@@ -78,10 +78,25 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
     filterset_class = DrefOperationalUpdateFilter
 
     def get_queryset(self):
-        return DrefOperationalUpdate.objects.prefetch_related(
-            'dref__planned_interventions',
-            'dref__needs_identified',
-            'dref__national_society_actions',
+        return DrefOperationalUpdate.objects.filter(
+            models.Q(created_by=self.request.user) |
+            models.Q(users=self.request.user)
+        ).select_related(
+            'national_society',
+            'national_society',
+            'disaster_type',
+            'event_map',
+            'cover_image',
+            'budget_file',
+            'assessment_report'
+        ).prefetch_related(
+            'dref',
+            'planned_interventions',
+            'needs_identified',
+            'national_society_actions',
+            'users',
+            'images',
+            'photos',
         ).order_by('-created_at').distinct()
 
     @action(
