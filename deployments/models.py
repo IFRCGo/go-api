@@ -463,6 +463,7 @@ class Project(models.Model):
         )
 
 
+@reversion.register()
 class AnnualSplit(models.Model):
     """ Annual split for Project """
 
