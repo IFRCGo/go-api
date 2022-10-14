@@ -1,4 +1,6 @@
 import os
+from unittest import mock
+
 
 from django.conf import settings
 
@@ -23,6 +25,7 @@ from api.models import (
     DisasterType,
     District
 )
+from dref.tasks import send_dref_email
 
 
 class DrefTestCase(APITestCase):
@@ -116,7 +119,8 @@ class DrefTestCase(APITestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.data['results']), 0)
 
-    def test_post_dref_creation(self):
+    @mock.patch('notifications.notification.send_notification')
+    def test_post_dref_creation(self, send_notification):
         old_count = Dref.objects.count()
         national_society = Country.objects.create(name='xzz')
         disaster_type = DisasterType.objects.create(name='abc')
@@ -218,12 +222,20 @@ class DrefTestCase(APITestCase):
                     ]
                 }
             ],
+            'users': [self.user.id]
         }
         url = '/api/v2/dref/'
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+        instance = Dref.objects.get(id=response.data['id'])
+        instance_user_email = [user.email for user in instance.users.all()]
+
+        # call email send task
+        email_data = send_dref_email(instance.id, instance_user_email)
+        self.assertTrue(send_notification.assert_called)
+        self.assertEqual(email_data['title'], instance.title)
 
     def test_event_date_in_dref(self):
         """

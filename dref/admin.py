@@ -6,7 +6,6 @@ from .models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
-    DrefFileUpload,
 )
 
 
@@ -46,9 +45,21 @@ class DrefOperationalUpdateAdmin(admin.ModelAdmin):
         'national_society',
         'disaster_type',
         'images',
+        'users',
+        'event_map',
+        'images',
+        'budget_file',
+        'cover_image',
     )
     list_filter = ['dref']
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).prefetch_related(
+            'planned_interventions',
+            'needs_identified',
+            'national_society_actions',
+            'users'
+        )
 
 @admin.register(DrefFinalReport)
 class DrefFinalReportAdmin(admin.ModelAdmin):
@@ -60,6 +71,3 @@ class DrefFinalReportAdmin(admin.ModelAdmin):
     )
     list_filter = ['dref']
     search_fields = ['title', 'national_society__name']
-@admin.register(DrefFileUpload)
-class DrefFileUploadAdmin(admin.ModelAdmin):
-    pass
