@@ -349,6 +349,7 @@ class DrefSerializer(
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
         is_assessment_report = validated_data.get('is_assessment_report')
+        modified_at = validated_data.get('modified_at')
         if is_assessment_report:
             # Previous Operations
             validated_data['lessons_learned'] = None
@@ -374,18 +375,21 @@ class DrefSerializer(
             dref_assessment_report = super().update(instance, validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
+
         # we don't send notification again to the already notified users:
         if 'users' in validated_data:
             to = {u.email for u in validated_data['users']
                   if u.email not in {t.email for t in instance.users.iterator()}}
         else:
             to = None
-        dref = super().update(instance, validated_data)
-        if to:
-            transaction.on_commit(
-                lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
-            )
-        return dref
+        if modified_at and instance.modified_at and modified_at > instance.modified_at:
+            dref = super().update(instance, validated_data)
+            if to:
+                transaction.on_commit(
+                    lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
+                )
+            return dref
+        return instance
 
 
 class DrefOperationalUpdateSerializer(

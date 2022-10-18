@@ -1,5 +1,6 @@
 import os
 from unittest import mock
+from datetime import datetime
 
 
 from django.conf import settings
@@ -847,3 +848,27 @@ class DrefTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 0)
+
+    def test_dref_latest_update(self):
+        dref = DrefFactory.create(
+            title='Test Title',
+            created_by=self.user,
+            modified_at=datetime(2022, 4, 18, 2, 29, 39, 793615)
+        )
+        url = f'/api/v2/dref/{dref.id}/'
+        data = {
+            'title': "New title",
+            'modified_at': datetime(2022, 2, 18, 2, 29, 39, 793615),
+        }
+
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        # Title should be same since modified_at is less than modified_at in database
+        self.assertEqual(response.data['title'], "Test Title")
+
+        data['modified_at'] = datetime.now()
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        # Title should be latest since modified_at is greater than modified_at in database
+        self.assertEqual(response.data['title'], "New title")
