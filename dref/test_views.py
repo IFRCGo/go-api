@@ -446,7 +446,7 @@ class DrefTestCase(APITestCase):
         )
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "title" : "New Update Title"
+            "title": "New Update Title"
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -795,3 +795,55 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+
+    def test_dref_for_super_user(self):
+        user1 = UserFactory.create(
+            username='user1@test.com',
+            first_name='Test',
+            last_name='User1',
+            password='admin123',
+            email='user1@test.com',
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username='user2@test.com',
+            first_name='Test',
+            last_name='User2',
+            password='admin123',
+            email='user2@test.com',
+        )
+        user3 = UserFactory.create(
+            username='user3@test.com',
+            first_name='Test',
+            last_name='User3',
+            password='admin123',
+            email='user3@test.com',
+        )
+        dref1 = DrefFactory.create(
+            title='Test Title',
+            created_by=user2,
+        )
+        DrefFactory.create(
+            title='Test Title New',
+        )
+
+        # authenticate with user1(superuser)
+        # user1 should be able to view all dref
+        url = '/api/v2/dref/'
+        self.client.force_authenticate(user1)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # authenticate with User2
+        self.client.force_authenticate(user2)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], dref1.id)
+
+        # authenticate with User3
+        self.client.force_authenticate(user3)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
