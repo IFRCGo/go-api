@@ -30,6 +30,7 @@ from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from .filters import ProjectFilter, EmergencyProjectFilter
 from .utils import get_previous_months
 from .models import (
+    ERUType,
     ERU,
     ERUOwner,
     OperationTypes,
@@ -48,6 +49,7 @@ from .models import (
     EmergencyProjectActivityAction,
 )
 from .serializers import (
+    ERUTypeSerializer,
     ERUOwnerSerializer,
     ERUSerializer,
     PersonnelDeploymentSerializer,
@@ -66,6 +68,17 @@ from .serializers import (
     EmergencyProjectOptionsSerializer,
     CharKeyValueSerializer,
 )
+
+
+class ERUTypeViewset(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ERUTypeSerializer
+
+    def get_queryset(self):
+        ans = [{'value':i, 'name':v} for i, v in ERUType.choices]
+        return ans
+
+    class Meta:
+        ordering = ['value']
 
 
 class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):

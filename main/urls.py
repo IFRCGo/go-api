@@ -154,6 +154,7 @@ router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files'
 router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
+router.register(r'erutype', deployment_views.ERUTypeViewset, basename='erutype')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'

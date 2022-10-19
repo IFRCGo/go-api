@@ -24,6 +24,7 @@ from api.serializers import (
 
 from .models import (
     AnnualSplit,
+    ERUType,
     ERUOwner,
     ERU,
     PersonnelDeployment,
@@ -55,6 +56,13 @@ class MiniUserSerializer(ModelSerializer):
             'first_name',
             'last_name'
         )
+
+
+class ERUTypeSerializer(ModelSerializer):
+
+    class Meta:
+        model = ERUType
+        fields = '__all__'
 
 
 class ERUSetSerializer(ModelSerializer):

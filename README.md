@@ -48,7 +48,8 @@ email-verification only, is to be found
 
 ### Running server
 
-     $ docker-compose run --rm --service-ports serve
+     $ docker-compose up serve celery
+     $ (Obsolete: docker-compose run --rm --service-ports serve)
 
 Access the site at http://localhost:8000
 
