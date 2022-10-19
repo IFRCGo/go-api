@@ -132,7 +132,7 @@ class Command(BaseCommand):
           try:
               print("importing", admin2.name)
               admin2.save()
-              if options["update_geom"]:
+              if options["update-geom"]:
                   self.update_geom(admin2, geom)
           except IntegrityError as e:
               print(f"Duplicate object {admin2.name}")

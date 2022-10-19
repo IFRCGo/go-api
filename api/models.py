@@ -293,7 +293,7 @@ class DistrictGeoms(models.Model):
 
 class Admin2Geoms(models.Model):
     """ Admin2 geometries """
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    geom = models.GeometryField(srid=4326, blank=True, null=True)
     admin2 = models.OneToOneField(Admin2, verbose_name=_('admin2'), on_delete=models.DO_NOTHING, primary_key=True)
 
 
