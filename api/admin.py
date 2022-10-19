@@ -550,6 +550,9 @@ class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdm
     search_fields = ('name',)
     modifiable = True
 
+class Admin2Admin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
+    search_fields = ('name',)
+    modifiable = True
 
 class UserProfileAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'user__email', 'country__name',)
@@ -795,6 +798,7 @@ admin.site.register(models.GDACSEvent, GdacsAdmin)
 admin.site.register(models.Country, CountryAdmin)
 admin.site.register(models.Region, RegionAdmin)
 admin.site.register(models.District, DistrictAdmin)
+admin.site.register(models.Admin2, Admin2Admin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
 admin.site.register(models.AppealFilter, AppealFilterAdmin)
