@@ -336,6 +336,7 @@ class DrefSerializer(
             return dref_assessment_report
         if 'users' in validated_data:
             to = {u.email for u in validated_data['users']}
+            to.add('daniel.tovari@ifrc.org')  # TODO remove me
         else:
             to = None
         dref = super().create(validated_data)

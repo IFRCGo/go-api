@@ -143,8 +143,8 @@ class EsPageSearch(APIView):
 
 class ERUTypes(APIView):
     def get(self, request):
-        keysLabels = [{'key': i, 'label': v} for i, v in ERUType.choices]
-        return JsonResponse(keysLabels, safe=False)
+        keys_labels = [{'key': i, 'label': v} for i, v in ERUType.choices]
+        return JsonResponse(keys_labels, safe=False)
 
 
 class AggregateHeaderFigures(APIView):
