@@ -858,14 +858,18 @@ class DrefTestCase(APITestCase):
         url = f'/api/v2/dref/{dref.id}/'
         data = {
             'title': "New title",
-            'modified_at': datetime(2022, 2, 18, 2, 29, 39, 793615),
         }
 
+        # without `modified_at`
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data)
-        self.assertEqual(response.status_code, 200)
-        # Title should be same since modified_at is less than modified_at in database
-        self.assertEqual(response.data['title'], "Test Title")
+        self.assertEqual(response.status_code, 400)
+
+        # with `modified_at` less than instance `modified_at`
+        data['modified_at'] = datetime(2022, 2, 18, 2, 29, 39, 793615)
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)
 
         data['modified_at'] = datetime.now()
         response = self.client.patch(url, data=data)

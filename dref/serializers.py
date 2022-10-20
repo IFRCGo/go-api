@@ -184,6 +184,7 @@ class DrefSerializer(
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
     MAX_OPERATION_TIMEFRAME = 30
     ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
+    DREF_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -308,6 +309,11 @@ class DrefSerializer(
             )
         return operation_timeframe
 
+    def validate_modified_at(self, modified_at):
+        if self.instance and self.instance.modified_at is None:
+            raise serializers.ValidationError('Modified At can\'t be None')
+        return modified_at
+
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
         is_assessment_report = validated_data.get('is_assessment_report')
@@ -349,7 +355,9 @@ class DrefSerializer(
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
         is_assessment_report = validated_data.get('is_assessment_report')
-        modified_at = validated_data.get('modified_at')
+        modified_at = validated_data.pop('modified_at', None)
+        if modified_at is None:
+            raise serializers.ValidationError('Modified At is required!')
         if is_assessment_report:
             # Previous Operations
             validated_data['lessons_learned'] = None
@@ -382,13 +390,16 @@ class DrefSerializer(
                   if u.email not in {t.email for t in instance.users.iterator()}}
         else:
             to = None
-        if modified_at and instance.modified_at and modified_at > instance.modified_at:
-            dref = super().update(instance, validated_data)
-            if to:
-                transaction.on_commit(
-                    lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
-                )
-            return dref
+        if modified_at and instance.modified_at and modified_at < instance.modified_at:
+            raise serializers.ValidationError(
+                gettext(f'Input Payload in {self.DREF_UPDATE_ERROR_MESSAGE}')
+            )
+        dref = super().update(instance, validated_data)
+        if to:
+            transaction.on_commit(
+                lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
+            )
+        return dref
         return instance
 
 
