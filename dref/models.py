@@ -6,7 +6,7 @@ from pdf2image import convert_from_bytes
 
 from django.db import models
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 
@@ -16,13 +16,12 @@ from api.models import (
     District,
     FieldReport
 )
-from main.enums import TextChoices, IntegerChoices
 
 
 @reversion.register()
 class NationalSocietyAction(models.Model):
     # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         NATIONAL_SOCIETY_READINESS = 'national_society_readiness', _('National Society Readiness')
         ASSESSMENT = 'assessment', _('Assessment')
         COORDINATION = 'coordination', _('Coordination')
@@ -78,7 +77,7 @@ class NationalSocietyAction(models.Model):
 
 @reversion.register()
 class IdentifiedNeed(models.Model):
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
@@ -135,7 +134,7 @@ class PlannedInterventionIndicators(models.Model):
 
 
 class PlannedIntervention(models.Model):
-    class Title(TextChoices):
+    class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = 'shelter_housing_and_settlements', _('Shelter Housing And Settlements')
         LIVELIHOODS_AND_BASIC_NEEDS = 'livelihoods_and_basic_needs', _('Livelihoods And Basic Needs')
         HEALTH = 'health', _('Health')
@@ -199,7 +198,6 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png',
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: 'environment.png',
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: 'participation_team.png',
-            PlannedIntervention.Title.MULTI_PURPOSE_CASH: 'cash.png'
         }
         return request.build_absolute_uri(static(os.path.join('images/dref', title_static_map[title])))
 
@@ -214,17 +212,17 @@ class RiskSecurity(models.Model):
 @reversion.register()
 class Dref(models.Model):
 
-    class OnsetType(IntegerChoices):
+    class OnsetType(models.IntegerChoices):
         IMMINENT = 0, _('Imminent')
         SLOW = 1, _('Slow')
         SUDDEN = 2, _('Sudden')
 
-    class DisasterCategory(IntegerChoices):
+    class DisasterCategory(models.IntegerChoices):
         YELLOW = 0, _('Yellow')
         ORANGE = 1, _('Orange')
         RED = 2, _('Red')
 
-    class Status(IntegerChoices):
+    class Status(models.IntegerChoices):
         IN_PROGRESS = 0, _('In Progress')
         COMPLETED = 1, _('Completed')
 
@@ -244,7 +242,7 @@ class Dref(models.Model):
     )
     field_report = models.ForeignKey(
         FieldReport, verbose_name=_('field report'),
-        on_delete=models.SET_NULL, null=True,
+        on_delete=models.SET_NULL, null=True, blank=True,
         related_name='field_report_dref'
     )
     title = models.CharField(verbose_name=_('title'), max_length=255)
@@ -1077,8 +1075,8 @@ class DrefOperationalUpdate(models.Model):
         blank=True, null=True,
         verbose_name=_('Risk Security Concern')
     )
-    has_forcasted_event_materialize = models.BooleanField(
-        verbose_name=_('Has Forcasted Event Materialize'),
+    has_forecasted_event_materialize = models.BooleanField(
+        verbose_name=_('Has Forecasted Event Materialize'),
         null=True, blank=True
     )
     anticipatory_to_response = models.TextField(
@@ -1092,6 +1090,72 @@ class DrefOperationalUpdate(models.Model):
     is_assessment_report = models.BooleanField(
         verbose_name=_('Is assessment Report'),
         null=True, blank=True
+    )
+    people_in_need = models.IntegerField(
+        verbose_name=_('people in need'),
+        blank=True, null=True
+    )
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+    )
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+    )
+    ns_respond = models.BooleanField(
+        null=True, blank=True,
+        default=False, help_text=_('Did NS respond')
+    )
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'),
+        blank=True, null=True
+    )
+    has_event_occurred = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Has Event occurred')
+    )
+    reporting_start_date = models.DateField(
+        verbose_name=_('Reporting Time Start Date'),
+        null=True, blank=True
+    )
+    reporting_end_date = models.DateField(
+        verbose_name=_('Reporting Time End Date'),
+        null=True, blank=True
+    )
+    human_resource = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('human resource'),
+        help_text=_('how many volunteers and staff involved in the response?')
+    )
+    is_surge_personnel_deployed = models.BooleanField(
+        blank=True, null=True,
+        verbose_name=_('Is surge personnel deployed')
+    )
+    surge_personnel_deployed = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('surge personnel deployed'),
+        help_text=_('Will a Surge personnel be deployed?')
+    )
+    logistic_capacity_of_ns = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('logistic capacity of ns'),
+        help_text=_('what is the logistics capacity of the National Society?')
+    )
+    safety_concerns = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('safety concerns'),
+        help_text=_('Are there any safety/security concerns which may impact the implementation of this operation?')
+    )
+    pmer = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('pmer'),
+        help_text=_('Does the NS have PMER capacity?')
+    )
+    communication = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('organization'),
+        help_text=_('Does the NS have Communications capacity?')
     )
 
     class Meta:
@@ -1419,25 +1483,3 @@ class DrefFinalReport(models.Model):
     class Meta:
         verbose_name = _('Dref Final Report')
         verbose_name_plural = _('Dref Final Reports')
-
-
-class DrefFileUpload(models.Model):
-    file = models.FileField(
-        verbose_name=_('file'),
-        upload_to='dref/file-upload/',
-    )
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name=_('created_by'),
-        on_delete=models.SET_NULL,
-        null=True,
-    )
-    dref = models.ForeignKey(
-        Dref, verbose_name=_('Dref'),
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
-    )
-
-    class Meta:
-        verbose_name = _('dref file upload')
-        verbose_name_plural = _('dref files upload')

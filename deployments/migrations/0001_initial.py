@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import deployments.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -32,7 +31,7 @@ class Migration(migrations.Migration):
             name='ERU',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', enumfields.fields.EnumIntegerField(default=0, enum=deployments.models.ERUType)),
+                ('type', models.IntegerField(default=0, choices=deployments.models.ERUType.choices)),
                 ('units', models.IntegerField(default=0)),
                 ('equipment_units', models.IntegerField(default=0)),
                 ('available', models.BooleanField(default=False)),

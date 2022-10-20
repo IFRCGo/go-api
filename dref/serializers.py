@@ -1,13 +1,12 @@
 import os
 import datetime
 
-from django.utils.translation import ugettext
-from django.db import models
+from django.utils.translation import gettext
+from django.db import models, transaction
 
 from rest_framework import serializers
 
 from lang.serializers import ModelSerializer
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 from main.writable_nested_serializers import (
     NestedCreateMixin,
     NestedUpdateMixin
@@ -28,12 +27,10 @@ from dref.models import (
     RiskSecurity,
     DrefFile,
     DrefOperationalUpdate,
-    DrefFinalReport,
-    DrefFileUpload
+    DrefFinalReport
 )
-from dref.utils import extract_file
-from dref.imminent_utils import extract_imminent_file
-from dref.assessment_utils import extract_assessment_file
+
+from .tasks import send_dref_email
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -80,92 +77,6 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         ]
 
 
-class DrefFileUploadSerializer(ModelSerializer):
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    FILE_EXTENSIONS = ['docx']
-    dref_details = MiniDrefSerializer(source='dref', read_only=True)
-
-    class Meta:
-        model = DrefFileUpload
-        fields = '__all__'
-        read_only_fields = ('created_by', 'dref')
-
-    def validate_file(self, file):
-        extension = os.path.splitext(file.name)[1].replace(".", "")
-        if extension.lower() not in self.FILE_EXTENSIONS:
-            raise serializers.ValidationError(
-                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
-            )
-        return file
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        file = validated_data.get('file', None)
-        if file:
-            created_by = self.context['request'].user
-            dref = extract_file(file, created_by)
-            validated_data['dref'] = dref
-        return super().create(validated_data)
-
-
-class DrefImminentFileUploadSerializer(ModelSerializer):
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    FILE_EXTENSIONS = ['docx']
-    dref_details = MiniDrefSerializer(source='dref', read_only=True)
-
-    class Meta:
-        model = DrefFileUpload
-        fields = '__all__'
-        read_only_fields = ('created_by', 'dref')
-
-    def validate_file(self, file):
-        extension = os.path.splitext(file.name)[1].replace(".", "")
-        if extension.lower() not in self.FILE_EXTENSIONS:
-            raise serializers.ValidationError(
-                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
-            )
-        return file
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        file = validated_data.get('file', None)
-        if file:
-            created_by = self.context['request'].user
-            dref = extract_imminent_file(file, created_by)
-            validated_data['dref'] = dref
-        return super().create(validated_data)
-
-
-class DrefAssessmentFileUploadSerializer(ModelSerializer):
-    created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    FILE_EXTENSIONS = ['docx']
-    dref_details = MiniDrefSerializer(source='dref', read_only=True)
-
-    class Meta:
-        model = DrefFileUpload
-        fields = '__all__'
-        read_only_fields = ('created_by', 'dref')
-
-    def validate_file(self, file):
-        extension = os.path.splitext(file.name)[1].replace(".", "")
-        if extension.lower() not in self.FILE_EXTENSIONS:
-            raise serializers.ValidationError(
-                f'Invalid uploaded file extension: {extension}, Supported only DOCX Files'
-            )
-        return file
-
-    def create(self, validated_data):
-        validated_data['created_by'] = self.context['request'].user
-        file = validated_data.get('file', None)
-        if file:
-            created_by = self.context['request'].user
-            dref = extract_assessment_file(file, created_by)
-            if not dref:
-                raise serializers.ValidationError(ugettext('Can\'t dref from supplied data'))
-            validated_data['dref'] = dref
-        return super().create(validated_data)
-
-
 class PlannedInterventionSerializer(ModelSerializer):
     budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
     image_url = serializers.SerializerMethodField()
@@ -191,9 +102,9 @@ class PlannedInterventionSerializer(ModelSerializer):
         return intervention
 
     def get_image_url(self, plannedintervention):
-        request = self.context['request']
         title = plannedintervention.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return PlannedIntervention.get_image_map(title, request)
         return None
 
@@ -213,9 +124,9 @@ class NationalSocietyActionSerializer(ModelSerializer):
         )
 
     def get_image_url(self, nationalsocietyactions):
-        request = self.context['request']
         title = nationalsocietyactions.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return NationalSocietyAction.get_image_map(title, request)
         return None
 
@@ -235,9 +146,9 @@ class IdentifiedNeedSerializer(ModelSerializer):
         )
 
     def get_image_url(self, identifiedneed):
-        request = self.context['request']
         title = identifiedneed.title
-        if title:
+        if title and self.context and 'request' in self.context:
+            request = self.context['request']
             return IdentifiedNeed.get_image_map(title, request)
         return None
 
@@ -264,7 +175,6 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
 
 
 class DrefSerializer(
-    EnumSupportSerializerMixin,
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer
@@ -326,21 +236,21 @@ class DrefSerializer(
         is_assessment_report = data.get('is_assessment_report')
         if event_date and data['type_of_onset'] not in [Dref.OnsetType.SLOW, Dref.OnsetType.SUDDEN]:
             raise serializers.ValidationError({
-                'event_date': ugettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
+                'event_date': gettext('Cannot add event_date if onset type not in %s or %s' % (Dref.OnsetType.SLOW.label, Dref.OnsetType.SUDDEN.label))
             })
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError('Published Dref can\'t be changed. Please contact Admin')
         if self.instance and DrefFinalReport.objects.filter(dref=self.instance, is_published=True).exists():
             raise serializers.ValidationError(
-                ugettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
+                gettext('Can\'t Update %s dref for publish Field Report' % self.instance.id)
             )
         if operation_timeframe and is_assessment_report and operation_timeframe > 30:
             raise serializers.ValidationError(
-                ugettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
+                gettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
             )
         if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 2:
             raise serializers.ValidationError(
-                ugettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
+                gettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
             )
         return data
 
@@ -348,7 +258,7 @@ class DrefSerializer(
         # Don't allow images more than MAX_NUMBER_OF_IMAGES
         if len(images) > self.MAX_NUMBER_OF_IMAGES:
             raise serializers.ValidationError(
-                ugettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
+                gettext('Can add utmost %s images' % self.MAX_NUMBER_OF_IMAGES)
             )
         images_id = [image.id for image in images]
         images_without_access_qs = DrefFile.objects.filter(
@@ -365,7 +275,7 @@ class DrefSerializer(
         images_id_without_access = images_without_access_qs.values_list('id', flat=True)
         if images_id_without_access:
             raise serializers.ValidationError(
-                ugettext(
+                gettext(
                     'Only image owner can attach image. Not allowed image ids: %s' % ','.join(map(str, images_id_without_access))
                 )
             )
@@ -394,7 +304,7 @@ class DrefSerializer(
     def validate_operation_timeframe(self, operation_timeframe):
         if operation_timeframe and operation_timeframe > self.MAX_OPERATION_TIMEFRAME:
             raise serializers.ValidationError(
-                ugettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
+                gettext(f'Operation timeframe can\'t be greater than {self.MAX_OPERATION_TIMEFRAME}')
             )
         return operation_timeframe
 
@@ -424,7 +334,17 @@ class DrefSerializer(
             dref_assessment_report = super().create(validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
-        return super().create(validated_data)
+        if 'users' in validated_data:
+            to = {u.email for u in validated_data['users']}
+            to.add('daniel.tovari@ifrc.org')  # TODO remove me
+        else:
+            to = None
+        dref = super().create(validated_data)
+        if to:
+            transaction.on_commit(
+                lambda: send_dref_email.delay(dref.id, list(to), 'New')
+            )
+        return dref
 
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
@@ -454,7 +374,18 @@ class DrefSerializer(
             dref_assessment_report = super().update(instance, validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
-        return super().update(instance, validated_data)
+        # we don't send notification again to the already notified users:
+        if 'users' in validated_data:
+            to = {u.email for u in validated_data['users']
+                  if u.email not in {t.email for t in instance.users.iterator()}}
+        else:
+            to = None
+        dref = super().update(instance, validated_data)
+        if to:
+            transaction.on_commit(
+                lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
+            )
+        return dref
 
 
 class DrefOperationalUpdateSerializer(
@@ -490,18 +421,25 @@ class DrefOperationalUpdateSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
+                    gettext('Can\'t create Operational Update for not published %s dref.' % dref.id)
                 )
             # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
             dref_operational_update = DrefOperationalUpdate.objects.filter(dref=dref).order_by('-operational_update_number').first()
             if dref_operational_update and not dref_operational_update.is_published:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Operational Update for not published Operational Update %s id and Operational Update Number %i.'
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
+        if self.instance and dref and dref.field_report is None:
+            raise serializers.ValidationError('Can\'t edit Operational Update for which dref field report is empty.')
         return data
+
+    def validate_appeal_code(self, appeal_code):
+        if appeal_code and self.instance:
+            raise serializers.ValidationError('Can\'t edit Appeal Code')
+        return appeal_code
 
     def get_total_timeframe(self, start_date, end_date):
         if start_date and end_date:
@@ -576,6 +514,20 @@ class DrefOperationalUpdateSerializer(
             validated_data['budget_file'] = dref.budget_file
             validated_data['country'] = dref.country
             validated_data['risk_security_concern'] = dref.risk_security_concern
+            validated_data['is_assessment_report'] = dref.is_assessment_report
+            validated_data['event_date'] = dref.event_date
+            validated_data['ns_respond_date'] = dref.ns_respond_date
+            validated_data['ns_respond'] = dref.ns_respond
+            validated_data['total_targeted_population'] = dref.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref.is_there_major_coordination_mechanism
+            validated_data['human_resource'] = dref.human_resource
+            validated_data['is_surge_personnel_deployed'] = dref.is_surge_personnel_deployed
+            validated_data['surge_personnel_deployed'] = dref.surge_personnel_deployed
+            validated_data['logistic_capacity_of_ns'] = dref.logistic_capacity_of_ns
+            validated_data['safety_concerns'] = dref.safety_concerns
+            validated_data['pmer'] = dref.pmer
+            validated_data['people_in_need'] = dref.people_in_need
+            validated_data['communication'] = dref.communication
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -662,7 +614,22 @@ class DrefOperationalUpdateSerializer(
             validated_data['assessment_report'] = dref_operational_update.assessment_report
             validated_data['country'] = dref_operational_update.country
             validated_data['risk_security_concern'] = dref_operational_update.risk_security_concern
+            validated_data['is_assessment_report'] = dref_operational_update.is_assessment_report
+            validated_data['event_date'] = dref_operational_update.event_date
+            validated_data['ns_respond_date'] = dref_operational_update.ns_respond_date
+            validated_data['ns_respond'] = dref_operational_update.ns_respond
+            validated_data['total_targeted_population'] = dref_operational_update.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data['human_resource'] = dref_operational_update.human_resource
+            validated_data['is_surge_personnel_deployed'] = dref_operational_update.is_surge_personnel_deployed
+            validated_data['surge_personnel_deployed'] = dref_operational_update.surge_personnel_deployed
+            validated_data['logistic_capacity_of_ns'] = dref_operational_update.logistic_capacity_of_ns
+            validated_data['safety_concerns'] = dref_operational_update.safety_concerns
+            validated_data['pmer'] = dref_operational_update.pmer
+            validated_data['communication'] = dref_operational_update.communication
+            validated_data['people_in_need'] = dref_operational_update.people_in_need
             operational_update = super().create(validated_data)
+            # XXX COPY M2M fields
             operational_update.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             operational_update.images.add(*dref_operational_update.images.all())
             operational_update.national_society_actions.add(*dref_operational_update.national_society_actions.all())
@@ -706,12 +673,11 @@ class DrefOperationalUpdateSerializer(
         # if request_for_second_allocation and additional_allocation and dref_amount_requested != additional_allocation:
         #     raise serializers.ValidationError('Found diffrent allocation for dref and operation update')
 
-        # FIXME: district order might different but they should be considered same
-        # if (not changing_geographic_location) and district and dref_district and district != dref_district:
-        #     raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
+        if (not changing_geographic_location) and district and dref_district and set(district) != set(dref_district):
+            raise serializers.ValidationError('Found different district for dref and operational update with changing not set to true')
 
-        # if changing_geographic_location and district and dref_district and district == dref_district:
-        #     raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
+        if changing_geographic_location and district and dref_district and set(district) == set(dref_district):
+            raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
 
         return super().update(instance, validated_data)
 
@@ -744,7 +710,7 @@ class DrefFinalReportSerializer(
         if not self.instance and dref:
             if not dref.is_published:
                 raise serializers.ValidationError(
-                    ugettext('Can\'t create Final Report for not published dref %s.' % dref.id)
+                    gettext('Can\'t create Final Report for not published dref %s.' % dref.id)
                 )
             dref_operational_update = DrefOperationalUpdate.objects.filter(
                 dref=dref,
@@ -752,13 +718,13 @@ class DrefFinalReportSerializer(
             ).values_list('id', flat=True)
             if dref_operational_update:
                 raise serializers.ValidationError(
-                    ugettext(
+                    gettext(
                         'Can\'t create Final Report for not published Operational Update %s ids ' % ','.join(map(str, dref_operational_update))
                     )
                 )
         if self.instance and self.instance.is_published:
             raise serializers.ValidationError(
-                ugettext(
+                gettext(
                     'Can\'t update published final report %s.' % self.instance.id
                 )
             )

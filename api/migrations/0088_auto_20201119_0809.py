@@ -3,7 +3,6 @@
 import api.models
 from django.db import migrations, models
 import django.db.models.deletion
-import enumfields.fields
 import tinymce.models
 
 
@@ -39,8 +38,8 @@ class Migration(migrations.Migration):
                 ('snippet_es', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_fr', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_ar', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility')),
-                ('position', enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position')),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility')),
+                ('position', models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position')),
                 ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='profile_snippets', to='api.Region', verbose_name='region')),
             ],
             options={
@@ -59,8 +58,8 @@ class Migration(migrations.Migration):
                 ('snippet_es', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_fr', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_ar', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility')),
-                ('position', enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position')),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility')),
+                ('position', models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position')),
                 ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='preparedness_snippets', to='api.Region', verbose_name='region')),
             ],
             options={
@@ -79,8 +78,8 @@ class Migration(migrations.Migration):
                 ('snippet_es', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_fr', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
                 ('snippet_ar', tinymce.models.HTMLField(blank=True, null=True, verbose_name='snippet')),
-                ('visibility', enumfields.fields.EnumIntegerField(default=3, enum=api.models.VisibilityChoices, verbose_name='visibility')),
-                ('position', enumfields.fields.EnumIntegerField(default=3, enum=api.models.PositionType, verbose_name='position')),
+                ('visibility', models.IntegerField(default=3, choices=api.models.VisibilityChoices.choices, verbose_name='visibility')),
+                ('position', models.IntegerField(default=3, choices=api.models.PositionType.choices, verbose_name='position')),
                 ('region', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='emergency_snippets', to='api.Region', verbose_name='region')),
             ],
             options={

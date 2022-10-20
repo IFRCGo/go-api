@@ -62,4 +62,4 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     reached_total = fuzzy.FuzzyInteger(0)
 
     regional_project = factory.SubFactory(regional_project.RegionalProjectFactory)
-    visibility = fuzzy.FuzzyChoice(models.VisibilityCharChoices.CHOICES)
+    visibility = fuzzy.FuzzyChoice(models.VisibilityCharChoices.choices)

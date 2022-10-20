@@ -1,8 +1,8 @@
 from dateutil.relativedelta import relativedelta
 from django.template.loader import render_to_string
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext_lazy as _
-from django.utils.translation import ugettext
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext
 from django.utils import timezone
 from django.urls import reverse
 from django.db.models import Q
@@ -48,10 +48,10 @@ class Command(BaseCommand):
         )
         for project in notify_projects.distinct():
             user = project.user
-            subject = ugettext('3W Project Notification')
+            subject = gettext('3W Project Notification')
             admin_uri = f'admin:{Project._meta.app_label}_{Project._meta.model_name}_change'
             records = [{
-                'title': ugettext('1 new 3W project notification'),
+                'title': gettext('1 new 3W project notification'),
                 'is_staff': user.is_staff,
                 'resource_uri': get_project_url(project.id),
                 'admin_uri': reverse(admin_uri, args=(project.id,)),

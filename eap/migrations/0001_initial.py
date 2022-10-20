@@ -5,7 +5,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import eap.models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -14,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api', '0156_appealfilter_comment'),
+        ('api', '0150_admin2_admin2geoms'),
     ]
 
     operations = [

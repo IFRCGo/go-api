@@ -209,7 +209,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         else:
             personnel.molnix_status = 'active'
             personnel.is_active = True
-        personnel.type = Personnel.RR
+        personnel.type = Personnel.TypeChoices.RR
         personnel.start_date = get_datetime(md['start'])
         personnel.end_date = get_datetime(md['end'])
         personnel.name = md['person']['fullname']

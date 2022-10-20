@@ -1,5 +1,5 @@
 import base64
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
 # from .models import VisibilityChoices
 
@@ -35,7 +35,7 @@ def base64_encode(string):
 
 def validate_slug_number(value):
     if value[0].isdigit():
-        raise ValidationError(ugettext('slug should not start with a number'))
+        raise ValidationError(gettext('slug should not start with a number'))
 
 
 def is_user_ifrc(user):

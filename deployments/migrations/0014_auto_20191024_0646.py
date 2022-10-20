@@ -3,7 +3,6 @@
 import deployments.models
 import django.contrib.postgres.fields
 from django.db import migrations, models
-import enumfields.fields
 
 
 class Migration(migrations.Migration):
@@ -21,14 +20,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='project',
             name='operation_type',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=deployments.models.OperationTypes),
+            field=models.IntegerField(default=0, choices=deployments.models.OperationTypes.choices),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='project',
             name='secondary_sectors',
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=enumfields.fields.EnumIntegerField(enum=deployments.models.Sectors),
+                base_field=models.IntegerField(choices=deployments.models.Sectors.choices, default=0),
                 blank=True, default=list, size=None,
             ),
         ),

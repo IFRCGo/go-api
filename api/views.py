@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
 
-from deployments.models import Heop
+from deployments.models import Heop, ERUType
 from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
@@ -139,6 +139,12 @@ class EsPageSearch(APIView):
             })
         )
         return JsonResponse(results['hits'])
+
+
+class ERUTypes(APIView):
+    def get(self, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in ERUType.choices]
+        return JsonResponse(keys_labels, safe=False)
 
 
 class AggregateHeaderFigures(APIView):

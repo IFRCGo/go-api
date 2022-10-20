@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from enumfields.drf.serializers import EnumSupportSerializerMixin
 
 from api.models import Region
 from api.serializers import (
@@ -99,7 +98,7 @@ class ListFormWithDataSerializer(ListFormSerializer):
         fields = ('area', 'overview', 'form_data', 'updated_at', 'comment', 'user', 'id')
 
 
-class ListNiceDocSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class ListNiceDocSerializer(serializers.ModelSerializer):
     country = RegoCountrySerializer()
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
@@ -135,7 +134,7 @@ class GlobalPreparednessSerializer(serializers.Serializer):
         fields = ('id', 'code', 'question_id',)
 
 
-class NSPhaseSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class NSPhaseSerializer(serializers.ModelSerializer):
     phase_display = serializers.CharField(source='get_phase_display', read_only=True)
 
     class Meta:
@@ -149,7 +148,7 @@ class MiniUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'first_name', 'last_name', 'email')
 
 
-class WorkPlanSerializer(EnumSupportSerializerMixin, serializers.ModelSerializer):
+class WorkPlanSerializer(serializers.ModelSerializer):
     user = MiniUserSerializer()
     prioritization_display = serializers.CharField(source='get_prioritization_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)

@@ -3,7 +3,7 @@ from tinymce import HTMLField
 
 from django.db import models
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import Group
 
@@ -64,7 +64,7 @@ class FlashUpdate(models.Model):
     This is a base model for Flas Update
     '''
 
-    class FlashShareWith(TextChoices):
+    class FlashShareWith(models.TextChoices):
         IFRC_SECRETARIAT = 'ifrc_secretariat', _('IFRC Secretariat')
 
     created_by = models.ForeignKey(
@@ -167,15 +167,15 @@ class FlashAction(models.Model):
 
     name = models.CharField(verbose_name=_('name'), max_length=400)
     organizations = ArrayField(
-        models.CharField(choices=ActionOrg.CHOICES, max_length=4),
+        models.CharField(choices=ActionOrg.choices, max_length=4),
         verbose_name=_('organizations'), default=list, blank=True
     )
     flash_update_types = ArrayField(
-        models.CharField(choices=ActionType.CHOICES, max_length=16),
+        models.CharField(choices=ActionType.choices, max_length=16),
         verbose_name=_('flash update types'), default=list,
     )
     category = models.CharField(
-        max_length=255, verbose_name=_('category'), choices=ActionCategory.CHOICES, default=ActionCategory.GENERAL
+        max_length=255, verbose_name=_('category'), choices=ActionCategory.choices, default=ActionCategory.GENERAL
     )
     is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False, help_text=_('Disable in form'))
     tooltip_text = models.TextField(verbose_name=_('tooltip text'), null=True, blank='true')
@@ -194,7 +194,7 @@ class FlashActionsTaken(models.Model):
     """ All the actions taken by an organization in Flash Update """
 
     organization = models.CharField(
-        choices=ActionOrg.CHOICES,
+        choices=ActionOrg.choices,
         verbose_name=_('organization'), max_length=16,
     )
     actions = models.ManyToManyField(FlashAction, verbose_name=_('actions'), blank=True)

@@ -17,7 +17,7 @@ If you are looking for an api endpoint, search also url_path in other files.
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
 from django.conf import settings
-from django.urls import path
+from django.urls import path, re_path
 from django.contrib import admin
 from django.conf.urls import static
 from django.views.static import serve
@@ -32,6 +32,7 @@ from api.views import (
     ShowUsername,
     EsPageSearch,
     EsPageHealth,
+    ERUTypes,
     AggregateHeaderFigures,
     AggregateByDtype,
     AggregateByTime,
@@ -155,10 +156,6 @@ router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, base
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 
-router.register(r'dref-file-slow-sudden', dref_views.DrefFileUploadViewSet, basename='dref_file_upload')
-router.register(r'dref-file-imminent', dref_views.DrefImminentFileUploadViewSet, basename='dref_file_upload_imminent')
-router.register(r'dref-file-assessment', dref_views.DrefAssessmentFileUploadViewSet, basename='dref_file_upload_assessment')
-
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
 
@@ -173,6 +170,7 @@ urlpatterns = [
     url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
     url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
     url(r'^api/v2/deployment/aggregated_by_ns', deployment_views.DeploymentsByNS.as_view()),
+    url(r'^api/v2/erutype', ERUTypes.as_view()),
     url(r'^api/v2/create_field_report/', api_views.CreateFieldReport.as_view()),
     url(r'^api/v2/update_field_report/(?P<pk>\d+)/', api_views.UpdateFieldReport.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),

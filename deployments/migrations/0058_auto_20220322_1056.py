@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='emergencyproject',
             name='status',
-            field=models.CharField(choices=[('on_going', 'On-Going'), ('complete', 'Complete'), ('planned', 'Planned')], default=deployments.models.EmergencyProject.ActivityStatus('on_going'), max_length=40),
+            field=models.CharField(choices=[('on_going', 'Ongoing'), ('complete', 'Complete'), ('planned', 'Planned')], default=deployments.models.EmergencyProject.ActivityStatus('on_going'), max_length=40),
         ),
     ]
