@@ -60,6 +60,15 @@ def push_fr_data(data, retired=False):
     else:
         InitialRequestType, InitialRequestValue =  "Empty", 0
 
+    # In Early Warning / Early Action we use "Potentially Affected", not the normal _affected ones:
+    NumberOfPeopleAffected = \
+        (0 if data.num_affected is None else data.num_affected) + \
+        (0 if data.gov_num_affected is None else data.gov_num_affected) + \
+        (0 if data.other_num_affected is None else data.other_num_affected) + \
+        (0 if data.num_potentially_affected is None else data.num_potentially_affected) + \
+        (0 if data.gov_num_potentially_affected is None else data.gov_num_potentially_affected) + \
+        (0 if data.other_num_potentially_affected is None else data.other_num_potentially_affected)
+
     payload = {
         "Emergency": {
             "EmergencyId": 0 if data.event_id is None else data.event_id,  # Emergency ID, RequestId
@@ -73,7 +82,7 @@ def push_fr_data(data, retired=False):
                 "ReportedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
-                "NumberOfPeopleAffected": 0 if data.num_affected is None else data.num_affected,
+                "NumberOfPeopleAffected": NumberOfPeopleAffected,
                 "InitialRequestType": InitialRequestType,
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},
