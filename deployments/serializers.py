@@ -24,6 +24,7 @@ from api.serializers import (
 
 from .models import (
     AnnualSplit,
+    ERUType,
     ERUOwner,
     ERU,
     PersonnelDeployment,

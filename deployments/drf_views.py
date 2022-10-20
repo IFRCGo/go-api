@@ -30,6 +30,7 @@ from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from .filters import ProjectFilter, EmergencyProjectFilter
 from .utils import get_previous_months
 from .models import (
+    ERUType,
     ERU,
     ERUOwner,
     OperationTypes,
