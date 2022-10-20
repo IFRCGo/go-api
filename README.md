@@ -49,7 +49,7 @@ email-verification only, is to be found
 ### Running server
 
      $ docker-compose up serve celery
-     $ (Obsolete: docker-compose run --rm --service-ports serve)
+     $ (Without celery, the old pdb-friendly way: docker-compose run --rm --service-ports serve)
 
 Access the site at http://localhost:8000
 
