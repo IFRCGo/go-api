@@ -32,6 +32,7 @@ from api.views import (
     ShowUsername,
     EsPageSearch,
     EsPageHealth,
+    ERUTypes,
     AggregateHeaderFigures,
     AggregateByDtype,
     AggregateByTime,
@@ -154,7 +155,6 @@ router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files'
 router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
-router.register(r'erutype', deployment_views.ERUTypeViewset, basename='erutype')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
@@ -170,6 +170,7 @@ urlpatterns = [
     url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
     url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
     url(r'^api/v2/deployment/aggregated_by_ns', deployment_views.DeploymentsByNS.as_view()),
+    url(r'^api/v2/erutype', ERUTypes.as_view()),
     url(r'^api/v2/create_field_report/', api_views.CreateFieldReport.as_view()),
     url(r'^api/v2/update_field_report/(?P<pk>\d+)/', api_views.UpdateFieldReport.as_view()),
     url(r'^get_auth_token', GetAuthToken.as_view()),

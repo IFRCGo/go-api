@@ -58,13 +58,6 @@ class MiniUserSerializer(ModelSerializer):
         )
 
 
-class ERUTypeSerializer(ModelSerializer):
-
-    class Meta:
-        model = ERUType
-        fields = '__all__'
-
-
 class ERUSetSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
     type_display = serializers.CharField(source='get_type_display', read_only=True)

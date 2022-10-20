@@ -49,7 +49,8 @@ email-verification only, is to be found
 ### Running server
 
      $ docker-compose up serve celery
-     $ (Without celery, the old pdb-friendly way: docker-compose run --rm --service-ports serve)
+     $ (To attach to a container with stdin, e.g. for debugging: docker attach <container_name>)
+     $ (Or, without celery, the old pdb-friendly way: docker-compose run --rm --service-ports serve)
 
 Access the site at http://localhost:8000
 
