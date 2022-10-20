@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
- - Choice-value showing endpoints (draft)
+
+## 1.1.456
+
+### Added
+ - DREF import
+ - Choice-value showing endpoints (v1.0)
  - Early Warning / Early Action use: Potentially Affected (ERP)
  - Typo fixes (e.g. on-going to ongoing)
  - DREF fixes, add notification sending to DREF creation/update
@@ -2061,7 +2066,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.455...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.456...HEAD
+[1.1.456]: https://github.com/IFRCGo/go-api/compare/1.1.455...1.1.456
 [1.1.455]: https://github.com/IFRCGo/go-api/compare/1.1.454...1.1.455
 [1.1.454]: https://github.com/IFRCGo/go-api/compare/1.1.453...1.1.454
 [1.1.453]: https://github.com/IFRCGo/go-api/compare/1.1.452...1.1.453
