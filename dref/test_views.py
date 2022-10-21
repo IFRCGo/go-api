@@ -1,6 +1,6 @@
 import os
 from unittest import mock
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 from django.conf import settings
@@ -356,7 +356,8 @@ class DrefTestCase(APITestCase):
                     "file": file2.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data, format="json")
@@ -373,7 +374,8 @@ class DrefTestCase(APITestCase):
                     "file": file4.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data, format='multipart')
@@ -386,7 +388,8 @@ class DrefTestCase(APITestCase):
                     "file": file4.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -399,7 +402,8 @@ class DrefTestCase(APITestCase):
                     "file": file5.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -443,11 +447,13 @@ class DrefTestCase(APITestCase):
         """
         dref = DrefFactory.create(
             title='test', created_by=self.user,
-            is_published=True
+            is_published=True,
+            modified_at=datetime.now() + timedelta(days=-1)
         )
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "title": "New Update Title"
+            "title": "New Update Title",
+            "modified_at": datetime.now(),
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -456,6 +462,7 @@ class DrefTestCase(APITestCase):
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
             title='test', created_by=self.user,
+            modified_at=datetime.now() + timedelta(days=-1)
         )
         url = f'/api/v2/dref/{not_published_dref.id}/'
         self.client.force_authenticate(self.user)
