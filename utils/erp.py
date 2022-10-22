@@ -60,18 +60,16 @@ def push_fr_data(data, retired=False):
     else:
         InitialRequestType, InitialRequestValue = "Empty", 0
 
-    # In Early Warning / Early Action we use "Potentially Affected", not the normal _affected ones:
-    NumberOfPeopleAffected = sum([
-        affected for affected in [
-            data.num_affected,
-            data.gov_num_affected,
-            data.other_num_affected,
-            data.num_potentially_affected,
-            data.gov_num_potentially_affected,
-            data.other_num_potentially_affected,
-        ]
-        if affected
-    ])
+    # About "RecentAffected - 1" as index check (¤) in api/models.py and serializer.py :
+    index = data.recent_affected - 1 if data.recent_affected > 0 else 0
+    # In Early Warning we use "potentially affected", not the normal "affected" figure. Should be only one:
+    NumberOfPeopleAffected = [
+        data.num_affected,
+        data.gov_num_affected,
+        data.other_num_affected,
+        data.num_potentially_affected,
+        data.gov_num_potentially_affected,
+        data.other_num_potentially_affected][index]
 
     payload = {
         "Emergency": {

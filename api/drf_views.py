@@ -722,6 +722,22 @@ class GenericFieldReportView(GenericAPIView):
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
 
+        # Set RecentAffected according to the sent _affected key
+        if 'status' in data and data['status'] == FieldReport.Status.EW:  # Early Warning
+            if 'num_potentially_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.RCRC_POTENTIALLY
+            elif 'gov_num_potentially_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
+            elif 'other_num_potentially_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.OTHER_POTENTIALLY
+        else:  # Event related
+            if 'num_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.RCRC
+            elif 'gov_num_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.GOVERNMENT
+            elif 'other_num_affected' in data:
+                data['recent_affected'] = FieldReport.RecentAffected.OTHER
+
         # Handle EPI Figures' Source dropdown saving
         if 'epi_figures_source' in data:
             if data['epi_figures_source'] == 0 or data['epi_figures_source'] == '0':
