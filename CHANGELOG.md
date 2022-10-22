@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.457
+
+### Added
+ - Hotfix for recent "affected people" figures / Field Report, ERP
+ - Choice-value showing endpoints (v1.1) - mostly for Projects
+
 ## 1.1.456
 
 ### Added
@@ -2066,7 +2072,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.456...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.457...HEAD
+[1.1.457]: https://github.com/IFRCGo/go-api/compare/1.1.456...1.1.457
 [1.1.456]: https://github.com/IFRCGo/go-api/compare/1.1.455...1.1.456
 [1.1.455]: https://github.com/IFRCGo/go-api/compare/1.1.454...1.1.455
 [1.1.454]: https://github.com/IFRCGo/go-api/compare/1.1.453...1.1.454

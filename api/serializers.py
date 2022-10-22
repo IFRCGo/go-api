@@ -1060,6 +1060,17 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
 
 
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        super(DetailFieldReportSerializer, self).__init__(*args, **kwargs)
+        for i, field in enumerate([
+            'num_affected',             'gov_num_affected',             'other_num_affected',
+            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected']):
+            # We allow only 1 of these _affected values ^, pointed by RecentAffected. The other 5 gets 0 on client side.
+            # Attention! This indexing is related to RecentAffected values – in models.py: (¤)
+            if self.instance.recent_affected - 1 != i:
+                self.fields.pop(field)
+
     user = UserSerializer()
     dtype = DisasterTypeSerializer()
     contacts = FieldReportContactSerializer(many=True)
@@ -1073,7 +1084,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
 
     class Meta:
         model = FieldReport
-        fields = '__all__'
+        exclude = ()
 
 
 class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
