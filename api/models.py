@@ -1157,6 +1157,16 @@ class FieldReport(models.Model):
         EVT = 9, _('Event-related')
         TEN = 10, _('Ten')  # legacy usage. Covid?
 
+    class RecentAffected(models.IntegerChoices):
+        UNKNOWN = 0, _('Unknown')
+        RCRC = 1, _('Red Cross / Red Crescent')
+        GOVERNMENT = 2, _('Government')
+        OTHER = 3, _('Other')
+        RCRC_POTENTIALLY = 4, _('Red Cross / Red Crescent, potentially')
+        GOVERNMENT_POTENTIALLY = 5, _('Government, potentially')
+        OTHER_POTENTIALLY = 6, _('Other, potentially')
+        # Take care, these values are connected to (¤) in serializers.py, search it!
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='user',
         null=True, blank=True, on_delete=models.SET_NULL,
@@ -1180,7 +1190,8 @@ class FieldReport(models.Model):
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     # This entity is more a type than a status, so let's label it this way on admin page:
-    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0)
+    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0,
+        help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>')
     request_assistance = models.BooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
     ns_request_assistance = models.BooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
@@ -1320,6 +1331,8 @@ class FieldReport(models.Model):
     supported_activities = models.ManyToManyField(
         SupportedActivity, verbose_name=_('supported activities'), blank=True
     )
+    recent_affected = models.IntegerField(choices=RecentAffected.choices, verbose_name=_('recent source of affected people'), default=0,
+        help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>')
 
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)

@@ -74,7 +74,8 @@ class ERUOwner(models.Model):
 @reversion.register()
 class ERU(models.Model):
     """ A resource that can be deployed """
-    type = models.IntegerField(choices=ERUType.choices, verbose_name=_('type'), default=0)
+    type = models.IntegerField(choices=ERUType.choices, verbose_name=_('type'), default=0,
+        help_text='<a target="_blank" href="/api/v2/erutype">Key/value pairs</a>')
     units = models.IntegerField(verbose_name=_('units'), default=0)
     equipment_units = models.IntegerField(verbose_name=_('equipment units'), default=0)
     num_people_deployed = models.IntegerField(
@@ -366,17 +367,21 @@ class Project(models.Model):
     name = models.TextField(verbose_name=_('name'))
     description = HTMLField(verbose_name=_('description'), blank=True, default='')
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
-    programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'))
-    primary_sector = models.IntegerField(choices=Sectors.choices, default=0, verbose_name=_('sector'))
+    programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'),
+        help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>')
+    primary_sector = models.IntegerField(choices=Sectors.choices, default=0, verbose_name=_('sector'),
+        help_text='<a target="_blank" href="/api/v2/primarysector">Key/value pairs</a>')
     secondary_sectors = ArrayField(
         models.IntegerField(choices=SectorTags.choices), verbose_name=_('tags'), default=list, blank=True,
     )
-    operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'))
+    operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'),
+        help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>')
     start_date = models.DateField(verbose_name=_('start date'))
     end_date = models.DateField(verbose_name=_('end date'))
     budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True)
     actual_expenditure = models.IntegerField(verbose_name=_('actual expenditure'), null=True, blank=True)
-    status = models.IntegerField(choices=Statuses.choices, default=0, verbose_name=_('status'))
+    status = models.IntegerField(choices=Statuses.choices, default=0, verbose_name=_('status'),
+        help_text='<a target="_blank" href="/api/v2/projectstatus">Key/value pairs</a>')
 
     # Target Metric
     target_male = models.IntegerField(verbose_name=_('target male'), null=True, blank=True)

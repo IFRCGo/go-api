@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
 
-from deployments.models import Heop, ERUType
+from deployments.models import Heop, ERUType, ProgrammeTypes, Sectors, OperationTypes, Statuses
 from notifications.models import Subscription
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
@@ -142,8 +142,51 @@ class EsPageSearch(APIView):
 
 
 class ERUTypes(APIView):
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         keys_labels = [{'key': i, 'label': v} for i, v in ERUType.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class FieldReportStatuses(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in FieldReport.Status.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class RecentAffecteds(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in FieldReport.RecentAffected.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class ProjectProgrammeTypes(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in ProgrammeTypes.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class ProjectPrimarySectors(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in Sectors.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class ProjectOperationTypes(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in OperationTypes.choices]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class ProjectStatuses(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': i, 'label': v} for i, v in Statuses.choices]
         return JsonResponse(keys_labels, safe=False)
 
 
