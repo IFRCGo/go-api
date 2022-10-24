@@ -60,7 +60,7 @@ def push_fr_data(data, retired=False):
     else:
         InitialRequestType, InitialRequestValue = "Empty", 0
 
-    # About "RecentAffected - 1" as index check (¤) in api/models.py and serializer.py :
+    # About "RecentAffected - 1" as index see (¤) in other code parts:
     index = data.recent_affected - 1 if data.recent_affected > 0 else 0
     # In Early Warning we use "potentially affected", not the normal "affected" figure. Should be only one:
     NumberOfPeopleAffected = [
