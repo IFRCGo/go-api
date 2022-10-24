@@ -441,19 +441,23 @@ class DrefTestCase(APITestCase):
         self.assertIn('needs_identified', response.data)
         self.assertIn('national_society_actions', response.data)
 
-    def test_dref_is_published(self):
+    @mock.patch('django.utils.timezone.now')
+    def test_dref_is_published(self, mock_now):
         """
         Test for dref if is_published = True
         """
+        initial_now = datetime(2011, 11, 11)
+        mock_now.return_value = initial_now
+
         dref = DrefFactory.create(
-            title='test', created_by=self.user,
+            title='test',
+            created_by=self.user,
             is_published=True,
-            modified_at=datetime.now() + timedelta(days=-1)
         )
         url = f'/api/v2/dref/{dref.id}/'
         data = {
             "title": "New Update Title",
-            "modified_at": datetime.now(),
+            "modified_at": initial_now,
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -461,13 +465,17 @@ class DrefTestCase(APITestCase):
 
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
-            title='test', created_by=self.user,
-            modified_at=datetime.now() + timedelta(days=-1)
+            title='test',
+            created_by=self.user,
         )
         url = f'/api/v2/dref/{not_published_dref.id}/'
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
         self.assert_200(response)
+
+        data['modified_at'] = initial_now - timedelta(seconds=10)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
 
         # test dref published endpoint
         url = f'/api/v2/dref/{not_published_dref.id}/publish/'

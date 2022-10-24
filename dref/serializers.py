@@ -207,7 +207,7 @@ class DrefSerializer(
     assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
     supporting_document_details = DrefFileSerializer(read_only=True, source='supporting_document')
     risk_security = RiskSecuritySerializer(many=True, required=False)
-    modified_at = serializers.DateTimeField(required=True)
+    modified_at = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Dref
