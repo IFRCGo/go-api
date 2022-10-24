@@ -451,7 +451,7 @@ class MiniFieldReportSerializer(ModelSerializer):
             'other_affected_pop_centres', 'epi_cases', 'epi_suspected_cases', 'epi_probable_cases', 'epi_confirmed_cases',
             'epi_figures_source', 'epi_figures_source_display', 'epi_cases_since_last_fr', 'epi_deaths_since_last_fr',
             'epi_notes_since_last_fr', 'visibility', 'visibility_display', 'request_assistance', 'ns_request_assistance',
-            'notes_health', 'notes_ns', 'notes_socioeco'
+            'notes_health', 'notes_ns', 'notes_socioeco', 'recent_affected'
         )
 
 
@@ -1067,7 +1067,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
             'num_affected',             'gov_num_affected',             'other_num_affected',
             'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected']):
             # We allow only 1 of these _affected values ^, pointed by RecentAffected. The other 5 gets 0 on client side.
-            # Attention! This indexing is related to RecentAffected values – in models.py: (¤)
+            # About "recent_affected - 1" as index see (¤) in other code parts:
             if self.instance.recent_affected - 1 != i:
                 self.fields.pop(field)
 
