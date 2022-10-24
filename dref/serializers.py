@@ -207,6 +207,7 @@ class DrefSerializer(
     assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
     supporting_document_details = DrefFileSerializer(read_only=True, source='supporting_document')
     risk_security = RiskSecuritySerializer(many=True, required=False)
+    modified_at = serializers.DateTimeField(required=True)
 
     class Meta:
         model = Dref
@@ -309,11 +310,6 @@ class DrefSerializer(
             )
         return operation_timeframe
 
-    def validate_modified_at(self, modified_at):
-        if self.instance and self.instance.modified_at is None:
-            raise serializers.ValidationError('Modified At can\'t be None')
-        return modified_at
-
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
         is_assessment_report = validated_data.get('is_assessment_report')
@@ -357,7 +353,7 @@ class DrefSerializer(
         is_assessment_report = validated_data.get('is_assessment_report')
         modified_at = validated_data.pop('modified_at', None)
         if modified_at is None:
-            raise serializers.ValidationError('Modified At is required!')
+            raise serializers.ValidationError({ 'modified_at': 'Modified At is required!' })
         if is_assessment_report:
             # Previous Operations
             validated_data['lessons_learned'] = None
@@ -391,16 +387,13 @@ class DrefSerializer(
         else:
             to = None
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
-            raise serializers.ValidationError(
-                gettext(f'Input Payload in {self.DREF_UPDATE_ERROR_MESSAGE}')
-            )
+            raise serializers.ValidationError({ 'modified_at': self.DREF_UPDATE_ERROR_MESSAGE })
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(
                 lambda: send_dref_email.delay(dref.id, list(to), 'Updated')
             )
         return dref
-        return instance
 
 
 class DrefOperationalUpdateSerializer(

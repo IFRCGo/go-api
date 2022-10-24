@@ -230,7 +230,8 @@ class Dref(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     modified_at = models.DateTimeField(
         verbose_name=_('modified at'),
-        default=datetime.now, blank=True
+        auto_now=True,
+        blank=True
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), on_delete=models.SET_NULL,
