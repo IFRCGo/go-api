@@ -873,7 +873,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'is_deprecated': False,
                 'iso': 'HA',
                 'iso3': 'xcS',
-                'name': 'country-jYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiMIaXR',
+                'name': 'country-AMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiMIa',
                 'record_type': 4,
                 'record_type_display': 'Country Office',
                 'region': 3,

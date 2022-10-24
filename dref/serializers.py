@@ -184,6 +184,7 @@ class DrefSerializer(
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
     MAX_OPERATION_TIMEFRAME = 30
     ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
+    DREF_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -206,6 +207,7 @@ class DrefSerializer(
     assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
     supporting_document_details = DrefFileSerializer(read_only=True, source='supporting_document')
     risk_security = RiskSecuritySerializer(many=True, required=False)
+    modified_at = serializers.DateTimeField(required=False)
 
     class Meta:
         model = Dref
@@ -349,6 +351,9 @@ class DrefSerializer(
     def update(self, instance, validated_data):
         validated_data['modified_by'] = self.context['request'].user
         is_assessment_report = validated_data.get('is_assessment_report')
+        modified_at = validated_data.pop('modified_at', None)
+        if modified_at is None:
+            raise serializers.ValidationError({ 'modified_at': 'Modified At is required!' })
         if is_assessment_report:
             # Previous Operations
             validated_data['lessons_learned'] = None
@@ -374,12 +379,15 @@ class DrefSerializer(
             dref_assessment_report = super().update(instance, validated_data)
             dref_assessment_report.needs_identified.clear()
             return dref_assessment_report
+
         # we don't send notification again to the already notified users:
         if 'users' in validated_data:
             to = {u.email for u in validated_data['users']
                   if u.email not in {t.email for t in instance.users.iterator()}}
         else:
             to = None
+        if modified_at and instance.modified_at and modified_at < instance.modified_at:
+            raise serializers.ValidationError({ 'modified_at': self.DREF_UPDATE_ERROR_MESSAGE })
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(
