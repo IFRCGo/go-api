@@ -658,6 +658,9 @@ class Dref(models.Model):
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return f'{self.title} – {self.status}'
+
 
 class DrefFile(models.Model):
     file = models.FileField(
