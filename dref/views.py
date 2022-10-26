@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
+from reversion.views import RevisionMixin
 
 from rest_framework import (
     views,
@@ -34,7 +35,7 @@ from dref.filter_set import (
 from dref.permissions import DrefOperationalUpdateCreatePermission
 
 
-class DrefViewSet(viewsets.ModelViewSet):
+class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = DrefFilter
@@ -68,7 +69,7 @@ class DrefViewSet(viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
 
-class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
+class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefOperationalUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, DrefOperationalUpdateCreatePermission]
     filterset_class = DrefOperationalUpdateFilter
@@ -113,7 +114,7 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
 
-class DrefFinalReportViewSet(viewsets.ModelViewSet):
+class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefFinalReportSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -148,7 +149,7 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
 
 class DrefOptionsView(views.APIView):
     """
-    Options for various attrivute related to Dref
+    Options for various attribute related to Dref
     """
     permission_classes = [permissions.IsAuthenticated]
 
