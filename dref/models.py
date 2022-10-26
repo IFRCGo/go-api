@@ -659,7 +659,7 @@ class Dref(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.title} – {self.status}'
+        return f'{self.title} – {self.created_at.date()}, {self.get_status_display()}'
 
 
 class DrefFile(models.Model):
