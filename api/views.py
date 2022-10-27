@@ -40,6 +40,12 @@ def bad_http_request(header, message):
     return HttpResponse('<h2>%s</h2><p>%s</p>' % (header, message), status=400)
 
 
+def bad_form_request(field_name, message, statusCode=400):
+    return JsonResponse({'errors': [{
+        'field_name': field_name,
+        'error_message': message}]}, status=statusCode)
+
+
 def unauthorized(message='You must be logged in'):
     return JsonResponse({
         'statusCode': 401,
@@ -101,7 +107,7 @@ class EsPageSearch(APIView):
         page_type = request.GET.get('type', None)
         phrase = request.GET.get('keyword', None)
         if phrase is None:
-            return bad_request('Must include a `keyword`')
+            return bad_form_request('phrase', 'Must include a `keyword`')
         index = ES_PAGE_NAME
         query = {
             'multi_match': {
@@ -268,9 +274,9 @@ class AreaAggregate(APIView):
         region_id = request.GET.get('id', None)
 
         if region_type not in ['country', 'region']:
-            return bad_request('`type` must be `country` or `region`')
+            return bad_form_request('region_type', '`type` must be `country` or `region`')
         elif not region_id:
-            return bad_request('`id` must be a region id')
+            return bad_form_request('region_id', '`id` must be a region id')
 
         aggregate = Appeal.objects\
             .filter(**{region_type: region_id}) \
@@ -290,7 +296,7 @@ class AggregateByDtype(APIView):
         }
         mtype = request.GET.get('model_type', None)
         if mtype is None or mtype not in models:
-            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
+            return bad_form_request('mtype', 'Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         model = models[mtype]
         aggregate = model.objects \
@@ -319,7 +325,7 @@ class AggregateByTime(APIView):
         region = request.GET.get('region', None)
 
         if mtype is None or mtype not in models:
-            return bad_request('Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
+            return bad_form_request('mtype', 'Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`')
 
         if start_date is None:
             start_date = datetime(1980, 1, 1, tzinfo=timezone.utc)
@@ -327,7 +333,7 @@ class AggregateByTime(APIView):
             try:
                 start_date = datetime.strptime(start_date, '%Y-%m-%d')
             except ValueError:
-                return bad_request('`start_date` must be YYYY-MM-DD format')
+                return bad_form_request('start_date', '`start_date` must be YYYY-MM-DD format')
 
             start_date = start_date.replace(tzinfo=timezone.utc)
 
@@ -396,7 +402,7 @@ class GetAuthToken(APIView):
 
         if username is None or password is None:
             logger.error('Should not happen. Frontend prevents login without username/password')
-            return bad_request('Body must contain `email/username` and `password`')
+            return bad_form_request('password', 'Body must contain `email/username` and `password`')
 
         user = authenticate(username=username, password=password)
         if user == None and User.objects.filter(email=username).count() > 1:
@@ -443,7 +449,7 @@ class GetAuthToken(APIView):
                 'id': user.id,
             })
         else:
-            return bad_request('Invalid username or password')  # most probably password issue
+            return bad_form_request('password', 'Invalid username or password')  # most probably password issue
 
 
 class ChangePassword(APIView):
@@ -456,29 +462,29 @@ class ChangePassword(APIView):
         token = request.data.get('token', None)
         # 'password' is checked for Change Password, 'token' is checked for Password Recovery
         if username is None or (password is None and token is None):
-            return bad_request('Must include a `username` and either a `password` or `token`')
+            return bad_form_request('token', 'Must include a `username` and either a `password` or `token`')
 
         if new_pass is None:
-            return bad_request('Must include a `new_password` property')
+            return bad_form_request('new_pass', 'Must include a `new_password` property')
         try:
             validate_password(new_pass)
         except Exception as exc:
             ers = ' '.join(str(err) for err in exc)
-            return bad_request(ers)
+            return bad_form_request('username', ers)
 
         user = User.objects.filter(username__iexact=username).first()
         if user is None:
-            return bad_request('Could not authenticate')
+            return bad_form_request('user', 'Could not authenticate')
 
         if password and not user.check_password(password):
-            return bad_request('Could not authenticate')
+            return bad_form_request('password', 'Could not authenticate')
         elif token:
             recovery = Recovery.objects.filter(user=user).first()
             if recovery is None:
-                return bad_request('Could not authenticate')
+                return bad_form_request('recovery', 'Could not authenticate')
 
             if recovery.token != token:
-                return bad_request('Could not authenticate')
+                return bad_form_request('token', 'Could not authenticate')
             recovery.delete()
 
         user.set_password(new_pass)
@@ -493,11 +499,11 @@ class RecoverPassword(APIView):
     def post(self, request):
         email = request.data.get('email', None)
         if email is None:
-            return bad_request('Must include an `email` property')
+            return bad_form_request('email', 'Must include an `email` property')
 
         user = User.objects.filter(email__iexact=email).first()
         if user is None:
-            return bad_request('That email is not associated with a user')
+            return bad_form_request('user', 'That email is not associated with a user')
 
         token = get_random_string(length=32)
         Recovery.objects.filter(user=user).delete()
@@ -521,11 +527,11 @@ class ShowUsername(APIView):
     def post(self, request):
         email = request.data.get('email', None)
         if email is None:
-            return bad_request('Must include an `email` property')
+            return bad_form_request('email', 'Must include an `email` property')
 
         user = User.objects.filter(email__iexact=email).first()
         if user is None:
-            return bad_request('That email is not associated with a user')
+            return bad_form_request('user', 'That email is not associated with a user')
 
         email_context = {
             'username': user.username,
@@ -551,10 +557,10 @@ class ResendValidation(APIView):
                                           .first()
             if pending_user:
                 if pending_user.user.is_active is True:
-                    return bad_request('Your registration is already active, \
+                    return bad_form_request('is_active', 'Your registration is already active, \
                                         you can try logging in with your registered username and password')
                 if pending_user.created_at < timezone.now() - timedelta(days=30):
-                    return bad_request('The verification period is expired. \
+                    return bad_form_request('created_at', 'The verification period is expired. \
                                         You must verify your email within 30 days. \
                                         Please contact your system administrator.')
 
@@ -578,10 +584,10 @@ class ResendValidation(APIView):
                                   'Validate account - ' + username)
                 return Response({'data': 'Success'})
             else:
-                return bad_request('No pending registration found with the provided username. \
+                return bad_form_request('username', 'No pending registration found with the provided username. \
                                     Please check your input.')
         else:
-            return bad_request('Please provide your username in the request.')
+            return bad_form_request('username', 'Please provide your username in the request.')
 
 
 class AddCronJobLog(APIView):
