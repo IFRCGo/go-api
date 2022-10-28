@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.458
+
+### Added
+ - Optimistic Lock for DREF-s
+ - Affected Figures on FR/Emergencies
+ - DREF historical data on admin page (even via frontend input)
+
 ## 1.1.457
 
 ### Added
@@ -2072,7 +2079,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.457...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.458...HEAD
+[1.1.458]: https://github.com/IFRCGo/go-api/compare/1.1.457...1.1.458
 [1.1.457]: https://github.com/IFRCGo/go-api/compare/1.1.456...1.1.457
 [1.1.456]: https://github.com/IFRCGo/go-api/compare/1.1.455...1.1.456
 [1.1.455]: https://github.com/IFRCGo/go-api/compare/1.1.454...1.1.455
