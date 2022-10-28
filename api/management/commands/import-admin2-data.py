@@ -71,9 +71,13 @@ class Command(BaseCommand):
 
       # loop through each feature in the shapefile
       for feature in data[0]:
-          code = feature.get("pcode")
+          code = feature.get("code") if 'code' in feature.fields else feature.get("pcode")
           name = feature.get("name") if 'name' in feature.fields else feature.get("shapeName")
           admin1_id = feature.get("district_id") if "district_id" in feature.fields else feature.get("admin1_id")
+          local_name = feature.get("local_name") if "local_name" in feature.fields else None
+          local_name_code = feature.get("local_name_code") if "local_name_code" in feature.fields else None
+          alternate_name = feature.get("alternate_name") if "alternate_name" in feature.fields else None
+          alternate_name_code = feature.get("alternate_name_code") if "alternate_name_code" in feature.fields else None
 
           #FIXME: must make sure code and admin1_id are not null before continuing
 
@@ -112,14 +116,23 @@ class Command(BaseCommand):
 
   @transaction.atomic
   def add_admin2(self, options, import_missing, feature, geom, centroid, bbox):
-      code = feature.get("pcode")
+      code = feature.get("code") if 'code' in feature.fields else feature.get("pcode")
       name = feature.get("name") if 'name' in feature.fields else feature.get("shapeName")
       admin1_id = feature.get("district_id") if "district_id" in feature.fields else feature.get("admin1_id")
+      local_name = feature.get("local_name") if "local_name" in feature.fields else None
+      local_name_code = feature.get("local_name_code") if "local_name_code" in feature.fields else None
+      alternate_name = feature.get("alternate_name") if "alternate_name" in feature.fields else None
+      alternate_name_code = feature.get("alternate_name_code") if "alternate_name_code" in feature.fields else None
       admin2 = Admin2()
       admin2.code = code
       admin2.name = name
       admin2.centroid = centroid
       admin2.bbox = bbox
+      admin2.local_name = local_name
+      admin2.local_name_code = local_name_code
+      admin2.alternate_name = alternate_name
+      admin2.alternate_name_code = alternate_name_code
+
       try:
         admin1 = District.objects.get(id=admin1_id)
         admin2.admin1_id = admin1.id
@@ -132,7 +145,7 @@ class Command(BaseCommand):
           try:
               print("importing", admin2.name)
               admin2.save()
-              if options["update-geom"]:
+              if options["update_geom"]:
                   self.update_geom(admin2, geom)
           except IntegrityError as e:
               print(f"Duplicate object {admin2.name}")
