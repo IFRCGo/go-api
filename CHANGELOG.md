@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.459
+
+### Added
+ - PER permissions revoke from ifrc_admins
+
 ## 1.1.458
 
 ### Added
@@ -2079,7 +2084,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.458...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.459...HEAD
+[1.1.459]: https://github.com/IFRCGo/go-api/compare/1.1.458...1.1.459
 [1.1.458]: https://github.com/IFRCGo/go-api/compare/1.1.457...1.1.458
 [1.1.457]: https://github.com/IFRCGo/go-api/compare/1.1.456...1.1.457
 [1.1.456]: https://github.com/IFRCGo/go-api/compare/1.1.455...1.1.456
