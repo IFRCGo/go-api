@@ -26,7 +26,6 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
 
     def get_filtered_queryset(self, request, queryset, dispatch):
         if request.user.is_superuser \
-                or request.user.has_perm('api.ifrc_admin') \
                 or request.user.has_perm('api.per_core_admin'):
             return queryset
         countries, regions = self.get_request_user_regions(request)
