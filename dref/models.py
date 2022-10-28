@@ -1,6 +1,7 @@
 import reversion
 import os
 import copy
+from datetime import datetime
 
 from pdf2image import convert_from_bytes
 
@@ -227,7 +228,11 @@ class Dref(models.Model):
         COMPLETED = 1, _('Completed')
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    modified_at = models.DateTimeField(
+        verbose_name=_('modified at'),
+        auto_now=True,
+        blank=True
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'), on_delete=models.SET_NULL,
         null=True, related_name='created_by_dref'
@@ -652,6 +657,9 @@ class Dref(models.Model):
         self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGRESS
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.title} – {self.created_at.date()}, {self.get_status_display()}'
 
 
 class DrefFile(models.Model):

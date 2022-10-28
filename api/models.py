@@ -1165,7 +1165,7 @@ class FieldReport(models.Model):
         RCRC_POTENTIALLY = 4, _('Red Cross / Red Crescent, potentially')
         GOVERNMENT_POTENTIALLY = 5, _('Government, potentially')
         OTHER_POTENTIALLY = 6, _('Other, potentially')
-        # Take care, these values are connected to (¤) in serializers.py, search it!
+        # Take care of these values – see (¤) in other code parts
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'), related_name='user',

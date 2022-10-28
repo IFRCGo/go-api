@@ -1,4 +1,5 @@
 from django.contrib import admin
+from reversion_compare.admin import CompareVersionAdmin
 
 from lang.admin import TranslationAdmin
 from .models import (
@@ -15,7 +16,7 @@ class DrefFileAdmin(admin.ModelAdmin):
 
 
 @admin.register(Dref)
-class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
+class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     list_display = ('title', 'national_society', 'disaster_type',
                     'ns_request_date', 'submission_to_geneva', 'status',)
@@ -39,7 +40,7 @@ class DrefAdmin(TranslationAdmin, admin.ModelAdmin):
 
 
 @admin.register(DrefOperationalUpdate)
-class DrefOperationalUpdateAdmin(admin.ModelAdmin):
+class DrefOperationalUpdateAdmin(CompareVersionAdmin, admin.ModelAdmin):
     list_display = ('title', 'national_society', 'disaster_type')
     autocomplete_fields = (
         'national_society',
@@ -62,7 +63,7 @@ class DrefOperationalUpdateAdmin(admin.ModelAdmin):
         )
 
 @admin.register(DrefFinalReport)
-class DrefFinalReportAdmin(admin.ModelAdmin):
+class DrefFinalReportAdmin(CompareVersionAdmin, admin.ModelAdmin):
     list_display = ('title', 'national_society', 'disaster_type')
     autocomplete_fields = (
         'national_society',

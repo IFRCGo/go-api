@@ -1,5 +1,6 @@
 import os
 from unittest import mock
+from datetime import datetime, timedelta
 
 
 from django.conf import settings
@@ -355,7 +356,8 @@ class DrefTestCase(APITestCase):
                     "file": file2.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data, format="json")
@@ -372,7 +374,8 @@ class DrefTestCase(APITestCase):
                     "file": file4.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data, format='multipart')
@@ -385,7 +388,8 @@ class DrefTestCase(APITestCase):
                     "file": file4.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -398,7 +402,8 @@ class DrefTestCase(APITestCase):
                     "file": file5.id,
                     "caption": "Test Caption"
                 }
-            ]
+            ],
+            "modified_at": datetime.now()
         }
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
@@ -436,17 +441,23 @@ class DrefTestCase(APITestCase):
         self.assertIn('needs_identified', response.data)
         self.assertIn('national_society_actions', response.data)
 
-    def test_dref_is_published(self):
+    @mock.patch('django.utils.timezone.now')
+    def test_dref_is_published(self, mock_now):
         """
         Test for dref if is_published = True
         """
+        initial_now = datetime(2011, 11, 11)
+        mock_now.return_value = initial_now
+
         dref = DrefFactory.create(
-            title='test', created_by=self.user,
-            is_published=True
+            title='test',
+            created_by=self.user,
+            is_published=True,
         )
         url = f'/api/v2/dref/{dref.id}/'
         data = {
-            "title" : "New Update Title"
+            "title": "New Update Title",
+            "modified_at": initial_now,
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
@@ -454,12 +465,17 @@ class DrefTestCase(APITestCase):
 
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
-            title='test', created_by=self.user,
+            title='test',
+            created_by=self.user,
         )
         url = f'/api/v2/dref/{not_published_dref.id}/'
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
         self.assert_200(response)
+
+        data['modified_at'] = initial_now - timedelta(seconds=10)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
 
         # test dref published endpoint
         url = f'/api/v2/dref/{not_published_dref.id}/publish/'
@@ -795,3 +811,83 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
+
+    def test_dref_for_super_user(self):
+        user1 = UserFactory.create(
+            username='user1@test.com',
+            first_name='Test',
+            last_name='User1',
+            password='admin123',
+            email='user1@test.com',
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username='user2@test.com',
+            first_name='Test',
+            last_name='User2',
+            password='admin123',
+            email='user2@test.com',
+        )
+        user3 = UserFactory.create(
+            username='user3@test.com',
+            first_name='Test',
+            last_name='User3',
+            password='admin123',
+            email='user3@test.com',
+        )
+        dref1 = DrefFactory.create(
+            title='Test Title',
+            created_by=user2,
+        )
+        DrefFactory.create(
+            title='Test Title New',
+        )
+
+        # authenticate with user1(superuser)
+        # user1 should be able to view all dref
+        url = '/api/v2/dref/'
+        self.client.force_authenticate(user1)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # authenticate with User2
+        self.client.force_authenticate(user2)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['id'], dref1.id)
+
+        # authenticate with User3
+        self.client.force_authenticate(user3)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_dref_latest_update(self):
+        dref = DrefFactory.create(
+            title='Test Title',
+            created_by=self.user,
+            modified_at=datetime(2022, 4, 18, 2, 29, 39, 793615)
+        )
+        url = f'/api/v2/dref/{dref.id}/'
+        data = {
+            'title': "New title",
+        }
+
+        # without `modified_at`
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)
+
+        # with `modified_at` less than instance `modified_at`
+        data['modified_at'] = datetime(2022, 2, 18, 2, 29, 39, 793615)
+        self.client.force_authenticate(self.user)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)
+
+        data['modified_at'] = datetime.now()
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        # Title should be latest since modified_at is greater than modified_at in database
+        self.assertEqual(response.data['title'], "New title")

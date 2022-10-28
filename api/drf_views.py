@@ -446,6 +446,19 @@ class EventViewset(ReadOnlyVisibilityViewset):
             raise BadRequest('Emergency ID or Slug parameters are missing')
 
         serializer = self.get_serializer(instance)
+
+        # Hide the "affected" values that are kept only for history – see (¤) in other code parts
+        if 'field_reports' in serializer.data:
+            for j, fr in enumerate(serializer.data['field_reports']):
+                if 'recent_affected' in fr:  # should always be True
+                    for i, field in enumerate([
+                        'num_affected',             'gov_num_affected',             'other_num_affected',
+                        'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected']):
+                        if fr['recent_affected'] - 1 != i and field in serializer.data['field_reports'][j]:
+                            del serializer.data['field_reports'][j][field]
+                    del serializer.data['field_reports'][j]['recent_affected']
+
+
         return Response(serializer.data)
 
     @action(methods=['get'], detail=False, url_path='mini')
@@ -722,7 +735,7 @@ class GenericFieldReportView(GenericAPIView):
         else:
             data['visibility'] = VisibilityChoices.MEMBERSHIP
 
-        # Set RecentAffected according to the sent _affected key
+        # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
         if 'status' in data and data['status'] == FieldReport.Status.EW:  # Early Warning
             if 'num_potentially_affected' in data:
                 data['recent_affected'] = FieldReport.RecentAffected.RCRC_POTENTIALLY

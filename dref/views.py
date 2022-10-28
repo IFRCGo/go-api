@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
+from reversion.views import RevisionMixin
 
 from rest_framework import (
     views,
@@ -34,23 +35,23 @@ from dref.filter_set import (
 from dref.permissions import DrefOperationalUpdateCreatePermission
 
 
-class DrefViewSet(viewsets.ModelViewSet):
+class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = DrefFilter
 
     def get_queryset(self):
-        return Dref.objects\
-            .filter(
-                models.Q(created_by=self.request.user) |
-                models.Q(users=self.request.user)
-            )\
-            .prefetch_related(
-                'planned_interventions',
-                'needs_identified',
-                'national_society_actions',
-                'users'
-            ).order_by('-created_at').distinct()
+        user = self.request.user
+        queryset = Dref.objects.prefetch_related(
+            'planned_interventions',
+            'needs_identified',
+            'national_society_actions',
+            'users'
+        ).order_by('-created_at').distinct()
+        if user.is_superuser:
+            return queryset
+        else:
+            return queryset.filter(models.Q(created_by=user) | models.Q(users=user))
 
     @action(
         detail=True,
@@ -68,16 +69,14 @@ class DrefViewSet(viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
 
-class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
+class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefOperationalUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, DrefOperationalUpdateCreatePermission]
     filterset_class = DrefOperationalUpdateFilter
 
     def get_queryset(self):
-        return DrefOperationalUpdate.objects.filter(
-            models.Q(created_by=self.request.user) |
-            models.Q(users=self.request.user)
-        ).select_related(
+        user = self.request.user
+        queryset = DrefOperationalUpdate.objects.select_related(
             'national_society',
             'national_society',
             'disaster_type',
@@ -94,6 +93,10 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
             'images',
             'photos',
         ).order_by('-created_at').distinct()
+        if user.is_superuser:
+            return queryset
+        else:
+            return queryset.filter(models.Q(created_by=user) | models.Q(users=user))
 
     @action(
         detail=True,
@@ -111,7 +114,7 @@ class DrefOperationalUpdateViewSet(viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
 
-class DrefFinalReportViewSet(viewsets.ModelViewSet):
+class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefFinalReportSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -120,7 +123,6 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
             'dref__planned_interventions',
             'dref__needs_identified',
         ).order_by('-created_at').distinct()
-
 
     @action(
         detail=True,
@@ -147,7 +149,7 @@ class DrefFinalReportViewSet(viewsets.ModelViewSet):
 
 class DrefOptionsView(views.APIView):
     """
-    Options for various attrivute related to Dref
+    Options for various attribute related to Dref
     """
     permission_classes = [permissions.IsAuthenticated]
 
