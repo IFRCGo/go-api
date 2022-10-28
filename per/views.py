@@ -85,7 +85,6 @@ class UpdatePerForm(APIView):
 
         # Check if the User has permissions to update
         if not request.user.is_superuser \
-                and not request.user.has_perm('api.ifrc_admin') \
                 and not request.user.has_perm('api.per_core_admin'):
             countries, regions = self.get_request_user_regions(request)
             # These need to be strings
@@ -154,7 +153,6 @@ class UpdatePerForms(APIView):
 
         # Check if the User has permissions to update
         if not request.user.is_superuser \
-                and not request.user.has_perm('api.ifrc_admin') \
                 and not request.user.has_perm('api.per_core_admin'):
             countries, regions = self.get_request_user_regions(request)
             overview_id = forms[list(forms.keys())[0]]['overview']['id']
@@ -326,7 +324,6 @@ class CreatePerOverview(APIView):
 
         # Check if the User has permissions to create
         if not request.user.is_superuser \
-                and not request.user.has_perm('api.ifrc_admin') \
                 and not request.user.has_perm('api.per_core_admin'):
             countries, regions = self.get_request_user_regions(request)
             country = Country.objects.filter(id=country_id).first() if country_id else None
@@ -446,7 +443,6 @@ class UpdatePerOverview(APIView):
 
         # Check if the User has permissions to update
         if not request.user.is_superuser \
-                and not request.user.has_perm('api.ifrc_admin') \
                 and not request.user.has_perm('api.per_core_admin'):
             countries, regions = self.get_request_user_regions(request)
             country = Country.objects.filter(id=country_id).first() if country_id else None
