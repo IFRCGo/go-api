@@ -12,6 +12,8 @@ from api.factories.event import (
     EventLinkFactory,
     AppealFactory
 )
+from eap.factories import EAPFactory, EAPDocumentFactory
+from eap.models import EAPActivation
 
 
 class AuthTokenTest(APITestCase):
@@ -63,7 +65,6 @@ class SituationReportTypeTest(APITestCase):
 
         # Filter by event
         response = self.client.get('/api/v2/situation_report/?limit=100&event=%s' % event1.id)
-        print(response)
         self.assertEqual(response.status_code, 200)
         count = response.json()['count']
         self.assertEqual(count, 3)
@@ -82,6 +83,10 @@ class FieldReportTest(APITestCase):
     def test_create_and_update(self):
         user = User.objects.create(username='jo')
         region = models.Region.objects.create(name=1)
+        eap1 = EAPFactory.create(created_by=user)
+        eap2 = EAPFactory.create(created_by=user)
+        document1 = EAPDocumentFactory.create(created_by=self.user)
+        document2 = EAPDocumentFactory.create(created_by=self.user)
         country1 = models.Country.objects.create(name='abc', region=region)
         country2 = models.Country.objects.create(name='xyz')
         body = {
@@ -105,6 +110,27 @@ class FieldReportTest(APITestCase):
                 {'ctype': 'Originator', 'name': 'jo', 'title': 'head', 'email': '123'}
             ],
             'user': user.id,
+            'eap_activation': {
+                'title': 'eap activation title',
+                'eap': eap1.id,
+                'description': 'test eap description',
+                'trigger_met_date': '2022-11-11 00:00',
+                'documents': [
+                    {
+                        "id": document1.id,
+                        "caption": "test eap"
+                    }
+                ],
+                'originator_name': 'test name',
+                'originator_title': 'test originator title',
+                'originator_email': 'test@email.com',
+                'nsc_name_operational': 'test name operational',
+                'nsc_title_operational': 'test nsc operational',
+                'nsc_email_operational': 'test nsc operational',
+                'ifrc_focal_name': 'test focal name',
+                'ifrc_focal_title': 'test focal title',
+                'ifrc_focal_email': 'testemail@gmail.com'
+            }
         }
         self.client.force_authenticate(user=user)
         with self.capture_on_commit_callbacks(execute=True):
@@ -137,6 +163,12 @@ class FieldReportTest(APITestCase):
             self.aws_translator._fake_translation('test', 'es', 'en')
         )
 
+        # check eap-activation data
+        eap_activation_obj = EAPActivation.objects.get(field_report=created)
+        self.assertEqual(eap_activation_obj.title, 'eap activation title')
+        self.assertEqual(eap_activation_obj.eap.id, eap1.id)
+        self.assertEqual(eap_activation_obj.field_report.id, created.id)
+
         # created an emergency automatically
         self.assertEqual(created.event.name, 'test')
         event_pk = created.event.id
@@ -149,6 +181,32 @@ class FieldReportTest(APITestCase):
         ]
         body['actions_taken'] = []
         body['visibility'] = models.VisibilityChoices.PUBLIC
+        body['eap_activation'] = {
+            'title': 'eap activation title updated',
+            'eap': eap2.id,
+            'description': 'test eap description updated',
+            'trigger_met_date': '2022-11-11 01:00',
+            'documents': [
+                {
+                    "id": document1.id,
+                    "caption": "test eap updated"
+                },
+                {
+                    "id": document2.id,
+                    "caption": "test eap updated 2"
+                }
+            ],
+            'originator_name': 'test name',
+            'originator_title': 'test originator title',
+            'originator_email': 'test@email.com',
+            'nsc_name_operational': 'test name operational',
+            'nsc_title_operational': 'test nsc operational',
+            'nsc_email_operational': 'test nsc operational',
+            'ifrc_focal_name': 'test focal name',
+            'ifrc_focal_title': 'test focal title',
+            'ifrc_focal_email': 'testemail@gmail.com'
+        }
+
         response = self.client.put(f'/api/v2/update_field_report/{created.id}/', body, format='json').json()
         updated = models.FieldReport.objects.get(pk=response['id'])
 
@@ -176,6 +234,12 @@ class FieldReportTest(APITestCase):
             updated.description_es,
             self.aws_translator._fake_translation('this is a test description', 'es', 'en'),
         )  # This has not been reset
+
+        # check eap-activation data
+        eap_activation_obj = EAPActivation.objects.get(field_report=updated)
+        self.assertEqual(eap_activation_obj.title, 'eap activation title updated')
+        self.assertEqual(eap_activation_obj.eap.id, eap2.id)
+        self.assertEqual(eap_activation_obj.field_report.id, updated.id)
 
         body['summary'] = 'test [updated again]'
         with self.capture_on_commit_callbacks(execute=True):

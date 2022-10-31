@@ -7,6 +7,7 @@ from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from lang.models import String
 
+
 from .models import (
     DisasterType,
     ExternalPartner,
@@ -53,6 +54,7 @@ from .models import (
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject
+from eap.models import EAPActivation
 
 
 class GeoSerializerMixin:
@@ -1081,6 +1083,15 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     districts = MiniDistrictSerializer(many=True)
     external_partners = ExternalPartnerSerializer(many=True)
     supported_activities = SupportedActivitySerializer(many=True)
+    eap_activation = serializers.SerializerMethodField('get_eap_activation')
+
+    @staticmethod
+    def get_eap_activation(obj):
+        from eap.serializers import EAPActivationSerializer
+
+        eap_activation = EAPActivation.objects.get(field_report=obj)
+        eap_activation_data = EAPActivationSerializer(eap_activation).data
+        return eap_activation_data
 
     class Meta:
         model = FieldReport
@@ -1088,6 +1099,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
 
 
 class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
+
     class Meta:
         model = FieldReport
         fields = '__all__'
@@ -1116,6 +1128,7 @@ class GoHistoricalSerializer(ModelSerializer):
             'id', 'name', 'dtype', 'countries', 'num_affected',
             'disaster_start_date', 'created_at', 'appeals',
         )
+
 
 class CountryOfFieldReportToReviewSerializer(ModelSerializer):
     class Meta:

@@ -1156,6 +1156,7 @@ class FieldReport(models.Model):
         EW = 8, _('Early Warning')
         EVT = 9, _('Event-related')
         TEN = 10, _('Ten')  # legacy usage. Covid?
+        EAP_ACTV = 11, _('EAP Activation')  # EAP Activation
 
     class RecentAffected(models.IntegerChoices):
         UNKNOWN = 0, _('Unknown')
@@ -1847,8 +1848,8 @@ class EmergencyOperationsFR(EmergencyOperationsBase):
     raw_shelter_people_targeted = None
     raw_water_sanitation_and_hygiene_people_targeted = None
 
-    # Fields for the cleaned data
     date_of_disaster = models.DateField(verbose_name=_('date of disaster'), null=True, blank=True)
+    # Fields for the cleaned data
     num_of_other_partner_involved = models.TextField(verbose_name=_('number of other partner involved'), null=True, blank=True)
     num_of_partner_ns_involved = models.TextField(verbose_name=_('number of NS partner involved'), null=True, blank=True)
     operation_end_date = models.DateField(verbose_name=_('operation end date'), null=True, blank=True)

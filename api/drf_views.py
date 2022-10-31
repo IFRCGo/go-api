@@ -18,6 +18,8 @@ from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
+from eap.models import EAPActivation, EAP, EAPDocument
+
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -230,10 +232,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
 class CountryFilterRMD(filters.FilterSet):
     region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    
+
     class Meta:
         model = Country
         fields = ('region', 'record_type',)
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
@@ -245,7 +248,7 @@ class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
 class DistrictRMDFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country','country__name')
+        fields = ('country', 'country__name')
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
@@ -943,6 +946,23 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         report.save()
         return event
 
+    def create_eap_activation(self, data, fieldreport):
+        eap = EAP.objects.filter(id=data.pop('eap', None)).first()
+        documents_data = data.pop('documents', None)
+        eap_activation = EAPActivation.objects.create(
+            eap=eap,
+            field_report=fieldreport,
+            **data
+        )
+        if documents_data:
+            for data in documents_data:
+                document = EAPDocument.objects.filter(id=data['id']).first()
+                document.caption = data['caption']
+                document.save(update_fields=['caption'])
+                # save m2m
+                eap_activation.documents.add(document)
+        return eap_activation
+
     def create(self, request, *args, **kwargs):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
@@ -957,7 +977,9 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             # TODO: Use serializer to create fieldreport
+            eap_activation_data = data.pop('eap_activation')
             fieldreport = FieldReport.objects.create(**data)
+            self.create_eap_activation(eap_activation_data, fieldreport)  # activate respected eap for field report
             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
@@ -1005,6 +1027,28 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
     queryset = FieldReport.objects.all()
     serializer_class = CreateFieldReportSerializer
 
+    # function for updating eap-activate in field report
+    def update_eap_activation(self, data, fieldreport):
+        from eap.serializers import EAPActivationSerializer
+
+        eap_id = data.pop('eap', None)
+        documents_data = data.pop('documents', None)
+        instance = EAPActivation.objects.get(field_report=fieldreport)
+        eap_activation = EAPActivationSerializer().update(instance, data)
+        instance.eap = EAP.objects.filter(id=eap_id).first()
+
+        instance.documents.clear()
+        if documents_data:
+            for data in documents_data:
+                document = EAPDocument.objects.filter(id=data['id']).first()
+                document.caption = data['caption']
+                document.save(update_fields=['caption'])
+                # save m2m
+                instance.documents.add(document)
+        instance.save(update_fields=['eap'])
+
+        return eap_activation
+
     def partial_update(self, request, *args, **kwargs):
         self.update(request, *args, **kwargs)
 
@@ -1018,7 +1062,9 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
         data, locations, meta, partners = self.map_many_to_many_relations(data)
 
         try:
-            serializer.save()
+            field_report = serializer.save()
+            # update respected eap-activation
+            self.update_eap_activation(request.data['eap_activation'], field_report)
         except Exception:
             logger.error('Faild to update field report', exc_info=True)
             raise BadRequest('Could not update field report')
@@ -1073,6 +1119,7 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
+
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     queryset = CountryOfFieldReportToReview.objects.order_by('country')

@@ -127,7 +127,6 @@ class EsPageSearch(APIView):
                     }
                 }
             }
-
         results = ES_CLIENT.search(
             index=index,
             doc_type='page',
