@@ -13,7 +13,7 @@ from api.models import Admin2
 from api.models import Admin2Geoms
 
 class Command(BaseCommand):
-  help = "import a shapefile of administrative boundary level 2 data to the GO database. To run, python manage.py import-admin2-data input.shp --country-iso2=af"
+  help = "import a shapefile of administrative boundary level 2 data to the GO database. To run, python manage.py import-admin2-data input.shp"
 
   missing_args_message = "Filename is missing. A shapefile with valid admin polygons is required."
 
@@ -43,12 +43,6 @@ class Command(BaseCommand):
       action='store_true',
       help='Import all  admin2 boundaries in the shapefile, if possible.'
     )
-    parser.add_argument(
-      '--country-iso2',
-      type=str,
-      required=True,
-      help='Country iso2 code'
-    )
 
   @transaction.atomic
   def handle(self, *args, **options):
@@ -77,13 +71,18 @@ class Command(BaseCommand):
 
       # loop through each feature in the shapefile
       for feature in data[0]:
-          code = feature.get("code")
-          name = feature.get("name")
+          code = feature.get("code") if 'code' in feature.fields else feature.get("pcode")
+          name = feature.get("name") if 'name' in feature.fields else feature.get("shapeName")
+          admin1_id = feature.get("district_id") if "district_id" in feature.fields else feature.get("admin1_id")
+          local_name = feature.get("local_name") if "local_name" in feature.fields else None
+          local_name_code = feature.get("local_name_code") if "local_name_code" in feature.fields else None
+          alternate_name = feature.get("alternate_name") if "alternate_name" in feature.fields else None
+          alternate_name_code = feature.get("alternate_name_code") if "alternate_name_code" in feature.fields else None
+
+          #FIXME: must make sure code and admin1_id are not null before continuing
+
           geom_wkt = feature.geom.wkt
           geom = GEOSGeometry(geom_wkt, srid=4326)
-          if geom.geom_type == "Polygon":
-              geom = MultiPolygon(geom)
-
           centroid = geom.centroid.wkt
           bbox = geom.envelope.wkt
           # import all shapes for admin2
@@ -117,26 +116,35 @@ class Command(BaseCommand):
 
   @transaction.atomic
   def add_admin2(self, options, import_missing, feature, geom, centroid, bbox):
-      code = feature.get("code") or "N.A"
-      name = feature.get("name")
+      code = feature.get("code") if 'code' in feature.fields else feature.get("pcode")
+      name = feature.get("name") if 'name' in feature.fields else feature.get("shapeName")
+      admin1_id = feature.get("district_id") if "district_id" in feature.fields else feature.get("admin1_id")
+      local_name = feature.get("local_name") if "local_name" in feature.fields else None
+      local_name_code = feature.get("local_name_code") if "local_name_code" in feature.fields else None
+      alternate_name = feature.get("alternate_name") if "alternate_name" in feature.fields else None
+      alternate_name_code = feature.get("alternate_name_code") if "alternate_name_code" in feature.fields else None
       admin2 = Admin2()
       admin2.code = code
       admin2.name = name
       admin2.centroid = centroid
       admin2.bbox = bbox
-      country_iso2 = options["country_iso2"]
-      # find district_id based on centroid of admin2 and country.
+      admin2.local_name = local_name
+      admin2.local_name_code = local_name_code
+      admin2.alternate_name = alternate_name
+      admin2.alternate_name_code = alternate_name_code
+
       try:
-          admin2.admin1_id = self.find_district_id(centroid, country_iso2)
+        admin1 = District.objects.get(id=admin1_id)
+        admin2.admin1_id = admin1.id
       except ObjectDoesNotExist:
-          print(f"Country({country_iso2}) or admin 1 does not found for - admin2: {name}")
+          print(f"admin1 {admin1_id} not found for - admin2: {name}")
           pass
 
       # save data
       if admin2.admin1_id is not None and ((import_missing == "all") or (code in import_missing.keys())):
           try:
-              admin2.save()
               print("importing", admin2.name)
+              admin2.save()
               if options["update_geom"]:
                   self.update_geom(admin2, geom)
           except IntegrityError as e:
