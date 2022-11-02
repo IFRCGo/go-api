@@ -77,8 +77,12 @@ class Command(BaseCommand):
   def update_countries(self, staging):
     try:
       print('Exporting countries...')
-      subprocess.check_call(['touch', '/tmp/countries.geojson'])
-      subprocess.check_call(['rm', '/tmp/countries.geojson'])
+
+      try:
+        os.remove(f'/tmp/countries.geojson')
+      except FileNotFoundError as e:
+        pass
+
       subprocess.check_call(['ogr2ogr', '-f', 'GeoJSON', '/tmp/countries.geojson', self.connection_string, '-sql', 'select cd.country_id, cd.geom, c.name, c.name_es, c.name_fr, c.name_ar, c.iso, c.region_id, c.iso3, c.independent, c.is_deprecated, c.disputed, c.fdrs, c.record_type from api_countrygeoms cd, api_country c where cd.country_id = c.id and c.record_type=1' ])
       print('Countries written to /tmp/countries.geojson')
     except Exception as e:
@@ -87,9 +91,13 @@ class Command(BaseCommand):
 
     try:
       print('Exporting country centroids...')
-      subprocess.check_call(['touch', '/tmp/country-centroids.geojson'])
-      subprocess.check_call(['rm', '/tmp/country-centroids.geojson'])
-      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', connection_string, '-sql', 'select id as country_id, name_en as name, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null'])
+
+      try:
+        os.remove(f'/tmp/country-centroids.geojson')
+      except FileNotFoundError as e:
+        pass
+
+      subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/country-centroids.geojson', self.connection_string, '-sql', 'select id as country_id, name_en as name, name_ar, name_es, name_fr, independent, disputed, is_deprecated, iso, iso3, record_type, fdrs, region_id, centroid from api_country where centroid is not null'])
     except Exception as e:
       print('Failed to export country centroids', e)
       raise
@@ -132,8 +140,12 @@ class Command(BaseCommand):
   def update_districts(self, staging):
     try:
       print('Exporting districts...')
-      subprocess.check_call(['touch', '/tmp/districts.geojson'])
-      subprocess.check_call(['rm', '/tmp/districts.geojson'])
+
+      try:
+        os.remove(f'/tmp/distrcits.geojson')
+      except FileNotFoundError as e:
+        pass
+
       # FIXME eventually should be name_en, name_es etc.
       subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=5', '-f', 'GeoJSON', '/tmp/districts.geojson', self.connection_string, '-sql', 'select cd.district_id, cd.geom, c.name, c.code, c.country_id, c.is_enclave, c.is_deprecated, country.iso as country_iso, country.iso3 as country_iso3, country.name as country_name, country.name_es as country_name_es, country.name_fr as country_name_fr, country.name_ar as country_name_ar from api_districtgeoms cd, api_district c, api_country country where cd.district_id = c.id and cd.geom is not null and country.id=c.country_id' ])
       print('Districts written to /tmp/districts.geojson')
@@ -143,8 +155,12 @@ class Command(BaseCommand):
 
     try:
       print('Exporting district centroids...')
-      subprocess.check_call(['touch', '/tmp/district-centroids.geojson'])
-      subprocess.check_call(['rm', '/tmp/district-centroids.geojson'])
+
+      try:
+        os.remove(f'/tmp/district-centroids.geojson')
+      except FileNotFoundError as e:
+        pass
+
       # FIXME eventually should be name_en, name_es etc.
       subprocess.check_call(['ogr2ogr', '-lco', 'COORDINATE_PRECISION=4', '-f', 'GeoJSON', '/tmp/district-centroids.geojson', self.connection_string, '-sql', 'select d.id as district_id, d.country_id as country_id, d.name, d.code, d.is_deprecated, d.is_enclave, c.iso as country_iso, c.iso3 as country_iso3, c.name as country_name, c.name_es as country_name_es, c.name_fr as country_name_fr, c.name_ar as country_name_ar, d.centroid from api_district d join api_country c on d.country_id=c.id where d.centroid is not null'])
     except Exception as e:
