@@ -440,13 +440,12 @@ class DrefOperationalUpdateSerializer(
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
-        if self.instance and dref and dref.field_report is None:
-            raise serializers.ValidationError('Can\'t edit Operational Update for which dref field report is empty.')
+
         return data
 
     def validate_appeal_code(self, appeal_code):
-        if appeal_code and self.instance:
-            raise serializers.ValidationError('Can\'t edit Appeal Code')
+        if appeal_code != self.instance.appeal_code:
+            raise serializers.ValidationError('Can\'t edit MDR Code')
         return appeal_code
 
     def get_total_timeframe(self, start_date, end_date):
