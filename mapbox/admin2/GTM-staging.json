@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-GTM-staging": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-GTM-src-staging",
+        "minzoom": 10,
+        "maxzoom": 14
+      }
+    }
+  }
+  

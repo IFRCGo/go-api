@@ -69,7 +69,7 @@ class Command(BaseCommand):
 
       if options['update_admin2']:
         print(f'Updating tileset for {options["update_admin2"]}')
-        self.update_admin2(options['update_admin2'], staging)
+        self.publish_admin2(options['update_admin2'], staging, False)
 
     except BaseException as e:
       raise CommandError('Could not update tilesets: ' + str(e))
@@ -224,7 +224,10 @@ class Command(BaseCommand):
     if not staging:
       tileset_source__name = f'go-admin2-{iso}-src'
 
-    status = subprocess.run(['tilesets', 'upload-source', '--replace', 'go-ifrc', tileset_source__name, f'/tmp/{iso}.geojson'])
+    print('Tileset source', tileset_source__name)
+    status = self.prepare_admin2_geojson(iso)
+    if status:
+      status = subprocess.run(['tilesets', 'upload-source', '--replace', 'go-ifrc', tileset_source__name, f'/tmp/{iso}.geojson'])
     return True if status.returncode == 0 else False
 
   def publish_admin2(self, iso, staging=True, create=False):
