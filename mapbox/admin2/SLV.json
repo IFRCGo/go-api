@@ -3,7 +3,7 @@
     "layers": {
       "go-admin2-SLV": {
         "source": "mapbox://tileset-source/go-ifrc/go-admin2-SLV-src",
-        "minzoom": 10,
+        "minzoom": 5,
         "maxzoom": 14
       }
     }

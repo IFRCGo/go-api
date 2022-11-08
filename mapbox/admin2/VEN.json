@@ -3,7 +3,7 @@
     "layers": {
       "go-admin2-VEN": {
         "source": "mapbox://tileset-source/go-ifrc/go-admin2-VEN-src",
-        "minzoom": 10,
+        "minzoom": 5,
         "maxzoom": 14
       }
     }
