@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.460
+
+### Added
+ - Fix for MDR code validation
+ - Admin2 enhancements
+
 ## 1.1.459
 
 ### Added
@@ -2084,7 +2090,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.459...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.460...HEAD
+[1.1.460]: https://github.com/IFRCGo/go-api/compare/1.1.459...1.1.460
 [1.1.459]: https://github.com/IFRCGo/go-api/compare/1.1.458...1.1.459
 [1.1.458]: https://github.com/IFRCGo/go-api/compare/1.1.457...1.1.458
 [1.1.457]: https://github.com/IFRCGo/go-api/compare/1.1.456...1.1.457

@@ -1,4 +1,5 @@
 
+# Attention! deployments/PersonnelViewset CSV output does not use this:
 class CsvListMixin():
     def get_csv_serializer_class(self):
         return self.csv_serializer_class

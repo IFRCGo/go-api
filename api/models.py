@@ -268,7 +268,12 @@ class Admin2(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     code = models.CharField(verbose_name=_('code'), max_length=64, unique=True)
     centroid = models.PointField(srid=4326, blank=True, null=True)
-    bbox = models.PolygonField(srid=4326, blank=True, null=True)    
+    bbox = models.PolygonField(srid=4326, blank=True, null=True)
+    local_name = models.CharField(verbose_name=_('Local Name'), max_length=100, blank=True, null=True)
+    local_name_code = models.CharField(verbose_name=_('Local Name Language Code'), max_length=10, blank=True, null=True)
+    alternate_name = models.CharField(verbose_name=_('Alternate Name'), max_length=100, blank=True, null=True)
+    alternate_name_code = models.CharField(verbose_name=_('Alternate Name Language Code'), max_length=10, blank=True, null=True)
+
 
     class Meta:
         verbose_name = _('admin2')
@@ -293,7 +298,7 @@ class DistrictGeoms(models.Model):
 
 class Admin2Geoms(models.Model):
     """ Admin2 geometries """
-    geom = models.MultiPolygonField(srid=4326, blank=True, null=True)
+    geom = models.GeometryField(srid=4326, blank=True, null=True)
     admin2 = models.OneToOneField(Admin2, verbose_name=_('admin2'), on_delete=models.DO_NOTHING, primary_key=True)
 
 

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "layers": {
+    "go-countries-staging": {
+      "source": "mapbox://tileset-source/go-ifrc/go-countries-src-staging",
+      "minzoom": 0,
+      "maxzoom": 10
+    }
+  }
+}
