@@ -250,7 +250,7 @@ To update GO countries and districts Mapbox tilesets, run the management command
 * `--update-countries` — update tileset for countries, including labels
 * `--update-districts` — update tileset for districts, including labels
 * `--update-all` — update all countries and districts tilesets
-* `--create-and-update-admin2 <ISO3>` — if a new admin2 tileset should be created, use this argument. It will create a new source on Mapbox and then register a tileset. Ensure that a recipe is create in `mapbox/admin2/` directory. For example, see `mapbox/admin2/COL.json`. To run `python manage.py update-mapbox-tilesets --create-and-update-admin2 COL`
+* `--create-and-update-admin2 <ISO3>` — if a new admin2 tileset should be created, use this argument. It will create a new source on Mapbox and then register a tileset. Ensure that recipes are create in `mapbox/admin2/` directory. For example, see `mapbox/admin2/COL.json` and `mapbox/admin2/COL-centroids.json`. A recipe for polygons and centroids are required. For centroids, we don't need to create a staging recipe.  To run `python manage.py update-mapbox-tilesets --create-and-update-admin2 COL`
 * `--update-admin2 <ISO3>` — use this to update an existing admin2 tileset. For example, `python manage.py update-mapbox-tilesets --update-admin2 COL`
 
 ## Import GEC codes
