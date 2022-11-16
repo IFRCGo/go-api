@@ -1,0 +1,15 @@
+{
+  "Name": "IFRC Go Role Assigner",
+  "IsCustom": true,
+  "Description": "Can assign other roles to resources",
+  "Actions": [
+    "Microsoft.Authorization/roleAssignments/write",
+    "Microsoft.Authorization/roleAssignments/delete"
+  ],
+  "NotActions": [
+
+  ],
+  "AssignableScopes": [
+    "/subscriptions/8b80d348-3ed0-421c-a192-31cffcb1c036"
+  ]
+}

@@ -6,7 +6,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
   location            = azurerm_resource_group.ifrcgo.location
   resource_group_name = azurerm_resource_group.ifrcgo.name
   dns_prefix          = "${local.prefix}-cluster"
-  kubernetes_version  = "1.20.13"
+  kubernetes_version  = "1.25.2"
 
   default_node_pool {
     name           = "nodepool1"
@@ -23,7 +23,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
 
   tags = {
     Environment = var.environment
-    ManagedBy   = "AI4E"
+    ManagedBy   = "IFRCGo"
   }
 }
 

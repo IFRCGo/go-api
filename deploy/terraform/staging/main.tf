@@ -8,18 +8,16 @@ module "resources" {
   environment          = "staging"
   subscriptionId       = var.subscriptionId
   region               = "West Europe"
-  aks_node_count       = 1
 
   admin_email          = "sanjay@developmentseed.org"
 }
 
 terraform {
-  #FIXME provide resource groups and other details to store tf state
   backend "azurerm" {
-    resource_group_name  = ""
-    storage_account_name = ""
-    container_name       = ""
-    key                  = ""
+    resource_group_name  = "ifrcgoterraform"
+    storage_account_name = "ifrcgo"
+    container_name       = "terraform"
+    key                  = "staging"
   }
 }
 

@@ -26,26 +26,23 @@ variable "subscriptionId" {
 
 variable "ifrcgo_test_resources_acr" {
   type    = string
-  #FIXME create an ACR and provide the name here
-  default = ""
+  default = "ifrcgotest"
 }
 
 variable "ifrcgo_test_resources_rg" {
   type = string
-  #FIXME create a test resource group and provide here
-  default = ""
+  default = "ifrcgo_test"
 }
 
 variable "ifrcgo_test_resources_db_server" {
   type = string
   #FIXME create a test db server and provide here
-  default = ""
+  default = "ifrcgotest"
 }
 
 variable "ifrcgo_test_resources_db" {
   type = string
-  #FIXME create a test db and provide here
-  default = ""
+  default = "postgres"
 }
 
 # -----------------

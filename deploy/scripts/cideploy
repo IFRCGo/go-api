@@ -61,8 +61,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
         # Run deployment script
         ${DOCKER_COMPOSE} run --rm \
-            deploy bin/deploy \
-            -t "${TERRAFORM_DIR}" \
-            -v .:/opt/src/
+            deploy bin/deploy -t "${TERRAFORM_DIR}"
     )
 fi

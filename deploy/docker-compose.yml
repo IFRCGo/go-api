@@ -5,21 +5,21 @@ services:
       build:
         context: .
         dockerfile: Dockerfile
-      # environment:
+      environment:
         # For Terraform
-        # - TF_VAR_username=${USER}
-        # - TF_VAR_subscriptionId=${subscriptionId}
-        # - ARM_SUBSCRIPTION_ID=${subscriptionId}
-        # - ARM_TENANT_ID=${tenantId}
-        # - ARM_CLIENT_ID=${servicePrincipalId}
-        # - ARM_CLIENT_SECRET=${servicePrincipalKey}
-        # - ARM_ACCESS_KEY=${storageAccessKey}
+        - TF_VAR_username=${USER}
+        - TF_VAR_subscriptionId=${subscriptionId}
+        - ARM_SUBSCRIPTION_ID=${subscriptionId}
+        - ARM_TENANT_ID=${tenantId}
+        - ARM_CLIENT_ID=${servicePrincipalId}
+        - ARM_CLIENT_SECRET=${servicePrincipalKey}
+        - ARM_ACCESS_KEY=${storageAccessKey}
   
-        # # For Azure CLI
-        # - AZURE_TENANT_ID=${tenantId}
-        # - AZURE_CLIENT_ID=${servicePrincipalId}
-        # - AZURE_CLIENT_SECRET=${servicePrincipalKey}
+        # For Azure CLI
+        - AZURE_TENANT_ID=${tenantId}
+        - AZURE_CLIENT_ID=${servicePrincipalId}
+        - AZURE_CLIENT_SECRET=${servicePrincipalKey}
   
-      #   # For deployment
+        # For deployment
       volumes:
         - ./:/opt/src
