@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "go-helm.fullname" . }}-api
+  name: {{ template "ifrcgo-helm.fullname" . }}-api
   labels:
     component: api-deployment
     environment: {{ .Values.environment }}
@@ -11,13 +11,13 @@ spec:
   replicas: {{ .Values.api.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "go-helm.name" . }}
+      app: {{ template "ifrcgo-helm.name" . }}
       release: {{ .Release.Name }}
       run: {{ .Release.Name }}-api
   template:
     metadata:
       labels:
-        app: {{ template "go-helm.name" . }}
+        app: {{ template "ifrcgo-helm.name" . }}
         release: {{ .Release.Name }}
         run: {{ .Release.Name }}-api
     spec:
