@@ -40,7 +40,7 @@ jobs:
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Build & Publish
-      run: ./scripts/cipublish
+      run: ./deploy/scripts/cipublish
 
     # Uncomment this section to create a dev stack
     # - name: Deploy -- Dev
