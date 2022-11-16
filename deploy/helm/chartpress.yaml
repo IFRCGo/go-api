@@ -1,0 +1,10 @@
+charts:
+  - name: go-helm
+    imagePrefix: $FIXME add imagePrefix
+    repo:
+      git: IFRCGo/go-api
+    images:
+      api:
+        valuesPath: api.image
+        contextPath: ../../
+        dockerfilePath: ../../Dockerfile

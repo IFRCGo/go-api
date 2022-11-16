@@ -1,0 +1,17 @@
+environment: dev
+
+api:
+  domain: go-staging.ifrc.org
+  enabled: true
+  replicaCount: 1
+  containerPort: 80
+  image:
+    name: 'chartpress_replace'
+    tag: 'chartpress_replace'
+  resources:
+    requests:
+      cpu: "1"
+      memory: 4Gi
+    limits:
+      cpu: "4"
+      memory: 12Gi

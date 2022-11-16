@@ -1,0 +1,27 @@
+{{- if .Values.api.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "go-helm.fullname" . }}-api
+  labels:
+    app: {{ template "go-helm.name" . }}
+    component: api-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  {{- if eq .Values.environment "local" }}
+  type: NodePort
+  {{- else }}
+  type: ClusterIP
+  {{- end }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ .Values.api.containerPort }}
+      nodePort: null
+
+  selector:
+    app: {{ template "go-helm.name" . }}
+    release: {{ .Release.Name }}
+    run: {{ .Release.Name }}-api
+{{- end }}
