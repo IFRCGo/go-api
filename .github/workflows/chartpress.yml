@@ -1,7 +1,7 @@
 name: Chartpress Build, Publish & Deploy
 on: push
 env:
-  STAGING_REGISTRY_NAME: ifrcgo
+  STAGING_REGISTRY_NAME: ifrcgotest
   STAGING_CLUSTER_NAME: ifrcgo-staging-cluster
   STAGING_CLUSTER_RESOURCE_GROUP: ifrcgo-staging_rg
   # PRODUCTION_REGISTRY_NAME: ''
