@@ -1,6 +1,6 @@
 charts:
-  - name: go-helm
-    imagePrefix: $FIXME add imagePrefix
+  - name: ifrcgo-helm
+    imagePrefix: ifrcgotest.azurecr.io/ifrcgo-
     repo:
       git: IFRCGo/go-api
     images:
