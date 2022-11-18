@@ -41,7 +41,219 @@ spec:
             limits:
               cpu: {{ .Values.api.resources.limits.cpu }}
               memory: {{ .Values.api.resources.limits.memory }}
-          env: #FIXME: Add all required envs, use Secret where appropriate.
-            name: DUMMY_ENV
-            value: dummy_value
+          env:
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_SECRET_KEY
+
+            - name: DJANGO_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_DB_NAME
+
+            - name: DJANGO_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_DB_USER
+
+            - name: DJANGO_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_DB_PASS
+
+            - name: DJANGO_DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_DB_HOST
+
+            - name: DJANGO_DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: DJANGO_DB_PORT
+
+            - name: AZURE_STORAGE_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: AZURE_STORAGE_ACCOUNT
+
+            - name: AZURE_STORAGE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: AZURE_STORAGE_KEY
+
+            - name: EMAIL_API_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: EMAIL_API_ENDPOINT
+
+            - name: EMAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: EMAIL_HOST
+
+            - name: EMAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: EMAIL_PORT
+
+            - name: EMAIL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: EMAIL_USER
+
+            - name: EMAIL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: EMAIL_PASS
+
+            - name: TEST_EMAILS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: TEST_EMAILS
+
+            - name: AWS_TRANSLATE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: AWS_TRANSLATE_ACCESS_KEY
+
+            - name: AWS_TRANSLATE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: AWS_TRANSLATE_SECRET_KEY
+
+            - name: AWS_TRANSLATE_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: AWS_TRANSLATE_REGION
+
+            - name: CELERY_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: CELERY_REDIS_URL
+
+            - name: MOLNIX_API_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: MOLNIX_API_BASE
+
+            - name: MOLNIX_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: MOLNIX_USERNAME
+
+            - name: MOLNIX_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: MOLNIX_PASSWORD
+
+            - name: ERP_API_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: ERP_API_ENDPOINT
+
+            - name: ERP_API_SUBSCRIPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: ERP_API_SUBSCRIPTION_KEY
+
+            - name: FDRS_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: FDRS_APIKEY
+
+            - name: FDRS_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: FDRS_CREDENTIAL
+
+            - name: HPC_CREDENTIAL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: HPC_CREDENTIAL
+
+            - name: APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
+
+            - name: ELASTIC_SEARCH_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: ELASTIC_SEARCH_HOST
+
+            - name: GO_FTPHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: GO_FTPHOST
+
+            - name: GO_FTPUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: GO_FTPUSER
+
+            - name: GO_FTPPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: GO_FTPPASS
+
+            - name: GO_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                  key: GO_DBPASS
+
+            - name: DJANGO_DEBUG
+              value: {{ .Values.env.DJANGO_DEBUG }}
+
+            - name: DOCKER_HOST_IP
+              value: {{ .Values.env.DOCKER_HOST_IP }}
+
+            - name: DJANGO_ADDITIONAL_ALLOWED_HOSTS
+              value: {{ .Values.env.DJANGO_ADDITIONAL_ALLOWED_HOSTS }}
+
+            - name: GO_ENVIRONMENT
+              value: {{ .Values.env.GO_ENVIRONMENT }}
+
+            - name: API_FQDN
+              value: {{ .Values.env.API_FQDN }}
+
+            - name: FRONTEND_URL
+              value: {{ .Values.env.FRONTEND_URL }}
+
+            - name: DEBUG_EMAIL
+              value: {{ .Values.env.DEBUG_EMAIL }}
+
+
 {{- end }}
