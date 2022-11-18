@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 60
     env:
       TF_VAR_username: github
-      subscriptionId: ${{ secrets.TERRAFORM_SUBSCRIPTION_ID }}
+      TF_VAR_subscriptionId: ${{ secrets.TERRAFORM_SUBSCRIPTION_ID }}
       tenantId: ${{ secrets.TERRAFORM_TENANT_ID }}
       servicePrincipalId: ${{ secrets.TERRAFORM_SERVICE_PRINCIPAL_ID }}
       servicePrincipalKey: ${{ secrets.TERRAFORM_SERVICE_PRINCIPAL_KEY }}
