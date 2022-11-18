@@ -132,29 +132,36 @@ variable "GO_DBPASS" {
 
 variable "DJANGO_DEBUG" {
   type = string
+  default = "False"
 }
 
 variable "DOCKER_HOST_IP" {
   type = string
+  default = ""
 }
 
 variable "DJANGO_ADDITIONAL_ALLOWED_HOSTS" {
   type = string
+  default = ""
 }
 
 variable "GO_ENVIRONMENT" {
   type = string
+  default = "development"
 }
 
 variable "API_FQDN" {
   type = string
+  default = ""
 }
 
 variable "FRONTEND_URL" {
   type = string
+  value = ""
 }
 
 variable "DEBUG_EMAIL" {
   type = string
+  value = "sanjay@developmentseed.org"
 }
 
