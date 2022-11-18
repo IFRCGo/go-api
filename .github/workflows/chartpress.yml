@@ -50,7 +50,6 @@ jobs:
     #   if: startsWith(github.event.head_commit.message, '[deploy]')
     #   run: ./scripts/cideploy --dev
 
-    Uncomment this section to create a staging stack
     - name: Deploy -- Staging
       env:
         DJANGO_SECRET_KEY: ${{ secrets.STAGING_DJANGO_SECRET_KEY }}
