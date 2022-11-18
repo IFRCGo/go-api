@@ -1,4 +1,4 @@
-module.resources.variable "subscriptionId" {
+var "subscriptionId" {
   type = string
 }
 
