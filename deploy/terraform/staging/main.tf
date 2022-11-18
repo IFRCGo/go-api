@@ -1,4 +1,4 @@
-var "subscriptionId" {
+variable "subscriptionId" {
   type = string
 }
 
