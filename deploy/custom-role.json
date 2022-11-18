@@ -1,5 +1,5 @@
 {
-  "Name": "IFRC Go Role Assigner",
+  "Name": "IFRC GO Role Assigner",
   "IsCustom": true,
   "Description": "Can assign other roles to resources",
   "Actions": [
