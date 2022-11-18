@@ -2,7 +2,7 @@ module "resources" {
   source = "../resources"
 
   environment          = "staging"
-#   subscriptionId       = var.subscriptionId
+  subscriptionId       = var.subscriptionId
   region               = "West Europe"
 
   admin_email          = "sanjay@developmentseed.org"
