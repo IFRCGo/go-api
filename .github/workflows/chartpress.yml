@@ -86,7 +86,10 @@ jobs:
         GO_DBPASS: ${{ secrets.STAGING_GO_DBPASS }}
 
 
-      if: github.ref == 'refs/heads/develop'
+      # FIXME: use develop branch after testing is complete instead of the commit message
+      # if: github.ref == 'refs/heads/develop'
+      # run: ./scripts/cideploy --staging
+      if: startsWith(github.event.head_commit.message, '[deploy]')
       run: ./scripts/cideploy --staging
 
     # - name: Deploy -- Production
