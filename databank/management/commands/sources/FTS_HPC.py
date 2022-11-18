@@ -27,11 +27,11 @@ def prefetch():
     g_sheet_data = list(csv.DictReader(io.StringIO(g_sheet_data.text)))
 
     gho_data = {
-        f"{d['Country'].upper()}-{d['Year']}": {
-            'people_in_need': d['PIN'],
-            'people_targeted': d['PT'],
-            'funding_total_usd': d['Funding'],
-            'funding_required_usd': d['Requirements'],
+        f"{d['Country #country+code'].upper()}-{d['Year #date+year']}": {
+            'people_in_need': d['PIN #inneed'],
+            'people_targeted': d['PT #targeted'],
+            'funding_total_usd': d['Funding #value+funding+total+usd'],
+            'funding_required_usd': d['Requirements #value+funding+required+usd'],
         }
         for d in g_sheet_data
     }
