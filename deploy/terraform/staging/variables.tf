@@ -157,11 +157,11 @@ variable "API_FQDN" {
 
 variable "FRONTEND_URL" {
   type = string
-  value = ""
+  default = ""
 }
 
 variable "DEBUG_EMAIL" {
   type = string
-  value = "sanjay@developmentseed.org"
+  default = "sanjay@developmentseed.org"
 }
 
