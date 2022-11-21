@@ -7,11 +7,11 @@ RUN apk add wget unzip curl \
     linux-headers \
     bash
 
-# # Upgrade pip
-# RUN pip3 install -U pip
+# Upgrade pip
+RUN pip3 install -U pip
 
-# # Install azure client
-# RUN pip3 install azure-cli
+# Install azure client
+RUN pip3 install azure-cli
 
 WORKDIR /opt/src
 ENTRYPOINT []
