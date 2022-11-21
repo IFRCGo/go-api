@@ -8,6 +8,7 @@ env:
   # PRODUCTION_CLUSTER_RESOURCE_GROUP: ''
   # PRODUCTION_CLUSTER_NAME: ''
   NAMESPACE: default
+  TF_VAR_subscriptionId: ${{ secrets.TERRAFORM_SUBSCRIPTION_ID }}
 jobs:
   build:
     runs-on: ubuntu-latest
