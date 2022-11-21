@@ -3,8 +3,8 @@ resource "helm_release" "ifrcgo" {
   chart = "../../helm/ifrcgo-helm"
   wait = false
   depends_on = [
-    helm_release.ifrcgo-ingress-nginx,
-    helm_release.ifrcgo-cert-manager
+  #  helm_release.ifrcgo-ingress-nginx,
+  #  helm_release.ifrcgo-cert-manager
   ]
   set {
     name  = "environment"
