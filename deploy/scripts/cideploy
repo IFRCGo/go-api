@@ -45,9 +45,9 @@ while [[ "$#" > 0 ]]; do case $1 in
 
 DOCKER_COMPOSE="docker-compose -f deploy/docker-compose.yml"
 
-echo "Setting terraform directory to $ENVIRONMENT"
+# echo "Setting terraform directory to $ENVIRONMENT"
 
-TERRAFORM_DIR=/opt/src/terraform/${ENVIRONMENT}
+TERRAFORM_DIR=/opt/src/terraform
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
@@ -61,6 +61,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
         # Run deployment script
         ${DOCKER_COMPOSE} run --rm \
-            deploy bin/deploy -t "${TERRAFORM_DIR}"
+            deploy bin/deploy -t "${TERRAFORM_DIR}" -e "${ENVIRONMENT}"
     )
 fi

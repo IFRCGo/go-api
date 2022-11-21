@@ -8,6 +8,7 @@ services:
       environment:
         # For Terraform
         - TF_VAR_username=${USER}
+        - TF_VAR_environment:${environment}
         - TF_VAR_subscriptionId=${subscriptionId}
         - TF_VAR_DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
         - TF_VAR_DJANGO_DB_NAME=${DJANGO_DB_NAME}
