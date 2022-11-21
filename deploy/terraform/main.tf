@@ -1,3 +1,7 @@
+variable "environment" {
+  type = string
+}
+
 variable "subscriptionId" {
   type = string
 }
