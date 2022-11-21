@@ -167,7 +167,7 @@
 
 
 module "resources" {
-  source = "../resources"
+  source = "./resources/"
   # DJANGO_SECRET_KEY  = var.DJANGO_SECRET_KEY
   # DJANGO_DB_NAME  = var.DJANGO_DB_NAME
   # DJANGO_DB_USER  = var.DJANGO_DB_USER
