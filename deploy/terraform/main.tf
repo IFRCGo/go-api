@@ -169,6 +169,31 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
+# -----------------
+# Attach ACR
+# Defaults to common resources
+
+variable "ifrcgo_test_resources_acr" {
+  type    = string
+  default = "ifrcgotest"
+}
+
+variable "ifrcgo_test_resources_rg" {
+  type = string
+  default = "ifrcgo_test"
+}
+
+variable "ifrcgo_test_resources_db_server" {
+  type = string
+  #FIXME create a test db server and provide here
+  default = "ifrcgotest"
+}
+
+variable "ifrcgo_test_resources_db" {
+  type = string
+  default = "postgres"
+}
+
 
 module "resources" {
   source = "./resources/"
