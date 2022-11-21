@@ -1,6 +1,7 @@
 module "resources" {
   source = "./resources/"
   environment = var.environment
+  subscriptionId = var.subscriptionId
   domain = var.domain
   DJANGO_SECRET_KEY = var.DJANGO_SECRET_KEY
   DJANGO_DB_NAME = var.DJANGO_DB_NAME

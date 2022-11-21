@@ -1,6 +1,10 @@
 variable "environment" {
   type = string
 }
+
+variable "subscriptionId" {
+  type = string
+}
 variable "region" {
   type = string
 default = "West Europe"
