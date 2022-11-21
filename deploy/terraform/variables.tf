@@ -9,10 +9,12 @@ variable "domain" {
 
 variable "admin_email" {
   type = string
+  default = "sanjay@developmentseed.org"
 }
 
 variable "region" {
   type = string
+default = "West Europe"
 }
 
 variable "subscriptionId" {

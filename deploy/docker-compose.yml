@@ -42,6 +42,13 @@ services:
         - TF_VAR_GO_FTPUSER=${GO_FTPUSER}
         - TF_VAR_GO_FTPPASS=${GO_FTPPASS}
         - TF_VAR_GO_DBPASS=${GO_DBPASS}
+        - TF_VAR_DJANGO_DEBUG=${DJANGO_DEBUG}
+        - TF_VAR_DOCKER_HOST_IP=${DJANGO_HOST_IP}
+        - TF_VAR_DJANGO_ADDITIONAL_ALLOWED_HOSTS=${DJANGO_ADDITIONAL_ALLOWED_HOSTS}
+        - TF_VAR_GO_ENVIRONMENT=${environment}
+        - TF_VAR_API_FQDN=${API_FQDN}
+        - TF_VAR_FRONTEND_URL=${FRONTEND_URL}
+        - TF_VAR_DEBUG_EMAIL=${DEBUG_EMAIL}
         - ARM_SUBSCRIPTION_ID=${subscriptionId}
         - ARM_TENANT_ID=${tenantId}
         - ARM_CLIENT_ID=${servicePrincipalId}

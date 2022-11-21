@@ -209,9 +209,6 @@ module "resources" {
   # DEBUG_EMAIL  = var.DEBUG_EMAIL
   environment          = var.environment
   subscriptionId       = var.subscriptionId
-  region               = "West Europe"
-
-  admin_email          = "sanjay@developmentseed.org"
 }
 
 terraform {
