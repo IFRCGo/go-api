@@ -197,6 +197,7 @@ variable "ifrcgo_test_resources_db" {
 
 module "resources" {
   source = "./resources/"
+  environment = var.environment
 }
 
 terraform {
