@@ -1,6 +1,10 @@
-# variable "environment" {
-#   type = string
-# }
+variable "environment" {
+  type = string
+}
+variable "region" {
+  type = string
+default = "West Europe"
+}
 
 # variable "domain" {
 #   type = string
@@ -12,10 +16,6 @@
 #   default = "sanjay@developmentseed.org"
 # }
 
-# variable "region" {
-#   type = string
-# default = "West Europe"
-# }
 
 # variable "subscriptionId" {
 #   type = string
