@@ -526,7 +526,7 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
 
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'pk__in'
-    list_display = ('__str__', 'record_type')
+    list_display = ('__str__', 'record_type', 'iso3')
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
