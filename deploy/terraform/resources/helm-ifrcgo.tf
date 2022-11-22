@@ -1,6 +1,6 @@
 resource "helm_release" "ifrcgo" {
   name  = "ifrcgo-helm"
-  chart = "../../helm/ifrcgo-helm"
+  chart = "../helm/ifrcgo-helm"
   wait = false
   depends_on = [
   #  helm_release.ifrcgo-ingress-nginx,
