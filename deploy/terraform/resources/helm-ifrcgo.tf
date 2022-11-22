@@ -12,202 +12,202 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name  = "domain"
+    name  = "api.domain"
     value = var.domain
   }
 
   set {
-    name = "DJANGO_SECRET_KEY"
+    name = "env.DJANGO_SECRET_KEY"
     value = var.DJANGO_SECRET_KEY
   }
 
   set {
-    name = "DJANGO_DB_NAME"
+    name = "env.DJANGO_DB_NAME"
     value = var.DJANGO_DB_NAME
   }
 
   set {
-    name = "DJANGO_DB_USER"
+    name = "env.DJANGO_DB_USER"
     value = var.DJANGO_DB_USER
   }
 
   set {
-    name = "DJANGO_DB_PASS"
+    name = "env.DJANGO_DB_PASS"
     value = var.DJANGO_DB_PASS
   }
 
   set {
-    name = "DJANGO_DB_HOST"
+    name = "env.DJANGO_DB_HOST"
     value = var.DJANGO_DB_HOST
   }
 
   set {
-    name = "DJANGO_DB_PORT"
+    name = "env.DJANGO_DB_PORT"
     value = var.DJANGO_DB_PORT
   }
 
   set {
-    name = "AZURE_STORAGE_ACCOUNT"
+    name = "env.AZURE_STORAGE_ACCOUNT"
     value = var.AZURE_STORAGE_ACCOUNT
   }
 
   set {
-    name = "AZURE_STORAGE_KEY"
+    name = "env.AZURE_STORAGE_KEY"
     value = var.AZURE_STORAGE_KEY
   }
 
   set {
-    name = "EMAIL_API_ENDPOINT"
+    name = "env.EMAIL_API_ENDPOINT"
     value = var.EMAIL_API_ENDPOINT
   }
 
   set {
-    name = "EMAIL_HOST"
+    name = "env.EMAIL_HOST"
     value = var.EMAIL_HOST
   }
 
   set {
-    name = "EMAIL_PORT"
+    name = "env.EMAIL_PORT"
     value = var.EMAIL_PORT
   }
 
   set {
-    name = "EMAIL_USER"
+    name = "env.EMAIL_USER"
     value = var.EMAIL_USER
   }
 
   set {
-    name = "EMAIL_PASS"
+    name = "env.EMAIL_PASS"
     value = var.EMAIL_PASS
   }
 
   set {
-    name = "TEST_EMAILS"
+    name = "env.TEST_EMAILS"
     value = var.TEST_EMAILS
   }
 
   set {
-    name = "AWS_TRANSLATE_ACCESS_KEY"
+    name = "env.AWS_TRANSLATE_ACCESS_KEY"
     value = var.AWS_TRANSLATE_ACCESS_KEY
   }
 
   set {
-    name = "AWS_TRANSLATE_SECRET_KEY"
+    name = "env.AWS_TRANSLATE_SECRET_KEY"
     value = var.AWS_TRANSLATE_SECRET_KEY
   }
 
   set {
-    name = "AWS_TRANSLATE_REGION"
+    name = "env.AWS_TRANSLATE_REGION"
     value = var.AWS_TRANSLATE_REGION
   }
 
   set {
-    name = "CELERY_REDIS_URL"
+    name = "env.CELERY_REDIS_URL"
     value = var.CELERY_REDIS_URL
   }
 
   set {
-    name = "MOLNIX_API_BASE"
+    name = "env.MOLNIX_API_BASE"
     value = var.MOLNIX_API_BASE
   }
 
   set {
-    name = "MOLNIX_USERNAME"
+    name = "env.MOLNIX_USERNAME"
     value = var.MOLNIX_USERNAME
   }
 
   set {
-    name = "MOLNIX_PASSWORD"
+    name = "env.MOLNIX_PASSWORD"
     value = var.MOLNIX_PASSWORD
   }
 
   set {
-    name = "ERP_API_ENDPOINT"
+    name = "env.ERP_API_ENDPOINT"
     value = var.ERP_API_ENDPOINT
   }
 
   set {
-    name = "ERP_API_SUBSCRIPTION_KEY"
+    name = "env.ERP_API_SUBSCRIPTION_KEY"
     value = var.ERP_API_SUBSCRIPTION_KEY
   }
 
   set {
-    name = "FDRS_APIKEY"
+    name = "env.FDRS_APIKEY"
     value = var.FDRS_APIKEY
   }
 
   set {
-    name = "FDRS_CREDENTIAL"
+    name = "env.FDRS_CREDENTIAL"
     value = var.FDRS_CREDENTIAL
   }
 
   set {
-    name = "HPC_CREDENTIAL"
+    name = "env.HPC_CREDENTIAL"
     value = var.HPC_CREDENTIAL
   }
 
   set {
-    name = "APPLICATION_INSIGHTS_INSTRUMENTATION_KEY"
+    name = "env.APPLICATION_INSIGHTS_INSTRUMENTATION_KEY"
     value = var.APPLICATION_INSIGHTS_INSTRUMENTATION_KEY
   }
 
   set {
-    name = "ELASTIC_SEARCH_HOST"
+    name = "env.ELASTIC_SEARCH_HOST"
     value = var.ELASTIC_SEARCH_HOST
   }
 
   set {
-    name = "GO_FTPHOST"
+    name = "env.GO_FTPHOST"
     value = var.GO_FTPHOST
   }
 
   set {
-    name = "GO_FTPUSER"
+    name = "env.GO_FTPUSER"
     value = var.GO_FTPUSER
   }
 
   set {
-    name = "GO_FTPPASS"
+    name = "env.GO_FTPPASS"
     value = var.GO_FTPPASS
   }
 
   set {
-    name = "GO_DBPASS"
+    name = "env.GO_DBPASS"
     value = var.GO_DBPASS
   }
 
   set {
-    name = "DJANGO_DEBUG"
+    name = "env.DJANGO_DEBUG"
     value = var.DJANGO_DEBUG
   }
 
   set {
-    name = "DOCKER_HOST_IP"
+    name = "env.DOCKER_HOST_IP"
     value = var.DOCKER_HOST_IP
   }
 
   set {
-    name = "DJANGO_ADDITIONAL_ALLOWED_HOSTS"
+    name = "env.DJANGO_ADDITIONAL_ALLOWED_HOSTS"
     value = var.DJANGO_ADDITIONAL_ALLOWED_HOSTS
   }
 
   set {
-    name = "GO_ENVIRONMENT"
+    name = "env.GO_ENVIRONMENT"
     value = var.GO_ENVIRONMENT
   }
 
   set {
-    name = "API_FQDN"
+    name = "env.API_FQDN"
     value = var.API_FQDN
   }
 
   set {
-    name = "FRONTEND_URL"
+    name = "env.FRONTEND_URL"
     value = var.FRONTEND_URL
   }
 
   set {
-    name = "DEBUG_EMAIL"
+    name = "env.DEBUG_EMAIL"
     value = var.DEBUG_EMAIL
   }
 
