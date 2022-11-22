@@ -8,6 +8,7 @@ variable "subscriptionId" {
 
 variable "domain" {
     type = string
+    default = "api.ifrcgo.com"
 }
 
 variable "DJANGO_SECRET_KEY" {
