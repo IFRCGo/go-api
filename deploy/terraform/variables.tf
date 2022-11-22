@@ -16,6 +16,7 @@ variable "DJANGO_SECRET_KEY" {
 
 variable "DJANGO_DB_NAME" {
   type = string
+  default = "postgres"
 }
 
 variable "DJANGO_DB_USER" {
