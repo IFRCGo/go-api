@@ -43,7 +43,7 @@ class CountryPlanAbstract(models.Model):
 
 
 class DataImport(CountryPlanAbstract):
-    file = models.FileField(verbose_name=_('EXEL file'), upload_to=file_upload_to)
+    file = models.FileField(verbose_name=_('EXCEL file'), upload_to=file_upload_to)
 
     def __str__(self):
         return self.file.name
@@ -70,8 +70,6 @@ class CountryPlan(CountryPlanAbstract):
     )
     requested_amount = models.FloatField(verbose_name=_('Requested Amount'), blank=True, null=True)
     people_targeted = models.IntegerField(verbose_name=_('People Targeted'), blank=True, null=True)
-    situation_analysis = models.TextField(blank=True, verbose_name=_('Situation Analysis'))
-    role_of_national_society = models.TextField(blank=True, verbose_name=_('Role of National Society'))
     is_publish = models.BooleanField(default=False)
 
     def __str__(self):
@@ -126,7 +124,7 @@ class MembershipCoordination(models.Model):
     )
     strategic_priority = models.CharField(
         max_length=100, choices=Type.choices,
-        null=True, blank=True, verbose_name=_('share with')
+        null=True, blank=True, verbose_name=_('Strategic Priority')
     )
     has_coordination = models.BooleanField(default=False)
 
