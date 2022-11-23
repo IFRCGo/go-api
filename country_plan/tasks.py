@@ -44,9 +44,7 @@ def process_data_import(pk):
     data = data[:-1]
 
     for dl in data.itertuples():
-        print(dl)
-        iso3 = dl.ISO3
-        country = Country.objects.get(iso3=iso3)
+        country = Country.objects.get(iso3=dl.ISO3)
         country_plan, created = CountryPlan.objects.get_or_create(
             country=country
         )
