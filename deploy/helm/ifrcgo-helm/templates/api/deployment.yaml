@@ -34,6 +34,8 @@ spec:
             httpGet:
               path: /api/
               port: {{ .Values.api.containerPort }}
+            initialDelaySeconds: 60
+            periodSeconds: 5
           resources:
             requests:
               cpu: {{ .Values.api.resources.requests.cpu }}
