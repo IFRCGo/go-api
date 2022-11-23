@@ -61,8 +61,8 @@ class DataImport(CountryPlanAbstract):
 
 
 class CountryPlan(CountryPlanAbstract):
-    internal_plan_file = models.FileField(verbose_name=_('Internal Plan'), upload_to=pdf_upload_to)
-    public_plan_file = models.FileField(verbose_name=_('Country Plan'), upload_to=pdf_upload_to)
+    internal_plan_file = models.FileField(verbose_name=_('Internal Plan'), upload_to=pdf_upload_to, blank=True, null=True)
+    public_plan_file = models.FileField(verbose_name=_('Country Plan'), upload_to=pdf_upload_to, blank=True, null=True)
     country = models.ForeignKey(
         Country, on_delete=models.SET_NULL,
         related_name='country_country_plan',
