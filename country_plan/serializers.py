@@ -57,8 +57,6 @@ class CountryPlanSerializer(serializers.ModelSerializer):
             'country',
             'requested_amount',
             'people_targeted',
-            'situation_analysis',
-            'role_of_national_society',
             'is_publish',
             # Manual Defined
             'strategic_priorities',
