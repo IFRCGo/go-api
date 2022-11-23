@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from lang.models import String
+from country_plan.models import CountryPlan
 
 from .models import (
     DisasterType,
@@ -104,12 +105,19 @@ class RegionGeoSerializer(ModelSerializer):
 class CountryTableauSerializer(ModelSerializer):
     region = RegionSerializer()
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
+    has_country_plan = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_country_plan(country):
+        country_plan = CountryPlan.objects.filter(country=country).first()
+        if country_plan:
+            return country_plan.is_publish
 
     class Meta:
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities',
-            'inform_score', 'id', 'url_ifrc', 'record_type', 'record_type_display',
+            'inform_score', 'id', 'url_ifrc', 'record_type', 'record_type_display', 'has_country_plan',
         )
 
 
@@ -129,6 +137,13 @@ class CountryGeoSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
+    has_country_plan = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_country_plan(country):
+        country_plan = CountryPlan.objects.filter(country=country).first()
+        if country_plan:
+            return country_plan.is_publish
 
     @staticmethod
     def get_bbox(country):
@@ -143,17 +158,25 @@ class CountryGeoSerializer(ModelSerializer):
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'society_url', 'region', 'overview', 'key_priorities', 'inform_score',
             'id', 'url_ifrc', 'record_type', 'record_type_display', 'bbox', 'centroid', 'independent', 'is_deprecated', 'fdrs',
+            'has_country_plan',
         )
 
 
 class MiniCountrySerializer(ModelSerializer):
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
+    has_country_plan = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_country_plan(country):
+        country_plan = CountryPlan.objects.filter(country=country).first()
+        if country_plan:
+            return country_plan.is_publish
 
     class Meta:
         model = Country
         fields = (
             'name', 'iso', 'iso3', 'society_name', 'id', 'record_type', 'record_type_display',
-            'region', 'independent', 'is_deprecated', 'fdrs', 'average_household_size',
+            'region', 'independent', 'is_deprecated', 'fdrs', 'average_household_size', 'has_country_plan',
         )
 
 
@@ -377,6 +400,13 @@ class RegionRelationSerializer(ModelSerializer):
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
+    has_country_plan = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_country_plan(country):
+        country_plan = CountryPlan.objects.filter(country=country).first()
+        if country_plan:
+            return country_plan.is_publish
 
     class Meta:
         model = Country
@@ -387,7 +417,7 @@ class CountryRelationSerializer(ModelSerializer):
             'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
             'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
             'nsi_cmc_dashboard_compliance', 'wash_kit2', 'wash_kit5', 'wash_kit10', 'wash_staff_at_hq',
-            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained',
+            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained', 'has_country_plan',
         )
 
 
