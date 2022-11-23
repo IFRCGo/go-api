@@ -378,7 +378,8 @@ class Project(models.Model):
         help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>')
     start_date = models.DateField(verbose_name=_('start date'))
     end_date = models.DateField(verbose_name=_('end date'))
-    budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True)
+    budget_amount = models.IntegerField(verbose_name=_('budget amount'), null=True, blank=True,
+        help_text='A caveman could do it')
     actual_expenditure = models.IntegerField(verbose_name=_('actual expenditure'), null=True, blank=True)
     status = models.IntegerField(choices=Statuses.choices, default=0, verbose_name=_('status'),
         help_text='<a target="_blank" href="/api/v2/projectstatus">Key/value pairs</a>')
