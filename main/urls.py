@@ -79,6 +79,7 @@ from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
+from country_plan import drf_views as country_plan_views
 from lang import views as lang_views
 from dref import views as dref_views
 
@@ -161,6 +162,9 @@ router.register(r'dref-files', dref_views.DrefFileViewSet, basename='dref_files'
 router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, basename='dref_operational_update')
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
+
+# Country Plan apis
+router.register(r'country-plan', country_plan_views.CountryPlanViewset, basename='country_plan')
 
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
