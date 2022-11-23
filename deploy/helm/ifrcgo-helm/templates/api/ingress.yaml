@@ -11,11 +11,11 @@ metadata:
 spec:
   tls:
     - hosts:
-      - api.{{ .Values.api.domain }}
+      - {{ .Values.api.domain }}
       secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api
 
   rules:
-  - host: api.{{ .Values.api.domain }}
+  - host: {{ .Values.api.domain }}
     http:
       paths:
       - path: /
