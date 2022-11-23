@@ -42,7 +42,7 @@ env:
   DEBUG_EMAIL: ''
 
 api:
-  domain: go-staging.ifrc.org
+  domain: "go-staging.ifrc.org"
   enabled: true
   replicaCount: 1
   containerPort: 80

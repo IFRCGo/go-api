@@ -7,7 +7,7 @@ services:
         dockerfile: Dockerfile
       environment:
         # For Terraform
-        - TF_VAR_domain=''
+        - TF_VAR_domain='ifrcgo-test.example.com'
         - TF_VAR_username=${USER}
         - TF_VAR_environment=${environment}
         - TF_VAR_subscriptionId=${subscriptionId}
