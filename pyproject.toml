@@ -86,7 +86,7 @@ ipython = "*"
 pytest-profiling = "*"
 pytest-ordering = "*"
 pytest-django = "*"
-snapshottest = "==0.5.1"
+snapshottest = "==0.6.0"
 django-debug-toolbar = "==2.2.1"
 
 [tool.pyright]
