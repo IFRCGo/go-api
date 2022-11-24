@@ -357,6 +357,7 @@ class RegionRelationSerializer(ModelSerializer):
     preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
     national_society_count = serializers.SerializerMethodField()
     country_cluster_count = serializers.SerializerMethodField()
+    country_plan_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
     def get_national_society_count(obj):
@@ -370,13 +371,14 @@ class RegionRelationSerializer(ModelSerializer):
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
                   'profile_snippets', 'preparedness_snippets', 'name',
-                  'region_name', 'id', 'additional_tab_name',
+                  'region_name', 'id', 'additional_tab_name', 'country_plan_count',
                   'national_society_count', 'country_cluster_count',)
 
 
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
+    has_country_plan = serializers.CharField(read_only=True)
 
     class Meta:
         model = Country
@@ -387,7 +389,7 @@ class CountryRelationSerializer(ModelSerializer):
             'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
             'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
             'nsi_cmc_dashboard_compliance', 'wash_kit2', 'wash_kit5', 'wash_kit10', 'wash_staff_at_hq',
-            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained',
+            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained', 'has_country_plan',
         )
 
 

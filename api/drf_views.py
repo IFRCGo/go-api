@@ -11,7 +11,7 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Count, Q
+from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
 from main.utils import is_tableau
@@ -60,6 +60,8 @@ from .models import (
     UserCountry,
     CountryOfFieldReportToReview,
 )
+
+from country_plan.models import CountryPlan
 
 from .serializers import (
     ActionSerializer,
@@ -167,7 +169,11 @@ class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Region.objects.all()
+    queryset = Region.objects.annotate(
+        country_plan_count=Count(
+            'country__country_plan', filter=Q(country__country_plan__is_publish=True)
+        )
+    )
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -185,17 +191,20 @@ class CountryFilter(filters.FilterSet):
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Country.objects.filter(is_deprecated=False)
+    queryset = Country.objects.filter(is_deprecated=False).annotate(
+        has_country_plan=models.Exists(CountryPlan.objects.filter(country=OuterRef('pk'), is_publish=True))
+    )
     filterset_class = CountryFilter
     search_fields = ('name',)  # for /docs
 
     def get_object(self):
         pk = self.kwargs['pk']
+        qs = self.get_queryset()
         try:
-            return Country.objects.get(pk=int(pk))
+            return qs.get(pk=int(pk))
         except ValueError:
             # NOTE: If pk is not integer try searching for name or iso
-            country = Country.objects.filter(
+            country = qs.filter(
                 models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk))
             )
             if country.exists():
