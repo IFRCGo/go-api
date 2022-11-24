@@ -1,11 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from django.db import models
 
 from .models import CountryPlan, MembershipCoordination
 from .serializers import CountryPlanSerializer
 
 
-class CountryPlanViewset(viewsets.ReadOnlyModelViewSet):
+class CountryPlanViewset(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = CountryPlanSerializer
     queryset = CountryPlan.objects.prefetch_related(
         'country_plan_sp',
