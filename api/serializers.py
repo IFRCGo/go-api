@@ -378,7 +378,7 @@ class RegionRelationSerializer(ModelSerializer):
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
-    has_country_plan = serializers.CharField(read_only=True)
+    has_country_plan = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Country
