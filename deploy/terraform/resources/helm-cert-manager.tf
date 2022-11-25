@@ -8,6 +8,6 @@ resource "helm_release" "ifrcgo-cert-manager" {
 
   set {
     name  = "installCRDs"
-    value = false
+    value = true
   }
 }
