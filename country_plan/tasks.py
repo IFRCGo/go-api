@@ -57,8 +57,8 @@ class CountryPlanImporter():
             return None
         if type(number) in [float, int]:
             return number
-        # Some sepecific case using regex
-        value_search = re.search(r'(?P<value>(\d+(?:\.\d+)?))?\s?(?P<expression>(M|K|B){1})', number)
+        # Some specific cases using regex
+        value_search = re.search(r'(?P<value>(\d+(?:\.\d+)?))?\s?(?P<expression>[MKB])', number)
         if value_search is None or (
             value_search.group('value') is None or
             value_search.group('expression') is None
@@ -66,12 +66,12 @@ class CountryPlanImporter():
             return pd.to_numeric(number)
         value = pd.to_numeric(value_search.group('value'))
         expression = value_search.group('expression')
-        EXPRESSION_MULTIPLER = {
+        EXPRESSION_MULTIPLIER = {
             'K': 1000,
             'M': 1000000,
             'B': 1000000000,
         }
-        return value * EXPRESSION_MULTIPLER[expression]
+        return value * EXPRESSION_MULTIPLIER[expression]
 
     @classmethod
     def _save_country_plan(cls, row):

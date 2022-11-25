@@ -132,4 +132,4 @@ class MembershipCoordination(models.Model):
         unique_together = ('country_plan', 'national_society', 'sector')
 
     def __str__(self):
-        return f'{self.national_society.iso3}-{self.type}'
+        return f'{self.national_society.iso3}-{self.sector}'
