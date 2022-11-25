@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.461
+
+### Added
+ - Introducing COUNTRY PLANs
+ - Only active users to be shown in DREF forms (for sharing)
+ - Add centroid processing for Admin2
+ - DREF Ops Update validation fixes
+ - Update snapshottest to 0.6.0 (and other small modules)
+
 ## 1.1.460
 
 ### Added
@@ -2090,7 +2099,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.460...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.461...HEAD
+[1.1.461]: https://github.com/IFRCGo/go-api/compare/1.1.460...1.1.461
 [1.1.460]: https://github.com/IFRCGo/go-api/compare/1.1.459...1.1.460
 [1.1.459]: https://github.com/IFRCGo/go-api/compare/1.1.458...1.1.459
 [1.1.458]: https://github.com/IFRCGo/go-api/compare/1.1.457...1.1.458
