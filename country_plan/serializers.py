@@ -44,12 +44,13 @@ class MembershipCoordinationSerializer(serializers.ModelSerializer):
 class CountryPlanSerializer(serializers.ModelSerializer):
     strategic_priorities = StrategicPrioritySerializer(source='country_plan_sp', many=True, read_only=True)
     membership_coordinations = MembershipCoordinationSerializer(source='full_country_plan_mc', many=True, read_only=True)
+    internal_plan_file = serializers.SerializerMethodField()
 
     class Meta:
         model = CountryPlan
         fields = (
             'country',
-            'internal_plan_file',  # TODO: This is internal. When to show?
+            'internal_plan_file',
             'public_plan_file',
             'requested_amount',
             'people_targeted',
@@ -58,3 +59,11 @@ class CountryPlanSerializer(serializers.ModelSerializer):
             'strategic_priorities',
             'membership_coordinations',
         )
+
+    def get_internal_plan_file(self, obj):
+        file = obj.internal_plan_file
+        request = self.context['request']
+        if request.user.is_authenticated and file.name:
+            return request.build_absolute_uri(
+                serializers.FileField().to_representation(file)
+            )

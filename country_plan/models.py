@@ -8,7 +8,7 @@ from api.models import Country
 
 def file_upload_to(instance, filename):
     date_str = timezone.now().strftime('%Y-%m-%d-%H-%M-%S')
-    return f'country-plan-exel-files/{date_str}/{filename}'
+    return f'country-plan-excel-files/{date_str}/{filename}'
 
 
 def pdf_upload_to(instance, filename):
