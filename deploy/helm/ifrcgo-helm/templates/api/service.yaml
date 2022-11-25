@@ -9,11 +9,7 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 spec:
-  {{- if eq .Values.environment "local" }}
-  type: NodePort
-  {{- else }}
   type: ClusterIP
-  {{- end }}
   ports:
     - protocol: TCP
       port: 80
