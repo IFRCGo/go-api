@@ -1,4 +1,4 @@
-resource "helm_release" "lulc-cert-manager" {
+resource "helm_release" "ifrcgo-cert-manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
