@@ -8,8 +8,8 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
     #FIXME: We probably need to use custom certs and not LE
     cert-manager.io/cluster-issuer: letsencrypt-prod-issuer
-    controller.service.externalTrafficPolicy: "Local"
 spec:
+  externalTrafficPolicy: Local
   tls:
     - hosts:
       - {{ .Values.api.domain }}
