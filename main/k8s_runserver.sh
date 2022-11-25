@@ -6,7 +6,7 @@ python manage.py migrate
 #python manage.py loaddata Regions Countries Districts DisasterTypes Actions #Needed only in case of empty database – otherwise it can cause conflicts
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
-python manage.py make_permissions
+#python manage.py make_permissions
 
 # # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
 # if [ "$GO_ENVIRONMENT"x = productionx ]; then
@@ -25,11 +25,12 @@ touch $HOME/logs/ingest_mdb.log
 # Start Gunicorn processes
 echo Starting Gunicorn.
 gunicorn main.wsgi:application \
+    --preload \
     --name main \
     --bind 0.0.0.0:8000 \
     --workers 3 \
     --timeout 120 \
-    --log-level=info \
+    --log-level=debug \
     --log-file=$HOME/logs/gunicorn.log \
     --access-logfile=$HOME/logs/access.log
 
