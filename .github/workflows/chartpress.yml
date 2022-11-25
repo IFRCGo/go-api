@@ -27,6 +27,9 @@ jobs:
         login-server: ${{ env.STAGING_REGISTRY_NAME }}.azurecr.io
         username: ${{ secrets.STAGING_REGISTRY_USERNAME }}
         password: ${{ secrets.STAGING_REGISTRY_PASSWORD }}
+    - name: Docker Layer Caching
+      uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
     - name: Setup python
       uses: actions/setup-python@v2
       with:
