@@ -72,13 +72,26 @@ class CountryPlan(CountryPlanAbstract):
     def __str__(self):
         return f'{self.country}'
 
+    # NOTE: To be used by CountryPlanSerializer (From CountryPlanViewset)
     def full_country_plan_mc(self):
-        membership_coordinations_by_sector = {
-            mc.sector: mc
-            for mc in self.country_plan_mc.all()
+        all_mc = list(self.country_plan_mc.all())
+        mc_by_ns_sector = {
+            (mc.national_society_id, mc.sector): mc
+            for mc in all_mc
         }
+        ns_ids = set([
+            mc.national_society_id
+            for mc in all_mc
+        ])
         return [
-            membership_coordinations_by_sector.get(sector) or MembershipCoordination(sector=sector)
+            (
+                mc_by_ns_sector.get((nc_id, sector)) or
+                MembershipCoordination(
+                    national_society_id=nc_id,
+                    sector=sector,
+                )
+            )
+            for nc_id in ns_ids
             for sector, _ in MembershipCoordination.Sector.choices
         ]
 

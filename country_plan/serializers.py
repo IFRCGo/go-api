@@ -25,7 +25,7 @@ class StrategicPrioritySerializer(serializers.ModelSerializer):
 # NOTE: Defined to be used with CountryPlanViewset
 class MembershipCoordinationSerializer(serializers.ModelSerializer):
     sector_display = serializers.CharField(source='get_sector_display', read_only=True)
-    national_society_name = serializers.CharField(read_only=True)  # Generated in CountryPlanViewset.queryset Prefetch
+    national_society_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = MembershipCoordination
