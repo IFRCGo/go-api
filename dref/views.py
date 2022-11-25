@@ -198,7 +198,7 @@ class DrefOptionsView(views.APIView):
                     'username': user.username,
                     'first_name': user.first_name,
                     'last_name': user.last_name
-                } for user in User.objects.all()
+                } for user in User.objects.filter(is_active=True)
             ]
         }
         return response.Response(options)

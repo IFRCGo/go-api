@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     'dref',
     'flash_update',
     'eap',
+    'country_plan',
 
     # Utils Apps
     'tinymce',

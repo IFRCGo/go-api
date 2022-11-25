@@ -206,13 +206,19 @@ class Command(BaseCommand):
     if (status):
       update_status = self.update_admin2(iso, staging)
       if (update_status):
-        tileset_name = f'go-ifrc.go-admin2-{iso}-staging'
-        recipe_name = f'mapbox/admin2/{iso}-staging.json'
+        polygon_tileset_name = f'go-ifrc.go-admin2-{iso}-staging'
+        polygon_recipe_name = f'mapbox/admin2/{iso}-staging.json'
+        centroids_tileset_name = f'go-ifrc.go-admin2-{iso}-centroids'
+        centroids_recipe_name = f'mapbox/admin2/{iso}-centroids.json'
         if not staging:
-          tileset_name = f'go-ifrc.go-admin2-{iso}'
-          recipe_name = f'mapbox/admin2/{iso}.json'
+          polygon_tileset_name = f'go-ifrc.go-admin2-{iso}'
+          polygon_recipe_name = f'mapbox/admin2/{iso}.json'
 
-        create_status = subprocess.run(['tilesets', 'create', tileset_name, '--recipe', recipe_name, '--name', f'GO Admin2 {iso}'])
+        create_status = subprocess.run(['tilesets', 'create', polygon_tileset_name, '--recipe', polygon_recipe_name, '--name', f'GO Admin2 {iso}'])
+
+        if create_status:
+          create_status = subprocess.run(['tilesets', 'create', centroids_tileset_name, '--recipe', centroids_recipe_name, '--name', f'GO Admin2 {iso} Centroids'])
+
         if create_status:
           publish_status = self.publish_admin2(iso, staging, create=True)
         return publish_status
@@ -220,14 +226,20 @@ class Command(BaseCommand):
   def update_admin2(self, iso, staging=True):
     # update tileset source
     # update tileset and publish
-    tileset_source__name = f'go-admin2-{iso}-src-staging'
+    polygon_tileset_source__name = f'go-admin2-{iso}-src-staging'
+    centroids_tileset_source_name = f'go-admin2-{iso}-centroids-src'
     if not staging:
-      tileset_source__name = f'go-admin2-{iso}-src'
+      polygon_tileset_source__name = f'go-admin2-{iso}-src'
 
-    print('Tileset source', tileset_source__name)
+    print('Tileset source', polygon_tileset_source__name)
+    print('Tileset source centroids', centroids_tileset_source_name)
     status = self.prepare_admin2_geojson(iso)
     if status:
-      status = subprocess.run(['tilesets', 'upload-source', '--replace', 'go-ifrc', tileset_source__name, f'/tmp/{iso}.geojson'])
+      status = subprocess.run(['tilesets', 'upload-source', '--replace', 'go-ifrc', polygon_tileset_source__name, f'/tmp/{iso}.geojson'])
+
+    if status:
+      status = subprocess.run(['tilesets', 'upload-source', '--replace', 'go-ifrc', centroids_tileset_source_name, f'/tmp/{iso}-centroids.geojson'])
+
     return True if status.returncode == 0 else False
 
   def publish_admin2(self, iso, staging=True, create=False):
@@ -237,11 +249,13 @@ class Command(BaseCommand):
       update_status = True
 
     if update_status:
-      tileset_name = f'go-ifrc.go-admin2-{iso}-staging'
+      polygon_tileset_name = f'go-ifrc.go-admin2-{iso}-staging'
+      centroids_tileset_name = f'go-ifrc.go-admin2-{iso}-centroids'
       if not staging:
-        tileset_name = f'go-ifrc.go-admin2-{iso}'
+        polygon_tileset_name = f'go-ifrc.go-admin2-{iso}'
 
-      publish_status = subprocess.run(['tilesets', 'publish', tileset_name])
+      publish_status = subprocess.run(['tilesets', 'publish', polygon_tileset_name])
+      publish_status = subprocess.run(['tilesets', 'publish', centroids_tileset_name])
       return True if publish_status.returncode == 0 else False
     else:
       return False
@@ -254,5 +268,7 @@ class Command(BaseCommand):
       pass
 
     status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, adg.geom from api_country as c, api_district as d, api_admin2 as ad, api_admin2geoms as adg where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id and adg.admin2_id = ad.id'])
+    if status:
+      status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}-centroids.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.centroid from api_country as c, api_district as d, api_admin2 as ad where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id'])
 
     return True if status.returncode == 0 else False

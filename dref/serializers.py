@@ -250,10 +250,6 @@ class DrefSerializer(
             raise serializers.ValidationError(
                 gettext('Operation timeframe can\'t be greater than %s for assessment_report' % self.MAX_OPERATION_TIMEFRAME)
             )
-        if operation_timeframe and is_assessment_report and data['type_of_onset'] == Dref.OnsetType.SUDDEN and operation_timeframe > 2:
-            raise serializers.ValidationError(
-                gettext('Operation timeframe can\'t be greater than %s for assessment_report and Sudden Type' % self.ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME)
-            )
         return data
 
     def validate_images(self, images):
