@@ -67,7 +67,7 @@ class CountryPlan(CountryPlanAbstract):
     public_plan_file = models.FileField(verbose_name=_('Country Plan'), upload_to=pdf_upload_to, blank=True, null=True)
     requested_amount = models.FloatField(verbose_name=_('Requested Amount'), blank=True, null=True)
     people_targeted = models.IntegerField(verbose_name=_('People Targeted'), blank=True, null=True)
-    is_publish = models.BooleanField(default=False)
+    is_publish = models.BooleanField(default=False, verbose_name=_('Published'))
 
     def __str__(self):
         return f'{self.country}'

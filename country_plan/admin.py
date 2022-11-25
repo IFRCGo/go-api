@@ -17,6 +17,7 @@ class DataImportAdmin(admin.ModelAdmin):
 class CountryPlanAdmin(admin.ModelAdmin):
     autocomplete_fields = ('country',)
     search_fields = ('country__name',)
+    list_filter = ('is_publish',)
 
 
 @admin.register(StrategicPriority)
