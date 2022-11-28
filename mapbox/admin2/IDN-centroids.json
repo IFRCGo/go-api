@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-IDN-centroids": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-IDN-centroids-src",
+        "minzoom": 5,
+        "maxzoom": 14
+      }
+    }
+  }
+  
