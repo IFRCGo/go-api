@@ -23,6 +23,7 @@ class CountryPlanImporter():
     CSV_COLUMN = [
         'ISO3',
         'Country',
+        'Ongoing emergency operations',
         'SP1 - Climate and environmental crisis',
         'SP2 - Evolving crises and disasters',
         'SP3 - Growing gaps in health and wellbeing',
@@ -78,12 +79,12 @@ class CountryPlanImporter():
         country = Country.objects.filter(record_type=CountryType.COUNTRY).get(iso3=row.ISO3)
         # -- Country Plan
         country_plan, _ = CountryPlan.objects.get_or_create(country=country)
-        country_plan.requested_amount = cls._process_number(row._17)
-        country_plan.people_targeted = cls._process_number(row._8)
+        country_plan.requested_amount = cls._process_number(row._18)
+        country_plan.people_targeted = cls._process_number(row._9)
         country_plan.save()
 
         # -- StrategicPriority
-        target_values_list = [row._3, row._4, row._5, row._6, row._7]
+        target_values_list = [row._3, row._4, row._5, row._6, row._7, row._8]
         sp_target_value_map = dict(zip(StrategicPriority.Type, target_values_list))
         for sp, t_people in sp_target_value_map.items():
             strategic_priority, _ = StrategicPriority.objects.get_or_create(

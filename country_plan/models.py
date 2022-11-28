@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import FileExtensionValidator
 
 from api.models import Country
 
@@ -63,8 +64,18 @@ class DataImport(CountryPlanAbstract):
 
 class CountryPlan(CountryPlanAbstract):
     country = models.OneToOneField(Country, on_delete=models.CASCADE, related_name='country_plan', primary_key=True)
-    internal_plan_file = models.FileField(verbose_name=_('Internal Plan'), upload_to=pdf_upload_to, blank=True, null=True)
-    public_plan_file = models.FileField(verbose_name=_('Country Plan'), upload_to=pdf_upload_to, blank=True, null=True)
+    internal_plan_file = models.FileField(
+        verbose_name=_('Internal Plan'),
+        upload_to=pdf_upload_to,
+        validators=[FileExtensionValidator(['pdf'])],
+        blank=True, null=True
+    )
+    public_plan_file = models.FileField(
+        verbose_name=_('Country Plan'),
+        validators=[FileExtensionValidator(['pdf'])],
+        upload_to=pdf_upload_to,
+        blank=True, null=True
+    )
     requested_amount = models.FloatField(verbose_name=_('Requested Amount'), blank=True, null=True)
     people_targeted = models.IntegerField(verbose_name=_('People Targeted'), blank=True, null=True)
     is_publish = models.BooleanField(default=False, verbose_name=_('Published'))
@@ -98,6 +109,7 @@ class CountryPlan(CountryPlanAbstract):
 
 class StrategicPriority(models.Model):
     class Type(models.TextChoices):
+        ONGOING_EMERGENCY_OPERATIONS = 'ongoing_emergency_operations', _('Ongoing emergency operations')
         CLIMATE_AND_ENVIRONMENTAL_CRISIS = 'climate_and_environmental_crisis', _('Climate and environmental crisis')
         EVOLVING_CRISIS_AND_DISASTERS = 'evolving_crisis_and_disasters', _('Evolving crisis and disasters')
         GROWING_GAPS_IN_HEALTH_AND_WELLBEING = 'growing_gaps_in_health_and_wellbeing', _('Growing gaps in health and wellbeing')
