@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.462
+
+### Added
+ - Country Plans – strategic priorities
+ - Adding IDN, MYS, PHL, POL to Admin2 areas
+
 ## 1.1.461
 
 ### Added
@@ -2099,7 +2105,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.461...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.462...HEAD
+[1.1.462]: https://github.com/IFRCGo/go-api/compare/1.1.461...1.1.462
 [1.1.461]: https://github.com/IFRCGo/go-api/compare/1.1.460...1.1.461
 [1.1.460]: https://github.com/IFRCGo/go-api/compare/1.1.459...1.1.460
 [1.1.459]: https://github.com/IFRCGo/go-api/compare/1.1.458...1.1.459
