@@ -20,7 +20,7 @@ resource "helm_release" "ifrcgo-ingress-nginx" {
 
   set {
     name = "controller.config.use-proxy-protocol"
-    value = "true"
+    value = "false"
   }
 
   set {
