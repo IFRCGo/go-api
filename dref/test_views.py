@@ -426,6 +426,35 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 2)
 
+    def test_dref_country_filter(self):
+        country1 = Country.objects.create(name='country1')
+        country2 = Country.objects.create(name='country2')
+        DrefFactory.create(
+            title='test',
+            status=Dref.Status.COMPLETED,
+            created_by=self.user,
+            country=country1
+        )
+        DrefFactory.create(
+            status=Dref.Status.COMPLETED, created_by=self.user
+        )
+        DrefFactory.create(
+            status=Dref.Status.COMPLETED,
+            created_by=self.user,
+            country=country2
+        )
+        DrefFactory.create(
+            status=Dref.Status.IN_PROGRESS,
+            created_by=self.user,
+            country=country1
+        )
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        url = f'/api/v2/dref/?country={country1.id}'
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
     def test_dref_options(self):
         """
         Test for various dref attributes
