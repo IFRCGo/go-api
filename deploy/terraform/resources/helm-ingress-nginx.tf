@@ -14,6 +14,9 @@ resource "helm_release" "ifrcgo-ingress-nginx" {
   }
 
   set {
+    name = "controller.service.beta\\.kubernetes\\.io/do-loadbalancer-enable-proxy-protocol: "true""
+  }
+  set {
     name = "controller.service.externalTrafficPolicy"
     value = "Local"
   }
@@ -27,7 +30,7 @@ resource "helm_release" "ifrcgo-ingress-nginx" {
     name = "controller.config.use-forwarded-headers"
     value = "true"
   }
-  
+
   set {
     name = "controller.replicaCount"
     value = 1
