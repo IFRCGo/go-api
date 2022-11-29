@@ -14,8 +14,19 @@ resource "helm_release" "ifrcgo-ingress-nginx" {
   }
 
   set {
+    name = "controller.service.externalTrafficPolicy"
+    value = "Local"
+  }
+
+  set {
+    name = "controller.replicaCount"
+    value = 1
+  }
+  
+  set {
     name = "controller.service.loadBalancerIP"
     value = azurerm_public_ip.ifrcgo.ip_address
   }
+
 
 }

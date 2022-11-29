@@ -9,7 +9,6 @@ metadata:
     #FIXME: We probably need to use custom certs and not LE
     cert-manager.io/cluster-issuer: letsencrypt-prod-issuer
 spec:
-  externalTrafficPolicy: Local
   tls:
     - hosts:
       - {{ .Values.api.domain }}
