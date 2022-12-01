@@ -26,6 +26,7 @@ touch $HOME/logs/ingest_mdb.log
 echo Starting Gunicorn.
 exec gunicorn main.wsgi:application \
     --name main \
+    --preload \
     --bind unix:/home/ifrc/django_app.sock \
     --workers 3 \
     --timeout 120 \
