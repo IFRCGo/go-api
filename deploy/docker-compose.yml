@@ -47,7 +47,7 @@ services:
         - TF_VAR_DOCKER_HOST_IP=${DJANGO_HOST_IP}
         - TF_VAR_DJANGO_ADDITIONAL_ALLOWED_HOSTS=${DJANGO_ADDITIONAL_ALLOWED_HOSTS}
         - TF_VAR_GO_ENVIRONMENT=${environment}
-        - TF_VAR_API_FQDN=${API_FQDN}
+        - TF_VAR_API_FQDN='ifrcgo-test.ds.io'
         - TF_VAR_FRONTEND_URL=${FRONTEND_URL}
         - TF_VAR_DEBUG_EMAIL=${DEBUG_EMAIL}
         - ARM_SUBSCRIPTION_ID=${subscriptionId}
