@@ -6,7 +6,7 @@ python manage.py migrate
 #python manage.py loaddata Regions Countries Districts DisasterTypes Actions #Needed only in case of empty database – otherwise it can cause conflicts
 python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
-python manage.py make_permissions
+#python manage.py make_permissions
 
 # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
 if [ "$GO_ENVIRONMENT"x = productionx ]; then
@@ -38,21 +38,21 @@ exec gunicorn main.wsgi:application \
 # Exporting env vars, like: echo "export PRODUCTION=\"$PRODUCTION\"" >> $HOME/.env
 printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 
-# XXX: Changing cron schedule expressions may break or send multiple notifications.
-(crontab -l 2>/dev/null; echo 'SHELL=/bin/bash') | crontab -
-(crontab -l 2>/dev/null; echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeal_docs >> /home/ifrc/logs/ingest_appeal_docs.log 2>&1') | crontab -
-#(crontab -l 2>/dev/null; echo '30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '45 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '51 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py revoke_staff_status >> /home/ifrc/logs/revoke_staff_status.log 2>&1') | crontab -
-#(crontab -l 2>/dev/null; echo '*/20 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_gdacs >> /home/ifrc/logs/ingest_gdacs.log 2>&1') | crontab -
-#(crontab -l 2>/dev/null; echo '0 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_who >> /home/ifrc/logs/ingest_who.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '*/5 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py index_and_notify >> /home/ifrc/logs/index_and_notify.log 2>&1') | crontab -
-#(crontab -l 2>/dev/null; echo '10 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py scrape_pdfs >> /home/ifrc/logs/scrape_pdfs.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '30 1 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_databank >> /home/ifrc/logs/ingest_databank.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '*/10 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py sync_molnix >> /home/ifrc/logs/sync_molnix.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '0 3 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py update_project_status >> /home/ifrc/logs/update_project_status.log 2>&1') | crontab -
-(crontab -l 2>/dev/null; echo '0 9 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py user_registration_reminder >> /home/ifrc/logs/user_registration_reminder.log 2>&1') | crontab -
-service cron start
+# # XXX: Changing cron schedule expressions may break or send multiple notifications.
+# (crontab -l 2>/dev/null; echo 'SHELL=/bin/bash') | crontab -
+# (crontab -l 2>/dev/null; echo '15 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeal_docs >> /home/ifrc/logs/ingest_appeal_docs.log 2>&1') | crontab -
+# #(crontab -l 2>/dev/null; echo '30 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_mdb >> /home/ifrc/logs/ingest_mdb.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '45 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_appeals >> /home/ifrc/logs/ingest_appeals.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '51 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py revoke_staff_status >> /home/ifrc/logs/revoke_staff_status.log 2>&1') | crontab -
+# #(crontab -l 2>/dev/null; echo '*/20 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_gdacs >> /home/ifrc/logs/ingest_gdacs.log 2>&1') | crontab -
+# #(crontab -l 2>/dev/null; echo '0 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_who >> /home/ifrc/logs/ingest_who.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '*/5 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py index_and_notify >> /home/ifrc/logs/index_and_notify.log 2>&1') | crontab -
+# #(crontab -l 2>/dev/null; echo '10 2 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py scrape_pdfs >> /home/ifrc/logs/scrape_pdfs.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '30 1 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_databank >> /home/ifrc/logs/ingest_databank.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '*/10 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py sync_molnix >> /home/ifrc/logs/sync_molnix.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '0 3 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py update_project_status >> /home/ifrc/logs/update_project_status.log 2>&1') | crontab -
+# (crontab -l 2>/dev/null; echo '0 9 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py user_registration_reminder >> /home/ifrc/logs/user_registration_reminder.log 2>&1') | crontab -
+# service cron start
 
 
 tail -n 0 -f $HOME/logs/*.log &

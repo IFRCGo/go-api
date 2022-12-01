@@ -45,7 +45,7 @@ api:
   domain: "go-staging.ifrc.org"
   enabled: true
   replicaCount: 1
-  containerPort: 8000
+  containerPort: 80
   image:
     name: 'chartpress_replace'
     tag: 'chartpress_replace'
