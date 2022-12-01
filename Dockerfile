@@ -33,8 +33,8 @@ RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
 	>> /etc/nginx/nginx.conf
 
-COPY main/k8s_runserver.sh /usr/local/bin/
-RUN chmod 755 /usr/local/bin/k8s_runserver.sh
+COPY main/runserver.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/runserver.sh
 
 COPY ./ $HOME/go-api/
 WORKDIR $HOME/go-api/
