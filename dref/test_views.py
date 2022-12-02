@@ -986,3 +986,142 @@ class DrefTestCase(APITestCase):
         data['modified_at'] = datetime.now() + timedelta(days=2)
         response = self.client.patch(url, data=data)
         self.assert_200(response)
+    def test_dref_permission(self):
+        user1 = UserFactory.create(
+            username='user1@test.com',
+            first_name='Test',
+            last_name='User1',
+            password='admin123',
+            email='user1@test.com',
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username='user2@test.com',
+            first_name='Test',
+            last_name='User2',
+            password='admin123',
+            email='user2@test.com',
+        )
+        user3 = UserFactory.create(
+            username='user4@test.com',
+            first_name='Test',
+            last_name='User3',
+            password='admin123',
+            email='user4@test.com',
+        )
+        user4 = UserFactory.create(
+            username='user3@test.com',
+            first_name='Test',
+            last_name='User4',
+            password='admin123',
+            email='user3@test.com',
+        )
+        dref1 = DrefFactory.create(
+            title='Test Title',
+            created_by=user1,
+        )
+        dref1.users.add(user2)
+        DrefFactory.create(
+            title='Test Title New',
+            created_by=user3
+        )
+        get_url = '/api/v2/dref/'
+        # authenticate with superuser
+        # should be able to view all drefs
+        self.client.force_authenticate(user1)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # # let superuser patch the dref
+        patch_url = f'/api/v2/dref/{dref1.id}/'
+        data = {
+            "title": "New test title",
+            "modified_at": datetime.now()
+        }
+        response = self.client.patch(patch_url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        # # lets authenticate with user for whom dref is shared with
+        self.client.force_authenticate(user2)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+
+        # # try to patch by user
+        self.client.force_authenticate(user2)
+        data = {
+            "title": "New test title",
+            "modified_at": datetime.now() + timedelta(days=1),
+        }
+        response = self.client.patch(patch_url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        # # try to authenticate with user who is neither assigned nor created_by
+        self.client.force_authenticate(user4)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 0)
+
+    def test_dref_operational_update_permission(self):
+        super_user = UserFactory.create(
+            username='user1@test.com',
+            first_name='Test',
+            last_name='User1',
+            password='admin123',
+            email='user1@test.com',
+            is_superuser=True,
+        )
+        user1, user2 = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title='Test Title',
+            is_published=True,
+        )
+        dref.users.add(user1)
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        old_op_count = DrefOperationalUpdate.objects.filter(dref=dref).count()
+        url = '/api/v2/dref-op-update/'
+        data = {
+            'dref': dref.id,
+            'country': self.country1.id,
+            'district': [self.district1.id],
+        }
+        # authenticate with user for whom dref is not shared
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_403(response)
+        # authenticate with user for whom dref is shared
+        self.authenticate(user1)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(
+            DrefOperationalUpdate.objects.filter(dref=dref).count(),
+            old_op_count + 1
+        )
+
+    def test_superuser_permisssion_operational_update(self):
+        super_user = UserFactory.create(
+            username='user1@test.com',
+            first_name='Test',
+            last_name='User1',
+            password='admin123',
+            email='user1@test.com',
+            is_superuser=True,
+        )
+        dref = DrefFactory.create(
+            title='Test Title',
+            is_published=True,
+        )
+        self.country1 = Country.objects.create(name='abc')
+        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        url = '/api/v2/dref-op-update/'
+        data = {
+            'dref': dref.id,
+            'country': self.country1.id,
+            'district': [self.district1.id],
+        }
+        # authenticate with superuser
+        self.authenticate(super_user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)

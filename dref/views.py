@@ -32,11 +32,15 @@ from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter
 )
+from dref.permissions import (
+    DrefViewUpdatePermission,
+    DrefOperationalUpdateCreatePermission,
+)
 
 
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, DrefViewUpdatePermission]
     filterset_class = DrefFilter
 
     def get_queryset(self):
