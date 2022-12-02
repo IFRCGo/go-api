@@ -14,7 +14,7 @@ class DrefFilter(filters.FilterSet):
         widget=filters.widgets.CSVWidget,
     )
     country = filters.ModelMultipleChoiceFilter(
-        field_name='drefcountrydistrict__country',
+        field_name='country',
         queryset=Country.objects.all()
     )
 
