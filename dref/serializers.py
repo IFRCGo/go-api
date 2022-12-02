@@ -703,15 +703,19 @@ class DrefFinalReportSerializer(
     type_of_onset_display = serializers.CharField(source='get_type_of_onset_display', read_only=True)
     disaster_category_display = serializers.CharField(source='get_disaster_category_display', read_only=True)
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    event_map_details = DrefFileSerializer(source='event_map', read_only=True)
-    photos_details = DrefFileSerializer(source='photos', many=True, read_only=True)
+    event_map_file = DrefFileSerializer(source='event_map', required=False, allow_null=True)
+    cover_image_file = DrefFileSerializer(source='cover_image', required=False, allow_null=True)
+    images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source='images')
+    photos_file = DrefFileSerializer(source='photos', many=True, required=False, allow_null=True)
     country_details = MiniCountrySerializer(source='country', read_only=True)
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
-    assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
+    assessment_report_file = DrefFileSerializer(source='assessment_report', required=False, allow_null=True)
+    risk_security = RiskSecuritySerializer(many=True, required=False)
+    modified_at = serializers.DateTimeField(required=False)
 
     class Meta:
         model = DrefFinalReport
-        fields = '__all__'
+        exclude = ('images', 'photos', 'event_map', 'assessment_report', 'cover_image')
 
     def validate(self, data):
         dref = data.get('dref')
@@ -815,10 +819,18 @@ class DrefFinalReportSerializer(
             validated_data['event_map'] = dref_operational_update.dref.event_map
             validated_data['assessment_report'] = dref_operational_update.assessment_report
             validated_data['country'] = dref_operational_update.country
+            validated_data['risk_security_concern'] = dref_operational_update.risk_security_concern
+            validated_data['is_assessment_report'] = dref_operational_update.is_assessment_report
+            validated_data['total_targeted_population'] = dref_operational_update.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref_operational_update.is_there_major_coordination_mechanism
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref_operational_update.needs_identified.all())
             dref_final_report.district.add(*dref_operational_update.district.all())
+            dref_final_report.images.add(*dref_operational_update.images.all())
+            dref_final_report.photos.add(*dref_operational_update.photos.all())
+            dref_final_report.risk_security.add(*dref_operational_update.risk_security.all())
+            dref_final_report.users.add(*dref_operational_update.users.all())
         else:
             validated_data['title'] = dref.title
             validated_data['title_prefix'] = dref.title_prefix
@@ -880,10 +892,17 @@ class DrefFinalReportSerializer(
             validated_data['event_map'] = dref.event_map
             validated_data['assessment_report'] = dref.assessment_report
             validated_data['country'] = dref.country
+            validated_data['risk_security_concern'] = dref.risk_security_concern
+            validated_data['is_assessment_report'] = dref.is_assessment_report
+            validated_data['total_targeted_population'] = dref.total_targeted_population
+            validated_data['is_there_major_coordination_mechanism'] = dref.is_there_major_coordination_mechanism
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref.needs_identified.all())
             dref_final_report.district.add(*dref.district.all())
+            dref_final_report.images.add(*dref.images.all())
+            dref_final_report.risk_security.add(*dref.risk_security.all())
+            dref_final_report.users.add(*dref.users.all())
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=['is_final_report_created'])

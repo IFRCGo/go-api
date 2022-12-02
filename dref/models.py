@@ -1491,6 +1491,45 @@ class DrefFinalReport(models.Model):
         District, blank=True,
         verbose_name=_('district')
     )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref_final_report'
+    )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        null=True, blank=True
+    )
+    images = models.ManyToManyField(
+        'DrefFile', blank=True,
+        verbose_name=_('images'),
+        related_name='image_dref_final_report'
+    )
+    cover_image = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        blank=True, null=True,
+        verbose_name=_('cover image'),
+        related_name='cover_image_dref_final_report'
+    )
+    is_there_major_coordination_mechanism = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Is there major coordinate mechanism')
+    )
+    major_coordination_mechanism = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('major coordination mechanism'),
+    )
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'),
+        blank=True, null=True
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
 
     class Meta:
         verbose_name = _('Dref Final Report')
