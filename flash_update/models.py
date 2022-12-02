@@ -16,8 +16,6 @@ from api.models import (
     ActionCategory,
 )
 
-from main.enums import TextChoices
-
 
 @reversion.register()
 class FlashGraphicMap(models.Model):
