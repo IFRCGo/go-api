@@ -383,7 +383,7 @@ class DrefSerializer(
         else:
             to = None
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
-            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_UPDATE_ERROR_MESSAGE})
+            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(
@@ -687,7 +687,7 @@ class DrefOperationalUpdateSerializer(
             raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
 
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
-            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_UPDATE_ERROR_MESSAGE})
+            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
         return super().update(instance, validated_data)
 
 
@@ -909,5 +909,11 @@ class DrefFinalReportSerializer(
         return dref_final_report
 
     def update(self, instance, validated_data):
+        modified_at = validated_data.pop('modified_at', None)
+        if modified_at is None:
+            raise serializers.ValidationError({'modified_at': 'Modified At is required!'})
+        if modified_at and instance.modified_at and modified_at < instance.modified_at:
+            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
+
         validated_data['updated_by'] = self.context['request'].user
         return super().update(instance, validated_data)

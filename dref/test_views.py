@@ -960,3 +960,29 @@ class DrefTestCase(APITestCase):
         data['modified_at'] = datetime.now() - timedelta(days=2)
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, 400)
+
+    def test_optimistic_lock_in_final_report(self):
+        user1 = UserFactory.create()
+        final_report = DrefFinalReportFactory(
+            title='Test title',
+            created_by=user1,
+        )
+        url = f'/api/v2/dref-final-report/{final_report.id}/'
+
+        # update data without `modified_at`
+        data = {
+            "title": "New Updated Title"
+        }
+        self.authenticate(user1)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+        # with `modified_at` less than instance `modified_at`
+        data['modified_at'] = datetime.now() - timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assert_400(response)
+
+        # with `modified_at` greater than instance `modified_at`
+        data['modified_at'] = datetime.now() + timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assert_200(response)
