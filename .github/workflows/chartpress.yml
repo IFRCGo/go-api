@@ -56,7 +56,7 @@ jobs:
     - name: Deploy -- Staging
       env:
         environment: staging
-        API_FQDN: ifrcgostagingapi.ds.io
+        API_FQDN: ifrcgo-test.ds.io
         subscriptionId: ${{ secrets.TERRAFORM_SUBSCRIPTION_ID }}
         DJANGO_SECRET_KEY: ${{ secrets.STAGING_DJANGO_SECRET_KEY }}
         DJANGO_DB_NAME: ${{ secrets.STAGING_DJANGO_DB_NAME }}
