@@ -48,12 +48,12 @@ resource "helm_release" "ifrcgo" {
 
   set {
     name = "env.AZURE_STORAGE_ACCOUNT"
-    value = var.AZURE_STORAGE_ACCOUNT
+    value = azurerm_storage_account.ifrcgo.id
   }
 
   set {
     name = "env.AZURE_STORAGE_KEY"
-    value = var.AZURE_STORAGE_KEY
+    value = azurerm_storage_account.ifrcgo.primary_access_key
   }
 
   set {

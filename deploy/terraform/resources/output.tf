@@ -18,6 +18,14 @@ output "image_registry" {
   value = data.azurerm_container_registry.ifrcgo.name
 }
 
-# output "storage_connection_string" {
-#   value = azurerm_storage_account.ifrcgo.primary_connection_string
-# }
+output "azure_storage_name" {
+  value = data.azurerm_storage_account.ifrcgo.id
+}
+
+output "azure_strorage_key" {
+  value = data.azurerm_storage_account.ifrcgo.primary_access_key
+}
+
+output "azure_storage_connection_string" {
+  value = azurerm_storage_account.ifrcgo.primary_connection_string
+}
