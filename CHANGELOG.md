@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.463
+
+### Added
+ - DREF Final report, v0.1
+ - Ops Update: optimistic lock
+ - Dropping non-used enum Choices
+ - Fix filter in DREF
+ - Admin page: search possibility of Admin2 countries
+
 ## 1.1.462
 
 ### Added
@@ -2105,7 +2114,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.462...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.463...HEAD
+[1.1.463]: https://github.com/IFRCGo/go-api/compare/1.1.462...1.1.463
 [1.1.462]: https://github.com/IFRCGo/go-api/compare/1.1.461...1.1.462
 [1.1.461]: https://github.com/IFRCGo/go-api/compare/1.1.460...1.1.461
 [1.1.460]: https://github.com/IFRCGo/go-api/compare/1.1.459...1.1.460
