@@ -689,7 +689,11 @@ class DrefFile(models.Model):
 
 class DrefOperationalUpdate(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_('modified at'), auto_now=True)
+    modified_at = models.DateTimeField(
+        verbose_name=_('modified at'),
+        auto_now=True,
+        blank=True
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_('created by'),

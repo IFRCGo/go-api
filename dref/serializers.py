@@ -3,6 +3,7 @@ import datetime
 
 from django.utils.translation import gettext
 from django.db import models, transaction
+from django.conf import settings
 
 from rest_framework import serializers
 
@@ -184,7 +185,6 @@ class DrefSerializer(
     ALLOWED_ASSESSMENT_REPORT_EXTENSIONS = ["pdf", "docx", "pptx"]
     MAX_OPERATION_TIMEFRAME = 30
     ASSESSMENT_REPORT_MAX_OPERATION_TIMEFRAME = 2
-    DREF_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -349,7 +349,7 @@ class DrefSerializer(
         is_assessment_report = validated_data.get('is_assessment_report')
         modified_at = validated_data.pop('modified_at', None)
         if modified_at is None:
-            raise serializers.ValidationError({ 'modified_at': 'Modified At is required!' })
+            raise serializers.ValidationError({'modified_at': 'Modified At is required!'})
         if is_assessment_report:
             # Previous Operations
             validated_data['lessons_learned'] = None
@@ -383,7 +383,7 @@ class DrefSerializer(
         else:
             to = None
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
-            raise serializers.ValidationError({ 'modified_at': self.DREF_UPDATE_ERROR_MESSAGE })
+            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_UPDATE_ERROR_MESSAGE})
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(
@@ -414,6 +414,7 @@ class DrefOperationalUpdateSerializer(
     district_details = MiniDistrictSerializer(source='district', read_only=True, many=True)
     assessment_report_file = DrefFileSerializer(source='assessment_report', required=False, allow_null=True)
     risk_security = RiskSecuritySerializer(many=True, required=False)
+    modified_at = serializers.DateTimeField(required=False)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -656,6 +657,9 @@ class DrefOperationalUpdateSerializer(
         dref_target_population_of_operation = validated_data.get('dref', instance.dref).total_targeted_population
         dref_amount_requested = validated_data.get('dref', instance.dref).amount_requested
         dref_district = validated_data.get('dref', instance.dref).district.all()
+        modified_at = validated_data.pop('modified_at', None)
+        if modified_at is None:
+            raise serializers.ValidationError({'modified_at': 'Modified At is required!'})
 
         if (not changing_timeframe_operation) and total_operation_timeframe and dref_operation_timeframe and\
         total_operation_timeframe != dref_operation_timeframe:
@@ -682,6 +686,8 @@ class DrefOperationalUpdateSerializer(
         if changing_geographic_location and district and dref_district and set(district) == set(dref_district):
             raise serializers.ValidationError('Found same district for dref and operational update with changing set to true')
 
+        if modified_at and instance.modified_at and modified_at < instance.modified_at:
+            raise serializers.ValidationError({'modified_at': settings.DREF_OP_UPDATE_UPDATE_ERROR_MESSAGE})
         return super().update(instance, validated_data)
 
 

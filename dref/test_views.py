@@ -426,6 +426,35 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 2)
 
+    def test_dref_country_filter(self):
+        country1 = Country.objects.create(name='country1')
+        country2 = Country.objects.create(name='country2')
+        DrefFactory.create(
+            title='test',
+            status=Dref.Status.COMPLETED,
+            created_by=self.user,
+            country=country1
+        )
+        DrefFactory.create(
+            status=Dref.Status.COMPLETED, created_by=self.user
+        )
+        DrefFactory.create(
+            status=Dref.Status.COMPLETED,
+            created_by=self.user,
+            country=country2
+        )
+        DrefFactory.create(
+            status=Dref.Status.IN_PROGRESS,
+            created_by=self.user,
+            country=country1
+        )
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        url = f'/api/v2/dref/?country={country1.id}'
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
     def test_dref_options(self):
         """
         Test for various dref attributes
@@ -591,6 +620,7 @@ class DrefTestCase(APITestCase):
             'new_operational_end_date': '2022-10-10',
             'reporting_timeframe': '2022-10-16',
             'is_timeframe_extension_required': True,
+            'modified_at': datetime.now() + timedelta(days=12),
         }
         url = f'/api/v2/dref-op-update/{response_id}/'
         self.authenticate(user=user1)
@@ -891,3 +921,42 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         # Title should be latest since modified_at is greater than modified_at in database
         self.assertEqual(response.data['title'], "New title")
+
+    def test_dref_op_update_locking(self):
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title='Test Title', created_by=user1,
+            is_published=True,
+        )
+        dref.users.add(user1)
+        DrefOperationalUpdateFactory.create(
+            dref=dref,
+            is_published=True,
+            operational_update_number=1,
+            modified_at=datetime.now()
+        )
+        url = '/api/v2/dref-op-update/'
+        data = {
+            'dref': dref.id,
+        }
+        self.authenticate(user=user1)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        response_id = response.data['id']
+
+        # without `modified_at`
+        data = {
+            'title': 'New Operation title',
+            'new_operational_end_date': '2022-10-10',
+            'reporting_timeframe': '2022-10-16',
+            'is_timeframe_extension_required': True,
+        }
+        url = f'/api/v2/dref-op-update/{response_id}/'
+        self.authenticate(user=user1)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+        # with `modified_at` less than instance `modified_at`
+        data['modified_at'] = datetime.now() - timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)

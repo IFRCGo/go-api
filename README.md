@@ -225,7 +225,7 @@ The shapefile should have the following mandatory fields:
 * admin1_id (this is the ID of the GO district this admin2 belongs to)
 
 See [this ticket](https://github.com/IFRCGo/go-api/issues/1492#issuecomment-1284120696) for a full workflow of preparing the admin2 shapefiles.
-The above command will generate a list of missing admin2s in the database based on the code (we use pcodes) to a file called `missing-admin2.txt`
+The above command will generate a list of missing admin2-s in the database based on the code (we use pcodes) to a file called `missing-admin2.txt`
 
 ### Options available for the command
 * `--update-geom` -- updates the geometry for all admin2 matched in the shapefile.
@@ -237,13 +237,13 @@ The above command will generate a list of missing admin2s in the database based 
 Run `python manage.py update-region-bbox` to update the bbox for each region in the database.
 
 ## Import FDRS codes
-Run `python manage.py import-fdrs iso-fdrs.csv` to update the countries table with FDRS codes. The csv should have `iso,fdrs` structure
+Run `python manage.py import-fdrs iso-fdrs.csv` to update the countries table with FDRS codes. The csv should have `iso, fdrs` structure
 
 ## Update sovereign state and disputed status
-Run ` python manage.py update-sovereign-and-disputed new_fields.csv` to update the countries table with sovereign states and disputed status. The CSV should have the `id,iso,name,sovereign_state,disputed` columns. The matching is based on iso and name. If iso is null, we fallback to name.
+Run ` python manage.py update-sovereign-and-disputed new_fields.csv` to update the countries table with sovereign states and disputed status. The CSV should have the `id,iso,name,sovereign_state,disputed` columns. The matching is based on iso and name. If iso is null, we fall back to name.
 
 ## Update Mapbox Tilesets
-To update GO countries and districts Mapbox tilesets, run the management command `python manage.py update-mapbox-tilesets`. This will export all country and district geometries to a GeoJSON file, and then upload them to Mapbox. The tilesets will take a while to process. The updated status can be viewed on the Mapbox Studio under tilesets. To run this management command, MAPBOX_ACCESS_TOKEN should be set in the environment.
+To update GO countries and districts Mapbox tilesets, run the management command `python manage.py update-mapbox-tilesets`. This will export all country and district geometries to a GeoJSON file, and then upload them to Mapbox. The tilesets will take a while to process. The updated status can be viewed on the Mapbox Studio under tilesets. To run this management command, MAPBOX_ACCESS_TOKEN should be set in the environment. The referred files are in ./mapbox/..., so you should **not** run this command from an arbitrary point of the vm's filesystem (e.g. from the location of shapefiles), but from Django root.
 
 ### Options available for the command
 * `--production` — update production tilesets. If this flag is not set, by default the script will only update staging tiles
