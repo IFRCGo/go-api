@@ -24,7 +24,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 8,
+            'count': 7,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
@@ -34,7 +34,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 4,
+            'count': 5,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
@@ -88,12 +88,17 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'CEA'
         },
         {
-            'count': 2,
+            'count': 1,
             'primary_sector': 3,
             'primary_sector_display': 'Migration'
         },
         {
             'count': 2,
+            'primary_sector': 4,
+            'primary_sector_display': 'Health'
+        },
+        {
+            'count': 1,
             'primary_sector': 5,
             'primary_sector_display': 'DRR'
         },
@@ -433,10 +438,10 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 5220000,
+            'budget_amount_total': 4260000,
             'id': 33,
-            'iso3': 'hNK',
-            'name': 'country-lFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPpOuhTPN',
+            'iso3': 'STh',
+            'name': 'country-GhslFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPpOuh',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -447,18 +452,18 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 5,
-                    'primary_sector_display': 'DRR'
+                    'primary_sector': 4,
+                    'primary_sector_display': 'Health'
                 }
             ],
-            'society_name': 'society-name-DMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyjPObObN',
+            'society_name': 'society-name-NKDMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyjPObO',
             'target_total': 0
         },
         {
-            'budget_amount_total': 3510000,
+            'budget_amount_total': 3040000,
             'id': 35,
-            'iso3': 'Bnz',
-            'name': 'country-NUBFklsXHvwhvOCcmqmsYKfCZeQddoPOvFOcvIoPoPYtLrpOFs',
+            'iso3': 'PYt',
+            'name': 'country-fdGdNQeaEPjKNUBFklsXHvwhvOCcmqmsYKfCZeQddoPOvFOcvI',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -469,11 +474,11 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 3,
-                    'primary_sector_display': 'Migration'
+                    'primary_sector': 4,
+                    'primary_sector_display': 'Health'
                 }
             ],
-            'society_name': 'society-name-JvnKNSlGzUnyLPRoqRfeZxiwArYgPzwdBsnTobwsdWUzKBxgrG',
+            'society_name': 'society-name-LrpOFsFxdBnzJvnKNSlGzUnyLPRoqRfeZxiwArYgPzwdBsnTob',
             'target_total': 0
         }
     ]
