@@ -823,9 +823,12 @@ class DrefFinalReportSerializer(
             validated_data['is_assessment_report'] = dref_operational_update.is_assessment_report
             validated_data['total_targeted_population'] = dref_operational_update.total_targeted_population
             validated_data['is_there_major_coordination_mechanism'] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data['event_date'] = dref_operational_update.event_date
+            validated_data['people_in_need'] = dref_operational_update.people_in_need
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref_operational_update.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref_operational_update.needs_identified.all())
+            dref_final_report.national_society_actions.add(*dref_operational_update.national_society_actions.all())
             dref_final_report.district.add(*dref_operational_update.district.all())
             dref_final_report.images.add(*dref_operational_update.images.all())
             dref_final_report.photos.add(*dref_operational_update.photos.all())
@@ -896,6 +899,8 @@ class DrefFinalReportSerializer(
             validated_data['is_assessment_report'] = dref.is_assessment_report
             validated_data['total_targeted_population'] = dref.total_targeted_population
             validated_data['is_there_major_coordination_mechanism'] = dref.is_there_major_coordination_mechanism
+            validated_data['event_date'] = dref.event_date
+            validated_data['people_in_need'] = dref.people_in_need
             dref_final_report = super().create(validated_data)
             dref_final_report.planned_interventions.add(*dref.planned_interventions.all())
             dref_final_report.needs_identified.add(*dref.needs_identified.all())
@@ -903,6 +908,7 @@ class DrefFinalReportSerializer(
             dref_final_report.images.add(*dref.images.all())
             dref_final_report.risk_security.add(*dref.risk_security.all())
             dref_final_report.users.add(*dref.users.all())
+            dref_final_report.national_society_actions.add(*dref.national_society_actions.all())
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=['is_final_report_created'])

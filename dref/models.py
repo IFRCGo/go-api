@@ -1530,6 +1530,19 @@ class DrefFinalReport(models.Model):
         blank=True, null=True,
         verbose_name=_('Risk Security Concern')
     )
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+        help_text=_('Date of event/Approximate date of impact')
+    )
+    national_society_actions = models.ManyToManyField(
+        NationalSocietyAction, verbose_name=_('national society actions'),
+        blank=True
+    )
+    people_in_need = models.IntegerField(
+        verbose_name=_('people in need'),
+        blank=True, null=True
+    )
 
     class Meta:
         verbose_name = _('Dref Final Report')
