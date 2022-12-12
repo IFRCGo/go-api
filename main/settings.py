@@ -6,10 +6,10 @@ import environ
 
 from django.utils.translation import gettext_lazy as _
 # from celery.schedules import crontab
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 env = environ.Env(
     # Django
@@ -20,7 +20,7 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
-    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org,prddsgocdnapi.azureedge.net
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, 'development'),  # staging, production
     #
     API_FQDN=str,  # sub-domain.domain.domain-extension
@@ -192,7 +192,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    # 'django.middleware.locale.LocaleMiddleware', - instead:
+    'middlewares.middlewares.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -247,10 +248,10 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',  },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
     {'NAME': 'main.validators.NumberValidator', },
     {'NAME': 'main.validators.UppercaseValidator', },
     {'NAME': 'main.validators.LowercaseValidator', },
