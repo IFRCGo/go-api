@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.464
+
+### Added
+ - Fix timeout in Surgealert: Export All
+ - Bump up some packages
+ - Fix some settings
+
 ## 1.1.463
 
 ### Added
@@ -2114,7 +2121,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.463...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.464...HEAD
+[1.1.464]: https://github.com/IFRCGo/go-api/compare/1.1.463...1.1.464
 [1.1.463]: https://github.com/IFRCGo/go-api/compare/1.1.462...1.1.463
 [1.1.462]: https://github.com/IFRCGo/go-api/compare/1.1.461...1.1.462
 [1.1.461]: https://github.com/IFRCGo/go-api/compare/1.1.460...1.1.461

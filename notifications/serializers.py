@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.serializers import MiniEventSerializer, ListEventSerializer, MiniCountrySerializer
+from api.serializers import MiniEventSerializer, SurgeEventSerializer, MiniCountrySerializer
 from lang.serializers import ModelSerializer
 
 from .models import SurgeAlert, Subscription
@@ -8,7 +8,7 @@ from deployments.serializers import MolnixTagSerializer
 
 
 class SurgeAlertSerializer(ModelSerializer):
-    event = ListEventSerializer()
+    event = SurgeEventSerializer()
     country = MiniCountrySerializer()
     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
