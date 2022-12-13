@@ -1543,6 +1543,22 @@ class DrefFinalReport(models.Model):
         verbose_name=_('people in need'),
         blank=True, null=True
     )
+    event_text = models.TextField(verbose_name=_('event text'), blank=True, null=True)
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+        help_text=_('NS anticipatory actions started/NS response')
+    )
+    did_national_society = models.BooleanField(
+        verbose_name=_('Did National Society'),
+        null=True, blank=True
+    )
+    budget_file = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('budget file'),
+        related_name='budget_file_dref_final_report'
+    )
 
     class Meta:
         verbose_name = _('Dref Final Report')
