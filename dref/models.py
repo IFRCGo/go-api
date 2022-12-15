@@ -1491,6 +1491,74 @@ class DrefFinalReport(models.Model):
         District, blank=True,
         verbose_name=_('district')
     )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref_final_report'
+    )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        null=True, blank=True
+    )
+    images = models.ManyToManyField(
+        'DrefFile', blank=True,
+        verbose_name=_('images'),
+        related_name='image_dref_final_report'
+    )
+    cover_image = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        blank=True, null=True,
+        verbose_name=_('cover image'),
+        related_name='cover_image_dref_final_report'
+    )
+    is_there_major_coordination_mechanism = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Is there major coordinate mechanism')
+    )
+    major_coordination_mechanism = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('major coordination mechanism'),
+    )
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'),
+        blank=True, null=True
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+        help_text=_('Date of event/Approximate date of impact')
+    )
+    national_society_actions = models.ManyToManyField(
+        NationalSocietyAction, verbose_name=_('national society actions'),
+        blank=True
+    )
+    people_in_need = models.IntegerField(
+        verbose_name=_('people in need'),
+        blank=True, null=True
+    )
+    event_text = models.TextField(verbose_name=_('event text'), blank=True, null=True)
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+        help_text=_('NS anticipatory actions started/NS response')
+    )
+    did_national_society = models.BooleanField(
+        verbose_name=_('Did National Society'),
+        null=True, blank=True
+    )
+    budget_file = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('budget file'),
+        related_name='budget_file_dref_final_report'
+    )
 
     class Meta:
         verbose_name = _('Dref Final Report')
