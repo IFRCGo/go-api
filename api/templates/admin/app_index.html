@@ -1,0 +1,23 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block bodyclass %}{{ block.super }} app-{{ app_label }}{% endblock %}
+
+{% if not is_popup %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo;
+{% for app in app_list %}
+{{ app.name }}
+{% endfor %}
+</div>
+{% if app_list.0.app_label == 'country_plan' %}
+<div style="position: relative; top: 4rem; right: 1rem">
+    <ul class="object-tools"><li><a href="https://go-wiki.ifrc.org/en/admin_guide/country_plans" target="_blank" class="historylink">?</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+{% endif %}
+{% block sidebar %}{% endblock %}
