@@ -51,7 +51,7 @@ class TestLocalUnitsDetailView(TestCase):
         LocalUnitFactory.create_batch(2, country=country)
 
     def test_detail(self):
-        response = self.client.get('/api/v2/local-unit/1')
+        response = self.client.get('/api/v2/local-unit/1/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['location']['coordinates'], [12, 38])
         self.assertEqual(response.data['country']['name'], 'Nepal')
