@@ -69,6 +69,7 @@ from per.views import (
 )
 
 from databank.views import CountryOverviewViewSet
+from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
 # DRF routes
 from rest_framework import routers
@@ -217,6 +218,8 @@ urlpatterns = [
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
+    url(r'^api/v2/local-unit/(?P<pk>\d+)', LocalUnitDetailAPIView.as_view()),
+    url(r'^api/v2/local-unit/', LocalUnitListAPIView.as_view()),
     url(r'^docs/', include_docs_urls(title='IFRC GO API', public=False)),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),

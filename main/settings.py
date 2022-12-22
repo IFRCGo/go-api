@@ -145,6 +145,7 @@ INSTALLED_APPS = [
     'flash_update',
     'eap',
     'country_plan',
+    'local_units',
 
     # Utils Apps
     'tinymce',
