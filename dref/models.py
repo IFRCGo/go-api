@@ -662,6 +662,44 @@ class Dref(models.Model):
     def __str__(self):
         return f'{self.title} – {self.created_at.date()}, {self.get_status_display()}'
 
+    @staticmethod
+    def get_for(user):
+        user_id = user.id
+        print(Dref.objects.annotate(
+            created_user_list=models.F('created_by'),
+            users_list=models.F('users'),
+            op_users=models.Subquery(
+                DrefOperationalUpdate.objects.filter(
+                    dref=models.OuterRef('id')
+                ).order_by().values('id').annotate(
+                    c=models.F('users')
+                ).values('c')[:1]
+            ),
+        ).values("created_user_list", "users_list", "op_users"))
+        return Dref.objects.annotate(
+            created_user_list=models.F('created_by'),
+            users_list=models.F('users'),
+            op_users=models.Subquery(
+                DrefOperationalUpdate.objects.filter(
+                    dref=models.OuterRef('id')
+                ).order_by().values('id').annotate(
+                    c=models.F('users')
+                ).values('c')[:1]
+            ),
+            fr_users=models.Subquery(
+                DrefFinalReport.objects.filter(
+                    dref=models.OuterRef('id')
+                ).order_by().values('id').annotate(
+                    c=models.F('users')
+                ).values('c')[:1],
+            )
+        ).filter(
+            models.Q(created_user_list=user_id) |
+            models.Q(users_list=user_id) |
+            models.Q(op_users=user_id) |
+            models.Q(fr_users=user_id)
+        ).distinct()
+
 
 class DrefFile(models.Model):
     file = models.FileField(
@@ -1174,6 +1212,25 @@ class DrefOperationalUpdate(models.Model):
     class Meta:
         verbose_name = _('Dref Operational Update')
         verbose_name_plural = _('Dref Operational Updates')
+
+    @staticmethod
+    def get_for(user):
+        user_id = user.id
+        return DrefOperationalUpdate.objects.annotate(
+            created_user_list=models.F('created_by'),
+            users_list=models.F('users'),
+            dref_users=models.Subquery(
+                Dref.objects.filter(
+                    drefoperationalupdate=models.OuterRef('id')
+                ).order_by().values('drefoperationalupdate').annotate(
+                    c=models.F('users')
+                ).values('c')[:1]
+            )
+        ).filter(
+            models.Q(created_user_list=user_id) |
+            models.Q(users_list=user_id) |
+            models.Q(dref_users=user_id)
+        ).distinct()
 
 
 class DrefFinalReport(models.Model):

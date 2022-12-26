@@ -6,6 +6,7 @@ from dref.models import (
     Dref,
     DrefOperationalUpdate,
 )
+from dref.utils import get_users_in_dref, get_users_in_dref_operational_update
 
 
 class IsSuperAdmin(permissions.BasePermission):
@@ -18,50 +19,16 @@ class IsSuperAdmin(permissions.BasePermission):
         return request.user.is_superuser
 
 
-class DrefViewUpdatePermission(IsSuperAdmin):
-    message = "Can view and update Dref"
-
-    def has_permission(self, request, view):
-        if request.method == "POST":
-            return True
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        user = request.user
-        if user.is_superuser:
-            return True
-        if request.method in ["PUT", "DELETE", "PATCH"]:
-            return Dref.objects.filter(
-                models.Q(id=obj.id, users=user) |
-                models.Q(id=obj.id, created_by=user)
-            ).exists()
-        return True
+class DrefViewUpdatePermission(permissions.BasePermission):
+    message = "Can't view and update Dref"
+    pass
 
 
 class DrefOperationalUpdateCreatePermission(permissions.BasePermission):
     message = "Can create Operational Update for whom dref is shared with"
 
     def has_permission(self, request, view):
-        user = request.user
-        dref = request.data.get('dref')
-        if request.method == "POST":
-            if user.is_superuser:
-                return True
-            if dref:
-                return Dref.objects.filter(
-                    models.Q(id=dref, users=user) |
-                    models.Q(id=dref, created_by=user),
-                    is_published=True
-                ).exists()
-            return True
+        pass
 
     def has_object_permission(self, request, view, obj):
-        user = request.user
-        if user.is_superuser:
-            return True
-        if request.method in ["PUT", "DELETE", "PATCH"]:
-            return DrefOperationalUpdate.objects.filter(
-                models.Q(id=obj.id, users=user) |
-                models.Q(id=obj.id, created_by=user)
-            ).exists()
-        return True
+        pass

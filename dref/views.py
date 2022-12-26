@@ -36,11 +36,12 @@ from dref.permissions import (
     DrefViewUpdatePermission,
     DrefOperationalUpdateCreatePermission,
 )
+from dref.utils import get_users_in_dref, get_users_in_dref_operational_update
 
 
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
-    permission_classes = [permissions.IsAuthenticated, DrefViewUpdatePermission]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_class = DrefFilter
 
     def get_queryset(self):
@@ -54,7 +55,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         if user.is_superuser:
             return queryset
         else:
-            return queryset.filter(models.Q(created_by=user) | models.Q(users=user))
+            return Dref.get_for(user)
 
     @action(
         detail=True,
@@ -99,7 +100,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         if user.is_superuser:
             return queryset
         else:
-            return queryset.filter(models.Q(created_by=user) | models.Q(users=user))
+            return DrefOperationalUpdate.get_for(user)
 
     @action(
         detail=True,
@@ -122,10 +123,15 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return DrefFinalReport.objects.prefetch_related(
+        user = self.request.user
+        queryset = DrefFinalReport.objects.prefetch_related(
             'dref__planned_interventions',
             'dref__needs_identified',
         ).order_by('-created_at').distinct()
+        if user.is_superuser:
+            return queryset
+        else:
+            return queryset.filter(models.Q(created_by=user) | models.Q(users=user))
 
     @action(
         detail=True,
