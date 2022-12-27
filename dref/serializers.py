@@ -721,7 +721,7 @@ class DrefFinalReportSerializer(
     assessment_report_details = DrefFileSerializer(source='assessment_report', read_only=True)
     risk_security = RiskSecuritySerializer(many=True, required=False)
     modified_at = serializers.DateTimeField(required=False)
-    budget_file_details = DrefFileSerializer(source='budget_file', read_only=True)
+    financial_report_details = DrefFileSerializer(source='financial_report', read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -840,7 +840,6 @@ class DrefFinalReportSerializer(
             validated_data['event_date'] = dref_operational_update.event_date
             validated_data['people_in_need'] = dref_operational_update.people_in_need
             validated_data['ns_respond_date'] = dref_operational_update.ns_respond_date
-            validated_data['budget_file'] = dref_operational_update.budget_file
             validated_data['assessment_report'] = dref_operational_update.assessment_report
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
@@ -930,8 +929,6 @@ class DrefFinalReportSerializer(
             validated_data['people_in_need'] = dref.people_in_need
             validated_data['event_text'] = dref.event_text
             validated_data['ns_respond_date'] = dref.ns_respond_date
-            validated_data['budget_file'] = dref.budget_file
-            validated_data['did_national_society'] = dref.did_national_society
             validated_data['cover_image'] = dref.cover_image
             validated_data['event_map'] = dref.event_map
             dref_final_report = super().create(validated_data)

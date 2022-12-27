@@ -154,6 +154,7 @@ class PlannedIntervention(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_('person targeted'), null=True, blank=True)
+    person_assisted = models.IntegerField(verbose_name=_('person assisted'), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     male = models.IntegerField(verbose_name=_('male'), blank=True, null=True)
     female = models.IntegerField(verbose_name=_('female'), blank=True, null=True)
@@ -1553,11 +1554,27 @@ class DrefFinalReport(models.Model):
         verbose_name=_('Did National Society'),
         null=True, blank=True
     )
-    budget_file = models.ForeignKey(
+    financial_report = models.ForeignKey(
         'DrefFile', on_delete=models.SET_NULL,
         null=True, blank=True,
-        verbose_name=_('budget file'),
-        related_name='budget_file_dref_final_report'
+        verbose_name=_('financial report'),
+        related_name='financial_report_dref_final_report'
+    )
+    num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted'),
+        blank=True, null=True
+    )
+    has_national_society_conducted = models.BooleanField(
+        verbose_name=_('Has national society conducted any intervention'),
+        null=True, blank=True
+    )
+    national_society_conducted_description = models.TextField(
+        verbose_name=_('National Society conducted description'),
+        null=True, blank=True
+    )
+    financial_report_description = models.TextField(
+        verbose_name=_('Financial Report Description'),
+        null=True, blank=True
     )
 
     class Meta:
