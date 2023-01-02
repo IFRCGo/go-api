@@ -3,7 +3,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
+from django.core.files.base import File
 
+from main.utils import DownloadFileManager
 from api.models import Country
 
 
@@ -80,8 +82,20 @@ class CountryPlan(CountryPlanAbstract):
     people_targeted = models.IntegerField(verbose_name=_('People Targeted'), blank=True, null=True)
     is_publish = models.BooleanField(default=False, verbose_name=_('Published'))
 
+    # NOTE: Used to sync with Appeal API (ingest_country_plan_file.py for more info)
+    appeal_api_inserted_date = models.DateTimeField(blank=True, null=True)
+
     def __str__(self):
         return f'{self.country}'
+
+    def load_file_to_country_plan(self, url: str, filename: str, commit=False):
+        with DownloadFileManager(url, suffix='.pdf') as f:
+            self.public_plan_file.save(
+                filename,
+                File(f),
+            )
+        if commit:
+            self.save()
 
     # NOTE: To be used by CountryPlanSerializer (From CountryPlanViewset)
     def full_country_plan_mc(self):

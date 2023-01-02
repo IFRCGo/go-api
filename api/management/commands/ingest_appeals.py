@@ -87,7 +87,7 @@ class Command(BaseCommand):
             # get latest BILATERALS
             logger.info('Querying appeals API for new appeals data (bilateral)')
             url = 'http://go-api.ifrc.org/api/appealbilaterals'
-            auth = (os.getenv('APPEALS_USER'), os.getenv('APPEALS_PASS'))
+            auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
 
             adapter = HTTPAdapter(max_retries=settings.RETRY_STRATEGY)
             sess = Session()
