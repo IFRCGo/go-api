@@ -308,8 +308,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         {
             'budget_amount_total': 5920000,
             'id': 21,
-            'iso3': 'WNq',
-            'name': 'country-FWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKzFb',
+            'iso3': 'hBW',
+            'name': 'country-hkFWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKz',
             'ongoing_projects': 1,
             'operation_types': [
                 0
@@ -324,7 +324,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'CEA'
                 }
             ],
-            'society_name': 'society-name-qJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjD',
+            'society_name': 'society-name-NqqJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYt',
             'target_total': 0
         },
         {
