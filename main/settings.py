@@ -69,6 +69,9 @@ env = environ.Env(
     GO_FTPUSER=(str, None),
     GO_FTPPASS=(str, None),
     GO_DBPASS=(str, None),
+    # Appeal Server Credentials (https://go-api.ifrc.org/api/)
+    APPEALS_USER=(str, None),
+    APPEALS_PASS=(str, None),
 )
 
 
@@ -470,4 +473,8 @@ GO_DBPASS = env('GO_DBPASS')
 FRONTEND_URL = env('FRONTEND_URL')
 
 
-DREF_OP_UPDATE_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
+DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
+
+# Appeal Server Credentials
+APPEALS_USER = env('APPEALS_USER')
+APPEALS_PASS = env('APPEALS_PASS')

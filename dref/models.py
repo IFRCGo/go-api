@@ -154,6 +154,7 @@ class PlannedIntervention(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'), choices=Title.choices)
     description = models.TextField(verbose_name=_('description'), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_('person targeted'), null=True, blank=True)
+    person_assisted = models.IntegerField(verbose_name=_('person assisted'), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_('budget'), blank=True, null=True)
     male = models.IntegerField(verbose_name=_('male'), blank=True, null=True)
     female = models.IntegerField(verbose_name=_('female'), blank=True, null=True)
@@ -1490,6 +1491,90 @@ class DrefFinalReport(models.Model):
     district = models.ManyToManyField(
         District, blank=True,
         verbose_name=_('district')
+    )
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, verbose_name=_('users'),
+        blank=True, related_name='user_dref_final_report'
+    )
+    is_assessment_report = models.BooleanField(
+        verbose_name=_('Is assessment Report'),
+        null=True, blank=True
+    )
+    images = models.ManyToManyField(
+        'DrefFile', blank=True,
+        verbose_name=_('images'),
+        related_name='image_dref_final_report'
+    )
+    cover_image = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        blank=True, null=True,
+        verbose_name=_('cover image'),
+        related_name='cover_image_dref_final_report'
+    )
+    is_there_major_coordination_mechanism = models.BooleanField(
+        null=True, blank=True,
+        help_text=_('Is there major coordinate mechanism')
+    )
+    major_coordination_mechanism = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('major coordination mechanism'),
+    )
+    total_targeted_population = models.IntegerField(
+        verbose_name=_('total targeted population'),
+        blank=True, null=True
+    )
+    risk_security = models.ManyToManyField(
+        RiskSecurity, blank=True,
+        verbose_name=_('Risk Security')
+    )
+    risk_security_concern = models.TextField(
+        blank=True, null=True,
+        verbose_name=_('Risk Security Concern')
+    )
+    event_date = models.DateField(
+        verbose_name=_('event date'),
+        null=True, blank=True,
+        help_text=_('Date of event/Approximate date of impact')
+    )
+    national_society_actions = models.ManyToManyField(
+        NationalSocietyAction, verbose_name=_('national society actions'),
+        blank=True
+    )
+    people_in_need = models.IntegerField(
+        verbose_name=_('people in need'),
+        blank=True, null=True
+    )
+    event_text = models.TextField(verbose_name=_('event text'), blank=True, null=True)
+    ns_respond_date = models.DateField(
+        verbose_name=_('ns respond date'),
+        null=True, blank=True,
+        help_text=_('NS anticipatory actions started/NS response')
+    )
+    did_national_society = models.BooleanField(
+        verbose_name=_('Did National Society'),
+        null=True, blank=True
+    )
+    financial_report = models.ForeignKey(
+        'DrefFile', on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_('financial report'),
+        related_name='financial_report_dref_final_report'
+    )
+    num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted'),
+        blank=True, null=True
+    )
+    has_national_society_conducted = models.BooleanField(
+        verbose_name=_('Has national society conducted any intervention'),
+        null=True, blank=True
+    )
+    national_society_conducted_description = models.TextField(
+        verbose_name=_('National Society conducted description'),
+        null=True, blank=True
+    )
+    financial_report_description = models.TextField(
+        verbose_name=_('Financial Report Description'),
+        null=True, blank=True
     )
 
     class Meta:

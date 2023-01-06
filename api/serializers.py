@@ -399,7 +399,8 @@ class RelatedAppealSerializer(ModelSerializer):
     class Meta:
         model = Appeal
         fields = (
-            'aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'status_display', 'start_date', 'id',
+            'aid', 'num_beneficiaries', 'amount_requested', 'code',
+            'amount_funded', 'status', 'status_display', 'start_date', 'id',
         )
 
 

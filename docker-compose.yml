@@ -24,6 +24,9 @@ x-server: &base_server_setup
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
     ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
     CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
+    # Appeal API
+    APPEALS_USER: ${APPEALS_USER}
+    APPEALS_PASS: ${APPEALS_PASS}
   env_file:
     - .env
   volumes:
