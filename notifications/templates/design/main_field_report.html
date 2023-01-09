@@ -732,13 +732,13 @@
                               </tr>
                           {% endif %}
 581 - 733 {% endcomment %}
-                          {% if fr.other_fields.appeal.name != 'NO' %}
+                          {% if fr.other_fields.appeal != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold" width="30%">
                                       Emergency Appeal
                                   </td>
                                   <td align="left">
-                                      {{ fr.other_fields.appeal.name }} </td>
+                                      {{ fr.other_fields.appeal }} </td>
                               </tr>
                           {% endif %}
                           {% if fr.other_fields.appeal_amount %}
