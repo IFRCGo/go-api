@@ -4,7 +4,7 @@
       "go-admin2-UKR": {
         "source": "mapbox://tileset-source/go-ifrc/go-admin2-UKR-src",
         "minzoom": 5,
-        "maxzoom": 14
+        "maxzoom": 10
       }
     }
   }
