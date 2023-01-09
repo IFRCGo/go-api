@@ -260,7 +260,7 @@
                       National Society: {{ fr.ns_assistance }}
                     </td>
                   </tr>
-                  {% if fr.other_fields.bulletin %}
+                  {% if fr.other_fields.bulletin != 'No' %}
                   <tr>
                     <td class="text-default text-light pb-10" style="color: #000000;font-family:'Lato', Arial, sans-serif;padding-bottom: 10px;font-weight: 300;">
                       Information Bulletin: {{ fr.other_fields.bulletin }}
@@ -343,7 +343,7 @@
                   <tr>
                     <td>
                       <table width="100%" border="0" cellspacing="0" cellpadding="6" bgcolor="#ffffff" style="font-family: 'Lato', Arial, sans-serif">
-                          {% if fr.other_fields.dref %}
+                          {% if fr.other_fields.dref != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold" width="30%">
                                       DREF Request
@@ -361,7 +361,7 @@
                                       {{ fr.other_fields.dref_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.imminent_dref %}
+                          {% if fr.other_fields.imminent_dref != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold" width="30%">
                                       Imminent DREF
@@ -379,7 +379,7 @@
                                       {{ fr.other_fields.imminent_dref_amount|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_base_camp %}
+                          {% if fr.other_fields.eru_base_camp != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU Base Camp
@@ -397,7 +397,7 @@
                                       {{ fr.other_fields.eru_base_camp_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_basic_health_care %}
+                          {% if fr.other_fields.eru_basic_health_care != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU basic health care
@@ -415,7 +415,7 @@
                                       {{ fr.other_fields.eru_basic_health_care_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_deployment_hospital %}
+                          {% if fr.other_fields.eru_deployment_hospital != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU deployment Hospital
@@ -433,7 +433,7 @@
                                       {{ fr.other_fields.eru_deployment_hospital_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_it_telecom %}
+                          {% if fr.other_fields.eru_it_telecom != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU IT Telecom
@@ -451,7 +451,7 @@
                                       {{ fr.other_fields.eru_it_telecom_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_logistics %}
+                          {% if fr.other_fields.eru_logistics != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU Logistics
@@ -469,7 +469,7 @@
                                       {{ fr.other_fields.eru_logistics_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_referral_hospital %}
+                          {% if fr.other_fields.eru_referral_hospital != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU referral Hospital
@@ -487,7 +487,7 @@
                                       {{ fr.other_fields.eru_referral_hospital_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_relief %}
+                          {% if fr.other_fields.eru_relief != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU Relief
@@ -505,7 +505,7 @@
                                       {{ fr.other_fields.eru_relief_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_water_sanitation_15 %}
+                          {% if fr.other_fields.eru_water_sanitation_15 != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU water sanitation 15:
@@ -523,7 +523,7 @@
                                       {{ fr.other_fields.eru_water_sanitation_15_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_water_sanitation_20 %}
+                          {% if fr.other_fields.eru_water_sanitation_20 != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU water sanitation 20
@@ -541,7 +541,7 @@
                                       {{ fr.other_fields.eru_water_sanitation_20_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.eru_water_sanitation_40 %}
+                          {% if fr.other_fields.eru_water_sanitation_40 != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       ERU water sanitation 40
@@ -559,7 +559,7 @@
                                       {{ fr.other_fields.eru_water_sanitation_40_units|floatformat:"1"|intcomma|slice:":-2" }} </td>
                               </tr>
                           {% endif %}
-                          {% if fr.other_fields.forecast_based_action %}
+                          {% if fr.other_fields.forecast_based_action != 'No' %}
                               <tr>
                                   <td align="left" style="font-weight: bold">
                                       Forecast Based Action
