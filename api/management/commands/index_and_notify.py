@@ -481,7 +481,7 @@ class Command(BaseCommand):
                 'dtype_id': record.dtype_id,
                 'visibility': record.visibility,
                 'other_fields': {
-                    'appeal': record.appeal,
+                    'appeal': record.get_appeal_display(),
                     'appeal_amount': record.appeal_amount,
                     'bulletin': record.bulletin,
                     'countries': ', '.join(i.name for i in record.countries.all()),
