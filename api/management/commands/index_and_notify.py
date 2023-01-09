@@ -479,7 +479,7 @@ class Command(BaseCommand):
                 'gov_assistance': 'Yes' if record.request_assistance else 'No',
                 'ns_assistance': 'Yes' if record.ns_request_assistance else 'No',
                 'dtype_id': record.dtype_id,
-                'visibility': record.visibility,
+                'visibility': record.get_visibility_display(),
                 'other_fields': {
                     'appeal': record.get_appeal_display(),
                     'appeal_amount': record.appeal_amount,
@@ -727,7 +727,7 @@ class Command(BaseCommand):
             # Handle Visibility for Field Reports
             if rtype == RecordType.FIELD_REPORT:
                 rtype_of_subscr, stype = self.fix_types_for_subs(rtype, stype)
-                non_ifrc_records = [rec for rec in record_entries if int(rec['visibility']) != 2]
+                non_ifrc_records = [rec for rec in record_entries if rec['visibility'] != 'IFRC Only']
                 if non_ifrc_records:
                     non_ifrc_filters = (Q(subscription__rtype=rtype_of_subscr) &
                                         Q(subscription__stype=stype) &
