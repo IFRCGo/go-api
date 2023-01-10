@@ -1,7 +1,7 @@
 import json
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from .models import LocalUnit
+from .models import LocalUnit, LocalUnitType
 from api.models import Country
 
 
@@ -13,15 +13,27 @@ class CountrySerializer(ModelSerializer):
             'name', 'iso3'
         )
 
+class LocalUnitTypeSerializer(ModelSerializer):
+
+    class Meta:
+        model = LocalUnitType
+        fields = (
+            'name', 'level'
+        )
+
 class LocalUnitSerializer(ModelSerializer):
     location = SerializerMethodField()
     country = CountrySerializer()
+    type = LocalUnitTypeSerializer()
     class Meta:
         model = LocalUnit
         fields = [
-            'unique_id', 'national_society_name', 'local_branch_name', 'english_branch_name',
-            'branch_level', 'branch_type_name', 'created_at', 'modified_at', 'draft', 'validated',
-            'source', 'address', 'post_code', 'phone', 'link', 'location', 'country'
+            'local_branch_name', 'english_branch_name', 'type', 'country',
+            'created_at', 'modified_at', 'draft', 'validated', 'postcode',
+            'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
+            'location', 'focal_person_loc', 'focal_person_en',
+            'source_loc', 'source_en'
+            # 'email', 'phone',
             ]
 
     def get_location(self, unit):
@@ -29,3 +41,6 @@ class LocalUnitSerializer(ModelSerializer):
     
     def get_country(self, unit):
         return {'country'}
+
+    def get_type(self, unit):
+        return {'type'}
