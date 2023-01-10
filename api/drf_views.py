@@ -18,6 +18,7 @@ from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
+from .utils import is_user_ifrc
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -437,10 +438,20 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if pk:
             try:
                 if self.request.user.is_authenticated:
-                    if self.request.user.is_superuser:
+                    if is_user_ifrc(self.request.user):
                         instance = Event.objects.get(pk=pk)
                     else:
-                        instance = Event.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True)))).get(pk=pk)
+                        user_countries = UserCountry.objects\
+                            .filter(user=request.user.id).values('country')\
+                            .union(
+                                Profile.objects.filter(user=request.user.id).values('country')
+                            )
+                        instance = Event.objects\
+                            .exclude(
+                                visibility=VisibilityChoices.IFRC)\
+                            .exclude(
+                                Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))\
+                            .get(pk=pk)
                 else:
                     instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
