@@ -85,7 +85,7 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Focal person for English')
     )
-    postcode = models.CharField(max_length=10, verbose_name=_('Postal code'))
+    postcode = models.CharField(max_length=10, null=True, verbose_name=_('Postal code'))
     phone = models.CharField(
         max_length=20,
         blank=True,
