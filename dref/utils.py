@@ -14,57 +14,46 @@ def get_email_context(instance):
 
     dref_data = DrefSerializer(instance).data
     email_context = {
-        'id': dref_data['id'],
-        'title': dref_data['title'],
-        'frontend_url': settings.FRONTEND_URL,
+        "id": dref_data["id"],
+        "title": dref_data["title"],
+        "frontend_url": settings.FRONTEND_URL,
     }
     return email_context
 
 
-# get the list fo users in dref
-def get_users_in_dref():
-    data = Dref.objects.values('id').annotate(created_user_list=ArrayAgg(
-        'created_by', filter=models.Q(created_by__isnull=False))
-    ).annotate(
-        users_list=ArrayAgg('users', filter=models.Q(users__isnull=False))
-    ).annotate(
-        op_created_by=models.Subquery(
-            DrefOperationalUpdate.objects.filter(
-                dref=models.OuterRef('id')
-            ).order_by().values('id').annotate(
-                c=ArrayAgg('created_by', filter=models.Q(created_by__isnull=False))
-            ).values('c')[:1]
-        ),
+def get_dref_users():
+    dref_users_qs = Dref.objects.annotate(
+        created_user_list=ArrayAgg("created_by", filter=models.Q(created_by__isnull=False)),
+        users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
         op_users=models.Subquery(
-            DrefOperationalUpdate.objects.filter(
-                dref=models.OuterRef('id')
-            ).order_by().values('id').annotate(
-                c=ArrayAgg('users', filter=models.Q(users__isnull=False))
-            ).values('c')[:1]
-        )
-    )
-    return data
-
-
-# get the list fo users in dref
-def get_users_in_dref_operational_update():
-    data = DrefOperationalUpdate.objects.values('id').annotate(
-        created_user_list=ArrayAgg(
-            'created_by', filter=models.Q(users__isnull=False)
+            DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
+            .order_by()
+            .values("dref")
+            .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+            .values("c")[:1]
         ),
-        users=ArrayAgg(
-            'users', filter=models.Q(users__isnull=False)
+        fr_users=models.Subquery(
+            DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
+            .order_by()
+            .values("dref")
+            .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+            .values("c")[:1],
+        ),
+    ).values("id", "created_user_list", "users_list", "op_users", "fr_users")
+    dref_users_list = []
+    for dref in dref_users_qs:
+        if dref["created_user_list"] is None:
+            dref["created_user_list"] = []
+        if dref["users_list"] is None:
+            dref["users_list"] = []
+        if dref["op_users"] is None:
+            dref["op_users"] = []
+        if dref["fr_users"] is None:
+            dref["fr_users"] = []
+        dref_users_list.append(
+            dict(
+                id=dref["id"],
+                users=set(list(dref["created_user_list"] + dref["users_list"] + dref["op_users"] + dref["fr_users"])),
+            )
         )
-    )
-    share_with_users = DrefOperationalUpdate.objects.values_list('users', flat=True)
-    created_by_users = DrefOperationalUpdate.objects.values_list('created_by', flat=True)
-    users = share_with_users.union(created_by_users)
-    return users
-
-
-# get the list fo users in dref
-def get_users_in_dref_final_report():
-    share_with_users = DrefFinalReport.objects.values_list('users', flat=True)
-    created_by_users = DrefFinalReport.objects.values_list('created_by', flat=True)
-    users = share_with_users.union(created_by_users)
-    return users
+    return dref_users_list

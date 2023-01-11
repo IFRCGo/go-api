@@ -12,7 +12,7 @@ from dref.models import (
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
-    PlannedInterventionIndicators
+    PlannedInterventionIndicators,
 )
 
 
@@ -20,7 +20,7 @@ class DrefFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Dref
 
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyText(length=50, prefix="title-")
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     status = fuzzy.FuzzyChoice(Dref.Status)
@@ -75,18 +75,15 @@ class DrefFileFactory(factory.django.DjangoModelFactory):
         model = DrefFile
 
     file = factory.LazyAttribute(
-        lambda _: ContentFile(
-            factory.django.ImageField()._make_data(
-                {'width': 1024, 'height': 768}
-            ), 'dref.jpg'
-        )
+        lambda _: ContentFile(factory.django.ImageField()._make_data({"width": 1024, "height": 768}), "dref.jpg")
     )
 
 
 class PlannedInterventionIndicatorsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PlannedInterventionIndicators
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+
+    title = fuzzy.FuzzyText(length=50, prefix="title-")
 
 
 class PlannedInterventionFactory(factory.django.DjangoModelFactory):
@@ -122,7 +119,8 @@ class NationalSocietyActionFactory(factory.django.DjangoModelFactory):
 class DrefOperationalUpdateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = DrefOperationalUpdate
-    title = fuzzy.FuzzyText(length=50, prefix='title-')
+
+    title = fuzzy.FuzzyText(length=50, prefix="title-")
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     national_society = factory.SubFactory(CountryFactory)
@@ -159,7 +157,7 @@ class DrefFinalReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = DrefFinalReport
 
-    title = fuzzy.FuzzyText(length=50, prefix='Final-Report-')
+    title = fuzzy.FuzzyText(length=50, prefix="Final-Report-")
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     national_society = factory.SubFactory(CountryFactory)
