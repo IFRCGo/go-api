@@ -22,10 +22,13 @@ class Command(BaseCommand):
             for row in reader:
                 unit = LocalUnit()
                 unit.country = Country.objects.get(iso3=row['ISO3'])
-                unit.type = LocalUnitType.objects.get_or_create(
+                unit.type, created = LocalUnitType.objects.get_or_create(
                     level=row['TYPECODE'],
                     name=row['TYPENAME']
-                )[0]
+                )
+                if created:
+                    print(f'New LocalUnitType created: {unit.type.name}')
+
                 unit.name_loc = row['NAME_LOC']
                 unit.name_en = row['NAME_EN']
                 unit.branch_level = int(row['TYPECODE'])
