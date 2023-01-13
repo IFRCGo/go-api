@@ -55,10 +55,11 @@ class TestLocalUnitsDetailView(TestCase):
         LocalUnitFactory.create_batch(2, country=country, type=type)
 
     def test_detail(self):
-        response = self.client.get('/api/v2/local-unit/1/')
-#        self.assertEqual(response.status_code, 200)
-#        self.assertEqual(response.data['location']['coordinates'], [12, 38])
-#        self.assertEqual(response.data['country']['name'], 'Nepal')
-#        self.assertEqual(response.data['country']['iso3'], 'NLP')
-#        self.assertEqual(response.data['type']['name'], 'Level 0')
-#        self.assertEqual(response.data['type']['level'], 0)
+        local_unit = LocalUnit.objects.all().first()
+        response = self.client.get(f'/api/v2/local-unit/{local_unit.id}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['location']['coordinates'], [12, 38])
+        self.assertEqual(response.data['country']['name'], 'Nepal')
+        self.assertEqual(response.data['country']['iso3'], 'NLP')
+        self.assertEqual(response.data['type']['name'], 'Level 0')
+        self.assertEqual(response.data['type']['level'], 0)
