@@ -4,7 +4,7 @@
       "go-admin2-UKR-staging": {
         "source": "mapbox://tileset-source/go-ifrc/go-admin2-UKR-src-staging",
         "minzoom": 5,
-        "maxzoom": 14
+        "maxzoom": 10
       }
     }
   }
