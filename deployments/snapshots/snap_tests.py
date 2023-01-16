@@ -416,7 +416,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 6730000,
+            'budget_amount_total': 7050000,
             'id': 31,
             'iso3': 'IBB',
             'name': 'country-TtOYzaCmFldtcpOlRYtastbgkeCJvBTOnPWtmzervxcfkMbqpf',
@@ -440,8 +440,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         {
             'budget_amount_total': 4260000,
             'id': 33,
-            'iso3': 'STh',
-            'name': 'country-GhslFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPpOuh',
+            'iso3': 'PNP',
+            'name': 'country-TIuGhslFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPp',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -456,7 +456,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'Health'
                 }
             ],
-            'society_name': 'society-name-NKDMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyjPObO',
+            'society_name': 'society-name-tSThNKDMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyj',
             'target_total': 0
         },
         {
