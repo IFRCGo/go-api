@@ -605,7 +605,7 @@ class Event(models.Model):
     )
 
     class Meta:
-        ordering = ('-disaster_start_date',)
+        ordering = ('-disaster_start_date', 'id',)
         verbose_name = _('emergency')
         verbose_name_plural = _('emergencies')
 

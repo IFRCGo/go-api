@@ -6,11 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.467
+
+### Added
+ - Pagination fix (event, personnel)
+
 ## 1.1.466
 
 ### Added
  - DREF Final Report finalization + new features
- - LocalUnits – first steps
+ - LocalUnits
  - Event visibility fix
 
 ## 1.1.465
@@ -2133,7 +2138,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.466...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.467...HEAD
+[1.1.467]: https://github.com/IFRCGo/go-api/compare/1.1.466...1.1.467
 [1.1.466]: https://github.com/IFRCGo/go-api/compare/1.1.465...1.1.466
 [1.1.465]: https://github.com/IFRCGo/go-api/compare/1.1.464...1.1.465
 [1.1.464]: https://github.com/IFRCGo/go-api/compare/1.1.463...1.1.464
