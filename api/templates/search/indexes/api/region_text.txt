@@ -1,0 +1,1 @@
+{{object.name.get_name_display}}

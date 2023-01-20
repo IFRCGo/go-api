@@ -17,6 +17,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
+from rest_framework.pagination import LimitOffsetPagination
 
 from deployments.models import Heop, ERUType, ProgrammeTypes, Sectors, OperationTypes, Statuses
 from notifications.models import Subscription
@@ -27,6 +28,10 @@ from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
 from .indexes import ES_PAGE_NAME
 from .logger import logger
+from haystack.query import SearchQuerySet
+from api.models import Country
+from haystack.inputs import AutoQuery, Raw
+from haystack.query import SQ
 
 
 def bad_request(message):
@@ -140,6 +145,66 @@ class EsPageSearch(APIView):
         )
         return JsonResponse(results['hits'])
 
+class HayStackSearch(APIView):
+
+    def get(self, request):
+        phrase = request.GET.get('keyword', None)
+        if phrase is None:
+            return bad_request('Must include a `keyword`')
+
+        if phrase:
+            country_response = SearchQuerySet().models(Country).filter(
+                SQ(name__contains=phrase) |
+                SQ(society_name__contains=phrase)
+            ).order_by('-_score')
+            emergency_response = SearchQuerySet().models(Event).filter(
+                SQ(name__contains=phrase)).order_by('-_score')
+            print(emergency_response)
+            for data in emergency_response:
+                print(data, "***")
+            appeal_response = SearchQuerySet().models(Appeal).filter(
+                SQ(name__contains=phrase)).order_by('-_score')
+            fieldreport_response = SearchQuerySet().models(FieldReport).filter(
+                SQ(name__contains=phrase)).order_by('-_score')
+        searched_data = []
+        result = {
+            "countries": [
+                {
+                    "id": data.id,
+                    "name": data.name,
+                    "society_name": data.society_name,
+                } for data in country_response
+            ],
+            "emergencies": [
+                {
+                    "id": data.id,
+                    "name": data.name,
+                    "disaster_type": data.disaster_type,
+                    "funding_requirements": data.amount_requested,
+                    "fundind_coverage": data.amount_funded,
+                    "event_date": data.disaster_start_date
+                } for data in emergency_response
+            ],
+            "appeals": [
+                {
+                    "id": data.id,
+                    "name": data.name,
+                    "appeal_type": data.appeal_type,
+                    "code": data.code,
+                    "country": data.country_id,
+                    "start_date": data.start_date,
+                } for data in appeal_response
+            ],
+            "field_report": [
+                {
+                    "id": data.id,
+                    "name": data.name,
+                    "created_at": data.created_at,
+                } for data in fieldreport_response
+            ]
+        }
+        searched_data.append(result)
+        return Response(searched_data)
 
 class ERUTypes(APIView):
     @classmethod

@@ -1,0 +1,5 @@
+{{object.name}}
+{{object.disaster_type}}
+{{object.amount_requested}}
+{{object.amount_funded}}
+{{object.disaster_start_date}}

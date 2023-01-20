@@ -57,7 +57,7 @@ services:
       - redis-data:/data
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
     container_name: elasticsearch
     environment:
       - cluster.name=docker-cluster
@@ -76,7 +76,7 @@ services:
       - 9200:9200
 
   kibana:
-    image: 'docker.elastic.co/kibana/kibana:6.4.2'
+    image: 'docker.elastic.co/kibana/kibana:7.0.0'
     container_name: kibana
     environment:
       SERVER_NAME: kibana.local
@@ -93,98 +93,98 @@ services:
       - 8000:8000
     command: python manage.py runserver 0.0.0.0:8000
 
-  For development only
-  celery:
-    <<: *base_server_setup
-    command: python manage.py run_celery_dev
+  # # For development only
+  # celery:
+  #   <<: *base_server_setup
+  #   command: python manage.py run_celery_dev
 
-  bash:
-    <<: *base_server_setup
-    entrypoint: /bin/bash
+  # bash:
+  #   <<: *base_server_setup
+  #   entrypoint: /bin/bash
 
-  shell:
-    <<: *base_server_setup
-    command: python manage.py shell
+  # shell:
+  #   <<: *base_server_setup
+  #   command: python manage.py shell
 
-  loaddata:
-    <<: *base_server_setup
-    command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
+  # loaddata:
+  #   <<: *base_server_setup
+  #   command: python manage.py loaddata Regions Countries Districts DisasterTypes Actions Groups
 
-  ingest_databank:
-    <<: *base_server_setup
-    command: python manage.py ingest_databank
+  # ingest_databank:
+  #   <<: *base_server_setup
+  #   command: python manage.py ingest_databank
 
-  collectstatic:
-    <<: *base_server_setup
-    command: python manage.py collectstatic --noinput -l
+  # collectstatic:
+  #   <<: *base_server_setup
+  #   command: python manage.py collectstatic --noinput -l
 
-  createsuperuser:
-    <<: *base_server_setup
-    command: python manage.py createsuperuser
+  # createsuperuser:
+  #   <<: *base_server_setup
+  #   command: python manage.py createsuperuser
 
-  ingest_appeals:
-    <<: *base_server_setup
-    command: python manage.py ingest_appeals
+  # ingest_appeals:
+  #   <<: *base_server_setup
+  #   command: python manage.py ingest_appeals
 
-  ingest_appeal_docs:
-    <<: *base_server_setup
-    command: python manage.py ingest_appeal_docs
+  # ingest_appeal_docs:
+  #   <<: *base_server_setup
+  #   command: python manage.py ingest_appeal_docs
 
-  ingest_appeal_docs:
-    <<: *base_server_setup
-    command: python manage.py user_registration_reminder
+  # ingest_appeal_docs:
+  #   <<: *base_server_setup
+  #   command: python manage.py user_registration_reminder
 
-  ingest_appeal_docs_fullscan:
-    <<: *base_server_setup
-    command: python manage.py ingest_appeal_docs --fullscan
+  # ingest_appeal_docs_fullscan:
+  #   <<: *base_server_setup
+  #   command: python manage.py ingest_appeal_docs --fullscan
 
-  ingest_mdb:
-    <<: *base_server_setup
-    command: python manage.py ingest_mdb
+  # ingest_mdb:
+  #   <<: *base_server_setup
+  #   command: python manage.py ingest_mdb
 
-  migrate:
-    <<: *base_server_setup
-    command: python manage.py migrate
+  # migrate:
+  #   <<: *base_server_setup
+  #   command: python manage.py migrate
 
-  makemigrations:
-    <<: *base_server_setup
-    command: python manage.py makemigrations
+  # makemigrations:
+  #   <<: *base_server_setup
+  #   command: python manage.py makemigrations
 
-  makemigrations_merge:
-    <<: *base_server_setup
-    command: python manage.py makemigrations --merge
+  # makemigrations_merge:
+  #   <<: *base_server_setup
+  #   command: python manage.py makemigrations --merge
 
-  make_permissions:
-    <<: *base_server_setup
-    command: python manage.py make_permissions
+  # make_permissions:
+  #   <<: *base_server_setup
+  #   command: python manage.py make_permissions
 
-  test:
-    <<: *base_server_setup
-    command: pytest --durations=10
+  # test:
+  #   <<: *base_server_setup
+  #   command: pytest --durations=10
 
-  test_snapshot_update:
-    <<: *base_server_setup
-    command: python manage.py test -k --snapshot-update
+  # test_snapshot_update:
+  #   <<: *base_server_setup
+  #   command: python manage.py test -k --snapshot-update
 
-  testr:
-    <<: *base_server_setup
-    command: pytest --reuse-db --durations=10 -s
+  # testr:
+  #   <<: *base_server_setup
+  #   command: pytest --reuse-db --durations=10 -s
 
-  coverage:
-    <<: *base_server_setup
-    command: coverage run --source='.' manage.py test -k
+  # coverage:
+  #   <<: *base_server_setup
+  #   command: coverage run --source='.' manage.py test -k
 
-  coverage_report:
-    <<: *base_server_setup
-    command: coverage report
+  # coverage_report:
+  #   <<: *base_server_setup
+  #   command: coverage report
 
-  coverage_html:
-    <<: *base_server_setup
-    command: coverage html
+  # coverage_html:
+  #   <<: *base_server_setup
+  #   command: coverage html
 
-  triggers_to_db:
-    <<: *base_server_setup
-    command: python manage.py triggers_to_db
+  # triggers_to_db:
+  #   <<: *base_server_setup
+  #   command: python manage.py triggers_to_db
 
 volumes:
   redis-data:

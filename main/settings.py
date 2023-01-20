@@ -160,6 +160,7 @@ INSTALLED_APPS = [
     'tinymce',
     'admin_auto_filters',
     # 'django_celery_beat',
+    'haystack',
 
     # Logging
     'reversion',
@@ -510,3 +511,13 @@ if SENTRY_DSN:
         app_type='API',
         **SENTRY_CONFIG,
     )
+# Required for Django HayStack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+        'URL': ELASTIC_SEARCH_HOST,
+        'INDEX_NAME': 'new_index',
+    },
+}
+
+HAYSTACK_LIMIT_TO_REGISTERED_MODELS = False

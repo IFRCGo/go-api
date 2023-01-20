@@ -49,7 +49,8 @@ from api.views import (
     AddCronJobLog,
     DummyHttpStatusError,
     DummyExceptionError,
-    ResendValidation
+    ResendValidation,
+    HayStackSearch,
 )
 from registrations.views import (
     NewRegistration,
@@ -172,6 +173,7 @@ admin.site.site_title = 'IFRC Go admin'
 
 urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
+    url(r'^api/v1/search/', HayStackSearch.as_view()),
     url(r'^api/v1/es_health/', EsPageHealth.as_view()),
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),

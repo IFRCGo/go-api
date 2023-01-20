@@ -1,0 +1,4 @@
+{{object.id}}
+{{object.name}}
+{{object.society_name}}
+{{object.society_url}}
