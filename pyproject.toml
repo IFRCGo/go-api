@@ -78,6 +78,7 @@ xhtml2pdf = "==0.2.5"
 reportlab = "==3.6.6"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
 celery = { version = "==5.1.2", extras = ["redis"] }
 django-redis = "==5.0.0"
+sentry-sdk = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"
