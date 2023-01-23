@@ -1,9 +1,17 @@
 import os
 import celery
 
+from django.conf import settings
+from main import sentry
+
 
 class CustomCeleryApp(celery.Celery):
-    pass
+    def on_configure(self):
+        if settings.SENTRY_DSN:
+            sentry.init_sentry(
+                app_type='WORKER',
+                **settings.SENTRY_CONFIG,
+            )
 
 
 # set the default Django settings module for the 'celery' program.
