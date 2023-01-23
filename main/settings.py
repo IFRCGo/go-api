@@ -7,6 +7,9 @@ import environ
 from django.utils.translation import gettext_lazy as _
 # from celery.schedules import crontab
 from urllib3.util.retry import Retry
+from corsheaders.defaults import default_headers
+
+from main import sentry
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -72,6 +75,9 @@ env = environ.Env(
     # Appeal Server Credentials (https://go-api.ifrc.org/api/)
     APPEALS_USER=(str, None),
     APPEALS_PASS=(str, None),
+    # Sentry
+    SENTRY_DSN=(str, None),
+    SENTRY_SAMPLE_RATE=(float, 0.2),
 )
 
 
@@ -172,6 +178,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'main.exception_handler.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 50,
     'DEFAULT_FILTER_BACKENDS': (
@@ -214,6 +221,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'sentry-trace',
+]
 
 ROOT_URLCONF = 'main.urls'
 
@@ -479,3 +489,24 @@ DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
 # Appeal Server Credentials
 APPEALS_USER = env('APPEALS_USER')
 APPEALS_PASS = env('APPEALS_PASS')
+
+# Sentry Config
+SENTRY_DSN = env('SENTRY_DSN')
+SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
+
+SENTRY_CONFIG = {
+    'dsn': SENTRY_DSN,
+    'send_default_pii': True,
+    'traces_sample_rate': SENTRY_SAMPLE_RATE,
+    'release': sentry.fetch_git_sha(BASE_DIR),
+    'environment': GO_ENVIRONMENT,
+    'debug': DEBUG,
+    'tags': {
+        'site': GO_API_FQDN,
+    },
+}
+if SENTRY_DSN:
+    sentry.init_sentry(
+        app_type='API',
+        **SENTRY_CONFIG,
+    )
