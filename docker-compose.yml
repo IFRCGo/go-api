@@ -27,6 +27,10 @@ x-server: &base_server_setup
     # Appeal API
     APPEALS_USER: ${APPEALS_USER}
     APPEALS_PASS: ${APPEALS_PASS}
+    # Sentry
+    SENTRY_DSN: ${SENTRY_DSN}
+    SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
+
   env_file:
     - .env
   volumes:
