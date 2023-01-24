@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.aggregates import ArrayAgg
 
 from api.models import Country, DisasterType, District, FieldReport
 
@@ -585,33 +586,31 @@ class Dref(models.Model):
     @staticmethod
     def get_for(user):
         user_id = user.id
-        return (
-            Dref.objects.annotate(
+        current_user_list = []
+        current_user_list.append(user_id)
+        return Dref.objects.annotate(
                 created_user_list=models.F("created_by"),
-                users_list=models.F("users"),
+                users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
                 op_users=models.Subquery(
                     DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
                     .order_by()
                     .values("id")
-                    .annotate(c=models.F("users"))
+                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
                     .values("c")[:1]
                 ),
                 fr_users=models.Subquery(
                     DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
                     .order_by()
                     .values("id")
-                    .annotate(c=models.F("users"))
+                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
                     .values("c")[:1],
                 ),
-            )
-            .filter(
+            ).filter(
                 models.Q(created_user_list=user_id)
-                | models.Q(users_list=user_id)
-                | models.Q(op_users=user_id)
-                | models.Q(fr_users=user_id)
-            )
-            .distinct()
-        )
+                | models.Q(users_list__contains=current_user_list)
+                | models.Q(op_users__contains=current_user_list)
+                | models.Q(fr_users__contains=current_user_list)
+            ).distinct()
 
 
 class DrefFile(models.Model):

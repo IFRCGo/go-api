@@ -69,7 +69,7 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefOperationalUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated, DrefOperationalUpdateUpdatePermission]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_class = DrefOperationalUpdateFilter
 
     def get_queryset(self):
@@ -119,7 +119,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
 
 class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefFinalReportSerializer
-    permission_classes = [permissions.IsAuthenticated, DrefFinalReportUpdatePermission]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
