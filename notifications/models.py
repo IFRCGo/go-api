@@ -69,8 +69,12 @@ class SurgeAlert(models.Model):
     def __str__(self):
         if self.operation and self.operation != '':
             return self.operation
-        else:
+        elif self.event:
             return self.event.name
+        elif self.message:
+            return self.message
+        else:
+            return '–'
 
 
 class SubscriptionType(models.IntegerChoices):
