@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.468
+
+### Added
+ - Fix Surge Alert error 500 when no linked event
+
 ## 1.1.467
 
 ### Added
@@ -2138,7 +2143,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.467...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.468...HEAD
+[1.1.468]: https://github.com/IFRCGo/go-api/compare/1.1.467...1.1.468
 [1.1.467]: https://github.com/IFRCGo/go-api/compare/1.1.466...1.1.467
 [1.1.466]: https://github.com/IFRCGo/go-api/compare/1.1.465...1.1.466
 [1.1.465]: https://github.com/IFRCGo/go-api/compare/1.1.464...1.1.465
