@@ -1,0 +1,8 @@
+{{object.name}}
+{{object.event_name}}
+{{object.country_name}}
+{{object.start_date}}
+{{object.alert_date}}
+{% for molnix in object.molnix_tag_set.all %}
+    {{ molnix.name}}
+{% endfor %}

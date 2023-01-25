@@ -19,17 +19,25 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework.pagination import LimitOffsetPagination
 
-from deployments.models import Heop, ERUType, ProgrammeTypes, Sectors, OperationTypes, Statuses
-from notifications.models import Subscription
+from deployments.models import (
+    Heop,
+    ERUType,
+    ProgrammeTypes,
+    Sectors,
+    OperationTypes,
+    Statuses
+)
+from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
+from deployments.models import Project
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
 from .indexes import ES_PAGE_NAME
 from .logger import logger
 from haystack.query import SearchQuerySet
-from api.models import Country
+from api.models import Country, Region
 from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 
@@ -153,54 +161,90 @@ class HayStackSearch(APIView):
             return bad_request('Must include a `keyword`')
 
         if phrase:
+            region_response = SearchQuerySet().models(Region).filter(
+                SQ(name__contains=phrase)
+            )
             country_response = SearchQuerySet().models(Country).filter(
                 SQ(name__contains=phrase) |
                 SQ(society_name__contains=phrase)
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
                 SQ(name__contains=phrase)).order_by('-_score')
-            print(emergency_response)
-            for data in emergency_response:
-                print(data, "***")
             appeal_response = SearchQuerySet().models(Appeal).filter(
                 SQ(name__contains=phrase)).order_by('-_score')
             fieldreport_response = SearchQuerySet().models(FieldReport).filter(
                 SQ(name__contains=phrase)).order_by('-_score')
+            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
+                SQ(event_name__contains=phrase) | SQ(country_name__contains=phrase)
+            )
+            project_response = SearchQuerySet().models(Project).filter(
+                SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
+            ).order_by('-_score')
         searched_data = []
         result = {
+            "regions": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": region.name,
+                } for data in region_response[:50]
+            ],
             "countries": [
                 {
-                    "id": data.id,
+                    "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "society_name": data.society_name,
-                } for data in country_response
+                } for data in country_response[:50]
             ],
             "emergencies": [
                 {
-                    "id": data.id,
+                    "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "disaster_type": data.disaster_type,
                     "funding_requirements": data.amount_requested,
                     "fundind_coverage": data.amount_funded,
                     "event_date": data.disaster_start_date
-                } for data in emergency_response
+                } for data in emergency_response[:50]
             ],
             "appeals": [
                 {
-                    "id": data.id,
+                    "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "appeal_type": data.appeal_type,
                     "code": data.code,
-                    "country": data.country_id,
+                    "country": data.country_name,
                     "start_date": data.start_date,
-                } for data in appeal_response
+                } for data in appeal_response.order_by('-start_date')[:50]
             ],
             "field_report": [
                 {
-                    "id": data.id,
+                    "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "created_at": data.created_at,
-                } for data in fieldreport_response
+                } for data in fieldreport_response.order_by('-created_at')[:50]
+            ],
+            "surge_alert": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "keywords": data.molnix_tag,
+                    "event_name": data.event_name,
+                    "country": data.country_name,
+                    "start_date": data.start_date,
+                    "alert_date": data.alert_date
+                } for data in surge_alert_response.order_by('-start_date')[:50]
+            ],
+            "projects": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "event_name": data.event_name,
+                    "national_society": data.reporting_ns,
+                    "tags": data.tags,
+                    "sector": data.sector,
+                    "start_date": data.start_date,
+                    "regions": data.project_districts,
+                    "people_targeted": data.target_total
+                } for data in project_response.order_by('-start_date')[:50]
             ]
         }
         searched_data.append(result)
