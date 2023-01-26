@@ -176,7 +176,7 @@ class HayStackSearch(APIView):
                 SQ(name__contains=phrase)).order_by('-_score')
             surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
                 SQ(event_name__contains=phrase) | SQ(country_name__contains=phrase)
-            )
+            ).order_by('-_score')
             project_response = SearchQuerySet().models(Project).filter(
                 SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
             ).order_by('-_score')
@@ -193,6 +193,7 @@ class HayStackSearch(APIView):
                     "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "society_name": data.society_name,
+                    "score": data.score,
                 } for data in country_response[:50]
             ],
             "emergencies": [
@@ -201,8 +202,9 @@ class HayStackSearch(APIView):
                     "name": data.name,
                     "disaster_type": data.disaster_type,
                     "funding_requirements": data.amount_requested,
-                    "fundind_coverage": data.amount_funded,
-                    "event_date": data.disaster_start_date
+                    "funding_coverage": data.amount_funded,
+                    "event_date": data.disaster_start_date,
+                    "score": data.score,
                 } for data in emergency_response[:50]
             ],
             "appeals": [
@@ -213,6 +215,7 @@ class HayStackSearch(APIView):
                     "code": data.code,
                     "country": data.country_name,
                     "start_date": data.start_date,
+                    "score": data.score,
                 } for data in appeal_response.order_by('-start_date')[:50]
             ],
             "field_report": [
@@ -220,6 +223,7 @@ class HayStackSearch(APIView):
                     "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "created_at": data.created_at,
+                    "score": data.score,
                 } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
             "surge_alert": [
@@ -230,7 +234,8 @@ class HayStackSearch(APIView):
                     "event_name": data.event_name,
                     "country": data.country_name,
                     "start_date": data.start_date,
-                    "alert_date": data.alert_date
+                    "alert_date": data.alert_date,
+                    "score": data.score,
                 } for data in surge_alert_response.order_by('-start_date')[:50]
             ],
             "projects": [
@@ -243,7 +248,8 @@ class HayStackSearch(APIView):
                     "sector": data.sector,
                     "start_date": data.start_date,
                     "regions": data.project_districts,
-                    "people_targeted": data.target_total
+                    "people_targeted": data.target_total,
+                    "score": data.score,
                 } for data in project_response.order_by('-start_date')[:50]
             ]
         }
