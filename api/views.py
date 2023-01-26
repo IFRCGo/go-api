@@ -30,7 +30,7 @@ from deployments.models import (
 from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
-from deployments.models import Project
+from deployments.models import Project, ERU
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
@@ -180,6 +180,9 @@ class HayStackSearch(APIView):
             project_response = SearchQuerySet().models(Project).filter(
                 SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
             ).order_by('-_score')
+            surge_deployments = SearchQuerySet().models(ERU).filter(
+                SQ(event_name__contains=phrase) | SQ(country__contains=phrase)
+            ).order_by('-_score')
         result = {
             "regions": [
                 {
@@ -223,6 +226,7 @@ class HayStackSearch(APIView):
                     "name": data.name,
                     "created_at": data.created_at,
                     "score": data.score,
+                    "event_name": data.event_name,
                 } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
             "surge_alerts": [
@@ -250,6 +254,18 @@ class HayStackSearch(APIView):
                     "people_targeted": data.target_total,
                     "score": data.score,
                 } for data in project_response.order_by('-start_date')[:50]
+            ],
+            "surge_deployemnts": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "event_name": data.event_name,
+                    "deployed_country": data.country,
+                    "type": data.eru_type,
+                    "owner": data.eru_owner,
+                    "personnel_units": data.personnel_units,
+                    "equipment_units": data.equipment_units,
+
+                } for data in surge_deployments[:50]
             ]
         }
         return Response(result)

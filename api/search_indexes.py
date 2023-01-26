@@ -36,7 +36,7 @@ class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     visibility = indexes.CharField(model_attr='event__visibility', null=True)
     appeal_type = indexes.CharField(model_attr='atype')
     code = indexes.CharField(model_attr='code')
-    event_id = indexes.CharField(model_attr='event__id', null=True)
+    event__name = indexes.CharField(model_attr='event__name', null=True)
     country_name = indexes.CharField(model_attr='country__name')
     start_date = indexes.DateTimeField(model_attr='start_date', null=True)
 
@@ -71,7 +71,7 @@ class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
     name = indexes.CharField(model_attr='summary')
     visibility = indexes.CharField(model_attr='visibility', null=True)
     countries = indexes.MultiValueField(null=True)
-    event_id = indexes.CharField(model_attr='event_id', null=True)
+    event_name = indexes.CharField(model_attr='event__name', null=True)
     created_at = indexes.DateTimeField(model_attr='created_at')
 
     def get_model(self):
