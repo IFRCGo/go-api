@@ -180,7 +180,6 @@ class HayStackSearch(APIView):
             project_response = SearchQuerySet().models(Project).filter(
                 SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
             ).order_by('-_score')
-        searched_data = []
         result = {
             "regions": [
                 {
@@ -218,7 +217,7 @@ class HayStackSearch(APIView):
                     "score": data.score,
                 } for data in appeal_response.order_by('-start_date')[:50]
             ],
-            "field_report": [
+            "field_reports": [
                 {
                     "id": int(data.id.split(".")[-1]),
                     "name": data.name,
@@ -226,7 +225,7 @@ class HayStackSearch(APIView):
                     "score": data.score,
                 } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
-            "surge_alert": [
+            "surge_alerts": [
                 {
                     "id": int(data.id.split(".")[-1]),
                     "name": data.name,
@@ -253,8 +252,7 @@ class HayStackSearch(APIView):
                 } for data in project_response.order_by('-start_date')[:50]
             ]
         }
-        searched_data.append(result)
-        return Response(searched_data)
+        return Response(result)
 
 class ERUTypes(APIView):
     @classmethod
