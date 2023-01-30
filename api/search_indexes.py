@@ -73,6 +73,7 @@ class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
     countries = indexes.MultiValueField(null=True)
     event_name = indexes.CharField(model_attr='event__name', null=True)
     created_at = indexes.DateTimeField(model_attr='created_at')
+    event_id = indexes.IntegerField(model_attr='event__id', null=True)
 
     def get_model(self):
         return FieldReport

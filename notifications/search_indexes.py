@@ -11,6 +11,7 @@ class SurgeIndex(indexes.SearchIndex, indexes.Indexable):
     country_name = indexes.CharField(model_attr='country__name')
     start_date = indexes.DateTimeField(model_attr='start', null=True)
     alert_date = indexes.DateTimeField(model_attr='opens', null=True)
+    event_id = indexes.IntegerField(model_attr='event__id', null=True)
 
     def get_model(self):
         return SurgeAlert

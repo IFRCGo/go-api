@@ -13,7 +13,7 @@ class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
     sector = indexes.CharField(model_attr='get_primary_sector_display')
     tags = indexes.MultiValueField(model_attr='get_secondary_sectors_display')
     target_total = indexes.IntegerField(model_attr='target_total', null=True)
-
+    event_id = indexes.IntegerField(model_attr='event__id', null=True)
     def get_model(self):
         return Project
 
@@ -32,6 +32,7 @@ class ERUIndex(indexes.SearchIndex, indexes.Indexable):
     equipment_units = indexes.IntegerField(model_attr='equipment_units', null=True)
     eru_type = indexes.CharField(model_attr='get_type_display')
     eru_owner = indexes.CharField(model_attr='eru_owner__national_society_country__society_name')
+    event_id = indexes.IntegerField(model_attr='event__id', null=True)
 
     def get_model(self):
         return ERU

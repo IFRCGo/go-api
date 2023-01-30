@@ -227,6 +227,7 @@ class HayStackSearch(APIView):
                     "created_at": data.created_at,
                     "score": data.score,
                     "event_name": data.event_name,
+                    "event_id": data.event_id,
                 } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
             "surge_alerts": [
@@ -239,6 +240,7 @@ class HayStackSearch(APIView):
                     "start_date": data.start_date,
                     "alert_date": data.alert_date,
                     "score": data.score,
+                    "event_id": data.event_id,
                 } for data in surge_alert_response.order_by('-start_date')[:50]
             ],
             "projects": [
@@ -253,9 +255,10 @@ class HayStackSearch(APIView):
                     "regions": data.project_districts,
                     "people_targeted": data.target_total,
                     "score": data.score,
+                    "event_id": data.event_id,
                 } for data in project_response.order_by('-start_date')[:50]
             ],
-            "surge_deployemnts": [
+            "surge_deployments": [
                 {
                     "id": int(data.id.split(".")[-1]),
                     "event_name": data.event_name,
@@ -264,7 +267,7 @@ class HayStackSearch(APIView):
                     "owner": data.eru_owner,
                     "personnel_units": data.personnel_units,
                     "equipment_units": data.equipment_units,
-
+                    "event_id": data.event_id,
                 } for data in surge_deployments[:50]
             ]
         }
