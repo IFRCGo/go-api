@@ -3,6 +3,8 @@
 {{object.country_name}}
 {{object.start_date}}
 {{object.alert_date}}
+{{object.deadline}}
+{{object.status}}
 {% for molnix in object.molnix_tag_set.all %}
     {{ molnix.name}}
 {% endfor %}

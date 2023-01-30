@@ -241,6 +241,9 @@ class HayStackSearch(APIView):
                     "alert_date": data.alert_date,
                     "score": data.score,
                     "event_id": data.event_id,
+                    "status": data.status,
+                    "deadline": data.deadline,
+                    "surge_type": data.surge_type,
                 } for data in surge_alert_response.order_by('-start_date')[:50]
             ],
             "projects": [
