@@ -34,7 +34,7 @@ class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr='name')
     visibility = indexes.CharField(model_attr='event__visibility', null=True)
-    appeal_type = indexes.CharField(model_attr='atype')
+    appeal_type = indexes.CharField(model_attr='get_atype_display')
     code = indexes.CharField(model_attr='code')
     event__name = indexes.CharField(model_attr='event__name', null=True)
     country_name = indexes.CharField(model_attr='country__name')

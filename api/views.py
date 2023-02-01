@@ -161,33 +161,34 @@ class HayStackSearch(APIView):
             return bad_request('Must include a `keyword`')
 
         if phrase:
-            region_response = SearchQuerySet().models(Region).filter(
+            region_response = SearchQuerySet().models(Region).filter_and(
                 SQ(name__contains=phrase)
             )
-            country_response = SearchQuerySet().models(Country).filter(
+            country_response = SearchQuerySet().models(Country).filter_and(
                 SQ(name__contains=phrase) |
                 SQ(society_name__contains=phrase)
             ).order_by('-_score')
-            emergency_response = SearchQuerySet().models(Event).filter(
+            emergency_response = SearchQuerySet().models(Event).filter_and(
                 SQ(name__contains=phrase)).order_by('-_score')
-            appeal_response = SearchQuerySet().models(Appeal).filter(
+            appeal_response = SearchQuerySet().models(Appeal).filter_and(
                 SQ(name__contains=phrase)).order_by('-_score')
-            fieldreport_response = SearchQuerySet().models(FieldReport).filter(
+            fieldreport_response = SearchQuerySet().models(FieldReport).filter_and(
                 SQ(name__contains=phrase)).order_by('-_score')
-            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
+            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter_and(
                 SQ(event_name__contains=phrase) | SQ(country_name__contains=phrase)
             ).order_by('-_score')
-            project_response = SearchQuerySet().models(Project).filter(
+            project_response = SearchQuerySet().models(Project).filter_and(
                 SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
             ).order_by('-_score')
-            surge_deployments = SearchQuerySet().models(ERU).filter(
+            surge_deployments = SearchQuerySet().models(ERU).filter_and(
                 SQ(event_name__contains=phrase) | SQ(country__contains=phrase)
             ).order_by('-_score')
         result = {
             "regions": [
                 {
                     "id": int(data.id.split(".")[-1]),
-                    "name": region.name,
+                    "name": data.name,
+                    "score": data.score
                 } for data in region_response[:50]
             ],
             "countries": [
@@ -271,6 +272,7 @@ class HayStackSearch(APIView):
                     "personnel_units": data.personnel_units,
                     "equipment_units": data.equipment_units,
                     "event_id": data.event_id,
+                    "score": data.score,
                 } for data in surge_deployments[:50]
             ]
         }
