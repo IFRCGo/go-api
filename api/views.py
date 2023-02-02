@@ -162,27 +162,27 @@ class HayStackSearch(APIView):
             return bad_request('Must include a `keyword`')
 
         if phrase:
-            region_response = SearchQuerySet().models(Region).filter_and(
-                SQ(name__contains=phrase)
+            region_response = SearchQuerySet().models(Region).filter(
+                SQ(name__startswith=phrase)
             )
-            country_response = SearchQuerySet().models(Country).filter_and(
-                SQ(name__contains=phrase) |
-                SQ(society_name__contains=phrase)
+            country_response = SearchQuerySet().models(Country).filter(
+                SQ(name__startswith=phrase) |
+                SQ(society_name__startswith=phrase)
             ).order_by('-_score')
-            emergency_response = SearchQuerySet().models(Event).filter_and(
-                SQ(name__contains=phrase)).order_by('-_score')
-            appeal_response = SearchQuerySet().models(Appeal).filter_and(
-                SQ(name__contains=phrase)).order_by('-_score')
-            fieldreport_response = SearchQuerySet().models(FieldReport).filter_and(
-                SQ(name__contains=phrase)).order_by('-_score')
-            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter_and(
-                SQ(event_name__contains=phrase) | SQ(country_name__contains=phrase)
+            emergency_response = SearchQuerySet().models(Event).filter(
+                SQ(name__startswith=phrase)).order_by('-_score')
+            appeal_response = SearchQuerySet().models(Appeal).filter(
+                SQ(name__startswith=phrase)).order_by('-_score')
+            fieldreport_response = SearchQuerySet().models(FieldReport).filter(
+                SQ(name__startswith=phrase)).order_by('-_score')
+            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
+                SQ(event_name__startswith=phrase) | SQ(country_name__startswith=phrase)
             ).order_by('-_score')
-            project_response = SearchQuerySet().models(Project).filter_and(
-                SQ(event_name__contains=phrase) | SQ(name__contains=phrase)
+            project_response = SearchQuerySet().models(Project).filter(
+                SQ(event_name__startswith=phrase) | SQ(name__startswith=phrase)
             ).order_by('-_score')
-            surge_deployments = SearchQuerySet().models(ERU).filter_and(
-                SQ(event_name__contains=phrase) | SQ(country__contains=phrase)
+            surge_deployments = SearchQuerySet().models(ERU).filter(
+                SQ(event_name__startswith=phrase) | SQ(country__startswith=phrase)
             ).order_by('-_score')
         result = {
             "regions": [
