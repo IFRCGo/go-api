@@ -157,6 +157,7 @@ class HayStackSearch(APIView):
 
     def get(self, request):
         phrase = request.GET.get('keyword', None)
+        phrase = phrase.lower()
         if phrase is None:
             return bad_request('Must include a `keyword`')
 
@@ -208,6 +209,8 @@ class HayStackSearch(APIView):
                     "funding_coverage": data.amount_funded,
                     "event_date": data.disaster_start_date,
                     "score": data.score,
+                    "countries": data.countries,
+                    "countries_id": data.countries_id
                 } for data in emergency_response[:50]
             ],
             "appeals": [
@@ -217,8 +220,11 @@ class HayStackSearch(APIView):
                     "appeal_type": data.appeal_type,
                     "code": data.code,
                     "country": data.country_name,
+                    "country_id": data.country_id,
                     "start_date": data.start_date,
                     "score": data.score,
+                    "event_name": data.event_name,
+                    "event_id": data.event_id
                 } for data in appeal_response.order_by('-start_date')[:50]
             ],
             "field_reports": [
@@ -229,6 +235,8 @@ class HayStackSearch(APIView):
                     "score": data.score,
                     "event_name": data.event_name,
                     "event_id": data.event_id,
+                    "countries": data.countries,
+                    "countries_id": data.countries_id,
                 } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
             "surge_alerts": [
@@ -245,6 +253,7 @@ class HayStackSearch(APIView):
                     "status": data.status,
                     "deadline": data.deadline,
                     "surge_type": data.surge_type,
+                    "country_id": data.country_id,
                 } for data in surge_alert_response.order_by('-start_date')[:50]
             ],
             "projects": [
@@ -260,6 +269,7 @@ class HayStackSearch(APIView):
                     "people_targeted": data.target_total,
                     "score": data.score,
                     "event_id": data.event_id,
+                    "national_society_id": data.reporting_ns_id
                 } for data in project_response.order_by('-start_date')[:50]
             ],
             "surge_deployments": [
@@ -273,6 +283,7 @@ class HayStackSearch(APIView):
                     "equipment_units": data.equipment_units,
                     "event_id": data.event_id,
                     "score": data.score,
+                    "deployed_country_id": data.country_id,
                 } for data in surge_deployments[:50]
             ]
         }

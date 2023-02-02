@@ -4,8 +4,8 @@ from notifications.models import SurgeAlert
 
 
 class SurgeIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.CharField(document=True, use_template=True)
-    name = indexes.CharField(model_attr='message')
+    text = indexes.EdgeNgramField(document=True, use_template=True)
+    name = indexes.EdgeNgramField(model_attr='message')
     molnix_tag = indexes.MultiValueField(null=True)
     event_name = indexes.CharField(model_attr='event__name')
     country_name = indexes.CharField(model_attr='country__name')
@@ -15,6 +15,7 @@ class SurgeIndex(indexes.SearchIndex, indexes.Indexable):
     deadline = indexes.DateTimeField(model_attr='closes', null=True)
     surge_type = indexes.CharField(model_attr='get_atype_display')
     status = indexes.CharField(model_attr='molnix_status', null=True)
+    country_id = indexes.IntegerField(model_attr='country__id')
 
     def get_model(self):
         return SurgeAlert
