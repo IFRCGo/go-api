@@ -526,6 +526,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["pmer"] = dref.pmer
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["communication"] = dref.communication
+            validated_data["total_operation_timeframe"] = dref.operation_timeframe
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -569,9 +570,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["national_society_contact_name"] = dref_operational_update.national_society_contact_name
             validated_data["national_society_contact_email"] = dref_operational_update.national_society_contact_email
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
-            validated_data[
-                "national_society_contact_phone_number"
-            ] = dref_operational_update.national_society_contact_phone_number
+            validated_data["national_society_contact_phone_number"] = dref_operational_update.national_society_contact_phone_number
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -617,9 +616,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["ns_respond"] = dref_operational_update.ns_respond
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
-            validated_data[
-                "is_there_major_coordination_mechanism"
-            ] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data["is_there_major_coordination_mechanism"] = dref_operational_update.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref_operational_update.human_resource
             validated_data["is_surge_personnel_deployed"] = dref_operational_update.is_surge_personnel_deployed
             validated_data["surge_personnel_deployed"] = dref_operational_update.surge_personnel_deployed
@@ -628,6 +625,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["pmer"] = dref_operational_update.pmer
             validated_data["communication"] = dref_operational_update.communication
             validated_data["people_in_need"] = dref_operational_update.people_in_need
+            validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
