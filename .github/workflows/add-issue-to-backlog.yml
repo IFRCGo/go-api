@@ -14,3 +14,5 @@ jobs:
         with:
           project-url: https://github.com/orgs/IFRCGo/projects/12
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          label: Maintenance, New feature, Design backlog, Q1 scope, Q2 scope, Q3 scope, Q4 scope
+          label-operator: NOT
