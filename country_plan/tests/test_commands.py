@@ -45,7 +45,14 @@ PUBLIC_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
         'Inserted': '2022-11-29T11:24:00',
         'LocationCountryCode': 'GR',
         'LocationCountryName': 'Greece'
-    }
+    },
+    {
+        'BaseDirectory': FILE_BASE_DIRECTORY,
+        'BaseFileName': 'NOOP',
+        'Inserted': '2022-11-29T11:24:00',
+        'LocationCountryCode': 'XY',
+        'LocationCountryName': 'Myanmar'
+    },
 ]
 
 INTERNAL_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
@@ -85,12 +92,17 @@ class MockResponse():
         def iter_content(self, **_):
             return self.stream
 
-    def __init__(self, json=None, stream=None):
+    def __init__(self, json=None, stream=None, headers=None):
+        self._headers = headers
         self._json = json
         self.stream = stream
 
     def json(self):
         return self._json
+
+    @property
+    def headers(self):
+        return self._headers
 
     def __enter__(self):
         return MockResponse.FileStream(self.stream)
@@ -108,6 +120,18 @@ class CountryPlanIngestTest(APITestCase):
         if url.startswith(FILE_BASE_DIRECTORY):
             return MockResponse(stream=[b''])
 
+    def mock_request_head(url, *_, **kwargs):
+        headers = {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment;filename=Sample_document_2023.pdf',
+        }
+        if url.endswith('NOOP'):
+            headers['Content-Type'] = 'html/text'
+        elif url.endswith('000004'):
+            headers['Content-Disposition'] = ''
+        return MockResponse(headers=headers)
+
+    @mock.patch('country_plan.management.commands.ingest_country_plan_file.requests.head', side_effect=mock_request_head)
     @mock.patch('country_plan.management.commands.ingest_country_plan_file.requests.get', side_effect=mock_request)
     @mock.patch('main.utils.requests.get', side_effect=mock_request)
     def test_country_plan_ingest(self, *_):
@@ -139,3 +163,7 @@ class CountryPlanIngestTest(APITestCase):
         assert CountryPlan.objects.filter(is_publish=True).count() == 5
         assert CountryPlan.objects.exclude(public_plan_file='').count() == 4
         assert CountryPlan.objects.exclude(internal_plan_file='').count() == 2
+        # First downloaded document. Others will have Sample_document_2023{random-chars}.pdf
+        assert CountryPlan.objects.filter(country__iso='SY').first().public_plan_file.name.endswith('Sample_document_2023.pdf')
+        # Without attachment filename
+        assert CountryPlan.objects.filter(country__iso='GR').first().public_plan_file.name.endswith('document.pdf')
