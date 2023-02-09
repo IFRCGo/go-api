@@ -6,6 +6,7 @@ from api.models import (
     Appeal,
     FieldReport,
     Region,
+    District,
 )
 
 class RegionIndex(indexes.SearchIndex, indexes.Indexable):
@@ -29,6 +30,20 @@ class CountryIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
+
+
+class DistrictIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.EdgeNgramField(document=True, use_template=True)
+    name = indexes.EdgeNgramField(model_attr='name')
+    country_name = indexes.CharField(model_attr='country__name', null=True)
+    country_id = indexes.CharField(model_attr='country__id', null=True)
+
+    def get_model(self):
+        return District
+
+    def index_queryset(self, using=None):
+        return self.get_model().objects.all()
+
 
 class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True, use_template=True)

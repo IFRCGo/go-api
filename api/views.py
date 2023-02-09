@@ -37,7 +37,7 @@ from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHisto
 from .indexes import ES_PAGE_NAME
 from .logger import logger
 from haystack.query import SearchQuerySet
-from api.models import Country, Region
+from api.models import Country, Region, District
 from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 
@@ -166,23 +166,26 @@ class HayStackSearch(APIView):
                 SQ(name__startswith=phrase)
             )
             country_response = SearchQuerySet().models(Country).filter(
-                SQ(name__startswith=phrase) |
-                SQ(society_name__startswith=phrase)
+                SQ(name__contains=phrase) |
+                SQ(society_name__contains=phrase)
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
-                SQ(name__startswith=phrase)).order_by('-_score')
+                SQ(name__content=phrase)).order_by('-_score')
             appeal_response = SearchQuerySet().models(Appeal).filter(
-                SQ(name__startswith=phrase)).order_by('-_score')
+                SQ(name__content=phrase)).order_by('-_score')
             fieldreport_response = SearchQuerySet().models(FieldReport).filter(
-                SQ(name__startswith=phrase)).order_by('-_score')
+                SQ(name__content=phrase)).order_by('-_score')
             surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
-                SQ(event_name__startswith=phrase) | SQ(country_name__startswith=phrase)
+                SQ(event_name__content=phrase) | SQ(country_name__content=phrase)
             ).order_by('-_score')
             project_response = SearchQuerySet().models(Project).filter(
-                SQ(event_name__startswith=phrase) | SQ(name__startswith=phrase)
+                SQ(event_name__content=phrase) | SQ(name__content=phrase)
             ).order_by('-_score')
             surge_deployments = SearchQuerySet().models(ERU).filter(
-                SQ(event_name__startswith=phrase) | SQ(country__startswith=phrase)
+                SQ(event_name__content=phrase) | SQ(country__content=phrase)
+            ).order_by('-_score')
+            district_province_response = SearchQuerySet().models(District).filter(
+                SQ(name__contains=phrase)
             ).order_by('-_score')
         result = {
             "regions": [
@@ -191,6 +194,15 @@ class HayStackSearch(APIView):
                     "name": data.name,
                     "score": data.score
                 } for data in region_response[:50]
+            ],
+            "district_province_response": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "score": data.score,
+                    "country": data.country_name,
+                    "country_id": data.country_id,
+                } for data in district_province_response[:50]
             ],
             "countries": [
                 {
