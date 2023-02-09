@@ -5,11 +5,11 @@ from main.test_case import APITestCase
 from api.factories.country import CountryFactory
 from country_plan.factories import CountryPlanFactory
 from country_plan.models import CountryPlan
-from country_plan.management.commands.ingest_country_plan_file import SOURCE
+from country_plan.management.commands.ingest_country_plan_file import PUBLIC_SOURCE, INTERNAL_SOURCE
 
 # NOTE: Only defined used fields
 FILE_BASE_DIRECTORY = 'https://example.org/Download.aspx?FileId='
-APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
+PUBLIC_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
     {
         'BaseDirectory': FILE_BASE_DIRECTORY,
         'BaseFileName': '000000',
@@ -24,6 +24,7 @@ APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
         'LocationCountryCode': 'CD',
         'LocationCountryName': 'Congo, The Democratic Republic Of The'
     },
+    # Not included in INTERNAL
     {
         'BaseDirectory': FILE_BASE_DIRECTORY,
         'BaseFileName': '000002',
@@ -45,6 +46,31 @@ APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
         'LocationCountryCode': 'GR',
         'LocationCountryName': 'Greece'
     }
+]
+
+INTERNAL_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE = [
+    {
+        'BaseDirectory': FILE_BASE_DIRECTORY,
+        'BaseFileName': '000000',
+        'Inserted': '2022-11-29T11:24:00',
+        'LocationCountryCode': 'SY',
+        'LocationCountryName': 'Syrian Arab Republic'
+    },
+    {
+        'BaseDirectory': FILE_BASE_DIRECTORY,
+        'BaseFileName': '000001',
+        'Inserted': '2022-11-29T11:24:00',
+        'LocationCountryCode': 'CD',
+        'LocationCountryName': 'Congo, The Democratic Republic Of The'
+    },
+    # Not included in PUBLIC
+    {
+        'BaseDirectory': FILE_BASE_DIRECTORY,
+        'BaseFileName': '000001',
+        'Inserted': '2022-11-29T11:24:00',
+        'LocationCountryCode': 'NP',
+        'LocationCountryName': 'Nepal'
+    },
 ]
 
 
@@ -75,8 +101,10 @@ class MockResponse():
 
 class CountryPlanIngestTest(APITestCase):
     def mock_request(url, *_, **kwargs):
-        if url == SOURCE:
-            return MockResponse(json=APPEAL_COUNTRY_PLAN_MOCK_RESPONSE)
+        if url == PUBLIC_SOURCE:
+            return MockResponse(json=PUBLIC_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE)
+        if url == INTERNAL_SOURCE:
+            return MockResponse(json=INTERNAL_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE)
         if url.startswith(FILE_BASE_DIRECTORY):
             return MockResponse(stream=[b''])
 
@@ -89,17 +117,25 @@ class CountryPlanIngestTest(APITestCase):
                 iso='RC',
             ),
         )
-        for country_plan_data in APPEAL_COUNTRY_PLAN_MOCK_RESPONSE[:3]:
-            CountryPlanFactory.create(
-                country=CountryFactory.create(
-                    name=country_plan_data['LocationCountryName'],
-                    iso=country_plan_data['LocationCountryCode'],
-                ),
-            )
-        assert CountryPlan.objects.count() == 4
+        EXISTING_CP = 1
+        for country_iso in set([
+                item['LocationCountryCode']
+                for item in [
+                    *PUBLIC_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE,
+                    *INTERNAL_APPEAL_COUNTRY_PLAN_MOCK_RESPONSE,
+                ]
+        ]):
+            if country_iso == 'CD':
+                # Not create country for this
+                continue
+            CountryFactory.create(iso=country_iso)
+        # Before
+        assert CountryPlan.objects.count() == EXISTING_CP
         assert CountryPlan.objects.filter(is_publish=True).count() == 0
         assert CountryPlan.objects.exclude(public_plan_file='').count() == 0
         call_command('ingest_country_plan_file')
-        assert CountryPlan.objects.count() == 4
-        assert CountryPlan.objects.filter(is_publish=True).count() == 3
-        assert CountryPlan.objects.exclude(public_plan_file='').count() == 3
+        # After
+        assert CountryPlan.objects.count() == EXISTING_CP + 5
+        assert CountryPlan.objects.filter(is_publish=True).count() == 5
+        assert CountryPlan.objects.exclude(public_plan_file='').count() == 4
+        assert CountryPlan.objects.exclude(internal_plan_file='').count() == 2

@@ -26,7 +26,7 @@ choicesenum = "==0.7.0"
 coreapi = "==2.3.3"
 coreschema = "==0.0.4"
 coverage = "==4.4.2"
-cryptography = "==38.0.3"
+cryptography = "==39.0.1"
 django-admin-autocomplete-filter = "==0.5"
 django-admin-list-filter-dropdown = "==1.0.2"
 django-cors-headers = "==3.11.0"
@@ -78,6 +78,7 @@ xhtml2pdf = "==0.2.5"
 reportlab = "==3.6.6"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
 celery = { version = "==5.1.2", extras = ["redis"] }
 django-redis = "==5.0.0"
+sentry-sdk = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"

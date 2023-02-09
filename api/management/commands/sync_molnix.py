@@ -107,6 +107,7 @@ def get_datetime(datetime_string):
         return None
     return date_parser.parse(datetime_string)
 
+
 def get_status_message(positions_messages, deployments_messages, positions_warnings, deployments_warnings):
     msg = ''
     msg += 'Summary of Open Positions Import:\n\n'
@@ -125,26 +126,21 @@ def get_status_message(positions_messages, deployments_messages, positions_warni
         msg += '\n\n'
     return msg
 
-def add_tags_to_obj(obj, tags):
-    # We clear all tags first, and then re-add them
-    tag_molnix_ids = [t['id'] for t in tags]
-    obj.molnix_tags.clear()
-    for molnix_id in tag_molnix_ids:
-        try:
-            t = MolnixTag.objects.get(molnix_id=molnix_id)
-        except:
-            logger.error('ERROR - tag not found: %d' % molnix_id)
-            continue
-        obj.molnix_tags.add(t)
-    obj.save()
 
+def add_tags_to_obj(obj, tags):
+    _ids = [int(t['id']) for t in tags]
+    tags = list(  # Fetch all at once
+        MolnixTag.objects.filter(molnix_id__in=_ids)
+    )
+    if len(tags) != len(_ids):  # Show warning if all tags are not available
+        missing_tag_ids = list(set(_ids) - set([tag.id for tag in tags]))
+        logger.warning(f'Missing _ids: {missing_tag_ids}')
+        # or   ^^^^^^^ logger.error if we need to add molnix tags manually.
+    obj.molnix_tags.set(tags)  # Add new ones, remove old ones
 
 
 def sync_deployments(molnix_deployments, molnix_api, countries):
-    #import json
-    #print(json.dumps(molnix_deployments, indent=2))
     molnix_ids = [d['id'] for d in molnix_deployments]
-
     warnings = []
     messages = []
     successful_creates = 0

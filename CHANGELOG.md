@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.469
+
+### Added
+ - Ingest country plan and internal plan files
+ - Bump up cryptography and django modules
+ - Surge Alert statuses: Open, Closed, Stood down
+
 ## 1.1.468
 
 ### Added
@@ -2143,7 +2150,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.468...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.469...HEAD
+[1.1.469]: https://github.com/IFRCGo/go-api/compare/1.1.468...1.1.469
 [1.1.468]: https://github.com/IFRCGo/go-api/compare/1.1.467...1.1.468
 [1.1.467]: https://github.com/IFRCGo/go-api/compare/1.1.466...1.1.467
 [1.1.466]: https://github.com/IFRCGo/go-api/compare/1.1.465...1.1.466
