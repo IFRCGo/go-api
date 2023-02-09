@@ -649,10 +649,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
 
     def update(self, instance, validated_data):
         validated_data["updated_by"] = self.context["request"].user
-        changing_timeframe_operation = validated_data.get(
-            "changing_timeframe_operation", instance.changing_timeframe_operation
-        )
-        total_operation_timeframe = validated_data.get("total_operation_timeframe", instance.total_operation_timeframe)
+        # changing_timeframe_operation = validated_data.get(
+        #     "changing_timeframe_operation", instance.changing_timeframe_operation
+        # )
+        # total_operation_timeframe = validated_data.get("total_operation_timeframe", instance.total_operation_timeframe)
         number_of_people_targeted = validated_data.get("number_of_people_targeted", instance.number_of_people_targeted)
         request_for_second_allocation = validated_data.get(
             "request_for_second_allocation", instance.request_for_second_allocation
@@ -673,25 +673,25 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
 
-        if (
-            (not changing_timeframe_operation)
-            and total_operation_timeframe
-            and dref_operation_timeframe
-            and total_operation_timeframe != dref_operation_timeframe
-        ):
-            raise serializers.ValidationError(
-                "Found diffrent operation timeframe for dref and operational update with changing not set to true"
-            )
+        # if (
+        #     (not changing_timeframe_operation)
+        #     and total_operation_timeframe
+        #     and dref_operation_timeframe
+        #     and total_operation_timeframe != dref_operation_timeframe
+        # ):
+        #     raise serializers.ValidationError(
+        #         "Found diffrent operation timeframe for dref and operational update with changing not set to true"
+        #     )
 
-        if (
-            changing_timeframe_operation
-            and total_operation_timeframe
-            and dref_operation_timeframe
-            and total_operation_timeframe == dref_operation_timeframe
-        ):
-            raise serializers.ValidationError(
-                "Found same operation timeframe for dref and operational update with changing set to true"
-            )
+        # if (
+        #     changing_timeframe_operation
+        #     and total_operation_timeframe
+        #     and dref_operation_timeframe
+        #     and total_operation_timeframe == dref_operation_timeframe
+        # ):
+        #     raise serializers.ValidationError(
+        #         "Found same operation timeframe for dref and operational update with changing set to true"
+        #     )
 
         if (
             (not changing_target_population_of_operation)
