@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.470
+
+### Added
+ - Internal plan files: collecting only PDF-s
+ - Nicer LocalUnit admin lists
+ - ISO3 filtering possibility for districts and appeals
+ - GitHub Actions - add issue to Backlog project
+
 ## 1.1.469
 
 ### Added
@@ -2150,7 +2158,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.469...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.470...HEAD
+[1.1.470]: https://github.com/IFRCGo/go-api/compare/1.1.469...1.1.470
 [1.1.469]: https://github.com/IFRCGo/go-api/compare/1.1.468...1.1.469
 [1.1.468]: https://github.com/IFRCGo/go-api/compare/1.1.467...1.1.468
 [1.1.467]: https://github.com/IFRCGo/go-api/compare/1.1.466...1.1.467
