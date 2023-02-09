@@ -338,7 +338,7 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
 class DistrictFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country',)
+        fields = ('country', 'country__iso3', 'name',)
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
@@ -573,6 +573,7 @@ class AppealHistoryFilter(filters.FilterSet):
             'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'appeal__real_data_update': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'country__iso3': ('exact',),
         }
 
 
