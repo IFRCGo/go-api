@@ -43,8 +43,8 @@ env = environ.Env(
     EMAIL_PORT=(str, None),
     EMAIL_USER=(str, None),
     EMAIL_PASS=(str, None),
-    TEST_EMAILS=(list, ['im@ifrc.org']),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
+    # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
     # AWS Translate NOTE: not used right now
     AWS_TRANSLATE_ACCESS_KEY=(str, None),
     AWS_TRANSLATE_SECRET_KEY=(str, None),
@@ -371,8 +371,8 @@ EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_PORT = env('EMAIL_PORT')
 EMAIL_USER = env('EMAIL_USER')
 EMAIL_PASS = env('EMAIL_PASS')
-TEST_EMAILS = env('TEST_EMAILS')
 DEBUG_EMAIL = env('DEBUG_EMAIL')
+# TEST_EMAILS = env('TEST_EMAILS') # maybe later
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
