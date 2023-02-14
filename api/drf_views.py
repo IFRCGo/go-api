@@ -1095,6 +1095,7 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
 
+
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     queryset = CountryOfFieldReportToReview.objects.order_by('country')
     serializer_class = CountryOfFieldReportToReviewSerializer
