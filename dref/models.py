@@ -205,6 +205,11 @@ class RiskSecurity(models.Model):
 
 @reversion.register()
 class Dref(models.Model):
+    class DrefType(models.IntegerChoices):
+        IMMINENT = 0, _("Imminent")
+        ASSESSMENT = 1, _("Assessment")
+        RESPONSE = 2, _("Response")
+
     class OnsetType(models.IntegerChoices):
         IMMINENT = 0, _("Imminent")
         SLOW = 1, _("Slow")
@@ -254,6 +259,7 @@ class Dref(models.Model):
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_("disaster type"), blank=True, null=True, on_delete=models.SET_NULL
     )
+    type_of_dref = models.IntegerField(choices=DrefType.choices, verbose_name=_("dref type"), null=True, blank=True)
     type_of_onset = models.IntegerField(choices=OnsetType.choices, verbose_name=_("onset type"), null=True, blank=True)
     disaster_category = models.IntegerField(
         choices=DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
@@ -676,6 +682,7 @@ class DrefOperationalUpdate(models.Model):
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_("disaster type"), blank=True, null=True, on_delete=models.SET_NULL
     )
+    type_of_dref = models.IntegerField(choices=Dref.DrefType.choices, verbose_name=_("dref type"), null=True, blank=True)
     type_of_onset = models.IntegerField(choices=Dref.OnsetType.choices, verbose_name=_("onset type"), null=True, blank=True)
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
@@ -999,6 +1006,7 @@ class DrefFinalReport(models.Model):
     disaster_type = models.ForeignKey(
         DisasterType, verbose_name=_("disaster type"), blank=True, null=True, on_delete=models.SET_NULL
     )
+    type_of_dref = models.IntegerField(choices=Dref.DrefType.choices, verbose_name=_("dref type"), null=True, blank=True)
     type_of_onset = models.IntegerField(choices=Dref.OnsetType.choices, verbose_name=_("onset type"), null=True, blank=True)
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
