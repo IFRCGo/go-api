@@ -90,7 +90,7 @@ class LocalUnit(models.Model):
     )
     postcode = models.CharField(max_length=10, null=True, verbose_name=_('Postal code'))
     phone = models.CharField(
-        max_length=20,
+        max_length=30,
         blank=True,
         null=True,
         verbose_name=_('Telephone')
