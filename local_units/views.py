@@ -10,14 +10,21 @@ from .serializers import LocalUnitSerializer
 class LocalUnitFilters(filters.FilterSet):
     class Meta:
         model = LocalUnit
-        fields = ('country', 'country__name')
+        fields = (
+            'country__name',
+            'country__iso3',
+            'country__iso',
+            'type__level',
+            'draft',
+            'validated',
+        )
 
 
 class LocalUnitListAPIView(ListAPIView):
     queryset = LocalUnit.objects.all()
     serializer_class = LocalUnitSerializer
     filterset_class = LocalUnitFilters
-    search_fields = ('name',)
+    search_fields = ('local_branch_name', 'english_branch_name',)
 
 
 class LocalUnitDetailAPIView(RetrieveAPIView):
