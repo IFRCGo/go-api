@@ -24,7 +24,7 @@ class LocalUnitListAPIView(ListAPIView):
     queryset = LocalUnit.objects.all()
     serializer_class = LocalUnitSerializer
     filterset_class = LocalUnitFilters
-    search_fields = ('local_branch_name',)
+    search_fields = ('local_branch_name', 'english_branch_name',)
 
 
 class LocalUnitDetailAPIView(RetrieveAPIView):

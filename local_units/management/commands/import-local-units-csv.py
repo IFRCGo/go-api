@@ -29,9 +29,9 @@ class Command(BaseCommand):
                 if created:
                     print(f'New LocalUnitType created: {unit.type.name}')
 
-                unit.name_loc = row['NAME_LOC']
-                unit.name_en = row['NAME_EN']
-                unit.branch_level = int(row['TYPECODE'])
+                unit.local_branch_name = row['NAME_LOC']
+                unit.english_branch_name = row['NAME_EN']
+                # TODO: why is it here? No such column in this table: unit.branch_level = int(row['TYPECODE'])
                 unit.postcode = int(row['POSTCODE']) if row['POSTCODE'] else None
                 unit.address_loc = row['ADDRESS_LOC']
                 unit.address_en = row['ADDRESS_EN']
@@ -46,4 +46,5 @@ class Command(BaseCommand):
                 unit.source_loc = row['SOURCE_LOC']
                 unit.location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 unit.save()
-                print(f'{unit.name_en} saved')
+                name = unit.local_branch_name if unit.local_branch_name else unit.english_branch_name
+                print(f'{name} saved')
