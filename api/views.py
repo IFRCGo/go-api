@@ -31,6 +31,8 @@ from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
 from deployments.models import Project, ERU
+from flash_update.models import FlashUpdate
+from dref.models import Dref, DrefOperationalUpdate
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
@@ -187,6 +189,77 @@ class HayStackSearch(APIView):
             district_province_response = SearchQuerySet().models(District).filter(
                 SQ(name__contains=phrase)
             ).order_by('-_score')
+            flash_update_response = SearchQuerySet().models(FlashUpdate).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+            dref_response = SearchQuerySet().models(Dref).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+            dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+
+            appeals_list = []
+            dref = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Dref",
+                    "score": data.score,
+                    "country_name": data.country_name,
+                    "country_id": data.country_id,
+                    "code": data.code
+                } for data in dref_response
+            ]
+            appeals_list.extend(dref)
+            dref_op = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Operational Update",
+                    "score": data.score,
+                    "country_name": data.country_name,
+                    "country_id": data.country_id,
+                    "code": data.code
+                } for data in dref_operational_update_response
+            ]
+            appeals_list.extend(dref_op)
+            appeal_data = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "code": data.code,
+                    "country": data.country_name,
+                    "country_id": data.country_id,
+                    "start_date": data.start_date,
+                    "score": data.score,
+                    "type": "Appeal",
+                } for data in appeal_response
+            ]
+            appeals_list.extend(appeal_data)
+            field_report = []
+            flash_update = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Flash Update",
+                    "score": data.score,
+                } for data in flash_update_response
+            ]
+            field_report.extend(flash_update)
+            field_reports_data = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Field Report",
+                    "score": data.score,
+                } for data in fieldreport_response.order_by('-created_at')
+            ]
+            field_report.extend(field_reports_data)
         result = {
             "regions": [
                 {
@@ -224,32 +297,6 @@ class HayStackSearch(APIView):
                     "countries": data.countries,
                     "countries_id": data.countries_id
                 } for data in emergency_response[:50]
-            ],
-            "appeals": [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "appeal_type": data.appeal_type,
-                    "code": data.code,
-                    "country": data.country_name,
-                    "country_id": data.country_id,
-                    "start_date": data.start_date,
-                    "score": data.score,
-                    "event_name": data.event_name,
-                    "event_id": data.event_id
-                } for data in appeal_response.order_by('-start_date')[:50]
-            ],
-            "field_reports": [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "created_at": data.created_at,
-                    "score": data.score,
-                    "event_name": data.event_name,
-                    "event_id": data.event_id,
-                    "countries": data.countries,
-                    "countries_id": data.countries_id,
-                } for data in fieldreport_response.order_by('-created_at')[:50]
             ],
             "surge_alerts": [
                 {
@@ -297,7 +344,9 @@ class HayStackSearch(APIView):
                     "score": data.score,
                     "deployed_country_id": data.country_id,
                 } for data in surge_deployments[:50]
-            ]
+            ],
+            "reports": sorted(field_report, key=lambda d: d["score"], reverse=True)[:50],
+            "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50]
         }
         return Response(result)
 
