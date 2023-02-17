@@ -8,6 +8,7 @@ class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
     name = indexes.EdgeNgramField(model_attr='name')
     event_name = indexes.CharField(model_attr='event__name')
     start_date = indexes.DateTimeField(model_attr='start_date', null=True)
+    end_date = indexes.DateTimeField(model_attr='end_date', null=True)
     reporting_ns = indexes.CharField(model_attr='reporting_ns__name')
     project_districts = indexes.MultiValueField()
     sector = indexes.CharField(model_attr='get_primary_sector_display')

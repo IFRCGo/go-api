@@ -324,6 +324,7 @@ class HayStackSearch(APIView):
                     "tags": data.tags,
                     "sector": data.sector,
                     "start_date": data.start_date,
+                    "end_date": data.end_date,
                     "regions": data.project_districts,
                     "people_targeted": data.target_total,
                     "score": data.score,
