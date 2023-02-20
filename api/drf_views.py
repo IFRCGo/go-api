@@ -22,7 +22,6 @@ from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
-from .utils import is_user_ifrc
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -62,7 +61,6 @@ from .models import (
     RequestChoices,
     EPISourceChoices,
     MainContact,
-    UserCountry,
     CountryOfFieldReportToReview,
 )
 
@@ -301,7 +299,7 @@ class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = RegionKeyFigureSerializer
     filterset_class = RegionKeyFigureFilter
-    visibility_model_class = RegionKeyFigure
+    queryset = RegionKeyFigure.objects.all()
 
 
 class CountryKeyFigureFilter(filters.FilterSet):
@@ -316,7 +314,7 @@ class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountryKeyFigureSerializer
     filterset_class = CountryKeyFigureFilter
-    visibility_model_class = CountryKeyFigure
+    queryset = CountryKeyFigure.objects.all()
 
 
 class RegionSnippetFilter(filters.FilterSet):
@@ -331,7 +329,7 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = RegionSnippetSerializer
     filterset_class = RegionSnippetFilter
-    visibility_model_class = RegionSnippet
+    queryset = RegionSnippet.objects.all()
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -351,7 +349,7 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = CountrySnippetSerializer
     filterset_class = CountrySnippetFilter
-    visibility_model_class = CountrySnippet
+    queryset = CountrySnippet.objects.all()
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -433,7 +431,8 @@ class EventViewset(ReadOnlyVisibilityViewset):
         'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
     )
     filterset_class = EventFilter
-    visibility_model_class = Event
+    queryset = Event.objects.all()
+    lookup_url_kwarg = 'slug'
     search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):
@@ -477,37 +476,8 @@ class EventViewset(ReadOnlyVisibilityViewset):
             return DetailEventSerializer
 
     # Overwrite 'retrieve' because by default we filter to only non-merged Emergencies in 'get_queryset()'
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        if pk:
-            try:
-                if self.request.user.is_authenticated:
-                    if is_user_ifrc(self.request.user):
-                        instance = Event.objects.get(pk=pk)
-                    else:
-                        user_countries = UserCountry.objects\
-                            .filter(user=request.user.id).values('country')\
-                            .union(
-                                Profile.objects.filter(user=request.user.id).values('country')
-                            )
-                        instance = Event.objects\
-                            .exclude(
-                                visibility=VisibilityChoices.IFRC)\
-                            .exclude(
-                                Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))\
-                            .get(pk=pk)
-                else:
-                    instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
-                # instance = Event.get_for(request.user).get(pk=pk)
-            except Exception:
-                raise Http404
-        elif kwargs['slug']:
-            instance = Event.objects.filter(slug=kwargs['slug']).first()
-            # instance = Event.get_for(request.user).filter(slug=kwargs['slug']).first()
-            if not instance:
-                raise Http404
-        else:
-            raise BadRequest('Emergency ID or Slug parameters are missing')
-
+    def retrieve(self, *args, **kwargs):
+        instance = super().get_object()
         serializer = self.get_serializer(instance)
 
         # Hide the "affected" values that are kept only for history – see (¤) in other code parts
@@ -520,7 +490,6 @@ class EventViewset(ReadOnlyVisibilityViewset):
                         if fr['recent_affected'] - 1 != i and field in serializer.data['field_reports'][j]:
                             del serializer.data['field_reports'][j][field]
                     del serializer.data['field_reports'][j]['recent_affected']
-
 
         return Response(serializer.data)
 
@@ -545,7 +514,7 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = SnippetSerializer
     filterset_class = EventSnippetFilter
-    visibility_model_class = Snippet
+    queryset = Snippet.objects.all()
 
 
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
@@ -572,7 +541,7 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
     serializer_class = SituationReportSerializer
     ordering_fields = ('created_at', 'name',)
     filterset_class = SituationReportFilter
-    visibility_model_class = SituationReport
+    queryset = SituationReport.objects.all()
     search_fields = ('name', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
@@ -742,7 +711,7 @@ class FieldReportFilter(filters.FilterSet):
 
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
-    visibility_model_class = FieldReport
+    queryset = FieldReport.objects.all()
     search_fields = ('countries__name', 'regions__label', 'summary',)  # for /docs
 
     def get_queryset(self, *args, **kwargs):

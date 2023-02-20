@@ -1,4 +1,5 @@
 import reversion
+from typing import Optional
 from datetime import datetime
 from tinymce import HTMLField
 
@@ -16,11 +17,10 @@ from api.models import (
     Event,
     DisasterType,
     Appeal,
-    Profile,
-    UserCountry,
     VisibilityCharChoices,
     GeneralDocument,
 )
+from api.utils import get_user_countries
 
 DATE_FORMAT = "%Y/%m/%d %H:%M"
 
@@ -521,17 +521,16 @@ class Project(models.Model):
         return super().save(*args, **kwargs)
 
     # FIXME: Is this used?
-    @staticmethod
-    def get_for(user, queryset=None):
-        countries_qs = (
-            UserCountry.objects.filter(user=user)
-            .values("country")
-            .union(Profile.objects.filter(user=user).values("country"))
-        )
-        return queryset.exclude(
-            Q(visibility=VisibilityCharChoices.IFRC_NS)
-            & ~Q(project_country__in=countries_qs)
-            & ~Q(reporting_ns__in=countries_qs)
+    @classmethod
+    def get_for(cls, user, queryset: Optional[models.QuerySet] = None) -> models.QuerySet:
+        _queryset = queryset
+        if _queryset is None:
+            _queryset = cls.objects.all()
+        countries_qs = get_user_countries(user)
+        return _queryset.exclude(
+            Q(visibility=VisibilityCharChoices.IFRC_NS) &
+            ~Q(project_country__in=countries_qs) &
+            ~Q(reporting_ns__in=countries_qs)
         )
 
 

@@ -1,12 +1,19 @@
-from rest_framework import viewsets
+from django.db import models
+from django.db.models import Q
+from rest_framework import viewsets, request
 
 from deployments.models import Project
 from .models import VisibilityChoices, VisibilityCharChoices, UserCountry, Profile
 from .utils import is_user_ifrc  # filter_visibility_by_auth (would be better)
-from django.db.models import Q
+
+from api.models import FieldReport, Event
+from api.utils import get_user_countries
+from .utils import is_user_ifrc
 
 
-class ReadOnlyVisibilityViewsetMixin:
+class ReadOnlyVisibilityViewsetMixin():
+    request: request.Request
+
     def get_visibility_queryset(self, queryset):
         choices = VisibilityChoices
 
@@ -14,13 +21,24 @@ class ReadOnlyVisibilityViewsetMixin:
         if queryset.model == Project:
             choices = VisibilityCharChoices
 
-        if self.request.user.is_authenticated:
-            if is_user_ifrc(self.request.user):
-                return queryset
-            else:
-                return queryset.model.get_for(self.request.user, queryset=queryset).exclude(visibility=choices.IFRC)
-
-        return queryset.filter(visibility=choices.PUBLIC)
+        if not self.request.user.is_authenticated:
+            return queryset.filter(visibility=choices.PUBLIC)
+        if is_user_ifrc(self.request.user):  # IFRC ADMIN or Superuser
+            return queryset
+        queryset = queryset.exclude(visibility=choices.IFRC)
+        # For specific models
+        if queryset.model in [FieldReport, Event]:
+            user_countries_qs = get_user_countries(self.request.user)
+            return queryset\
+                .exclude(
+                    models.Q(visibility=VisibilityChoices.IFRC_NS) &
+                    # This depends on the model
+                    ~models.Q(countries__id__in=user_countries_qs)
+                )
+        # For generic models try to use get_for is available
+        if hasattr(queryset.model, 'get_for'):
+            return queryset.model.get_for(self.request.user, queryset=queryset)
+        return queryset
 
     def get_queryset(self):
         queryset = super().get_queryset()

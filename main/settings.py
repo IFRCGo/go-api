@@ -161,6 +161,7 @@ INSTALLED_APPS = [
     'eap',
     'country_plan',
     'local_units',
+    'auth',
 
     # Utils Apps
     'tinymce',

@@ -1,6 +1,7 @@
 import base64
 from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
+
 # from .models import VisibilityChoices
 
 
@@ -44,15 +45,6 @@ def is_user_ifrc(user):
         return True
     return False
 
-# FIXME: not usable because of circular dependency
-# def filter_visibility_by_auth(user, visibility_model_class):
-#     if user.is_authenticated:
-#         if is_user_ifrc(user):
-#             return visibility_model_class.objects.all()
-#         else:
-#             return visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC)
-#     return visibility_model_class.objects.filter(visibility=VisibilityChoices.PUBLIC)
-
 
 def get_model_name(model):
     return f'{model._meta.app_label}.{model.__name__}'
@@ -65,3 +57,11 @@ class Echo:
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
+
+
+def get_user_countries(user):
+    from .models import UserCountry, Profile
+
+    return UserCountry.objects.filter(user=user).values('country').union(
+        Profile.objects.filter(user=user).values('country')
+    )

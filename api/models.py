@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 import pytz
 from .utils import (
     validate_slug_number,
-    # is_user_ifrc,
 )
 
 
@@ -1371,15 +1370,6 @@ class FieldReport(models.Model):
         ordering = ('-created_at', '-updated_at',)
         verbose_name = _('field report')
         verbose_name_plural = _('field reports')
-
-    # @staticmethod
-    # def get_for(user):
-    #     filters = models.Q(visibility=VisibilityChoices.PUBLIC)
-    #     if user.is_authenticated:
-    #         filters = models.Q(visibility__in=[VisibilityChoices.MEMBERSHIP, VisibilityChoices.PUBLIC])
-    #         if is_user_ifrc(user):
-    #             filters = models.Q()
-    #     return FieldReport.objects.filter(filters)
 
     def save(self, *args, **kwargs):
         # On save, is report_date or start_date is not set, set it to now.
