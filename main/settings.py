@@ -44,10 +44,19 @@ env = environ.Env(
     EMAIL_PASS=(str, None),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
     # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
+    # Translation
+    # Translator Available:
+    #   - lang.translation.DummyTranslator
+    #   - lang.translation.IfrcTranslator
+    #   - lang.translation.AmazonTranslator
+    AUTO_TRANSLATION_TRANSLATOR=(str, 'lang.translation.DummyTranslator'),
     # AWS Translate NOTE: not used right now
     AWS_TRANSLATE_ACCESS_KEY=(str, None),
     AWS_TRANSLATE_SECRET_KEY=(str, None),
     AWS_TRANSLATE_REGION=(str, None),
+    # IFRC Translation
+    IFRC_TRANSLATION_URL=(str, None),
+    IFRC_TRANSLATION_API_KEY=(str, None),
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
     CACHE_REDIS_URL=str,
@@ -341,6 +350,10 @@ LANGUAGES = (
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
+AUTO_TRANSLATION_TRANSLATOR = env('AUTO_TRANSLATION_TRANSLATOR')
+
+IFRC_TRANSLATION_URL = env('IFRC_TRANSLATION_URL')
+IFRC_TRANSLATION_API_KEY = env('IFRC_TRANSLATION_API_KEY')
 
 MEDIA_URL = env('DJANGO_MEDIA_URL')
 MEDIA_ROOT = env('DJANGO_MEDIA_ROOT')

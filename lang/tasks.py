@@ -1,5 +1,5 @@
 import logging
-# from celery import shared_task
+from celery import shared_task
 from modeltranslation.translator import translator
 from modeltranslation.utils import build_localized_fieldname
 from modeltranslation import settings as mt_settings
@@ -10,12 +10,9 @@ from django.db.models import Q
 from django.conf import settings
 from functools import reduce
 
-from main.translation import TRANSLATOR_SKIP_FIELD_NAME
-# from main.celery import Queues
-from .translation import (
-    AmazonTranslate,
-    AVAILABLE_LANGUAGES,
-)
+from main.translation import TRANSLATOR_SKIP_FIELD_NAME, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
+from main.celery import Queues
+from .translation import AVAILABLE_LANGUAGES, get_translator_class
 
 
 logger = logging.getLogger(__name__)
@@ -23,20 +20,15 @@ logger = logging.getLogger(__name__)
 
 class ModelTranslator():
     def __init__(self):
-        self.aws_translator = AmazonTranslate()
+        self.default_translator = get_translator_class()()
 
     @property
     def translator(self):
-        return self.aws_translator
+        return self.default_translator
 
     def translate_fields_object(self, obj, field):
-        initial_value = ''
-        initial_lang = None
-        for lang in AVAILABLE_LANGUAGES:
-            initial_value = getattr(obj, build_localized_fieldname(field, lang), None)
-            initial_lang = lang
-            if initial_value:
-                break
+        initial_lang = getattr(obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
+        initial_value = getattr(obj, build_localized_fieldname(field, initial_lang), None)
         if not initial_value or not initial_lang:
             return
 
@@ -60,8 +52,8 @@ class ModelTranslator():
             setattr(obj, lang_field, new_value)
             yield lang_field
 
-    @classmethod
-    def _get_filter(cls, translation_fields):
+    @staticmethod
+    def _get_filter(translation_fields):
         def _get_not_empty_query(field, lang):
             return (
                 Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
@@ -138,7 +130,7 @@ class ModelTranslator():
                 total_count += count
                 logger.info(f'\t\t {field} - {count}')
         logger.info(f'Total Count: {total_count}')
-        logger.info(f'Estimated Cost: {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
+        logger.info(f'Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
 
     def run(self, batch_size=None):
         """
@@ -182,7 +174,7 @@ class ModelTranslator():
                 index += 1
 
 
-# @shared_task(queue=Queues.CRONJOB) NOTE: Not used right now.
+@shared_task(queue=Queues.CRONJOB)
 def translate_remaining_models_fields():
     # Disabled in DEBUG/Development
     if settings.DEBUG:
@@ -191,14 +183,14 @@ def translate_remaining_models_fields():
     ModelTranslator().run(batch_size=100)
 
 
-# @shared_task(queue=Queues.DEFAULT) NOTE: Not used right now.
+@shared_task(queue=Queues.DEFAULT)
 def translate_model_fields(model_name, pk):
     model = django_apps.get_model(model_name)
     obj = model.objects.get(pk=pk)
     ModelTranslator().translate_model_fields(obj)
 
 
-# @shared_task(queue=Queues.HEAVY) NOTE: Not used right now.
+@shared_task(queue=Queues.HEAVY)
 def translate_model_fields_in_bulk(model_name, pks):
     model = django_apps.get_model(model_name)
     qs = model.objects.filter(
