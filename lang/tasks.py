@@ -11,10 +11,7 @@ from django.conf import settings
 from functools import reduce
 
 # from main.celery import Queues
-from .translation import (
-    AmazonTranslate,
-    AVAILABLE_LANGUAGES,
-)
+from .translation import AVAILABLE_LANGUAGES, get_translator_class
 
 
 logger = logging.getLogger(__name__)
@@ -22,11 +19,11 @@ logger = logging.getLogger(__name__)
 
 class ModelTranslator():
     def __init__(self):
-        self.aws_translator = AmazonTranslate()
+        self.default_translator = get_translator_class()()
 
     @property
     def translator(self):
-        return self.aws_translator
+        return self.default_translator
 
     def translate_fields_object(self, obj, field):
         initial_value = None
@@ -59,8 +56,8 @@ class ModelTranslator():
             setattr(obj, lang_field, new_value)
             yield lang_field
 
-    @classmethod
-    def _get_filter(self, translation_fields):
+    @staticmethod
+    def _get_filter(translation_fields):
         def _get_not_empty_query(field, lang):
             return (
                 Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
@@ -135,7 +132,7 @@ class ModelTranslator():
                 total_count += count
                 logger.info(f'\t\t {field} - {count}')
         logger.info(f'Total Count: {total_count}')
-        logger.info(f'Estimated Cost: {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
+        logger.info(f'Estimated Cost (AWS): {(len(AVAILABLE_LANGUAGES) -1) * total_count * 0.000015}')
 
     def run(self, batch_size=None):
         """

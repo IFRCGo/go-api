@@ -17,7 +17,7 @@ from django.test import override_settings
 from api.models import Country
 from deployments.factories.user import UserFactory
 
-from lang.translation import AmazonTranslate
+from lang.translation import BaseTranslator
 
 
 class GoAPITestMixin():
@@ -54,7 +54,7 @@ class GoAPITestMixin():
             password='test123',
             email='jon@@ifrc.org',
         )
-        self.aws_translator = AmazonTranslate()
+        self.aws_translator = BaseTranslator()
 
         self.ifrc_permission = Permission.objects.create(
             codename='ifrc_admin',
