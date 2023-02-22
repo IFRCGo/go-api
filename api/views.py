@@ -168,8 +168,9 @@ class HayStackSearch(APIView):
                 SQ(name__startswith=phrase)
             )
             country_response = SearchQuerySet().models(Country).filter(
-                SQ(name__contains=phrase) |
-                SQ(society_name__contains=phrase)
+                SQ(name__contains=phrase),
+                SQ(independent='true'),
+                SQ(is_depercent='false')
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
                 SQ(name__content=phrase)).order_by('-_score')

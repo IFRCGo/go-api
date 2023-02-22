@@ -24,6 +24,8 @@ class CountryIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
     name = indexes.EdgeNgramField(model_attr='name')
     society_name = indexes.CharField(model_attr='society_name', null=True)
+    independent = indexes.BooleanField(model_attr='independent', null=True)
+    is_deprecated = indexes.BooleanField(model_attr='is_deprecated', null=True)
 
     def get_model(self):
         return Country
