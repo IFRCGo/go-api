@@ -1,0 +1,9 @@
+{{object.name}}
+{{object.event_name}}
+{{object.reporting_ns}}
+{{object.start_date}}
+{{object.sector}}
+{{obj.get_secondary_sectors_display}}
+{% for district in obj.project_districts.all %}
+    {{ district.name}}
+{% endfor %}

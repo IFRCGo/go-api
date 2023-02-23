@@ -47,7 +47,7 @@ djangorestframework = "==3.11.2"
 djangorestframework-camel-case = "==1.2.0"
 django-environ = "==0.8.1"
 # upgrade elasticsearch? Keep synched with init-es.sh: a new docker image (es vm) is also needed. Then manage.py index_elasticsearch!"
-elasticsearch = "==6.8.2"
+elasticsearch = "==7.0.0"
 factory_boy = "==2.12.0"
 fuzzywuzzy = "==0.17.0"
 graphene-django = "^2.15.0"
@@ -79,6 +79,7 @@ reportlab = "==3.6.6"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
 celery = { version = "==5.1.2", extras = ["redis"] }
 django-redis = "==5.0.0"
 sentry-sdk = "*"
+django-haystack = { version = "*", extras = ["elasticsearch"] }
 
 mapbox-tilesets = "*"
 ipython = "*"

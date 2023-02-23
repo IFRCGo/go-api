@@ -24,6 +24,7 @@ x-server: &base_server_setup
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
     ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
     CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
+    ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST:-elasticsearch://elasticsearch:9200}
     # Appeal API
     APPEALS_USER: ${APPEALS_USER}
     APPEALS_PASS: ${APPEALS_PASS}
@@ -38,6 +39,8 @@ x-server: &base_server_setup
   depends_on:
     - db
     - redis
+    - elasticsearch
+    - kibana
 
 
 services:
@@ -54,6 +57,39 @@ services:
     image: redis:latest
     volumes:
       - redis-data:/data
+
+  # NOTE: Used Only for local development
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.0
+    container_name: elasticsearch
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elastic-search-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  # NOTE: Used Only for local development
+  kibana:
+    image: 'docker.elastic.co/kibana/kibana:7.0.0'
+    container_name: kibana
+    environment:
+      SERVER_NAME: kibana.local
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    ports:
+      - '5601:5601'
+    depends_on:
+      - elasticsearch
+
 
   serve:
     <<: *base_server_setup
@@ -156,3 +192,4 @@ services:
 
 volumes:
   redis-data:
+  elastic-search-data:
