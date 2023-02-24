@@ -491,6 +491,9 @@ DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
 APPEALS_USER = env('APPEALS_USER')
 APPEALS_PASS = env('APPEALS_PASS')
 
+# Handmade Git Command
+LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, '.git', 'refs', 'tags')), default=0)
+
 # Sentry Config
 SENTRY_DSN = env('SENTRY_DSN')
 SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
