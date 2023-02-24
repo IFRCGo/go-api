@@ -32,6 +32,7 @@ from api.views import (
     ShowUsername,
     EsPageSearch,
     EsPageHealth,
+    Brief,
     ERUTypes,
     RecentAffecteds,
     FieldReportStatuses,
@@ -119,7 +120,6 @@ router.register(r'per', per_views.FormViewset, basename='per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
-# router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'peroverview', per_views.OverviewViewset, basename='peroverview')
 router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, basename='peroverviewstrict')
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
@@ -175,6 +175,8 @@ urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
     url(r'^api/v1/search/', HayStackSearch.as_view()),
     url(r'^api/v1/es_health/', EsPageHealth.as_view()),
+    # If we want to use the next one, some fixes needed, e.g.
+    # stackoverflow.com/questions/47166385/dont-know-how-to-convert-the-django-field-skills-class-taggit-managers-tagga
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
@@ -183,6 +185,7 @@ urlpatterns = [
     url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
     url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
     url(r'^api/v2/deployment/aggregated_by_ns', deployment_views.DeploymentsByNS.as_view()),
+    url(r'^api/v2/brief', Brief.as_view()),
     url(r'^api/v2/erutype', ERUTypes.as_view()),
     url(r'^api/v2/recentaffected', RecentAffecteds.as_view()),
     url(r'^api/v2/fieldreportstatus', FieldReportStatuses.as_view()),

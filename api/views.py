@@ -352,6 +352,23 @@ class HayStackSearch(APIView):
         }
         return Response(result)
 
+
+class Brief(APIView):
+    @classmethod
+    def get(cls, request):
+        e = Event.objects.filter(summary__contains='base64').count()
+        f = FieldReport.objects.filter(description__contains='base64').count()
+        u = FlashUpdate.objects.filter(situational_overview__contains='base64').count()
+        c = CronJob.objects.filter(status=2).count()
+        res = ES_CLIENT.cluster.health()
+        res['--------------------------------'] = '----------'
+        res['base64_img'] = e + f + u
+        res['cronjob_err'] = c
+        res['git_last_tag'] = settings.LAST_GIT_TAG
+        res['git_last_commit'] = settings.SENTRY_CONFIG['release'][0:8]
+        return JsonResponse(res, safe=False)
+
+
 class ERUTypes(APIView):
     @classmethod
     def get(cls, request):
