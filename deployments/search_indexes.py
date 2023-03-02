@@ -16,6 +16,7 @@ class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
     target_total = indexes.IntegerField(model_attr='target_total', null=True)
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     reporting_ns_id = indexes.IntegerField(model_attr='reporting_ns__id')
+    iso3 = indexes.CharField(model_attr='reporting_ns__iso3', null=True)
 
     def get_model(self):
         return Project
@@ -37,6 +38,7 @@ class ERUIndex(indexes.SearchIndex, indexes.Indexable):
     eru_owner = indexes.CharField(model_attr='eru_owner__national_society_country__society_name')
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     country_id = indexes.IntegerField(model_attr='deployed_to__id')
+    iso3 = indexes.CharField(model_attr='deployed_to__iso3', null=True)
 
     def get_model(self):
         return ERU
