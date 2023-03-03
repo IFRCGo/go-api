@@ -22,8 +22,9 @@ from rest_framework.pagination import LimitOffsetPagination
 from deployments.models import (
     Heop,
     ERUType,
+    Sector,
+    SectorTag,
     ProgrammeTypes,
-    Sectors,
     OperationTypes,
     Statuses
 )
@@ -400,7 +401,14 @@ class ProjectProgrammeTypes(APIView):
 class ProjectPrimarySectors(APIView):
     @classmethod
     def get(cls, request):
-        keys_labels = [{'key': i, 'label': v} for i, v in Sectors.choices]
+        keys_labels = [{'key': s.id, 'label': s.title} for s in Sector.objects.all()]
+        return JsonResponse(keys_labels, safe=False)
+
+
+class ProjectSecondarySectors(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{'key': s.id, 'label': s.title} for s in SectorTag.objects.all()]
         return JsonResponse(keys_labels, safe=False)
 
 
