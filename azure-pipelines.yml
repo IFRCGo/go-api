@@ -6,6 +6,14 @@
 trigger:
 - develop
 
+resources:
+  repositories:
+  - repository: go-api
+    type: github
+    endpoint: developmentseed
+    name: developmentseed/go-api
+    ref: azure-pipelines
+
 pool:
   vmImage: ubuntu-latest
 
@@ -14,4 +22,6 @@ jobs:
   steps:
   - bash: echo "Hello World"
 
-  
+- job: 'checkoutRepo'
+  steps:
+  - checkout: go-api 
