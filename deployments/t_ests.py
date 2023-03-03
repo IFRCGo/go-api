@@ -1,15 +1,12 @@
-import pdb
-
 import pydash
-
 import json
 
 from main.test_case import SnapshotTestCase, APITestCase
 from deployments.factories.user import UserFactory
-from deployments.factories.project import ProjectFactory
+from deployments.factories.project import SectorTagFactory, ProjectFactory
 from api.factories import country, district
 import api.models as models
-from deployments.models import Project, VisibilityCharChoices, SectorTags
+from deployments.models import Project, VisibilityCharChoices, SectorTag
 
 from .factories.personnel import PersonnelFactory
 from deployments.factories.emergency_project import (
@@ -184,7 +181,7 @@ class TestProjectAPI(SnapshotTestCase):
         ProjectFactory.create_batch(
             10,
             project_districts=[district1, district2],
-            secondary_sectors=[SectorTags.WASH, SectorTags.PGI],
+            secondary_sectors=[SectorTag.objects.get(slug='WASH'), SectorTag.objects.get(slug='PGI')],
             visibility=VisibilityCharChoices.PUBLIC
         )
 
@@ -202,18 +199,21 @@ class TestProjectAPI(SnapshotTestCase):
         c1_district2 = district.DistrictFactory(country=country_1)
         c2_district1 = district.DistrictFactory(country=country_2)
         c2_district2 = district.DistrictFactory(country=country_2)
+        sct_1 = SectorTagFactory()
+        sct_2 = SectorTagFactory()
+        sct_3 = SectorTagFactory()
+        sct_4 = SectorTagFactory()
         [
             ProjectFactory.create_batch(
                 2,
                 project_districts=project_districts,
-                secondary_sectors=secondary_sectors,
                 visibility=VisibilityCharChoices.PUBLIC,
             )
             for project_districts, secondary_sectors in [
-                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.PGI]),
-                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.MIGRATION]),
-                ([c2_district1, c2_district2], [SectorTags.LIVELIHOODS_AND_BASIC_NEEDS, SectorTags.PGI]),
-                ([c2_district1, c2_district2], [SectorTags.INTERNAL_DISPLACEMENT, SectorTags.RECOVERY]),
+                ([c1_district1, c1_district2], [sct_1, sct_2]),
+                ([c1_district1, c1_district2], [sct_3, sct_4]),
+                ([c2_district1, c2_district2], [sct_1, sct_3]),
+                ([c2_district1, c2_district2], [sct_2, sct_4]),
             ]
             for ns in [ns_1, ns_2]
         ]

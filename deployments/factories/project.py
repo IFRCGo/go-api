@@ -8,6 +8,22 @@ from . import user, regional_project
 from api.factories import country, event, disaster_type
 
 
+class SectorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Sector
+
+    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-')
+    order = fuzzy.FuzzyInteger(0, 19)
+
+
+class SectorTagFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.SectorTag
+
+    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-tag-')
+    order = fuzzy.FuzzyInteger(0, 19)
+
+
 class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Project
@@ -30,7 +46,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
     name = fuzzy.FuzzyText(length=50, prefix='project-')
     programme_type = fuzzy.FuzzyChoice(models.ProgrammeTypes)
-    primary_sector = fuzzy.FuzzyChoice(models.Sectors)
+    primary_sector = factory.SubFactory(SectorFactory)
 
     @factory.post_generation
     def secondary_sectors(self, create, extracted, **kwargs):

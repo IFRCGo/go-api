@@ -9,15 +9,19 @@ class EnumArrayWidget(forms.Widget):
     def value_from_datadict(self, data, files, name):
         """
         Get the checkbox values and or them to get the final value
+        Input processing
         """
         value = data.getlist(name)
-        return ','.join(value)
+        # obsolete: return ','.join(value)
+        return [int(v) for v in value]
 
     def render(self, name, value, attrs=None, renderer=None):
+        """
+        Output preparation
+        """
         html = f'<select id="id_{name}" name="{name}" multiple="">'
-        values = value.split(',')
         for v, label in self.choices:
-            checked = str(v) in values
+            checked = v in value
             html += f'''
                 <option value="{v}" {"selected" if checked else ""}>{label}</option>
             '''
