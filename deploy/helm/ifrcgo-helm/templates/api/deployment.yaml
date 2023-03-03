@@ -45,7 +45,7 @@ spec:
               memory: {{ .Values.api.resources.limits.memory }}
           envFrom:
             - secretRef:
-              name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+                name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
           env:
             # - name: DJANGO_DB_NAME
             #   valueFrom:
