@@ -17,16 +17,31 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
+from rest_framework.pagination import LimitOffsetPagination
 
-from deployments.models import Heop, ERUType, ProgrammeTypes, Sectors, OperationTypes, Statuses
-from notifications.models import Subscription
+from deployments.models import (
+    Heop,
+    ERUType,
+    ProgrammeTypes,
+    Sectors,
+    OperationTypes,
+    Statuses
+)
+from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
+from deployments.models import Project, ERU
+from flash_update.models import FlashUpdate
+from dref.models import Dref, DrefOperationalUpdate
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
 from .indexes import ES_PAGE_NAME
 from .logger import logger
+from haystack.query import SearchQuerySet
+from api.models import Country, Region, District
+from haystack.inputs import AutoQuery, Raw
+from haystack.query import SQ
 
 
 def bad_request(message):
@@ -139,6 +154,219 @@ class EsPageSearch(APIView):
             })
         )
         return JsonResponse(results['hits'])
+
+class HayStackSearch(APIView):
+
+    def get(self, request):
+        phrase = request.GET.get('keyword', None)
+        phrase = phrase.lower()
+        if phrase is None:
+            return bad_request('Must include a `keyword`')
+
+        if phrase:
+            region_response = SearchQuerySet().models(Region).filter(
+                SQ(name__startswith=phrase)
+            )
+            country_response = SearchQuerySet().models(Country).filter(
+                SQ(name__contains=phrase),
+                SQ(independent='true'),
+                SQ(is_depercent='false')
+            ).order_by('-_score')
+            emergency_response = SearchQuerySet().models(Event).filter(
+                SQ(name__content=phrase)).order_by('-_score')
+            appeal_response = SearchQuerySet().models(Appeal).filter(
+                SQ(name__content=phrase)).order_by('-_score')
+            fieldreport_response = SearchQuerySet().models(FieldReport).filter(
+                SQ(name__content=phrase)).order_by('-_score')
+            surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
+                SQ(event_name__content=phrase) | SQ(country_name__content=phrase)
+            ).order_by('-_score')
+            project_response = SearchQuerySet().models(Project).filter(
+                SQ(event_name__content=phrase) | SQ(name__content=phrase)
+            ).order_by('-_score')
+            surge_deployments = SearchQuerySet().models(ERU).filter(
+                SQ(event_name__content=phrase) | SQ(country__content=phrase)
+            ).order_by('-_score')
+            district_province_response = SearchQuerySet().models(District).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+            flash_update_response = SearchQuerySet().models(FlashUpdate).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+            dref_response = SearchQuerySet().models(Dref).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+            dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
+                SQ(name__contains=phrase)
+            ).order_by('-_score')
+
+            appeals_list = []
+            dref = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Dref",
+                    "score": data.score,
+                    "country_name": data.country_name,
+                    "country_id": data.country_id,
+                    "code": data.code
+                } for data in dref_response
+            ]
+            appeals_list.extend(dref)
+            dref_op = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Operational Update",
+                    "score": data.score,
+                    "country_name": data.country_name,
+                    "country_id": data.country_id,
+                    "code": data.code
+                } for data in dref_operational_update_response
+            ]
+            appeals_list.extend(dref_op)
+            appeal_data = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "code": data.code,
+                    "country": data.country_name,
+                    "country_id": data.country_id,
+                    "start_date": data.start_date,
+                    "score": data.score,
+                    "type": "Appeal",
+                } for data in appeal_response
+            ]
+            appeals_list.extend(appeal_data)
+            field_report = []
+            flash_update = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Flash Update",
+                    "score": data.score,
+                } for data in flash_update_response
+            ]
+            field_report.extend(flash_update)
+            field_reports_data = [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "created_at": data.created_at,
+                    "type": "Field Report",
+                    "score": data.score,
+                } for data in fieldreport_response.order_by('-created_at')
+            ]
+            field_report.extend(field_reports_data)
+        result = {
+            "regions": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "score": data.score
+                } for data in region_response[:50]
+            ],
+            "district_province_response": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "score": data.score,
+                    "country": data.country_name,
+                    "country_id": data.country_id,
+                } for data in district_province_response[:50]
+            ],
+            "countries": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "society_name": data.society_name,
+                    "score": data.score,
+                } for data in country_response[:50]
+            ],
+            "emergencies": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "disaster_type": data.disaster_type,
+                    "funding_requirements": data.amount_requested,
+                    "funding_coverage": data.amount_funded,
+                    "event_date": data.disaster_start_date,
+                    "score": data.score,
+                    "countries": data.countries,
+                    "countries_id": data.countries_id
+                } for data in emergency_response[:50]
+            ],
+            "surge_alerts": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "keywords": data.molnix_tag,
+                    "event_name": data.event_name,
+                    "country": data.country_name,
+                    "start_date": data.start_date,
+                    "alert_date": data.alert_date,
+                    "score": data.score,
+                    "event_id": data.event_id,
+                    "status": data.status,
+                    "deadline": data.deadline,
+                    "surge_type": data.surge_type,
+                    "country_id": data.country_id,
+                } for data in surge_alert_response.order_by('-start_date')[:50]
+            ],
+            "projects": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "event_name": data.event_name,
+                    "national_society": data.reporting_ns,
+                    "tags": data.tags,
+                    "sector": data.sector,
+                    "start_date": data.start_date,
+                    "end_date": data.end_date,
+                    "regions": data.project_districts,
+                    "people_targeted": data.target_total,
+                    "score": data.score,
+                    "event_id": data.event_id,
+                    "national_society_id": data.reporting_ns_id
+                } for data in project_response.order_by('-start_date')[:50]
+            ],
+            "surge_deployments": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "event_name": data.event_name,
+                    "deployed_country": data.country,
+                    "type": data.eru_type,
+                    "owner": data.eru_owner,
+                    "personnel_units": data.personnel_units,
+                    "equipment_units": data.equipment_units,
+                    "event_id": data.event_id,
+                    "score": data.score,
+                    "deployed_country_id": data.country_id,
+                } for data in surge_deployments[:50]
+            ],
+            "reports": sorted(field_report, key=lambda d: d["score"], reverse=True)[:50],
+            "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50]
+        }
+        return Response(result)
+
+
+class Brief(APIView):
+    @classmethod
+    def get(cls, request):
+        e = Event.objects.filter(summary__contains='base64').count()
+        f = FieldReport.objects.filter(description__contains='base64').count()
+        u = FlashUpdate.objects.filter(situational_overview__contains='base64').count()
+        c = CronJob.objects.filter(status=2).count()
+        res = ES_CLIENT.cluster.health()
+        res['--------------------------------'] = '----------'
+        res['base64_img'] = e + f + u
+        res['cronjob_err'] = c
+        res['git_last_tag'] = settings.LAST_GIT_TAG
+        res['git_last_commit'] = settings.SENTRY_CONFIG['release'][0:8]
+        return JsonResponse(res, safe=False)
 
 
 class ERUTypes(APIView):

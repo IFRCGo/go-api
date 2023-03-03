@@ -38,7 +38,7 @@ class SurgeAlert(models.Model):
     molnix_id = models.IntegerField(blank=True, null=True)
 
     # Status field from Molnix - `unfilled` denotes Stood-Down
-    molnix_status = models.CharField(blank=True, null=True, max_length=32)    
+    molnix_status = models.CharField(blank=True, null=True, max_length=32)
 
     # It depends on molnix_status. Check "save" method below.
     is_stood_down = models.BooleanField(verbose_name=_('is stood down?'), default=False)
@@ -69,8 +69,12 @@ class SurgeAlert(models.Model):
     def __str__(self):
         if self.operation and self.operation != '':
             return self.operation
-        else:
+        elif self.event:
             return self.event.name
+        elif self.message:
+            return self.message
+        else:
+            return '–'
 
 
 class SubscriptionType(models.IntegerChoices):

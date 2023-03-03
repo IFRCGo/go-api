@@ -1,0 +1,8 @@
+{{object.id}}
+{{object.name}}
+{{object.visibility}}
+{{object.appeal_type}}
+{{object.code}}
+{{object.event_id}}
+{{object.country_id}}
+{{object.start_date}}

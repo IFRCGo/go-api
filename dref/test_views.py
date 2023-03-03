@@ -21,11 +21,7 @@ from dref.models import (
 
 from deployments.factories.user import UserFactory
 
-from api.models import (
-    Country,
-    DisasterType,
-    District
-)
+from api.models import Country, DisasterType, District
 from dref.tasks import send_dref_email
 
 
@@ -33,66 +29,56 @@ class DrefTestCase(APITestCase):
     def setUp(self):
         super().setUp()
 
-        path = os.path.join(settings.TEST_DIR, 'documents')
-        self.file = os.path.join(path, 'go.png')
+        path = os.path.join(settings.TEST_DIR, "documents")
+        self.file = os.path.join(path, "go.png")
 
     def test_upload_file(self):
         file_count = DrefFile.objects.count()
-        url = '/api/v2/dref-files/'
+        url = "/api/v2/dref-files/"
         data = {
-            'file': open(self.file, 'rb'),
+            "file": open(self.file, "rb"),
         }
         self.authenticate()
-        response = self.client.post(url, data, format='multipart')
+        response = self.client.post(url, data, format="multipart")
         self.assert_201(response)
         self.assertEqual(DrefFile.objects.count(), file_count + 1)
 
     def test_upload_multiple_file(self):
         file_count = DrefFile.objects.count()
-        url = '/api/v2/dref-files/multiple/'
-        data = {
-            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
-        }
+        url = "/api/v2/dref-files/multiple/"
+        data = {"file": [open(self.file, "rb"), open(self.file, "rb"), open(self.file, "rb")]}
 
         self.authenticate()
-        response = self.client.post(url, data, format='multipart')
+        response = self.client.post(url, data, format="multipart")
         self.assert_201(response)
         self.assertEqual(DrefFile.objects.count(), file_count + 3)
 
     def test_upload_invalid_files(self):
         file_count = DrefFile.objects.count()
-        url = '/api/v2/dref-files/multiple/'
-        data = {
-            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb'), "test_string"]
-        }
+        url = "/api/v2/dref-files/multiple/"
+        data = {"file": [open(self.file, "rb"), open(self.file, "rb"), open(self.file, "rb"), "test_string"]}
 
         self.authenticate()
-        response = self.client.post(url, data, format='multipart')
+        response = self.client.post(url, data, format="multipart")
         self.assert_400(response)
         self.assertEqual(DrefFile.objects.count(), file_count)  # no new files to be created
 
     def test_dref_file(self):
         file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
         file4 = DrefFileFactory.create(created_by=self.ifrc_user)
-        url = '/api/v2/dref-files/'
+        url = "/api/v2/dref-files/"
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assert_200(response)
-        self.assertEqual(len(response.data['results']), 4)
-        self.assertEqual(
-            set(file['id'] for file in response.data['results']),
-            set([file1.id, file2.id, file3.id, file5.id])
-        )
+        self.assertEqual(len(response.data["results"]), 4)
+        self.assertEqual(set(file["id"] for file in response.data["results"]), set([file1.id, file2.id, file3.id, file5.id]))
 
         # authenticate with another user
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.get(url)
         self.assert_200(response)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(
-            set(file['id'] for file in response.data['results']),
-            set([file4.id])
-        )
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(set(file["id"] for file in response.data["results"]), set([file4.id]))
 
     def test_get_dref(self):
         """
@@ -101,30 +87,30 @@ class DrefTestCase(APITestCase):
         # create a dref
         dref_1 = DrefFactory.create(created_by=self.user)
         dref_1.users.add(self.ifrc_user)
-        url = '/api/v2/dref/'
+        url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.data['results']), 1)
+        self.assertEqual(len(resp.data["results"]), 1)
 
         # authenticate with another user and try to view the dref
         self.client.force_authenticate(self.ifrc_user)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.data['results']), 1)
+        self.assertEqual(len(resp.data["results"]), 1)
 
         # try to get the dref by user who neither created nor has access to dref
         user = UserFactory.create()
         self.client.force_authenticate(user)
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(len(resp.data['results']), 0)
+        self.assertEqual(len(resp.data["results"]), 0)
 
-    @mock.patch('notifications.notification.send_notification')
+    @mock.patch("notifications.notification.send_notification")
     def test_post_dref_creation(self, send_notification):
         old_count = Dref.objects.count()
-        national_society = Country.objects.create(name='xzz')
-        disaster_type = DisasterType.objects.create(name='abc')
+        national_society = Country.objects.create(name="xzz")
+        disaster_type = DisasterType.objects.create(name="abc")
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
@@ -186,12 +172,7 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
-            "needs_identified": [
-                {
-                    "title": "environment_sustainability ",
-                    "description": "hey"
-                }
-            ],
+            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -201,11 +182,11 @@ class DrefTestCase(APITestCase):
                     "female": 2255,
                     "indicators": [
                         {
-                            'title': "test_title",
-                            'actual': 21232,
-                            'target': 44444,
+                            "title": "test_title",
+                            "actual": 21232,
+                            "target": 44444,
                         }
-                    ]
+                    ],
                 },
                 {
                     "id": 2,
@@ -216,33 +197,33 @@ class DrefTestCase(APITestCase):
                     "female": 2255,
                     "indicators": [
                         {
-                            'title': "test_title",
-                            'actual': 21232,
-                            'target': 44444,
+                            "title": "test_title",
+                            "actual": 21232,
+                            "target": 44444,
                         }
-                    ]
-                }
+                    ],
+                },
             ],
-            'users': [self.user.id]
+            "users": [self.user.id],
         }
-        url = '/api/v2/dref/'
+        url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
-        instance = Dref.objects.get(id=response.data['id'])
+        instance = Dref.objects.get(id=response.data["id"])
         instance_user_email = [user.email for user in instance.users.all()]
 
         # call email send task
         email_data = send_dref_email(instance.id, instance_user_email)
         self.assertTrue(send_notification.assert_called)
-        self.assertEqual(email_data['title'], instance.title)
+        self.assertEqual(email_data["title"], instance.title)
 
     def test_event_date_in_dref(self):
         """
         Test for the event date based on type_of_onset
         """
-        national_society = Country.objects.create(name='xzz')
+        national_society = Country.objects.create(name="xzz")
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
@@ -303,40 +284,26 @@ class DrefTestCase(APITestCase):
             "ifrc_emergency_email": "test@gmail.com",
             "originator_name": "Test Name",
             "originator_email": "test@gmail.com",
-            "needs_identified": [
-                {
-                    "title": "environment_sustainability ",
-                    "description": "hey"
-                }
-            ],
+            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
                     "description": "matrix",
                     "budget": 23444,
-                    "person_targeted": 12222
+                    "person_targeted": 12222,
                 },
-                {
-                    "id": 2,
-                    "title": "health",
-                    "description": "matrix reloaded",
-                    "budget": 451111111,
-                    "person_targeted": 345
-                }
+                {"id": 2, "title": "health", "description": "matrix reloaded", "budget": 451111111, "person_targeted": 345},
             ],
             "images_file": [],
             "cover_image_file": None,
         }
-        url = '/api/v2/dref/'
+        url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
-        id = response.data['id']
-        url = f'/api/v2/dref/{id}/'
-        data = {
-            "type_of_onset": Dref.OnsetType.IMMINENT.value,
-            "event_date": "2020-10-10"
-        }
+        id = response.data["id"]
+        url = f"/api/v2/dref/{id}/"
+        data = {"type_of_onset": Dref.OnsetType.IMMINENT.value, "event_date": "2020-10-10"}
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, 400)
 
@@ -345,19 +312,10 @@ class DrefTestCase(APITestCase):
         file4 = DrefFileFactory.create(created_by=self.ifrc_user)
         dref = DrefFactory.create(created_by=self.user)
         dref.users.add(self.ifrc_user)
-        url = f'/api/v2/dref/{dref.id}/'
+        url = f"/api/v2/dref/{dref.id}/"
         data = {
-            "images_file": [
-                {
-                    "file": file1.id,
-                    "caption": "Test Caption"
-                },
-                {
-                    "file": file2.id,
-                    "caption": "Test Caption"
-                }
-            ],
-            "modified_at": datetime.now()
+            "images_file": [{"file": file1.id, "caption": "Test Caption"}, {"file": file2.id, "caption": "Test Caption"}],
+            "modified_at": datetime.now(),
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data, format="json")
@@ -365,46 +323,21 @@ class DrefTestCase(APITestCase):
 
         # now remove one file and add one file by `self.ifrc_user`
         data = {
-            "images_file": [
-                {
-                    "file": file1.id,
-                    "caption": "Test Caption"
-                },
-                {
-                    "file": file4.id,
-                    "caption": "Test Caption"
-                }
-            ],
-            "modified_at": datetime.now()
+            "images_file": [{"file": file1.id, "caption": "Test Caption"}, {"file": file4.id, "caption": "Test Caption"}],
+            "modified_at": datetime.now(),
         }
         self.client.force_authenticate(self.ifrc_user)
-        response = self.client.patch(url, data, format='multipart')
+        response = self.client.patch(url, data, format="multipart")
         self.assert_200(response)
 
         # add from another user
-        data = {
-            "images_file": [
-                {
-                    "file": file4.id,
-                    "caption": "Test Caption"
-                }
-            ],
-            "modified_at": datetime.now()
-        }
+        data = {"images_file": [{"file": file4.id, "caption": "Test Caption"}], "modified_at": datetime.now()}
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
         self.assert_200(response)
 
         # add file created_by another user
-        data = {
-            "images_file": [
-                {
-                    "file": file5.id,
-                    "caption": "Test Caption"
-                }
-            ],
-            "modified_at": datetime.now()
-        }
+        data = {"images_file": [{"file": file5.id, "caption": "Test Caption"}], "modified_at": datetime.now()}
         self.client.force_authenticate(self.ifrc_user)
         response = self.client.patch(url, data)
         # self.assert_400(response)
@@ -413,35 +346,49 @@ class DrefTestCase(APITestCase):
         """
         Test to filter dref status
         """
-        DrefFactory.create(title='test', status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
-        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval='2020-10-10', created_by=self.user)
+        DrefFactory.create(title="test", status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
+        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
+        DrefFactory.create(status=Dref.Status.COMPLETED, date_of_approval="2020-10-10", created_by=self.user)
         DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
         DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
 
         # filter by `In Progress`
-        url = f'/api/v2/dref/?status={Dref.Status.IN_PROGRESS.value}'
+        url = f"/api/v2/dref/?status={Dref.Status.IN_PROGRESS.value}"
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data["results"]), 2)
+
+    def test_dref_country_filter(self):
+        country1 = Country.objects.create(name="country1")
+        country2 = Country.objects.create(name="country2")
+        DrefFactory.create(title="test", status=Dref.Status.COMPLETED, created_by=self.user, country=country1)
+        DrefFactory.create(status=Dref.Status.COMPLETED, created_by=self.user)
+        DrefFactory.create(status=Dref.Status.COMPLETED, created_by=self.user, country=country2)
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user, country=country1)
+        DrefFactory.create(status=Dref.Status.IN_PROGRESS, created_by=self.user)
+        url = f"/api/v2/dref/?country={country1.id}"
+        self.client.force_authenticate(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 2)
 
     def test_dref_options(self):
         """
         Test for various dref attributes
         """
-        url = '/api/v2/dref-options/'
+        url = "/api/v2/dref-options/"
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('status', response.data)
-        self.assertIn('type_of_onset', response.data)
-        self.assertIn('disaster_category', response.data)
-        self.assertIn('planned_interventions', response.data)
-        self.assertIn('needs_identified', response.data)
-        self.assertIn('national_society_actions', response.data)
+        self.assertIn("status", response.data)
+        self.assertIn("type_of_onset", response.data)
+        self.assertIn("disaster_category", response.data)
+        self.assertIn("planned_interventions", response.data)
+        self.assertIn("needs_identified", response.data)
+        self.assertIn("national_society_actions", response.data)
 
-    @mock.patch('django.utils.timezone.now')
+    @mock.patch("django.utils.timezone.now")
     def test_dref_is_published(self, mock_now):
         """
         Test for dref if is_published = True
@@ -450,11 +397,11 @@ class DrefTestCase(APITestCase):
         mock_now.return_value = initial_now
 
         dref = DrefFactory.create(
-            title='test',
+            title="test",
             created_by=self.user,
             is_published=True,
         )
-        url = f'/api/v2/dref/{dref.id}/'
+        url = f"/api/v2/dref/{dref.id}/"
         data = {
             "title": "New Update Title",
             "modified_at": initial_now,
@@ -465,25 +412,25 @@ class DrefTestCase(APITestCase):
 
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
-            title='test',
+            title="test",
             created_by=self.user,
         )
-        url = f'/api/v2/dref/{not_published_dref.id}/'
+        url = f"/api/v2/dref/{not_published_dref.id}/"
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
         self.assert_200(response)
 
-        data['modified_at'] = initial_now - timedelta(seconds=10)
+        data["modified_at"] = initial_now - timedelta(seconds=10)
         response = self.client.patch(url, data)
         self.assert_400(response)
 
         # test dref published endpoint
-        url = f'/api/v2/dref/{not_published_dref.id}/publish/'
+        url = f"/api/v2/dref/{not_published_dref.id}/publish/"
         data = {}
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data)
         self.assert_200(response)
-        self.assertEqual(response.data['is_published'], True)
+        self.assertEqual(response.data["is_published"], True)
 
     def test_dref_operation_update_create(self):
         """
@@ -491,18 +438,19 @@ class DrefTestCase(APITestCase):
         """
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title="Test Title",
+            created_by=self.user,
             is_published=True,
         )
         dref.users.add(user1)
-        self.country1 = Country.objects.create(name='abc')
-        self.district1 = District.objects.create(name='test district1', country=self.country1)
+        self.country1 = Country.objects.create(name="abc")
+        self.district1 = District.objects.create(name="test district1", country=self.country1)
         old_count = DrefOperationalUpdate.objects.count()
-        url = '/api/v2/dref-op-update/'
+        url = "/api/v2/dref-op-update/"
         data = {
-            'dref': dref.id,
-            'country': self.country1.id,
-            'district': [self.district1.id],
+            "dref": dref.id,
+            "country": self.country1.id,
+            "district": [self.district1.id],
         }
         self.authenticate(self.user)
         response = self.client.post(url, data=data)
@@ -513,14 +461,13 @@ class DrefTestCase(APITestCase):
         # NOTE: If DREF is not published can't create Operational Update
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title="Test Title",
+            created_by=self.user,
             is_published=False,
         )
         dref.users.add(user1)
-        url = '/api/v2/dref-op-update/'
-        data = {
-            'dref': dref.id
-        }
+        url = "/api/v2/dref-op-update/"
+        data = {"dref": dref.id}
         self.client.force_authenticate(user1)
         response = self.client.post(url, data=data)
         self.assert_400(response)
@@ -528,40 +475,34 @@ class DrefTestCase(APITestCase):
     def test_dref_operational_create_for_parent(self):
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title="Test Title",
+            created_by=self.user,
             is_published=True,
         )
         dref.users.add(user1)
-        DrefOperationalUpdateFactory.create(
-            dref=dref,
-            is_published=True,
-            operational_update_number=1
-        )
+        DrefOperationalUpdateFactory.create(dref=dref, is_published=True, operational_update_number=1)
         data = {
-            'dref': dref.id,
+            "dref": dref.id,
         }
-        url = '/api/v2/dref-op-update/'
+        url = "/api/v2/dref-op-update/"
         self.authenticate(user1)
         response = self.client.post(url, data)
         self.assert_201(response)
-        self.assertEqual(response.data['operational_update_number'], 2)
+        self.assertEqual(response.data["operational_update_number"], 2)
 
     def test_operational_update_create_for_not_published_parent(self):
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title="Test Title",
+            created_by=self.user,
             is_published=True,
         )
         dref.users.add(user1)
-        DrefOperationalUpdateFactory.create(
-            dref=dref,
-            is_published=False,
-            operational_update_number=1
-        )
+        DrefOperationalUpdateFactory.create(dref=dref, is_published=False, operational_update_number=1)
         data = {
-            'dref': dref.id,
+            "dref": dref.id,
         }
-        url = '/api/v2/dref-op-update/'
+        url = "/api/v2/dref-op-update/"
         self.client.force_authenticate(user1)
         response = self.client.post(url, data)
         self.assert_400(response)
@@ -569,53 +510,47 @@ class DrefTestCase(APITestCase):
     def test_dref_operational_update_patch(self):
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=user1,
+            title="Test Title",
+            created_by=user1,
             is_published=True,
         )
         dref.users.add(user1)
-        DrefOperationalUpdateFactory.create(
-            dref=dref,
-            is_published=True,
-            operational_update_number=1
-        )
-        url = '/api/v2/dref-op-update/'
+        DrefOperationalUpdateFactory.create(dref=dref, is_published=True, operational_update_number=1)
+        url = "/api/v2/dref-op-update/"
         data = {
-            'dref': dref.id,
+            "dref": dref.id,
         }
         self.authenticate(user=user1)
         response = self.client.post(url, data=data)
         self.assert_201(response)
-        response_id = response.data['id']
+        response_id = response.data["id"]
         data = {
-            'title': 'New Operation title',
-            'new_operational_end_date': '2022-10-10',
-            'reporting_timeframe': '2022-10-16',
-            'is_timeframe_extension_required': True,
+            "title": "New Operation title",
+            "new_operational_end_date": "2022-10-10",
+            "reporting_timeframe": "2022-10-16",
+            "is_timeframe_extension_required": True,
+            "modified_at": datetime.now() + timedelta(days=12),
         }
-        url = f'/api/v2/dref-op-update/{response_id}/'
+        url = f"/api/v2/dref-op-update/{response_id}/"
         self.authenticate(user=user1)
         response = self.client.patch(url, data)
         self.assert_200(response)
 
     def test_dref_change_on_final_report_create(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(
-            title='Test Title',
-            created_by=user1,
-            is_final_report_created=True
-        )
+        dref = DrefFactory.create(title="Test Title", created_by=user1, is_final_report_created=True)
         DrefFinalReportFactory.create(
             dref=dref,
             is_published=True,
         )
         # try to patch to dref
         data = {
-            'title': "hey title",
-            'new_operational_end_date': '2022-10-10',
-            'reporting_timeframe': '2022-10-16',
-            'is_timeframe_extension_required': True,
+            "title": "hey title",
+            "new_operational_end_date": "2022-10-10",
+            "reporting_timeframe": "2022-10-16",
+            "is_timeframe_extension_required": True,
         }
-        url = f'/api/v2/dref/{dref.id}/'
+        url = f"/api/v2/dref/{dref.id}/"
         self.authenticate(user=user1)
         response = self.client.patch(url, data)
         self.assert_400(response)
@@ -623,20 +558,21 @@ class DrefTestCase(APITestCase):
     def test_dref_fields_copied_to_final_report(self):
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=self.user,
+            title="Test Title",
+            created_by=self.user,
             is_published=True,
         )
         dref.users.add(user1)
         old_count = DrefFinalReport.objects.count()
-        url = '/api/v2/dref-final-report/'
+        url = "/api/v2/dref-final-report/"
         data = {
-            'dref': dref.id,
+            "dref": dref.id,
         }
         self.authenticate(self.user)
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
-        self.assertEqual(response.data['title'], dref.title)
+        self.assertEqual(response.data["title"], dref.title)
 
     def test_dref_operational_update_copied_to_final_report(self):
         """
@@ -645,62 +581,52 @@ class DrefTestCase(APITestCase):
         """
         user1, _ = UserFactory.create_batch(2)
         dref = DrefFactory.create(
-            title='Test Title', created_by=user1,
+            title="Test Title",
+            created_by=user1,
             is_published=True,
         )
         dref.users.add(user1)
         operational_update = DrefOperationalUpdateFactory.create(
-            dref=dref,
-            title='Operational Update Title',
-            is_published=False,
-            operational_update_number=1
+            dref=dref, title="Operational Update Title", is_published=False, operational_update_number=1
         )
         old_count = DrefFinalReport.objects.count()
-        url = '/api/v2/dref-final-report/'
+        url = "/api/v2/dref-final-report/"
         data = {
-            'dref': dref.id,
+            "dref": dref.id,
         }
         self.authenticate(self.user)
         response = self.client.post(url, data=data)
         self.assert_400(response)
         # update the operational_update
         operational_update.is_published = True
-        operational_update.save(update_fields=['is_published'])
+        operational_update.save(update_fields=["is_published"])
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
-        self.assertEqual(response.data['title'], operational_update.title)
+        self.assertEqual(response.data["title"], operational_update.title)
 
     def test_final_report_for_dref(self):
         # here a final report is already created for dref
         # no multiple final report allowed for a dref
         user1 = UserFactory.create()
         dref = DrefFactory.create(
-            title='Test Title',
+            title="Test Title",
             created_by=user1,
         )
         DrefFinalReportFactory.create(
             dref=dref,
         )
-        url = '/api/v2/dref-final-report/'
-        data = {
-            'dref': dref.id
-        }
+        url = "/api/v2/dref-final-report/"
+        data = {"dref": dref.id}
         self.authenticate(self.user)
         response = self.client.post(url, data)
         self.assert_400(response)
 
     def test_update_dref_for_final_report_created(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(
-            title='Test Title',
-            created_by=user1,
-            is_published=True
-        )
-        url = '/api/v2/dref-final-report/'
-        data = {
-            'dref': dref.id
-        }
+        dref = DrefFactory.create(title="Test Title", created_by=user1, is_published=True)
+        url = "/api/v2/dref-final-report/"
+        data = {"dref": dref.id}
         self.authenticate(self.user)
         response = self.client.post(url, data)
         self.assert_201(response)
@@ -709,34 +635,36 @@ class DrefTestCase(APITestCase):
 
     def test_final_report_update_once_published(self):
         user1 = UserFactory.create()
+        dref = DrefFactory.create(title="Test Title", created_by=user1, is_published=True)
         final_report = DrefFinalReportFactory(
-            title='Test title',
-            created_by=user1,
+            title="Test title",
+            dref=dref,
         )
+        final_report.users.set([user1])
         # try to publish this report
-        url = f'/api/v2/dref-final-report/{final_report.id}/publish/'
+        url = f"/api/v2/dref-final-report/{final_report.id}/publish/"
         data = {}
-        self.client.force_authenticate(self.user)
+        self.client.force_authenticate(user1)
         response = self.client.post(url, data)
         self.assert_200(response)
-        self.assertEqual(response.data['is_published'], True)
+        self.assertEqual(response.data["is_published"], True)
 
         # againt try to publish final
         response = self.client.post(url, data)
         self.assert_400(response)
 
         # now try to patch to the final report
-        url = f'/api/v2/dref-final-report/{final_report.id}/'
+        url = f"/api/v2/dref-final-report/{final_report.id}/"
         data = {
-            'title': 'New Field Report Title',
+            "title": "New Field Report Title",
         }
         response = self.client.patch(url, data)
         self.assert_400(response)
 
     def test_dref_for_assessment_report(self):
         old_count = Dref.objects.count()
-        national_society = Country.objects.create(name='xzz')
-        disaster_type = DisasterType.objects.create(name='abc')
+        national_society = Country.objects.create(name="xzz")
+        disaster_type = DisasterType.objects.create(name="abc")
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
@@ -799,14 +727,9 @@ class DrefTestCase(APITestCase):
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
             "is_assessment_report": True,
-            "needs_identified": [
-                {
-                    "title": "environment_sustainability ",
-                    "description": "hey"
-                }
-            ],
+            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
         }
-        url = '/api/v2/dref/'
+        url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 201)
@@ -814,65 +737,63 @@ class DrefTestCase(APITestCase):
 
     def test_dref_for_super_user(self):
         user1 = UserFactory.create(
-            username='user1@test.com',
-            first_name='Test',
-            last_name='User1',
-            password='admin123',
-            email='user1@test.com',
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
             is_superuser=True,
         )
         user2 = UserFactory.create(
-            username='user2@test.com',
-            first_name='Test',
-            last_name='User2',
-            password='admin123',
-            email='user2@test.com',
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
         )
         user3 = UserFactory.create(
-            username='user3@test.com',
-            first_name='Test',
-            last_name='User3',
-            password='admin123',
-            email='user3@test.com',
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user3@test.com",
         )
         dref1 = DrefFactory.create(
-            title='Test Title',
+            title="Test Title",
             created_by=user2,
         )
         DrefFactory.create(
-            title='Test Title New',
+            title="Test Title New",
         )
 
         # authenticate with user1(superuser)
         # user1 should be able to view all dref
-        url = '/api/v2/dref/'
+        url = "/api/v2/dref/"
         self.client.force_authenticate(user1)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data["results"]), 2)
 
         # authenticate with User2
         self.client.force_authenticate(user2)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['id'], dref1.id)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], dref1.id)
 
         # authenticate with User3
         self.client.force_authenticate(user3)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), 0)
+        self.assertEqual(len(response.data["results"]), 0)
 
     def test_dref_latest_update(self):
         dref = DrefFactory.create(
-            title='Test Title',
-            created_by=self.user,
-            modified_at=datetime(2022, 4, 18, 2, 29, 39, 793615)
+            title="Test Title", created_by=self.user, modified_at=datetime(2022, 4, 18, 2, 29, 39, 793615)
         )
-        url = f'/api/v2/dref/{dref.id}/'
+        url = f"/api/v2/dref/{dref.id}/"
         data = {
-            'title': "New title",
+            "title": "New title",
         }
 
         # without `modified_at`
@@ -881,13 +802,247 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
 
         # with `modified_at` less than instance `modified_at`
-        data['modified_at'] = datetime(2022, 2, 18, 2, 29, 39, 793615)
+        data["modified_at"] = datetime(2022, 2, 18, 2, 29, 39, 793615)
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, 400)
 
-        data['modified_at'] = datetime.now()
+        data["modified_at"] = datetime.now()
         response = self.client.patch(url, data=data)
         self.assertEqual(response.status_code, 200)
         # Title should be latest since modified_at is greater than modified_at in database
-        self.assertEqual(response.data['title'], "New title")
+        self.assertEqual(response.data["title"], "New title")
+
+    def test_dref_op_update_locking(self):
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_published=True,
+        )
+        dref.users.add(user1)
+        DrefOperationalUpdateFactory.create(
+            dref=dref, is_published=True, operational_update_number=1, modified_at=datetime.now()
+        )
+        url = "/api/v2/dref-op-update/"
+        data = {
+            "dref": dref.id,
+        }
+        self.authenticate(user=user1)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        response_id = response.data["id"]
+
+        # without `modified_at`
+        data = {
+            "title": "New Operation title",
+            "new_operational_end_date": "2022-10-10",
+            "reporting_timeframe": "2022-10-16",
+            "is_timeframe_extension_required": True,
+        }
+        url = f"/api/v2/dref-op-update/{response_id}/"
+        self.authenticate(user=user1)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+        # with `modified_at` less than instance `modified_at`
+        data["modified_at"] = datetime.now() - timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)
+
+    def test_optimistic_lock_in_final_report(self):
+        user1 = UserFactory.create()
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_published=True,
+        )
+        final_report = DrefFinalReportFactory(
+            title="Test title",
+            created_by=user1,
+            dref=dref,
+        )
+        url = f"/api/v2/dref-final-report/{final_report.id}/"
+
+        # update data without `modified_at`
+        data = {"title": "New Updated Title"}
+        self.authenticate(user1)
+        response = self.client.patch(url, data)
+        self.assert_400(response)
+
+        # with `modified_at` less than instance `modified_at`
+        data["modified_at"] = datetime.now() - timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assert_400(response)
+
+        # with `modified_at` greater than instance `modified_at`
+        data["modified_at"] = datetime.now() + timedelta(days=2)
+        response = self.client.patch(url, data=data)
+        self.assert_200(response)
+
+    def test_dref_permission(self):
+        user1 = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
+        )
+        user3 = UserFactory.create(
+            username="user4@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user4@test.com",
+        )
+        user4 = UserFactory.create(
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User4",
+            password="admin123",
+            email="user3@test.com",
+        )
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+        )
+        dref1.users.add(user2)
+        DrefFactory.create(title="Test Title New", created_by=user3)
+        get_url = "/api/v2/dref/"
+        # authenticate with superuser
+        # should be able to view all drefs
+        self.client.force_authenticate(user1)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 2)
+
+        # # let superuser patch the dref
+        patch_url = f"/api/v2/dref/{dref1.id}/"
+        data = {"title": "New test title", "modified_at": datetime.now()}
+        response = self.client.patch(patch_url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        # # lets authenticate with user for whom dref is shared with
+        self.client.force_authenticate(user2)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 1)
+
+        # # try to patch by user
+        self.client.force_authenticate(user2)
+        data = {
+            "title": "New test title",
+            "modified_at": datetime.now() + timedelta(days=1),
+        }
+        response = self.client.patch(patch_url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        # # try to authenticate with user who is neither assigned nor created_by
+        self.client.force_authenticate(user4)
+        response = self.client.get(get_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["results"]), 0)
+
+    def test_superuser_permisssion_operational_update(self):
+        super_user = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        dref = DrefFactory.create(
+            title="Test Title",
+            is_published=True,
+        )
+        self.country1 = Country.objects.create(name="abc")
+        self.district1 = District.objects.create(name="test district1", country=self.country1)
+        url = "/api/v2/dref-op-update/"
+        data = {
+            "dref": dref.id,
+            "country": self.country1.id,
+            "district": [self.district1.id],
+        }
+        # authenticate with superuser
+        self.authenticate(super_user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+
+    def test_operational_update_view_permission(self):
+        Dref.objects.all().delete()
+        user1, user2, user3 = UserFactory.create_batch(3)
+        dref = DrefFactory.create(title="Test Title", is_published=True, created_by=user1)
+        operational_update = DrefOperationalUpdateFactory.create(
+            dref=dref,
+        )
+        operational_update.users.set([user3])
+        self.country1 = Country.objects.create(name="abc")
+        self.district1 = District.objects.create(name="test district1", country=self.country1)
+
+        # Here user1 is able to see the operational_update
+        url = "/api/v2/dref-op-update/"
+        self.authenticate(user1)
+        response = self.client.get(url)
+        self.assert_200(response)
+
+        # authenticate with the user3
+        # here user3 should be able to view dref
+        # since user3 is assigned to op-update created from dref
+        dref_url = "/api/v2/dref/"
+        self.authenticate(user3)
+        response = self.client.get(dref_url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], dref.id)
+
+        # authenticate with user2
+        # here user2 is not able to view dref
+        self.authenticate(user2)
+        response = self.client.get(dref_url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data["results"]), 0)
+
+    def test_concurrent_dref_operational_update(self):
+        user1, user2, user3 = UserFactory.create_batch(3)
+        dref = DrefFactory.create(title="Test Title", is_published=True, created_by=user1)
+        operational_update = DrefOperationalUpdateFactory.create(dref=dref, operational_update_number=1, created_by=user3)
+        operational_update.users.set([user3, user2])
+        self.country1 = Country.objects.create(name="abc")
+        self.district1 = District.objects.create(name="test district1", country=self.country1)
+
+        # Here user1 is able to see the operational_update
+        url = "/api/v2/dref-op-update/"
+        self.authenticate(user1)
+        response = self.client.get(url)
+        self.assert_200(response)
+
+        # create another operational update from corresponding dref
+        operation_update2 = DrefOperationalUpdateFactory.create(dref=dref, operational_update_number=2)
+        operation_update2.users.set([user2])
+
+        # authenticate with user2
+        url = "/api/v2/dref-op-update/"
+        self.authenticate(user2)
+        response = self.client.get(url)
+        self.assert_200(response)
+
+        # user2 should also be able to view dref
+        dref_url = "/api/v2/dref/"
+        self.authenticate(user2)
+        response = self.client.get(dref_url)
+        self.assert_200(response)
+        self.assertEqual(len(response.data["results"]), 1)
+
+        # authenticate with user1
+        self.authenticate(user1)
+        response = self.client.get(dref_url)
+        self.assert_200(response)

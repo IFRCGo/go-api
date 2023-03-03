@@ -6,10 +6,13 @@ import environ
 
 from django.utils.translation import gettext_lazy as _
 # from celery.schedules import crontab
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
+from corsheaders.defaults import default_headers
+
+from main import sentry
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 env = environ.Env(
     # Django
@@ -20,7 +23,7 @@ env = environ.Env(
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, 'media')),
     DJANGO_STATIC_URL=(str, '/static/'),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, 'static')),
-    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org,goadmin.ifrc.org,prddsgocdnapi.azureedge.net
+    DJANGO_ADDITIONAL_ALLOWED_HOSTS=(list, []),  # Eg: api.go.ifrc.org, goadmin.ifrc.org, dsgocdnapi.azureedge.net
     GO_ENVIRONMENT=(str, 'development'),  # staging, production
     #
     API_FQDN=str,  # sub-domain.domain.domain-extension
@@ -40,8 +43,8 @@ env = environ.Env(
     EMAIL_PORT=(str, None),
     EMAIL_USER=(str, None),
     EMAIL_PASS=(str, None),
-    TEST_EMAILS=(list, ['im@ifrc.org']),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
+    # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
     # AWS Translate NOTE: not used right now
     AWS_TRANSLATE_ACCESS_KEY=(str, None),
     AWS_TRANSLATE_SECRET_KEY=(str, None),
@@ -69,6 +72,12 @@ env = environ.Env(
     GO_FTPUSER=(str, None),
     GO_FTPPASS=(str, None),
     GO_DBPASS=(str, None),
+    # Appeal Server Credentials (https://go-api.ifrc.org/api/)
+    APPEALS_USER=(str, None),
+    APPEALS_PASS=(str, None),
+    # Sentry
+    SENTRY_DSN=(str, None),
+    SENTRY_SAMPLE_RATE=(float, 0.2),
 )
 
 
@@ -144,11 +153,14 @@ INSTALLED_APPS = [
     'dref',
     'flash_update',
     'eap',
+    'country_plan',
+    'local_units',
 
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
     # 'django_celery_beat',
+    'haystack',
 
     # Logging
     'reversion',
@@ -167,6 +179,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'main.exception_handler.custom_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 50,
     'DEFAULT_FILTER_BACKENDS': (
@@ -192,6 +205,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    # 'middlewares.middlewares.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -208,6 +222,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'sentry-trace',
+]
 
 ROOT_URLCONF = 'main.urls'
 
@@ -246,10 +263,10 @@ DATABASES = {
 }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',  },
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',  },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
     {'NAME': 'main.validators.NumberValidator', },
     {'NAME': 'main.validators.UppercaseValidator', },
     {'NAME': 'main.validators.LowercaseValidator', },
@@ -355,8 +372,8 @@ EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_PORT = env('EMAIL_PORT')
 EMAIL_USER = env('EMAIL_USER')
 EMAIL_PASS = env('EMAIL_PASS')
-TEST_EMAILS = env('TEST_EMAILS')
 DEBUG_EMAIL = env('DEBUG_EMAIL')
+# TEST_EMAILS = env('TEST_EMAILS') # maybe later
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
@@ -466,3 +483,44 @@ GO_DBPASS = env('GO_DBPASS')
 
 # MISC
 FRONTEND_URL = env('FRONTEND_URL')
+
+
+DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
+
+# Appeal Server Credentials
+APPEALS_USER = env('APPEALS_USER')
+APPEALS_PASS = env('APPEALS_PASS')
+
+# Handmade Git Command
+LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, '.git', 'refs', 'tags')), default=0)
+
+# Sentry Config
+SENTRY_DSN = env('SENTRY_DSN')
+SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
+
+SENTRY_CONFIG = {
+    'dsn': SENTRY_DSN,
+    'send_default_pii': True,
+    'traces_sample_rate': SENTRY_SAMPLE_RATE,
+    'release': sentry.fetch_git_sha(BASE_DIR),
+    'environment': GO_ENVIRONMENT,
+    'debug': DEBUG,
+    'tags': {
+        'site': GO_API_FQDN,
+    },
+}
+if SENTRY_DSN:
+    sentry.init_sentry(
+        app_type='API',
+        **SENTRY_CONFIG,
+    )
+# Required for Django HayStack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+        'URL': ELASTIC_SEARCH_HOST,
+        'INDEX_NAME': 'new_index',
+    },
+}
+
+HAYSTACK_LIMIT_TO_REGISTERED_MODELS = False

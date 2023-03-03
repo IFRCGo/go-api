@@ -85,26 +85,25 @@ def send_notification(subject, recipients, html, mailtype='', files=None):
         print(f'\n{html}\n')
         print('-' * 22, 'EMAIL END -', '-' * 22)
 
-    # If it's not PROD only able to use test e-mail addresses which are set in the env var
     to_addresses = recipients if isinstance(recipients, list) else [recipients]
 
-    if not IS_PROD:
-        logger.info('Using test email addresses...')
-        to_addresses = []
-        logger.info(to_addresses)
-        for eml in settings.TEST_EMAILS:
-
-            # It is possible to filter test addressees to domain name only – not used.
-            is_dom = True if '@' not in eml else False
-            if is_dom:
-                for rec in recipients:
-                    try:
-                        if eml == rec.split('@')[1]:
-                            to_addresses.append(rec)
-                    except Exception:
-                        logger.info('Could not extract domain from: {}'.format(rec))
-            elif eml and (eml in recipients):
-                to_addresses.append(eml)
+#    if not IS_PROD:
+#        logger.info('Using test email addresses...')
+#        to_addresses = []
+#        logger.info(to_addresses)
+#        for eml in settings.TEST_EMAILS:
+#
+#            # It is possible to filter test addressees to domain name only – not used.
+#            is_dom = True if '@' not in eml else False
+#            if is_dom:
+#                for rec in recipients:
+#                    try:
+#                        if eml == rec.split('@')[1]:
+#                            to_addresses.append(rec)
+#                    except Exception:
+#                        logger.info('Could not extract domain from: {}'.format(rec))
+#            elif eml and (eml in recipients):
+#                to_addresses.append(eml)
 
     recipients_as_string = ','.join(to_addresses)
     if not recipients_as_string:

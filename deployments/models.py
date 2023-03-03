@@ -9,11 +9,9 @@ from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
 from django.contrib.postgres.fields import ArrayField
-from django.contrib.gis.db import models as gid_models
 from django.db.models import Q
 from django.db.models import JSONField
 
-from main.enums import TextChoices
 from api.models import (
     District,
     Country,
@@ -212,6 +210,7 @@ class Personnel(DeployedPerson):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
 
     class Meta:
+        ordering = ('deployment', 'country_to', 'country_from', 'molnix_id', 'deployedperson_ptr_id',)
         verbose_name = _('Personnel')
         verbose_name_plural = _('Personnels')
 

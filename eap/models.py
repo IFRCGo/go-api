@@ -1,10 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-
-from main.enums import TextChoices
-from deployments.models import Sectors
-from main.enums import IntegerChoices
 from api.models import (
     Country,
     District,
@@ -13,7 +9,7 @@ from api.models import (
 
 
 class EarlyActionIndicator(models.Model):
-    class IndicatorChoices(TextChoices):  # TODO these indicator are yet to be provided by client.
+    class IndicatorChoices(models.TextChoices):  # TODO these indicator are yet to be provided by client.
         INDICATOR_1 = 'indicator_1', _('Indicator 1')
         INDICATOR_2 = 'indicator_2', _('Indicator 2')
 
@@ -32,7 +28,7 @@ class EarlyActionIndicator(models.Model):
 
 
 class EarlyAction(models.Model):
-    class Sector(IntegerChoices):
+    class Sector(models.IntegerChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = 0, _('Shelter, Housing And Settlements')
         LIVELIHOODS = 1, _('Livelihoods')
         MULTI_PURPOSE_CASH = 2, _('Multi-purpose Cash')
@@ -67,7 +63,7 @@ class EarlyAction(models.Model):
 
 
 class EAP(models.Model):
-    class Status(TextChoices):  # TODO some more status choices are to be expected by client.
+    class Status(models.TextChoices):  # TODO some more status choices are to be expected by client.
         APPROVED = 'approved', _('Approved')
         IN_PROCESS = 'in_process', _('In Process')
 

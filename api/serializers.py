@@ -52,7 +52,7 @@ from .models import (
     CountryOfFieldReportToReview,
 )
 from notifications.models import Subscription
-from deployments.models import EmergencyProject
+from deployments.models import EmergencyProject, Personnel
 
 
 class GeoSerializerMixin:
@@ -357,6 +357,7 @@ class RegionRelationSerializer(ModelSerializer):
     preparedness_snippets = RegionPreparednessSnippetSerializer(many=True, read_only=True)
     national_society_count = serializers.SerializerMethodField()
     country_cluster_count = serializers.SerializerMethodField()
+    country_plan_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
     def get_national_society_count(obj):
@@ -370,13 +371,14 @@ class RegionRelationSerializer(ModelSerializer):
         model = Region
         fields = ('links', 'contacts', 'snippets', 'emergency_snippets',
                   'profile_snippets', 'preparedness_snippets', 'name',
-                  'region_name', 'id', 'additional_tab_name',
+                  'region_name', 'id', 'additional_tab_name', 'country_plan_count',
                   'national_society_count', 'country_cluster_count',)
 
 
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
+    has_country_plan = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Country
@@ -387,7 +389,7 @@ class CountryRelationSerializer(ModelSerializer):
             'nsi_trained_in_first_aid', 'nsi_gov_financial_support', 'nsi_domestically_generated_income',
             'nsi_annual_fdrs_reporting', 'nsi_policy_implementation', 'nsi_risk_management_framework',
             'nsi_cmc_dashboard_compliance', 'wash_kit2', 'wash_kit5', 'wash_kit10', 'wash_staff_at_hq',
-            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained',
+            'wash_staff_at_branch', 'wash_ndrt_trained', 'wash_rdrt_trained', 'has_country_plan',
         )
 
 
@@ -397,7 +399,8 @@ class RelatedAppealSerializer(ModelSerializer):
     class Meta:
         model = Appeal
         fields = (
-            'aid', 'num_beneficiaries', 'amount_requested', 'amount_funded', 'status', 'status_display', 'start_date', 'id',
+            'aid', 'num_beneficiaries', 'amount_requested', 'code',
+            'amount_funded', 'status', 'status_display', 'start_date', 'id',
         )
 
 
@@ -498,6 +501,7 @@ class ListEventSerializer(ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     dtype = DisasterTypeSerializer()
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
+    active_deployments = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -505,8 +509,18 @@ class ListEventSerializer(ModelSerializer):
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
             'field_reports', 'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
-            'emergency_response_contact_email',
+            'emergency_response_contact_email', 'active_deployments',
         )
+
+    def get_active_deployments(self, event):
+        now = timezone.now()
+        return Personnel.objects.filter(
+            type=Personnel.TypeChoices.RR,
+            start_date__lt=now,
+            end_date__gt=now,
+            deployment__event_deployed_to=event,
+            is_active=True
+        ).count()
 
 
 class SurgeEventSerializer(ModelSerializer):
@@ -649,7 +663,7 @@ class DeploymentsByEventSerializer(ModelSerializer):
         deployments = [d for d in obj.personneldeployment_set.all()]
         personnels = []
         for d in deployments:
-            for p in d.personnel_set.filter(end_date__gte=timezone.now(), is_active=True):
+            for p in d.personnel_set.filter(end_date__gte=timezone.now(), start_date__lte=timezone.now(), is_active=True):
                 personnels.append(p)
         return list(set([p.country_from.society_name for p in personnels if p.country_from and p.country_from.society_name != '']))
 
@@ -672,6 +686,7 @@ class DetailEventSerializer(ModelSerializer):
     links = EventLinkSerializer(many=True, read_only=True)
     countries_for_preview = MiniCountrySerializer(many=True)
     response_activity_count = serializers.SerializerMethodField()
+    active_deployments = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -681,13 +696,22 @@ class DetailEventSerializer(ModelSerializer):
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
             'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview',
-            'response_activity_count', 'visibility'
+            'response_activity_count', 'visibility', 'active_deployments'
         )
         lookup_field = 'slug'
 
     def get_response_activity_count(self, event):
         return EmergencyProject.objects.filter(event=event).count()
 
+    def get_active_deployments(self, event):
+        now = timezone.now()
+        return Personnel.objects.filter(
+            type=Personnel.TypeChoices.RR,
+            start_date__lt=now,
+            end_date__gt=now,
+            deployment__event_deployed_to=event,
+            is_active=True
+        ).count()
 
 class SituationReportTypeSerializer(ModelSerializer):
     class Meta:

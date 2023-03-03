@@ -30,6 +30,7 @@ def get_username():
 
 
 class RequestMiddleware:
+
     def __init__(self, get_response):
         self.get_response = get_response
         # One-time configuration and initialization.
@@ -51,7 +52,8 @@ class RequestMiddleware:
         setattr(_threadlocal, "request", request)
         return self.get_response(request)
 
-    def process_view(self, request, view_function, *args, **kwargs):
+    @staticmethod
+    def process_view(request, view_function, *args, **kwargs):
         # NOTE: For POST raise error on non default language
         request_match = request.resolver_match
         reject_the_request = (

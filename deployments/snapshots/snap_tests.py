@@ -17,14 +17,14 @@ snapshots['TestProjectAPI::test_project_csv_api 1'] = '''actual_expenditure,budg
 0,6150000,,,21,21,disaster-type-pdZDbQAvNqHbuogyciTiCOtppdnCRlZPTWFeIAOPkstDwAmeZZ,giOenISaFIlJFIWZdzAeuStwNGvGzyowBuTsfHbkOJRHlviekQHTIyBLcuNryLTMHWtlIGkSIsCcvjcpfQoRkNIJDfYUWknVkbnByHBsiYCVEIyiBISQXvlEjHDVybUpjaGECJorCfVaAlQIoorOOwWWOTxEpvBlmPiZCFPTXcdqvnvHwTLEndiXDoVOQikJwZCbtTkYqcWUjvvvsAHMUYSRoLYCDPcsggAEJIexYLAOYszPDoHzYvyMatrGQqVQBFVonlTlNeSksIMvwIDSCbaQBkpRNquLLRrkArcFAbOJMundfiTdopKGbShpUGFfWyjIopwBJNduJXecIRbhxnnDrZmuzDbiOPCFkGXDeuyxMBQNxDSLQswFvKvNKxxbvuPpSOyiKTOfChtGxseJoNwkSuiVQxjZdDQXHPGkXWezPugeNOTlftxFsTsujdZncYZQiEOyWNqDmbGUXJjtdmUxRplUfYkVssaVSlLmXBosPYYbKqfl,2008-01-01,14,19,,14,event-YBhVAieQQIQxTBpuiaXaDBeucsjduMJQyGZwQPAMCDetmRnSBb,13,gcvwlcgcfswwaugdunmjfghgjgimncrzzqhypjhhagetiuwfhr,7,2008-01-01T00:00:00.123456Z,,,project-ZTfJcxTQkwEKuLKdTbsEMqfiZPpjutAafJMfYhnZtVUoqZGTxE,0,Programme,3,Migration,0,Bilateral,15,,,15,,False,tk,FOt,country-QJXYLBCzRpwmYBFpxRYwTHMAcFdDiiIInrXfnoZwgWmNaermdM,4,Country Office,15,society-name-NoBzRouETXUKACXeSrHbmTXQaQdDRUoZxXOBxJjybGlvlQApUE,"gRoEbNJuNo, nPOMbdYvpi","1, 2","False, True","True, True","district-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx, district-cctFhgpIiyDxQVSIALVUjAPgFNArcSxnCCpxgRxIPwdzrmhDfQ",0,0,0,0,7,2008-01-01T00:00:00.123456Z,7,2008-01-01T00:00:00.123456Z,regional-project-sihXhjbXkNfSTnGfocfsLtJckNHMdJIPHTeLyRAtZxkmhKgRKL,14,,,,,,14,,False,dn,yuA,country-pHPsKpWVAJdQymuGwobUfbXfWjCJKyMvfZNPnaWsPGxjTFDwHy,4,Country Office,14,society-name-jdmVBnqtRsnOMqzGXMyVVTpogIeRjmoxCRAfETVdCohCtrwDDB,"0, 1","WASH, PGI",2008-01-01,1,Ongoing,0,0,0,0,8,public,Public\r
 0,9070000,,,24,24,disaster-type-EdbprpWDrmUjwyZREsbYYSvnyiufPQjnhevqgOehLbOibyaFgp,VzPLndYcxileRtqkPBYCPpVWxmJqQiuXBhhAgRuQWNKTNtrVjAYSfIrvunCWXuIjzHiUPNxdIgrNLQtclZmimwJxLowGdSnQVOvPkGHbvbZFucFTQGfLROCZnxqYYsiwlrTSEFFEqsXrKyqYLpctBsZddBayKIGiytIBiVQDxZxZnFDLoYJwPsPZybLgihbqbDkxqZwUmMBcfWBdKNojOVqDbCKjzixQYgTEsmhRzXdnixdPoVRSXLtpROMGHqrjDJKwjRpBfYFLqKAUqvZtMSVwTNwDUGhlCUmUgFTsRUQZjCUgHoijRrbknMnzQiEygDArTbXQrcrUyvQxgfkJyoGfhbwaiTZiITMkcEXPsROvLwkYHTiCXAFEYrlnNnuSqnWoODmUYiTCHnMAXVLlfwhcaiyaFCWkeqmOOqSHyKQYyYvnFexwEphbwlaJKJmeJDobQZKxdENnoDCogiNEmrfVtHvdXkRSDQxMOSbHjAITbaMdEjlb,2008-01-01,16,22,,16,event-DnBvQsSRasqNiElGdNamhCJGpYQYyZqpVfBFVHuVNGrqrcJJQK,15,uvlnbmlocdoxbatvjbnnxdhvxknpcimmqnzymobmkpwzwqapbc,8,2008-01-01T00:00:00.123456Z,,,project-JPOEfkWhHLWrwlpMPSuKAXcipneuZNXNHUDwhDxCYNbmkmaJHI,0,Programme,6,Shelter,0,Bilateral,17,,,17,,False,oK,AIC,country-bkLvYEmYHagbelsZwDgIfxJdyVPZfMsMKXLhmzOYUxcwvhKgQV,5,Representative Office,17,society-name-fGBYQFeEaIaPtNjMnTkWJTYxbFSgMBfjLonieWmrKwkicKXZqc,"gRoEbNJuNo, nPOMbdYvpi","1, 2","False, True","True, True","district-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx, district-cctFhgpIiyDxQVSIALVUjAPgFNArcSxnCCpxgRxIPwdzrmhDfQ",0,0,0,0,8,2008-01-01T00:00:00.123456Z,8,2008-01-01T00:00:00.123456Z,regional-project-dCGOIBFPwHSYFuvRIvaLvKWgtvcsNClpzANsRziClGBvgIhsXS,16,,,,,,16,,False,Lx,BbF,country-muzJUSngCjoWBOzFdtTSeEfaPnSJKfNhGYWEscubhpUnYkbWpr,3,Region,16,society-name-eqHEXzwdTFDwWTjwTPDjoeyWVnhzbmQFPGUefPQVXduXSWCbmW,"0, 1","WASH, PGI",2008-01-01,1,Ongoing,0,0,0,0,9,public,Public\r
 0,6280000,,,27,27,disaster-type-zCgOSYQZaQGaaTqOwGSElrkQlERPsUSLzBwTQiNtHmcwhDhLDj,VvelPnqnWpuoBDxRCREFCnqUYiyZXvIEudnQeatTPLCMfqaEEeOROlGbYAfQKMcEqzzTAMWFQrEjYVfDhWksXoxyBGQZpYVdnjwWmyKxTjxuICUVyFnuUaEJWfVdQFlHSoPMtZDyrUAVRelRyfqNSOYMnQzQpgXKzlCvzStqoLWcLueOMvzznbdPzmyjThYdwReyqdCGDVZTPdtGgfnVPxWWmSUEVOQOpMAxkEOkWZMuLVIzCDESdvxtHLLTXcEflSLMyMWMgusTJlEadQiKpnXSgnizGKmEqAbkepBWIIsexFEfSiVMeHrlSOPxeULwYAWfEBQxvJMkjoSxxiSIuJFQbBmaYQjXjJXTlMoZpwjICHNFgxUmwZMPAtFkAHQtVFrArRxucDRjHpgWahJwURdHIdIEuzVtwWbVRvIhPauHagaJPJRAFMFZqqFBfLnCIZXUJBymyYOsyWvpootCCrVKAomEKjjYSBkGhNewalnFsnJOFpsu,2008-01-01,18,25,,18,event-taTcnVkEnbnWitXHlTCtSynVYuiRUoYvAfhJGSWjapIaRBRTUL,17,vgqaiqejvmpqetggpkgwfdfymbznozbyzozpuntelgeppkaulg,9,2008-01-01T00:00:00.123456Z,,,project-dukhMsauOaqEiWAbNEPKBkMerwLFCpAybKIWVuLhMJfCWtFUoy,0,Programme,5,DRR,1,Multilateral,19,,,19,,False,ER,Zvn,country-kHVnkyFRbgVWfzCGhhZBDYVIAViMalugvmGzqWkBCoXbkkcNKt,1,Country,19,society-name-PbsRaxYmeMHrXedQvbCuYuaHqGukJsAFCdoYFGqBCNFdUaJPUo,"gRoEbNJuNo, nPOMbdYvpi","1, 2","False, True","True, True","district-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx, district-cctFhgpIiyDxQVSIALVUjAPgFNArcSxnCCpxgRxIPwdzrmhDfQ",0,0,0,0,9,2008-01-01T00:00:00.123456Z,9,2008-01-01T00:00:00.123456Z,regional-project-hZONIqqqYUMyeBpKulvEqEEErpCOkfjoGrGDCxyeYNfJWKHEvx,18,,,,,,18,,False,dz,PZB,country-JrWQucRSqzjgFyqQmsMmKsgBYTWyCqcCJRJRSAKGVSxIuCrNeW,1,Country,18,society-name-DPjBsfGCNpPLCINunDEdekrKnhBVrwRQMHjqpCIarCascEOLmy,"0, 1","WASH, PGI",2008-01-01,1,Ongoing,0,0,0,0,10,public,Public\r
-0,3970000,,,30,30,disaster-type-YZgWdpAPmOaxyMvPPWAluOcRLyNteinukJHINLRYaRJGWWHyWb,HefaDgsMVlnTzbpXAGbGPvJQGsqYXrnZFiXhmlBYTTFFAnJYoXeTLeRGdZtoGtSpcXLEKFvXyGTYqlhJhJWceZHVErDkMfTSoghkywNSCtyandiRngieFHhCYWbtlTpiFuHIJffIuNZkbAnbqhywiDkzfJKgaKwogcbeDMQlWueozOkjmIPbenQCclbKPJfMtaeWryNyfTpzcDFjFkcOVsxdSTKJaBVnSRwopnxbhzTlAiuectKryhFpcxQeZUvgnoQibLzCmdLYjsaEtfOmvKORAAvppKdoYyoQHxErmoMgLuGbSabYJtgzjRyFxcfTtBHpPhrzxaYboKqXOxxGTRUTsyVsPkdgGgWPMbinkagywgMHJMazVbMhFXwcDvhVLkyDEOwZbrzgzPkQjROGOsmUMRBwBIVOJWOFYkajaqJFfboyYRvosFyWsfqsYjUTVEhRLCsvnesxLxwaJddjONbBULwtEmuBqiZCSiLqnAOfcYNbKHkq,2008-01-01,20,28,,20,event-uFoeQGdjbsbqeTaDZgKeiMXZrpYSpDdlBxCHgsNzoZwubfLnxn,19,eqfbhuugtxzcofoedscusteqsdrkmfcxabzfoalgtscndnpmez,10,2008-01-01T00:00:00.123456Z,,,project-udPHhqTBQtCcjmAaCshFdYBaklxkvumQQfmqVfCAllIbKwteFx,0,Programme,0,WASH,1,Multilateral,21,,,21,,False,sB,qum,country-hqEusQzBjrWHjiodPBsiVeYfBGqzdoHZMZwgOSvNjprSBzujeW,4,Country Office,21,society-name-WogBWrLYuaBcXuPsggSnEPgoPRsPBVYpOgWRaFIMRcOEIBKRVu,"gRoEbNJuNo, nPOMbdYvpi","1, 2","False, True","True, True","district-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx, district-cctFhgpIiyDxQVSIALVUjAPgFNArcSxnCCpxgRxIPwdzrmhDfQ",0,0,0,0,10,2008-01-01T00:00:00.123456Z,10,2008-01-01T00:00:00.123456Z,regional-project-nWNVzNOgbWWIkZLBPQwBgiZdYysyrUAEyqDJwykvdJqwdVRePt,20,,,,,,20,,False,pm,xYm,country-iUlMcOXbduLauswVhCoyuJxscuUKeKortlsAiQVEgimNopdXWA,3,Region,20,society-name-TxNEuLQIbKzZkGlUThMzaHFJFWOuOEGPJjXSYEmDBpdLEDoLPG,"0, 1","WASH, PGI",2008-01-01,1,Ongoing,0,0,0,0,11,public,Public\r
+0,980000,,,30,30,disaster-type-FYZgWdpAPmOaxyMvPPWAluOcRLyNteinukJHINLRYaRJGWWHyW,bHefaDgsMVlnTzbpXAGbGPvJQGsqYXrnZFiXhmlBYTTFFAnJYoXeTLeRGdZtoGtSpcXLEKFvXyGTYqlhJhJWceZHVErDkMfTSoghkywNSCtyandiRngieFHhCYWbtlTpiFuHIJffIuNZkbAnbqhywiDkzfJKgaKwogcbeDMQlWueozOkjmIPbenQCclbKPJfMtaeWryNyfTpzcDFjFkcOVsxdSTKJaBVnSRwopnxbhzTlAiuectKryhFpcxQeZUvgnoQibLzCmdLYjsaEtfOmvKORAAvppKdoYyoQHxErmoMgLuGbSabYJtgzjRyFxcfTtBHpPhrzxaYboKqXOxxGTRUTsyVsPkdgGgWPMbinkagywgMHJMazVbMhFXwcDvhVLkyDEOwZbrzgzPkQjROGOsmUMRBwBIVOJWOFYkajaqJFfboyYRvosFyWsfqsYjUTVEhRLCsvnesxLxwaJddjONbBULwtEmuBqiZCSiLqnAOfcYNbKHk,2008-01-01,20,28,,20,event-gVuFoeQGdjbsbqeTaDZgKeiMXZrpYSpDdlBxCHgsNzoZwubfLn,19,xneqfbhuugtxzcofoedscusteqsdrkmfcxabzfoalgtscndnpm,10,2008-01-01T00:00:00.123456Z,,,project-qudPHhqTBQtCcjmAaCshFdYBaklxkvumQQfmqVfCAllIbKwteF,0,Programme,4,Health,1,Multilateral,21,,,21,,False,je,WFs,country-tQTehqEusQzBjrWHjiodPBsiVeYfBGqzdoHZMZwgOSvNjprSBz,3,Region,21,society-name-BqumWogBWrLYuaBcXuPsggSnEPgoPRsPBVYpOgWRaFIMRcOEIB,"gRoEbNJuNo, nPOMbdYvpi","1, 2","False, True","True, True","district-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx, district-cctFhgpIiyDxQVSIALVUjAPgFNArcSxnCCpxgRxIPwdzrmhDfQ",0,0,0,0,10,2008-01-01T00:00:00.123456Z,10,2008-01-01T00:00:00.123456Z,regional-project-NnnWNVzNOgbWWIkZLBPQwBgiZdYysyrUAEyqDJwykvdJqwdVRe,20,,,,,,20,,False,vp,mxY,country-oiUlMcOXbduLauswVhCoyuJxscuUKeKortlsAiQVEgimNopdXW,4,Country Office,20,society-name-mTxNEuLQIbKzZkGlUThMzaHFJFWOuOEGPJjXSYEmDBpdLEDoLP,"0, 1","WASH, PGI",2008-01-01,1,Ongoing,0,0,0,0,11,public,Public\r
 '''
 
 snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'ns_with_ongoing_activities': 16,
     'projects_per_programme_type': [
         {
-            'count': 8,
+            'count': 7,
             'programme_type': 0,
             'programme_type_display': 'Bilateral'
         },
@@ -34,7 +34,7 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'programme_type_display': 'Multilateral'
         },
         {
-            'count': 4,
+            'count': 5,
             'programme_type': 2,
             'programme_type_display': 'Domestic'
         }
@@ -88,12 +88,17 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
             'primary_sector_display': 'CEA'
         },
         {
-            'count': 2,
+            'count': 1,
             'primary_sector': 3,
             'primary_sector_display': 'Migration'
         },
         {
             'count': 2,
+            'primary_sector': 4,
+            'primary_sector_display': 'Health'
+        },
+        {
+            'count': 1,
             'primary_sector': 5,
             'primary_sector_display': 'DRR'
         },
@@ -303,8 +308,8 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
         {
             'budget_amount_total': 5920000,
             'id': 21,
-            'iso3': 'WNq',
-            'name': 'country-FWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKzFb',
+            'iso3': 'hBW',
+            'name': 'country-hkFWJNPIGxPkqKRLeNzbOHsgUSwRJXvxmDTodTYrnDAnhHuxKz',
             'ongoing_projects': 1,
             'operation_types': [
                 0
@@ -319,7 +324,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
                     'primary_sector_display': 'CEA'
                 }
             ],
-            'society_name': 'society-name-qJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYtjD',
+            'society_name': 'society-name-NqqJTgrVtaadVUrcYCxAcjpXhdUBtXcCXMFkLAHVklUJGQvVYt',
             'target_total': 0
         },
         {
@@ -411,7 +416,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 6730000,
+            'budget_amount_total': 7050000,
             'id': 31,
             'iso3': 'IBB',
             'name': 'country-TtOYzaCmFldtcpOlRYtastbgkeCJvBTOnPWtmzervxcfkMbqpf',
@@ -433,10 +438,10 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 5220000,
+            'budget_amount_total': 4260000,
             'id': 33,
-            'iso3': 'hNK',
-            'name': 'country-lFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPpOuhTPN',
+            'iso3': 'PNP',
+            'name': 'country-TIuGhslFoucligTrYZNfzfdSWfMLvoRjfavNEGPtQYlQIfZsPp',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -447,18 +452,18 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 5,
-                    'primary_sector_display': 'DRR'
+                    'primary_sector': 4,
+                    'primary_sector_display': 'Health'
                 }
             ],
-            'society_name': 'society-name-DMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyjPObObN',
+            'society_name': 'society-name-tSThNKDMYIfFApbQgMPVWggwrZnUhBSCdfQshatRJHibAqQwyj',
             'target_total': 0
         },
         {
-            'budget_amount_total': 3510000,
+            'budget_amount_total': 3040000,
             'id': 35,
-            'iso3': 'Bnz',
-            'name': 'country-NUBFklsXHvwhvOCcmqmsYKfCZeQddoPOvFOcvIoPoPYtLrpOFs',
+            'iso3': 'PYt',
+            'name': 'country-fdGdNQeaEPjKNUBFklsXHvwhvOCcmqmsYKfCZeQddoPOvFOcvI',
             'ongoing_projects': 1,
             'operation_types': [
                 1
@@ -469,27 +474,27 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'projects_per_sector': [
                 {
                     'count': 1,
-                    'primary_sector': 3,
-                    'primary_sector_display': 'Migration'
+                    'primary_sector': 4,
+                    'primary_sector_display': 'Health'
                 }
             ],
-            'society_name': 'society-name-JvnKNSlGzUnyLPRoqRfeZxiwArYgPzwdBsnTobwsdWUzKBxgrG',
+            'society_name': 'society-name-LrpOFsFxdBnzJvnKNSlGzUnyLPRoqRfeZxiwArYgPzwdBsnTob',
             'target_total': 0
         }
     ]
 }
 
 snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
-,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
 ,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
 '''
 
 snapshots['TestProjectAPI::test_project_create 1'] = {

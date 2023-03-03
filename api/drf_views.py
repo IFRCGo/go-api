@@ -11,13 +11,14 @@ from django.http import Http404
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Count, Q
+from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
 from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
+from .utils import is_user_ifrc
 from .event_sources import SOURCES
 from .exceptions import BadRequest
 from .view_filters import ListFilter
@@ -60,6 +61,8 @@ from .models import (
     UserCountry,
     CountryOfFieldReportToReview,
 )
+
+from country_plan.models import CountryPlan
 
 from .serializers import (
     ActionSerializer,
@@ -134,8 +137,8 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
                                     'personneldeployment__personnel',
                                     filter=Q(
                                         personneldeployment__personnel__type=Personnel.TypeChoices.RR,
-                                        personneldeployment__personnel__start_date__lte=timezone.now(),
-                                        personneldeployment__personnel__end_date__gte=timezone.now(),
+                                        personneldeployment__personnel__start_date__date__lte=timezone.now(),
+                                        personneldeployment__personnel__end_date__date__gte=timezone.now(),
                                         personneldeployment__personnel__is_active=True
                                     )
                                 )
@@ -167,7 +170,11 @@ class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Region.objects.all()
+    queryset = Region.objects.annotate(
+        country_plan_count=Count(
+            'country__country_plan', filter=Q(country__country_plan__is_publish=True)
+        )
+    )
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -185,17 +192,20 @@ class CountryFilter(filters.FilterSet):
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Country.objects.filter(is_deprecated=False)
+    queryset = Country.objects.filter(is_deprecated=False).annotate(
+        has_country_plan=models.Exists(CountryPlan.objects.filter(country=OuterRef('pk'), is_publish=True))
+    )
     filterset_class = CountryFilter
     search_fields = ('name',)  # for /docs
 
     def get_object(self):
         pk = self.kwargs['pk']
+        qs = self.get_queryset()
         try:
-            return Country.objects.get(pk=int(pk))
+            return qs.get(pk=int(pk))
         except ValueError:
             # NOTE: If pk is not integer try searching for name or iso
-            country = Country.objects.filter(
+            country = qs.filter(
                 models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk))
             )
             if country.exists():
@@ -328,7 +338,7 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
 class DistrictFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country',)
+        fields = ('country', 'country__iso3', 'name',)
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
@@ -428,10 +438,20 @@ class EventViewset(ReadOnlyVisibilityViewset):
         if pk:
             try:
                 if self.request.user.is_authenticated:
-                    if self.request.user.is_superuser:
+                    if is_user_ifrc(self.request.user):
                         instance = Event.objects.get(pk=pk)
                     else:
-                        instance = Event.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=UserCountry.objects.filter(user=self.request.user.id).values_list('country',flat=True).union(Profile.objects.filter(user=self.request.user.id).values_list('country',flat=True)))).get(pk=pk)
+                        user_countries = UserCountry.objects\
+                            .filter(user=request.user.id).values('country')\
+                            .union(
+                                Profile.objects.filter(user=request.user.id).values('country')
+                            )
+                        instance = Event.objects\
+                            .exclude(
+                                visibility=VisibilityChoices.IFRC)\
+                            .exclude(
+                                Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))\
+                            .get(pk=pk)
                 else:
                     instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
@@ -553,6 +573,7 @@ class AppealHistoryFilter(filters.FilterSet):
             'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'appeal__real_data_update': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'country__iso3': ('exact',),
         }
 
 
@@ -1073,6 +1094,7 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Event.objects.filter(appeals__isnull=False)
+
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     queryset = CountryOfFieldReportToReview.objects.order_by('country')

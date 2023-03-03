@@ -245,24 +245,6 @@ class EventAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
         return mark_safe('<span class="errors">No related field reports</span>')
     field_reports.short_description = 'Field Reports'
 
-# For multiple document fields inline. TO be FIXED: only the last one is saved. Change also tabular.html (DELETEME)
-#   def save_formset(self, request, form, formset, change):
-#       if hasattr(formset.model, 'document'): # SituationReports (or other similars)
-#           instances = formset.save(commit=False)
-#           for inst in formset.deleted_objects:
-#               inst.delete()
-#           for inst in formset.changed_objects:
-#               inst.save()
-#           for inst in formset.new_objects:
-#               for i,one_document in enumerate(request.FILES.getlist('documents_multiple')):
-#                   if i<30: # not letting tons of documents to be attached
-#                       inst.name     = inst.name if i == 0 else inst.name + '-' + str(i)
-#                       inst.document = one_document
-#                       inst.save()
-#           formset.save_m2m()
-#       else:
-#           formset.save()
-
 
 class GdacsAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'countries__pk__in'
@@ -526,7 +508,7 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
 
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'pk__in'
-    list_display = ('__str__', 'record_type')
+    list_display = ('__str__', 'record_type', 'iso3')
     region_in = 'region__pk__in'
     list_editable = ('record_type',)
     search_fields = ('name',)
@@ -550,9 +532,11 @@ class RegionAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdm
     search_fields = ('name',)
     modifiable = True
 
+
 class Admin2Admin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin):
-    search_fields = ('name',)
+    search_fields = ('name', 'admin1__country__name')
     modifiable = True
+
 
 class UserProfileAdmin(CompareVersionAdmin):
     search_fields = ('user__username', 'user__email', 'country__name',)

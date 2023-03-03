@@ -32,6 +32,7 @@ from api.views import (
     ShowUsername,
     EsPageSearch,
     EsPageHealth,
+    Brief,
     ERUTypes,
     RecentAffecteds,
     FieldReportStatuses,
@@ -49,7 +50,8 @@ from api.views import (
     AddCronJobLog,
     DummyHttpStatusError,
     DummyExceptionError,
-    ResendValidation
+    ResendValidation,
+    HayStackSearch,
 )
 from registrations.views import (
     NewRegistration,
@@ -69,6 +71,7 @@ from per.views import (
 )
 
 from databank.views import CountryOverviewViewSet
+from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
 # DRF routes
 from rest_framework import routers
@@ -79,6 +82,7 @@ from per import drf_views as per_views
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
+from country_plan import drf_views as country_plan_views
 from lang import views as lang_views
 from dref import views as dref_views
 
@@ -116,7 +120,6 @@ router.register(r'per', per_views.FormViewset, basename='per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
-# router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'peroverview', per_views.OverviewViewset, basename='peroverview')
 router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, basename='peroverviewstrict')
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
@@ -162,12 +165,18 @@ router.register(r'dref-op-update', dref_views.DrefOperationalUpdateViewSet, base
 router.register(r'dref-final-report', dref_views.DrefFinalReportViewSet, basename='dref_final_report')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 
+# Country Plan apis
+router.register(r'country-plan', country_plan_views.CountryPlanViewset, basename='country_plan')
+
 admin.site.site_header = 'IFRC Go administration'
 admin.site.site_title = 'IFRC Go admin'
 
 urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
+    url(r'^api/v1/search/', HayStackSearch.as_view()),
     url(r'^api/v1/es_health/', EsPageHealth.as_view()),
+    # If we want to use the next one, some fixes needed, e.g.
+    # stackoverflow.com/questions/47166385/dont-know-how-to-convert-the-django-field-skills-class-taggit-managers-tagga
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
@@ -176,6 +185,7 @@ urlpatterns = [
     url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
     url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
     url(r'^api/v2/deployment/aggregated_by_ns', deployment_views.DeploymentsByNS.as_view()),
+    url(r'^api/v2/brief', Brief.as_view()),
     url(r'^api/v2/erutype', ERUTypes.as_view()),
     url(r'^api/v2/recentaffected', RecentAffecteds.as_view()),
     url(r'^api/v2/fieldreportstatus', FieldReportStatuses.as_view()),
@@ -213,6 +223,8 @@ urlpatterns = [
     url(r'^api/v2/event/(?P<pk>\d+)', api_views.EventViewset.as_view({'get': 'retrieve'})),
     url(r'^api/v2/event/(?P<slug>[-\w]+)', api_views.EventViewset.as_view({'get': 'retrieve'}, lookup_field='slug')),
     url(r'^api/v2/exportperresults/', per_views.ExportAssessmentToCSVViewset.as_view()),
+    url(r'^api/v2/local-unit/(?P<pk>\d+)', LocalUnitDetailAPIView.as_view()),
+    url(r'^api/v2/local-unit/', LocalUnitListAPIView.as_view()),
     url(r'^docs/', include_docs_urls(title='IFRC GO API', public=False)),
     url(r'^tinymce/', include('tinymce.urls')),
     url(r'^admin/', RedirectView.as_view(url='/')),
