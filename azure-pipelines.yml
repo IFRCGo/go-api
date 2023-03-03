@@ -35,6 +35,12 @@ jobs:
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
     env:
       environment: staging
+      TF_VAR_username: github
+      TF_VAR_subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
+      tenantId: $(TERRAFORM_TENANT_ID)
+      servicePrincipalId: $(TERRAFORM_SERVICE_PRINCIPAL_ID)
+      servicePrincipalKey: $(TERRAFORM_SERVICE_PRINCIPAL_KEY)
+      storageAccessKey: $(TERRAFORM_STORAGE_KEY)
       API_FQDN: ifrcgo-test.ds.io
       subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
       DJANGO_SECRET_KEY: $(STAGING_DJANGO_SECRET_KEY)
