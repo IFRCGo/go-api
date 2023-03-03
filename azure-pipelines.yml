@@ -21,18 +21,24 @@ jobs:
 - job: 'Build'
   steps:
   - checkout: go-api
+    displayName: "Checkout go-api"
     path: go-api
 
   - bash: pip install -v chartpress
+    displayName: "Install Chartpress"
+
 
   - task: Docker@2
+    displayName: "Login to ACR"
     inputs:
       containerRegistry: 'ifrcgotestacr'
       command: 'login'
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
+    displayName: "Build and Push"
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
+    displayName: "Deploy Staging"
     env:
       environment: staging
       TF_VAR_username: github
@@ -75,3 +81,8 @@ jobs:
       GO_FTPUSER: $(STAGING_GO_FTPUSER)
       GO_FTPPASS: $(STAGING_GO_FTPPASS)
       GO_DBPASS: $(STAGING_GO_DBPASS)
+      FRONTEND_URL: ''
+      DEBUG_EMAIL: ''
+      DOCKER_HOST_IP: ''
+      DJANGO_DEBUG: ''
+      DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
