@@ -21,11 +21,9 @@ jobs:
 - job: 'Build'
   steps:
   - checkout: go-api
-    name: 'Checkout go-api repository'
     path: go-api
 
   - bash: pip install -v chartpress
-    name: 'Install Chartpress'
 
   - task: Docker@2
     inputs:
@@ -33,10 +31,8 @@ jobs:
       command: 'login'
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
-    name: 'Build and Publish'
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
-    name: 'Deploy Staging'
     env:
       environment: staging
       API_FQDN: ifrcgo-test.ds.io
