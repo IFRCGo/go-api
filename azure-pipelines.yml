@@ -25,6 +25,8 @@ jobs:
 - job: 'Build'
   steps:
   - checkout: go-api
+    path: $(Pipeline.Workspace)/go-api
+
   - bash: pip install -v chartpress
   - task: Docker@2
     inputs:
