@@ -22,13 +22,13 @@ jobs:
   steps:
   - bash: echo "Hello World"
 
-- job: 'checkoutRepo'
+- job: 'Build'
   steps:
-  - checkout: go-api 
+  - checkout: go-api
   - bash: pip install -v chartpress
   - task: Docker@2
     inputs:
       containerRegistry: 'ifrcgotestacr'
       command: 'login'
 
-  - bash: ./deploy/scripts/cipublish
+  - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
