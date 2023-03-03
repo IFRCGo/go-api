@@ -46,35 +46,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
-          env:
-            # - name: DJANGO_DB_NAME
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
-            #       key: DJANGO_DB_NAME
-            - name: DJANGO_DB_NAME
-              value: postgres
-
-            - name: DJANGO_DEBUG
-              value: {{ .Values.env.DJANGO_DEBUG }}
-
-            - name: DOCKER_HOST_IP
-              value: {{ .Values.env.DOCKER_HOST_IP }}
-
-            - name: DJANGO_ADDITIONAL_ALLOWED_HOSTS
-              value: {{ .Values.env.DJANGO_ADDITIONAL_ALLOWED_HOSTS }}
-
-            - name: GO_ENVIRONMENT
-              value: {{ .Values.env.GO_ENVIRONMENT }}
-
-            - name: API_FQDN
-              value: {{ .Values.env.API_FQDN }}
-
-            - name: FRONTEND_URL
-              value: {{ .Values.env.FRONTEND_URL }}
-
-            - name: DEBUG_EMAIL
-              value: {{ .Values.env.DEBUG_EMAIL }}
-
+            - configMapRef:
+                name: {{ template "ifrcgo-helm.fullname" . }}-api-configmap
 
 {{- end }}
