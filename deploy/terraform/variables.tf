@@ -147,7 +147,7 @@ variable "DJANGO_DEBUG" {
 
 variable "DOCKER_HOST_IP" {
   type = string
-  default = ""
+  default = "127.0.0.1"
 }
 
 variable "DJANGO_ADDITIONAL_ALLOWED_HOSTS" {
@@ -162,12 +162,12 @@ variable "GO_ENVIRONMENT" {
 
 variable "API_FQDN" {
   type = string
-  default = ""
+  default = "ifrcgo-test.ds.io"
 }
 
 variable "FRONTEND_URL" {
   type = string
-  default = ""
+  default = "https://ifrcgo-test.ds.io"
 }
 
 variable "DEBUG_EMAIL" {
