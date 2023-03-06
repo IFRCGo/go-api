@@ -1,5 +1,9 @@
 trigger:
-- develop
+- terraform
+
+pr:
+- azure-pipelines
+- terraform
 
 resources:
   repositories:
