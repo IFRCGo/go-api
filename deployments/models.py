@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
-from django.contrib.postgres.fields import ArrayField
 from django.db.models import Q
 from django.db.models import JSONField
 
@@ -288,36 +287,36 @@ class SectorTag(models.Model):
         return self.title
 
 
-class Sectors(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    HEALTH = 4, _('Health')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-
-
-class SectorTags(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-    RECOVERY = 10, _('Recovery')
-    INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
-    HEALTH_PUBLIC = 4, _('Health (public)')
-    HEALTH_CLINICAL = 12, _('Health (clinical)')
-    COVID_19 = 13, _('COVID-19')
-
-
+#class Sectors(models.IntegerChoices):
+#     WASH = 0, _('WASH')
+#     PGI = 1, _('PGI')
+#     CEA = 2, _('CEA')
+#     MIGRATION = 3, _('Migration')
+#     HEALTH = 4, _('Health')
+#     DRR = 5, _('DRR')
+#     SHELTER = 6, _('Shelter')
+#     NS_STRENGTHENING = 7, _('NS Strengthening')
+#     EDUCATION = 8, _('Education')
+#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+#
+#
+#class SectorTags(models.IntegerChoices):
+#     WASH = 0, _('WASH')
+#     PGI = 1, _('PGI')
+#     CEA = 2, _('CEA')
+#     MIGRATION = 3, _('Migration')
+#     DRR = 5, _('DRR')
+#     SHELTER = 6, _('Shelter')
+#     NS_STRENGTHENING = 7, _('NS Strengthening')
+#     EDUCATION = 8, _('Education')
+#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+#     RECOVERY = 10, _('Recovery')
+#     INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
+#     HEALTH_PUBLIC = 4, _('Health (public)')
+#     HEALTH_CLINICAL = 12, _('Health (clinical)')
+#     COVID_19 = 13, _('COVID-19')
+#
+#
 class Statuses(models.IntegerChoices):
     PLANNED = 0, _('Planned')
     ONGOING = 1, _('Ongoing')
@@ -438,12 +437,13 @@ class Project(models.Model):
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
 
-    #def get_secondary_sectors_display(self):
-    #    choices_dict = dict(make_hashable(SectorTags.choices))
-    #    return [
-    #        force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
-    #        for value in self.secondary_sectors or []
-    #    ]
+    def get_secondary_sectors_display(self):
+        choices = {t.id: t.title for t in SectorTag.objects.all()}
+        return []  # FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return [
+            force_str(choices.get(make_hashable(value), value), strings_only=True)
+            for value in self.secondary_sectors or []
+        ]
 
     def save(self, *args, **kwargs):
         if hasattr(self, 'annual_split_detail'):
