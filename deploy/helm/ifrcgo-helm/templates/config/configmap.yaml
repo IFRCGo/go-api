@@ -7,6 +7,7 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
+  CELERY_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/"
   DJANGO_DB_NAME: postgres
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   DOCKER_HOST_IP: {{ .Values.env.DOCKER_HOST_IP | quote }}
