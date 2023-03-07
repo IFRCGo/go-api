@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
-from django.contrib.postgres.fields import ArrayField
 from django.db.models import Q
 from django.db.models import JSONField
 
@@ -260,36 +259,64 @@ class ProgrammeTypes(models.IntegerChoices):
     DOMESTIC = 2, _('Domestic')
 
 
-class Sectors(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    HEALTH = 4, _('Health')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+@reversion.register()
+class Sector(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    slug = models.CharField(max_length=255, verbose_name=_('slug'))
+    order = models.SmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = _('Project Sector')
+        verbose_name_plural = _('Project Sectors')
+
+    def __str__(self):
+        return self.title
 
 
-class SectorTags(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-    RECOVERY = 10, _('Recovery')
-    INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
-    HEALTH_PUBLIC = 4, _('Health (public)')
-    HEALTH_CLINICAL = 12, _('Health (clinical)')
-    COVID_19 = 13, _('COVID-19')
+@reversion.register()
+class SectorTag(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    slug = models.CharField(max_length=255, verbose_name=_('slug'))
+    order = models.SmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = _('Project Sector Tag')
+        verbose_name_plural = _('Project Sector Tags')
+
+    def __str__(self):
+        return self.title
 
 
+#class Sectors(models.IntegerChoices):
+#     WASH = 0, _('WASH')
+#     PGI = 1, _('PGI')
+#     CEA = 2, _('CEA')
+#     MIGRATION = 3, _('Migration')
+#     HEALTH = 4, _('Health')
+#     DRR = 5, _('DRR')
+#     SHELTER = 6, _('Shelter')
+#     NS_STRENGTHENING = 7, _('NS Strengthening')
+#     EDUCATION = 8, _('Education')
+#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+#
+#
+#class SectorTags(models.IntegerChoices):
+#     WASH = 0, _('WASH')
+#     PGI = 1, _('PGI')
+#     CEA = 2, _('CEA')
+#     MIGRATION = 3, _('Migration')
+#     DRR = 5, _('DRR')
+#     SHELTER = 6, _('Shelter')
+#     NS_STRENGTHENING = 7, _('NS Strengthening')
+#     EDUCATION = 8, _('Education')
+#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+#     RECOVERY = 10, _('Recovery')
+#     INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
+#     HEALTH_PUBLIC = 4, _('Health (public)')
+#     HEALTH_CLINICAL = 12, _('Health (clinical)')
+#     COVID_19 = 13, _('COVID-19')
+#
+#
 class Statuses(models.IntegerChoices):
     PLANNED = 0, _('Planned')
     ONGOING = 1, _('Ongoing')
@@ -368,11 +395,8 @@ class Project(models.Model):
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
     programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'),
         help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>')
-    primary_sector = models.IntegerField(choices=Sectors.choices, default=0, verbose_name=_('sector'),
-        help_text='<a target="_blank" href="/api/v2/primarysector">Key/value pairs</a>')
-    secondary_sectors = ArrayField(
-        models.IntegerField(choices=SectorTags.choices), verbose_name=_('tags'), default=list, blank=True,
-    )
+    primary_sector = models.ForeignKey(Sector, verbose_name=_('sector'), on_delete=models.CASCADE,)
+    secondary_sectors = models.ManyToManyField(SectorTag, related_name='tags', blank=True,)
     operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'),
         help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>')
     start_date = models.DateField(verbose_name=_('start date'))
@@ -413,12 +437,12 @@ class Project(models.Model):
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
 
-    def get_secondary_sectors_display(self):
-        choices_dict = dict(make_hashable(SectorTags.choices))
-        return [
-            force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
-            for value in self.secondary_sectors or []
-        ]
+    # def get_secondary_sectors_display(self):
+    #     choices = {t.id: t.title for t in SectorTag.objects.all()}
+    #     return [
+    #         force_str(choices.get(make_hashable(value), value), strings_only=True)
+    #         for value in self.secondary_sectors or []
+    #     ]
 
     def save(self, *args, **kwargs):
         if hasattr(self, 'annual_split_detail'):

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             model_name='project',
             name='secondary_sectors',
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.IntegerField(choices=deployments.models.Sectors.choices, default=0),
+                base_field=models.IntegerField(default=0),
                 blank=True, default=list, size=None,
             ),
         ),
