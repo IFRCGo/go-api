@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             sql=[
-                 ("INSERT INTO deployments_project_secondary_sectors (project_id,sectortag_id) (select id, unnest(secondary_sectors) FROM tmp2sect)"),
+                 ("INSERT INTO deployments_project_secondary_sectors (project_id,sectortag_id) (select distinct id, unnest(secondary_sectors) FROM tmp2sect)"),
                  ("DROP TABLE tmp2sect"),
             ],
             reverse_sql=[("DELETE FROM deployments_project_secondary_sectors"),],
