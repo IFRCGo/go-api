@@ -437,11 +437,11 @@ class ProjectCsvSerializer(ProjectSerializer):
 
     @staticmethod
     def get_secondary_sectors(obj):
-        return ', '.join([str(sector) for sector in obj.secondary_sectors])
+        return ', '.join([str(t.id) for t in obj.secondary_sectors.all()])
 
     @staticmethod
     def get_secondary_sectors_display(obj):
-        return ', '.join(obj.get_secondary_sectors_display())
+        return ', '.join([t.title for t in obj.secondary_sectors.all()])
 
     @staticmethod
     def get_project_districts_detail(obj):

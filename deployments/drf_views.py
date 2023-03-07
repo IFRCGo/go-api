@@ -600,30 +600,32 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
 
     @action(detail=False, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
-        def _get_projects_per_enum_field(projects, EnumType, enum_field):
-            return []  #!!! FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        def _get_projects_per_enum_field(projects, EnumType, enum_field, realEnum):
             return [
                 {
                     enum_field: enum_field_value,
-                    f'{enum_field}_display': EnumType(int(enum_field_value)).label,
+                    f'{enum_field}_display':
+                        EnumType(int(enum_field_value)).label if realEnum else
+                        EnumType.objects.all()[int(enum_field_value)].title,
                     'count': count,
                 }
                 for enum_field_value, count in (
                     projects.order_by().values(enum_field).annotate(count=models.Count('id')).values_list(
                         enum_field, 'count',
                     ).order_by(enum_field)
-                )
+                ) if enum_field_value is not None
             ]
 
         projects = self.get_projects()
-        projects_unnest_tags = (
-            projects
-            # XXX: Without cast django throws 'int' is not iterable
-            .annotate(secondary_sector=Cast(
-                models.Func(models.F('secondary_sectors'), function='UNNEST'),
-                output_field=models.CharField(),
-            ))
-        )
+        # Fortunately secondary_sectors do not need this anymore, due to it is not a real enum but a model.
+        # projects_unnest_tags = (
+        #     projects
+        #     # XXX: Without cast django throws 'int' is not iterable
+        #     .annotate(secondary_sector=Cast(
+        #         models.Func(models.F('secondary_sectors'), function='UNNEST'),
+        #         output_field=models.CharField(),
+        #     ))
+        # )
 
         target_total = projects.aggregate(target_total=models.Sum('target_total'))['target_total']
         return Response({
@@ -633,12 +635,15 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 .order_by('reporting_ns').values('reporting_ns').distinct().count()
             ),
             'target_total': target_total,
-            'projects_per_sector': _get_projects_per_enum_field(projects, Sector, 'primary_sector'),
-            'projects_per_programme_type': _get_projects_per_enum_field(projects, ProgrammeTypes, 'programme_type'),
+            'projects_per_sector': _get_projects_per_enum_field(
+                projects,
+                Sector, 'primary_sector', False),
+            'projects_per_programme_type': _get_projects_per_enum_field(
+                projects,
+                ProgrammeTypes, 'programme_type', True),
             'projects_per_secondary_sectors': _get_projects_per_enum_field(
-                projects_unnest_tags,
-                SectorTag, 'secondary_sector'
-            ),
+                projects,
+                SectorTag, 'secondary_sectors', False),
         })
 
     @action(detail=False, url_path='ns-ongoing-projects-stats', methods=('get',))

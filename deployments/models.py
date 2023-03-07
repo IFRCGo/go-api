@@ -437,13 +437,12 @@ class Project(models.Model):
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
 
-    def get_secondary_sectors_display(self):
-        choices = {t.id: t.title for t in SectorTag.objects.all()}
-        return []  # FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        return [
-            force_str(choices.get(make_hashable(value), value), strings_only=True)
-            for value in self.secondary_sectors or []
-        ]
+    # def get_secondary_sectors_display(self):
+    #     choices = {t.id: t.title for t in SectorTag.objects.all()}
+    #     return [
+    #         force_str(choices.get(make_hashable(value), value), strings_only=True)
+    #         for value in self.secondary_sectors or []
+    #     ]
 
     def save(self, *args, **kwargs):
         if hasattr(self, 'annual_split_detail'):
