@@ -189,12 +189,12 @@ variable "ifrcgo_test_resources_acr" {
 
 variable "ifrcgo_test_resources_rg" {
   type = string
-  default = "ifrcgoterraform001rg"
+  default = "ifrcpgokubernetes001rg"
 }
 
 variable "ifrcgo_test_resources_db_server" {
   type = string
-  default = "ifrcgotest"
+  default = "ifrcgotest" # fixme: change to actual db
 }
 
 variable "ifrcgo_test_resources_db" {
