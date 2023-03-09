@@ -1,4 +1,3 @@
-resource "azurerm_resource_group" "ifrcgo" {
-  name     = "${local.prefix}_rg"
-  location = var.region
+data "azurerm_resource_group" "ifrcgo" {
+  name     = "${local.prefix}002rg"
 }

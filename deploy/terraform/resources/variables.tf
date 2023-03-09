@@ -184,17 +184,17 @@ variable "DEBUG_EMAIL" {
 
 variable "ifrcgo_test_resources_acr" {
   type    = string
-  default = "ifrcgotest"
+  default = "ifrcgoacr"
 }
 
 variable "ifrcgo_test_resources_rg" {
   type = string
-  default = "ifrcgo_test"
+  default = "ifrcpgoterraform001rg"
 }
 
 variable "ifrcgo_test_resources_db_server" {
   type = string
-  default = "ifrcgotest"
+  default = "ifrcgotest" # fixme: change to actual db
 }
 
 variable "ifrcgo_test_resources_db" {
@@ -208,8 +208,8 @@ variable "ifrcgo_test_resources_db" {
 locals {
   stack_id              = "ifrcgo"
   location              = lower(replace(var.region, " ", ""))
-  prefix                = "${local.stack_id}-${var.environment}"
-  prefixnodashes        = "${local.stack_id}${var.environment}"
-  storage               = (var.environment == "production" ? "${local.stack_id}tf${var.environment}" : "${local.stack_id}${var.environment}")
-  deploy_secrets_prefix = "${local.stack_id}-${var.environment}"
+  prefix                = var.environment == "staging" ? "ifrctgo" : "ifrcpgo"
+  # prefixnodashes        = "${local.stack_id}${var.environment}"
+  storage               = "${local.prefix}"
+  deploy_secrets_prefix = "${local.prefix}"
 }
