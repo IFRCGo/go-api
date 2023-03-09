@@ -128,10 +128,12 @@ class GoAPITestMixin():
 
 
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@override_settings(SUSPEND_SIGNALS=True)
 class APITestCase(GoAPITestMixin, test.APITestCase):
     pass
 
 
+@override_settings(SUSPEND_SIGNALS=True)
 class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
     maxDiff = None
 

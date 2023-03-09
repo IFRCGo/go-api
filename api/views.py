@@ -175,10 +175,10 @@ class HayStackSearch(APIView):
             emergency_response = SearchQuerySet().models(Event).filter(
                 SQ(name__content=phrase) | SQ(iso3__content=phrase)).order_by('-_score')
             appeal_response = SearchQuerySet().models(Appeal).filter(
-                SQ(name__content=phrase) | SQ(code__content=phrase)  | SQ(iso3__content=phrase)
+                SQ(name__content=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             fieldreport_response = SearchQuerySet().models(FieldReport).filter(
-                SQ(name__content=phrase)  | SQ(iso3__content=phrase)
+                SQ(name__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
                 SQ(event_name__content=phrase) | SQ(country_name__content=phrase) | SQ(iso3__content=phrase)
@@ -296,12 +296,13 @@ class HayStackSearch(APIView):
                     "disaster_type": data.disaster_type,
                     "funding_requirements": data.amount_requested,
                     "funding_coverage": data.amount_funded,
-                    "event_date": data.disaster_start_date,
+                    "start_date": data.disaster_start_date,
                     "score": data.score,
                     "countries": data.countries,
                     "countries_id": data.countries_id,
                     "iso3": data.iso3,
-                    "crisis_categorization": data.crisis_categorization
+                    "crisis_categorization": data.crisis_categorization,
+                    "appeal_type": data.appeal_type,
                 } for data in emergency_response[:50]
             ],
             "surge_alerts": [
