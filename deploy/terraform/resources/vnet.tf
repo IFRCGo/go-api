@@ -35,12 +35,12 @@ resource "azurerm_subnet" "postgres" {
 }
 
 resource "azurerm_private_dns_zone" "ifrcgo" {
-  name                = "${local.prefixnodashes}.postgres.database.azure.com"
+  name                = "${local.prefix}.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.ifrcgo.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "ifrcgo" {
-  name                  = "${local.prefixnodashes}.postgres.database.azure.com"
+  name                  = "${local.prefix}.postgres.database.azure.com"
   private_dns_zone_name = azurerm_private_dns_zone.ifrcgo.name
   virtual_network_id    = azurerm_virtual_network.ifrcgo-cluster.id
   resource_group_name   = azurerm_resource_group.ifrcgo.name
