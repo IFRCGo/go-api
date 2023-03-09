@@ -147,7 +147,7 @@ class MolnixTag(models.Model):
     '''
     molnix_id = models.IntegerField()
     name = models.CharField(max_length=255)
-    description = models.CharField(max_length=512)
+    description = models.CharField(blank=True, max_length=512)
     color = models.CharField(max_length=6)
     tag_type = models.CharField(max_length=127)
     tag_category = models.CharField(null=True, max_length=127)
