@@ -40,7 +40,7 @@ class EmergencyProjectActivityActionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EmergencyProjectActivityAction
     sector = factory.SubFactory(EmergencyProjectActivitySectorFactory)
-    title = title = fuzzy.FuzzyText(length=50, prefix='title-')
+    title = fuzzy.FuzzyText(length=50, prefix='title-')
 
 
 class EmergencyProjectFactory(factory.django.DjangoModelFactory):

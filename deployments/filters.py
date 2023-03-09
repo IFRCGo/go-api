@@ -10,8 +10,8 @@ from api.models import (
 from .models import (
     OperationTypes,
     ProgrammeTypes,
-    Sectors,
-    SectorTags,
+    Sector,
+    SectorTag,
     Statuses,
     Project,
     ERU,
@@ -27,10 +27,9 @@ class ProjectFilter(filters.FilterSet):
         label='Region', queryset=Region.objects.all(), widget=filters.widgets.CSVWidget, method='filter_regions')
     operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices, widget=filters.widgets.CSVWidget)
     programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices, widget=filters.widgets.CSVWidget)
-    primary_sector = filters.MultipleChoiceFilter(choices=Sectors.choices, widget=filters.widgets.CSVWidget)
-    secondary_sectors = filters.MultipleChoiceFilter(
-        choices=SectorTags.choices, widget=filters.widgets.CSVWidget, method='filter_secondary_sectors',
-    )
+    primary_sector = filters.ModelMultipleChoiceFilter(label='Sector', queryset=Sector.objects.all(), widget=filters.widgets.CSVWidget)
+    secondary_sectors = filters.ModelMultipleChoiceFilter(label='SectorTag', queryset=SectorTag.objects.all(), widget=filters.widgets.CSVWidget)
+    # choices=[(t.id, t.title) for t in SectorTag.objects.all()], widget=filters.widgets.CSVWidget, method='filter_secondary_sectors'
     status = filters.MultipleChoiceFilter(choices=Statuses.choices, widget=filters.widgets.CSVWidget)
 
     # Supporting/Receiving NS Filters (Multiselect)
@@ -46,10 +45,10 @@ class ProjectFilter(filters.FilterSet):
             return queryset.exclude(reporting_ns=F('project_country'))
         return queryset
 
-    def filter_secondary_sectors(self, queryset, name, value):
-        if len(value):
-            return queryset.filter(secondary_sectors__overlap=value)
-        return queryset
+#    def filter_secondary_sectors(self, queryset, name, value):
+#        if len(value):
+#            return queryset.filter(secondary_sectors__overlap=value)
+#        return queryset
 
     def filter_countries(self, queryset, name, countries):
         countries = countries.split(',')

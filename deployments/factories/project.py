@@ -8,6 +8,22 @@ from . import user, regional_project
 from api.factories import country, event, disaster_type
 
 
+class SectorFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Sector
+
+    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-')
+    order = fuzzy.FuzzyInteger(0, 19)
+
+
+class SectorTagFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.SectorTag
+
+    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-tag-')
+    order = fuzzy.FuzzyInteger(0, 19)
+
+
 class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Project
@@ -16,6 +32,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(user.UserFactory)
     reporting_ns = factory.SubFactory(country.CountryFactory)
     project_country = factory.SubFactory(country.CountryFactory)
+    # primary_sector = factory.SubFactory(SectorFactory)  # it remains a stub. An id without target. Could you FIXME?
 
     @factory.post_generation
     def project_districts(self, create, extracted, **kwargs):
@@ -30,7 +47,6 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     dtype = factory.SubFactory(disaster_type.DisasterTypeFactory)
     name = fuzzy.FuzzyText(length=50, prefix='project-')
     programme_type = fuzzy.FuzzyChoice(models.ProgrammeTypes)
-    primary_sector = fuzzy.FuzzyChoice(models.Sectors)
 
     @factory.post_generation
     def secondary_sectors(self, create, extracted, **kwargs):
@@ -38,7 +54,8 @@ class ProjectFactory(factory.django.DjangoModelFactory):
             return
 
         if extracted:
-            self.secondary_sectors = extracted
+            for secondary_sector in extracted:
+                self.secondary_sectors.add(secondary_sector)
 
     operation_type = fuzzy.FuzzyChoice(models.OperationTypes)
     start_date = factory.LazyFunction(
