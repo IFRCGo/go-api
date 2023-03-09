@@ -189,7 +189,7 @@ variable "ifrcgo_test_resources_acr" {
 
 variable "ifrcgo_test_resources_rg" {
   type = string
-  default = "ifrcpgokubernetes001rg"
+  default = "ifrcpgoterraform001rg"
 }
 
 variable "ifrcgo_test_resources_db_server" {
