@@ -751,7 +751,7 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'actual_expenditure': 0,
     'annual_split_detail': [
     ],
-    'budget_amount': 9610000,
+    'budget_amount': 7530000,
     'description': '',
     'document': None,
     'dtype': None,
@@ -764,8 +764,8 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'modified_by': None,
     'modified_by_detail': None,
     'name': 'Mock Project for Create API Test',
-    'operation_type': 1,
-    'operation_type_display': 'Emergency Operation',
+    'operation_type': 0,
+    'operation_type_display': 'Programme',
     'primary_sector': 1,
     'primary_sector_display': 'sect-ttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMapJrNOJndljdPwc',
     'programme_type': 2,
@@ -777,13 +777,13 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
         'id': 1,
         'independent': None,
         'is_deprecated': False,
-        'iso': 'CM',
-        'iso3': 'EEk',
-        'name': 'country-lkxMThQoAZvUhEREEnLkPAbpciKLkiOGcKjdkqlHzMKObUUQsf',
-        'record_type': 2,
-        'record_type_display': 'Cluster',
+        'iso': 'nC',
+        'iso3': 'MEE',
+        'name': 'country-jlkxMThQoAZvUhEREEnLkPAbpciKLkiOGcKjdkqlHzMKObUUQs',
+        'record_type': 1,
+        'record_type_display': 'Country',
         'region': 1,
-        'society_name': 'society-name-oAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiMI'
+        'society_name': 'society-name-koAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiM'
     },
     'project_districts': [
         1
@@ -813,13 +813,13 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
         'id': 1,
         'independent': None,
         'is_deprecated': False,
-        'iso': 'CM',
-        'iso3': 'EEk',
-        'name': 'country-lkxMThQoAZvUhEREEnLkPAbpciKLkiOGcKjdkqlHzMKObUUQsf',
-        'record_type': 2,
-        'record_type_display': 'Cluster',
+        'iso': 'nC',
+        'iso3': 'MEE',
+        'name': 'country-jlkxMThQoAZvUhEREEnLkPAbpciKLkiOGcKjdkqlHzMKObUUQs',
+        'record_type': 1,
+        'record_type_display': 'Country',
         'region': 1,
-        'society_name': 'society-name-oAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiMI'
+        'society_name': 'society-name-koAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhfEQiM'
     },
     'secondary_sectors': [
         1,
