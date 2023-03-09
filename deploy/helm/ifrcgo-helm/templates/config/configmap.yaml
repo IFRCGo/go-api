@@ -1,0 +1,17 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-api-configmap
+  labels:
+    component: api-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+data:
+  DJANGO_DB_NAME: postgres
+  DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
+  DOCKER_HOST_IP: {{ .Values.env.DOCKER_HOST_IP | quote }}
+  DJANGO_ADDITIONAL_ALLOWED_HOSTS: {{ .Values.env.DJANGO_ADDITIONAL_ALLOWED_HOSTS | quote }}
+  GO_ENVIRONMENT: {{ .Values.env.GO_ENVIRONMENT | quote }}
+  API_FQDN: {{ .Values.env.API_FQDN | quote }}
+  FRONTEND_URL: {{ .Values.env.FRONTEND_URL | quote }}
+  DEBUG_EMAIL: {{ .Values.env.DEBUG_EMAIL | quote }}

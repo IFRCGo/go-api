@@ -1,0 +1,58 @@
+environment: dev
+
+env:
+  DJANGO_SECRET_KEY: ''
+  DJANGO_DB_NAME: ''
+  DJANGO_DB_USER: ''
+  DJANGO_DB_PASS: ''
+  DJANGO_DB_HOST: ''
+  DJANGO_DB_PORT: ''
+  AZURE_STORAGE_ACCOUNT: ''
+  AZURE_STORAGE_KEY: ''
+  EMAIL_API_ENDPOINT: ''
+  EMAIL_HOST: ''
+  EMAIL_PORT: ''
+  EMAIL_USER: ''
+  EMAIL_PASS: ''
+  TEST_EMAILS: ''
+  AWS_TRANSLATE_ACCESS_KEY: ''
+  AWS_TRANSLATE_SECRET_KEY: ''
+  AWS_TRANSLATE_REGION: ''
+  CELERY_REDIS_URL: ''
+  MOLNIX_API_BASE: ''
+  MOLNIX_USERNAME: ''
+  MOLNIX_PASSWORD: ''
+  ERP_API_ENDPOINT: ''
+  ERP_API_SUBSCRIPTION_KEY: ''
+  FDRS_APIKEY: ''
+  FDRS_CREDENTIAL: ''
+  HPC_CREDENTIAL: ''
+  APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: ''
+  ELASTIC_SEARCH_HOST: ''
+  GO_FTPHOST: ''
+  GO_FTPUSER: ''
+  GO_FTPPASS: ''
+  GO_DBPASS: ''
+  DJANGO_DEBUG: ''
+  DOCKER_HOST_IP: ''
+  DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
+  GO_ENVIRONMENT: ''
+  API_FQDN: ''
+  FRONTEND_URL: ''
+  DEBUG_EMAIL: ''
+
+api:
+  domain: "go-staging.ifrc.org"
+  enabled: true
+  replicaCount: 1
+  containerPort: 80
+  image:
+    name: 'chartpress_replace'
+    tag: 'chartpress_replace'
+  resources:
+    requests:
+      cpu: "1"
+      memory: 4Gi
+    limits:
+      cpu: "4"
+      memory: 12Gi

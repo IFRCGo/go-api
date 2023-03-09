@@ -1,19 +1,87 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- develop
+- terraform
+
+pr:
+- azure-pipelines
+- terraform
+
+resources:
+  repositories:
+  - repository: go-api
+    type: github
+    endpoint: developmentseed
+    name: developmentseed/go-api
+    ref: azure-pipelines
 
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+jobs:
+- job: 'Build'
+  steps:
+  - checkout: go-api
+    displayName: "Checkout go-api"
+    path: go-api
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - bash: pip install -v chartpress
+    displayName: "Install Chartpress"
+
+
+  - task: Docker@2
+    displayName: "Login to ACR"
+    inputs:
+      containerRegistry: 'ifrcgotestacr'
+      command: 'login'
+
+  - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
+    displayName: "Build and Push"
+
+  - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
+    displayName: "Deploy Staging"
+    env:
+      environment: staging
+      TF_VAR_username: github
+      TF_VAR_subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
+      tenantId: $(TERRAFORM_TENANT_ID)
+      servicePrincipalId: $(TERRAFORM_SERVICE_PRINCIPAL_ID)
+      servicePrincipalKey: $(TERRAFORM_SERVICE_PRINCIPAL_KEY)
+      storageAccessKey: $(TERRAFORM_STORAGE_KEY)
+      API_FQDN: ifrcgo-test.ds.io
+      subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
+      DJANGO_SECRET_KEY: $(STAGING_DJANGO_SECRET_KEY)
+      DJANGO_DB_NAME: $(STAGING_DJANGO_DB_NAME)
+      DJANGO_DB_USER: $(STAGING_DJANGO_DB_USER)
+      DJANGO_DB_PASS: $(STAGING_DJANGO_DB_PASS)
+      DJANGO_DB_HOST: $(STAGING_DJANGO_DB_HOST)
+      DJANGO_DB_PORT: $(STAGING_DJANGO_DB_PORT)
+      AZURE_STORAGE_ACCOUNT: ''
+      AZURE_STORAGE_KEY: ''
+      EMAIL_API_ENDPOINT: $(STAGING_EMAIL_API_ENDPOINT)
+      EMAIL_HOST: $(STAGING_EMAIL_HOST)
+      EMAIL_PORT: $(STAGING_EMAIL_PORT)
+      EMAIL_USER: $(STAGING_EMAIL_USER)
+      EMAIL_PASS: $(STAGING_EMAIL_PASS)
+      TEST_EMAILS: $(STAGING_TEST_EMAILS)
+      AWS_TRANSLATE_ACCESS_KEY: $(STAGING_AWS_TRANSLATE_ACCESS_KEY)
+      AWS_TRANSLATE_SECRET_KEY: $(STAGING_AWS_TRANSLATE_SECRET_KEY)
+      AWS_TRANSLATE_REGION: $(STAGING_AWS_TRANSLATE_REGION)
+      CELERY_REDIS_URL: $(STAGING_CELERY_REDIS_URL)
+      MOLNIX_API_BASE: $(STAGING_MOLNIX_API_BASE)
+      MOLNIX_USERNAME: $(STAGING_MOLNIX_USERNAME)
+      MOLNIX_PASSWORD: $(STAGING_MOLNIX_PASSWORD)
+      ERP_API_ENDPOINT: $(STAGING_ERP_API_ENDPOINT)
+      ERP_API_SUBSCRIPTION_KEY: $(STAGING_ERP_API_SUBSCRIPTION_KEY)
+      FDRS_APIKEY: $(STAGING_FDRS_APIKEY)
+      FDRS_CREDENTIAL: $(STAGING_FDRS_CREDENTIAL)
+      HPC_CREDENTIAL: $(STAGING_HPC_CREDENTIAL)
+      APPLICATION_INSIGHTS_INSTRUMENTATION_KEY: $(STAGING_APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
+      ELASTIC_SEARCH_HOST: $(STAGING_ELASTIC_SEARCH_HOST)
+      GO_FTPHOST: $(STAGING_GO_FTPHOST)
+      GO_FTPUSER: $(STAGING_GO_FTPUSER)
+      GO_FTPPASS: $(STAGING_GO_FTPPASS)
+      GO_DBPASS: $(STAGING_GO_DBPASS)
+      FRONTEND_URL: ''
+      DEBUG_EMAIL: ''
+      DOCKER_HOST_IP: ''
+      DJANGO_DEBUG: ''
+      DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
