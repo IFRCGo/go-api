@@ -357,10 +357,10 @@ class ProjectGetTest(APITestCase):
 #sort_bug                    ]
 #sort_bug                }
 #sort_bug            ],
-#sort_bug            'supporting_ns': sorted([
+#sort_bug            'supporting_ns': [
 #sort_bug                {'count': 4, 'id': rcountry1.id, 'name': 'rcountry1'},
 #sort_bug                {'count': 4, 'id': rcountry2.id, 'name': 'rcountry2'}
-#sort_bug            ], key=lambda item: dict_to_string(item))
+#sort_bug            ]
 #sort_bug        }, resp.json())
 #sort_bug
 #sort_bug        nation_society_activities_resp = {

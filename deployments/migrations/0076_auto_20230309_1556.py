@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sector',
             name='is_deprecated',
-            field=models.BooleanField(default=False, help_text='Is this an active, valid sector?'),
+            field=models.BooleanField(default=False, help_text='Is this a deprecated sector?'),
         ),
         migrations.AddField(
             model_name='sectortag',
@@ -36,6 +36,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sectortag',
             name='is_deprecated',
-            field=models.BooleanField(default=False, help_text='Is this an active, valid sector tag?'),
+            field=models.BooleanField(default=False, help_text='Is this a deprecated sector tag?'),
         ),
     ]
