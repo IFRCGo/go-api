@@ -40,13 +40,6 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = '__all__'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['secondary_sectors'].widget = EnumArrayWidget(
-            # obsolete: choices=SectorTags.choices - now we use objects:
-            choices=[(t.id, t.title) for t in SectorTag.objects.all()]
-        )
-
 
 class ProjectImportForm(forms.Form):
     file = forms.FileField(label=_('file'), widget=forms.FileInput(attrs={'accept': '.csv'}))
@@ -88,8 +81,8 @@ class ProjectImportForm(forms.Form):
         disaster_types = DisasterType.objects.values_list('name', flat=True)
         operation_types = {label for _, label in OperationTypes.choices}
         programme_types = {label for _, label in ProgrammeTypes.choices}
-        sectors = {t.title for t in Sector.objects.all()}
-        sector_tags = {t.title for t in SectorTag.objects.all()}
+        sectors = Sector.objects.values_list('title', flat=True)
+        sector_tags = SectorTag.objects.values_list('title', flat=True)
         statuses = {label for _, label in Statuses.choices}
 
         # Headers
