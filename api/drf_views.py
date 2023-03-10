@@ -131,14 +131,15 @@ from .logger import logger
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
+    today = timezone.now().strftime("%Y-%m-%d")
     queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .annotate(
                                 personnel_count=Count(
                                     'personneldeployment__personnel',
                                     filter=Q(
                                         personneldeployment__personnel__type=Personnel.TypeChoices.RR,
-                                        personneldeployment__personnel__start_date__date__lte=timezone.now(),
-                                        personneldeployment__personnel__end_date__date__gte=timezone.now(),
+                                        personneldeployment__personnel__start_date__date__lte=today,
+                                        personneldeployment__personnel__end_date__date__gte=today,
                                         personneldeployment__personnel__is_active=True
                                     )
                                 )
@@ -151,9 +152,10 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ListEventDeploymentsSerializer
 
     def get_queryset(self):
+        today = timezone.now().strftime("%Y-%m-%d")
         return Personnel.objects.filter(
-            start_date__lte=timezone.now(),
-            end_date__gte=timezone.now(),
+            start_date__date__lte=today,
+            end_date__date__gte=today,
             is_active=True
         ).order_by().values(
             'deployment__event_deployed_to', 'type',

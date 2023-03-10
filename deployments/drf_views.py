@@ -256,7 +256,8 @@ class AggregateDeployments(APIView):
     '''
     @classmethod
     def get(cls, request):
-        now = timezone.now()
+        today = timezone.now().strftime("%Y-%m-%d")
+        this_year = timezone.now().year
         deployments_qset = Personnel.objects.filter(is_active=True)
         eru_qset = ERU.objects.all()
         if request.GET.get('event'):
@@ -265,16 +266,17 @@ class AggregateDeployments(APIView):
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
             type=Personnel.TypeChoices.RR,
-            start_date__lt=now,
-            end_date__gt=now
+            start_date__date__lte=today,
+            end_date__date__gte=today,
+            is_active=True
         ).count()
         active_erus = eru_qset.filter(
             deployed_to__isnull=False
         ).count()
         deployments_this_year = deployments_qset.filter(
             is_active=True,
-            start_date__year__lte=now.year,
-            end_date__year__gte=now.year
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year
         ).count()
         return Response({
             'active_deployments': active_deployments,

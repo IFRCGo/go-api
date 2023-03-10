@@ -263,7 +263,7 @@ class ProgrammeTypes(models.IntegerChoices):
 class Sector(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
     color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
-    is_deprecated = models.BooleanField(default=False, help_text=_('Is this an active, valid sector?'))
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this a deprecated sector?'))
     order = models.SmallIntegerField(default=0)
 
     class Meta:
@@ -278,7 +278,7 @@ class Sector(models.Model):
 class SectorTag(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
     color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
-    is_deprecated = models.BooleanField(default=False, help_text=_('Is this an active, valid sector tag?'))
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this a deprecated sector tag?'))
     order = models.SmallIntegerField(default=0)
 
     class Meta:

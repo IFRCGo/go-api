@@ -407,14 +407,14 @@ class ProjectProgrammeTypes(APIView):
 class ProjectPrimarySectors(APIView):
     @classmethod
     def get(cls, request):
-        keys_labels = [{'key': s.id, 'label': s.title} for s in Sector.objects.all()]
+        keys_labels = [{'key': s.id, 'label': s.title, 'color': s.color, 'is_deprecated': s.is_deprecated} for s in Sector.objects.all()]
         return JsonResponse(keys_labels, safe=False)
 
 
 class ProjectSecondarySectors(APIView):
     @classmethod
     def get(cls, request):
-        keys_labels = [{'key': s.id, 'label': s.title} for s in SectorTag.objects.all()]
+        keys_labels = [{'key': s.id, 'label': s.title, 'color': s.color, 'is_deprecated': s.is_deprecated} for s in SectorTag.objects.all()]
         return JsonResponse(keys_labels, safe=False)
 
 
