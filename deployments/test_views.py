@@ -50,7 +50,7 @@ class ProjectGetTest(APITestCase):
             reporting_ns=self.country1,
             name='aaa',
             programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sector.objects.get(slug='WASH'),
+            primary_sector=Sector.objects.get(pk=0),
             operation_type=OperationTypes.EMERGENCY_OPERATION,
             start_date=datetime.date(2011, 11, 11),
             end_date=datetime.date(2011, 11, 11),
@@ -64,7 +64,7 @@ class ProjectGetTest(APITestCase):
             reporting_ns=self.country1,
             name='bbb',
             programme_type=ProgrammeTypes.MULTILATERAL,
-            primary_sector=Sector.objects.get(slug='SHELTER'),
+            primary_sector=Sector.objects.get(pk=6),
             operation_type=OperationTypes.PROGRAMME,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
@@ -72,7 +72,7 @@ class ProjectGetTest(APITestCase):
             status=Statuses.ONGOING,
         )
         second.project_districts.set([self.district2])
-        second.secondary_sectors.set([SectorTag.objects.get(slug='WASH'), SectorTag.objects.get(slug='MIGRATION')]),
+        second.secondary_sectors.set([SectorTag.objects.get(pk=0), SectorTag.objects.get(pk=3)]),
 
         third = Project.objects.create(
             id=0,
@@ -80,7 +80,7 @@ class ProjectGetTest(APITestCase):
             reporting_ns=self.country3,
             name='ccc',
             programme_type=ProgrammeTypes.MULTILATERAL.value,
-            primary_sector=Sector.objects.get(slug='SHELTER'),
+            primary_sector=Sector.objects.get(pk=6),
             operation_type=OperationTypes.PROGRAMME.value,
             start_date=datetime.date(2012, 12, 12),
             end_date=datetime.date(2013, 1, 1),
@@ -88,7 +88,7 @@ class ProjectGetTest(APITestCase):
             status=Statuses.ONGOING.value,
         )
         third.project_districts.set([self.district3])
-        third.secondary_sectors.set([SectorTag.objects.get(slug='WASH'), SectorTag.objects.get(slug='MIGRATION')]),
+        third.secondary_sectors.set([SectorTag.objects.get(pk=0), SectorTag.objects.get(pk=3)]),
 
 
     def create_project(self, **kwargs):
@@ -99,7 +99,7 @@ class ProjectGetTest(APITestCase):
             end_date=datetime.date(2011, 11, 11),
             reporting_ns=self.country1,
             programme_type=ProgrammeTypes.BILATERAL,
-            primary_sector=Sector.objects.get(slug='WASH'),
+            primary_sector=Sector.objects.get(pk=0),
             operation_type=OperationTypes.PROGRAMME,
             status=Statuses.PLANNED,
             budget_amount=1000,
@@ -125,8 +125,8 @@ class ProjectGetTest(APITestCase):
             'project_districts': [district2.id],
             'name': 'CreateMePls',
             'programme_type': ProgrammeTypes.BILATERAL,
-            'primary_sector': Sector.objects.get(slug='WASH').id,
-            'secondary_sectors': [Sector.objects.get(slug='CEA').id, Sector.objects.get(slug='PGI').id],
+            'primary_sector': Sector.objects.get(pk=0).id,
+            'secondary_sectors': [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
             'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-11-12',
             'end_date': '2013-11-13',
@@ -221,42 +221,42 @@ class ProjectGetTest(APITestCase):
         for i, pdata in enumerate([
             (
                 rcountry1, [district1, district1a],
-                ProgrammeTypes.BILATERAL, Sector.objects.get(slug='WASH'), OperationTypes.PROGRAMME,
+                ProgrammeTypes.BILATERAL, Sector.objects.get(pk=0), OperationTypes.PROGRAMME,
                 [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 6000, 1000, 2),
             (
                 rcountry1, [district1],
-                ProgrammeTypes.MULTILATERAL, Sector.objects.get(slug='WASH'), OperationTypes.EMERGENCY_OPERATION,
+                ProgrammeTypes.MULTILATERAL, Sector.objects.get(pk=0), OperationTypes.EMERGENCY_OPERATION,
                 [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                 1000, 2000, 2),
             (
                 rcountry1, [district2, district2a],
-                ProgrammeTypes.DOMESTIC, Sector.objects.get(slug='CEA'), OperationTypes.PROGRAMME,
+                ProgrammeTypes.DOMESTIC, Sector.objects.get(pk=2), OperationTypes.PROGRAMME,
                 [datetime.date(2011, 11, 1), datetime.date(2011, 12, 15)],
                 4000, 3000, 1000),
             (
                 rcountry1, [district2],
-                ProgrammeTypes.BILATERAL, Sector.objects.get(slug='LIVELIHOODS_AND_BASIC_NEEDS'), OperationTypes.EMERGENCY_OPERATION,
+                ProgrammeTypes.BILATERAL, Sector.objects.get(pk=9), OperationTypes.EMERGENCY_OPERATION,
                 [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 6000, 9000, 1000),
             (
                 rcountry2, [district1, district1a],
-                ProgrammeTypes.BILATERAL, Sector.objects.get(slug='WASH'), OperationTypes.PROGRAMME,
+                ProgrammeTypes.BILATERAL, Sector.objects.get(pk=0), OperationTypes.PROGRAMME,
                 [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 86000, 6000, 3000),
             (
                 rcountry2, [district1],
-                ProgrammeTypes.MULTILATERAL, Sector.objects.get(slug='EDUCATION'), OperationTypes.EMERGENCY_OPERATION,
+                ProgrammeTypes.MULTILATERAL, Sector.objects.get(pk=8), OperationTypes.EMERGENCY_OPERATION,
                 [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 6000, 5000, 2000),
             (
                 rcountry2, [district2, district2a],
-                ProgrammeTypes.DOMESTIC, Sector.objects.get(slug='DRR'), OperationTypes.PROGRAMME,
+                ProgrammeTypes.DOMESTIC, Sector.objects.get(pk=5), OperationTypes.PROGRAMME,
                 [datetime.date(2011, 11, 12), datetime.date(2011, 12, 13)],
                 100, 4000, 2000),
             (
                 rcountry2, [district2],
-                ProgrammeTypes.BILATERAL, Sector.objects.get(slug='MIGRATION'), OperationTypes.PROGRAMME,
+                ProgrammeTypes.BILATERAL, Sector.objects.get(pk=3), OperationTypes.PROGRAMME,
                 [datetime.date(2010, 11, 12), datetime.date(2010, 1, 13)],
                 2, 1000, 50),
         ]):
@@ -324,14 +324,14 @@ class ProjectGetTest(APITestCase):
                             'id': rcountry1.id,
                             'name': 'rcountry1',
                             'sectors': [
-                                {'id': 0, 'sector': Sector.objects.get(slug='WASH').title, 'count': 2}
+                                {'id': 0, 'sector': Sector.objects.get(pk=0).title, 'count': 2}
                             ]
                         }, {
                             'id': rcountry2.id,
                             'name': 'rcountry2',
                             'sectors': [
-                                {'id': 0, 'sector': Sector.objects.get(slug='WASH').title, 'count': 1},
-                                {'id': 8, 'sector': Sector.objects.get(slug='EDUCATION').title, 'count': 1}
+                                {'id': 0, 'sector': Sector.objects.get(pk=0).title, 'count': 1},
+                                {'id': 8, 'sector': Sector.objects.get(pk=8).title, 'count': 1}
                             ]
                         }
                     ]
@@ -343,24 +343,24 @@ class ProjectGetTest(APITestCase):
                             'id': rcountry1.id,
                             'name': 'rcountry1',
                             'sectors': [
-                                {'id': 2, 'sector': Sector.objects.get(slug='CEA').title, 'count': 1},
-                                {'id': 9, 'sector': Sector.objects.get(slug='LIVELIHOODS_AND_BASIC_NEEDS').title, 'count': 1}
+                                {'id': 2, 'sector': Sector.objects.get(pk=2).title, 'count': 1},
+                                {'id': 9, 'sector': Sector.objects.get(pk=9).title, 'count': 1}
                             ]
                         }, {
                             'id': rcountry2.id,
                             'name': 'rcountry2',
                             'sectors': [
-                                {'id': 3, 'sector': Sector.objects.get(slug='MIGRATION').title, 'count': 1},
-                                {'id': 5, 'sector': Sector.objects.get(slug='DRR').title, 'count': 1}
+                                {'id': 3, 'sector': Sector.objects.get(pk=3).title, 'count': 1},
+                                {'id': 5, 'sector': Sector.objects.get(pk=5).title, 'count': 1}
                             ]
                         }
                     ]
                 }
             ],
-            'supporting_ns': [
+            'supporting_ns': sorted([
                 {'count': 4, 'id': rcountry1.id, 'name': 'rcountry1'},
                 {'count': 4, 'id': rcountry2.id, 'name': 'rcountry2'}
-            ]
+            ], key=lambda item: dict_to_string(item))
         }, resp.json())
 
         nation_society_activities_resp = {
@@ -368,12 +368,12 @@ class ProjectGetTest(APITestCase):
                 [
                     {'id': rcountry1.id, 'type': 'supporting_ns', 'name': 'country1_sn', 'iso': 'XX', 'iso3': None},
                     {'id': rcountry2.id, 'type': 'supporting_ns', 'name': 'country2_sn', 'iso': 'XX', 'iso3': None},
-                    {'id': 0, 'type': 'sector', 'name': Sector.objects.get(slug='WASH').title},
-                    {'id': 2, 'type': 'sector', 'name': Sector.objects.get(slug='CEA').title},
-                    {'id': 3, 'type': 'sector', 'name': Sector.objects.get(slug='MIGRATION').title},
-                    {'id': 5, 'type': 'sector', 'name': Sector.objects.get(slug='DRR').title},
-                    {'id': 8, 'type': 'sector', 'name': Sector.objects.get(slug='EDUCATION').title},
-                    {'id': 9, 'type': 'sector', 'name': Sector.objects.get(slug='LIVELIHOODS_AND_BASIC_NEEDS').title},
+                    {'id': 0, 'type': 'sector', 'name': Sector.objects.get(pk=0).title},
+                    {'id': 2, 'type': 'sector', 'name': Sector.objects.get(pk=2).title},
+                    {'id': 3, 'type': 'sector', 'name': Sector.objects.get(pk=3).title},
+                    {'id': 5, 'type': 'sector', 'name': Sector.objects.get(pk=5).title},
+                    {'id': 8, 'type': 'sector', 'name': Sector.objects.get(pk=8).title},
+                    {'id': 9, 'type': 'sector', 'name': Sector.objects.get(pk=9).title},
                     {'id': country1.id, 'type': 'receiving_ns', 'name': 'country1', 'iso': 'XX', 'iso3': None},
                     {'id': country2.id, 'type': 'receiving_ns', 'name': 'country2', 'iso': 'XX', 'iso3': None}
                 ],
@@ -452,8 +452,8 @@ class ProjectGetTest(APITestCase):
             'name': 'CreateMePls',
             'project_districts': [district.id],
             'programme_type': ProgrammeTypes.BILATERAL,
-            'primary_sector': Sector.objects.get(slug='WASH').id,
-            'secondary_sectors': [Sector.objects.get(slug='CEA').id, Sector.objects.get(slug='PGI').id],
+            'primary_sector': Sector.objects.get(pk=0).id,
+            'secondary_sectors': [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
             'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-11-12',
             'end_date': '2013-11-13',
@@ -477,8 +477,8 @@ class ProjectGetTest(APITestCase):
             'name': 'CreateMeNot',
             'project_districts': [district.id],
             'programme_type': ProgrammeTypes.BILATERAL,
-            'primary_sector': Sector.objects.get(slug='WASH').id,
-            'secondary_sectors': [Sector.objects.get(slug='CEA').id, Sector.objects.get(slug='PGI').id],
+            'primary_sector': Sector.objects.get(pk=0).id,
+            'secondary_sectors': [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
             'operation_type': OperationTypes.EMERGENCY_OPERATION,
             'start_date': '2012-10-15',
             'end_date': '2013-12-13',
@@ -529,8 +529,8 @@ class TranslationTest(APITestCase):
                     'project_districts': [district.id],
                     'name': names[current_language],
                     'programme_type': ProgrammeTypes.BILATERAL,
-                    'primary_sector': Sector.objects.get(slug='WASH').id,
-                    'secondary_sectors': [Sector.objects.get(slug='CEA').id, Sector.objects.get(slug='PGI').id],
+                    'primary_sector': Sector.objects.get(pk=0).id,
+                    'secondary_sectors': [Sector.objects.get(pk=2).id, Sector.objects.get(pk=1).id],
                     'operation_type': OperationTypes.EMERGENCY_OPERATION,
                     'start_date': '2012-11-12',
                     'end_date': '2013-11-13',

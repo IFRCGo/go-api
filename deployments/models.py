@@ -262,7 +262,8 @@ class ProgrammeTypes(models.IntegerChoices):
 @reversion.register()
 class Sector(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
-    slug = models.CharField(max_length=255, verbose_name=_('slug'))
+    color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this an active, valid sector?'))
     order = models.SmallIntegerField(default=0)
 
     class Meta:
@@ -276,7 +277,8 @@ class Sector(models.Model):
 @reversion.register()
 class SectorTag(models.Model):
     title = models.CharField(max_length=255, verbose_name=_('title'))
-    slug = models.CharField(max_length=255, verbose_name=_('slug'))
+    color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this an active, valid sector tag?'))
     order = models.SmallIntegerField(default=0)
 
     class Meta:
@@ -287,36 +289,6 @@ class SectorTag(models.Model):
         return self.title
 
 
-#class Sectors(models.IntegerChoices):
-#     WASH = 0, _('WASH')
-#     PGI = 1, _('PGI')
-#     CEA = 2, _('CEA')
-#     MIGRATION = 3, _('Migration')
-#     HEALTH = 4, _('Health')
-#     DRR = 5, _('DRR')
-#     SHELTER = 6, _('Shelter')
-#     NS_STRENGTHENING = 7, _('NS Strengthening')
-#     EDUCATION = 8, _('Education')
-#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-#
-#
-#class SectorTags(models.IntegerChoices):
-#     WASH = 0, _('WASH')
-#     PGI = 1, _('PGI')
-#     CEA = 2, _('CEA')
-#     MIGRATION = 3, _('Migration')
-#     DRR = 5, _('DRR')
-#     SHELTER = 6, _('Shelter')
-#     NS_STRENGTHENING = 7, _('NS Strengthening')
-#     EDUCATION = 8, _('Education')
-#     LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-#     RECOVERY = 10, _('Recovery')
-#     INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
-#     HEALTH_PUBLIC = 4, _('Health (public)')
-#     HEALTH_CLINICAL = 12, _('Health (clinical)')
-#     COVID_19 = 13, _('COVID-19')
-#
-#
 class Statuses(models.IntegerChoices):
     PLANNED = 0, _('Planned')
     ONGOING = 1, _('Ongoing')
@@ -395,7 +367,7 @@ class Project(models.Model):
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
     programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'),
         help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>')
-    primary_sector = models.ForeignKey(Sector, verbose_name=_('sector'), on_delete=models.CASCADE,)
+    primary_sector = models.ForeignKey(Sector, verbose_name=_('sector'), on_delete=models.PROTECT,)
     secondary_sectors = models.ManyToManyField(SectorTag, related_name='tags', blank=True,)
     operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'),
         help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>')
@@ -436,13 +408,6 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
-
-    # def get_secondary_sectors_display(self):
-    #     choices = {t.id: t.title for t in SectorTag.objects.all()}
-    #     return [
-    #         force_str(choices.get(make_hashable(value), value), strings_only=True)
-    #         for value in self.secondary_sectors or []
-    #     ]
 
     def save(self, *args, **kwargs):
         if hasattr(self, 'annual_split_detail'):
@@ -489,6 +454,13 @@ class Project(models.Model):
             ~Q(project_country__in=countries_qs) &
             ~Q(reporting_ns__in=countries_qs)
         )
+
+# FIXME | Something like this would be helpful, but not this way. Hint:
+#    def get_primary_sector_display(self):
+#        return 'primary_sector__title'
+#
+#    def get_secondary_sectors_display(self):
+#        return 'secondary_sectors__title'
 
 
 @reversion.register()
