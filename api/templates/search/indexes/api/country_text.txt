@@ -2,3 +2,4 @@
 {{object.name}}
 {{object.society_name}}
 {{object.society_url}}
+{{object.iso3}}

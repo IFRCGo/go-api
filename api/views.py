@@ -156,6 +156,7 @@ class EsPageSearch(APIView):
         )
         return JsonResponse(results['hits'])
 
+
 class HayStackSearch(APIView):
 
     def get(self, request):
@@ -169,36 +170,36 @@ class HayStackSearch(APIView):
                 SQ(name__startswith=phrase)
             )
             country_response = SearchQuerySet().models(Country).filter(
-                SQ(name__contains=phrase),
-                SQ(independent='true'),
-                SQ(is_depercent='false')
+                SQ(name__content=phrase, independent='true', is_depercent='false') | SQ(iso3__content=phrase)
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
-                SQ(name__content=phrase)).order_by('-_score')
+                SQ(name__content=phrase) | SQ(iso3__content=phrase)).order_by('-_score')
             appeal_response = SearchQuerySet().models(Appeal).filter(
-                SQ(name__content=phrase)).order_by('-_score')
+                SQ(name__content=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
+            ).order_by('-_score')
             fieldreport_response = SearchQuerySet().models(FieldReport).filter(
-                SQ(name__content=phrase)).order_by('-_score')
+                SQ(name__content=phrase) | SQ(iso3__content=phrase)
+            ).order_by('-_score')
             surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
-                SQ(event_name__content=phrase) | SQ(country_name__content=phrase)
+                SQ(event_name__content=phrase) | SQ(country_name__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             project_response = SearchQuerySet().models(Project).filter(
-                SQ(event_name__content=phrase) | SQ(name__content=phrase)
+                SQ(event_name__content=phrase) | SQ(name__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             surge_deployments = SearchQuerySet().models(ERU).filter(
-                SQ(event_name__content=phrase) | SQ(country__content=phrase)
+                SQ(event_name__content=phrase) | SQ(country__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             district_province_response = SearchQuerySet().models(District).filter(
-                SQ(name__contains=phrase)
+                SQ(name__contains=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             flash_update_response = SearchQuerySet().models(FlashUpdate).filter(
-                SQ(name__contains=phrase)
+                SQ(name__contains=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             dref_response = SearchQuerySet().models(Dref).filter(
-                SQ(name__contains=phrase)
+                SQ(name__contains=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
-                SQ(name__contains=phrase)
+                SQ(name__contains=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
 
             appeals_list = []
@@ -284,6 +285,7 @@ class HayStackSearch(APIView):
                     "id": int(data.id.split(".")[-1]),
                     "name": data.name,
                     "society_name": data.society_name,
+                    "iso3": data.iso3,
                     "score": data.score,
                 } for data in country_response[:50]
             ],
@@ -294,10 +296,13 @@ class HayStackSearch(APIView):
                     "disaster_type": data.disaster_type,
                     "funding_requirements": data.amount_requested,
                     "funding_coverage": data.amount_funded,
-                    "event_date": data.disaster_start_date,
+                    "start_date": data.disaster_start_date,
                     "score": data.score,
                     "countries": data.countries,
-                    "countries_id": data.countries_id
+                    "countries_id": data.countries_id,
+                    "iso3": data.iso3,
+                    "crisis_categorization": data.crisis_categorization,
+                    "appeal_type": data.appeal_type,
                 } for data in emergency_response[:50]
             ],
             "surge_alerts": [
@@ -346,6 +351,7 @@ class HayStackSearch(APIView):
                     "event_id": data.event_id,
                     "score": data.score,
                     "deployed_country_id": data.country_id,
+                    "deployed_country_name": data.country_name,
                 } for data in surge_deployments[:50]
             ],
             "reports": sorted(field_report, key=lambda d: d["score"], reverse=True)[:50],
