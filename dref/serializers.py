@@ -57,6 +57,7 @@ class DrefFileSerializer(ModelSerializer):
 class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
 
     class Meta:
         model = Dref
@@ -66,9 +67,11 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "national_society",
             "disaster_type",
             "type_of_onset",
+            "type_of_dref",
             "disaster_category",
             "disaster_category_display",
             "type_of_onset_display",
+            "type_of_dref_display",
         ]
 
 
@@ -306,14 +309,14 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
-        is_assessment_report = validated_data.get("is_assessment_report")
-        if is_assessment_report:
+        type_of_dref = validated_data.get("type_of_dref")
+        if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
-            validated_data["affect_same_area"] = None
-            validated_data["affect_same_population"] = None
-            validated_data["ns_respond"] = None
-            validated_data["ns_request_fund"] = None
+            validated_data["did_it_affect_same_area"] = None
+            validated_data["did_it_affect_same_population"] = None
+            validated_data["did_ns_respond"] = None
+            validated_data["did_ns_request_fund"] = None
             validated_data["assessment_report"] = None
             # Event Description
             validated_data["event_scope"] = None
@@ -332,7 +335,6 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             return dref_assessment_report
         if "users" in validated_data:
             to = {u.email for u in validated_data["users"]}
-            to.add("daniel.tovari@ifrc.org")  # TODO remove me
         else:
             to = None
         dref = super().create(validated_data)
@@ -342,17 +344,17 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
     def update(self, instance, validated_data):
         validated_data["modified_by"] = self.context["request"].user
-        is_assessment_report = validated_data.get("is_assessment_report")
         modified_at = validated_data.pop("modified_at", None)
+        type_of_dref = validated_data.get("type_of_dref")
         if modified_at is None:
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
-        if is_assessment_report:
+        if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
             validated_data["lessons_learned"] = None
-            validated_data["affect_same_area"] = None
-            validated_data["affect_same_population"] = None
-            validated_data["ns_respond"] = None
-            validated_data["ns_request_fund"] = None
+            validated_data["did_it_affect_same_area"] = None
+            validated_data["did_it_affect_same_population"] = None
+            validated_data["did_ns_respond"] = None
+            validated_data["did_ns_request_fund"] = None
             validated_data["ns_request_text"] = None
             validated_data["dref_recurrent_text"] = None
             validated_data["assessment_report"] = None
@@ -454,6 +456,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["national_society"] = dref.national_society
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
+            validated_data["type_of_dref"] = dref.type_of_dref
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
@@ -509,13 +512,11 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
             validated_data["budget_file"] = dref.budget_file
-            validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
-            validated_data["is_assessment_report"] = dref.is_assessment_report
             validated_data["event_date"] = dref.event_date
             validated_data["ns_respond_date"] = dref.ns_respond_date
-            validated_data["ns_respond"] = dref.ns_respond
+            validated_data["did_ns_respond"] = dref.did_ns_respond
             validated_data["total_targeted_population"] = dref.total_targeted_population
             validated_data["is_there_major_coordination_mechanism"] = dref.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref.human_resource
@@ -553,6 +554,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["national_society"] = dref_operational_update.national_society
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
+            validated_data["type_of_dref"] = dref.type_of_dref
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
@@ -611,10 +613,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["assessment_report"] = dref_operational_update.assessment_report
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
-            validated_data["is_assessment_report"] = dref_operational_update.is_assessment_report
             validated_data["event_date"] = dref_operational_update.event_date
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
-            validated_data["ns_respond"] = dref_operational_update.ns_respond
+            validated_data["did_ns_respond"] = dref_operational_update.did_ns_respond
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
             validated_data["is_there_major_coordination_mechanism"] = dref_operational_update.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref_operational_update.human_resource
@@ -799,6 +800,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["national_society"] = dref_operational_update.national_society
             validated_data["disaster_type"] = dref_operational_update.disaster_type
             validated_data["type_of_onset"] = dref_operational_update.type_of_onset
+            validated_data["type_of_dref"] = dref_operational_update.type_of_dref
             validated_data["disaster_category"] = dref_operational_update.disaster_category
             validated_data["number_of_people_targeted"] = dref_operational_update.number_of_people_targeted
             validated_data["number_of_people_affected"] = dref_operational_update.number_of_people_affected
@@ -857,7 +859,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["event_scope"] = dref_operational_update.event_scope
             validated_data["country"] = dref_operational_update.country
             validated_data["risk_security_concern"] = dref_operational_update.risk_security_concern
-            validated_data["is_assessment_report"] = dref_operational_update.is_assessment_report
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
             validated_data[
                 "is_there_major_coordination_mechanism"
@@ -891,6 +892,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["national_society"] = dref.national_society
             validated_data["disaster_type"] = dref.disaster_type
             validated_data["type_of_onset"] = dref.type_of_onset
+            validated_data["type_of_dref"] = dref.type_of_dref
             validated_data["disaster_category"] = dref.disaster_category
             validated_data["number_of_people_targeted"] = dref.num_assisted
             validated_data["number_of_people_affected"] = dref.num_affected
@@ -947,7 +949,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
-            validated_data["is_assessment_report"] = dref.is_assessment_report
             validated_data["total_targeted_population"] = dref.total_targeted_population
             validated_data["is_there_major_coordination_mechanism"] = dref.is_there_major_coordination_mechanism
             validated_data["event_date"] = dref.event_date

@@ -123,7 +123,7 @@ class DrefTestCase(APITestCase):
             "event_date": "2021-08-01",
             "ns_respond_date": "2021-08-01",
             "event_text": "Test text for respond",
-            "ns_request_fund": False,
+            "did_ns_request_fund": False,
             "lessons_learned": "Test text for lessons learned",
             "event_description": "Test text for event description",
             "anticipatory_actions": "Test text for anticipatory actions",
@@ -237,7 +237,7 @@ class DrefTestCase(APITestCase):
             "event_date": "2021-08-01",
             "ns_respond_date": "2021-08-01",
             "event_text": "Test text for respond",
-            "ns_request_fund": False,
+            "did_ns_request_fund": False,
             "lessons_learned": "Test text for lessons learned",
             "event_description": "Test text for event description",
             "anticipatory_actions": "Test text for anticipatory actions",
@@ -301,11 +301,6 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
-        id = response.data["id"]
-        url = f"/api/v2/dref/{id}/"
-        data = {"type_of_onset": Dref.OnsetType.IMMINENT.value, "event_date": "2020-10-10"}
-        response = self.client.patch(url, data)
-        self.assertEqual(response.status_code, 400)
 
     def test_update_dref_image(self):
         file1, file2, file3, file5 = DrefFileFactory.create_batch(4, created_by=self.user)
@@ -400,6 +395,7 @@ class DrefTestCase(APITestCase):
             title="test",
             created_by=self.user,
             is_published=True,
+            type_of_dref=Dref.DrefType.IMMINENT
         )
         url = f"/api/v2/dref/{dref.id}/"
         data = {
@@ -668,6 +664,7 @@ class DrefTestCase(APITestCase):
         data = {
             "title": "Dref test title",
             "type_of_onset": Dref.OnsetType.SLOW.value,
+            "type_of_dref": Dref.DrefType.ASSESSMENT,
             "disaster_category": Dref.DisasterCategory.YELLOW.value,
             "status": Dref.Status.IN_PROGRESS.value,
             "num_assisted": 5666,
@@ -677,7 +674,7 @@ class DrefTestCase(APITestCase):
             "event_date": "2021-08-01",
             "ns_respond_date": "2021-08-01",
             "event_text": "Test text for respond",
-            "ns_request_fund": False,
+            "did_ns_request_fund": False,
             "lessons_learned": "Test text for lessons learned",
             "event_description": "Test text for event description",
             "anticipatory_actions": "Test text for anticipatory actions",
@@ -726,7 +723,6 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
-            "is_assessment_report": True,
             "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
         }
         url = "/api/v2/dref/"
