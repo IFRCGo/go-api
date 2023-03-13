@@ -131,7 +131,7 @@ from .logger import logger
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
-    today = timezone.now().strftime("%Y-%m-%d")
+    today = timezone.now().date().strftime("%Y-%m-%d")
     queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .annotate(
                                 personnel_count=Count(
@@ -152,7 +152,7 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ListEventDeploymentsSerializer
 
     def get_queryset(self):
-        today = timezone.now().strftime("%Y-%m-%d")
+        today = timezone.now().date().strftime("%Y-%m-%d")
         return Personnel.objects.filter(
             start_date__date__lte=today,
             end_date__date__gte=today,

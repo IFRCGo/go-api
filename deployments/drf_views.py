@@ -256,7 +256,7 @@ class AggregateDeployments(APIView):
     '''
     @classmethod
     def get(cls, request):
-        today = timezone.now().strftime("%Y-%m-%d")
+        today = timezone.now().date().strftime("%Y-%m-%d")
         this_year = timezone.now().year
         deployments_qset = Personnel.objects.filter(is_active=True)
         eru_qset = ERU.objects.all()
