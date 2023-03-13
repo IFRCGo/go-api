@@ -11,7 +11,7 @@ resources:
     type: github
     endpoint: IFRCGo
     name: IFRCGo/go-api
-    ref: azure-pipelines
+    ref: terraform
 
 pool:
   vmImage: ubuntu-latest
