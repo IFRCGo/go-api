@@ -26,6 +26,14 @@ jobs:
   - bash: pip install -v chartpress
     displayName: "Install Chartpress"
 
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: 'IFRC-GO-Kubernetes'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: 'az acr login --name ifrcgoacr'
+      addSpnToEnvironment: true
+      useGlobalConfig: true
 
 #  - task: Docker@2
 #    displayName: "Login to ACR"
@@ -54,8 +62,8 @@ jobs:
       DJANGO_DB_PASS: $(STAGING_DJANGO_DB_PASS)
       DJANGO_DB_HOST: $(STAGING_DJANGO_DB_HOST)
       DJANGO_DB_PORT: $(STAGING_DJANGO_DB_PORT)
-      AZURE_STORAGE_ACCOUNT: ''
       AZURE_STORAGE_KEY: ''
+      STORAGE_ACCOUNT: ''
       EMAIL_API_ENDPOINT: $(STAGING_EMAIL_API_ENDPOINT)
       EMAIL_HOST: $(STAGING_EMAIL_HOST)
       EMAIL_PORT: $(STAGING_EMAIL_PORT)
