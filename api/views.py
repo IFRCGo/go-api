@@ -36,7 +36,7 @@ from flash_update.models import FlashUpdate
 from dref.models import Dref, DrefOperationalUpdate
 
 from .esconnection import ES_CLIENT
-from .models import Appeal, AppealType, Event, FieldReport, CronJob, AppealHistory
+from .models import Appeal, AppealHistory, AppealType, CronJob, Event, FieldReport, Snippet
 from .indexes import ES_PAGE_NAME
 from .logger import logger
 from haystack.query import SearchQuerySet
@@ -364,12 +364,13 @@ class Brief(APIView):
     @classmethod
     def get(cls, request):
         e = Event.objects.filter(summary__contains='base64').count()
-        f = FieldReport.objects.filter(description__contains='base64').count()
+        s = Snippet.objects.filter(snippet__contains='base64').count()
+        r = FieldReport.objects.filter(description__contains='base64').count()
         u = FlashUpdate.objects.filter(situational_overview__contains='base64').count()
         c = CronJob.objects.filter(status=2).count()
         res = ES_CLIENT.cluster.health()
         res['--------------------------------'] = '----------'
-        res['base64_img'] = e + f + u
+        res['base64_img'] = e + s + r + u
         res['cronjob_err'] = c
         res['git_last_tag'] = settings.LAST_GIT_TAG
         res['git_last_commit'] = settings.SENTRY_CONFIG['release'][0:8]

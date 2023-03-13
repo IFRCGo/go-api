@@ -8,6 +8,38 @@ from snapshottest import Snapshot
 snapshots = Snapshot()
 
 snapshots['TestProjectAPI::test_global_project_api 1'] = {
+    'ns_with_ongoing_activities': 16,
+    'projects_per_programme_type': [
+        {
+            'count': 6,
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral'
+        },
+        {
+            'count': 3,
+            'programme_type': 1,
+            'programme_type_display': 'Multilateral'
+        },
+        {
+            'count': 7,
+            'programme_type': 2,
+            'programme_type_display': 'Domestic'
+        }
+    ],
+    'projects_per_secondary_sectors': [
+    ],
+    'projects_per_sector': [
+        {
+            'count': 16,
+            'primary_sector': 1,
+            'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+        }
+    ],
+    'target_total': 0,
+    'total_ongoing_projects': 16
+}
+
+snapshots['TestProjectAPI::test_global_project_api 2'] = {
     'results': [
         {
             'budget_amount_total': 7890000,
