@@ -11,7 +11,7 @@ output "cluster_name" {
 }
 
 output "resource_group" {
-  value = azurerm_resource_group.ifrcgo.name
+  value = data.azurerm_resource_group.ifrcgo.name
 }
 
 output "image_registry" {

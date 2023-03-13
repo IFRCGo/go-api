@@ -1,7 +1,7 @@
 resource "azurerm_storage_account" "ifrcgo" {
   name                     = "${local.storage}"
-  resource_group_name      = azurerm_resource_group.ifrcgo.name
-  location                 = azurerm_resource_group.ifrcgo.location
+  resource_group_name      = data.azurerm_resource_group.ifrcgo.name
+  location                 = data.azurerm_resource_group.ifrcgo.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }

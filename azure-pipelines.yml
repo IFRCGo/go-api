@@ -27,6 +27,7 @@ jobs:
     displayName: "Install Chartpress"
 
   - task: AzureCLI@2
+    displayName: "Login to ACR"
     inputs:
       azureSubscription: 'IFRC-GO-Kubernetes'
       scriptType: 'bash'

@@ -10,7 +10,7 @@ resource "helm_release" "ifrcgo-ingress-nginx" {
 
   set {
     name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-resource-group"
-    value = azurerm_resource_group.ifrcgo.name
+    value = data.azurerm_resource_group.ifrcgo.name
   }
 
   set {
