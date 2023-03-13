@@ -9,8 +9,8 @@ resources:
   repositories:
   - repository: go-api
     type: github
-    endpoint: developmentseed
-    name: developmentseed/go-api
+    endpoint: IFRCGo
+    name: IFRCGo/go-api
     ref: azure-pipelines
 
 pool:
