@@ -41,6 +41,7 @@ class LanguageBulkActionSerializer(serializers.Serializer):
     value = serializers.CharField(required=False)
     hash = serializers.CharField(max_length=32, required=False)
     page_name = serializers.CharField(required=False)
+    language = serializers.ChoiceField(choices=settings.LANGUAGES)
 
 
 class LanguageBulkActionsSerializer(serializers.Serializer):

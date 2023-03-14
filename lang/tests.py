@@ -77,7 +77,7 @@ class LangTest(APITestCase):
         self.assertEqual(len(j_resp['strings']), 1)
 
     def test_bulk_action(self):
-        language = settings.LANGUAGES[0][0]
+        # language = settings.LANGUAGES[0][0]
         string_1 = {
             'key': 'new-string-101',
             'value': 'New Value 101',
@@ -97,14 +97,14 @@ class LangTest(APITestCase):
         }
         data = {
             'actions': [
-                {'action': LanguageBulkActionSerializer.SET, **string_1},
-                {'action': LanguageBulkActionSerializer.SET, **string_2},
-                {'action': LanguageBulkActionSerializer.SET, **string_3}
+                {'action': LanguageBulkActionSerializer.SET, **string_1, 'language': settings.LANGUAGES[0][0]},
+                {'action': LanguageBulkActionSerializer.SET, **string_2, 'language': settings.LANGUAGES[0][0]},
+                {'action': LanguageBulkActionSerializer.SET, **string_3, 'language': settings.LANGUAGES[0][0]}
             ],
         }
 
         self.authenticate(self.root_user)
-        resp = self.client.post(f'/api/v2/language/{language}/bulk-action/', data, format='json')
+        resp = self.client.post('/api/v2/language/bulk-action/', data, format='json')
         j_resp = resp.json()
         self.assertEqual(resp.status_code, 200)
 
