@@ -170,7 +170,7 @@ class HayStackSearch(APIView):
                 SQ(name__startswith=phrase)
             )
             country_response = SearchQuerySet().models(Country).filter(
-                SQ(name__content=phrase, independent='true', is_depercent='false') | SQ(iso3__content=phrase)
+                SQ(name__contains=phrase, independent='true', is_depercent='false') | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
                 SQ(name__content=phrase) | SQ(iso3__content=phrase)).order_by('-_score')
@@ -181,25 +181,25 @@ class HayStackSearch(APIView):
                 SQ(name__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
             surge_alert_response = SearchQuerySet().models(SurgeAlert).filter(
-                SQ(event_name__content=phrase) | SQ(country_name__content=phrase) | SQ(iso3__content=phrase)
+                SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             project_response = SearchQuerySet().models(Project).filter(
-                SQ(event_name__content=phrase) | SQ(name__content=phrase) | SQ(iso3__content=phrase)
+                SQ(event_name__content=phrase) | SQ(name__content=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             surge_deployments = SearchQuerySet().models(ERU).filter(
-                SQ(event_name__content=phrase) | SQ(country__content=phrase) | SQ(iso3__content=phrase)
+                SQ(event_name__content=phrase) | SQ(country__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             district_province_response = SearchQuerySet().models(District).filter(
-                SQ(name__contains=phrase) | SQ(iso3__content=phrase)
+                SQ(name__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             flash_update_response = SearchQuerySet().models(FlashUpdate).filter(
-                SQ(name__contains=phrase) | SQ(iso3__content=phrase)
+                SQ(name__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             dref_response = SearchQuerySet().models(Dref).filter(
-                SQ(name__contains=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
+                SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
             dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
-                SQ(name__contains=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
+                SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
 
             appeals_list = []
