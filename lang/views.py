@@ -70,7 +70,7 @@ class LanguageViewSet(viewsets.ViewSet):
 
     @transaction.atomic
     @djaction(
-        detail=True,
+        detail=False,
         url_path='bulk-action',
         methods=('post',),
     )
@@ -78,12 +78,9 @@ class LanguageViewSet(viewsets.ViewSet):
         actions = LanguageBulkActionsSerializer(data=request.data)
         actions.is_valid(raise_exception=True)
 
-        lang = pk
-        lang_strings_qs = String.objects.filter(language=lang)
         new_strings = []
         changed_strings = {}
         deleted_string_keys = []
-        existing_string_keys = set(lang_strings_qs.values_list('key', flat=True))
         # Extract Actions
         for meta in actions.validated_data['actions']:
             action = meta['action']
@@ -91,6 +88,9 @@ class LanguageViewSet(viewsets.ViewSet):
             value = meta.get('value')
             value_hash = meta.get('hash')
             page_name = meta.get('page_name')
+            lang = meta.get('language')
+            lang_strings_qs = String.objects.filter(language=lang)
+            existing_string_keys = set(lang_strings_qs.values_list('key', flat=True))
             value_meta = {
                 'value': value,
                 'hash': value_hash,
