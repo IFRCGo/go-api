@@ -4,8 +4,11 @@ from datetime import datetime, timedelta
 
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 from main.test_case import APITestCase
+
 from dref.models import Dref, DrefFile
 
 from dref.factories.dref import (
@@ -21,7 +24,13 @@ from dref.models import (
 
 from deployments.factories.user import UserFactory
 
-from api.models import Country, DisasterType, District
+from api.models import (
+    Country,
+    DisasterType,
+    District,
+    Region,
+    RegionName,
+)
 from dref.tasks import send_dref_email
 
 
@@ -388,14 +397,17 @@ class DrefTestCase(APITestCase):
         """
         Test for dref if is_published = True
         """
+
         initial_now = datetime(2011, 11, 11)
         mock_now.return_value = initial_now
 
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
         dref = DrefFactory.create(
             title="test",
             created_by=self.user,
             is_published=True,
-            type_of_dref=Dref.DrefType.IMMINENT
+            type_of_dref=Dref.DrefType.IMMINENT,
         )
         url = f"/api/v2/dref/{dref.id}/"
         data = {
@@ -410,6 +422,7 @@ class DrefTestCase(APITestCase):
         not_published_dref = DrefFactory.create(
             title="test",
             created_by=self.user,
+            country=country,
         )
         url = f"/api/v2/dref/{not_published_dref.id}/"
         self.client.force_authenticate(self.user)
@@ -424,6 +437,16 @@ class DrefTestCase(APITestCase):
         url = f"/api/v2/dref/{not_published_dref.id}/publish/"
         data = {}
         self.client.force_authenticate(self.user)
+        response = self.client.post(url, data)
+        self.assert_403(response)
+
+        # add permision to request user
+        self.dref_permission = Permission.objects.create(
+            codename='dref_region_admin_0',
+            content_type=ContentType.objects.get_for_model(Region),
+            name='Dref Admin for 0',
+        )
+        self.user.user_permissions.add(self.dref_permission)
         response = self.client.post(url, data)
         self.assert_200(response)
         self.assertEqual(response.data["is_published"], True)
@@ -534,7 +557,11 @@ class DrefTestCase(APITestCase):
 
     def test_dref_change_on_final_report_create(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(title="Test Title", created_by=user1, is_final_report_created=True)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_final_report_created=True,
+        )
         DrefFinalReportFactory.create(
             dref=dref,
             is_published=True,
@@ -631,10 +658,18 @@ class DrefTestCase(APITestCase):
 
     def test_final_report_update_once_published(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(title="Test Title", created_by=user1, is_published=True)
+        region = Region.objects.create(name=RegionName.AFRICA)
+        country = Country.objects.create(name="country1", region=region)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_published=True,
+            country=country,
+        )
         final_report = DrefFinalReportFactory(
             title="Test title",
             dref=dref,
+            country=country,
         )
         final_report.users.set([user1])
         # try to publish this report
@@ -642,12 +677,18 @@ class DrefTestCase(APITestCase):
         data = {}
         self.client.force_authenticate(user1)
         response = self.client.post(url, data)
+        self.assert_403(response)
+        # add permision to request user
+        self.dref_permission = Permission.objects.create(
+            codename='dref_region_admin_0',
+            content_type=ContentType.objects.get_for_model(Region),
+            name='Dref Admin for 0',
+        )
+        user1.user_permissions.add(self.dref_permission)
+        self.client.force_authenticate(user1)
+        response = self.client.post(url, data)
         self.assert_200(response)
         self.assertEqual(response.data["is_published"], True)
-
-        # againt try to publish final
-        response = self.client.post(url, data)
-        self.assert_400(response)
 
         # now try to patch to the final report
         url = f"/api/v2/dref-final-report/{final_report.id}/"
