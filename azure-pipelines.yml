@@ -42,7 +42,7 @@ jobs:
       azureSubscription: 'IFRC-GO-Kubernetes'
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
-      inlineScript: 'az login'
+      inlineScript: 'az login --service-principal -u $(TERRAFORM_SERVICE_PRINCIPAL_ID) -p $(TERRAFORM_SERVICE_PRINCIPAL_KEY) --tenant $(TERRAFORM_TENANT_ID)'
       addSpnToEnvironment: true
       useGlobalConfig: true
 
