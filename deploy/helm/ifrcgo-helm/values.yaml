@@ -76,3 +76,11 @@ celery:
     limits:
       cpu: "2"
       memory: 4Gi
+
+cronjobs:
+  - command: 'ingest_appeal_docs'
+    schedule: '15 * * * *'
+  - command: 'ingest_mdb'
+    schedule: '30 * * * *'
+  - command: 'ingest_appeals'
+    schedule: '45 * * * *'
