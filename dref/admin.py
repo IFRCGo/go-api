@@ -124,7 +124,6 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "images",
         "budget_file",
         "cover_image",
-<<<<<<< HEAD
         "created_by",
         "modified_by",
         "dref",
@@ -134,13 +133,6 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "needs_identified",
         "planned_interventions",
         "country",
-||||||| parent of 517e0e99 (Refactor dref admin code)
-=======
-        "dref",
-        "country",
-        "assessment_report",
-        "photos",
->>>>>>> 517e0e99 (Refactor dref admin code)
         "district",
     )
     list_filter = ["dref"]
@@ -150,7 +142,6 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
             super()
             .get_queryset(request)
             .select_related(
-<<<<<<< HEAD
                 "national_society",
                 "disaster_type",
                 "event_map",
@@ -173,21 +164,6 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
                 "district"
 
             )
-||||||| parent of 517e0e99 (Refactor dref admin code)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-=======
-                "created_by",
-                "modified_by",
-                "national_society",
-                "disaster_type",
-                "event_map",
-                "budget_file",
-                "cover_image",
-                "country",
-                "assessment_report",
-            )
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
->>>>>>> 517e0e99 (Refactor dref admin code)
         )
 
 
@@ -203,7 +179,6 @@ class DrefFinalReportAdmin(
         "disaster_type",
         "photos",
         "dref",
-<<<<<<< HEAD
         "created_by",
         "modified_by",
         "event_map",
@@ -214,9 +189,6 @@ class DrefFinalReportAdmin(
         "images",
         "cover_image",
         "financial_report",
-||||||| parent of 517e0e99 (Refactor dref admin code)
-=======
->>>>>>> 517e0e99 (Refactor dref admin code)
     )
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name"]
@@ -234,7 +206,6 @@ class DrefFinalReportAdmin(
                 "cover_image",
                 "country",
                 "assessment_report",
-<<<<<<< HEAD
                 "dref"
             )
             .prefetch_related(
@@ -246,9 +217,4 @@ class DrefFinalReportAdmin(
                 "dref__national_society_actions",
                 "dref__needs_identified",
             )
-||||||| parent of 517e0e99 (Refactor dref admin code)
-=======
-            )
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
->>>>>>> 517e0e99 (Refactor dref admin code)
         )
