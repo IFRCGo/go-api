@@ -3,7 +3,7 @@ import datetime
 from datetime import date
 from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -385,14 +385,7 @@ class ProjectViewset(
     csv_serializer_class = ProjectCsvSerializer
     ordering_fields = ('name',)
     search_fields = ('name',)  # for /docs
-
-    def get_permissions(self):
-        # Require authentication for unsafe methods only
-        if self.action in ['list', 'retrieve']:
-            permission_classes = []
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):

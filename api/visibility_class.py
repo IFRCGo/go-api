@@ -28,10 +28,11 @@ class ReadOnlyVisibilityViewsetMixin():
         queryset = queryset.exclude(visibility=choices.IFRC)
         # For specific models
         if queryset.model in [FieldReport, Event]:
+            # TODO: Use new permission model
             user_countries_qs = get_user_countries(self.request.user)
             return queryset\
                 .exclude(
-                    models.Q(visibility=VisibilityChoices.IFRC_NS) &
+                    models.Q(visibility=choices.IFRC_NS) &
                     # This depends on the model
                     ~models.Q(countries__id__in=user_countries_qs)
                 )
