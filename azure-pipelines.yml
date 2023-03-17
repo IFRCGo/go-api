@@ -65,7 +65,7 @@ jobs:
       servicePrincipalId: $(TERRAFORM_SERVICE_PRINCIPAL_ID)
       servicePrincipalKey: $(TERRAFORM_SERVICE_PRINCIPAL_KEY)
       storageAccessKey: $(TERRAFORM_STORAGE_KEY)
-      API_FQDN: ifrcgo-test.ds.io
+      API_FQDN: ifrcgo-staging.ds.io
       subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
       DJANGO_SECRET_KEY: $(STAGING_DJANGO_SECRET_KEY)
       DJANGO_DB_NAME: $(STAGING_DJANGO_DB_NAME)
