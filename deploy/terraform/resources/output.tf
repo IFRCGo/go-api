@@ -29,3 +29,7 @@ output "azure_strorage_key" {
 output "azure_storage_connection_string" {
   value = azurerm_storage_account.ifrcgo.primary_connection_string
 }
+
+output "azure_managed_disk_id" {
+  value = azurerm_managed_disk.ifrcgo.id
+}
