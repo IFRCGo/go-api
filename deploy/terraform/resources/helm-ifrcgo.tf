@@ -211,4 +211,12 @@ resource "helm_release" "ifrcgo" {
     value = var.DEBUG_EMAIL
   }
 
+  set {
+    name  = "elasticsearch.disk.name"
+    value = output.azure_managed_disk_name
+  }
+  set {
+    name  = "elasticsearch.disk.uri"
+    value = output.azure_managed_disk_uri
+  }
 }
