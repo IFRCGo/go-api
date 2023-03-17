@@ -184,6 +184,7 @@ class DrefOptionsView(views.APIView):
                 }
                 for user in User.objects.filter(is_active=True)
             ],
+            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType]
         }
         return response.Response(options)
 
