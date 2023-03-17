@@ -194,7 +194,7 @@ variable "ifrcgo_test_resources_rg" {
 
 variable "ifrcgo_test_resources_db_server" {
   type = string
-  default = "ifrcgotest" # fixme: change to actual db
+  default = "ifrctgokdb001"
 }
 
 variable "ifrcgo_test_resources_db" {
