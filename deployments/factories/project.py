@@ -12,7 +12,7 @@ class SectorFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Sector
 
-    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-')
+    title = fuzzy.FuzzyText(length=50, prefix='sect-')
     order = fuzzy.FuzzyInteger(0, 19)
 
 
@@ -20,7 +20,7 @@ class SectorTagFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.SectorTag
 
-    slug = title = fuzzy.FuzzyText(length=50, prefix='sect-tag-')
+    title = fuzzy.FuzzyText(length=50, prefix='sect-tag-')
     order = fuzzy.FuzzyInteger(0, 19)
 
 

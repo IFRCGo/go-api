@@ -55,6 +55,9 @@ def add_tags(molnix_tags):
         tag.molnix_id = molnix_tag['id']
         tag.name = n = molnix_tag['name']
         tag.description = molnix_tag['description']
+        if tag.description is None:
+            tag.description = ''
+            logger.warning('%s named tag has no description.' % tag.name)
         tag.tag_type = molnix_tag['type']
         tag.tag_category = 'molnix_language' if n.startswith('L-') else \
             'molnix_operation' if n.startswith('OP-') else \

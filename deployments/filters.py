@@ -29,7 +29,6 @@ class ProjectFilter(filters.FilterSet):
     programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices, widget=filters.widgets.CSVWidget)
     primary_sector = filters.ModelMultipleChoiceFilter(label='Sector', queryset=Sector.objects.all(), widget=filters.widgets.CSVWidget)
     secondary_sectors = filters.ModelMultipleChoiceFilter(label='SectorTag', queryset=SectorTag.objects.all(), widget=filters.widgets.CSVWidget)
-    # choices=[(t.id, t.title) for t in SectorTag.objects.all()], widget=filters.widgets.CSVWidget, method='filter_secondary_sectors'
     status = filters.MultipleChoiceFilter(choices=Statuses.choices, widget=filters.widgets.CSVWidget)
 
     # Supporting/Receiving NS Filters (Multiselect)
@@ -44,11 +43,6 @@ class ProjectFilter(filters.FilterSet):
         if value:
             return queryset.exclude(reporting_ns=F('project_country'))
         return queryset
-
-#    def filter_secondary_sectors(self, queryset, name, value):
-#        if len(value):
-#            return queryset.filter(secondary_sectors__overlap=value)
-#        return queryset
 
     def filter_countries(self, queryset, name, countries):
         countries = countries.split(',')
