@@ -28,6 +28,19 @@
         z-index: 1001;
         bottom: 0;
       }
+      .maintenance-banner {
+        background-color: #100  ;
+        color: red;
+        font-weight: 800;
+        font-size: 1rem;
+        height: 14px;
+        padding: 8px;
+        position: fixed;
+        text-align: center;
+        width: 100%;
+        z-index: 1001;
+        top: 2.8rem;
+      }
       tr > .delete > input {
         box-shadow: 0px 0px 2px 2px #ff3232bd;
       }
@@ -55,6 +68,9 @@
   data-admin-utc-offset="{% now "Z" %}">
     {# use PRODUCTION_URL to create logic - in base_site.html #}
 
+    {% if DJANGO_READ_ONLY == True %}
+    <div class="maintenance-banner">The site is in MAINTENANCE mode – it is read only</div>
+    {% endif %}
     {% if GO_ENVIRONMENT != 'production' %}
     <div class="staging-footer">{{GO_ENVIRONMENT|upper}} SITE</div>
     {% endif %}

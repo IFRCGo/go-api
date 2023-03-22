@@ -31,6 +31,8 @@ x-server: &base_server_setup
     # Sentry
     SENTRY_DSN: ${SENTRY_DSN}
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
+    # Maintenance mode
+    DJANGO_READ_ONLY: ${DJANGO_READ_ONLY:-false}
 
   env_file:
     - .env

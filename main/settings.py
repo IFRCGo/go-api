@@ -78,6 +78,8 @@ env = environ.Env(
     # Sentry
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
+    # Maintenance mode
+    DJANGO_READ_ONLY=(bool, False),
 )
 
 
@@ -141,6 +143,7 @@ INSTALLED_APPS = [
     'guardian',
     'django_filters',
     'graphene_django',
+    'django_read_only',
 
     # GO Apps
     'api',
@@ -526,3 +529,6 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_LIMIT_TO_REGISTERED_MODELS = False
 
 SUSPEND_SIGNALS = True
+
+# Maintenance mode
+DJANGO_READ_ONLY = env('DJANGO_READ_ONLY')
