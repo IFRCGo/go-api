@@ -74,5 +74,33 @@ celery:
       cpu: "0.2"
       memory: 0.4Gi
     limits:
-      cpu: "1"
-      memory: 2Gi
+      cpu: "2"
+      memory: 4Gi
+
+cronjobs:
+  - command: 'ingest_appeal_docs'
+    schedule: '15 * * * *'
+  - command: 'ingest_mdb'
+    schedule: '30 * * * *'
+  - command: 'ingest_appeals'
+    schedule: '45 * * * *'
+
+elasticsearch:
+  enabled: true
+  httpPort: 9200
+  transportPort: 9300
+  elasticsearchVersion: 7.16.2
+  storageSize: 20Gi
+  storageClassName: managed-premium #FIXME: populate and use
+  disk:
+    name: my-disk-name
+    uri: https://mydisk.blob.core.windows.net/mycontainer/mydisk.vhd
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+
+
