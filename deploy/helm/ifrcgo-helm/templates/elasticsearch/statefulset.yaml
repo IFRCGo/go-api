@@ -31,13 +31,20 @@ spec:
             - name: "cluster.name"
               value: "{{ template "ifrcgo-helm.fullname" . }}-elasticsearch"
           ports:
-            - containerPort: {{ .Values.httpPort }}
+            - containerPort: {{ .Values.elasticsearch.httpPort }}
               name: http
-            - containerPort: {{ .Values.transportPort }}
+            - containerPort: {{ .Values.elasticsearch.transportPort }}
               name: transport
           volumeMounts:
             - name: data
               mountPath: /usr/share/elasticsearch/data
+          resources:
+            requests:
+              cpu: {{ .Values.elasticsearch.resources.requests.cpu }}
+              memory: {{ .Values.elasticsearch.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.elasticsearch.resources.limits.cpu }}
+              memory: {{ .Values.elasticsearch.resources.limits.memory }}
       volumes:
         - name: data
           persistentVolumeClaim:
