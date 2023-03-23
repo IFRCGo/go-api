@@ -31,6 +31,7 @@ from dref.filter_set import DrefFilter, DrefOperationalUpdateFilter
 from dref.permissions import (
     DrefOperationalUpdateUpdatePermission,
     DrefFinalReportUpdatePermission,
+    PublishDrefPermission
 )
 
 
@@ -56,13 +57,12 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
     )
     def get_published(self, request, pk=None, version=None):
         dref = self.get_object()
-        if not dref.is_published:
-            dref.is_published = True
-            dref.save(update_fields=["is_published"])
+        dref.is_published = True
+        dref.save(update_fields=["is_published"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -106,13 +106,12 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefOperationalUpdateSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
     )
     def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
-        if not operational_update.is_published:
-            operational_update.is_published = True
-            operational_update.save(update_fields=["is_published"])
+        operational_update.is_published = True
+        operational_update.save(update_fields=["is_published"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -141,15 +140,14 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         url_path="publish",
         methods=["post"],
         serializer_class=DrefFinalReportSerializer,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[permissions.IsAuthenticated, PublishDrefPermission],
     )
     def get_published(self, request, pk=None, version=None):
         field_report = self.get_object()
         if field_report.is_published:
             raise serializers.ValidationError(gettext("Final Report %s is already published" % field_report))
-        if not field_report.is_published:
-            field_report.is_published = True
-            field_report.save(update_fields=["is_published"])
+        field_report.is_published = True
+        field_report.save(update_fields=["is_published"])
         if not field_report.dref.is_final_report_created:
             field_report.dref.is_final_report_created = True
             field_report.dref.save(update_fields=["is_final_report_created"])
@@ -186,6 +184,7 @@ class DrefOptionsView(views.APIView):
                 }
                 for user in User.objects.filter(is_active=True)
             ],
+            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType]
         }
         return response.Response(options)
 

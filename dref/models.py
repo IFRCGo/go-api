@@ -211,7 +211,6 @@ class Dref(models.Model):
         RESPONSE = 2, _("Response")
 
     class OnsetType(models.IntegerChoices):
-        IMMINENT = 0, _("Imminent")
         SLOW = 1, _("Slow")
         SUDDEN = 2, _("Sudden")
 
@@ -277,13 +276,13 @@ class Dref(models.Model):
     ns_respond_date = models.DateField(
         verbose_name=_("ns respond date"), null=True, blank=True, help_text=_("NS anticipatory actions started/NS response")
     )
-    affect_same_area = models.BooleanField(
+    did_it_affect_same_area = models.BooleanField(
         null=True, blank=True, help_text=_("Has a similar event affected the same areas in the past?")
     )
-    affect_same_population = models.BooleanField(null=True, blank=True, help_text=_("Did it affect the same population?"))
+    did_it_affect_same_population = models.BooleanField(null=True, blank=True, help_text=_("Did it affect the same population?"))
     affect_same_population_text = models.TextField(blank=True, null=True, verbose_name=_("affect same population text"))
-    ns_respond = models.BooleanField(null=True, blank=True, default=False, help_text=_("Did NS respond"))
-    ns_request_fund = models.BooleanField(
+    did_ns_respond = models.BooleanField(null=True, blank=True, default=False, help_text=_("Did NS respond"))
+    did_ns_request_fund = models.BooleanField(
         null=True, blank=True, default=False, help_text=_("Did the NS request funding from DREF?")
     )
     ns_request_text = models.TextField(blank=True, null=True, verbose_name=_("ns request text"))
@@ -562,7 +561,6 @@ class Dref(models.Model):
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
-    is_assessment_report = models.BooleanField(verbose_name=_("Is assessment Report"), default=False)
     __budget_file_id = None
 
     class Meta:
@@ -595,28 +593,28 @@ class Dref(models.Model):
         current_user_list = []
         current_user_list.append(user_id)
         return Dref.objects.annotate(
-                created_user_list=models.F("created_by"),
-                users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
-                op_users=models.Subquery(
-                    DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
-                    .order_by()
-                    .values("id")
-                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
-                    .values("c")[:1]
-                ),
-                fr_users=models.Subquery(
-                    DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
-                    .order_by()
-                    .values("id")
-                    .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
-                    .values("c")[:1],
-                ),
-            ).filter(
-                models.Q(created_user_list=user_id)
-                | models.Q(users_list__contains=current_user_list)
-                | models.Q(op_users__contains=current_user_list)
-                | models.Q(fr_users__contains=current_user_list)
-            ).distinct()
+            created_user_list=models.F("created_by"),
+            users_list=ArrayAgg("users", filter=models.Q(users__isnull=False)),
+            op_users=models.Subquery(
+                DrefOperationalUpdate.objects.filter(dref=models.OuterRef("id"))
+                .order_by()
+                .values("id")
+                .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+                .values("c")[:1]
+            ),
+            fr_users=models.Subquery(
+                DrefFinalReport.objects.filter(dref=models.OuterRef("id"))
+                .order_by()
+                .values("id")
+                .annotate(c=ArrayAgg("users", filter=models.Q(users__isnull=False)))
+                .values("c")[:1],
+            ),
+        ).filter(
+            models.Q(created_user_list=user_id)
+            | models.Q(users_list__contains=current_user_list)
+            | models.Q(op_users__contains=current_user_list)
+            | models.Q(fr_users__contains=current_user_list)
+        ).distinct()
 
 
 class DrefFile(models.Model):
@@ -902,7 +900,6 @@ class DrefOperationalUpdate(models.Model):
         blank=True,
     )
     specified_trigger_met = models.TextField(verbose_name=_("Specified Trigger Met"), null=True, blank=True)
-    is_assessment_report = models.BooleanField(verbose_name=_("Is assessment Report"), null=True, blank=True)
     people_in_need = models.IntegerField(verbose_name=_("people in need"), blank=True, null=True)
     event_date = models.DateField(
         verbose_name=_("event date"),
@@ -914,7 +911,7 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         blank=True,
     )
-    ns_respond = models.BooleanField(null=True, blank=True, default=False, help_text=_("Did NS respond"))
+    did_ns_respond = models.BooleanField(null=True, blank=True, default=False, help_text=_("Did NS respond"))
     total_targeted_population = models.IntegerField(verbose_name=_("total targeted population"), blank=True, null=True)
     has_event_occurred = models.BooleanField(null=True, blank=True, help_text=_("Has Event occurred"))
     reporting_start_date = models.DateField(verbose_name=_("Reporting Time Start Date"), null=True, blank=True)
@@ -1175,7 +1172,6 @@ class DrefFinalReport(models.Model):
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL, verbose_name=_("users"), blank=True, related_name="user_dref_final_report"
     )
-    is_assessment_report = models.BooleanField(verbose_name=_("Is assessment Report"), null=True, blank=True)
     images = models.ManyToManyField("DrefFile", blank=True, verbose_name=_("images"), related_name="image_dref_final_report")
     cover_image = models.ForeignKey(
         "DrefFile",
