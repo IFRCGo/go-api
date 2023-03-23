@@ -211,4 +211,12 @@ resource "helm_release" "ifrcgo" {
     value = var.DEBUG_EMAIL
   }
 
+  set {
+    name  = "elasticsearch.disk.name"
+    value = "${local.prefix}-disk"
+  }
+  set {
+    name  = "elasticsearch.disk.uri"
+    value = "/subscriptions/${var.subscriptionId}/resourceGroups/${azurerm_resource_group.ifrcgo.name}/providers/Microsoft.Compute/disks/${azurerm_managed_disk.ifrcgo.id}"
+  }
 }

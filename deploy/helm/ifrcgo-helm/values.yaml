@@ -51,8 +51,8 @@ api:
     tag: 'chartpress_replace'
   resources:
     requests:
-      cpu: "1"
-      memory: 4Gi
+      cpu: "0.8"
+      memory: 1.2Gi
     limits:
       cpu: "4"
       memory: 12Gi
@@ -61,8 +61,8 @@ redis:
   enabled: true
   resources:
     requests:
-      cpu: "1"
-      memory: 1Gi
+      cpu: "0.2"
+      memory: 0.4Gi
     limits:
       cpu: "1"
       memory: 2Gi
@@ -71,8 +71,8 @@ celery:
   enabled: true
   resources:
     requests:
-      cpu: "1"
-      memory: 1Gi
+      cpu: "0.2"
+      memory: 0.4Gi
     limits:
       cpu: "2"
       memory: 4Gi
@@ -97,8 +97,8 @@ elasticsearch:
     uri: https://mydisk.blob.core.windows.net/mycontainer/mydisk.vhd
   resources:
     requests:
-      cpu: "2"
-      memory: 4Gi
+      cpu: "0.5"
+      memory: 1Gi
     limits:
       cpu: "2"
       memory: 4Gi
