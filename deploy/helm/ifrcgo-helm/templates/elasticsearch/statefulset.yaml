@@ -1,0 +1,46 @@
+{{- if .Values.elasticsearch.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch
+  labels:
+    component: elasticsearch
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  serviceName: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "ifrcgo-helm.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: {{ template "ifrcgo-helm.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: elasticsearch:{{ .Values.elasticsearch.elasticsearchVersion }}
+          env:
+            - name: "discovery.type"
+              value: "single-node"
+            - name: "cluster.name"
+              value: "{{ template "ifrcgo-helm.fullname" . }}-elasticsearch"
+          ports:
+            - containerPort: {{ .Values.httpPort }}
+              name: http
+            - containerPort: {{ .Values.transportPort }}
+              name: transport
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pvc
+
+{{- end }}

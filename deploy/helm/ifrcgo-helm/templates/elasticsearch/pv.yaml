@@ -1,0 +1,21 @@
+{{- if .Values.elasticsearch.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pv
+  labels:
+    component: elasticsearch
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  capacity:
+    storage: {{ .Values.elasticsearch.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: managed-premium
+  azureDisk:
+    diskName: {{ .Values.elasticsearch.disk.name }}
+    diskURI: {{ .Values.elasticsearch.disk.uri }}
+
+{{- end }}
