@@ -217,6 +217,6 @@ resource "helm_release" "ifrcgo" {
   }
   set {
     name  = "elasticsearch.disk.uri"
-    value = "/subscriptions/${var.subscriptionId}/resourceGroups/${azurerm_resource_group.ifrcgo.name}/providers/Microsoft.Compute/disks/${azurerm_managed_disk.ifrcgo.id}"
+    value = azurerm_managed_disk.ifrcgo.id
   }
 }
