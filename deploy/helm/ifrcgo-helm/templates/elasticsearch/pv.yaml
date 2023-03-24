@@ -13,9 +13,12 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: managed-premium
-  azureDisk:
-    diskName: {{ .Values.elasticsearch.disk.name }}
-    diskURI: {{ .Values.elasticsearch.disk.uri }}
+  storageClassName: managed-csi
+  csi:
+    driver: disk.csi.azure.com
+    readOnly: false
+    volumeHandle: {{ .Values.elasticsearch.disk.uri}}
+    volumeAttributes:
+      fsType: ext4
 
 {{- end }}

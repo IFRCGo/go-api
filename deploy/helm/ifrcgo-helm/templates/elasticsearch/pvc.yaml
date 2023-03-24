@@ -12,5 +12,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.elasticsearch.storageSize }}
-  storageClassName: managed-premium
+  storageClassName: managed-csi
   volumeName:  {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pv
