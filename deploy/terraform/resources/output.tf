@@ -29,15 +29,3 @@ output "azure_strorage_key" {
 output "azure_storage_connection_string" {
   value = azurerm_storage_account.ifrcgo.primary_connection_string
 }
-
-output "azure_managed_disk_id" {
-  value = azurerm_managed_disk.ifrcgo.id
-}
-
-output "azure_managed_disk_name" {
-  value = "${local.prefix}-disk"
-}
-
-output "azure_managed_disk_uri" {
-  value = "/subscriptions/${var.subscriptionId}/resourceGroups/${azurerm_resource_group.ifrcgo.name}/providers/Microsoft.Compute/disks/${azurerm_managed_disk.ifrcgo.id}"
-}
