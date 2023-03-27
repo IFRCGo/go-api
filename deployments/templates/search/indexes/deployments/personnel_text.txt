@@ -1,0 +1,3 @@
+{{object.event_name}}
+{{object.deploying_country_name}}
+{{object.deployed_to_country_name}}

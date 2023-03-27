@@ -31,7 +31,7 @@ from deployments.models import (
 from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
-from deployments.models import Project, ERU
+from deployments.models import Project, ERU, Personnel
 from flash_update.models import FlashUpdate
 from dref.models import Dref, DrefOperationalUpdate
 
@@ -201,7 +201,11 @@ class HayStackSearch(APIView):
             dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
                 SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
-
+            rapid_response_deployments = SearchQuerySet().models(Personnel).filter(
+                SQ(deploying_country_name__contains=phrase) |
+                SQ(deployed_to_country_name__contains=phrase) |
+                SQ(event_name__content=phrase)
+            ).order_by('-_score')
             appeals_list = []
             dref = [
                 {
@@ -355,7 +359,24 @@ class HayStackSearch(APIView):
                 } for data in surge_deployments[:50]
             ],
             "reports": sorted(field_report, key=lambda d: d["score"], reverse=True)[:50],
-            "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50]
+            "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50],
+            "rapid_response_deployments": [
+                {
+                    "id": int(data.id.split(".")[-1]),
+                    "name": data.name,
+                    "start_date": data.start_date,
+                    "end_date": data.end_date,
+                    "postion": data.postion,
+                    "type": data.type,
+                    "deploying_country_name": data.deploying_country_name,
+                    "deploying_country_id": data.deploying_country_id,
+                    "deployed_to_country_name": data.deployed_to_country_name,
+                    "deployed_to_country_id": data.deployed_to_country_id,
+                    "event_name": data.event_name,
+                    "event_id": data.event_id,
+                    "score": data.score,
+                } for data in rapid_response_deployments[:50]
+            ],
         }
         return Response(result)
 

@@ -204,7 +204,6 @@ class Personnel(DeployedPerson):
     molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
     is_active = models.BooleanField(default=True)  # Active in Molnix API
 
-
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
 

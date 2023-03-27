@@ -1,6 +1,6 @@
 from haystack import indexes
 
-from deployments.models import Project, ERU
+from deployments.models import Project, ERU, Personnel
 
 
 class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
@@ -42,6 +42,27 @@ class ERUIndex(indexes.SearchIndex, indexes.Indexable):
 
     def get_model(self):
         return ERU
+
+    def index_queryset(self, using=None):
+        return self.get_model().objects.all()
+
+
+class PersonnelIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.EdgeNgramField(document=True, use_template=True)
+    name = indexes.CharField(model_attr='name', null=True)
+    start_date = indexes.DateTimeField(model_attr='start_date', null=True)
+    end_date = indexes.DateTimeField(model_attr='end_date', null=True)
+    position = indexes.CharField(model_attr='role', null=True)
+    type = indexes.CharField(model_attr='get_type_display', null=True)
+    deploying_country_name = indexes.CharField(model_attr='country_from__name', null=True)
+    deploying_country_id = indexes.IntegerField(model_attr='country_from__id', null=True)
+    deployed_to_country_name = indexes.CharField(model_attr='country_to__name', null=True)
+    deployed_to_country_id = indexes.IntegerField(model_attr='country_to__id', null=True)
+    event_name = indexes.EdgeNgramField(model_attr='deployment__event_deployed_to__name')
+    event_id = indexes.IntegerField(model_attr='deployment__event_deployed_to__id', null=True)
+
+    def get_model(self):
+        return Personnel
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
