@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.472
+
+### Added
+ - Less validation in DREF serializer (for images)
+
 ## 1.1.471
 
 ### Added
@@ -2163,7 +2168,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.471...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.472...HEAD
+[1.1.472]: https://github.com/IFRCGo/go-api/compare/1.1.471...1.1.472
 [1.1.471]: https://github.com/IFRCGo/go-api/compare/1.1.470...1.1.471
 [1.1.470]: https://github.com/IFRCGo/go-api/compare/1.1.469...1.1.470
 [1.1.469]: https://github.com/IFRCGo/go-api/compare/1.1.468...1.1.469
