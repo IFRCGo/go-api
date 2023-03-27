@@ -54,7 +54,7 @@ class PersonnelIndex(indexes.SearchIndex, indexes.Indexable):
     end_date = indexes.DateTimeField(model_attr='end_date', null=True)
     position = indexes.CharField(model_attr='role', null=True)
     type = indexes.CharField(model_attr='get_type_display', null=True)
-    deploying_country_name = indexes.CharField(model_attr='country_from__name', null=True)
+    deploying_country_name = indexes.CharField(model_attr='country_from__society_name', null=True)
     deploying_country_id = indexes.IntegerField(model_attr='country_from__id', null=True)
     deployed_to_country_name = indexes.CharField(model_attr='country_to__name', null=True)
     deployed_to_country_id = indexes.IntegerField(model_attr='country_to__id', null=True)
