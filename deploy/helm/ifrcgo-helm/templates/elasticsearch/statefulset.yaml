@@ -1,0 +1,60 @@
+{{- if .Values.elasticsearch.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch
+  labels:
+    component: elasticsearch
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  serviceName: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "ifrcgo-helm.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: {{ template "ifrcgo-helm.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-elasticsearch
+    spec:
+      initContainers:
+        - name: set-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data"]
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+      containers:
+        - name: elasticsearch
+          image: elasticsearch:{{ .Values.elasticsearch.elasticsearchVersion }}
+          env:
+            - name: "discovery.type"
+              value: "single-node"
+            - name: "cluster.name"
+              value: "{{ template "ifrcgo-helm.fullname" . }}-elasticsearch"
+          ports:
+            - containerPort: {{ .Values.elasticsearch.httpPort }}
+              name: http
+            - containerPort: {{ .Values.elasticsearch.transportPort }}
+              name: transport
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+          resources:
+            requests:
+              cpu: {{ .Values.elasticsearch.resources.requests.cpu }}
+              memory: {{ .Values.elasticsearch.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.elasticsearch.resources.limits.cpu }}
+              memory: {{ .Values.elasticsearch.resources.limits.memory }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pvc
+
+{{- end }}

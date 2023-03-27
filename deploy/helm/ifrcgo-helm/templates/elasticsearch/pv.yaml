@@ -1,0 +1,24 @@
+{{- if .Values.elasticsearch.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pv
+  labels:
+    component: elasticsearch
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  capacity:
+    storage: {{ .Values.elasticsearch.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: managed-csi
+  csi:
+    driver: disk.csi.azure.com
+    readOnly: false
+    volumeHandle: {{ .Values.elasticsearch.disk.uri}}
+    volumeAttributes:
+      fsType: ext4
+
+{{- end }}

@@ -14,7 +14,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
     vnet_subnet_id = azurerm_subnet.aks.id
     enable_auto_scaling   = true
     min_count             = 1
-    max_count             = 2
+    max_count             = 4
   }
 
   identity {

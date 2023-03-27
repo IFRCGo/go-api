@@ -32,7 +32,7 @@ spec:
               protocol: TCP
           livenessProbe: #FIXME Fix Liveness Probe
             httpGet:
-              path: /api/
+              path: /docs/
               port: {{ .Values.api.containerPort }}
             initialDelaySeconds: 10180
             periodSeconds: 5

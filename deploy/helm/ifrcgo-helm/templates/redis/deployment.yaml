@@ -1,0 +1,40 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-redis
+  labels:
+    component: redis-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "ifrcgo-helm.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ template "ifrcgo-helm.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-redis
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-redis
+          image: "redis:latest" #FIXME: pin to version
+          # args: ["-c", "while true; do npx knex migrate:latest && npm run prod; sleep 10;done"]
+          ports:
+            - name: http
+              containerPort: 6379
+              protocol: TCP
+          resources:
+            requests:
+              cpu: {{ .Values.redis.resources.requests.cpu }}
+              memory: {{ .Values.redis.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.redis.resources.limits.cpu }}
+              memory: {{ .Values.redis.resources.limits.memory }}
+
+{{- end }}
