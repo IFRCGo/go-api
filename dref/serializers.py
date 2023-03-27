@@ -948,7 +948,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["event_description"] = dref.event_description
             validated_data["anticipatory_actions"] = dref.anticipatory_actions
             validated_data["event_scope"] = dref.event_scope
-            validated_data["event_map"] = dref.event_map
             validated_data["assessment_report"] = dref.assessment_report
             validated_data["country"] = dref.country
             validated_data["risk_security_concern"] = dref.risk_security_concern
@@ -958,8 +957,6 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["event_text"] = dref.event_text
             validated_data["ns_respond_date"] = dref.ns_respond_date
-            validated_data["cover_image"] = dref.cover_image
-            validated_data["event_map"] = dref.event_map
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
