@@ -372,6 +372,7 @@ class Brief(APIView):
         res['--------------------------------'] = '----------'
         res['base64_img'] = e + s + r + u
         res['cronjob_err'] = c
+        res['maintenance_mode'] = settings.DJANGO_READ_ONLY
         res['git_last_tag'] = settings.LAST_GIT_TAG
         res['git_last_commit'] = settings.SENTRY_CONFIG['release'][0:8]
         return JsonResponse(res, safe=False)
