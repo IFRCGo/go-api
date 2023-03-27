@@ -9,9 +9,9 @@ resources:
   repositories:
   - repository: go-api
     type: github
-    endpoint: developmentseed
-    name: developmentseed/go-api
-    ref: azure-pipelines
+    endpoint: IFRCGo
+    name: IFRCGo/go-api
+    ref: terraform
 
 pool:
   vmImage: ubuntu-latest
@@ -26,12 +26,31 @@ jobs:
   - bash: pip install -v chartpress
     displayName: "Install Chartpress"
 
-
-  - task: Docker@2
+  - task: AzureCLI@2
     displayName: "Login to ACR"
     inputs:
-      containerRegistry: 'ifrcgotestacr'
-      command: 'login'
+      azureSubscription: 'IFRC-GO-Kubernetes'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: 'az acr login --name ifrcgoacr'
+      addSpnToEnvironment: true
+      useGlobalConfig: true
+
+  # - task: AzureCLI@2
+  #   displayName: "Login to Az"
+  #   inputs:
+  #     azureSubscription: 'IFRC-GO-Kubernetes'
+  #     scriptType: 'bash'
+  #     scriptLocation: 'inlineScript'
+  #     inlineScript: 'az login --service-principal -u $(TERRAFORM_SERVICE_PRINCIPAL_ID) -p $(TERRAFORM_SERVICE_PRINCIPAL_KEY) --tenant $(TERRAFORM_TENANT_ID)'
+  #     addSpnToEnvironment: true
+  #     useGlobalConfig: true
+
+#  - task: Docker@2
+#    displayName: "Login to ACR"
+#    inputs:
+#      containerRegistry: $(STAGING_REGISTRY_NAME)
+#      command: 'login'
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
     displayName: "Build and Push"
@@ -46,7 +65,7 @@ jobs:
       servicePrincipalId: $(TERRAFORM_SERVICE_PRINCIPAL_ID)
       servicePrincipalKey: $(TERRAFORM_SERVICE_PRINCIPAL_KEY)
       storageAccessKey: $(TERRAFORM_STORAGE_KEY)
-      API_FQDN: ifrcgo-test.ds.io
+      API_FQDN: ifrcgo-staging.ds.io
       subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
       DJANGO_SECRET_KEY: $(STAGING_DJANGO_SECRET_KEY)
       DJANGO_DB_NAME: $(STAGING_DJANGO_DB_NAME)
@@ -54,8 +73,8 @@ jobs:
       DJANGO_DB_PASS: $(STAGING_DJANGO_DB_PASS)
       DJANGO_DB_HOST: $(STAGING_DJANGO_DB_HOST)
       DJANGO_DB_PORT: $(STAGING_DJANGO_DB_PORT)
-      AZURE_STORAGE_ACCOUNT: ''
       AZURE_STORAGE_KEY: ''
+      STORAGE_ACCOUNT: ''
       EMAIL_API_ENDPOINT: $(STAGING_EMAIL_API_ENDPOINT)
       EMAIL_HOST: $(STAGING_EMAIL_HOST)
       EMAIL_PORT: $(STAGING_EMAIL_PORT)

@@ -16,6 +16,7 @@ class SurgeIndex(indexes.SearchIndex, indexes.Indexable):
     surge_type = indexes.CharField(model_attr='get_atype_display')
     status = indexes.CharField(model_attr='molnix_status', null=True)
     country_id = indexes.IntegerField(model_attr='country__id')
+    iso3 = indexes.CharField(model_attr='country__iso3', null=True)
 
     def get_model(self):
         return SurgeAlert

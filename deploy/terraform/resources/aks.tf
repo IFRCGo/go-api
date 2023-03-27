@@ -3,10 +3,10 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
     ignore_changes = all
   }
   name                = "${local.prefix}-cluster"
-  location            = azurerm_resource_group.ifrcgo.location
-  resource_group_name = azurerm_resource_group.ifrcgo.name
+  location            = data.azurerm_resource_group.ifrcgo.location
+  resource_group_name = data.azurerm_resource_group.ifrcgo.name
   dns_prefix          = "${local.prefix}-cluster"
-  kubernetes_version  = "1.25.2"
+  kubernetes_version  = "1.25.5"
 
   default_node_pool {
     name           = "nodepool1"
@@ -29,7 +29,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
 
 # add the role to the identity the kubernetes cluster was assigned
 resource "azurerm_role_assignment" "network" {
-  scope                = azurerm_resource_group.ifrcgo.id
+  scope                = data.azurerm_resource_group.ifrcgo.id
   role_definition_name = "Network Contributor"
   principal_id         = azurerm_kubernetes_cluster.ifrcgo.identity[0].principal_id
 }

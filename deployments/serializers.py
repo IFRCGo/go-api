@@ -356,7 +356,7 @@ class ProjectSerializer(ModelSerializer):
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
-    primary_sector_display = serializers.SerializerMethodField()
+    primary_sector_display = serializers.CharField(source='primary_sector.title', read_only=True)
     secondary_sectors_display = serializers.SerializerMethodField()
     programme_type_display = serializers.CharField(source='get_programme_type_display', read_only=True)
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
@@ -366,13 +366,8 @@ class ProjectSerializer(ModelSerializer):
     modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
-    def get_primary_sector_display(obj):
-        return obj.primary_sector.title
-
-    @staticmethod
     def get_secondary_sectors_display(obj):
         return [t.title for t in obj.secondary_sectors.all()]
-
 
     class Meta:
         model = Project

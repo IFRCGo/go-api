@@ -11,7 +11,7 @@ output "cluster_name" {
 }
 
 output "resource_group" {
-  value = azurerm_resource_group.ifrcgo.name
+  value = data.azurerm_resource_group.ifrcgo.name
 }
 
 output "image_registry" {
@@ -37,7 +37,7 @@ output "azure_managed_disk_id" {
 output "azure_managed_disk_name" {
   value = "${local.prefix}-disk"
 }
+
 output "azure_managed_disk_uri" {
   value = "/subscriptions/${var.subscriptionId}/resourceGroups/${azurerm_resource_group.ifrcgo.name}/providers/Microsoft.Compute/disks/${azurerm_managed_disk.ifrcgo.id}"
 }
-

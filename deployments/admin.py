@@ -39,6 +39,7 @@ class SectorAdmin(admin.ModelAdmin):
     model = models.Sector
     search_fields = ('title',)
 
+
 class SectorTagAdmin(admin.ModelAdmin):
     model = models.SectorTag
     search_fields = ('title',)
@@ -288,6 +289,12 @@ class EmergencyProjectAdmin(admin.ModelAdmin):
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
         'country', 'districts',
     )
+    list_display = [
+        'title',
+        'event',
+        'country',
+        'reporting_ns'
+    ]
     inlines = (EmergencyProjectActivityInline,)
 
 

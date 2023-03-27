@@ -46,8 +46,8 @@ module "resources" {
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "ifrcgoterraform"
-    storage_account_name = "ifrcgo"
+    resource_group_name  = "ifrcpgoterraform001rg"
+    storage_account_name = "ifrcgoterraform"
     container_name       = "terraform"
     key                  = "staging"
   }

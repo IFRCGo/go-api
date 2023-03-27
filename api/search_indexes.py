@@ -9,6 +9,7 @@ from api.models import (
     District,
 )
 
+
 class RegionIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
     name = indexes.EdgeNgramField(model_attr='get_name_display')
@@ -26,6 +27,7 @@ class CountryIndex(indexes.SearchIndex, indexes.Indexable):
     society_name = indexes.CharField(model_attr='society_name', null=True)
     independent = indexes.BooleanField(model_attr='independent', null=True)
     is_deprecated = indexes.BooleanField(model_attr='is_deprecated', null=True)
+    iso3 = indexes.CharField(model_attr='iso3', null=True)
 
     def get_model(self):
         return Country
@@ -39,6 +41,7 @@ class DistrictIndex(indexes.SearchIndex, indexes.Indexable):
     name = indexes.EdgeNgramField(model_attr='name')
     country_name = indexes.CharField(model_attr='country__name', null=True)
     country_id = indexes.CharField(model_attr='country__id', null=True)
+    iso3 = indexes.CharField(model_attr='country__iso3', null=True)
 
     def get_model(self):
         return District
@@ -58,12 +61,14 @@ class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     start_date = indexes.DateTimeField(model_attr='start_date', null=True)
     country_id = indexes.IntegerField(model_attr='country__id')
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
+    iso3 = indexes.CharField(model_attr='country__iso3', null=True)
 
     def get_model(self):
         return Appeal
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
+
 
 class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     text = indexes.EdgeNgramField(document=True, use_template=True)
@@ -75,6 +80,9 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     amount_funded = indexes.CharField(model_attr='appeals__amount_funded', null=True)
     disaster_type = indexes.CharField(model_attr='dtype__name', null=True)
     countries_id = indexes.MultiValueField(null=True,)
+    appeal_type = indexes.CharField(model_attr='appeals__get_atype_display', null=True)
+    crisis_categorization = indexes.CharField(model_attr='get_ifrc_severity_level_display', null=True)
+    iso3 = indexes.MultiValueField(null=True)
 
     def get_model(self):
         return Event
@@ -84,6 +92,9 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
 
     def prepare_countries_id(self, obj):
         return [country.id for country in obj.countries.all()]
+
+    def prepare_iso3(self, obj):
+        return [country.iso3 for country in obj.countries.all() if country.iso3]
 
     def index_queryset(self, using=None):
         return self.get_model().objects.all()
@@ -98,6 +109,7 @@ class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
     created_at = indexes.DateTimeField(model_attr='created_at')
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     countries_id = indexes.MultiValueField(null=True,)
+    iso3 = indexes.MultiValueField(null=True)
 
     def get_model(self):
         return FieldReport
@@ -110,3 +122,6 @@ class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
 
     def prepare_countries_id(self, obj):
         return [country.id for country in obj.countries.all()]
+
+    def prepare_iso3(self, obj):
+        return [country.iso3 for country in obj.countries.all()]
