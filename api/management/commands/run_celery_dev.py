@@ -9,8 +9,7 @@ from main.celery import Queues
 
 all_queues = ','.join([q for q in Queues.DEV_QUEUES])
 CMD = (
-    f'celery -A main worker -Q {all_queues} '
-    '-B --concurrency=2 -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler'
+    f'celery -A main worker -Q {all_queues} --concurrency=2 -l info'
 )
 
 
