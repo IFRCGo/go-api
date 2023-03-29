@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-GNB": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-GNB-src",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  

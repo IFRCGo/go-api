@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-CMR-centroids": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-CMR-centroids-src",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  
