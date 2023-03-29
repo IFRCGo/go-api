@@ -209,6 +209,7 @@ class Dref(models.Model):
         IMMINENT = 0, _("Imminent")
         ASSESSMENT = 1, _("Assessment")
         RESPONSE = 2, _("Response")
+        LOAN = 3, _("Loan")
 
     class OnsetType(models.IntegerChoices):
         SLOW = 1, _("Slow")
