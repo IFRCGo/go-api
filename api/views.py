@@ -174,9 +174,9 @@ class HayStackSearch(APIView):
             ).order_by('-_score')
             emergency_response = SearchQuerySet().models(Event).filter(
                 SQ(name__content=phrase) | SQ(iso3__content=phrase)).order_by('-_score')
-            appeal_response = SearchQuerySet().models(Appeal).filter(
-                SQ(name__content=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
-            ).order_by('-_score')
+            # appeal_response = SearchQuerySet().models(Appeal).filter(
+            #     SQ(name__content=phrase) | SQ(code__content=phrase) | SQ(iso3__content=phrase)
+            # ).order_by('-_score')
             fieldreport_response = SearchQuerySet().models(FieldReport).filter(
                 SQ(name__content=phrase) | SQ(iso3__content=phrase)
             ).order_by('-_score')
@@ -195,57 +195,57 @@ class HayStackSearch(APIView):
             flash_update_response = SearchQuerySet().models(FlashUpdate).filter(
                 SQ(name__contains=phrase) | SQ(iso3__contains=phrase)
             ).order_by('-_score')
-            dref_response = SearchQuerySet().models(Dref).filter(
-                SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
-            ).order_by('-_score')
-            dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
-                SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
-            ).order_by('-_score')
+            # dref_response = SearchQuerySet().models(Dref).filter(
+            #     SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
+            # ).order_by('-_score')
+            # dref_operational_update_response = SearchQuerySet().models(DrefOperationalUpdate).filter(
+            #     SQ(name__contains=phrase) | SQ(code__contains=phrase) | SQ(iso3__contains=phrase)
+            # ).order_by('-_score')
             rapid_response_deployments = SearchQuerySet().models(Personnel).filter(
                 SQ(deploying_country_name__contains=phrase) |
                 SQ(deployed_to_country_name__contains=phrase) |
                 SQ(event_name__content=phrase)
             ).order_by('-_score')
-            appeals_list = []
-            dref = [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "created_at": data.created_at,
-                    "type": "Dref",
-                    "score": data.score,
-                    "country_name": data.country_name,
-                    "country_id": data.country_id,
-                    "code": data.code
-                } for data in dref_response
-            ]
-            appeals_list.extend(dref)
-            dref_op = [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "created_at": data.created_at,
-                    "type": "Operational Update",
-                    "score": data.score,
-                    "country_name": data.country_name,
-                    "country_id": data.country_id,
-                    "code": data.code
-                } for data in dref_operational_update_response
-            ]
-            appeals_list.extend(dref_op)
-            appeal_data = [
-                {
-                    "id": int(data.id.split(".")[-1]),
-                    "name": data.name,
-                    "code": data.code,
-                    "country": data.country_name,
-                    "country_id": data.country_id,
-                    "start_date": data.start_date,
-                    "score": data.score,
-                    "type": "Appeal",
-                } for data in appeal_response
-            ]
-            appeals_list.extend(appeal_data)
+            # appeals_list = []
+            # dref = [
+            #     {
+            #         "id": int(data.id.split(".")[-1]),
+            #         "name": data.name,
+            #         "created_at": data.created_at,
+            #         "type": "Dref",
+            #         "score": data.score,
+            #         "country_name": data.country_name,
+            #         "country_id": data.country_id,
+            #         "code": data.code
+            #     } for data in dref_response
+            # ]
+            # appeals_list.extend(dref)
+            # dref_op = [
+            #     {
+            #         "id": int(data.id.split(".")[-1]),
+            #         "name": data.name,
+            #         "created_at": data.created_at,
+            #         "type": "Operational Update",
+            #         "score": data.score,
+            #         "country_name": data.country_name,
+            #         "country_id": data.country_id,
+            #         "code": data.code
+            #     } for data in dref_operational_update_response
+            # ]
+            # appeals_list.extend(dref_op)
+            # appeal_data = [
+            #     {
+            #         "id": int(data.id.split(".")[-1]),
+            #         "name": data.name,
+            #         "code": data.code,
+            #         "country": data.country_name,
+            #         "country_id": data.country_id,
+            #         "start_date": data.start_date,
+            #         "score": data.score,
+            #         "type": "Appeal",
+            #     } for data in appeal_response
+            # ]
+            # appeals_list.extend(appeal_data)
             field_report = []
             flash_update = [
                 {
@@ -359,7 +359,7 @@ class HayStackSearch(APIView):
                 } for data in surge_deployments[:50]
             ],
             "reports": sorted(field_report, key=lambda d: d["score"], reverse=True)[:50],
-            "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50],
+            # "emergency_planning": sorted(appeals_list, key=lambda d: d["score"], reverse=True)[:50],
             "rapid_response_deployments": [
                 {
                     "id": int(data.id.split(".")[-1]),
