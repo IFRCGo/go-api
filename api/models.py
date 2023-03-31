@@ -273,7 +273,7 @@ class Admin2(models.Model):
     local_name_code = models.CharField(verbose_name=_('Local Name Language Code'), max_length=10, blank=True, null=True)
     alternate_name = models.CharField(verbose_name=_('Alternate Name'), max_length=100, blank=True, null=True)
     alternate_name_code = models.CharField(verbose_name=_('Alternate Name Language Code'), max_length=10, blank=True, null=True)
-
+    created_at = models.DateTimeField(verbose_name=_('Created at'), auto_now_add=True)
 
     class Meta:
         verbose_name = _('admin2')
