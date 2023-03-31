@@ -13,6 +13,7 @@ from api.models import (
     District,
     Country,
     Region,
+    Admin2,
     Event,
     DisasterType,
     Appeal,
@@ -405,6 +406,11 @@ class Project(models.Model):
         verbose_name=_("districts"),
         blank=True,
     )  # this is the district where the project is actually taking place
+    project_admin2 = models.ManyToManyField(
+        Admin2,
+        verbose_name=_("admin2"),
+        blank=True,
+    )
     event = models.ForeignKey(
         Event,
         verbose_name=_("event"),

@@ -20,6 +20,7 @@ from api.serializers import (
     MiniCountrySerializer,
     NanoCountrySerializer,
     MiniDistrictSerializer,
+    MiniAdmin2Serializer
 )
 
 from .models import (
@@ -41,7 +42,6 @@ from .models import (
     EmergencyProjectActivityActionSupply,
     EmergencyProjectActivity,
     EmergencyProjectActivityLocation,
-
     OperationTypes,
     ProgrammeTypes,
 )
@@ -242,6 +242,7 @@ class PersonnelCsvSerializerBase(ModelSerializer):
         end = obj.end_date if obj.end_date else today
         return start <= today <= end
 
+
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
     # For logged in users | no molnix_status
@@ -352,6 +353,7 @@ class AnnualSplitSerializer(ModelSerializer):
 class ProjectSerializer(ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
+    project_admin2_detail = MiniAdmin2Serializer(source='project_admin2', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
@@ -547,7 +549,6 @@ class EmergencyProjectActivitySerializer(
 
 
 class EmergencyProjectSerializer(
-    
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer,

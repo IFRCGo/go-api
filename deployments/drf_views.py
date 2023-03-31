@@ -378,7 +378,8 @@ class ProjectViewset(
         'user', 'modified_by', 'project_country', 'reporting_ns',
         'dtype', 'regional_project', 'primary_sector'
     ).prefetch_related(
-        'project_districts', 'event', 'annual_splits', 'secondary_sectors'
+        'project_districts', 'event', 'annual_splits',
+        'secondary_sectors', 'project_admin2'
     ).all()
     filterset_class = ProjectFilter
     serializer_class = ProjectSerializer

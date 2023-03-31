@@ -125,7 +125,7 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     list_filter = (ProjectNSFilter, ProjectCountryFilter,)
     autocomplete_fields = (
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
-        'event', 'dtype',
+        'event', 'dtype', 'project_admin2'
     )
     inlines = [ProjectAnnualSplitAdminInline]
 
