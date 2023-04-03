@@ -1,9 +1,13 @@
 import json
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
+
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.signals import pre_delete, pre_save, post_save, post_delete
 from django.dispatch import receiver
+from django.utils import timezone
+
 from reversion.models import Version
 from reversion.signals import post_revision_commit
 from api.models import ReversionDifferenceLog, Event, Country, FieldReport
@@ -12,8 +16,7 @@ from utils.elasticsearch import create_es_index, update_es_index, delete_es_inde
 from utils.erp import push_fr_data
 from api.logger import logger
 from .models import Appeal, AppealHistory, AppealFilter
-from django.utils import timezone
-from datetime import datetime, timedelta
+from main.suspend_receivers import suspendingreceiver
 
 
 MODEL_TYPES = {
@@ -136,7 +139,8 @@ def log_deletion(sender, instance, using, **kwargs):
     delete_es_index(instance)
 
 
-@receiver(pre_save)
+# NOTE: Adding this to disable indexing in testcases
+@suspendingreceiver(pre_save)
 def remove_child_events_from_es(sender, instance, using, **kwargs):
     ''' Handle Emergency Elasticsearch indexes '''
     model = instance.__class__.__name__
@@ -202,7 +206,6 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
         if field.name not in ['id', 'appeal', 'valid_from', 'valid_to','aid','amount_funded']
     ]
     now = timezone.now()
-    valid_to = timezone.now() + relativedelta(years=+10)
     changed = False
 
     if created:  # Appeal Insert
@@ -220,12 +223,12 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             atype=instance.atype,
             country=instance.country,
             region=instance.region,
-            dtype = instance.dtype,
-            needs_confirmation = instance.needs_confirmation,
-            status = instance.status,
-            code = instance.code,
-            triggering_amount = instance.triggering_amount
-            #deleted_at = instance.deleted_at
+            dtype=instance.dtype,
+            needs_confirmation=instance.needs_confirmation,
+            status=instance.status,
+            code=instance.code,
+            triggering_amount=instance.triggering_amount
+            # deleted_at = instance.deleted_at
         )
 
     else:  # Appeal Update
@@ -258,12 +261,12 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             atype=instance.atype,
             country=instance.country,
             region=instance.region,
-            dtype = instance.dtype,
-            needs_confirmation = instance.needs_confirmation,
-            status = instance.status,
-            code = instance.code,
-            triggering_amount = instance.triggering_amount
-            #deleted_at = instance.deleted_at
+            dtype=instance.dtype,
+            needs_confirmation=instance.needs_confirmation,
+            status=instance.status,
+            code=instance.code,
+            triggering_amount=instance.triggering_amount
+            # deleted_at = instance.deleted_at
         )
 
 
@@ -271,9 +274,9 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
 def remove_appeal_filter(sender, instance, using, **kwargs):
     appealFilter = AppealFilter.objects.get(name='ingestAppealFilter')
     lstCodesToSkip = appealFilter.value.split(",")
-    if instance.code not in lstCodesToSkip: 
-            lstCodesToSkip.append(instance.code)
+    if instance.code not in lstCodesToSkip:
+        lstCodesToSkip.append(instance.code)
 
     appealFilter.value = ",".join(lstCodesToSkip)
-        #appealFilter.value = ",".join(appealFilter.value.split(",").remove(self.code))
+    # appealFilter.value = ",".join(appealFilter.value.split(",").remove(self.code))
     appealFilter.save()

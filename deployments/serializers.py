@@ -24,7 +24,6 @@ from api.serializers import (
 
 from .models import (
     AnnualSplit,
-    ERUType,
     ERUOwner,
     ERU,
     PersonnelDeployment,
@@ -33,6 +32,8 @@ from .models import (
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
     RegionalProject,
+    Sector,
+    SectorTag,
     Project,
     EmergencyProject,
     EmergencyProjectActivitySector,
@@ -355,14 +356,18 @@ class ProjectSerializer(ModelSerializer):
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
-    primary_sector_display = serializers.CharField(source='get_primary_sector_display', read_only=True)
+    primary_sector_display = serializers.CharField(source='primary_sector.title', read_only=True)
+    secondary_sectors_display = serializers.SerializerMethodField()
     programme_type_display = serializers.CharField(source='get_programme_type_display', read_only=True)
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
-    secondary_sectors_display = serializers.ListField(source='get_secondary_sectors_display', read_only=True)
     annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
     modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
+
+    @staticmethod
+    def get_secondary_sectors_display(obj):
+        return [t.title for t in obj.secondary_sectors.all()]
 
     class Meta:
         model = Project
@@ -427,11 +432,11 @@ class ProjectCsvSerializer(ProjectSerializer):
 
     @staticmethod
     def get_secondary_sectors(obj):
-        return ', '.join([str(sector) for sector in obj.secondary_sectors])
+        return ', '.join([str(t.id) for t in obj.secondary_sectors.all()])
 
     @staticmethod
     def get_secondary_sectors_display(obj):
-        return ', '.join(obj.get_secondary_sectors_display())
+        return ', '.join([t.title for t in obj.secondary_sectors.all()])
 
     @staticmethod
     def get_project_districts_detail(obj):

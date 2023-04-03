@@ -52,7 +52,7 @@ from .models import (
     CountryOfFieldReportToReview,
 )
 from notifications.models import Subscription
-from deployments.models import EmergencyProject
+from deployments.models import EmergencyProject, Personnel
 
 
 class GeoSerializerMixin:
@@ -501,6 +501,7 @@ class ListEventSerializer(ModelSerializer):
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
     dtype = DisasterTypeSerializer()
     ifrc_severity_level_display = serializers.CharField(source='get_ifrc_severity_level_display', read_only=True)
+    active_deployments = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -508,8 +509,18 @@ class ListEventSerializer(ModelSerializer):
             'name', 'dtype', 'countries', 'summary', 'num_affected', 'ifrc_severity_level', 'ifrc_severity_level_display',
             'glide', 'disaster_start_date', 'created_at', 'auto_generated', 'appeals', 'is_featured', 'is_featured_region',
             'field_reports', 'updated_at', 'id', 'slug', 'parent_event', 'tab_one_title', 'tab_two_title', 'tab_three_title',
-            'emergency_response_contact_email',
+            'emergency_response_contact_email', 'active_deployments',
         )
+
+    def get_active_deployments(self, event):
+        now = timezone.now()
+        return Personnel.objects.filter(
+            type=Personnel.TypeChoices.RR,
+            start_date__lt=now,
+            end_date__gt=now,
+            deployment__event_deployed_to=event,
+            is_active=True
+        ).count()
 
 
 class SurgeEventSerializer(ModelSerializer):
@@ -675,6 +686,7 @@ class DetailEventSerializer(ModelSerializer):
     links = EventLinkSerializer(many=True, read_only=True)
     countries_for_preview = MiniCountrySerializer(many=True)
     response_activity_count = serializers.SerializerMethodField()
+    active_deployments = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -684,13 +696,22 @@ class DetailEventSerializer(ModelSerializer):
             'is_featured_region', 'field_reports', 'hide_attached_field_reports', 'hide_field_report_map', 'updated_at',
             'id', 'slug', 'tab_one_title', 'ifrc_severity_level', 'ifrc_severity_level_display', 'parent_event', 'glide',
             'featured_documents', 'links', 'emergency_response_contact_email', 'countries_for_preview',
-            'response_activity_count', 'visibility'
+            'response_activity_count', 'visibility', 'active_deployments'
         )
         lookup_field = 'slug'
 
     def get_response_activity_count(self, event):
         return EmergencyProject.objects.filter(event=event).count()
 
+    def get_active_deployments(self, event):
+        now = timezone.now()
+        return Personnel.objects.filter(
+            type=Personnel.TypeChoices.RR,
+            start_date__lt=now,
+            end_date__gt=now,
+            deployment__event_deployed_to=event,
+            is_active=True
+        ).count()
 
 class SituationReportTypeSerializer(ModelSerializer):
     class Meta:

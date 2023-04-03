@@ -177,12 +177,26 @@ set. Check the script for the specific variables in your environment.
 ## Deployment command
 
 ```(bash)
-docker run -p 80:80 --env-file .env -d -t ifrcgo/go-api:{TAG_NUMBER}
+docker-compose up serve celery
 ```
-
+or (just the base serve command):
+```(bash)
+docker-compose run --rm --service-ports serve
+```
 ## Comment for loading data
 
 In `main/runserver.sh` the line containing the `loaddata` command is only necessary when creating a new database. In other cases it might be causing the conflict, so it is commented. 
+
+## Initializing ElasticSearch
+
+For the initial creation of an index
+```(bash)
+docker-compose exec serve bash python manage.py rebuild_index
+```
+For updating the index
+```(bash)
+docker-compose exec serve bash python manage.py update_index
+```
 
 # Management commands to update and import admin0 and admin1 data
 

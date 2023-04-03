@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.hashable import make_hashable
 from django.utils.encoding import force_str
-from django.contrib.postgres.fields import ArrayField
 from django.db.models import Q
 from django.db.models import JSONField
 
@@ -148,7 +147,7 @@ class MolnixTag(models.Model):
     '''
     molnix_id = models.IntegerField()
     name = models.CharField(max_length=255)
-    description = models.CharField(max_length=512)
+    description = models.CharField(blank=True, max_length=512)
     color = models.CharField(max_length=6)
     tag_type = models.CharField(max_length=127)
     tag_category = models.CharField(null=True, max_length=127)
@@ -205,7 +204,6 @@ class Personnel(DeployedPerson):
     molnix_status = models.CharField(verbose_name=_('molnix status'), max_length=8, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)
     is_active = models.BooleanField(default=True)  # Active in Molnix API
 
-
     def __str__(self):
         return '%s: %s - %s' % (self.type.upper(), self.name, self.role)
 
@@ -260,34 +258,34 @@ class ProgrammeTypes(models.IntegerChoices):
     DOMESTIC = 2, _('Domestic')
 
 
-class Sectors(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    HEALTH = 4, _('Health')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
+@reversion.register()
+class Sector(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this a deprecated sector?'))
+    order = models.SmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = _('Project Sector')
+        verbose_name_plural = _('Project Sectors')
+
+    def __str__(self):
+        return self.title
 
 
-class SectorTags(models.IntegerChoices):
-    WASH = 0, _('WASH')
-    PGI = 1, _('PGI')
-    CEA = 2, _('CEA')
-    MIGRATION = 3, _('Migration')
-    DRR = 5, _('DRR')
-    SHELTER = 6, _('Shelter')
-    NS_STRENGTHENING = 7, _('NS Strengthening')
-    EDUCATION = 8, _('Education')
-    LIVELIHOODS_AND_BASIC_NEEDS = 9, _('Livelihoods and basic needs')
-    RECOVERY = 10, _('Recovery')
-    INTERNAL_DISPLACEMENT = 11, _('Internal displacement')
-    HEALTH_PUBLIC = 4, _('Health (public)')
-    HEALTH_CLINICAL = 12, _('Health (clinical)')
-    COVID_19 = 13, _('COVID-19')
+@reversion.register()
+class SectorTag(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_('title'))
+    color = models.CharField(max_length=7, verbose_name=_('color'), null=True, blank=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_('Is this a deprecated sector tag?'))
+    order = models.SmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = _('Project Sector Tag')
+        verbose_name_plural = _('Project Sector Tags')
+
+    def __str__(self):
+        return self.title
 
 
 class Statuses(models.IntegerChoices):
@@ -368,11 +366,8 @@ class Project(models.Model):
     document = models.ForeignKey(GeneralDocument, verbose_name=_('linked document'), null=True, blank=True, on_delete=models.SET_NULL)
     programme_type = models.IntegerField(choices=ProgrammeTypes.choices, default=0, verbose_name=_('programme type'),
         help_text='<a target="_blank" href="/api/v2/programmetype">Key/value pairs</a>')
-    primary_sector = models.IntegerField(choices=Sectors.choices, default=0, verbose_name=_('sector'),
-        help_text='<a target="_blank" href="/api/v2/primarysector">Key/value pairs</a>')
-    secondary_sectors = ArrayField(
-        models.IntegerField(choices=SectorTags.choices), verbose_name=_('tags'), default=list, blank=True,
-    )
+    primary_sector = models.ForeignKey(Sector, verbose_name=_('sector'), on_delete=models.PROTECT,)
+    secondary_sectors = models.ManyToManyField(SectorTag, related_name='tags', blank=True,)
     operation_type = models.IntegerField(choices=OperationTypes.choices, default=0, verbose_name=_('operation type'),
         help_text='<a target="_blank" href="/api/v2/operationtype">Key/value pairs</a>')
     start_date = models.DateField(verbose_name=_('start date'))
@@ -412,13 +407,6 @@ class Project(models.Model):
         else:
             postfix = self.reporting_ns.society_name
         return '%s (%s)' % (self.name, postfix)
-
-    def get_secondary_sectors_display(self):
-        choices_dict = dict(make_hashable(SectorTags.choices))
-        return [
-            force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
-            for value in self.secondary_sectors or []
-        ]
 
     def save(self, *args, **kwargs):
         if hasattr(self, 'annual_split_detail'):
@@ -465,6 +453,13 @@ class Project(models.Model):
             ~Q(project_country__in=countries_qs) &
             ~Q(reporting_ns__in=countries_qs)
         )
+
+# FIXME | Something like this would be helpful, but not this way. Hint:
+#    def get_primary_sector_display(self):
+#        return 'primary_sector__title'
+#
+#    def get_secondary_sectors_display(self):
+#        return 'secondary_sectors__title'
 
 
 @reversion.register()

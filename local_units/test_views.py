@@ -16,12 +16,12 @@ class LocalUnitFactory(factory.django.DjangoModelFactory):
 class TestLocalUnitsListView(TestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
-        country = Country.objects.create(name='Nepal', iso3='NLP', region=region)
-        country_1 = Country.objects.create(name='Philippines', iso3='PHL', region=region)
+        country = Country.objects.create(name='Nepal', iso3='NLP', iso='NP', region=region)
+        country_1 = Country.objects.create(name='Philippines', iso3='PHL', iso='PH', region=region)
         type = LocalUnitType.objects.create(level=0, name='Level 0')
         type_1 = LocalUnitType.objects.create(level=1, name='Level 1')
-        LocalUnitFactory.create_batch(5, country=country, type=type)
-        LocalUnitFactory.create_batch(5, country=country_1, type=type_1)
+        LocalUnitFactory.create_batch(5, country=country, type=type, draft=True, validated=False)
+        LocalUnitFactory.create_batch(5, country=country_1, type=type_1, draft=False, validated=True)
 
     def test_list(self):
         response = self.client.get('/api/v2/local-unit/')
@@ -45,6 +45,50 @@ class TestLocalUnitsListView(TestCase):
         response = self.client.get('/api/v2/local-unit/?country__name=Belgium')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get('/api/v2/local-unit/?country__iso=BE')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get('/api/v2/local-unit/?country__iso3=BEL')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get('/api/v2/local-unit/?country__iso=BE')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get('/api/v2/local-unit/?country__iso3=PHL')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?country__iso=NP')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?type__level=0')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?type__level=4')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get('/api/v2/local-unit/?draft=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?draft=false')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?validated=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
+
+        response = self.client.get('/api/v2/local-unit/?validated=false')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 5)
 
 
 class TestLocalUnitsDetailView(TestCase):

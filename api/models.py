@@ -273,7 +273,7 @@ class Admin2(models.Model):
     local_name_code = models.CharField(verbose_name=_('Local Name Language Code'), max_length=10, blank=True, null=True)
     alternate_name = models.CharField(verbose_name=_('Alternate Name'), max_length=100, blank=True, null=True)
     alternate_name_code = models.CharField(verbose_name=_('Alternate Name Language Code'), max_length=10, blank=True, null=True)
-
+    created_at = models.DateTimeField(verbose_name=_('Created at'), auto_now_add=True)
 
     class Meta:
         verbose_name = _('admin2')
@@ -365,7 +365,7 @@ class TabNumber(models.IntegerChoices):
     TAB_3 = 3, _('Tab 3')
 
 
-@reversion.register()
+@reversion.register(follow=('region',))
 class RegionSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -382,7 +382,7 @@ class RegionSnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+@reversion.register(follow=('region',))
 class RegionEmergencySnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='emergency_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -399,7 +399,7 @@ class RegionEmergencySnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+@reversion.register(follow=('region',))
 class RegionPreparednessSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='preparedness_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -416,7 +416,7 @@ class RegionPreparednessSnippet(models.Model):
         return self.snippet
 
 
-@reversion.register()
+@reversion.register(follow=('region',))
 class RegionProfileSnippet(models.Model):
     region = models.ForeignKey(Region, verbose_name=_('region'), related_name='profile_snippets', on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
@@ -442,7 +442,7 @@ class RegionProfileSnippet(models.Model):
 #         return self.title
 
 
-@reversion.register()
+@reversion.register(follow=('country',))
 class CountrySnippet(models.Model):
     country = models.ForeignKey(Country, verbose_name=_('country'), related_name='snippets', on_delete=models.CASCADE)
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)
@@ -736,7 +736,7 @@ class KeyFigure(models.Model):
         ordering = ('id',)
 
 
-@reversion.register()
+@reversion.register(follow=('event',))
 class Snippet(models.Model):
     """ Snippet of text """
     snippet = HTMLField(verbose_name=_('snippet'), null=True, blank=True)

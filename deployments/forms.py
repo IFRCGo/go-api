@@ -24,8 +24,8 @@ from .models import (
     ProjectImport,
     OperationTypes,
     ProgrammeTypes,
-    Sectors,
-    SectorTags,
+    Sector,
+    SectorTag,
     Statuses,
 )
 
@@ -39,12 +39,6 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['secondary_sectors'].widget = EnumArrayWidget(
-            choices=SectorTags.choices,
-        )
 
 
 class ProjectImportForm(forms.Form):
@@ -87,8 +81,8 @@ class ProjectImportForm(forms.Form):
         disaster_types = DisasterType.objects.values_list('name', flat=True)
         operation_types = {label for _, label in OperationTypes.choices}
         programme_types = {label for _, label in ProgrammeTypes.choices}
-        sectors = {label for _, label in Sectors.choices}
-        sector_tags = {label for _, label in SectorTags.choices}
+        sectors = Sector.objects.values_list('title', flat=True)
+        sector_tags = SectorTag.objects.values_list('title', flat=True)
         statuses = {label for _, label in Statuses.choices}
 
         # Headers
@@ -135,11 +129,11 @@ class ProjectImportForm(forms.Form):
         return rows
 
     def _handle_bulk_upload(self, user, file, delimiter, quotechar):
-        def _get_error_message(row, custom_errors, validation_erorrs=None):
+        def _get_error_message(row, custom_errors, validation_errors=None):
             messages = ', '.join([
                 f"{field}: {', '.join(error_message)}"
                 for field, error_message in {
-                    **(validation_erorrs or {}),
+                    **(validation_errors or {}),
                     **custom_errors,
                 }.items()
             ])
@@ -176,8 +170,8 @@ class ProjectImportForm(forms.Form):
         # Enum options
         operation_types = {label.lower(): value for value, label in OperationTypes.choices}
         programme_types = {label.lower(): value for value, label in ProgrammeTypes.choices}
-        sectors = {label.lower(): value for value, label in Sectors.choices}
-        sector_tags = {label.lower(): value for value, label in SectorTags.choices}
+        sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
+        sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
         statuses = {label.lower(): value for value, label in Statuses.choices}
 
         c = self.Columns
@@ -217,7 +211,7 @@ class ProjectImportForm(forms.Form):
                         ],
                     )
                 ).all())
-                # Check if all district_names is avaliable in db
+                # Check if all district_names is available in db
                 if len(project_districts) == len(district_names):
                     project_country = project_districts[0].country
                 else:
@@ -234,7 +228,7 @@ class ProjectImportForm(forms.Form):
                 user=user,
                 reporting_ns=reporting_ns,
                 project_country=project_country,
-                # project_districts is M2M field so it will be added later
+                # project_districts and secondary_sectors are M2M fields, they will be added later.
                 dtype=disaster_type,
 
                 # Enum fields

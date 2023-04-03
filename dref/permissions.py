@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from django.contrib.auth.models import Permission
+
 from dref.models import DrefOperationalUpdate, DrefFinalReport
 from dref.utils import get_dref_users
 
@@ -31,4 +33,16 @@ class DrefFinalReportUpdatePermission(permissions.BasePermission):
                 user_dref_ids.append(dref.get("id"))
         for dref in user_dref_ids:
             return DrefFinalReport.objects.filter(dref=dref).exists()
+        return False
+
+
+class PublishDrefPermission(permissions.BasePermission):
+    message = "You need to be regional admin to publish dref"
+
+    def has_object_permission(self, request, view, obj):
+        region = obj.country.region.name
+        codename = f'dref_region_admin_{region}'
+        user = request.user
+        if Permission.objects.filter(user=user, codename=codename).exists() and not obj.is_published:
+            return True
         return False

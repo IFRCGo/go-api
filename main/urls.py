@@ -12,7 +12,8 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
-If you are looking for an api endpoint, search also url_path in other files.
+In case of an api endpoint search, grep url_path in other files also, e.g:
+    grep url_path $(ls */*views.py)
 """
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
@@ -32,11 +33,13 @@ from api.views import (
     ShowUsername,
     EsPageSearch,
     EsPageHealth,
+    Brief,
     ERUTypes,
     RecentAffecteds,
     FieldReportStatuses,
     ProjectProgrammeTypes,
     ProjectPrimarySectors,
+    ProjectSecondarySectors,
     ProjectOperationTypes,
     ProjectStatuses,
     AggregateHeaderFigures,
@@ -49,7 +52,8 @@ from api.views import (
     AddCronJobLog,
     DummyHttpStatusError,
     DummyExceptionError,
-    ResendValidation
+    ResendValidation,
+    HayStackSearch,
 )
 from registrations.views import (
     NewRegistration,
@@ -118,7 +122,6 @@ router.register(r'per', per_views.FormViewset, basename='per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
-# router.register(r'percountryusers', per_views.FormCountryUsersViewset)
 router.register(r'peroverview', per_views.OverviewViewset, basename='peroverview')
 router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, basename='peroverviewstrict')
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
@@ -172,7 +175,10 @@ admin.site.site_title = 'IFRC Go admin'
 
 urlpatterns = [
     url(r'^api/v1/es_search/', EsPageSearch.as_view()),
+    url(r'^api/v1/search/', HayStackSearch.as_view()),
     url(r'^api/v1/es_health/', EsPageHealth.as_view()),
+    # If we want to use the next one, some fixes needed, e.g.
+    # stackoverflow.com/questions/47166385/dont-know-how-to-convert-the-django-field-skills-class-taggit-managers-tagga
     url(r'^api/v1/graphql/', GraphQLView.as_view(graphiql=True)),
     url(r'^api/v1/aggregate/', AggregateByTime.as_view()),
     url(r'^api/v1/aggregate_dtype/', AggregateByDtype.as_view()),
@@ -181,11 +187,13 @@ urlpatterns = [
     url(r'^api/v2/deployment/aggregated$', deployment_views.AggregateDeployments.as_view()),
     url(r'^api/v2/deployment/aggregated_by_month', deployment_views.DeploymentsByMonth.as_view()),
     url(r'^api/v2/deployment/aggregated_by_ns', deployment_views.DeploymentsByNS.as_view()),
+    url(r'^api/v2/brief', Brief.as_view()),
     url(r'^api/v2/erutype', ERUTypes.as_view()),
     url(r'^api/v2/recentaffected', RecentAffecteds.as_view()),
     url(r'^api/v2/fieldreportstatus', FieldReportStatuses.as_view()),
     url(r'^api/v2/programmetype', ProjectProgrammeTypes.as_view()),
     url(r'^api/v2/primarysector', ProjectPrimarySectors.as_view()),
+    url(r'^api/v2/secondarysector', ProjectSecondarySectors.as_view()),
     url(r'^api/v2/operationtype', ProjectOperationTypes.as_view()),
     url(r'^api/v2/projectstatus', ProjectStatuses.as_view()),
     url(r'^api/v2/create_field_report/', api_views.CreateFieldReport.as_view()),

@@ -30,7 +30,6 @@ from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 from .filters import ProjectFilter, EmergencyProjectFilter
 from .utils import get_previous_months
 from .models import (
-    ERUType,
     ERU,
     ERUOwner,
     OperationTypes,
@@ -40,8 +39,8 @@ from .models import (
     ProgrammeTypes,
     Project,
     RegionalProject,
-    SectorTags,
-    Sectors,
+    SectorTag,
+    Sector,
     Statuses,
     EmergencyProject,
     EmergencyProjectActivity,
@@ -130,7 +129,8 @@ class PersonnelFilter(filters.FilterSet):
         model = Personnel
         fields = {
             'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte')
+            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'deployment__updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
 
@@ -257,7 +257,8 @@ class AggregateDeployments(APIView):
     '''
     @classmethod
     def get(cls, request):
-        now = timezone.now()
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        this_year = timezone.now().year
         deployments_qset = Personnel.objects.filter(is_active=True)
         eru_qset = ERU.objects.all()
         if request.GET.get('event'):
@@ -266,16 +267,17 @@ class AggregateDeployments(APIView):
             eru_qset = eru_qset.filter(event=event_id)
         active_deployments = deployments_qset.filter(
             type=Personnel.TypeChoices.RR,
-            start_date__lt=now,
-            end_date__gt=now
+            start_date__date__lte=today,
+            end_date__date__gte=today,
+            is_active=True
         ).count()
         active_erus = eru_qset.filter(
             deployed_to__isnull=False
         ).count()
         deployments_this_year = deployments_qset.filter(
             is_active=True,
-            start_date__year__lte=now.year,
-            end_date__year__gte=now.year
+            start_date__year__lte=this_year,
+            end_date__year__gte=this_year
         ).count()
         return Response({
             'active_deployments': active_deployments,
@@ -372,8 +374,11 @@ class ProjectViewset(
     ReadOnlyVisibilityViewsetMixin,
     viewsets.ModelViewSet,
 ):
-    queryset = Project.objects.prefetch_related(
-        'user', 'reporting_ns', 'project_districts', 'event', 'dtype', 'regional_project', 'annual_splits',
+    queryset = Project.objects.select_related(
+        'user', 'modified_by', 'project_country', 'reporting_ns',
+        'dtype', 'regional_project', 'primary_sector'
+    ).prefetch_related(
+        'project_districts', 'event', 'annual_splits', 'secondary_sectors'
     ).all()
     filterset_class = ProjectFilter
     serializer_class = ProjectSerializer
@@ -435,10 +440,12 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
 
         def _get_country_ns_sector_count():
             agg = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
-            fields = ('project_country', 'reporting_ns', 'primary_sector')
-            qs = projects.order_by().values(*fields).annotate(count=models.Count('id', distinct=True)).values_list(
-                *fields, 'project_country__name', 'reporting_ns__name', 'count')
-            for country, ns, sector, country_name, ns_name, count in qs:
+            sectortitle = {}
+            fields = ('project_country', 'reporting_ns', 'primary_sector',  # names below:
+                      'project_country__name', 'reporting_ns__name', 'primary_sector__title',)
+            qs = projects.order_by().values(*fields[:3]).annotate(count=models.Count('id', distinct=True)).values_list(*fields, 'count',)
+            for country, ns, sector, country_name, ns_name, title, count in qs:
+                sectortitle[sector] = title
                 agg[country][ns][sector] = count
                 agg[country]['name'] = country_name
                 agg[country][ns]['name'] = ns_name
@@ -453,7 +460,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                             'sectors': [
                                 {
                                     'id': sector,
-                                    'sector': Sectors(sector).label,
+                                    'sector': sectortitle[sector],
                                     'count': count,
                                 } for sector, count in ns.items()
                             ],
@@ -497,6 +504,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
     @action(detail=True, url_path='national-society-activities', methods=('get',))
     def national_society_activities(self, request, pk=None):
         projects = self.get_projects()
+        title = {t.id: t.title for t in Sector.objects.all()}
 
         def _get_distinct(field, *args, **kwargs):
             kwargs[field] = field
@@ -550,7 +558,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                         'iso': node['iso'],
                         'iso3': node['iso3'],
                     } if gtype != SECTOR else {
-                        'name': Sectors(node[id_selector]).label,
+                        'name': title[node[id_selector]],
                     }
                 )
             }
@@ -601,29 +609,44 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
 
     @action(detail=False, url_path='overview', methods=('get',))
     def overview(self, request, pk=None):
-        def _get_projects_per_enum_field(projects, EnumType, enum_field):
+        def _get_projects_per_enum_field(EnumType, enum_field):
+            """
+            Use this for enum fields
+            """
             return [
                 {
                     enum_field: enum_field_value,
-                    f'{enum_field}_display': EnumType(int(enum_field_value)).label,
+                    f'{enum_field}_display':
+                        EnumType(int(enum_field_value)).label,
                     'count': count,
                 }
                 for enum_field_value, count in (
-                    projects.order_by().values(enum_field).annotate(count=models.Count('id')).values_list(
+                    projects.order_by().values(enum_field).annotate(
+                        count=models.Count('id')).values_list(
                         enum_field, 'count',
                     ).order_by(enum_field)
                 )
             ]
 
+        def _get_projects_per_foreign_field(field, field_display):
+            """
+            Use this for foreign fields
+            """
+            return [
+                {
+                    field: field_value,
+                    f'{field}_display': field_display_value,
+                    'count': count,
+                }
+                for field_value, field_display_value, count in (
+                    projects.order_by().values(field, field_display).annotate(
+                        count=models.Count('id')).values_list(
+                        field, field_display, 'count',
+                    ).order_by(field)
+                ) if field_value is not None
+            ]
+
         projects = self.get_projects()
-        projects_unnest_tags = (
-            projects
-            # XXX: Without cast django throws 'int' is not iterable
-            .annotate(secondary_sector=Cast(
-                models.Func(models.F('secondary_sectors'), function='UNNEST'),
-                output_field=models.CharField(),
-            ))
-        )
 
         target_total = projects.aggregate(target_total=models.Sum('target_total'))['target_total']
         return Response({
@@ -633,12 +656,12 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 .order_by('reporting_ns').values('reporting_ns').distinct().count()
             ),
             'target_total': target_total,
-            'projects_per_sector': _get_projects_per_enum_field(projects, Sectors, 'primary_sector'),
-            'projects_per_programme_type': _get_projects_per_enum_field(projects, ProgrammeTypes, 'programme_type'),
-            'projects_per_secondary_sectors': _get_projects_per_enum_field(
-                projects_unnest_tags,
-                SectorTags, 'secondary_sector'
-            ),
+            'projects_per_sector': _get_projects_per_foreign_field(
+                'primary_sector', 'primary_sector__title'),
+            'projects_per_programme_type': _get_projects_per_enum_field(
+                ProgrammeTypes, 'programme_type'),
+            'projects_per_secondary_sectors': _get_projects_per_foreign_field(
+                'secondary_sectors', 'secondary_sectors__title'),
         })
 
     @action(detail=False, url_path='ns-ongoing-projects-stats', methods=('get',))
@@ -647,15 +670,15 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         ref_projects = projects.filter(reporting_ns=models.OuterRef('pk'))
 
         project_per_sector = defaultdict(list)
-        for reporting_ns, primary_sector, count in (
+        for reporting_ns, primary_sector, primary_sector__title, count in (
             projects.order_by('reporting_ns', 'primary_sector')
             .values('reporting_ns', 'primary_sector')
             .annotate(count=models.Count('id'))
-            .values_list('reporting_ns', 'primary_sector', 'count')
+            .values_list('reporting_ns', 'primary_sector', 'primary_sector__title', 'count')
         ):
             project_per_sector[reporting_ns].append({
                 'primary_sector': primary_sector,
-                'primary_sector_display': Sectors(primary_sector).label,
+                'primary_sector_display': primary_sector__title,
                 'count': count,
             })
 

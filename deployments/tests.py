@@ -1,15 +1,12 @@
-import pdb
-
 import pydash
-
 import json
 
 from main.test_case import SnapshotTestCase, APITestCase
 from deployments.factories.user import UserFactory
-from deployments.factories.project import ProjectFactory
+from deployments.factories.project import SectorFactory, SectorTagFactory, ProjectFactory
 from api.factories import country, district
 import api.models as models
-from deployments.models import Project, VisibilityCharChoices, SectorTags
+from deployments.models import Project, VisibilityCharChoices, SectorTag
 
 from .factories.personnel import PersonnelFactory
 from deployments.factories.emergency_project import (
@@ -34,7 +31,8 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_list_one(self):
         # create instance
-        ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC)
+        sct = SectorFactory()
+        ProjectFactory.create(visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -45,7 +43,8 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_list_two(self):
         # create instances
-        ProjectFactory.create_batch(2, visibility=VisibilityCharChoices.PUBLIC)
+        sct = SectorFactory()
+        ProjectFactory.create_batch(2, visibility=VisibilityCharChoices.PUBLIC, primary_sector=sct)
 
         # submit list request
         response = self.client.get("/api/v2/project/")
@@ -68,6 +67,9 @@ class TestProjectAPI(SnapshotTestCase):
         )
         new_country = country.CountryFactory()
         new_district = district.DistrictFactory(country=new_country)
+        new_sector = SectorFactory()
+        new_sector1 = SectorTagFactory()
+        new_sector2 = SectorTagFactory()
         new_project = pydash.omit(
             new_project,
             [
@@ -82,6 +84,8 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["reporting_ns"] = new_country.id
         new_project["project_country"] = new_country.id
         new_project["project_districts"] = [new_district.id]
+        new_project["primary_sector"] = new_sector.id
+        new_project["secondary_sectors"] = [new_sector1.id, new_sector2.id]
 
         # submit create request
         response = self.client.post("/api/v2/project/", new_project, format='json')
@@ -93,8 +97,10 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_read(self):
         # create instance
+        sct = SectorFactory()
         new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC
+            visibility=VisibilityCharChoices.PUBLIC,
+            primary_sector=sct
         )
 
         # submit read request
@@ -106,8 +112,10 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_update(self):
         # create instance
+        sct = SectorFactory()
         new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC
+            visibility=VisibilityCharChoices.PUBLIC,
+            primary_sector=sct
         )
 
         # authenticate
@@ -126,6 +134,7 @@ class TestProjectAPI(SnapshotTestCase):
         new_project["project_country"] = new_country.id
         new_project["event"] = new_project["event_id"]
         new_project["project_districts"] = [new_district.id]
+        new_project["primary_sector"] = sct.id
 
         # submit update request
         response = self.client.put(f"/api/v2/project/{new_project['id']}/", new_project, format='json')
@@ -137,8 +146,10 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_delete(self):
         # create instance
+        sct = SectorFactory()
         new_project = ProjectFactory.create(
-            visibility=VisibilityCharChoices.PUBLIC
+            visibility=VisibilityCharChoices.PUBLIC,
+            primary_sector=sct
         )
 
         # authenticate
@@ -179,12 +190,16 @@ class TestProjectAPI(SnapshotTestCase):
 
     def test_project_csv_api(self):
         _country = country.CountryFactory()
+        sct = SectorFactory()
+        sct_1 = SectorTagFactory()
+        sct_2 = SectorTagFactory()
         district1 = district.DistrictFactory(country=_country)
         district2 = district.DistrictFactory(country=_country)
         ProjectFactory.create_batch(
             10,
             project_districts=[district1, district2],
-            secondary_sectors=[SectorTags.WASH, SectorTags.PGI],
+            primary_sector=sct,
+            secondary_sectors=[sct_1, sct_2],
             visibility=VisibilityCharChoices.PUBLIC
         )
 
@@ -202,18 +217,23 @@ class TestProjectAPI(SnapshotTestCase):
         c1_district2 = district.DistrictFactory(country=country_1)
         c2_district1 = district.DistrictFactory(country=country_2)
         c2_district2 = district.DistrictFactory(country=country_2)
+        sct = SectorFactory()
+        sct_1 = SectorTagFactory()
+        sct_2 = SectorTagFactory()
+        sct_3 = SectorTagFactory()
+        sct_4 = SectorTagFactory()
         [
             ProjectFactory.create_batch(
                 2,
+                primary_sector=sct,
                 project_districts=project_districts,
-                secondary_sectors=secondary_sectors,
                 visibility=VisibilityCharChoices.PUBLIC,
             )
             for project_districts, secondary_sectors in [
-                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.PGI]),
-                ([c1_district1, c1_district2], [SectorTags.WASH, SectorTags.MIGRATION]),
-                ([c2_district1, c2_district2], [SectorTags.LIVELIHOODS_AND_BASIC_NEEDS, SectorTags.PGI]),
-                ([c2_district1, c2_district2], [SectorTags.INTERNAL_DISPLACEMENT, SectorTags.RECOVERY]),
+                ([c1_district1, c1_district2], [sct_1, sct_2]),
+                ([c1_district1, c1_district2], [sct_3, sct_4]),
+                ([c2_district1, c2_district2], [sct_1, sct_3]),
+                ([c2_district1, c2_district2], [sct_2, sct_4]),
             ]
             for ns in [ns_1, ns_2]
         ]

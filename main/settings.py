@@ -78,6 +78,8 @@ env = environ.Env(
     # Sentry
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
+    # Maintenance mode
+    DJANGO_READ_ONLY=(bool, False),
 )
 
 
@@ -141,6 +143,7 @@ INSTALLED_APPS = [
     'guardian',
     'django_filters',
     'graphene_django',
+    'django_read_only',
 
     # GO Apps
     'api',
@@ -160,6 +163,7 @@ INSTALLED_APPS = [
     'tinymce',
     'admin_auto_filters',
     # 'django_celery_beat',
+    'haystack',
 
     # Logging
     'reversion',
@@ -490,6 +494,9 @@ DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE = "OBSOLETE_PAYLOAD"
 APPEALS_USER = env('APPEALS_USER')
 APPEALS_PASS = env('APPEALS_PASS')
 
+# Handmade Git Command
+LAST_GIT_TAG = max(os.listdir(os.path.join(BASE_DIR, '.git', 'refs', 'tags')), default=0)
+
 # Sentry Config
 SENTRY_DSN = env('SENTRY_DSN')
 SENTRY_SAMPLE_RATE = env('SENTRY_SAMPLE_RATE')
@@ -510,3 +517,18 @@ if SENTRY_DSN:
         app_type='API',
         **SENTRY_CONFIG,
     )
+# Required for Django HayStack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+        'URL': ELASTIC_SEARCH_HOST,
+        'INDEX_NAME': 'new_index',
+    },
+}
+
+HAYSTACK_LIMIT_TO_REGISTERED_MODELS = False
+
+SUSPEND_SIGNALS = True
+
+# Maintenance mode
+DJANGO_READ_ONLY = env('DJANGO_READ_ONLY')

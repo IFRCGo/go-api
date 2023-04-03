@@ -49,7 +49,7 @@ class LocalUnit(models.Model):
         auto_now=True
     )
     draft = models.BooleanField(default=False, verbose_name=_('Draft'))
-    validated = models.BooleanField(default=True, verbose_name=_('Validated'))
+    validated = models.BooleanField(default=False, verbose_name=_('Validated'))
     source_en = models.CharField(
         max_length=500,
         blank=True,
@@ -90,7 +90,7 @@ class LocalUnit(models.Model):
     )
     postcode = models.CharField(max_length=10, null=True, verbose_name=_('Postal code'))
     phone = models.CharField(
-        max_length=20,
+        max_length=30,
         blank=True,
         null=True,
         verbose_name=_('Telephone')

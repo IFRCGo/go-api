@@ -1,0 +1,3 @@
+{{object.id}}
+{{object.name}}
+{{object.iso3}}

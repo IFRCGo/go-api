@@ -35,6 +35,16 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('national_society_country')
 
 
+class SectorAdmin(admin.ModelAdmin):
+    model = models.Sector
+    search_fields = ('title',)
+
+
+class SectorTagAdmin(admin.ModelAdmin):
+    model = models.SectorTag
+    search_fields = ('title',)
+
+
 @admin.register(models.ERU)
 class ERUAdmin(admin.ModelAdmin):
     search_fields = ('national_society_country__name',)
@@ -279,6 +289,12 @@ class EmergencyProjectAdmin(admin.ModelAdmin):
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
         'country', 'districts',
     )
+    list_display = [
+        'title',
+        'event',
+        'country',
+        'reporting_ns'
+    ]
     inlines = (EmergencyProjectActivityInline,)
 
 
@@ -293,3 +309,5 @@ admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.ProjectImport, ProjectImportAdmin)
 admin.site.register(models.RegionalProject, RegionalProjectAdmin)
 admin.site.register(models.ERUReadiness, ERUReadinessAdmin)
+admin.site.register(models.Sector, SectorAdmin)
+admin.site.register(models.SectorTag, SectorTagAdmin)
