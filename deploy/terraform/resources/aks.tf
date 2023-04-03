@@ -35,8 +35,8 @@ resource "azurerm_role_assignment" "network" {
 }
 
 resource "azurerm_role_assignment" "storage" {
-  # scope                = data.azurerm_resource_group.ifrcgo.id
-  scope = "/subscriptions/39308fb0-9929-4b29-aafa-b3c78a8b0658/resourceGroups/${azurerm_kubernetes_cluster.ifrcgo.node_resource_group}"
-  role_definition_name = "Storage Account Contributor"
+  scope                = data.azurerm_resource_group.ifrcgo.id
+  # scope = "/subscriptions/39308fb0-9929-4b29-aafa-b3c78a8b0658/resourceGroups/${azurerm_kubernetes_cluster.ifrcgo.node_resource_group}"
+  role_definition_name = "Contributor"
   principal_id         = azurerm_kubernetes_cluster.ifrcgo.identity[0].principal_id
 }
