@@ -34,8 +34,8 @@ resource "azurerm_role_assignment" "network" {
   principal_id         = azurerm_kubernetes_cluster.ifrcgo.identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "storage" {
-  scope                = azurerm_kubernetes_cluster.ifrcgo.node_resource_group_id
+resource "azurerm_role_assignment" "network" {
+  scope                = data.azurerm_resource_group.ifrcgo.id
   role_definition_name = "Storage Account Contributor"
   principal_id         = azurerm_kubernetes_cluster.ifrcgo.identity[0].principal_id
 }
