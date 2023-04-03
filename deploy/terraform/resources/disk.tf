@@ -1,6 +1,6 @@
 resource "azurerm_managed_disk" "ifrcgo" {
   name                 = "${local.prefix}-disk001"
-  resource_group_name      = azurerm_kubernetes_cluster.ifrcgo.node_resource_group
+  resource_group_name      = data.azurerm_resource_group.ifrcgo.name
   location                 = data.azurerm_resource_group.ifrcgo.location
   storage_account_type = "StandardSSD_LRS"
   create_option        = "Empty"
