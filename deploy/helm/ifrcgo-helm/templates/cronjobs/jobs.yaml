@@ -9,7 +9,7 @@ metadata:
     environment: {{ $.Values.environment }}
     release: {{ $.Release.Name }}
 spec:
-  schedule: {{ $job.schedule }}
+  schedule: {{ $job.schedule | quote }}
   jobTemplate:
     spec:
       template:
