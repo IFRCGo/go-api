@@ -78,12 +78,22 @@ celery:
       memory: 4Gi
 
 cronjobs:
-  - command: 'ingest_appeal_docs'
-    schedule: '15 * * * *'
-  - command: 'ingest_mdb'
-    schedule: '30 * * * *'
+  - command: 'index_and_notify'
+    schedule: '*/5 * * * *'
+  - command: 'sync_molnix'
+    schedule: '*/10 * * * *'
   - command: 'ingest_appeals'
     schedule: '45 * * * *'
+  - command: 'ingest_appeal_docs'
+    schedule: '15 * * * *'
+  - command: 'revoke_staff_status'
+    schedule: '51 * * * *'
+  - command: 'update_project_status'
+    schedule: '1 3 * * *'
+  - command: 'user_registration_reminder'
+    schedule: '0 9 * * *'
+  - command: 'ingest_country_plan_file'
+    schedule: '1 0 * * *'
 
 elasticsearch:
   enabled: true
