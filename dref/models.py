@@ -943,6 +943,17 @@ class DrefOperationalUpdate(models.Model):
     communication = models.TextField(
         blank=True, null=True, verbose_name=_("organization"), help_text=_("Does the NS have Communications capacity?")
     )
+    # Fields only for DrefType: LOAN
+    ns_request_date = models.DateField(
+        verbose_name=_("Ns request date"),
+        null=True,
+        blank=True,
+    )
+    date_of_approval = models.DateField(
+        verbose_name=_("Date of Approval"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("Dref Operational Update")
