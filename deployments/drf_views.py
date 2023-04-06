@@ -729,7 +729,7 @@ class EmergencyProjectViewSet(
 ):
     queryset = EmergencyProject.objects.\
         select_related('created_by', 'reporting_ns', 'event', 'country', 'deployed_eru', 'modified_by').\
-        prefetch_related('districts', 'activities').\
+        prefetch_related('districts', 'activities', 'admin2').\
         order_by('-modified_at').all()
     # Intentionally not IsAuthenticated. Anons should see public EmergencyProjects:
     permission_classes = []

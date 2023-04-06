@@ -652,6 +652,11 @@ class EmergencyProject(models.Model):
         related_name="+",
         blank=True,
     )  # this is the district where the project is actually taking place
+    admin2 = models.ManyToManyField(
+        Admin2,
+        verbose_name=_("admin2"),
+        blank=True,
+    )  # admin2 of the district where the project is actually taking place
     # Who is conducting the Activity
     activity_lead = models.CharField(
         max_length=30,

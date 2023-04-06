@@ -287,7 +287,7 @@ class EmergencyProjectAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = (
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
-        'country', 'districts',
+        'country', 'districts', 'admin2',
     )
     list_display = [
         'title',
