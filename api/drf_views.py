@@ -126,6 +126,8 @@ from .serializers import (
 
     CountryOfFieldReportToReviewSerializer,
 )
+from api.filter_set import UserFilterSet
+
 from .logger import logger
 
 
@@ -1106,3 +1108,15 @@ class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     class Meta:
         model = CountryOfFieldReportToReview
         fields = ('country_id')
+
+
+class UsersViewset(viewsets.ReadOnlyModelViewSet):
+    """
+    List all active users
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_class = UserFilterSet
+
+    def get_queryset(self):
+        return User.objects.filter(is_active=True)
