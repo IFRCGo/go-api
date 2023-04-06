@@ -62,6 +62,7 @@ class AppealIndex(indexes.Indexable, indexes.SearchIndex):
     country_id = indexes.IntegerField(model_attr='country__id')
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     iso3 = indexes.CharField(model_attr='country__iso3', null=True)
+    visibility = indexes.CharField(model_attr='event__get_visibility_display', null=True)
 
     def get_model(self):
         return Appeal
@@ -83,6 +84,7 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     appeal_type = indexes.CharField(model_attr='appeals__get_atype_display', null=True)
     crisis_categorization = indexes.CharField(model_attr='get_ifrc_severity_level_display', null=True)
     iso3 = indexes.MultiValueField(null=True)
+    visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
 
     def get_model(self):
         return Event
@@ -110,6 +112,7 @@ class FieldReportIndex(indexes.Indexable, indexes.SearchIndex):
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     countries_id = indexes.MultiValueField(null=True,)
     iso3 = indexes.MultiValueField(null=True)
+    visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
 
     def get_model(self):
         return FieldReport
