@@ -170,7 +170,7 @@ class FieldReportTest(APITestCase):
         # (Since with with self.capture_on_commit_callbacks(execute=True) is not used so translation has not been triggered)
         self.assertEqual(updated.summary_en, 'test [updated]')
         self.assertEqual(updated.description_en, 'this is a test description')
-        self.assertEqual(updated.summary_es, None)  # This has been reset
+        self.assertEqual(updated.summary_es, '')  # This has been reset
         self.assertEqual(
             updated.description_es,
             self.aws_translator._fake_translation('this is a test description', 'es', 'en'),

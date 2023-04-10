@@ -332,6 +332,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+# Make sure to update main.translation if this is updated
 LANGUAGES = (
     ('en', _('English')),
     ('es', _('Spanish')),
@@ -543,3 +544,6 @@ CACHES = {
     }
 }
 CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+
+# Need to load this to overwrite modeltranslation module
+import main.translation  # noqa: F401 E402

@@ -1,3 +1,4 @@
+import logging
 import sentry_sdk
 
 from rest_framework.views import exception_handler
@@ -5,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django_read_only import DjangoReadOnlyError
 
+
+logger = logging.getLogger('api')
 
 standard_error_string = (
     'Something unexpected has occured. '
@@ -36,6 +39,7 @@ def custom_exception_handler(exc, context):
                     }
                     scope.set_extra('is_superuser', request.user.is_superuser)
             sentry_sdk.capture_exception()
+            logger.error('500 error', exc_info=True)
             response_data = {
                 'errors': {
                     'non_field_errors': [standard_error_string]

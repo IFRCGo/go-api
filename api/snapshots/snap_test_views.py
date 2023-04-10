@@ -40,35 +40,40 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
         "thumbnail": None,
         "file": None,
         "title": "event-featured-document-title-UEWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIF",
-        "description": "event-featured-document-description-lIPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHco"
+        "description": "event-featured-document-description-lIPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHco",
+        "translation_module_original_language": "en"
     },
     {
         "id": 4,
         "thumbnail": None,
         "file": None,
         "title": "event-featured-document-title-pnegMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlOR",
-        "description": "event-featured-document-description-BJFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZ"
+        "description": "event-featured-document-description-BJFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZ",
+        "translation_module_original_language": "en"
     },
     {
         "id": 3,
         "thumbnail": None,
         "file": None,
         "title": "event-featured-document-title-ShOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHC",
-        "description": "event-featured-document-description-hRnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXb"
+        "description": "event-featured-document-description-hRnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXb",
+        "translation_module_original_language": "en"
     },
     {
         "id": 2,
         "thumbnail": None,
         "file": None,
         "title": "event-featured-document-title-qVEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXf",
-        "description": "event-featured-document-description-PKoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt"
+        "description": "event-featured-document-description-PKoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt",
+        "translation_module_original_language": "en"
     },
     {
         "id": 1,
         "thumbnail": None,
         "file": None,
         "title": "event-featured-document-title-ZEHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUd",
-        "description": "event-featured-document-description-LEkHOUNXyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCP"
+        "description": "event-featured-document-description-LEkHOUNXyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCP",
+        "translation_module_original_language": "en"
     }
     ],
     "links": [],
@@ -77,7 +82,8 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
     "response_activity_count": 0,
     "visibility": 3,
     "name": "event-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf",
-    "slug": "ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki"
+    "slug": "ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki",
+    "translation_module_original_language": "en"
 }
 
 snapshots['EventSnaphostTest::test_event_link_api 1'] = {
@@ -113,31 +119,36 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
             "id": 5,
             "url": "",
             "description": "event-link-description-lIPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHco",
-            "title": "event-link-title-UEWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIF"
+            "title": "event-link-title-UEWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIF",
+            "translation_module_original_language": "en"
         },
         {
             "id": 4,
             "url": "",
             "description": "event-link-description-BJFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZ",
-            "title": "event-link-title-pnegMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlOR"
+            "title": "event-link-title-pnegMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlOR",
+            "translation_module_original_language": "en"
         },
         {
             "id": 3,
             "url": "",
             "description": "event-link-description-hRnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXb",
-            "title": "event-link-title-ShOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHC"
+            "title": "event-link-title-ShOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHC",
+            "translation_module_original_language": "en"
         },
         {
             "id": 2,
             "url": "",
             "description": "event-link-description-PKoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt",
-            "title": "event-link-title-qVEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXf"
+            "title": "event-link-title-qVEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXf",
+            "translation_module_original_language": "en"
         },
         {
             "id": 1,
             "url": "",
             "description": "event-link-description-LEkHOUNXyjRpcKShmbCuAjASnAGXNEVUdTiHnJuQEHyulDIvIwRXURPZSqNEmprJtotXsTnSTFuEwJYUrshKRIyzwXZjscsTfwCP",
-            "title": "event-link-title-ZEHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUd"
+            "title": "event-link-title-ZEHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUd",
+            "translation_module_original_language": "en"
         }
     ],
     "emergency_response_contact_email": None,
@@ -145,5 +156,6 @@ snapshots['EventSnaphostTest::test_event_link_api 1'] = {
     "response_activity_count": 0,
     "visibility": 3,
     "name": "event-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf",
-    "slug": "ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki"
+    "slug": "ygwwmqzcudihyfjsonxkmtecqoxsfogyrdoxkxwnqrsrpemoki",
+    "translation_module_original_language": "en"
 }

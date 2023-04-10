@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.conf import settings
 from functools import reduce
 
+from main.translation import TRANSLATOR_SKIP_FIELD_NAME
 # from main.celery import Queues
 from .translation import (
     AmazonTranslate,
@@ -29,7 +30,7 @@ class ModelTranslator():
         return self.aws_translator
 
     def translate_fields_object(self, obj, field):
-        initial_value = None
+        initial_value = ''
         initial_lang = None
         for lang in AVAILABLE_LANGUAGES:
             initial_value = getattr(obj, build_localized_fieldname(field, lang), None)
@@ -60,7 +61,7 @@ class ModelTranslator():
             yield lang_field
 
     @classmethod
-    def _get_filter(self, translation_fields):
+    def _get_filter(cls, translation_fields):
         def _get_not_empty_query(field, lang):
             return (
                 Q(**{f"{build_localized_fieldname(field, lang)}__isnull": True}) |
@@ -99,6 +100,8 @@ class ModelTranslator():
         return list(translator.get_options_for_model(model).fields.keys())
 
     def translate_model_fields(self, obj, translatable_fields=None):
+        if getattr(obj, TRANSLATOR_SKIP_FIELD_NAME):
+            return
         translatable_fields = translatable_fields or self.get_translatable_fields(type(obj))
         update_fields = []
         for field in translatable_fields:
@@ -155,7 +158,11 @@ class ModelTranslator():
                 continue
 
             # Process recent entities first
-            qs = model.objects.filter(self._get_filter(translatable_fields)).order_by('-id')
+            qs = model.objects.filter(
+                self._get_filter(translatable_fields),
+                # Skip which are flagged by user
+                **{TRANSLATOR_SKIP_FIELD_NAME: False},
+            ).order_by('-id')
             qs_count = qs.count()
             index = 1
             logger.info(f'\tFields: {translatable_fields}')
@@ -168,6 +175,8 @@ class ModelTranslator():
                 qs = qs.all()
 
             for obj in qs.iterator():
+                # Skip if it is flagged as skip by user # TODO: Remove this later
+                assert getattr(obj, TRANSLATOR_SKIP_FIELD_NAME) is False
                 logger.info(f'\t\t ({index}/{qs_count}) - {obj}')
                 self.translate_model_fields(obj, translatable_fields)
                 index += 1
@@ -192,5 +201,9 @@ def translate_model_fields(model_name, pk):
 # @shared_task(queue=Queues.HEAVY) NOTE: Not used right now.
 def translate_model_fields_in_bulk(model_name, pks):
     model = django_apps.get_model(model_name)
-    for obj in model.objects.filter(pk__in=pks):
+    qs = model.objects.filter(
+        pk__in=pks,
+        **{TRANSLATOR_SKIP_FIELD_NAME: False},
+    )
+    for obj in qs:
         ModelTranslator().translate_model_fields(obj)
