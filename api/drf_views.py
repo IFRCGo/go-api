@@ -13,8 +13,10 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
+from django.utils.translation import get_language as django_get_language
 
 from main.utils import is_tableau
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
@@ -1049,7 +1051,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             # TODO: Use serializer to create fieldreport
-            fieldreport = FieldReport.objects.create(**data)
+            data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
+            fieldreport = FieldReport.objects.create(
+                **data,
+            )
             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
