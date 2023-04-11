@@ -1151,6 +1151,7 @@ class GoHistoricalSerializer(ModelSerializer):
             'disaster_start_date', 'created_at', 'appeals',
         )
 
+
 class CountryOfFieldReportToReviewSerializer(ModelSerializer):
     class Meta:
         model = CountryOfFieldReportToReview

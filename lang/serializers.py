@@ -119,15 +119,9 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         if getattr(instance, TRANSLATOR_SKIP_FIELD_NAME):
             # Skip translation
             return
-        if not settings.TESTING:
-            transaction.on_commit(
-                lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
-            )
-        else:
-            # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields(get_model_name(type(instance)), instance.pk)
-            )
+        transaction.on_commit(
+            lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
+        )
 
     @classmethod
     def trigger_field_translation_in_bulk(cls, model, instances):
@@ -135,14 +129,9 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
             instance.pk for instance in instances
             if not getattr(instance, TRANSLATOR_SKIP_FIELD_NAME)
         ]
-        if not settings.TESTING:
+        if pks:
             transaction.on_commit(
                 lambda: translate_model_fields_in_bulk.delay(get_model_name(model), pks)
-            )
-        else:
-            # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields_in_bulk(get_model_name(model), pks)
             )
 
     @classmethod

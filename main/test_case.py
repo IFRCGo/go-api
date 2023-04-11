@@ -156,6 +156,7 @@ class GoAPITestMixin():
     SUSPEND_SIGNALS=True,
     HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
     CACHES=TEST_CACHES,
+    AUTO_TRANSLATION_TRANSLATOR='lang.translation.DummyTranslator',
 )
 class APITestCase(GoAPITestMixin, test.APITestCase):
     def setUp(self):
@@ -172,6 +173,7 @@ class APITestCase(GoAPITestMixin, test.APITestCase):
     SUSPEND_SIGNALS=True,
     HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
     CACHES=TEST_CACHES,
+    AUTO_TRANSLATION_TRANSLATOR='lang.translation.DummyTranslator',
 )
 class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
     maxDiff = None

@@ -1002,7 +1002,9 @@ class GenericFieldReportView(GenericAPIView):
             for action_taken in meta["actions_taken"]:
                 actions = action_taken["actions"]
                 del action_taken["actions"]
+                action_taken[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
                 actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
+                CreateFieldReportSerializer.trigger_field_translation(actions_taken)
                 actions_taken.actions.add(*actions)
 
         if "contacts" in meta:
@@ -1032,7 +1034,9 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             auto_generated=True,
             auto_generated_source=SOURCES["new_report"],
             visibility=report.visibility,
+            **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
+        CreateFieldReportSerializer.trigger_field_translation(event)
         report.event = event
         report.save()
         return event
