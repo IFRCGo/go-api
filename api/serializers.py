@@ -211,7 +211,6 @@ class DistrictSerializer(ModelSerializer):
 
 
 
-
 class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
@@ -219,7 +218,7 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Admin2
-        fields = ('district_id', 'name', 'code', 'bbox', 'centroid',)
+        fields = ('district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
