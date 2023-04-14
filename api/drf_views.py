@@ -346,7 +346,10 @@ class DistrictFilter(filters.FilterSet):
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    queryset = District.objects.\
+        select_related('country').\
+        filter(country__is_deprecated=False).\
+        filter(is_deprecated=False)
     filterset_class = DistrictFilter
     search_fields = ('name', 'country__name',)  # for /docs
 
@@ -360,11 +363,15 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class Admin2Filter(filters.FilterSet):
     class Meta:
         model = Admin2
-        fields = ('admin1',)
+        fields = ('admin1', 'admin1__country', 'admin1__country__iso3')
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Admin2.objects.all()
+    queryset = Admin2.objects.\
+        select_related('admin1').\
+        filter(admin1__country__is_deprecated=False).\
+        filter(admin1__is_deprecated=False).\
+        filter(is_deprecated=False)
     filterset_class = Admin2Filter
     search_fields = ('name', 'district__name', 'district__country__name')
     serializer_class = Admin2Serializer
