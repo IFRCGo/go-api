@@ -1,6 +1,6 @@
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
@@ -8,7 +8,7 @@ from django.db.models import Q
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country, Region
 from api.views import bad_request
-from api.serializers import (MiniCountrySerializer, NotCountrySerializer)
+from api.serializers import MiniCountrySerializer, NotCountrySerializer
 from django.conf import settings
 from datetime import datetime
 import csv
@@ -25,7 +25,9 @@ from .models import (
     WorkPlan,
     Overview,
     NiceDocument,
-    AssessmentType
+    AssessmentType,
+    PerWorkPlan,
+    FormPrioritization,
 )
 
 from .serializers import (
@@ -45,24 +47,27 @@ from .serializers import (
     FormAreaSerializer,
     FormComponentSerializer,
     FormQuestionSerializer,
-    FormAnswerSerializer
+    FormAnswerSerializer,
+    PerOverviewSerializer,
+    PerWorkPlanSerializer,
+    PerFormDataSerializer,
+    FormPrioritizationSerializer,
 )
+from per.permissions import PerPermission
+from per.filter_set import PerOverviewFilter
 
 
 class FormFilter(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    overview_id = filters.NumberFilter(field_name='overview_id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    overview_id = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
 
     class Meta:
         model = Form
-        fields = {
-            'id': ('exact',),
-            'overview_id': ('exact',)
-        }
+        fields = {"id": ("exact",), "overview_id": ("exact",)}
 
 
 class FormViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Form.objects.all().select_related('user', 'area')
+    queryset = Form.objects.all().select_related("user", "area")
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
@@ -74,16 +79,16 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
         queryset = Form.objects.all()
         return (
             self.get_filtered_queryset(self.request, queryset, 1)
-                .order_by('area__area_num')
-                .select_related('area', 'overview')
-                .prefetch_related('form_data')
+            .order_by("area__area_num")
+            .select_related("area", "overview")
+            .prefetch_related("form_data")
         )
 
     def get_serializer_class(self):
-        with_data = self.request.GET.get('with_data', 'false')
-        if with_data == 'true':
+        with_data = self.request.GET.get("with_data", "false")
+        if with_data == "true":
             return ListFormWithDataSerializer
-        if self.action == 'list':
+        if self.action == "list":
             return ListFormSerializer
         # else:
         #     return DetailFormSerializer
@@ -91,18 +96,19 @@ class FormViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class FormDataFilter(filters.FilterSet):
-    form = filters.NumberFilter(field_name='form', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    form = filters.NumberFilter(field_name="form", lookup_expr="exact")
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
 
     class Meta:
         model = FormData
         fields = {
-            'form': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "form": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     """Can use 'new' GET parameter for using data only after the last due_date"""
+
     # Duplicate of PERDocsViewset
     queryset = FormData.objects.all()
     authentication_classes = (TokenAuthentication,)
@@ -112,24 +118,21 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = FormDataFilter
 
     def get_queryset(self):
-        queryset = FormData.objects.all().select_related(
-            'question',
-            'selected_answer',
-            'question__component',
-            'question__component__area'
-        ).prefetch_related(
-            'question__answers'
+        queryset = (
+            FormData.objects.all()
+            .select_related("question", "selected_answer", "question__component", "question__component__area")
+            .prefetch_related("question__answers")
         )
         cond1 = Q()
         cond2 = Q()
-        if 'new' in self.request.query_params.keys():
+        if "new" in self.request.query_params.keys():
             last_duedate = settings.PER_LAST_DUEDATE
             tmz = pytz.timezone("Europe/Zurich")
             if not last_duedate:
                 last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
             cond1 = Q(form__updated_at__gt=last_duedate)
-        if 'country' in self.request.query_params.keys():
-            cid = self.request.query_params.get('country', None) or 0
+        if "country" in self.request.query_params.keys():
+            cid = self.request.query_params.get("country", None) or 0
             country = Country.objects.filter(pk=cid)
             if country:
                 cond2 = Q(form__overview__country_id=country[0].id)
@@ -139,7 +142,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ListFormDataSerializer
         # else:
         #     return DetailFormDataSerializer
@@ -148,6 +151,7 @@ class FormDataViewset(viewsets.ReadOnlyModelViewSet):
 
 class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
     """shows the (PER editable) countries for a user."""
+
     queryset = Country.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -161,17 +165,18 @@ class FormCountryViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class PERDocsFilter(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
 
     class Meta:
         model = NiceDocument
         fields = {
-            'id': ('exact',),
+            "id": ("exact",),
         }
 
 
 class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
-    """ To collect PER Documents """
+    """To collect PER Documents"""
+
     # Duplicate of FormDataViewset
     queryset = NiceDocument.objects.all()
     authentication_classes = (TokenAuthentication,)
@@ -185,18 +190,18 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
         cond1 = Q()
         cond2 = Q()
         cond3 = Q()
-        if 'new' in self.request.query_params.keys():
+        if "new" in self.request.query_params.keys():
             last_duedate = settings.PER_LAST_DUEDATE
             tmz = pytz.timezone("Europe/Zurich")
             if not last_duedate:
                 last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
             cond1 = Q(created_at__gt=last_duedate)
-        if 'country' in self.request.query_params.keys():
-            cid = self.request.query_params.get('country', None) or 0
+        if "country" in self.request.query_params.keys():
+            cid = self.request.query_params.get("country", None) or 0
             country = Country.objects.filter(pk=cid)
             if country:
                 cond2 = Q(country_id=country[0].id)
-        if 'visible' in self.request.query_params.keys():
+        if "visible" in self.request.query_params.keys():
             cond3 = Q(visibility=1)
         queryset = NiceDocument.objects.filter(cond1 & cond2 & cond3)
         if queryset.exists():
@@ -204,7 +209,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ListNiceDocSerializer
         # else:
         #     return DetailFormDataSerializer
@@ -247,6 +252,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
 
 class FormStatViewset(viewsets.ReadOnlyModelViewSet):
     """Shows name, code, country_id, language of filled forms"""
+
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
 
@@ -255,7 +261,7 @@ class FormStatViewset(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return FormStatSerializer
         # else:
         #     return DetailFormSerializer
@@ -264,6 +270,7 @@ class FormStatViewset(viewsets.ReadOnlyModelViewSet):
 
 class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
     """Shows if a user has permission to PER frontend tab or not"""
+
     queryset = Country.objects.all()
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -281,6 +288,7 @@ class FormPermissionViewset(viewsets.ReadOnlyModelViewSet):
 
 class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
     """Countries and their forms which were submitted since last due date"""
+
     queryset = Form.objects.all()
     country = MiniCountrySerializer
     serializer_class = ShortFormSerializer
@@ -302,6 +310,7 @@ class CountryDuedateViewset(viewsets.ReadOnlyModelViewSet):
 
 class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
     """National Societies engaged in per process"""
+
     queryset = Region.objects.all()
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
@@ -338,6 +347,7 @@ class EngagedNSPercentageViewset(viewsets.ReadOnlyModelViewSet):
 
 class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
     """Global Preparedness Highlights"""
+
     # Probably not used. E.g. no 'code' in Form
     queryset = Form.objects.all()
     authentication_classes = (TokenAuthentication,)
@@ -352,7 +362,7 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
             last_duedate = tmz.localize(datetime(2000, 11, 15, 9, 59, 25, 0))
         if not next_duedate:
             next_duedate = tmz.localize(datetime(2222, 11, 15, 9, 59, 25, 0))
-        queryset = FormData.objects.filter(form__updated_at__gt=last_duedate, selected_answer_id=7).select_related('form')
+        queryset = FormData.objects.filter(form__updated_at__gt=last_duedate, selected_answer_id=7).select_related("form")
         result = []
         # for i in queryset:
         #     j = {'id': i.form.id}
@@ -363,19 +373,20 @@ class GlobalPreparednessViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class NSPhaseFilter(filters.FilterSet):
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
-    phase = filters.NumberFilter(field_name='phase', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+    phase = filters.NumberFilter(field_name="phase", lookup_expr="exact")
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
 
     class Meta:
         model = NSPhase
         fields = {
-            'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
     """NS PER Process Phase Viewset"""
+
     queryset = NSPhase.objects.all()
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
@@ -389,29 +400,30 @@ class NSPhaseViewset(viewsets.ReadOnlyModelViewSet):
 
             # Giving a default value when queryset is empty, with the given country_id (if exists)
             if not queryset:
-                j = {'id': -1}
-                country_param = self.request.query_params.get('country', None)
+                j = {"id": -1}
+                country_param = self.request.query_params.get("country", None)
                 if country_param and Country.objects.filter(pk=country_param):
-                    j.update({'country': Country.objects.get(pk=country_param)})
-                j.update({'updated_at': pytz.timezone("Europe/Zurich").localize(datetime(2011, 11, 11, 1, 1, 1, 0))})
-                j.update({'phase': 0})
+                    j.update({"country": Country.objects.get(pk=country_param)})
+                j.update({"updated_at": pytz.timezone("Europe/Zurich").localize(datetime(2011, 11, 11, 1, 1, 1, 0))})
+                j.update({"phase": 0})
                 return [j]
         return queryset
 
 
 class WorkPlanFilter(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
 
     class Meta:
         model = WorkPlan
         fields = {
-            'id': ('exact',),
+            "id": ("exact",),
         }
 
 
 class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Work Plan Viewset"""
+    """PER Work Plan Viewset"""
+
     queryset = WorkPlan.objects.all()
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
@@ -420,23 +432,22 @@ class WorkPlanViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class OverviewFilter(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
 
     class Meta:
         model = Overview
-        fields = {
-            'id': ('exact',),
-            'country': ('exact',)
-        }
+        fields = {"id": ("exact",), "country": ("exact",)}
 
 
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Overview Viewset"""
-    queryset = Overview.objects.all().select_related(
-        'country', 'user', 'type_of_assessment'
-    ).prefetch_related('forms').order_by(
-        'country__name', '-updated_at'
+    """PER Overview Viewset"""
+
+    queryset = (
+        Overview.objects.all()
+        .select_related("country", "user", "type_of_assessment")
+        .prefetch_related("forms")
+        .order_by("country__name", "-updated_at")
     )
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
@@ -445,7 +456,8 @@ class OverviewViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class OverviewStrictViewset(OverviewViewset):
-    """ PER Overview Viewset - strict"""
+    """PER Overview Viewset - strict"""
+
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = OverviewSerializer
@@ -457,83 +469,77 @@ class OverviewStrictViewset(OverviewViewset):
         queryset = Overview.objects.all()
         return (
             self.get_filtered_queryset(self.request, queryset, 4)
-                .select_related('country', 'user', 'type_of_assessment')
-                .order_by('country__name', '-updated_at')
+            .select_related("country", "user", "type_of_assessment")
+            .order_by("country__name", "-updated_at")
         )
 
 
 class AssessmentTypeViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Overview's capacity assessment types """
+    """PER Overview's capacity assessment types"""
+
     queryset = AssessmentType.objects.all()
     serializer_class = AssessmentTypeSerializer
 
 
 class FormAreaFilter(filters.FilterSet):
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    area_num = filters.NumberFilter(field_name='area_num', lookup_expr='exact')
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    area_num = filters.NumberFilter(field_name="area_num", lookup_expr="exact")
 
     class Meta:
         model = FormArea
-        fields = {
-            'id': ('exact',),
-            'area_num': ('exact',)
-        }
+        fields = {"id": ("exact",), "area_num": ("exact",)}
 
 
 class FormAreaViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Form Areas Viewset """
+    """PER Form Areas Viewset"""
+
     serializer_class = FormAreaSerializer
-    queryset = FormArea.objects.all().order_by('area_num')
+    queryset = FormArea.objects.all().order_by("area_num")
     filterset_class = FormAreaFilter
 
 
 class FormComponentFilter(filters.FilterSet):
-    area_id = filters.NumberFilter(field_name='area__id', lookup_expr='exact')
+    area_id = filters.NumberFilter(field_name="area__id", lookup_expr="exact")
 
     class Meta:
         model = FormComponent
-        fields = {
-            'area': ('exact',)
-        }
+        fields = {"area": ("exact",)}
 
 
 class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Form Components Viewset """
+    """PER Form Components Viewset"""
+
     serializer_class = FormComponentSerializer
     filterset_class = FormComponentFilter
     queryset = (
-        FormComponent.objects
-                     .all()
-                     .order_by('area__area_num', 'component_num', 'component_letter')
-                     .select_related('area')
+        FormComponent.objects.all().order_by("area__area_num", "component_num", "component_letter").select_related("area")
     )
 
 
 class FormQuestionFilter(filters.FilterSet):
-    area_id = filters.NumberFilter(field_name='component__area__id', lookup_expr='exact')
+    area_id = filters.NumberFilter(field_name="component__area__id", lookup_expr="exact")
 
     class Meta:
         model = FormQuestion
-        fields = {
-            'component': ('exact',)
-        }
+        fields = {"component": ("exact",)}
 
 
 class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Form Questions Viewset """
+    """PER Form Questions Viewset"""
+
     serializer_class = FormQuestionSerializer
     filterset_class = FormQuestionFilter
     queryset = (
-        FormQuestion.objects
-                    .all()
-                    .order_by('component__component_num', 'question_num', 'question')
-                    .select_related('component')
-                    .prefetch_related('answers')
+        FormQuestion.objects.all()
+        .order_by("component__component_num", "question_num", "question")
+        .select_related("component")
+        .prefetch_related("answers")
     )
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
-    """ PER Form Answers Viewset """
+    """PER Form Answers Viewset"""
+
     serializer_class = FormAnswerSerializer
     queryset = FormAnswer.objects.all()
 
@@ -544,14 +550,13 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = LatestCountryOverviewSerializer
 
     def get_queryset(self):
-        country_id = self.request.GET.get('country_id', None)
+        country_id = self.request.GET.get("country_id", None)
 
         if country_id:
             return (
-                Overview.objects
-                        .select_related('country', 'type_of_assessment')
-                        .filter(country_id=country_id)
-                        .order_by('-created_at')[:1]  # first() gives error for len() and count()
+                Overview.objects.select_related("country", "type_of_assessment")
+                .filter(country_id=country_id)
+                .order_by("-created_at")[:1]  # first() gives error for len() and count()
             )
         return None
 
@@ -564,64 +569,78 @@ class ExportAssessmentToCSVViewset(APIView):
 
     def get(self, request):
         # TODO: Add Overview data too
-        overview_id = request.GET.get('overview_id', None)
+        overview_id = request.GET.get("overview_id", None)
         if not overview_id:
-            return bad_request('Could not complete request, \'overview_id\' is missing.')
+            return bad_request("Could not complete request, 'overview_id' is missing.")
 
         ov = Overview.objects.filter(id=overview_id).first()
         if not ov:
-            return bad_request('Could not find an Overview with the provided \'overview_id\'.')
+            return bad_request("Could not find an Overview with the provided 'overview_id'.")
 
         # Check if the User has permissions to update
-        if not request.user.is_superuser \
-                and not request.user.has_perm('api.per_core_admin'):
+        if not request.user.is_superuser and not request.user.has_perm("api.per_core_admin"):
             countries, regions = self.get_request_user_regions(request)
 
             if ov:
                 # These need to be strings
-                ov_country = f'{ov.country.id}' or ''
-                ov_region = f'{ov.country.region.id}' if ov.country.region else ''
+                ov_country = f"{ov.country.id}" or ""
+                ov_region = f"{ov.country.region.id}" if ov.country.region else ""
 
                 if ov_country not in countries and ov_region not in regions:
-                    return bad_request('You don\'t have permission to update these forms.')
+                    return bad_request("You don't have permission to update these forms.")
             else:
-                return bad_request('You don\'t have permission to update these forms.')
+                return bad_request("You don't have permission to update these forms.")
 
-        response = HttpResponse(content_type='text/csv')
+        response = HttpResponse(content_type="text/csv")
         writer = csv.writer(response)
-        writer.writerow(['component number', 'question number', 'benchmark/epi?', 'answer', 'notes'])
+        writer.writerow(["component number", "question number", "benchmark/epi?", "answer", "notes"])
 
         form_data = (
-            FormData.objects
-            .select_related(
-                'form',
-                'form__overview',
-                'question',
-                'question__component',
-                'selected_answer'
-            )
+            FormData.objects.select_related("form", "form__overview", "question", "question__component", "selected_answer")
             .filter(form__overview__id=ov.id)
             .order_by(
-                'question__component__component_num',
-                'question__question_num',
-                'question__is_epi',
-                'question__is_benchmark'
+                "question__component__component_num", "question__question_num", "question__is_epi", "question__is_benchmark"
             )
         )
         for fd in form_data:
-            bench_epi = ''
+            bench_epi = ""
             if fd.question.is_benchmark:
-                bench_epi = 'benchmark'
+                bench_epi = "benchmark"
             if fd.question.is_epi:
-                bench_epi = 'epi'
-            writer.writerow([
-                fd.question.component.component_num,
-                fd.question.question_num,
-                bench_epi,
-                fd.selected_answer.text if fd.selected_answer else '',
-                fd.notes
-            ])
+                bench_epi = "epi"
+            writer.writerow(
+                [
+                    fd.question.component.component_num,
+                    fd.question.question_num,
+                    bench_epi,
+                    fd.selected_answer.text if fd.selected_answer else "",
+                    fd.notes,
+                ]
+            )
 
-        response['Content-Disposition'] = f'attachment; filename=assessment_{ov.id}.csv'
+        response["Content-Disposition"] = f"attachment; filename=assessment_{ov.id}.csv"
 
         return response
+
+
+class PerOverviewViewSet(viewsets.ModelViewSet):
+    queryset = Overview.objects.select_related('country', 'user')
+    serializer_class = PerOverviewSerializer
+    permission_classes = [IsAuthenticated, PerPermission]
+    filterset_class = PerOverviewFilter
+
+
+class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = PerWorkPlan.objects.all()
+    serializer_class = PerWorkPlanSerializer
+
+
+class PerFormDataViewSet(viewsets.ModelViewSet):
+    serializer_class = PerFormDataSerializer
+    queryset = FormData.objects.all()
+
+
+class FormPrioritizationViewSet(viewsets.ModelViewSet):
+    serializer_class = FormPrioritizationSerializer
+    queryset = FormPrioritization.objects.all()
