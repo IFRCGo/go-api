@@ -28,6 +28,14 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     # Clean-up
     && pip uninstall -y poetry virtualenv-clone virtualenv
 
+# TODO: Refactor the whole Azure storage part. (Upgrade is not enough, was tested.)
+# Until then avoid some SyntaxWarnings ("is" with a literal):
+ENV AZUREROOT=/usr/local/lib/python3.8/site-packages/azure/storage/
+RUN perl -pi -e 's/ is 0 / == 0 /'      ${AZUREROOT}blob/_upload_chunking.py
+RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
+RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py
+RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
+
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
