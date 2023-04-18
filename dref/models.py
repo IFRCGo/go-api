@@ -465,6 +465,18 @@ class Dref(models.Model):
     originator_phone_number = models.CharField(
         verbose_name=_("originator phone number"), max_length=100, null=True, blank=True
     )
+    regional_focal_point_name = models.CharField(
+        verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_email = models.CharField(
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_title = models.CharField(
+        verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("regional focal point phone number"), max_length=100, null=True, blank=True
+    )
     human_resource = models.TextField(
         blank=True,
         null=True,
@@ -792,6 +804,18 @@ class DrefOperationalUpdate(models.Model):
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
+    )
+    regional_focal_point_name = models.CharField(
+        verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_email = models.CharField(
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_title = models.CharField(
+        verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("regional focal point phone number"), max_length=100, null=True, blank=True
     )
     changing_timeframe_operation = models.BooleanField(null=True, blank=True, verbose_name=_("Changing time operation"))
     changing_operation_strategy = models.BooleanField(null=True, blank=True, verbose_name=_("Changing operation strategy"))
