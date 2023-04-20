@@ -1,18 +1,27 @@
+from datetime import datetime
+import csv
+import pytz
 from rest_framework.authentication import TokenAuthentication
+
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets, mixins
+from rest_framework import (
+    viewsets,
+    mixins,
+    views,
+    response,
+    permissions,
+)
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from django.db.models import Q
+
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country, Region
 from api.views import bad_request
 from api.serializers import MiniCountrySerializer, NotCountrySerializer
 from django.conf import settings
-from datetime import datetime
-import csv
-import pytz
+
 
 from .models import (
     Form,
@@ -28,6 +37,7 @@ from .models import (
     AssessmentType,
     PerWorkPlan,
     FormPrioritization,
+    WorkPlanStatus
 )
 
 from .serializers import (
@@ -644,3 +654,14 @@ class PerFormDataViewSet(viewsets.ModelViewSet):
 class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
+
+
+class PerOptionsView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, version=None):
+        options = {
+            'formcomponentstatus': [{"key": status.value, "value": status.label} for status in FormComponent.FormComponentStatus],
+            'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus]
+        }
+        return response.Response(options)
