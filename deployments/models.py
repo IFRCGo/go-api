@@ -403,6 +403,7 @@ class Project(models.Model):
     project_districts = models.ManyToManyField(
         District,
         verbose_name=_("districts"),
+        blank=True,
     )  # this is the district where the project is actually taking place
     event = models.ForeignKey(
         Event,
@@ -643,6 +644,7 @@ class EmergencyProject(models.Model):
         District,
         verbose_name=_("Districts"),
         related_name="+",
+        blank=True,
     )  # this is the district where the project is actually taking place
     # Who is conducting the Activity
     activity_lead = models.CharField(
@@ -874,10 +876,10 @@ class EmergencyProjectActivity(models.Model):
 
     # More Details
     details = models.TextField(verbose_name=_("details"), blank=True, null=True)
-    supplies = JSONField(verbose_name=_("supplies"), default=dict)  # key: count (key: System defined id)
+    supplies = JSONField(verbose_name=_("supplies"), default=dict, blank=True, null=True)  # key: count (key: System defined id)
     # Custom action/supplies
     custom_action = models.CharField(verbose_name=_("custom_action"), max_length=255, blank=True, null=True)
-    custom_supplies = JSONField(verbose_name=_("custom supplies"), default=dict)  # key: count (key: User defined)
+    custom_supplies = JSONField(verbose_name=_("custom supplies"), default=dict, blank=True, null=True)  # key: count (key: User defined)
     # point details
     # point_count to be used if is_simplified_report is True
     point_count = models.IntegerField(verbose_name=_("Point Count"), null=True, blank=True)

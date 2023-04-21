@@ -830,6 +830,20 @@ class GDACSEvent(models.Model):
         return self.title
 
 
+class AppealDocumentType(models.Model):
+    """ types of PublicSite / FedNet appeal docs """
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    public_site_or_fednet = models.BooleanField(verbose_name=_('Sourced by FedNet?'), default=False)
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('appeal document type')
+        verbose_name_plural = _('appeal document types')
+
+    def __str__(self):
+        return self.name
+
+
 class AppealType(models.IntegerChoices):
     """ summarys of appeals """
     DREF = 0, _('DREF')
