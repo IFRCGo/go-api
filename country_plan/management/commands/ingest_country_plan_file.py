@@ -121,7 +121,7 @@ class Command(BaseCommand):
             try:
                 self.load_for_country(result, file_field, field_inserted_date_field)
             except Exception:
-                logger.error('Could not Updated countries plan', exc_info=True)
+                logger.error('Could not update countries plan', exc_info=True)
 
     def handle(self, **_):
         # Public

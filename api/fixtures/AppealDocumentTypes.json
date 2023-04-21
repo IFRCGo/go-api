@@ -1,0 +1,370 @@
+[
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1,
+    "fields": {
+      "name": "Alert",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 2,
+    "fields": {
+      "name": "Appeal",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 3,
+    "fields": {
+      "name": "Preliminary Appeal",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 6,
+    "fields": {
+      "name": "Revised Appeal",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 10,
+    "fields": {
+      "name": "Situation Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 11,
+    "fields": {
+      "name": "Information Bulletin",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 12,
+    "fields": {
+      "name": "Request for Assistance",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 14,
+    "fields": {
+      "name": "Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 22,
+    "fields": {
+      "name": "Documents",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 23,
+    "fields": {
+      "name": "Contributions List",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 54,
+    "fields": {
+      "name": "Programme Update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 55,
+    "fields": {
+      "name": "Annual Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 56,
+    "fields": {
+      "name": "Operations Update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 57,
+    "fields": {
+      "name": "Final Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 58,
+    "fields": {
+      "name": "Preliminary Final Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 238,
+    "fields": {
+      "name": "Plan",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 239,
+    "fields": {
+      "name": "Revised Plan",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 240,
+    "fields": {
+      "name": "Mid-Year Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 241,
+    "fields": {
+      "name": "DREF Operation",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 242,
+    "fields": {
+      "name": "DREF Operation Update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 243,
+    "fields": {
+      "name": "Preliminary DREF Operation Final Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 244,
+    "fields": {
+      "name": "DREF Operation Final Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 245,
+    "fields": {
+      "name": "Preliminary Emergency Appeal",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 246,
+    "fields": {
+      "name": "Emergency Appeal",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 247,
+    "fields": {
+      "name": "Emergency Appeal Revision",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 250,
+    "fields": {
+      "name": "6 month update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 340,
+    "fields": {
+      "name": "12 month update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 861,
+    "fields": {
+      "name": "Long-Term Planning Framework",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 862,
+    "fields": {
+      "name": "Audited Financial Statement",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 937,
+    "fields": {
+      "name": "Emergency plan of action",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 938,
+    "fields": {
+      "name": "Development operational plan",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1090,
+    "fields": {
+      "name": "Development operational report",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1234,
+    "fields": {
+      "name": "Emergency Plan of Action Revision",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1235,
+    "fields": {
+      "name": "Emergency operational report",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1701,
+    "fields": {
+      "name": "Forecast-based Early Action Protocol",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1713,
+    "fields": {
+      "name": "Forecast-based Triggered Action",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1714,
+    "fields": {
+      "name": "Forecast-based Triggered Action Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1820,
+    "fields": {
+      "name": "Operational strategy",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1844,
+    "fields": {
+      "name": "Unified Plan",
+      "public_site_or_fednet": true
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1848,
+    "fields": {
+      "name": "Early Action Protocol summary",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1851,
+    "fields": {
+      "name": "IFRC Network Plan",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1854,
+    "fields": {
+      "name": "DREF/EAP Summary",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1855,
+    "fields": {
+      "name": "DREF/EAP Update",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1856,
+    "fields": {
+      "name": "DREF/EAP Activation",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1857,
+    "fields": {
+      "name": "DREF/EAP Activation Report",
+      "public_site_or_fednet": false
+    }
+  },
+  {
+    "model": "api.appealdocumenttype",
+    "pk": 1858,
+    "fields": {
+      "name": "DREF/EAP Final Report",
+      "public_site_or_fednet": false
+    }
+  }
+]
