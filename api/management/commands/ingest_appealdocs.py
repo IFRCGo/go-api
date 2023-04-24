@@ -18,6 +18,9 @@ DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
 GEC_CODES = GECCode.objects.select_related('country').all()
 APPEAL_DOCUMENT_TYPES = AppealDocumentType.objects.all()  # used only for read in appealdocument locations from api
 
+PUBLIC_SOURCE = 'https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&AppealsTypeID='
+FEDNET_SOURCE = 'https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&AppealsTypeId='
+
 # WORK IN PROGRESS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 class Command(BaseCommand):
@@ -38,15 +41,17 @@ class Command(BaseCommand):
                     bilaterals[rec['APP_Code']] = rec['AmountCHF']
         return bilaterals
 
-    def load(self, url: str, file_field: str, field_inserted_date_field: str):
+    def load(self, url: str, is_fednet):
         auth = (settings.APPEALS_USER, settings.APPEALS_PASS)
-        results = requests.get(url, auth=auth, headers={'Accept': 'application/json'}).json()
-        for result in results:
-            try:
-                pass
-                # self.load_for_country(result, file_field, field_inserted_date_field)
-            except Exception:
-                logger.error('Could not update AppealDocuments', exc_info=True)
+        for adtype in APPEAL_DOCUMENT_TYPES.filter(public_site_or_fednet=is_fednet):
+            results = requests.get(url + str(adtype.id), auth=auth, headers={'Accept': 'application/json'}).json()
+            # import pdb; pdb.set_trace()
+            for result in results:
+                try:
+                    pass
+                    # self.load_for_country(result, file_field, field_inserted_date_field)
+                except Exception:
+                    logger.error('Could not update AppealDocuments', exc_info=True)
 
     def get_public_or_fednet_appealdocs(self):
         PUBLIC_SOURCE = 'https://go-api.ifrc.org/api/publicsiteappeals?AppealsTypeID=1851&Hidden=false'
@@ -301,22 +306,29 @@ class Command(BaseCommand):
 
         return fields
 
-    def handle(self, *args, **options):
-        logger.info('Starting appeals ingest')
-        start_appeals_count = Appeal.objects.all().count()
-        try:
-            getFromAPI = self.get_public_or_fednet_appealdocs()
-        except Exception as ex:
-            logger.error(f'Getting Appealdocs failed: {str(ex)}')
-            return
-        try:
-            new, modified, bilaterals = self.get_new_or_modified_appeals()
-        except Exception as ex:
-            logger.error(f'Getting Appeals and AppealBilaterals failed: {str(ex)}')
-            return
-        logger.info(f'{start_appeals_count} current appeals')
-        logger.info(f'Creating {len(new)} new appeals')
-        logger.info(f'Updating {len(modified)} existing appeals that MIGHT have been modified')
+    def handle(self, **_):
+        # Public
+        self.stdout.write('Fetching data for appealdocs:: PUBLIC')
+        self.load(PUBLIC_SOURCE, False)
+        # Private
+        self.stdout.write('\nFetching data for appealdocs:: FEDNET')
+        self.load(FEDNET_SOURCE, True)
+
+#        logger.info('Starting appeals ingest')
+#        start_appeals_count = Appeal.objects.all().count()
+#        try:
+#            getFromAPI = self.get_public_or_fednet_appealdocs()
+#        except Exception as ex:
+#            logger.error(f'Getting Appealdocs failed: {str(ex)}')
+#            return
+#        try:
+#            new, modified, bilaterals = self.get_new_or_modified_appeals()
+#        except Exception as ex:
+#            logger.error(f'Getting Appeals and AppealBilaterals failed: {str(ex)}')
+#            return
+#        logger.info(f'{start_appeals_count} current appeals')
+#        logger.info(f'Creating {len(new)} new appeals')
+#        logger.info(f'Updating {len(modified)} existing appeals that MIGHT have been modified')
 #
 #        errors = []
 #        num_created = 0
