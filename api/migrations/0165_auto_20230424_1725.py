@@ -11,6 +11,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql=[("update api_country set iso3=null where iso3='';")],
+            reverse_sql=[("update api_country set iso3=null where iso3='';")],
+        ),
         migrations.AddField(
             model_name='appealdocument',
             name='description',
