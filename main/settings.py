@@ -51,6 +51,7 @@ env = environ.Env(
     AWS_TRANSLATE_REGION=(str, None),
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
+    CACHE_REDIS_URL=str,
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
@@ -209,7 +210,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -532,3 +535,15 @@ SUSPEND_SIGNALS = True
 
 # Maintenance mode
 DJANGO_READ_ONLY = env('DJANGO_READ_ONLY')
+
+CACHE_REDIS_URL = env('CACHE_REDIS_URL')
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env('CACHE_REDIS_URL'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+CACHE_MIDDLEWARE_SECONDS = 600
