@@ -286,6 +286,27 @@ class IdentifiedNeedSerializer(ModelSerializer):
         return None
 
 
+class MiniOperationalUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "operational_update_number",
+        ]
+
+
+class MiniDrefFinalReportSerializer(ModelSerializer):
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            "id",
+            "title",
+            "is_published",
+        ]
+
+
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 2
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
