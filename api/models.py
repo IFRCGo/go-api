@@ -127,7 +127,7 @@ class Country(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     record_type = models.IntegerField(choices=CountryType.choices, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
     iso = models.CharField(
-        verbose_name=_('ISO'), max_length=2, null=True, blank=True,
+        verbose_name=_('ISO'), max_length=2, null=True, blank=True, unique=True,
         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     iso3 = models.CharField(
         verbose_name=_('ISO3'), max_length=3, null=True, blank=True, unique=True,
@@ -1028,7 +1028,7 @@ class AppealDocument(models.Model):
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), on_delete=models.CASCADE)
     type = models.ForeignKey(AppealDocumentType, verbose_name=_('type'), null=True, on_delete=models.SET_NULL)
     description = models.CharField(verbose_name=_('description'), max_length=200, null=True, blank=True)
-    iso3 = models.ForeignKey(Country, to_field="iso3", db_column="iso3", verbose_name=_('location'), null=True, on_delete=models.SET_NULL)
+    iso = models.ForeignKey(Country, to_field="iso", db_column="iso", verbose_name=_('location'), null=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = _('appeal document')
