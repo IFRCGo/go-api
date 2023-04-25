@@ -195,7 +195,11 @@ class CountryFilter(filters.FilterSet):
 
     class Meta:
         model = Country
-        fields = ('region', 'record_type',)
+        fields = {
+            'id': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'record_type': ('exact', 'in'),
+        }
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
@@ -250,7 +254,11 @@ class CountryFilterRMD(filters.FilterSet):
     
     class Meta:
         model = Country
-        fields = ('region', 'record_type',)
+        fields = {
+            'id': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'record_type': ('exact', 'in'),
+        }
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
@@ -262,7 +270,13 @@ class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
 class DistrictRMDFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country','country__name')
+        fields = {
+            'id': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'country__iso3': ('exact', 'in'),
+            'country__name': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
@@ -345,7 +359,13 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
 class DistrictFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country', 'country__iso3', 'name',)
+        fields = {
+            'id': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'country__iso3': ('exact', 'in'),
+            'country__name': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
@@ -366,7 +386,13 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class Admin2Filter(filters.FilterSet):
     class Meta:
         model = Admin2
-        fields = ('admin1', 'admin1__country', 'admin1__country__iso3')
+        fields = {
+            'id': ('exact', 'in'),
+            'admin1': ('exact', 'in'),
+            'admin1__country': ('exact', 'in'),
+            'admin1__country__iso3': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):

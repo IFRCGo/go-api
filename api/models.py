@@ -130,7 +130,7 @@ class Country(models.Model):
         verbose_name=_('ISO'), max_length=2, null=True, blank=True,
         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     iso3 = models.CharField(
-        verbose_name=_('ISO3'), max_length=3, null=True, blank=True,
+        verbose_name=_('ISO3'), max_length=3, null=True, blank=True, unique=True,
         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
     fdrs = models.CharField(verbose_name=_('FDRS'), max_length=6, null=True, blank=True)
     society_name = models.TextField(verbose_name=_('society name'), blank=True)
@@ -830,6 +830,20 @@ class GDACSEvent(models.Model):
         return self.title
 
 
+class AppealDocumentType(models.Model):
+    """ types of PublicSite / FedNet appeal docs """
+    name = models.CharField(verbose_name=_('name'), max_length=100)
+    public_site_or_fednet = models.BooleanField(verbose_name=_('Sourced by FedNet?'), default=False)
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('appeal document type')
+        verbose_name_plural = _('appeal document types')
+
+    def __str__(self):
+        return self.name
+
+
 class AppealType(models.IntegerChoices):
     """ summarys of appeals """
     DREF = 0, _('DREF')
@@ -1011,8 +1025,10 @@ class AppealDocument(models.Model):
     name = models.CharField(verbose_name=_('name'), max_length=100)
     document = models.FileField(verbose_name=_('document'), null=True, blank=True, upload_to=appeal_document_path)
     document_url = models.URLField(verbose_name=_('document url'), blank=True)
-
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), on_delete=models.CASCADE)
+    type = models.ForeignKey(AppealDocumentType, verbose_name=_('type'), null=True, on_delete=models.SET_NULL)
+    description = models.CharField(verbose_name=_('description'), max_length=200, null=True, blank=True)
+    iso3 = models.ForeignKey(Country, to_field="iso3", db_column="iso3", verbose_name=_('iso3'), null=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = _('appeal document')
