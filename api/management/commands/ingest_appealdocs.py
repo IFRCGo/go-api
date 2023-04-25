@@ -49,7 +49,7 @@ class Command(BaseCommand):
             for result in results:
                 try:
                     pass
-                    # self.load_for_country(result, file_field, field_inserted_date_field)
+                    # We should match BaseDirectory + BaseFileName == document_url and BaseAppealNumber == code  # 'MGR00001'
                 except Exception:
                     logger.error('Could not update AppealDocuments', exc_info=True)
 

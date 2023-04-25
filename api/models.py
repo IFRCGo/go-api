@@ -1028,7 +1028,7 @@ class AppealDocument(models.Model):
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), on_delete=models.CASCADE)
     type = models.ForeignKey(AppealDocumentType, verbose_name=_('type'), null=True, on_delete=models.SET_NULL)
     description = models.CharField(verbose_name=_('description'), max_length=200, null=True, blank=True)
-    iso3 = models.ForeignKey(Country, to_field="iso3", db_column="iso3", verbose_name=_('iso3'), null=True, on_delete=models.SET_NULL)
+    iso3 = models.ForeignKey(Country, to_field="iso3", db_column="iso3", verbose_name=_('location'), null=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = _('appeal document')
