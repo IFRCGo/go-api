@@ -10,11 +10,11 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
 
   default_node_pool {
     name           = "nodepool1"
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS3_v2"
     vnet_subnet_id = azurerm_subnet.aks.id
     enable_auto_scaling   = true
     min_count             = 1
-    max_count             = 4
+    max_count             = 5
   }
 
   identity {
