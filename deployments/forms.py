@@ -11,6 +11,7 @@ from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
+from api.logger import logger
 
 from api.models import (
     Country,
@@ -18,7 +19,6 @@ from api.models import (
     DisasterType,
 )
 
-from .widgets import EnumArrayWidget
 from .models import (
     Project,
     ProjectImport,
@@ -170,24 +170,32 @@ class ProjectImportForm(forms.Form):
         # Enum options
         operation_types = {label.lower(): value for value, label in OperationTypes.choices}
         programme_types = {label.lower(): value for value, label in ProgrammeTypes.choices}
-        sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
-        sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
         statuses = {label.lower(): value for value, label in Statuses.choices}
 
+        # Not enums, but maybe could be used later to avoid multiple queries for id-s: FIXME
+        # sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
+        # sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
+        # disaster_types ?
+
         c = self.Columns
+
         # Extract from import csv file
         for row_number, row in enumerate(reader, start=2):
             district_names = [
                 d.strip() for d in row[c.DISTRICT].split(',')
-                if d.lower() not in ['countrywide', '']
-            ]
+            ] if row[c.DISTRICT].lower() not in ['countrywide', ''] else []
             reporting_ns_name = row[c.REPORTING_NS].strip()
             country_name = row[c.COUNTRY].strip()
             disaster_type_name = row[c.DISASTER_TYPE].strip()
+            sector_name = row[c.PRIMARY_SECTOR].strip()
+            tag_names = [
+                d.strip() for d in row[c.TAGS].split(',')
+            ]
 
             reporting_ns = Country.objects.filter(
                 Q(name__iexact=reporting_ns_name) | Q(society_name__iexact=reporting_ns_name)
             ).first()
+            project_sector = Sector.objects.filter(title=sector_name).first()
             disaster_type = DisasterType.objects.filter(name__iexact=disaster_type_name).first()
 
             row_errors = {}
@@ -219,6 +227,18 @@ class ProjectImportForm(forms.Form):
                     # A validation error will be raised. This is just a custom message
                     row_errors['project_districts'] = ['Given districts/regions are not available.']
 
+            project_sectortags = []
+            if tag_names:
+                project_sectortags = list(SectorTag.objects.filter(
+                    reduce(lambda acc, item: acc | item,
+                        [Q(title=title) for title in tag_names],
+                          )
+                ).all())
+                # Check if all tag_names is available in db
+                if len(project_sectortags) != len(tag_names):
+                    # A validation error will be raised. This is just a custom message
+                    row_errors['project_sectortags'] = [f'Given tags: "{tag_names}" are not all available.']
+
             if reporting_ns is None:
                 row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
             if disaster_type is None:
@@ -234,10 +254,7 @@ class ProjectImportForm(forms.Form):
                 # Enum fields
                 operation_type=operation_types.get(_key_clean(row[c.OPERATION_TYPE])),
                 programme_type=programme_types.get(_key_clean(row[c.PROGRAMME_TYPE])),
-                primary_sector=sectors.get(_key_clean(row[c.PRIMARY_SECTOR])),
-                secondary_sectors=[
-                    sector_tags.get(_key_clean(tag)) for tag in row[c.TAGS].split(',') if _key_clean(tag) in sector_tags
-                ],
+                primary_sector=project_sector,
                 status=statuses.get(_key_clean(row[c.STATUS])),
 
                 name=row[c.PROJECT_NAME],
@@ -258,7 +275,7 @@ class ProjectImportForm(forms.Form):
             try:
                 project.full_clean()
                 if len(row_errors) == 0:
-                    projects.append([project, project_districts])
+                    projects.append([project, project_districts, project_sectortags])
                 else:
                     errors.append(_get_error_message(row_number, row_errors))
             except ValidationError as e:
@@ -270,8 +287,9 @@ class ProjectImportForm(forms.Form):
 
         Project.objects.bulk_create([p[0] for p in projects])
         # Set M2M Now
-        for project, project_districts in projects:
+        for project, project_districts, project_sectortags in projects:
             project.project_districts.set(project_districts)
+            project.secondary_sectors.set(project_sectortags)
         # Return projects for ProjectImport
         return [p[0] for p in projects]
 
@@ -288,7 +306,7 @@ class ProjectImportForm(forms.Form):
             projects = self._handle_bulk_upload(request.user, file, delimiter, quotechar)
             project_import.projects_created.add(*projects)
             project_import.message = f'Successfully added <b>{len(projects)}</b> project(s) using <b>{file}</b>.'
-            project_import.status = ProjectImport.SUCCESS
+            project_import.status = ProjectImport.ProjImpStatus.SUCCESS
             # Also show error in Admin Panel
             messages.add_message(request, messages.INFO, mark_safe(project_import.message))
         except Exception as e:
@@ -301,5 +319,5 @@ class ProjectImportForm(forms.Form):
                     "<pre>NOTE: Make sure to use correct <b>file delimiter</b> and <b>string delimiter!</b></pre>"
                 )
             messages.add_message(request, messages.ERROR, mark_safe(project_import.message))
-            project_import.status = ProjectImport.FAILURE
+            project_import.status = ProjectImport.ProjImpStatus.FAILURE
         project_import.save()
