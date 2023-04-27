@@ -15,6 +15,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
     enable_auto_scaling   = true
     min_count             = 1
     max_count             = 5
+    temporary_name_for_rotation = "nodepooltemp"
   }
 
   identity {
