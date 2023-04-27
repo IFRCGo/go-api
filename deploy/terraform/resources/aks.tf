@@ -7,7 +7,6 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
   resource_group_name = data.azurerm_resource_group.ifrcgo.name
   dns_prefix          = "${local.prefix}-cluster"
   kubernetes_version  = "1.25.5"
-  temporary_name_for_rotation = "nodepooltemp"
 
   default_node_pool {
     name           = "nodepool1"
@@ -16,6 +15,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
     enable_auto_scaling   = true
     min_count             = 1
     max_count             = 5
+    temporary_name_for_rotation = "nodepooltemp"
   }
 
   identity {
