@@ -200,16 +200,7 @@ class ProjectImportForm(forms.Form):
 
             row_errors = {}
             project_districts = []
-            if len(district_names) == 0:
-                project_country = Country.objects.filter(name__iexact=country_name).first()
-                if project_country is None:
-                    row_errors['project_country'] = [f'Given country "{country_name}" is not available.']
-                else:
-                    project_districts = list(project_country.district_set.all())
-
-                if len(project_districts) == 0:
-                    row_errors['project_districts'] = [f'There is no district for given country "{country_name}" in database.']
-            else:
+            if district_names:
                 project_districts = list(District.objects.filter(
                     reduce(
                         lambda acc, item: acc | item,
@@ -223,16 +214,22 @@ class ProjectImportForm(forms.Form):
                 if len(project_districts) == len(district_names):
                     project_country = project_districts[0].country
                 else:
+                    # District list can be empty. If not empty, we get country name from the first one.
                     project_country = None
-                    # A validation error will be raised. This is just a custom message
-                    row_errors['project_districts'] = ['Given districts/regions are not available.']
+            else:
+                project_country = Country.objects.filter(name__iexact=country_name).first()
+
+            # A validation error will be raised. This is just a custom message
+            if project_country is None:
+                row_errors['project_country'] = [f'Country "{country_name}" is not available.']
+
 
             project_sectortags = []
             if tag_names:
                 project_sectortags = list(SectorTag.objects.filter(
                     reduce(lambda acc, item: acc | item,
                         [Q(title=title) for title in tag_names],
-                          )
+                    )
                 ).all())
                 # Check if all tag_names is available in db
                 if len(project_sectortags) != len(tag_names):
@@ -241,7 +238,8 @@ class ProjectImportForm(forms.Form):
 
             if reporting_ns is None:
                 row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
-            if disaster_type is None:
+            # Optional, but can be invalid
+            if disaster_type is None and disaster_type_name != '':
                 row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
 
             project = Project(
