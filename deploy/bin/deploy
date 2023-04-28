@@ -89,6 +89,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."
         terraform init
+        terraform force-unlock adc363ff-32c0-f469-aa54-eaf5b8d7fb6d
 
         if [ "${PLAN_ONLY}" ]; then
             terraform plan
