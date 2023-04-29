@@ -839,9 +839,12 @@ class AppealDocumentTableauSerializer(serializers.ModelSerializer):
 
 
 class AppealDocumentSerializer(ModelSerializer):
+    appeal = serializers.CharField(source='appeal.code', read_only=True)
+    type = serializers.CharField(source='type.name', read_only=True)  # seems to be identical to the appealdoc name
+
     class Meta:
         model = AppealDocument
-        fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'id',)
+        fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'type', 'iso', 'description', 'id',)
 
 
 class ProfileSerializer(ModelSerializer):
