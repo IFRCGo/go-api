@@ -172,31 +172,34 @@ class ProjectImportForm(forms.Form):
         programme_types = {label.lower(): value for value, label in ProgrammeTypes.choices}
         statuses = {label.lower(): value for value, label in Statuses.choices}
 
-        # Not enums, but maybe could be used later to avoid multiple queries for id-s: FIXME
-        # sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
-        # sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
-        # disaster_types ?
+        # Not enums, but can be used to avoid multiple queries for foreign key id-s
+        sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
+        sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
+        disaster_types = {t.name.lower(): t.id for t in DisasterType.objects.all()}
 
         c = self.Columns
 
         # Extract from import csv file
         for row_number, row in enumerate(reader, start=2):
-            district_names = [
-                d.strip() for d in row[c.DISTRICT].split(',')
-            ] if row[c.DISTRICT].lower() not in ['countrywide', ''] else []
+            district_names = list({d.strip() for d in filter(
+                lambda x: x.strip() != '', row[c.DISTRICT].split(','))
+            }) if row[c.DISTRICT].lower() not in ['countrywide', ''] else []
             reporting_ns_name = row[c.REPORTING_NS].strip()
             country_name = row[c.COUNTRY].strip()
             disaster_type_name = row[c.DISASTER_TYPE].strip()
             sector_name = row[c.PRIMARY_SECTOR].strip()
-            tag_names = [
-                d.strip() for d in row[c.TAGS].split(',')
-            ]
+            tag_names = list({d.strip() for d in filter(
+                lambda x: x.strip() != '', row[c.TAGS].split(','))
+            })
 
             reporting_ns = Country.objects.filter(
                 Q(name__iexact=reporting_ns_name) | Q(society_name__iexact=reporting_ns_name)
             ).first()
-            project_sector = Sector.objects.filter(title=sector_name).first()
-            disaster_type = DisasterType.objects.filter(name__iexact=disaster_type_name).first()
+
+            # Cheaper than:     Sector.objects.filter(title=sector_name).first()
+            project_sector_id = sectors[sector_name.lower()] if sector_name else None
+            # Cheaper than:    DisasterType.objects.filter(name__iexact=disaster_type_name).first()
+            disaster_type_id = disaster_types[disaster_type_name.lower()] if disaster_type_name else None
 
             row_errors = {}
             project_districts = []
@@ -223,23 +226,21 @@ class ProjectImportForm(forms.Form):
             if project_country is None:
                 row_errors['project_country'] = [f'Country "{country_name}" is not available.']
 
-
-            project_sectortags = []
+            project_sectortag_ids = []  # if we use sectortag objects, not only id-s, the "project_sectortags" would be better.
             if tag_names:
-                project_sectortags = list(SectorTag.objects.filter(
-                    reduce(lambda acc, item: acc | item,
-                        [Q(title=title) for title in tag_names],
-                    )
-                ).all())
-                # Check if all tag_names is available in db
-                if len(project_sectortags) != len(tag_names):
-                    # A validation error will be raised. This is just a custom message
-                    row_errors['project_sectortags'] = [f'Given tags: "{tag_names}" are not all available.']
+                all_ok = True
+                for t in tag_names:
+                    if t.lower() not in sector_tags:
+                        all_ok = False
+                        row_errors['project_sectortags'] = [f'Given tag: "{t}" is not all available.']
+                if all_ok:
+                    # Cheaper than: list(SectorTag.objects.filter(reduce(lambda acc, item: acc | item, [Q(title=title) for title in tag_names],)).all())
+                    project_sectortag_ids = {title: sector_tags[title.lower()] for title in tag_names}.values()
 
             if reporting_ns is None:
                 row_errors['reporting_ns'] = [f'Given country "{reporting_ns_name}" is not available.']
             # Optional, but can be invalid
-            if disaster_type is None and disaster_type_name != '':
+            if disaster_type_id is None and disaster_type_name != '':
                 row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
 
             project = Project(
@@ -247,12 +248,12 @@ class ProjectImportForm(forms.Form):
                 reporting_ns=reporting_ns,
                 project_country=project_country,
                 # project_districts and secondary_sectors are M2M fields, they will be added later.
-                dtype=disaster_type,
+                primary_sector_id=project_sector_id,
+                dtype_id=disaster_type_id,
 
                 # Enum fields
                 operation_type=operation_types.get(_key_clean(row[c.OPERATION_TYPE])),
                 programme_type=programme_types.get(_key_clean(row[c.PROGRAMME_TYPE])),
-                primary_sector=project_sector,
                 status=statuses.get(_key_clean(row[c.STATUS])),
 
                 name=row[c.PROJECT_NAME],
@@ -273,7 +274,7 @@ class ProjectImportForm(forms.Form):
             try:
                 project.full_clean()
                 if len(row_errors) == 0:
-                    projects.append([project, project_districts, project_sectortags])
+                    projects.append([project, project_districts, project_sectortag_ids])
                 else:
                     errors.append(_get_error_message(row_number, row_errors))
             except ValidationError as e:
@@ -285,9 +286,9 @@ class ProjectImportForm(forms.Form):
 
         Project.objects.bulk_create([p[0] for p in projects])
         # Set M2M Now
-        for project, project_districts, project_sectortags in projects:
+        for project, project_districts, project_sectortag_ids in projects:
             project.project_districts.set(project_districts)
-            project.secondary_sectors.set(project_sectortags)
+            project.secondary_sectors.set(project_sectortag_ids)
         # Return projects for ProjectImport
         return [p[0] for p in projects]
 
