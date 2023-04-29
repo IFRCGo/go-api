@@ -48,5 +48,5 @@ class Command(BaseCommand):
         self.stdout.write('Fetching data for appeal_docs:: PUBLIC')
         self.load(PUBLIC_SOURCE, False)
         # Private
-        self.stdout.write('\nFetching data for appeal_docs:: FEDNET')
+        self.stdout.write('Fetching data for appeal_docs:: FEDNET')
         self.load(FEDNET_SOURCE, True)
