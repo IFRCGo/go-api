@@ -410,6 +410,13 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
         return super().get_queryset(request).select_related('appeal')
 
 
+class AppealDocumentTypeAdmin(CompareVersionAdmin):
+    model = models.AppealDocumentType
+    list_display = ('name', 'id')
+    readonly_fields = ('id',)
+    search_fields = ('name', 'id')
+
+
 class AppealFilterAdmin(CompareVersionAdmin):
     list_display = ('name', 'value')
     search_fields = ('name', 'value')
@@ -785,6 +792,7 @@ admin.site.register(models.District, DistrictAdmin)
 admin.site.register(models.Admin2, Admin2Admin)
 admin.site.register(models.Appeal, AppealAdmin)
 admin.site.register(models.AppealDocument, AppealDocumentAdmin)
+admin.site.register(models.AppealDocumentType, AppealDocumentTypeAdmin)
 admin.site.register(models.AppealFilter, AppealFilterAdmin)
 admin.site.register(models.GeneralDocument, GeneralDocumentAdmin)
 admin.site.register(models.FieldReport, FieldReportAdmin)

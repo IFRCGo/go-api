@@ -6,10 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+ - Add regional contact in dref and op-update
+
+## 1.1.473
+
+### Added
+ - Django_haystack based, full page search
+ - Sector and SectorTag not hardwired
+ - Bump up modules (redis), snapshot test fixes
+
+## 1.1.472
 ## 1.1.471
 
 ### Added
- - Hotfix for DREF permissions
+ - Hotfix for DREF: image fields
+ - Hotfix for DREF: permissions
 
 ## 1.1.470
 
@@ -2163,7 +2174,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.471...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.473...HEAD
+[1.1.473]: https://github.com/IFRCGo/go-api/compare/1.1.472...1.1.473
+[1.1.472]: https://github.com/IFRCGo/go-api/compare/1.1.471...1.1.472
 [1.1.471]: https://github.com/IFRCGo/go-api/compare/1.1.470...1.1.471
 [1.1.470]: https://github.com/IFRCGo/go-api/compare/1.1.469...1.1.470
 [1.1.469]: https://github.com/IFRCGo/go-api/compare/1.1.468...1.1.469

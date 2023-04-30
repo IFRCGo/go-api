@@ -67,6 +67,8 @@ env = environ.Env(
     PYTEST_XDIST_WORKER=(str, None),
     # Elastic-Cache
     ELASTIC_SEARCH_HOST=(str, None),
+    ELASTIC_SEARCH_INDEX=(str, 'new_index'),
+    ELASTIC_SEARCH_TEST_INDEX=(str, 'new_test_index'),  # This will be used and cleared by test
     # FTP
     GO_FTPHOST=(str, None),
     GO_FTPUSER=(str, None),
@@ -78,6 +80,8 @@ env = environ.Env(
     # Sentry
     SENTRY_DSN=(str, None),
     SENTRY_SAMPLE_RATE=(float, 0.2),
+    # Maintenance mode
+    DJANGO_READ_ONLY=(bool, False),
 )
 
 
@@ -141,6 +145,7 @@ INSTALLED_APPS = [
     'guardian',
     'django_filters',
     'graphene_django',
+    'django_read_only',
 
     # GO Apps
     'api',
@@ -474,6 +479,8 @@ TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')
 
 # Elastic search host
 ELASTIC_SEARCH_HOST = env('ELASTIC_SEARCH_HOST')
+ELASTIC_SEARCH_INDEX = env('ELASTIC_SEARCH_INDEX')
+ELASTIC_SEARCH_TEST_INDEX = env('ELASTIC_SEARCH_TEST_INDEX')
 
 # FTP
 GO_FTPHOST = env('GO_FTPHOST')
@@ -519,10 +526,13 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
         'URL': ELASTIC_SEARCH_HOST,
-        'INDEX_NAME': 'new_index',
+        'INDEX_NAME': ELASTIC_SEARCH_INDEX,
     },
 }
 
 HAYSTACK_LIMIT_TO_REGISTERED_MODELS = False
 
 SUSPEND_SIGNALS = True
+
+# Maintenance mode
+DJANGO_READ_ONLY = env('DJANGO_READ_ONLY')

@@ -159,6 +159,7 @@ router.register(r'flash-update-file', flash_views.FlashUpdateFileViewSet, basena
 router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_group')
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
+router.register(r'users', api_views.UsersViewset, basename='users')
 
 # Dref apis
 router.register(r'dref', dref_views.DrefViewSet, basename='dref')

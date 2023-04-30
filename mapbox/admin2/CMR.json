@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-CMR": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-CMR-src",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  

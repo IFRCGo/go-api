@@ -22,6 +22,7 @@ class DrefFactory(factory.django.DjangoModelFactory):
 
     title = fuzzy.FuzzyText(length=50, prefix="title-")
     type_of_onset = fuzzy.FuzzyChoice(Dref.OnsetType)
+    type_of_dref = fuzzy.FuzzyChoice(Dref.DrefType)
     disaster_category = fuzzy.FuzzyChoice(Dref.DisasterCategory)
     status = fuzzy.FuzzyChoice(Dref.Status)
     national_society = factory.SubFactory(CountryFactory)

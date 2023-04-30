@@ -3,6 +3,7 @@ import sentry_sdk
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from django_read_only import DjangoReadOnlyError
 
 
 standard_error_string = (
@@ -17,20 +18,29 @@ def custom_exception_handler(exc, context):
 
     # For 500 errors, we create new response and add extra attributes to sentry
     if not response:
-        request = context.get('request')
-        if request and request.user and request.user.id:
-            with sentry_sdk.configure_scope() as scope:
-                scope.user = {
-                    'id': request.user.id,
-                    'email': request.user.email,
-                }
-                scope.set_extra('is_superuser', request.user.is_superuser)
-        sentry_sdk.capture_exception()
-        response_data = {
-            'errors': {
-                'non_field_errors': [standard_error_string]
-            },
-        }
+        # Expected ReadOnlyError
+        if type(exc) == DjangoReadOnlyError:
+            response_data = {
+                'errors': {
+                    'non_field_errors': ['We are in maintenance mode, come back a bit later – site is in read only mode']
+                },
+            }
+        else:
+            # Other 500 errors
+            request = context.get('request')
+            if request and request.user and request.user.id:
+                with sentry_sdk.configure_scope() as scope:
+                    scope.user = {
+                        'id': request.user.id,
+                        'email': request.user.email,
+                    }
+                    scope.set_extra('is_superuser', request.user.is_superuser)
+            sentry_sdk.capture_exception()
+            response_data = {
+                'errors': {
+                    'non_field_errors': [standard_error_string]
+                },
+            }
         response = Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return response
