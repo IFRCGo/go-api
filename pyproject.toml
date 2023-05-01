@@ -91,6 +91,7 @@ pytest-ordering = "*"
 pytest-django = "*"
 snapshottest = "==0.6.0"
 django-debug-toolbar = "==3.8.1"
+fakeredis = "*"
 
 [tool.pyright]
 extraPaths = ["apps"]
