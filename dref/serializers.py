@@ -54,10 +54,37 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
+class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
+    type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = [
+            "id",
+            "title",
+            "national_society",
+            "disaster_type",
+            "type_of_onset",
+            "type_of_dref",
+            "disaster_category",
+            "disaster_category_display",
+            "type_of_onset_display",
+            "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+            "operational_update_number",
+        ]
+
+
 class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    operational_update_details = MiniOperationalUpdateSerializer(
+        source="drefoperationalupdate_set", many=True, read_only=True
+    )
 
     class Meta:
         model = Dref
@@ -72,6 +99,9 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "disaster_category_display",
             "type_of_onset_display",
             "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+            "operational_update_details",
         ]
 
 
@@ -149,17 +179,6 @@ class IdentifiedNeedSerializer(ModelSerializer):
             request = self.context["request"]
             return IdentifiedNeed.get_image_map(title, request)
         return None
-
-
-class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DrefOperationalUpdate
-        fields = [
-            "id",
-            "title",
-            "is_published",
-            "operational_update_number",
-        ]
 
 
 class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
@@ -536,8 +555,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["communication"] = dref.communication
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
-            validated_data['ns_request_date'] = dref.ns_request_date
-            validated_data['date_of_approval'] = dref.date_of_approval
+            validated_data["ns_request_date"] = dref.ns_request_date
+            validated_data["date_of_approval"] = dref.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -582,7 +601,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["national_society_contact_name"] = dref_operational_update.national_society_contact_name
             validated_data["national_society_contact_email"] = dref_operational_update.national_society_contact_email
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
-            validated_data["national_society_contact_phone_number"] = dref_operational_update.national_society_contact_phone_number
+            validated_data[
+                "national_society_contact_phone_number"
+            ] = dref_operational_update.national_society_contact_phone_number
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -631,7 +652,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["did_ns_respond"] = dref_operational_update.did_ns_respond
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
-            validated_data["is_there_major_coordination_mechanism"] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data[
+                "is_there_major_coordination_mechanism"
+            ] = dref_operational_update.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref_operational_update.human_resource
             validated_data["is_surge_personnel_deployed"] = dref_operational_update.is_surge_personnel_deployed
             validated_data["surge_personnel_deployed"] = dref_operational_update.surge_personnel_deployed
@@ -641,8 +664,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["communication"] = dref_operational_update.communication
             validated_data["people_in_need"] = dref_operational_update.people_in_need
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
-            validated_data['ns_request_date'] = dref_operational_update.ns_request_date
-            validated_data['date_of_approval'] = dref_operational_update.date_of_approval
+            validated_data["ns_request_date"] = dref_operational_update.ns_request_date
+            validated_data["date_of_approval"] = dref_operational_update.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -888,9 +911,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["assessment_report"] = dref_operational_update.assessment_report
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
-                raise serializers.ValidationError(
-                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
-                )
+                raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -980,9 +1001,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["ns_respond_date"] = dref.ns_respond_date
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
-                raise serializers.ValidationError(
-                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
-                )
+                raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1015,3 +1034,22 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
 
         validated_data["updated_by"] = self.context["request"].user
         return super().update(instance, validated_data)
+
+
+class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    dref = MiniDrefSerializer(read_only=True)
+
+    class Meta:
+        model = DrefFinalReport
+        fields = (
+            "id",
+            "created_at",
+            "title",
+            "appeal_code",
+            "glide_code",
+            "country",
+            "date_of_publication",
+            "country_details",
+            "dref",
+        )

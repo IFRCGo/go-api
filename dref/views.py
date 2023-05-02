@@ -26,8 +26,13 @@ from dref.serializers import (
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
+    CompletedDrefOperationsSerializer,
 )
-from dref.filter_set import DrefFilter, DrefOperationalUpdateFilter
+from dref.filter_set import (
+    DrefFilter,
+    DrefOperationalUpdateFilter,
+    CompletedDrefOperationsFilterSet,
+)
 from dref.permissions import (
     DrefOperationalUpdateUpdatePermission,
     DrefFinalReportUpdatePermission,
@@ -204,3 +209,21 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CompletedDrefOperationsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_class = CompletedDrefOperationsFilterSet
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = (
+            DrefFinalReport.objects.filter(is_published=True)
+            .order_by("-created_at")
+            .distinct()
+        )
+        if user.is_superuser:
+            return queryset
+        else:
+            return DrefFinalReport.get_for(user)
