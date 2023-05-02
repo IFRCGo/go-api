@@ -64,7 +64,11 @@ from .serializers import (
     FormPrioritizationSerializer,
 )
 from per.permissions import PerPermission
-from per.filter_set import PerOverviewFilter
+from per.filter_set import (
+    PerOverviewFilter,
+    PerPrioritizationFilter,
+    PerWorkPlanFilter,
+)
 
 
 class FormFilter(filters.FilterSet):
@@ -644,6 +648,7 @@ class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
+    filterset_class = PerWorkPlanFilter
 
 
 class PerFormDataViewSet(viewsets.ModelViewSet):
@@ -654,6 +659,7 @@ class PerFormDataViewSet(viewsets.ModelViewSet):
 class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
+    filterset_class = PerPrioritizationFilter
 
 
 class PerOptionsView(views.APIView):

@@ -220,7 +220,7 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
 
 
 class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    workplan_component = PerWorkPlanComponentSerializer(many=True, required=False)
+    workplan_component = PerWorkPlanComponentSerializer(many=True, required=True)
 
     class Meta:
         model = PerWorkPlan
@@ -242,7 +242,17 @@ class PerFormDataSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class FormComponentQuestionSerializer(serializers.ModelSerializer):
+    # formquestion = FormQuestionSerializer(many=True, partial=True)
+
+    class Meta:
+        model = FormComponent
+        fields = "__all__"
+
+
 class FormPrioritizationComponentSerializer(serializers.ModelSerializer):
+    component_details = FormComponentQuestionSerializer(source='component')
+
     class Meta:
         model = FormPrioritizationComponent
         fields = "__all__"
