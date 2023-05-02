@@ -89,6 +89,10 @@ class FormComponent(models.Model):
     status = models.CharField(
         verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
     )
+    urban_considerations = models.TextField(
+        verbose_name=_("Urban Considerations"),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -217,6 +221,16 @@ class Overview(models.Model):
         verbose_name=_("estimated date of mid term review"), null=True, blank=True
     )
     date_of_next_asmt = models.DateTimeField(verbose_name=_("estimated date of next assessment"), null=True, blank=True)
+
+    # Workplan reviews planned
+    workplan_development_date = models.DateTimeField(
+        verbose_name=_("Workplan Development Date"),
+        null=True, blank=True
+    )
+    workplan_revision_date = models.DateTimeField(
+        verbose_name=_("Workplan Revision Date"),
+        null=True, blank=True
+    )
 
     # Contact Information
     facilitator_name = models.CharField(verbose_name=_("facilitator name"), max_length=90, null=True, blank=True)
