@@ -50,7 +50,7 @@ class CountryTest(TestCase):
         regions = models.Region.objects.all()
         self.assertEqual(regions.count(), 5)
         countries = models.Country.objects.all()
-        self.assertEqual(countries.count(), 258)
+        self.assertEqual(countries.count(), 274)
 
 
 class ProfileTest(TestCase):

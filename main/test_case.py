@@ -1,5 +1,6 @@
 import datetime
 import pytz
+import haystack
 from unittest import mock
 
 import snapshottest.django as django_snapshottest
@@ -9,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework import test, status
 
 from django.core import management
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import DEFAULT_DB_ALIAS, connections
@@ -19,6 +21,15 @@ from deployments.factories.user import UserFactory
 
 from lang.translation import AmazonTranslate
 
+# XXX: Will not support if test are run in parallel
+TEST_HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
+        'URL': settings.ELASTIC_SEARCH_HOST,
+        'INDEX_NAME': settings.ELASTIC_SEARCH_TEST_INDEX,
+    },
+}
+
 
 class GoAPITestMixin():
     """
@@ -26,9 +37,16 @@ class GoAPITestMixin():
     """
     client_class = test.APIClient
 
-    def setUp(self):
-        super().setUp()
+    def set_up_haystack(self):
+        haystack.connections.reload('default')
 
+    def tear_down_haystack(self):
+        haystack.connections.reload('default')
+        backend = haystack.connections['default'].get_backend()
+        assert backend.index_name == settings.ELASTIC_SEARCH_TEST_INDEX
+        backend.clear()
+
+    def set_up_seed(self):
         self.root_user = UserFactory.create(
             username='root@test.com',
             first_name='Root',
@@ -127,24 +145,42 @@ class GoAPITestMixin():
         return CaptureOnCommitCallbacksContext(using=using, execute=execute)
 
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
-@override_settings(SUSPEND_SIGNALS=True)
+@override_settings(
+    CELERY_TASK_ALWAYS_EAGER=True,
+    SUSPEND_SIGNALS=True,
+    HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
+)
 class APITestCase(GoAPITestMixin, test.APITestCase):
-    pass
+    def setUp(self):
+        self.set_up_haystack()
+        super().setUp()
+        self.set_up_seed()
+
+    def tearDown(self):
+        super().tear_down_haystack()
+        super().tearDown()
 
 
-@override_settings(SUSPEND_SIGNALS=True)
+@override_settings(
+    SUSPEND_SIGNALS=True,
+    HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
+)
 class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
     maxDiff = None
 
     def setUp(self):
+        self.set_up_haystack()
+        super().setUp()
         management.call_command("flush", "--no-input")
         factory.random.reseed_random(42)
+        self.set_up_seed()
         self.patcher = mock.patch('django.utils.timezone.now')
         self.patcher.start().return_value = datetime.datetime(2008, 1, 1, 0, 0, 0, 123456, tzinfo=pytz.UTC)
 
     def tearDown(self):
         self.patcher.stop()
+        super().tear_down_haystack()
+        super().tearDown()
 
 
 class CaptureOnCommitCallbacksContext:

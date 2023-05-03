@@ -137,7 +137,7 @@ services:
     <<: *base_server_setup
     command: python manage.py ingest_appeal_docs
 
-  ingest_appeal_docs:
+  user_registration_reminder:
     <<: *base_server_setup
     command: python manage.py user_registration_reminder
 

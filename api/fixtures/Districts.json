@@ -1189,15 +1189,6 @@
     },
     {
         "model": "api.District",
-        "pk": 143,
-        "fields": {
-            "name": "American Samoa",
-            "code": "AS001",
-            "country": "229"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 144,
         "fields": {
             "name": "Burgenland",
@@ -3844,15 +3835,6 @@
     },
     {
         "model": "api.District",
-        "pk": 440,
-        "fields": {
-            "name": "Bouvet Island",
-            "code": "BV001",
-            "country": "278"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 441,
         "fields": {
             "name": "Central",
@@ -4164,15 +4146,6 @@
             "name": "Yukon Territory",
             "code": "CA013",
             "country": "42"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 476,
-        "fields": {
-            "name": "Cocos (Keeling) Islands",
-            "code": "CC001",
-            "country": "236"
         }
     },
     {
@@ -6270,15 +6243,6 @@
             "name": "Tarrafal de S\u00e3o Nicolau",
             "code": "CV122",
             "country": "43"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 710,
-        "fields": {
-            "name": "Christmas Island",
-            "code": "CX001",
-            "country": "235"
         }
     },
     {
@@ -8695,15 +8659,6 @@
     },
     {
         "model": "api.District",
-        "pk": 979,
-        "fields": {
-            "name": "Falkland Islands (Malvinas)",
-            "code": "FK001",
-            "country": "237"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 980,
         "fields": {
             "name": "Chuuk",
@@ -8736,15 +8691,6 @@
             "name": "Yap",
             "code": "FM004",
             "country": "195"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 984,
-        "fields": {
-            "name": "Faroe Islands",
-            "code": "FO001",
-            "country": "238"
         }
     },
     {
@@ -9271,15 +9217,6 @@
     },
     {
         "model": "api.District",
-        "pk": 1043,
-        "fields": {
-            "name": "Gernsey",
-            "code": "GG001",
-            "country": "272"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 1044,
         "fields": {
             "name": "Ashanti",
@@ -9375,51 +9312,6 @@
             "name": "Gibraltar",
             "code": "GI001",
             "country": "241"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1055,
-        "fields": {
-            "name": "Kujalleq",
-            "code": "GL001",
-            "country": "242"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1056,
-        "fields": {
-            "name": "Northeast Greenland National Park",
-            "code": "GL005",
-            "country": "242"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1057,
-        "fields": {
-            "name": "Qaasuitsup",
-            "code": "GL002",
-            "country": "242"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1058,
-        "fields": {
-            "name": "Qeqqata",
-            "code": "GL003",
-            "country": "242"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1059,
-        "fields": {
-            "name": "Sermersooq",
-            "code": "GL004",
-            "country": "242"
         }
     },
     {
@@ -9730,15 +9622,6 @@
     },
     {
         "model": "api.District",
-        "pk": 1094,
-        "fields": {
-            "name": "South Georgia and the South Sandwich Islands",
-            "code": "GS001",
-            "country": "261"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 1095,
         "fields": {
             "name": "Alta Verapaz",
@@ -9937,15 +9820,6 @@
     },
     {
         "model": "api.District",
-        "pk": 1117,
-        "fields": {
-            "name": "Guam",
-            "code": "GU001",
-            "country": "243"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 1118,
         "fields": {
             "name": "Bafata",
@@ -10113,15 +9987,6 @@
             "name": "Upper Takutu - Upper Essequibo",
             "code": "GY009",
             "country": "79"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1137,
-        "fields": {
-            "name": "Heard Island and McDonald Islands",
-            "code": "HM001",
-            "country": "244"
         }
     },
     {
@@ -11341,15 +11206,6 @@
     },
     {
         "model": "api.District",
-        "pk": 1273,
-        "fields": {
-            "name": "Isle of Man",
-            "code": "IM001",
-            "country": "276"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 1274,
         "fields": {
             "name": "Andaman and Nicobar",
@@ -11670,15 +11526,6 @@
             "name": "West Bengal",
             "code": "IN035",
             "country": "84"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1310,
-        "fields": {
-            "name": "British Indian Ocean Territory",
-            "code": "IO001",
-            "country": "215"
         }
     },
     {
@@ -12372,15 +12219,6 @@
             "name": "Veneto",
             "code": "IT020",
             "country": "89"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1388,
-        "fields": {
-            "name": "Jersey",
-            "code": "JE001",
-            "country": "273"
         }
     },
     {
@@ -13893,15 +13731,6 @@
             "name": "Mubarak Al Kabeer",
             "code": "KW006",
             "country": "97"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1557,
-        "fields": {
-            "name": "Cayman Islands",
-            "code": "KY001",
-            "country": "220"
         }
     },
     {
@@ -17497,15 +17326,6 @@
     },
     {
         "model": "api.District",
-        "pk": 1959,
-        "fields": {
-            "name": "Northern Mariana Islands",
-            "code": "MP001",
-            "country": "255"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 1960,
         "fields": {
             "name": "Adrar",
@@ -17619,15 +17439,6 @@
             "name": "Trarza",
             "code": "MR013",
             "country": "114"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 1973,
-        "fields": {
-            "name": "Monserrat",
-            "code": "MS001",
-            "country": "216"
         }
     },
     {
@@ -19095,15 +18906,6 @@
             "name": "Zinder",
             "code": "NE008",
             "country": "127"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 2146,
-        "fields": {
-            "name": "Norfolk Island",
-            "code": "NF001",
-            "country": "254"
         }
     },
     {
@@ -26002,15 +25804,6 @@
     },
     {
         "model": "api.District",
-        "pk": 2917,
-        "fields": {
-            "name": "Turks and Caicos islands",
-            "code": "TC001",
-            "country": "219"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 2918,
         "fields": {
             "name": "Barh El Gazel",
@@ -28747,42 +28540,6 @@
     },
     {
         "model": "api.District",
-        "pk": 3234,
-        "fields": {
-            "name": "Kingman Reef",
-            "code": "UM005",
-            "country": "232"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 3235,
-        "fields": {
-            "name": "Midway Island",
-            "code": "UM006",
-            "country": "232"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 3236,
-        "fields": {
-            "name": "Palmyra Atoll",
-            "code": "UM007",
-            "country": "232"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 3237,
-        "fields": {
-            "name": "Wake Island",
-            "code": "UM008",
-            "country": "232"
-        }
-    },
-    {
-        "model": "api.District",
         "pk": 3238,
         "fields": {
             "name": "Alabama",
@@ -29814,24 +29571,6 @@
             "name": "Zulia",
             "code": "VE024",
             "country": "8"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 3354,
-        "fields": {
-            "name": "British Virgin Islands",
-            "code": "VG001",
-            "country": "218"
-        }
-    },
-    {
-        "model": "api.District",
-        "pk": 3355,
-        "fields": {
-            "name": "United States Virgin Islands",
-            "code": "VI001",
-            "country": "266"
         }
     },
     {
