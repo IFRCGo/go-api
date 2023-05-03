@@ -30,6 +30,12 @@ TEST_HAYSTACK_CONNECTIONS = {
     },
 }
 
+TEST_CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
 
 class GoAPITestMixin():
     """
@@ -149,6 +155,7 @@ class GoAPITestMixin():
     CELERY_TASK_ALWAYS_EAGER=True,
     SUSPEND_SIGNALS=True,
     HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
+    CACHES=TEST_CACHES,
 )
 class APITestCase(GoAPITestMixin, test.APITestCase):
     def setUp(self):
@@ -164,6 +171,7 @@ class APITestCase(GoAPITestMixin, test.APITestCase):
 @override_settings(
     SUSPEND_SIGNALS=True,
     HAYSTACK_CONNECTIONS=TEST_HAYSTACK_CONNECTIONS,
+    CACHES=TEST_CACHES,
 )
 class SnapshotTestCase(GoAPITestMixin, django_snapshottest.TestCase):
     maxDiff = None
