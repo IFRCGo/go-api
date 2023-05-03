@@ -1,3 +1,6 @@
+from itertools import chain
+from operator import attrgetter
+
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from reversion.views import RevisionMixin
@@ -27,6 +30,9 @@ from dref.serializers import (
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
     CompletedDrefOperationsSerializer,
+    MiniOperationalUpdateSerializer,
+    MiniDrefSerializer,
+    AddDrefUserSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -227,3 +233,45 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             return queryset
         else:
             return DrefFinalReport.get_for(user)
+
+
+class ActiveDrefOperationsViewSet(views.APIView):
+    # serializer_class = CompletedDrefOperationsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    # filterset_class = CompletedDrefOperationsFilterSet
+
+    def get(self, request, version=None):
+        user = self.request.user
+        dref = Dref.get_for(user)
+        dref_op_update = DrefOperationalUpdate.get_for(user)
+        dref_final_report = DrefFinalReport.get_for(user)
+        result_list = sorted(
+            chain(dref, dref_op_update, dref_final_report),
+            key=attrgetter('created_at'),
+            reverse=True
+        )
+        dref_list = []
+        for data in result_list:
+            if data.__class__.__name__ == "DrefFinalReport":
+                final_report = DrefFinalReport.objects.get(id=data.id)
+                dref_list.append(final_report)
+            elif data.__class__.__name__ == "DrefOperationalUpdate":
+                operational_update = DrefOperationalUpdate.objects.get(id=data.id)
+                dref_list.append(operational_update)
+            elif data.__class__.__name__ == "Dref":
+                dref = Dref.objects.get(id=data.id)
+                dref_list.append(dref)
+        serializer = MiniOperationalUpdateSerializer(dref_list, many=True)
+        return response.Response({"status": "success", "data": serializer.data})
+
+
+class DrefShareView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AddDrefUserSerializer(
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(status=status.HTTP_200_OK)

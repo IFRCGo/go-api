@@ -1110,3 +1110,68 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
+
+    def test_dref_share(self):
+        user1 = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
+        )
+        user3 = UserFactory.create(
+            username="user4@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user4@test.com",
+        )
+        user4 = UserFactory.create(
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User4",
+            password="admin123",
+            email="user3@test.com",
+        )
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+        )
+        op_update = DrefOperationalUpdateFactory.create(
+            dref=dref1,
+            created_by=user1,
+        )
+        final_report = DrefFinalReportFactory.create(
+            dref=dref1,
+            created_by=user1,
+        )
+        self.client.force_authenticate(user1)
+        data = {
+            "users": [user2.id, user3.id, user4.id],
+            "final_report": final_report.id
+        }
+
+        # share url
+        url = '/api/v2/dref-share/'
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(list(DrefFinalReport.objects.filter(id=final_report.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )
+        self.assertEqual(
+            set(list(Dref.objects.filter(id=dref1.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )
+        self.assertEqual(
+            set(list(DrefOperationalUpdate.objects.filter(id=op_update.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )

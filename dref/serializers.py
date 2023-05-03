@@ -4,6 +4,7 @@ import datetime
 from django.utils.translation import gettext
 from django.db import models, transaction
 from django.conf import settings
+from django.contrib.auth.models import User
 
 
 from rest_framework import serializers
@@ -1053,3 +1054,29 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "country_details",
             "dref",
         )
+
+
+class AddDrefUserSerializer(serializers.Serializer):
+    users = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True
+    )
+    final_report = serializers.IntegerField(write_only=True)
+
+    def save(self):
+        users_list = self.validated_data['users']
+        final_report = self.validated_data['final_report']
+
+        users = [User.objects.get(id=user_id) for user_id in users_list]
+        # get the final_report and add the users_list to user
+        final_report = DrefFinalReport.objects.filter(id=final_report).first()
+        final_report.users.set(users)
+
+        # lets also add to the dref as well
+        dref = Dref.objects.filter(dreffinalreport=final_report.id).first()
+        dref.users.set(users)
+
+        # lets also add to operational update as well
+        op_updates = DrefOperationalUpdate.objects.filter(dref=dref.id)
+        for op in op_updates:
+            op.users.set(users)

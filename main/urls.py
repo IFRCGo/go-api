@@ -204,6 +204,8 @@ urlpatterns = [
     url(r"^api/v2/add_cronjob_log/", AddCronJobLog.as_view()),
     url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
+    url(r"^api/v2/active-dref/", dref_views.ActiveDrefOperationsViewSet.as_view()),
+    url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
     url(r"^register", NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r"^updateperform", UpdatePerForm.as_view()),
