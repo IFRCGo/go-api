@@ -525,9 +525,13 @@ class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormComponentSerializer
     filterset_class = FormComponentFilter
-    queryset = (
-        FormComponent.objects.all().order_by("area__area_num", "component_num", "component_letter").select_related("area")
-    )
+
+    def get_queryset(self):
+        return FormComponent.objects.all().order_by(
+            "area__area_num",
+            "component_num",
+            "component_letter"
+        ).select_related("area")
 
 
 class FormQuestionFilter(filters.FilterSet):
@@ -549,6 +553,12 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
         .select_related("component")
         .prefetch_related("answers")
     )
+
+    def get_queryset(self):
+        return FormQuestion.objects.all()\
+            .order_by("component__component_num", "question_num", "question")\
+            .select_related("component")\
+            .prefetch_related("answers")
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
