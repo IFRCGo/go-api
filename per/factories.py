@@ -7,11 +7,18 @@ from per.models import (
     PerWorkPlanComponent,
     FormArea,
     FormComponent,
+    AssessmentType
 )
+
+
+class AssessmentTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AssessmentType
 
 
 class OverviewFactory(factory.django.DjangoModelFactory):
     date_of_assessment = factory.fuzzy.FuzzyNaiveDateTime(datetime.datetime(2023, 1, 1))
+    type_of_assessment = factory.SubFactory(AssessmentTypeFactory)
 
     class Meta:
         model = Overview
