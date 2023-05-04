@@ -86,6 +86,20 @@ class PerTestCase(APITestCase):
             "is_finalized": False,
             "country": country.id,
             "user": self.user.id,
+            "workplan_revision_date": "2021-03-11T00:00:00Z",
+            "facilitator_name": "Test Name",
+            "facilitator_email": "test@test",
+            "facilitator_phone": "981818181",
+            "facilitator_contact": "Nepal",
+            "ns_focal_point_name": "Test Name",
+            "ns_focal_point_email": "test@test",
+            "ns_focal_point_phone": "981818181",
+            "ns_focal_point_contact": "Nepal",
+            "partner_focal_point_name": "Test Name",
+            "partner_focal_point_email": "test@test",
+            "partner_focal_point_phone": "981818181",
+            "partner_focal_point_contact": "Nepal",
+
         }
         url = "/api/v2/new-per/"
         self.authenticate(self.user)
