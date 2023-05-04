@@ -163,6 +163,7 @@ router.register(r"dref-files", dref_views.DrefFileViewSet, basename="dref_files"
 router.register(r"dref-op-update", dref_views.DrefOperationalUpdateViewSet, basename="dref_operational_update")
 router.register(r"dref-final-report", dref_views.DrefFinalReportViewSet, basename="dref_final_report")
 router.register(r"completed-dref", dref_views.CompletedDrefOperationsViewSet, basename="completed_dref")
+router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename="active_dref")
 
 router.register(r"review-country", api_views.CountryOfFieldReportToReviewViewset, basename="review_country")
 
@@ -204,7 +205,6 @@ urlpatterns = [
     url(r"^api/v2/add_cronjob_log/", AddCronJobLog.as_view()),
     url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
-    url(r"^api/v2/active-dref/", dref_views.ActiveDrefOperationsViewSet.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
     url(r"^register", NewRegistration.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),

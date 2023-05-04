@@ -30,13 +30,7 @@ class DrefOperationalUpdateFilter(filters.FilterSet):
         fields = ["is_published"]
 
 
-class CompletedDrefOperationsFilterSet(filters.FilterSet):
-
-    class Type(models.TextChoices):
-        DREF = 'dref', 'Dref'
-        OPERATIONAL_UPDATE = 'operational_update', 'Operational Update'
-        FINAL_REPORT = 'final_report', 'Final Report'
-
+class BaseDrefFilterSet(filters.FilterSet):
     country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
     created_at__lte = filters.DateFilter(field_name="created_at", lookup_expr="lte", input_formats=["%Y-%m-%d"])
     created_at__gte = filters.DateFilter(field_name="created_at", lookup_expr="gte", input_formats=["%Y-%m-%d"])
@@ -45,6 +39,15 @@ class CompletedDrefOperationsFilterSet(filters.FilterSet):
         lookup_expr="in",
         widget=filters.widgets.CSVWidget,
     )
+
+
+class CompletedDrefOperationsFilterSet(BaseDrefFilterSet):
+
+    class Type(models.TextChoices):
+        DREF = 'dref', 'Dref'
+        OPERATIONAL_UPDATE = 'operational_update', 'Operational Update'
+        FINAL_REPORT = 'final_report', 'Final Report'
+
     # type = filters.ChoiceFilter(
     #     label='Tyoe choice',
     #     choices=Type.choices,
@@ -58,3 +61,9 @@ class CompletedDrefOperationsFilterSet(filters.FilterSet):
 
     # def filter_type(self, qs, name, value):
     #     pass
+
+
+class ActiveDrefFilterSet(BaseDrefFilterSet):
+    class Meta:
+        model = Dref
+        fields = ()

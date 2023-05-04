@@ -38,6 +38,7 @@ from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter,
     CompletedDrefOperationsFilterSet,
+    ActiveDrefFilterSet,
 )
 from dref.permissions import (
     DrefOperationalUpdateUpdatePermission,
@@ -235,12 +236,12 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             return DrefFinalReport.get_for(user, is_published=True)
 
 
-class ActiveDrefOperationsViewSet(views.APIView):
-    # serializer_class = CompletedDrefOperationsSerializer
+class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated]
-    # filterset_class = CompletedDrefOperationsFilterSet
+    filterset_class = ActiveDrefFilterSet
 
-    def get(self, request, version=None):
+    def get_queryset(self):
         user = self.request.user
         dref = Dref.get_for(user)
         dref_op_update = DrefOperationalUpdate.get_for(user)
@@ -281,12 +282,11 @@ class ActiveDrefOperationsViewSet(views.APIView):
                 dref_object = Dref.objects.get(dreffinalreport=final_report.id)
                 if dref_object not in annoatated_drefs:
                     annoatated_drefs.append(dref_object)
-        serializer = MiniDrefSerializer(annoatated_drefs, many=True)
-        return response.Response(
-            {
-                "results": serializer.data
-            }
-        )
+        dref_list = []
+        for dref in annoatated_drefs:
+            new_dref = Dref.objects.get(id=dref.id)
+            dref_list.append(new_dref.id)
+        return Dref.objects.filter(id__in=dref_list).order_by('-created_at')
 
 
 class DrefShareView(views.APIView):
