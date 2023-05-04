@@ -251,7 +251,7 @@ class FormComponentQuestionSerializer(serializers.ModelSerializer):
 
 
 class FormPrioritizationComponentSerializer(serializers.ModelSerializer):
-    component_details = FormComponentQuestionSerializer(source='component')
+    component_details = FormComponentQuestionSerializer(source='component', read_only=True)
 
     class Meta:
         model = FormPrioritizationComponent

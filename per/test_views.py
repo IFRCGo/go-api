@@ -131,27 +131,25 @@ class PerTestCase(APITestCase):
         component = FormComponentFactory.create()
         old_count = PerWorkPlan.objects.count()
         data = {
-            "workplans": {
-                "overview": overview.id,
-                "workplan_component": [
-                    {
-                        "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
-                        "responsible_email": "new@gmail.com",
-                        "responsible_name": "nanananan",
-                        "component": component.id,
-                        "area": area.id,
-                        "status": WorkPlanStatus.PENDING,
-                    },
-                    {
-                        "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
-                        "responsible_email": "new@gmail.com",
-                        "responsible_name": "nanananan",
-                        "component": component.id,
-                        "area": area.id,
-                        "status": WorkPlanStatus.PENDING,
-                    },
-                ],
-            }
+            "overview": overview.id,
+            "workplan_component": [
+                {
+                    "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
+                    "responsible_email": "new@gmail.com",
+                    "responsible_name": "nanananan",
+                    "component": component.id,
+                    "area": area.id,
+                    "status": WorkPlanStatus.PENDING,
+                },
+                {
+                    "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
+                    "responsible_email": "new@gmail.com",
+                    "responsible_name": "nanananan",
+                    "component": component.id,
+                    "area": area.id,
+                    "status": WorkPlanStatus.PENDING,
+                },
+            ],
         }
         url = "/api/v2/per-work-plan/"
         self.authenticate(self.ifrc_user)
