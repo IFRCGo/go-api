@@ -79,6 +79,23 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "national_society",
+            "disaster_type",
+            "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+        ]
+
+
 class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
@@ -86,6 +103,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     operational_update_details = MiniOperationalUpdateSerializer(
         source="drefoperationalupdate_set", many=True, read_only=True
     )
+    final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
 
     class Meta:
         model = Dref
@@ -103,6 +121,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "appeal_code",
             "created_at",
             "operational_update_details",
+            "final_report_details"
         ]
 
 
@@ -180,16 +199,6 @@ class IdentifiedNeedSerializer(ModelSerializer):
             request = self.context["request"]
             return IdentifiedNeed.get_image_map(title, request)
         return None
-
-
-class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DrefFinalReport
-        fields = [
-            "id",
-            "title",
-            "is_published",
-        ]
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):

@@ -232,7 +232,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         if user.is_superuser:
             return queryset
         else:
-            return DrefFinalReport.get_for(user)
+            return DrefFinalReport.get_for(user, is_published=True)
 
 
 class ActiveDrefOperationsViewSet(views.APIView):
@@ -261,8 +261,32 @@ class ActiveDrefOperationsViewSet(views.APIView):
             elif data.__class__.__name__ == "Dref":
                 dref = Dref.objects.get(id=data.id)
                 dref_list.append(dref)
-        serializer = MiniOperationalUpdateSerializer(dref_list, many=True)
-        return response.Response({"status": "success", "data": serializer.data})
+        # iterate over the list and get the dref from that
+        # check the dref in the new list if exists
+        # annotated dref here
+        annoatated_drefs = []
+        for dref in dref_list:
+            if dref.__class__.__name__ == 'DrefOperationalUpdate':
+                # annotate the dref and other operational update for that dref
+                operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
+                dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+            elif dref.__class__.__name__ == 'Dref':
+                dref_object = Dref.objects.get(id=dref.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+            elif dref.__class__.__name__ == 'DrefFinalReport':
+                final_report = DrefFinalReport.objects.get(id=dref.id)
+                dref_object = Dref.objects.get(dreffinalreport=final_report.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+        serializer = MiniDrefSerializer(annoatated_drefs, many=True)
+        return response.Response(
+            {
+                "results": serializer.data
+            }
+        )
 
 
 class DrefShareView(views.APIView):
