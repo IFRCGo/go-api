@@ -1,7 +1,6 @@
 from django.test import override_settings
 from django.contrib.auth.models import User, AnonymousUser
 from django.conf import settings
-from fakeredis import FakeConnection
 
 from main.settings import *
 from main.test_case import APITestCase
