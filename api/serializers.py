@@ -218,11 +218,12 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Admin2
-        fields = ('district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
+        fields = ('id', 'district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class MiniAdmin2Serializer(ModelSerializer):
     district_id = serializers.IntegerField(source='admin1.id', read_only=True)
+
     class Meta:
         model = Admin2
         fields = ('id', 'name', 'code', 'district_id')
