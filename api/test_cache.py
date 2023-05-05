@@ -10,10 +10,9 @@ from api import models
 FAKE_REDIS_CACHE = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': env('CACHE_REDIS_URL'),
+        'LOCATION': env('CACHE_TEST_REDIS_URL'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'connection_class': FakeConnection
         }
     }
 }

@@ -25,6 +25,7 @@ x-server: &base_server_setup
     ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
     CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
     CACHE_REDIS_URL: ${CACHE_REDIS_URL:-redis://redis:6379/1}
+    CACHE_TEST_REDIS_URL: ${CACHE_TEST_REDIS_URL:-redis://redis:6379/11}
     ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST:-elasticsearch://elasticsearch:9200}
     # Appeal API
     APPEALS_USER: ${APPEALS_USER}

@@ -52,6 +52,7 @@ env = environ.Env(
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
     CACHE_REDIS_URL=str,
+    CACHE_TEST_REDIS_URL=(str, None),
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
