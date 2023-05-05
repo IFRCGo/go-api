@@ -31,10 +31,13 @@ jobs:
       - run:
           name: Push image to Docker Hub
           command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ] || [ "${CIRCLE_BRANCH}" == "develop" ]; then
+            if [ "${CIRCLE_BRANCH}" == "master" ] || [ "${CIRCLE_BRANCH}" == "develop" ]|| [ "${CIRCLE_BRANCH}" == "remotetest" ]; then
               {
                 if [ "${CIRCLE_BRANCH}" == "develop" ]; then
                   LATEST_GIT_TAG=develop &&
+                  echo $LATEST_GIT_TAG
+                elif [ "${CIRCLE_BRANCH}" == "remotetest" ]; then
+                  LATEST_GIT_TAG=remotetest &&
                   echo $LATEST_GIT_TAG
                 else
                   LATEST_GIT_TAG=$(git describe --tags --abbrev=0 --match 1.*) &&
