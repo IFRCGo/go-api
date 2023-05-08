@@ -1,9 +1,9 @@
 from rest_framework import serializers
+
 from django.contrib.auth.models import User
 
-from api.models import Region, Country
+from api.models import Region
 from api.serializers import RegoCountrySerializer, UserNameSerializer
-from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 from .models import (
     Form,
     FormArea,
@@ -28,6 +28,7 @@ from api.serializers import (
     MiniCountrySerializer,
 )
 from .admin_classes import RegionRestrictedAdmin
+from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 
 
 class IsFinalOverviewSerializer(serializers.ModelSerializer):
@@ -251,7 +252,7 @@ class FormComponentQuestionSerializer(serializers.ModelSerializer):
 
 
 class FormPrioritizationComponentSerializer(serializers.ModelSerializer):
-    component_details = FormComponentQuestionSerializer(source='component', read_only=True)
+    component_details = FormComponentQuestionSerializer(source="component", read_only=True)
 
     class Meta:
         model = FormPrioritizationComponent
@@ -277,3 +278,23 @@ class PerOverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Overview
         fields = "__all__"
+
+    def validate_orientation_document(self, document):
+        if self.date_of_orientation:
+            raise serializers.ValidationError("This field is required")
+        return document
+
+
+class PerProcessSerializer(serializers.ModelSerializer):
+    per_cycle = serializers.IntegerField(source="assessment_number")
+    phase = serializers.SerializerMethodField()
+    start_date = serializers.DateTimeField(source="date_of_assessment")
+
+    class Meta:
+        model = Overview
+        fields = "__all__"
+
+    def get_phase(self, obj):
+        if hasattr(obj, 'date_of_assessment'):
+            return "1-Orientation"
+        return None
