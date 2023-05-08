@@ -93,6 +93,14 @@ class FormComponent(models.Model):
         verbose_name=_("Urban Considerations"),
         null=True, blank=True
     )
+    epi_considerations = models.TextField(
+        verbose_name=_("Epi Considerations"),
+        null=True, blank=True
+    )
+    climate_environmental_conisderations = models.TextField(
+        verbose_name=_("Climate Environmental Considerations"),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -258,6 +266,18 @@ class Overview(models.Model):
     partner_focal_point_organization = models.CharField(
         verbose_name=_("partner focal point organization name"), max_length=90, null=True, blank=True
     )
+    ns_second_focal_point_name = models.CharField(
+        verbose_name=_("ns second focal point name"),
+        max_length=90, null=True, blank=True
+    )
+    ns_second_focal_point_email = models.CharField(
+        verbose_name=_("ns second focal point email"),
+        max_length=90, null=True, blank=True
+    )
+    ns_second_focal_point_phone = models.CharField(
+        verbose_name=_("ns second focal point phone"),
+        max_length=90, null=True, blank=True
+    )
 
     class Meta:
         ordering = ("country",)
@@ -275,6 +295,14 @@ class Overview(models.Model):
             name = self.country.society_name or ""
         fpname = f" ({self.ns_focal_point_name})" if self.ns_focal_point_name else ""
         return f"{name}{fpname}"
+
+    def save(self, *args, **kwargs):
+        super().save()
+        # get the latest
+        if self.pk is None:
+            overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
+            if overview.exists():
+                self.assessment_number = overview[0].assessment_number + 1
 
 
 @reversion.register()
