@@ -189,3 +189,42 @@ class PerTestCase(APITestCase):
         self.authenticate(self.ifrc_user)
         response = self.client.post(url, data, format="json")
         self.assert_201(response)
+
+    def test_overview_date_of_assessment(self):
+        country = CountryFactory.create()
+        data = {
+            "date_of_orientation": "2021-03-11T00:00:00Z",
+            "assessment_number": 1,
+            "branches_involved": "test branches",
+            "date_of_assessment": "2021-03-08T00:00:00Z",
+            "assess_preparedness_of_country": True,
+            "assess_urban_aspect_of_country": True,
+            "assess_climate_environment_of_country": True,
+            "date_of_previous_assessment": "2021-03-10T00:00:00Z",
+            "type_of_per_assessment": "test",
+            "date_of_mid_term_review": "2021-03-10T00:00:00Z",
+            "date_of_next_asmt": "2021-03-11T00:00:00Z",
+            "is_epi": True,
+            "is_finalized": False,
+            "country": country.id,
+            "user": self.user.id,
+            "workplan_revision_date": "2021-03-11T00:00:00Z",
+            "facilitator_name": "Test Name",
+            "facilitator_email": "test@test",
+            "facilitator_phone": "981818181",
+            "facilitator_contact": "Nepal",
+            "ns_focal_point_name": "Test Name",
+            "ns_focal_point_email": "test@test",
+            "ns_focal_point_phone": "981818181",
+            "ns_focal_point_contact": "Nepal",
+            "partner_focal_point_name": "Test Name",
+            "partner_focal_point_email": "test@test",
+            "partner_focal_point_phone": "981818181",
+            "partner_focal_point_contact": "Nepal",
+
+        }
+        url = "/api/v2/new-per/"
+        self.authenticate(self.user)
+        response = self.client.post(url, data, format="multipart")
+        self.assert_403(response)
+        
