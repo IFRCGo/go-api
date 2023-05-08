@@ -188,7 +188,7 @@ class Overview(models.Model):
     )
 
     # Orientation
-    date_of_orientation = models.DateTimeField(verbose_name=_("Date of Orientation"), null=True, blank=True)
+    date_of_orientation = models.DateField(verbose_name=_("Date of Orientation"), null=True, blank=True)
     orientation_document = models.FileField(
         verbose_name=_("Orientation Document"), null=True, blank=True, upload_to="per/documents/"
     )
@@ -203,7 +203,7 @@ class Overview(models.Model):
     )
     assessment_number = models.IntegerField(verbose_name=_("assessment number"), default=1)
     branches_involved = models.CharField(verbose_name=_("branches involved"), max_length=400, null=True, blank=True)
-    date_of_assessment = models.DateTimeField(verbose_name=_("date of assessment"))
+    date_of_assessment = models.DateField(verbose_name=_("date of assessment"))
     method_asmt_used = models.CharField(
         verbose_name=_("what method has this assessment used"), max_length=90, null=True, blank=True
     )
@@ -220,22 +220,22 @@ class Overview(models.Model):
     )
 
     # Previouse PER Assessment
-    date_of_previous_assessment = models.DateTimeField(verbose_name=_("Date of previous assessment"), null=True, blank=True)
+    date_of_previous_assessment = models.DateField(verbose_name=_("Date of previous assessment"), null=True, blank=True)
     type_of_per_assessment = models.CharField(
         verbose_name=_("Type of Per Asessement"), max_length=255, null=True, blank=True
     )
     # Reviews Planned
-    date_of_mid_term_review = models.DateTimeField(
+    date_of_mid_term_review = models.DateField(
         verbose_name=_("estimated date of mid term review"), null=True, blank=True
     )
-    date_of_next_asmt = models.DateTimeField(verbose_name=_("estimated date of next assessment"), null=True, blank=True)
+    date_of_next_asmt = models.DateField(verbose_name=_("estimated date of next assessment"), null=True, blank=True)
 
     # Workplan reviews planned
-    workplan_development_date = models.DateTimeField(
+    workplan_development_date = models.DateField(
         verbose_name=_("Workplan Development Date"),
         null=True, blank=True
     )
-    workplan_revision_date = models.DateTimeField(
+    workplan_revision_date = models.DateField(
         verbose_name=_("Workplan Revision Date"),
         null=True, blank=True
     )
