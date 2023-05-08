@@ -133,6 +133,7 @@ router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset, base
 router.register(r'perstat', per_views.FormStatViewset, basename='perstat')
 router.register(r'perworkplan', per_views.WorkPlanViewset)
 router.register(r'per-work-plan', per_views.NewPerWorkPlanViewSet)
+router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')
 # router.register(r'per-form-data', per_views.PerFormDataViewSet, basename='per-form-data')
 router.register(r'per_country_duedate', per_views.CountryDuedateViewset)
 router.register(r'per_engaged_ns_percentage', per_views.EngagedNSPercentageViewset, basename='per_engaged_ns_percentage')

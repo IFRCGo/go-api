@@ -62,6 +62,7 @@ from .serializers import (
     PerWorkPlanSerializer,
     PerFormDataSerializer,
     FormPrioritizationSerializer,
+    PerProcessSerializer,
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -472,7 +473,7 @@ class OverviewViewset(viewsets.ReadOnlyModelViewSet):
 class OverviewStrictViewset(OverviewViewset):
     """PER Overview Viewset - strict"""
 
-    authentication_classes = (TokenAuthentication,)
+    # authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = OverviewSerializer
 
@@ -681,3 +682,12 @@ class PerOptionsView(views.APIView):
             'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus]
         }
         return response.Response(options)
+
+
+class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PerProcessSerializer
+    # filterset_class = PerProcessFilterSet
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Overview.objects.order_by('-date_of_orientation')
