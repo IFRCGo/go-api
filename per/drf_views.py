@@ -10,6 +10,7 @@ from rest_framework import (
     views,
     response,
     permissions,
+    status
 )
 from rest_framework.views import APIView
 from django.http import HttpResponse
@@ -43,7 +44,6 @@ from .models import (
 from .serializers import (
     FormStatSerializer,
     ListFormSerializer,
-    ListFormWithDataSerializer,
     ListFormDataSerializer,
     ShortFormSerializer,
     EngagedNSPercentageSerializer,
@@ -63,12 +63,16 @@ from .serializers import (
     PerFormDataSerializer,
     FormPrioritizationSerializer,
     PerProcessSerializer,
+    FormAsessmentDraftSerializer,
+    FormAsessmentSerializer,
+    FormSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,
     PerWorkPlanFilter,
+    FormAssessmentFilterSet
 )
 
 
@@ -458,16 +462,16 @@ class OverviewFilter(filters.FilterSet):
 class OverviewViewset(viewsets.ReadOnlyModelViewSet):
     """PER Overview Viewset"""
 
-    queryset = (
-        Overview.objects.all()
-        .select_related("country", "user", "type_of_assessment")
-        .prefetch_related("forms")
-        .order_by("country__name", "-updated_at")
-    )
     # Some parts can be seen by public | NO authentication_classes = (TokenAuthentication,)
     # Some parts can be seen by public | NO permission_classes = (IsAuthenticated,)
     filterset_class = OverviewFilter
     serializer_class = OverviewSerializer
+
+    def get_queryset(self):
+        return Overview.objects.all()\
+            .select_related("country", "user", "type_of_assessment")\
+            .prefetch_related("forms")\
+            .order_by("country__name", "-updated_at")
 
 
 class OverviewStrictViewset(OverviewViewset):
@@ -548,12 +552,6 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormQuestionSerializer
     filterset_class = FormQuestionFilter
-    queryset = (
-        FormQuestion.objects.all()
-        .order_by("component__component_num", "question_num", "question")
-        .select_related("component")
-        .prefetch_related("answers")
-    )
 
     def get_queryset(self):
         return FormQuestion.objects.all()\
@@ -690,4 +688,45 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Overview.objects.order_by('-date_of_orientation')
+        return Overview.objects.order_by('country', '-assessment_number',)
+
+
+class FormAssessmentDraftViewSet(viewsets.ModelViewSet):
+    serializer_class = FormAsessmentDraftSerializer
+    filterset_class = FormAssessmentFilterSet
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Form.objects.filter(is_draft=True).select_related('area')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
+
+class FormAssessmentViewSet(viewsets.ModelViewSet):
+    serializer_class = FormAsessmentSerializer
+    filterset_class = FormAssessmentFilterSet
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Form.objects.select_related('area')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+

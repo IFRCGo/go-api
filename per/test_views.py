@@ -9,6 +9,7 @@ from .models import (
     PerWorkPlan,
     WorkPlanStatus,
     PerWorkPlanComponent,
+    FormData
 )
 from api.factories.country import CountryFactory
 from per.factories import (
@@ -17,6 +18,8 @@ from per.factories import (
     PerWorkPlanFactory,
     FormAreaFactory,
     FormComponentFactory,
+    FormAnswerFactory,
+    FormQuestionFactory
 )
 
 
@@ -71,22 +74,22 @@ class PerTestCase(APITestCase):
     def test_create_peroverview(self):
         country = CountryFactory.create()
         data = {
-            "date_of_orientation": "2021-03-11T00:00:00Z",
+            "date_of_orientation": "2021-03-11",
             "assessment_number": 1,
             "branches_involved": "test branches",
-            "date_of_assessment": "2021-03-08T00:00:00Z",
+            "date_of_assessment": "2021-03-08",
             "assess_preparedness_of_country": True,
             "assess_urban_aspect_of_country": True,
             "assess_climate_environment_of_country": True,
-            "date_of_previous_assessment": "2021-03-10T00:00:00Z",
+            "date_of_previous_assessment": "2021-03-10",
             "type_of_per_assessment": "test",
-            "date_of_mid_term_review": "2021-03-10T00:00:00Z",
-            "date_of_next_asmt": "2021-03-11T00:00:00Z",
+            "date_of_mid_term_review": "2021-03-10",
+            "date_of_next_asmt": "2021-03-11",
             "is_epi": True,
             "is_finalized": False,
             "country": country.id,
             "user": self.user.id,
-            "workplan_revision_date": "2021-03-11T00:00:00Z",
+            "workplan_revision_date": "2021-03-11",
             "facilitator_name": "Test Name",
             "facilitator_email": "test@test",
             "facilitator_phone": "981818181",
@@ -193,22 +196,22 @@ class PerTestCase(APITestCase):
     def test_overview_date_of_assessment(self):
         country = CountryFactory.create()
         data = {
-            "date_of_orientation": "2021-03-11T00:00:00Z",
+            "date_of_orientation": "2021-03-11",
             "assessment_number": 1,
             "branches_involved": "test branches",
-            "date_of_assessment": "2021-03-08T00:00:00Z",
+            "date_of_assessment": "2021-03-08",
             "assess_preparedness_of_country": True,
             "assess_urban_aspect_of_country": True,
             "assess_climate_environment_of_country": True,
-            "date_of_previous_assessment": "2021-03-10T00:00:00Z",
+            "date_of_previous_assessment": "2021-03-10",
             "type_of_per_assessment": "test",
-            "date_of_mid_term_review": "2021-03-10T00:00:00Z",
-            "date_of_next_asmt": "2021-03-11T00:00:00Z",
+            "date_of_mid_term_review": "2021-03-10",
+            "date_of_next_asmt": "2021-03-11",
             "is_epi": True,
             "is_finalized": False,
             "country": country.id,
             "user": self.user.id,
-            "workplan_revision_date": "2021-03-11T00:00:00Z",
+            "workplan_revision_date": "2021-03-11",
             "facilitator_name": "Test Name",
             "facilitator_email": "test@test",
             "facilitator_phone": "981818181",
@@ -227,4 +230,149 @@ class PerTestCase(APITestCase):
         self.authenticate(self.user)
         response = self.client.post(url, data, format="multipart")
         self.assert_403(response)
-        
+
+    def test_create_per_assessment(self):
+        area1 = FormAreaFactory.create(title="area1")
+        area2 = FormAreaFactory.create(title="area2")
+        area3 = FormAreaFactory.create(title="area3")
+        area4 = FormAreaFactory.create(title="area4")
+        area5 = FormAreaFactory.create(title="area5")
+        overview = OverviewFactory.create()
+        question1, question2, question3, question4, question5 = FormQuestionFactory.create_batch(5)
+        answer1, answer2, answer3, answer4, answer5 = FormAnswerFactory.create_batch(5)
+
+        data = [
+            {
+                "area": area1.id,
+                "overview": overview.id,
+                "form_data": [
+                    {
+                        "question": question1.id,
+                        "selected_answer": answer1.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question2.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question3.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question4.id,
+                        "selected_answer": answer4.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question5.id,
+                        "selected_answer": answer5.id,
+                        "notes": "test description",
+                    },
+                ]
+            },
+            {
+                "area": area2.id,
+                "overview": overview.id,
+                "form_data": [
+                    {
+                        "question": question1.id,
+                        "selected_answer": answer1.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question2.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question3.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question4.id,
+                        "selected_answer": answer4.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question5.id,
+                        "selected_answer": answer5.id,
+                        "notes": "test description",
+                    },
+                ]
+            },
+            {
+                "area": area3.id,
+                "overview": overview.id,
+                "form_data": [
+                    {
+                        "question": question1.id,
+                        "selected_answer": answer1.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question2.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question3.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question4.id,
+                        "selected_answer": answer4.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question5.id,
+                        "selected_answer": answer5.id,
+                        "notes": "test description",
+                    },
+                ]
+            },
+            {
+                "area": area4.id,
+                "overview": overview.id,
+                "form_data": [
+                    {
+                        "question": question1.id,
+                        "selected_answer": answer1.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question2.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question3.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question4.id,
+                        "selected_answer": answer4.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question5.id,
+                        "selected_answer": answer5.id,
+                        "notes": "test description",
+                    },
+                ]
+            }
+        ]
+
+        url = '/api/v2/per-draft-asessment/'
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data, format="json")
+        self.assertEqual(response.status_code, 201)
+
+        # Check for area created for provided
+        self.assertEqual(Form.objects.filter(overview_id=overview.id, is_draft=True).count(), 4)
+        self.assertEqual(FormData.objects.filter(form__overview=overview).count(), 20)
