@@ -66,6 +66,16 @@ class FormQuestionSerializer(serializers.ModelSerializer):
         fields = ("component", "question", "question_num", "answers", "is_epi", "is_benchmark", "description", "id")
 
 
+class MiniQuestionSerailizer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestion
+        fields = (
+            "id",
+            "question",
+            "question_num",
+        )
+
+
 class ListFormSerializer(serializers.ModelSerializer):
     area = FormAreaSerializer()
     user = UserNameSerializer()
@@ -97,20 +107,90 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         fields = ("form", "question_id", "selected_answer", "notes", "id")
 
 
-class FormDataWOFormSerializer(serializers.ModelSerializer):
-    selected_answer = FormAnswerSerializer()
+class FormDataWOFormSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    selected_answer_details = FormAnswerSerializer(source='selected_answer', read_only=True)
+    question_details = MiniQuestionSerailizer(source='question', read_only=True)
 
     class Meta:
         model = FormData
-        fields = ("question_id", "selected_answer", "notes", "id")
+        fields = (
+            "question",
+            "selected_answer",
+            "notes",
+            "id",
+            "selected_answer_details",
+            "question_details"
+        )
 
 
-class ListFormWithDataSerializer(ListFormSerializer):
+class FormAsessmentDraftSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
     form_data = FormDataWOFormSerializer(many=True)
 
     class Meta:
         model = Form
-        fields = ("area", "overview", "form_data", "updated_at", "comment", "user", "id")
+        fields = (
+            "area",
+            "overview",
+            "form_data",
+            "updated_at",
+            "comment",
+            "id",
+            "is_draft",
+        )
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        validated_data["is_draft"] = True
+        form_data = validated_data.pop('form_data')
+        form = super().create(validated_data)
+        for data in form_data:
+            data['form'] = Form.objects.get(id=form.id)
+            FormData.objects.create(**data)
+        return form
+
+    def update(self, instance, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(instance, validated_data)
+
+
+class FormAsessmentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    form_data = FormDataWOFormSerializer(many=True)
+
+    class Meta:
+        model = Form
+        fields = (
+            "area",
+            "overview",
+            "form_data",
+            "updated_at",
+            "comment",
+            "id",
+        )
+
+    def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
+        form_data = validated_data.pop('form_data')
+        form = super().create(validated_data)
+        for data in form_data:
+            data['form'] = Form.objects.get(id=form.id)
+            FormData.objects.create(**data)
+        return form
+
+    def update(self, instance, validated_data):
+        validated_data["user"] = self.context["request"].user
+        return super().create(instance, validated_data)
 
 
 class ListNiceDocSerializer(serializers.ModelSerializer):
@@ -272,8 +352,9 @@ class PerOverviewSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
     # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
-    # area = FormAreaSerializer(many=True, required=False)
+    forms = FormAsessmentSerializer(many=True, required=False, read_only=True)
     workplan = PerWorkPlanSerializer(read_only=True, source="perworkplan_set", many=True)
+    formprioritization = FormPrioritizationSerializer(read_only=True, many=True, source="formprioritization_set")
 
     class Meta:
         model = Overview
@@ -283,6 +364,11 @@ class PerOverviewSerializer(serializers.ModelSerializer):
         if self.date_of_orientation:
             raise serializers.ValidationError("This field is required")
         return document
+
+    def validate_type_of_assessment(self, type_of_assessment):
+        if self.date_of_assessment:
+            raise serializers.ValidationError("This field is required")
+        return type_of_assessment
 
 
 class PerProcessSerializer(serializers.ModelSerializer):
@@ -295,6 +381,10 @@ class PerProcessSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_phase(self, obj):
+        # get the overview
+        overview = obj.perworkplan_set
+        print(overview)
         if hasattr(obj, 'date_of_assessment'):
             return "1-Orientation"
         return None
+
