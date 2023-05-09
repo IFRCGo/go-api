@@ -7,7 +7,10 @@ from per.models import (
     PerWorkPlanComponent,
     FormArea,
     FormComponent,
-    AssessmentType
+    AssessmentType,
+    FormAnswer,
+    FormQuestion,
+    Form
 )
 
 
@@ -55,3 +58,22 @@ class FormComponentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = FormComponent
+
+
+class FormAnswerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FormAnswer
+
+
+class FormQuestionFactory(factory.django.DjangoModelFactory):
+    component = factory.SubFactory(FormComponentFactory)
+
+    class Meta:
+        model = FormQuestion
+
+
+class FormFactory(factory.django.DjangoModelFactory):
+    overview = factory.SubFactory(OverviewFactory)
+
+    class Meta:
+        model = Form
