@@ -49,7 +49,8 @@ terraform {
     resource_group_name  = "ifrcpgoterraform001rg"
     storage_account_name = "ifrcgoterraform"
     container_name       = "terraform"
-    key                  = "${var.environment}"
+    # this is meant to be replaced in bin/deploy function so the correct environment is deployed
+    key                  = "ENVIRONMENT_TO_REPLACE"
   }
 }
 
