@@ -146,6 +146,8 @@ router.register(r'per-formarea', per_views.FormAreaViewset, basename='per-formar
 router.register(r'per-formcomponent', per_views.FormComponentViewset, basename='per-formcomponent')
 router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='per-formquestion')
 router.register(r'per-prioritization', per_views.FormPrioritizationViewSet, basename='per-priorirization')
+router.register(r'per-draft-asessment', per_views.FormAssessmentDraftViewSet, basename='per-draft-assessment')
+router.register(r'per-assessment', per_views.FormAssessmentViewSet, basename='per-assessent')
 router.register(r'profile', api_views.ProfileViewset, basename='profile')
 router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'emergency-project', deployment_views.EmergencyProjectViewSet)
