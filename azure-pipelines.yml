@@ -1,5 +1,5 @@
 trigger:
-- terraform
+- terraform-prod
 
 pr:
 - azure-pipelines
@@ -36,26 +36,11 @@ jobs:
       addSpnToEnvironment: true
       useGlobalConfig: true
 
-  # - task: AzureCLI@2
-  #   displayName: "Login to Az"
-  #   inputs:
-  #     azureSubscription: 'IFRC-GO-Kubernetes'
-  #     scriptType: 'bash'
-  #     scriptLocation: 'inlineScript'
-  #     inlineScript: 'az login --service-principal -u $(TERRAFORM_SERVICE_PRINCIPAL_ID) -p $(TERRAFORM_SERVICE_PRINCIPAL_KEY) --tenant $(TERRAFORM_TENANT_ID)'
-  #     addSpnToEnvironment: true
-  #     useGlobalConfig: true
-
-#  - task: Docker@2
-#    displayName: "Login to ACR"
-#    inputs:
-#      containerRegistry: $(STAGING_REGISTRY_NAME)
-#      command: 'login'
-
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
     displayName: "Build and Push"
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
     displayName: "Deploy Staging"
     env:
       environment: staging
