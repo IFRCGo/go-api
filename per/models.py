@@ -319,6 +319,10 @@ class Form(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     comment = models.TextField(verbose_name=_("comment"), null=True, blank=True)  # form level comment
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        null=True, blank=True
+    )
 
     class Meta:
         ordering = ("area", "created_at")
