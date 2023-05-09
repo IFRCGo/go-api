@@ -88,6 +88,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
     # Replace the backend state key in the main.tf to pick the right environment
     sed -i '' "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" main.tf
+    cat main.tf
 
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."
