@@ -49,7 +49,7 @@ terraform {
     resource_group_name  = "ifrcpgoterraform001rg"
     storage_account_name = "ifrcgoterraform"
     container_name       = "terraform"
-    key                  = "staging"
+    key                  = "${var.environment}"
   }
 }
 
