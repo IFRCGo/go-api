@@ -216,7 +216,7 @@ variable "ifrcgo_prod_resources_rg" {
 
 variable "ifrcgo_prod_resources_db_server" {
   type = string
-  default = "ifrctgopdb001"
+  default = "ifrcpgokdb001"
 }
 
 variable "ifrcgo_prod_resources_db" {
