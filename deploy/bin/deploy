@@ -1,16 +1,13 @@
 #!/bin/bash
 
-set -e
-
-if [[ "${CI}" ]]; then
-    set -x
-fi
+set -x
 
 function usage() {
     echo -n \
         "Usage: $(basename "$0") -t TERRAFORM_DIR [--plan,--skip-tf]
 Deploys the project infrastructure.
 -t TERRAFORM_DIR: The terraform directory. Required.
+-e ENVIRONMENT: The environment to deploy. Required.
 --plan: Only run Terraform plan.
 --skip-tf: Skips Terraform apply. Will still gather terraform output
 "
@@ -23,6 +20,11 @@ Deploys the project infrastructure.
 while [[ "$#" -gt 0 ]]; do case $1 in
     -t)
         TERRAFORM_DIR=${2}
+        shift
+        shift
+        ;;
+    -e)
+        ENVIRONMENT=${3}
         shift
         shift
         ;;
@@ -68,6 +70,10 @@ if [[ -z ${TERRAFORM_DIR} ]]; then
     exit 1
 fi
 
+if [[ -z ${ENVIRONMENT} ]]; then
+    echo "Must pass in ENVIRONMENT with -e"
+    exit 1
+fi
 
 # Print some information
 
@@ -87,8 +93,8 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     pushd ${TERRAFORM_DIR}
 
     # Replace the backend state key in the main.tf to pick the right environment
+    echo "Running for $ENVIRONMENT"
     sed -i '' "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" main.tf
-    cat main.tf
 
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."
