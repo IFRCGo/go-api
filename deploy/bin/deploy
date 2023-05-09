@@ -77,7 +77,10 @@ fi
 
 # Print some information
 
-echo "===== Running Deploy ====="
+echo "===== Running Deploy for $ENVIRONMENT ====="
+
+# Replace the backend state key in the main.tf to pick the right environment
+sed -i '' "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" ${TERRAFORM_DIR}/main.tf
 
 
 # ---- TODO: Run Chartpress ------
@@ -92,9 +95,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
     pushd ${TERRAFORM_DIR}
 
-    # Replace the backend state key in the main.tf to pick the right environment
-    echo "Running for $ENVIRONMENT"
-    sed -i '' "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" main.tf
 
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."
