@@ -206,6 +206,8 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
+# To find a more suitable caching strategy, not loading the cache middleware
+# temporarily. At enable time pls rename api/t_est_cache.py also. FIXME: # ¤
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -214,9 +216,9 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'middlewares.cache.UpdateCacheForUserMiddleware',
+    # ¤ 'middlewares.cache.UpdateCacheForUserMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'middlewares.cache.FetchFromCacheForUserMiddleware',
+    # ¤ 'middlewares.cache.FetchFromCacheForUserMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
