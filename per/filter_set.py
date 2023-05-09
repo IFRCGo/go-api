@@ -4,6 +4,8 @@ from per.models import (
     Overview,
     FormPrioritization,
     PerWorkPlan,
+    FormArea,
+    Form,
 )
 from api.models import Country
 
@@ -17,7 +19,7 @@ class PerOverviewFilter(filters.FilterSet):
 
 
 class PerPrioritizationFilter(filters.FilterSet):
-    component = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
+    overview = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
 
     class Meta:
         model = FormPrioritization
@@ -25,8 +27,16 @@ class PerPrioritizationFilter(filters.FilterSet):
 
 
 class PerWorkPlanFilter(filters.FilterSet):
-    component = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
+    overview = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
 
     class Meta:
         model = PerWorkPlan
+        fields = ()
+
+
+class FormAssessmentFilterSet(filters.FilterSet):
+    overview = filters.NumberFilter(field_name="overview_id", lookup_expr="exact")
+
+    class Meta:
+        model = Form
         fields = ()
