@@ -1,3 +1,5 @@
+import json
+
 from main.test_case import APITestCase
 from api.models import Country
 from .models import (
@@ -19,7 +21,8 @@ from per.factories import (
     FormAreaFactory,
     FormComponentFactory,
     FormAnswerFactory,
-    FormQuestionFactory
+    FormQuestionFactory,
+    FormDataFactory,
 )
 
 
@@ -365,6 +368,37 @@ class PerTestCase(APITestCase):
                         "notes": "test description",
                     },
                 ]
+            },
+            {
+                "area": area5.id,
+                "overview": overview.id,
+                "form_data": [
+                    {
+                        "question": question1.id,
+                        "selected_answer": answer1.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question2.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question3.id,
+                        "selected_answer": answer3.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question4.id,
+                        "selected_answer": answer4.id,
+                        "notes": "test description",
+                    },
+                    {
+                        "question": question5.id,
+                        "selected_answer": answer5.id,
+                        "notes": "test description",
+                    },
+                ]
             }
         ]
 
@@ -372,7 +406,93 @@ class PerTestCase(APITestCase):
         self.authenticate(self.user)
         response = self.client.post(url, data=data, format="json")
         self.assertEqual(response.status_code, 201)
+        response_data = json.loads(response.content)
+        form_id = response_data[0]['id']
 
         # Check for area created for provided
-        self.assertEqual(Form.objects.filter(overview_id=overview.id, is_draft=True).count(), 4)
-        self.assertEqual(FormData.objects.filter(form__overview=overview).count(), 20)
+        self.assertEqual(Form.objects.filter(overview_id=overview.id, is_draft=True).count(), 5)
+        self.assertEqual(FormData.objects.filter(form__overview=overview).count(), 25)
+
+        # Some answer and question for formdata
+        answer1 = FormAnswerFactory.create()
+        answer2 = FormAnswerFactory.create()
+        answer3 = FormAnswerFactory.create()
+        answer4 = FormAnswerFactory.create()
+        answer5 = FormAnswerFactory.create()
+
+        question1 = FormQuestionFactory.create()
+        question2 = FormQuestionFactory.create()
+        question3 = FormQuestionFactory.create()
+        question4 = FormQuestionFactory.create()
+        question5 = FormQuestionFactory.create()
+
+        form_data1 = FormDataFactory.create(
+            selected_answer=answer1,
+            question=question1
+        )
+        form_data2 = FormDataFactory.create(
+            selected_answer=answer2,
+            question=question2
+        ) 
+
+        # update the data for the assessment create
+        update_data = {
+            "area": area1.id,
+            "overview": overview.id,
+            "form_data": [
+                {
+                    "id": form_data1.id,
+                    "question": question2.id,
+                    "selected_answer": answer1.id,
+                    "notes": "test description",
+                },
+                {
+                    "id": form_data2.id,
+                    "question": question2.id,
+                    "selected_answer": answer3.id,
+                    "notes": "test description",
+                },
+            ]
+        }
+
+        url = f'/api/v2/per-draft-asessment/{form_id}/'
+        self.authenticate(self.user)
+        response = self.client.patch(url, data=update_data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    def test_validate_custom_action(self):
+        overview = OverviewFactory.create()
+        area = FormAreaFactory.create()
+        component = FormComponentFactory.create()
+        old_count = PerWorkPlan.objects.count()
+        data = {
+            "overview": overview.id,
+            "workplan_component": [
+                {
+                    "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
+                    "responsible_email": "new@gmail.com",
+                    "responsible_name": "nanananan",
+                    "component": component.id,
+                    "area": area.id,
+                    "status": WorkPlanStatus.PENDING,
+                },
+                {
+                    "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
+                    "responsible_email": "new@gmail.com",
+                    "responsible_name": "nanananan",
+                    "component": component.id,
+                    "area": area.id,
+                    "status": WorkPlanStatus.PENDING,
+                },
+            ],
+            "custom_component": {
+                "actions": "test",
+                "due_date": "2020-10-20",
+                "status": WorkPlanStatus.PENDING
+            }
+        }
+        url = "/api/v2/per-work-plan/"
+        self.authenticate(self.ifrc_user)
+        response = self.client.post(url, data=data, format="json")
+        self.assertEqual(PerWorkPlan.objects.count(), old_count + 1)
+        self.assert_201(response)
