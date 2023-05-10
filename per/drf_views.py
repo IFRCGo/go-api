@@ -6,7 +6,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import (
     viewsets,
-    mixins,
     views,
     response,
     permissions,
@@ -16,14 +15,12 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
 from django.db.models import Q
+from django.conf import settings
 
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country, Region
 from api.views import bad_request
 from api.serializers import MiniCountrySerializer, NotCountrySerializer
-from django.conf import settings
-
-
 from .models import (
     Form,
     FormData,
@@ -40,7 +37,6 @@ from .models import (
     FormPrioritization,
     WorkPlanStatus
 )
-
 from .serializers import (
     FormStatSerializer,
     ListFormSerializer,
@@ -72,7 +68,7 @@ from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,
     PerWorkPlanFilter,
-    FormAssessmentFilterSet
+    FormAssessmentFilterSet,
 )
 
 
@@ -684,7 +680,7 @@ class PerOptionsView(views.APIView):
 
 class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
-    # filterset_class = PerProcessFilterSet
+    filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -710,6 +706,19 @@ class FormAssessmentDraftViewSet(viewsets.ModelViewSet):
             headers=headers
         )
 
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return response.Response(
+    #         serializer.data,
+    #         status=status.HTTP_200_OK,
+    #         headers=headers
+    #     )
+
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = FormAsessmentSerializer
@@ -729,4 +738,3 @@ class FormAssessmentViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
-
