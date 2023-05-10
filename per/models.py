@@ -179,7 +179,10 @@ class AssessmentType(models.Model):
 @reversion.register()
 class Overview(models.Model):
     country = models.ForeignKey(
-        Country, verbose_name=_("country"), related_name="per_overviews", null=True, blank=True, on_delete=models.SET_NULL
+        Country, verbose_name=_("country"),
+        related_name="per_overviews",
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
@@ -247,13 +250,9 @@ class Overview(models.Model):
     facilitator_contact = models.CharField(
         verbose_name=_("facilitator other contacts"), max_length=90, null=True, blank=True
     )
-    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False)
-    is_finalized = models.BooleanField(verbose_name=_("is finalized"), default=False)
-
     ns_focal_point_name = models.CharField(verbose_name=_("ns focal point name"), max_length=90, null=True, blank=True)
     ns_focal_point_email = models.CharField(verbose_name=_("ns focal point email"), max_length=90, null=True, blank=True)
     ns_focal_point_phone = models.CharField(verbose_name=_("ns focal point phone"), max_length=90, null=True, blank=True)
-    other_consideration = models.CharField(verbose_name=_("other consideration"), max_length=400, null=True, blank=True)
     partner_focal_point_name = models.CharField(
         verbose_name=_("partner focal point name"), max_length=90, null=True, blank=True
     )
@@ -277,6 +276,15 @@ class Overview(models.Model):
     ns_second_focal_point_phone = models.CharField(
         verbose_name=_("ns second focal point phone"),
         max_length=90, null=True, blank=True
+    )
+
+    # Misc
+    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False)
+    is_finalized = models.BooleanField(verbose_name=_("is finalized"), default=False)
+    other_consideration = models.CharField(
+        verbose_name=_("other consideration"),
+        max_length=400,
+        null=True, blank=True
     )
 
     class Meta:
@@ -451,29 +459,29 @@ class PerWorkPlanComponent(models.Model):
     )
     area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.PROTECT, null=True, blank=True)
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
-    due_date = models.DateTimeField(verbose_name=_("Due date"), null=True, blank=True)
-    responsible_email = models.CharField(
-        verbose_name=_("Responsible email"),
-        null=True,
-        blank=True,
-        max_length=255,
-    )
-    responsible_name = models.CharField(
-        verbose_name=_("Responsible name"),
-        null=True,
-        blank=True,
-        max_length=255,
-    )
+    due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
 
 
 class PerWorkPlan(models.Model):
+    # Fixes Circular Import
+    from per.validators import validate_custom_component
+
     overview = models.ForeignKey(Overview, verbose_name=_("Overview"), null=True, blank=True, on_delete=models.PROTECT)
     workplan_component = models.ManyToManyField(
         PerWorkPlanComponent,
         verbose_name=_("WorkPlan Component"),
         blank=True,
     )
+    custom_component = models.JSONField(
+        verbose_name=_("Custom Component"),
+        default=dict, blank=True,
+        validators=[validate_custom_component]
+    )
 
     def __str__(self):
         return f"{self.overview.id}"
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
