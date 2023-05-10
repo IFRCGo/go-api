@@ -11,7 +11,7 @@ resources:
     type: github
     endpoint: IFRCGo
     name: IFRCGo/go-api
-    ref: variables['Build.SourceBranch']
+    ref: $(variables['Build.SourceBranch'])
 
 pool:
   vmImage: ubuntu-latest
