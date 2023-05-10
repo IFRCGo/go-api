@@ -81,7 +81,7 @@ fi
 echo "===== Running Deploy for $ENVIRONMENT ====="
 
 # Replace the backend state key in the main.tf to pick the right environment
-sed -i '' "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" ${TERRAFORM_DIR}/main.tf
+sed -i "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" ${TERRAFORM_DIR}/main.tf
 
 
 # ---- TODO: Run Chartpress ------

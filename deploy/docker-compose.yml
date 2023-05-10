@@ -2,6 +2,8 @@ services:
     deploy:
       platform: linux/amd64
       container_name: go-api-deploy
+      stdin_open: true
+      tty: true
       image: go-api-deploy
       build:
         context: .
