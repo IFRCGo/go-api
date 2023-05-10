@@ -12,6 +12,7 @@ RUN pip3 install -U pip
 
 # Install azure client
 RUN pip3 install azure-cli
+RUN echo 'burst docker cache'
 
 WORKDIR /opt/src
 ENTRYPOINT []

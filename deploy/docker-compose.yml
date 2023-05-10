@@ -1,5 +1,6 @@
 services:
     deploy:
+      platform: linux/amd64
       container_name: go-api-deploy
       image: go-api-deploy
       build:

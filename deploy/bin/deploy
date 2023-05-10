@@ -16,6 +16,7 @@ Deploys the project infrastructure.
 ###################
 # Parse arguments #
 ###################
+echo "The arguments passed to this script are: $@"
 
 while [[ "$#" -gt 0 ]]; do case $1 in
     -t)
@@ -24,8 +25,7 @@ while [[ "$#" -gt 0 ]]; do case $1 in
         shift
         ;;
     -e)
-        ENVIRONMENT=${3}
-        shift
+        ENVIRONMENT=${2}
         shift
         ;;
     --skip-tf)
@@ -65,6 +65,7 @@ function require_env() {
     fi
 }
 
+echo $ENVIRONMENT
 if [[ -z ${TERRAFORM_DIR} ]]; then
     echo "Must pass in TERRAFORM_DIR with -t"
     exit 1
