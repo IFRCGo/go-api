@@ -9,7 +9,11 @@ from django.contrib.auth.models import Permission
 
 from main.test_case import APITestCase
 
-from dref.models import Dref, DrefFile
+from dref.models import (
+    Dref,
+    DrefFile,
+    DrefFinalReport,
+)
 
 from dref.factories.dref import (
     DrefFactory,
@@ -1174,4 +1178,41 @@ class DrefTestCase(APITestCase):
         self.assertEqual(
             set(list(DrefOperationalUpdate.objects.filter(id=op_update.id).values_list('users', flat=True))),
             set([user2.id, user3.id, user4.id])
+        )
+
+    def test_completed_dref_operations(self):
+        # create some dref final report
+        country_1 = Country.objects.create(name="country1")
+        country_2 = Country.objects.create(name="country2")
+        country_3 = Country.objects.create(name="country3")
+        DrefFinalReport.objects.all().delete()
+        DrefFinalReportFactory.create(
+            is_published=True,
+            country=country_1
+        )
+        DrefFinalReportFactory.create(
+            is_published=True,
+            country=country_3
+        )
+        final_report_1, final_report_2 = DrefFinalReportFactory.create_batch(
+            2,
+            is_published=True,
+            country=country_2
+        )
+        DrefFinalReportFactory.create(country=country_2)
+
+        url = '/api/v2/completed-dref/'
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 4)
+
+        # filter by national society
+        url = f"/api/v2/completed-dref/?country={country_2.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(
+            set([item['id'] for item in response.data['results']]),
+            set([final_report_1.id, final_report_2.id])
         )
