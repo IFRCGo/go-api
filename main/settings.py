@@ -205,7 +205,7 @@ GRAPHENE = {
 }
 
 # To find a more suitable caching strategy, not loading the cache middleware
-# temporarily. At enable time pls rename api/t_est_cache.py also. FIXME: # ¤
+# temporarily. At enable time pls rename api/t_est_cache.py also. FIXME: search # ¤ - also in /api/drf_views.py
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
