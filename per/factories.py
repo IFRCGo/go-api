@@ -10,7 +10,8 @@ from per.models import (
     AssessmentType,
     FormAnswer,
     FormQuestion,
-    Form
+    Form,
+    FormData
 )
 
 
@@ -77,3 +78,12 @@ class FormFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Form
+
+
+class FormDataFactory(factory.django.DjangoModelFactory):
+    form = factory.SubFactory(FormFactory)
+    question = factory.SubFactory(FormQuestionFactory)
+    selected_answer = factory.SubFactory(FormAnswerFactory)
+
+    class Meta:
+        model = FormData

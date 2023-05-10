@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from django.contrib.auth.models import User
+from django.db import transaction
 
 from api.models import Region
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -20,6 +21,7 @@ from .models import (
     PerWorkPlanComponent,
     FormPrioritization,
     FormPrioritizationComponent,
+    WorkPlanStatus
 )
 from api.serializers import (
     UserNameSerializer,
@@ -156,9 +158,21 @@ class FormAsessmentDraftSerializer(
             FormData.objects.create(**data)
         return form
 
-    def update(self, instance, validated_data):
-        validated_data["user"] = self.context["request"].user
-        return super().create(instance, validated_data)
+    # def update(self, instance, validated_data):
+    #     validated_data["user"] = self.context["request"].user
+    #     with transaction.atomic():
+    #         form_data = validated_data.pop('form_data', None)
+    #         for key, value in validated_data.items():
+    #             setattr(instance, key, value)
+    #         instance.save()
+
+    #         for item in form_data:
+    #             inv_item, created = FormData.objects.update_or_create(
+    #                 id=item['id'],
+    #                 form=instance,
+    #                 defaults={**item}
+    #             )
+    #         return instance
 
 
 class FormAsessmentSerializer(
@@ -187,10 +201,6 @@ class FormAsessmentSerializer(
             data['form'] = Form.objects.get(id=form.id)
             FormData.objects.create(**data)
         return form
-
-    def update(self, instance, validated_data):
-        validated_data["user"] = self.context["request"].user
-        return super().create(instance, validated_data)
 
 
 class ListNiceDocSerializer(serializers.ModelSerializer):
@@ -300,12 +310,33 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
         fields = "__all__"
 
 
+class MiniOverviewSerializer(serializers.ModelSerializer):
+    user_details = MiniUserSerializer(source="user", read_only=True)
+
+    class Meta:
+        model = Overview
+        fields = (
+            "id",
+            "workplan_development_date",
+            "user",
+            "user_details",
+        )
+
+
 class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     workplan_component = PerWorkPlanComponentSerializer(many=True, required=True)
+    custom_component = serializers.JSONField(required=False)
+    overview_details = MiniOverviewSerializer(source='overview', read_only=True)
 
     class Meta:
         model = PerWorkPlan
-        fields = ("id", "overview", "workplan_component")
+        fields = (
+            "id",
+            "overview",
+            "workplan_component",
+            "custom_component",
+            "overview_details",
+        )
 
 
 class FormSerializer(serializers.ModelSerializer):
@@ -372,19 +403,33 @@ class PerOverviewSerializer(serializers.ModelSerializer):
 
 
 class PerProcessSerializer(serializers.ModelSerializer):
-    per_cycle = serializers.IntegerField(source="assessment_number")
+    # per_cycle = serializers.IntegerField(source="assessment_number")
     phase = serializers.SerializerMethodField()
-    start_date = serializers.DateTimeField(source="date_of_assessment")
+    # start_date = serializers.DateTimeField(source="date_of_assessment")
 
     class Meta:
         model = Overview
         fields = "__all__"
 
     def get_phase(self, obj):
-        # get the overview
-        overview = obj.perworkplan_set
-        print(overview)
-        if hasattr(obj, 'date_of_assessment'):
+        print(obj.id)
+        # check for workplan_phase
+        workplan = obj.perworkplan_set.exist()
+        print(workplan)
+        obj_workplan = PerWorkPlan.objects.get(overview_id=obj.id)
+        print(obj_workplan)
+        form_filter = obj.forms
+        # assuming that all forms are filled again
+        completed_form = list(form_filter.filter(is_draft=False))
+        draft_form = list(form_filter.filter(is_draft=True))
+        # if WorkPlanStatus.ONGOING in component_status:
+        #     return "5-Action and accountability"
+        if workplan:
+            return "4-Workplan"
+        elif len(completed_form) > 0:
+            return "3-Prioritisation"
+        elif len(draft_form) > 0:
+            return "2-Assessment"
+        elif hasattr(obj, 'date_of_assessment'):
             return "1-Orientation"
         return None
-
