@@ -298,11 +298,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Flash update
  - General documents (more convenient creation)
  - Adding poetry as Python package manager
-   · Enable buildx for docker build
-   · Enable docker layer caching in Circle-CI
-   · Update README.md for poetry
-   · Add migration check to Circle-CI
-   · Provide empty default value for docker-compose env vars to disable warnings
+   - Enable buildx for docker build
+   - Enable docker layer caching in Circle-CI
+   - Update README.md for poetry
+   - Add migration check to Circle-CI
+   - Provide empty default value for docker-compose env vars to disable warnings
  - Editable slugs for emergencies
  - We can acknowledge the erroneous cronjob runs
 
@@ -398,12 +398,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
   - Surge email notification improvements (links to #surge tab of emergency)
   - Appeal ingest fixes
-    · modified_at = time of appeal ingest run
-    · real_data_update = max(APD_modify_time) from the appeals API
+    - modified_at = time of appeal ingest run
+    - real_data_update = max(APD_modify_time) from the appeals API
   - More possibilities for unauthenticated users:
-    · the surge (/deployments) page is visible
-    · the single emergency-related #surge tab is visible, except persons' name.
-    · changed snapshot tests due to the aboves
+    - the surge (/deployments) page is visible
+    - the single emergency-related #surge tab is visible, except persons' name.
+    - changed snapshot tests due to the aboves
 
 ## 1.1.406
 
@@ -446,14 +446,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
  - Deployments, Surge page Key Figures and tables:
-   · Show only unique organization names at Deployments
-   · Use correct personnel_count variable to show counts
-   · Deployment counts on Emergency pages
-   · ERUs Deployed counts in aggregate
-   · Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
-   · Fix ERU count to show count of all ERUs with a deployed_to country
-   · Surge alerts: by default show all, add filter to show only active
-   · Fixing event-specific failure of AggregateDeployments
+   - Show only unique organization names at Deployments
+   - Use correct personnel_count variable to show counts
+   - Deployment counts on Emergency pages
+   - ERUs Deployed counts in aggregate
+   - Counts of Deployments per Emergency in the Deployments Overvw by Emerg. tbl
+   - Fix ERU count to show count of all ERUs with a deployed_to country
+   - Surge alerts: by default show all, add filter to show only active
+   - Fixing event-specific failure of AggregateDeployments
 
 ## 1.1.398
 
