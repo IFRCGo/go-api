@@ -11,7 +11,7 @@ resources:
     type: github
     endpoint: IFRCGo
     name: IFRCGo/go-api
-    ref: terraform
+    ref: variables['Build.SourceBranch']
 
 pool:
   vmImage: ubuntu-latest
