@@ -5,7 +5,6 @@ from datetime import datetime
 import environ
 
 from django.utils.translation import gettext_lazy as _
-# from celery.schedules import crontab
 from urllib3.util.retry import Retry
 from corsheaders.defaults import default_headers
 
@@ -166,7 +165,6 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    # 'django_celery_beat',
     'haystack',
 
     # Logging
@@ -459,14 +457,6 @@ CELERY_BROKER_URL = CELERY_REDIS_URL
 CELERY_RESULT_BACKEND = CELERY_REDIS_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
-
-# CELERY_BEAT_SCHEDULE = {
-#     'translate_remaining_models_fields': {
-#         'task': 'lang.tasks.translate_remaining_models_fields',
-#         # Every 6 hour
-#         'schedule': crontab(minute=0, hour="*/6"),
-#     },
-# }
 
 RETRY_STRATEGY = Retry(
     total=3,
