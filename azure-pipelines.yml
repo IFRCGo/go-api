@@ -97,7 +97,7 @@ jobs:
       servicePrincipalId: $(TERRAFORM_SERVICE_PRINCIPAL_ID)
       servicePrincipalKey: $(TERRAFORM_SERVICE_PRINCIPAL_KEY)
       storageAccessKey: $(TERRAFORM_STORAGE_KEY)
-      API_FQDN: ifrcgo-producton.ds.io
+      API_FQDN: ifrcgo-production.ds.io
       subscriptionId: $(TERRAFORM_SUBSCRIPTION_ID)
       DJANGO_SECRET_KEY: $(PRODUCTION_DJANGO_SECRET_KEY)
       DJANGO_DB_NAME: $(PRODUCTION_DJANGO_DB_NAME)
