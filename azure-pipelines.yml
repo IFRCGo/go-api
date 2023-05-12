@@ -1,10 +1,6 @@
 trigger:
 - terraform-prod
 
-pr:
-- azure-pipelines
-- terraform
-
 resources:
   repositories:
   - repository: go-api
