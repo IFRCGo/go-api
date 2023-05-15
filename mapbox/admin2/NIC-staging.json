@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-NIC-staging": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-NIC-src-staging",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  
