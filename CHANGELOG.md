@@ -6,35 +6,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
-- Temporary removal of REDIS cache
-- Bump django from 3.2.18 to 3.2.19
-- Use Redis in tests; removed FakeRedis
-- Move today into get_queryset
-- Use overwrite_settings for test-cache settings
-- Increase resiliency of Project importer
-- Add custom cache middleware
-- Refactor of Project importer
-- Better appealDoc columns support
-- Disaster type to set optional in Project creation
-- Enhance Project bulk import with Sector(tag)s
-- Update snapshot to include set_up_seed entities
-- Fix districts fixture
-- Use Location instead of iso3
-- Updating appeal_documents. ISO should be unique.
-- Setup caching with tests
-- No blank iso3
-- Allowing multiple admin2, district, country queries
-- Adding type, iso3 and description to appealdocuments
-- Supplies should not be null, but blank is ok.
-- Bump sqlparse from 0.4.3 to 0.4.4
-- Appealdoc ingestor. Optional districts.
-- Fix Azure storage warnings
-- Add regional contact in dref and op-update
-- Filter out deprecated areas
-- Districts and Admin2 areas can be deprecated – unit tests
-- Add visibility in search page
-- Add date fields in dref-op-update
-- Revision history for Snippets also
+## 1.1.474
+
+### Added
+ - New Admin2 areas (BGR .. ZWE)
+ - Temporary removal of REDIS cache
+ - Bump django from 3.2.18 to 3.2.19
+ - Use Redis in tests; removed FakeRedis
+ - Move today into get_queryset
+ - Use overwrite_settings for test-cache settings
+ - Increase resiliency of Project importer
+ - Add custom cache middleware
+ - Refactor of Project importer
+ - Better appealDoc columns support
+ - Disaster type to set optional in Project creation
+ - Enhance Project bulk import with Sector(tag)s
+ - Update snapshot to include set_up_seed entities
+ - Fix districts fixture
+ - Use Location instead of iso3
+ - Updating appeal_documents. ISO should be unique.
+ - Setup caching with tests
+ - No blank iso3
+ - Allowing multiple admin2, district, country queries
+ - Adding type, iso3 and description to appealdocuments
+ - Supplies should not be null, but blank is ok.
+ - Bump sqlparse from 0.4.3 to 0.4.4
+ - Appealdoc ingestor. Optional districts.
+ - Fix Azure storage warnings
+ - Add regional contact in dref and op-update
+ - Filter out deprecated areas
+ - Districts and Admin2 areas can be deprecated – unit tests
+ - Add visibility in search page
+ - Add date fields in dref-op-update
+ - Revision history for Snippets also
 
 ## 1.1.473
 
@@ -2202,7 +2206,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.473...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.474...HEAD
+[1.1.474]: https://github.com/IFRCGo/go-api/compare/1.1.473...1.1.474
 [1.1.473]: https://github.com/IFRCGo/go-api/compare/1.1.472...1.1.473
 [1.1.472]: https://github.com/IFRCGo/go-api/compare/1.1.471...1.1.472
 [1.1.471]: https://github.com/IFRCGo/go-api/compare/1.1.470...1.1.471
