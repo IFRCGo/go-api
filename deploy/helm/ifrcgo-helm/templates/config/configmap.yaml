@@ -7,7 +7,8 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
-  CELERY_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/"
+  CELERY_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/0"
+  CACHE_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/1"
   DJANGO_DB_NAME: postgres
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   ELASTIC_SEARCH_HOST: "elasticsearch://{{ template "ifrcgo-helm.fullname" . }}-elasticsearch:9200" #FIXME: double check format
