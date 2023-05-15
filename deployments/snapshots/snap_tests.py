@@ -174,16 +174,16 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'target_total': 0
         },
         {
-            'budget_amount_total': 1740000,
+            'budget_amount_total': 6060000,
             'id': 17,
             'iso3': 'ZEZ',
             'name': 'country-SQTvZhsNCjqMSdmiiprEFesBYNvcLpTwuxwSCcjccAhEqemAtq',
             'ongoing_projects': 1,
             'operation_types': [
-                0
+                1
             ],
             'operation_types_display': [
-                'Programme'
+                'Emergency Operation'
             ],
             'projects_per_sector': [
                 {
@@ -199,7 +199,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
             'budget_amount_total': 1230000,
             'id': 19,
             'iso3': 'zEf',
-            'name': 'country-MhpQyDQuMgAtrSOKhumYjUhJPbggmdHuingwzIXkpslIqTaUij',
+            'name': 'country-hpQyDQuMgAtrSOKhumYjUhJPbggmdHuingwzIXkpslIqTaUijU',
             'ongoing_projects': 1,
             'operation_types': [
                 1
