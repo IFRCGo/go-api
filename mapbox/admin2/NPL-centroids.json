@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-NPL-centroids": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-NPL-centroids-src",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  

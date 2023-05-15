@@ -174,6 +174,12 @@ class ProjectImportForm(forms.Form):
 
         # Not enums, but can be used to avoid multiple queries for foreign key id-s
         sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
+        add_to_sectors = dict() # Add the main words of sectors to the definition:
+        for s in sectors.keys():
+            tt = s.replace(' and', '').replace(', ', ',').replace(' ', ',').split(',')
+            for t in tt:
+                add_to_sectors[t] = sectors[s]
+        sectors.update(add_to_sectors)
         sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
         disaster_types = {t.name.lower(): t.id for t in DisasterType.objects.all()}
 
@@ -186,6 +192,11 @@ class ProjectImportForm(forms.Form):
             }) if row[c.DISTRICT].lower() not in ['countrywide', ''] else []
             reporting_ns_name = row[c.REPORTING_NS].strip()
             country_name = row[c.COUNTRY].strip()
+            # An often misspelled word cleanup:
+            if reporting_ns_name == 'Turkey':
+                reporting_ns_name = 'Türkiye'
+            if country_name == 'Turkey':
+                country_name = 'Türkiye'
             disaster_type_name = row[c.DISASTER_TYPE].strip()
             sector_name = row[c.PRIMARY_SECTOR].strip()
             tag_names = list({d.strip() for d in filter(

@@ -24,12 +24,14 @@ x-server: &base_server_setup
     ERP_API_ENDPOINT: ${ERP_API_ENDPOINT:-https://ifrctintapim001.azure-api.net/GoAPI/ExtractGoEmergency}
     ERP_API_SUBSCRIPTION_KEY: ${ERP_API_SUBSCRIPTION_KEY:-abcdef}
     CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
+    CACHE_REDIS_URL: ${CACHE_REDIS_URL:-redis://redis:6379/1}
+    CACHE_TEST_REDIS_URL: ${CACHE_TEST_REDIS_URL:-redis://redis:6379/11}
     ELASTIC_SEARCH_HOST: ${ELASTIC_SEARCH_HOST:-elasticsearch://elasticsearch:9200}
     # Appeal API
     APPEALS_USER: ${APPEALS_USER}
     APPEALS_PASS: ${APPEALS_PASS}
     # Sentry
-    SENTRY_DSN: ${SENTRY_DSN}
+    SENTRY_DSN: ${SENTRY_DSN:-}
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
     # Maintenance mode
     DJANGO_READ_ONLY: ${DJANGO_READ_ONLY:-false}

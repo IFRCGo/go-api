@@ -14,6 +14,10 @@ from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
+# ¤ FIXME for cache switch-on (see also /main/settings.py)
+# ¤ from django.utils.decorators import method_decorator
+# ¤ from django.views.decorators.cache import cache_page
+
 from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
@@ -133,8 +137,10 @@ from .logger import logger
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
-    today = timezone.now().date().strftime("%Y-%m-%d")
-    queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
+
+    def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        return Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .annotate(
                                 personnel_count=Count(
                                     'personneldeployment__personnel',
@@ -644,6 +650,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
     # Overwrite to exclude the events which require confirmation
+    # ¤ @method_decorator(cache_page(1200))
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get('date', now)
