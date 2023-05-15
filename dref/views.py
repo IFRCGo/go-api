@@ -174,16 +174,6 @@ class DrefOptionsView(views.APIView):
             "national_society_actions": [
                 {"key": action[0], "value": action[1]} for action in NationalSocietyAction.Title.choices
             ],
-            "users": [
-                {
-                    "id": user.id,
-                    "email": user.email,
-                    "username": user.username,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                }
-                for user in User.objects.filter(is_active=True)
-            ],
             "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType]
         }
         return response.Response(options)

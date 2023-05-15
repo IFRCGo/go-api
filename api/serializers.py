@@ -211,7 +211,6 @@ class DistrictSerializer(ModelSerializer):
 
 
 
-
 class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
@@ -219,7 +218,7 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Admin2
-        fields = ('district_id', 'name', 'code', 'bbox', 'centroid',)
+        fields = ('district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
 
 
 class MiniDistrictSerializer(ModelSerializer):
@@ -840,9 +839,12 @@ class AppealDocumentTableauSerializer(serializers.ModelSerializer):
 
 
 class AppealDocumentSerializer(ModelSerializer):
+    appeal = serializers.CharField(source='appeal.code', read_only=True)
+    type = serializers.CharField(source='type.name', read_only=True)  # seems to be identical to the appealdoc name
+
     class Meta:
         model = AppealDocument
-        fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'id',)
+        fields = ('created_at', 'name', 'document', 'document_url', 'appeal', 'type', 'iso', 'description', 'id',)
 
 
 class ProfileSerializer(ModelSerializer):

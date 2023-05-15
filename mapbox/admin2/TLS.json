@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-TLS": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-TLS-src",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  

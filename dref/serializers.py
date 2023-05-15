@@ -485,6 +485,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["ifrc_emergency_title"] = dref.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref.regional_focal_point_phone_number
             validated_data["ifrc"] = dref.ifrc
             validated_data["icrc"] = dref.icrc
             validated_data["partner_national_society"] = dref.partner_national_society
@@ -530,6 +534,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["communication"] = dref.communication
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
+            validated_data['ns_request_date'] = dref.ns_request_date
+            validated_data['date_of_approval'] = dref.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -583,6 +589,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["ifrc_emergency_title"] = dref_operational_update.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref_operational_update.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref_operational_update.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref_operational_update.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref_operational_update.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref_operational_update.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref_operational_update.regional_focal_point_phone_number
             validated_data["ifrc"] = dref_operational_update.ifrc
             validated_data["icrc"] = dref_operational_update.icrc
             validated_data["partner_national_society"] = dref_operational_update.partner_national_society
@@ -629,6 +639,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["communication"] = dref_operational_update.communication
             validated_data["people_in_need"] = dref_operational_update.people_in_need
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
+            validated_data['ns_request_date'] = dref_operational_update.ns_request_date
+            validated_data['date_of_approval'] = dref_operational_update.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -870,6 +882,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["people_in_need"] = dref_operational_update.people_in_need
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["assessment_report"] = dref_operational_update.assessment_report
+
+            if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
+                raise serializers.ValidationError(
+                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -957,6 +974,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["event_text"] = dref.event_text
             validated_data["ns_respond_date"] = dref.ns_respond_date
+
+            if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
+                raise serializers.ValidationError(
+                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
+                )
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [

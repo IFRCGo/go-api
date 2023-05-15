@@ -333,8 +333,8 @@ class HistoricalEventTest(APITestCase):
     def test_historical_events(self):
         region1 = models.Region.objects.create(name=1)
         region2 = models.Region.objects.create(name=2)
-        country1 = models.Country.objects.create(name='Nepal', iso3='nlp', region=region1)
-        country2 = models.Country.objects.create(name='India', iso3='ind', region=region2)
+        country1 = models.Country.objects.create(name='Nepal', iso3='NPL', region=region1)
+        country2 = models.Country.objects.create(name='India', iso3='IND', region=region2)
         dtype1 = models.DisasterType.objects.get(pk=1)
         dtype2 = models.DisasterType.objects.get(pk=2)
         EventFactory.create(
@@ -403,13 +403,13 @@ class Admin2Test(APITestCase):
 
     def test_admin2_api(self):
         region = models.Region.objects.create(name=1)
-        country = models.Country.objects.create(name='Nepal', iso3='NLP', region=region)
-        admin1_1 = models.District.objects.create(name='admin1 1', code='NLP01', country=country)
-        admin1_2 = models.District.objects.create(name='admin1 2', code='NLP02', country=country)
+        country = models.Country.objects.create(name='Nepal', iso3='NPL', region=region)
+        admin1_1 = models.District.objects.create(name='admin1 1', code='NPL01', country=country)
+        admin1_2 = models.District.objects.create(name='admin1 2', code='NPL02', country=country)
         admin2_1 = models.Admin2.objects.create(name='test 1', admin1=admin1_1, code='1')
         admin2_2 = models.Admin2.objects.create(name='test 2', admin1=admin1_2, code='2')
 
-        # test fetching all admin2
+        # test fetching all admin2-s
         response = self.client.get('/api/v2/admin2/').json()
         self.assertEqual(response['count'], 2)
 
@@ -418,3 +418,151 @@ class Admin2Test(APITestCase):
         self.assertEqual(response['count'], 1)
         self.assertEqual(response['results'][0]['name'], 'test 1')
 
+    def test_admin2_deprecation(self):
+        region = models.Region.objects.create(name=1)
+        country = models.Country.objects.create(name='Nepal', iso3='NPL', region=region)
+        admin1_1 = models.District.objects.create(name='admin1 1', code='NPL01', country=country)
+        admin1_2 = models.District.objects.create(name='admin1 2', code='NPL02', country=country)
+        admin2_1 = models.Admin2.objects.create(name='test 1', admin1=admin1_1, code='1')
+        admin2_2 = models.Admin2.objects.create(name='test 2', admin1=admin1_2, code='2')
+        admin2_3 = models.Admin2.objects.create(name='test 3', admin1=admin1_2, code='3')
+
+        # test fetching all admin2-s
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        admin2_2.is_deprecated = True
+        admin2_2.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        # 2 instead of 3, because 1 admin2 area became deprecated: api does not show it.
+        self.assertEqual(response['count'], 2)
+
+        # Tear down
+        admin2_2.is_deprecated = False
+        admin2_2.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        admin2_1.is_deprecated = True
+        admin2_2.is_deprecated = True
+        admin2_1.save()
+        admin2_2.save()
+        # 2 admin2-s are deprecated, so 3-2 = 1
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 1)
+
+        # Tear down
+        admin2_1.is_deprecated = False
+        admin2_2.is_deprecated = False
+        admin2_1.save()
+        admin2_2.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        admin2_1.is_deprecated = True
+        admin2_2.is_deprecated = True
+        admin2_3.is_deprecated = True
+        admin2_1.save()
+        admin2_2.save()
+        admin2_3.save()
+        # All admin2-s are deprecated
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 0)
+
+        # Tear down
+        admin2_1.is_deprecated = False
+        admin2_2.is_deprecated = False
+        admin2_3.is_deprecated = False
+        admin2_1.save()
+        admin2_2.save()
+        admin2_3.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        admin1_2.is_deprecated = True
+        admin1_2.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        # There are 2 admin2-s in this district, so 3-2 = 1
+        self.assertEqual(response['count'], 1)
+
+        # Tear down
+        admin1_2.is_deprecated = False
+        admin1_2.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        admin1_1.is_deprecated = True
+        admin1_1.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        # There is only 1 admin2-s in this district, so 3-1 = 2
+        self.assertEqual(response['count'], 2)
+
+        # Tear down
+        admin1_1.is_deprecated = False
+        admin1_1.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+        country.is_deprecated = True
+        country.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        # There are 3 admin2-s in this country, so 3-3 = 0
+        self.assertEqual(response['count'], 0)
+
+        # Tear down
+        country.is_deprecated = False
+        country.save()
+        response = self.client.get('/api/v2/admin2/').json()
+        self.assertEqual(response['count'], 3)
+
+
+class DistrictTest(APITestCase):
+    def test_district_deprecation(self):
+        region = models.Region.objects.create(name=1)
+        country = models.Country.objects.create(name='Nepal', iso3='NPL', region=region)
+        admin1_1 = models.District.objects.create(name='admin1 1', code='NPL01', country=country)
+        admin1_2 = models.District.objects.create(name='admin1 2', code='NPL02', country=country)
+
+        # test fetching all districts
+        response = self.client.get('/api/v2/district/').json()
+        self.assertEqual(response['count'], 2)
+
+        admin1_2.is_deprecated = True
+        admin1_2.save()
+        response = self.client.get('/api/v2/district/').json()
+        # one district deprecated, 2-1 = 1
+        self.assertEqual(response['count'], 1)
+
+        # Tear down
+        admin1_2.is_deprecated = False
+        admin1_2.save()
+        response = self.client.get('/api/v2/district/').json()
+        self.assertEqual(response['count'], 2)
+
+        admin1_1.is_deprecated = True
+        admin1_2.is_deprecated = True
+        admin1_1.save()
+        admin1_2.save()
+        response = self.client.get('/api/v2/district/').json()
+        # two districts deprecated, 2-2 = 0
+        self.assertEqual(response['count'], 0)
+
+        # Tear down
+        admin1_1.is_deprecated = False
+        admin1_2.is_deprecated = False
+        admin1_1.save()
+        admin1_2.save()
+        response = self.client.get('/api/v2/district/').json()
+        self.assertEqual(response['count'], 2)
+
+        country.is_deprecated = True
+        country.save()
+        response = self.client.get('/api/v2/district/').json()
+        # There are 2 districts in this country, so 2-2 = 0
+        self.assertEqual(response['count'], 0)
+
+        # Tear down
+        country.is_deprecated = False
+        country.save()
+        response = self.client.get('/api/v2/district/').json()
+        self.assertEqual(response['count'], 2)

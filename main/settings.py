@@ -5,7 +5,6 @@ from datetime import datetime
 import environ
 
 from django.utils.translation import gettext_lazy as _
-# from celery.schedules import crontab
 from urllib3.util.retry import Retry
 from corsheaders.defaults import default_headers
 
@@ -51,6 +50,8 @@ env = environ.Env(
     AWS_TRANSLATE_REGION=(str, None),
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
+    CACHE_REDIS_URL=str,
+    CACHE_TEST_REDIS_URL=(str, None),
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
@@ -67,6 +68,8 @@ env = environ.Env(
     PYTEST_XDIST_WORKER=(str, None),
     # Elastic-Cache
     ELASTIC_SEARCH_HOST=(str, None),
+    ELASTIC_SEARCH_INDEX=(str, 'new_index'),
+    ELASTIC_SEARCH_TEST_INDEX=(str, 'new_test_index'),  # This will be used and cleared by test
     # FTP
     GO_FTPHOST=(str, None),
     GO_FTPUSER=(str, None),
@@ -162,7 +165,6 @@ INSTALLED_APPS = [
     # Utils Apps
     'tinymce',
     'admin_auto_filters',
-    # 'django_celery_beat',
     'haystack',
 
     # Logging
@@ -202,6 +204,8 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
+# To find a more suitable caching strategy, not loading the cache middleware
+# temporarily. At enable time pls rename api/t_est_cache.py also. FIXME: search # ¤ - also in /api/drf_views.py
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -209,9 +213,11 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # ¤ 'middlewares.cache.UpdateCacheForUserMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    # ¤ 'middlewares.cache.FetchFromCacheForUserMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'middlewares.middlewares.RequestMiddleware',
@@ -452,14 +458,6 @@ CELERY_RESULT_BACKEND = CELERY_REDIS_URL
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_ACKS_LATE = True
 
-# CELERY_BEAT_SCHEDULE = {
-#     'translate_remaining_models_fields': {
-#         'task': 'lang.tasks.translate_remaining_models_fields',
-#         # Every 6 hour
-#         'schedule': crontab(minute=0, hour="*/6"),
-#     },
-# }
-
 RETRY_STRATEGY = Retry(
     total=3,
     status_forcelist=[429, 500, 502, 503, 504],
@@ -477,6 +475,8 @@ TEST_DIR = os.path.join(BASE_DIR, 'main/test_files')
 
 # Elastic search host
 ELASTIC_SEARCH_HOST = env('ELASTIC_SEARCH_HOST')
+ELASTIC_SEARCH_INDEX = env('ELASTIC_SEARCH_INDEX')
+ELASTIC_SEARCH_TEST_INDEX = env('ELASTIC_SEARCH_TEST_INDEX')
 
 # FTP
 GO_FTPHOST = env('GO_FTPHOST')
@@ -522,7 +522,7 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine',
         'URL': ELASTIC_SEARCH_HOST,
-        'INDEX_NAME': 'new_index',
+        'INDEX_NAME': ELASTIC_SEARCH_INDEX,
     },
 }
 
@@ -532,3 +532,15 @@ SUSPEND_SIGNALS = True
 
 # Maintenance mode
 DJANGO_READ_ONLY = env('DJANGO_READ_ONLY')
+
+CACHE_REDIS_URL = env('CACHE_REDIS_URL')
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env('CACHE_REDIS_URL'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+CACHE_MIDDLEWARE_SECONDS = 600

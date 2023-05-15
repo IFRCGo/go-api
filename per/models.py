@@ -3,7 +3,6 @@ from api.models import Country
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from .questions_data import questions
 from tinymce import HTMLField
 
 

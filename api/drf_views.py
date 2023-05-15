@@ -14,6 +14,10 @@ from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
+# ¤ FIXME for cache switch-on (see also /main/settings.py)
+# ¤ from django.utils.decorators import method_decorator
+# ¤ from django.views.decorators.cache import cache_page
+
 from main.utils import is_tableau
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
@@ -126,13 +130,17 @@ from .serializers import (
 
     CountryOfFieldReportToReviewSerializer,
 )
+from api.filter_set import UserFilterSet
+
 from .logger import logger
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeploymentsByEventSerializer
-    today = timezone.now().date().strftime("%Y-%m-%d")
-    queryset = Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
+
+    def get_queryset(self):
+        today = timezone.now().date().strftime("%Y-%m-%d")
+        return Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
                             .annotate(
                                 personnel_count=Count(
                                     'personneldeployment__personnel',
@@ -190,7 +198,11 @@ class CountryFilter(filters.FilterSet):
 
     class Meta:
         model = Country
-        fields = ('region', 'record_type',)
+        fields = {
+            'id': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'record_type': ('exact', 'in'),
+        }
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
@@ -245,7 +257,11 @@ class CountryFilterRMD(filters.FilterSet):
     
     class Meta:
         model = Country
-        fields = ('region', 'record_type',)
+        fields = {
+            'id': ('exact', 'in'),
+            'region': ('exact', 'in'),
+            'record_type': ('exact', 'in'),
+        }
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
@@ -257,7 +273,13 @@ class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
 class DistrictRMDFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country','country__name')
+        fields = {
+            'id': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'country__iso3': ('exact', 'in'),
+            'country__name': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
@@ -340,11 +362,20 @@ class CountrySnippetViewset(ReadOnlyVisibilityViewset):
 class DistrictFilter(filters.FilterSet):
     class Meta:
         model = District
-        fields = ('country', 'country__iso3', 'name',)
+        fields = {
+            'id': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'country__iso3': ('exact', 'in'),
+            'country__name': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    queryset = District.objects.\
+        select_related('country').\
+        filter(country__is_deprecated=False).\
+        filter(is_deprecated=False)
     filterset_class = DistrictFilter
     search_fields = ('name', 'country__name',)  # for /docs
 
@@ -358,11 +389,21 @@ class DistrictViewset(viewsets.ReadOnlyModelViewSet):
 class Admin2Filter(filters.FilterSet):
     class Meta:
         model = Admin2
-        fields = ('admin1',)
+        fields = {
+            'id': ('exact', 'in'),
+            'admin1': ('exact', 'in'),
+            'admin1__country': ('exact', 'in'),
+            'admin1__country__iso3': ('exact', 'in'),
+            'name': ('exact', 'in'),
+        }
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Admin2.objects.all()
+    queryset = Admin2.objects.\
+        select_related('admin1').\
+        filter(admin1__country__is_deprecated=False).\
+        filter(admin1__is_deprecated=False).\
+        filter(is_deprecated=False)
     filterset_class = Admin2Filter
     search_fields = ('name', 'district__name', 'district__country__name')
     serializer_class = Admin2Serializer
@@ -609,6 +650,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
     # Overwrite to exclude the events which require confirmation
+    # ¤ @method_decorator(cache_page(1200))
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get('date', now)
@@ -1106,3 +1148,15 @@ class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
     class Meta:
         model = CountryOfFieldReportToReview
         fields = ('country_id')
+
+
+class UsersViewset(viewsets.ReadOnlyModelViewSet):
+    """
+    List all active users
+    """
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_class = UserFilterSet
+
+    def get_queryset(self):
+        return User.objects.filter(is_active=True)

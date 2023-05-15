@@ -1083,3 +1083,30 @@ class DrefTestCase(APITestCase):
         self.authenticate(user1)
         response = self.client.get(dref_url)
         self.assert_200(response)
+
+    def test_dref_type_loan(self):
+        user1, _ = UserFactory.create_batch(2)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=self.user,
+            is_published=True,
+            type_of_dref=Dref.DrefType.LOAN
+        )
+        dref.users.add(user1)
+        old_count = DrefFinalReport.objects.count()
+        url = "/api/v2/dref-final-report/"
+        data = {
+            "dref": dref.id,
+        }
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_400(response)
+
+        # update the dref type to other
+        dref.type_of_dref = Dref.DrefType.ASSESSMENT
+        dref.save(update_fields=['type_of_dref'])
+
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data)
+        self.assert_201(response)
+        self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)

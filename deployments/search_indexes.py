@@ -17,6 +17,7 @@ class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     reporting_ns_id = indexes.IntegerField(model_attr='reporting_ns__id')
     iso3 = indexes.CharField(model_attr='reporting_ns__iso3', null=True)
+    visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
 
     def get_model(self):
         return Project
@@ -39,6 +40,7 @@ class ERUIndex(indexes.SearchIndex, indexes.Indexable):
     event_id = indexes.IntegerField(model_attr='event__id', null=True)
     country_id = indexes.IntegerField(model_attr='deployed_to__id')
     iso3 = indexes.CharField(model_attr='deployed_to__iso3', null=True)
+    visibility = indexes.CharField(model_attr='event__get_visibility_display', null=True)
 
     def get_model(self):
         return ERU
@@ -60,6 +62,7 @@ class PersonnelIndex(indexes.SearchIndex, indexes.Indexable):
     deployed_to_country_id = indexes.IntegerField(model_attr='country_to__id', null=True)
     event_name = indexes.EdgeNgramField(model_attr='deployment__event_deployed_to__name')
     event_id = indexes.IntegerField(model_attr='deployment__event_deployed_to__id', null=True)
+    visibility = indexes.CharField(model_attr='deployment__event_deployed_to__get_visibility_display', null=True)
 
     def get_model(self):
         return Personnel
