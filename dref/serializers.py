@@ -408,6 +408,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
     risk_security = RiskSecuritySerializer(many=True, required=False)
     modified_at = serializers.DateTimeField(required=False)
+    created_by_details = UserNameSerializer(source="created_by", read_only=True)
+    users_details = UserNameSerializer(source="users", many=True, read_only=True)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -765,6 +767,8 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
     risk_security = RiskSecuritySerializer(many=True, required=False)
     modified_at = serializers.DateTimeField(required=False)
     financial_report_details = DrefFileSerializer(source="financial_report", read_only=True)
+    created_by_details = UserNameSerializer(source="created_by", read_only=True)
+    users_details = UserNameSerializer(source="users", many=True, read_only=True)
 
     class Meta:
         model = DrefFinalReport
