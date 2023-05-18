@@ -59,6 +59,7 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -76,11 +77,14 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
             "appeal_code",
             "created_at",
             "operational_update_number",
+            "country",
+            "country_details"
         ]
 
 
 class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -93,6 +97,8 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
             "type_of_dref_display",
             "appeal_code",
             "created_at",
+            "country",
+            "country_details"
         ]
 
 
@@ -104,6 +110,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         source="drefoperationalupdate_set", many=True, read_only=True
     )
     final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
 
     class Meta:
         model = Dref
@@ -121,7 +128,9 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "appeal_code",
             "created_at",
             "operational_update_details",
-            "final_report_details"
+            "final_report_details",
+            "country",
+            "country_details"
         ]
 
 
