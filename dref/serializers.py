@@ -60,6 +60,8 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = DrefOperationalUpdate
@@ -78,13 +80,25 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
             "created_at",
             "operational_update_number",
             "country",
-            "country_details"
+            "country_details",
+            "application_type",
+            "application_type_display",
+            "is_published"
         ]
+
+    def get_application_type(self, obj):
+        return "OPS_UPDATE"
+
+    def get_application_type_display(self, obj):
+        op_number = obj.operational_update_number
+        return f"Operational update #{op_number}"
 
 
 class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = DrefFinalReport
@@ -98,8 +112,16 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
             "appeal_code",
             "created_at",
             "country",
-            "country_details"
+            "country_details",
+            "application_type",
+            "application_type_display",
         ]
+
+    def get_application_type(self, obj):
+        return "FINAL_REPORT"
+
+    def get_application_type_display(self, obj):
+        return "Final report"
 
 
 class MiniDrefSerializer(serializers.ModelSerializer):
@@ -111,12 +133,17 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     )
     final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
+    has_ops_update = serializers.SerializerMethodField()
+    has_final_report = serializers.SerializerMethodField()
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Dref
         fields = [
             "id",
             "title",
+            "is_published",
             "national_society",
             "disaster_type",
             "type_of_onset",
@@ -130,8 +157,29 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "operational_update_details",
             "final_report_details",
             "country",
-            "country_details"
+            "country_details",
+            "has_ops_update",
+            "has_final_report",
+            "application_type",
+            "application_type_display",
         ]
+
+    def get_has_ops_update(self, obj):
+        op_count_count = obj.drefoperationalupdate_set.count()
+        if op_count_count > 0:
+            return True
+        return False
+
+    def get_has_final_report(self, obj):
+        if hasattr(obj, 'dreffinalreport'):
+            return True
+        return False
+
+    def get_application_type(self, obj):
+        return "DREF"
+
+    def get_application_type_display(self, obj):
+        return "DREF application"
 
 
 class PlannedInterventionSerializer(ModelSerializer):

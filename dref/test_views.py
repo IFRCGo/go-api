@@ -1181,23 +1181,27 @@ class DrefTestCase(APITestCase):
         )
 
     def test_completed_dref_operations(self):
-        # create some dref final report
         country_1 = Country.objects.create(name="country1")
         country_2 = Country.objects.create(name="country2")
         country_3 = Country.objects.create(name="country3")
+
+        # create some dref final report
         DrefFinalReport.objects.all().delete()
         DrefFinalReportFactory.create(
             is_published=True,
-            country=country_1
+            country=country_1,
+            type_of_dref=Dref.DrefType.ASSESSMENT
         )
         DrefFinalReportFactory.create(
             is_published=True,
-            country=country_3
+            country=country_3,
+            type_of_dref=Dref.DrefType.ASSESSMENT
         )
         final_report_1, final_report_2 = DrefFinalReportFactory.create_batch(
             2,
             is_published=True,
-            country=country_2
+            country=country_2,
+            type_of_dref=Dref.DrefType.LOAN
         )
         DrefFinalReportFactory.create(country=country_2)
 
@@ -1216,3 +1220,7 @@ class DrefTestCase(APITestCase):
             set([item['id'] for item in response.data['results']]),
             set([final_report_1.id, final_report_2.id])
         )
+        url = "/api/v2/completed-dref/?type_of_dref=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
