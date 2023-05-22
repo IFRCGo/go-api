@@ -137,6 +137,8 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     has_final_report = serializers.SerializerMethodField()
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    unpublished_op_update_count = serializers.SerializerMethodField()
+    unpublished_final_report_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Dref
@@ -162,6 +164,8 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "has_final_report",
             "application_type",
             "application_type_display",
+            "unpublished_op_update_count",
+            "unpublished_final_report_count",
         ]
 
     def get_has_ops_update(self, obj):
@@ -180,6 +184,12 @@ class MiniDrefSerializer(serializers.ModelSerializer):
 
     def get_application_type_display(self, obj):
         return "DREF application"
+
+    def get_unpublished_op_update_count(self, obj):
+        return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
+
+    def get_unpublished_final_report_count(self, obj):
+        return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
 
 
 class PlannedInterventionSerializer(ModelSerializer):
