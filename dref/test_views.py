@@ -1224,3 +1224,55 @@ class DrefTestCase(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 2)
+
+    def test_filter_active_dref(self):
+        country_1 = Country.objects.create(name="country1")
+        country_2 = Country.objects.create(name="country2")
+
+        # create some dref
+        dref_1 = DrefFactory.create(
+            is_published=False,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            country=country_1,
+            created_by=self.root_user
+        )
+        dref_2 = DrefFactory.create(
+            is_published=False,
+            type_of_dref=Dref.DrefType.LOAN,
+            country=country_2,
+            created_by=self.root_user
+        )
+        # some dref final report
+        DrefFinalReportFactory.create(
+            is_published=False,
+            country=country_1,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            dref=dref_1,
+            created_by=self.root_user
+        )
+        DrefFinalReportFactory.create(
+            is_published=False,
+            country=country_2,
+            type_of_dref=Dref.DrefType.LOAN,
+            dref=dref_2,
+            created_by=self.root_user
+        )
+
+        url = '/api/v2/active-dref/'
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # filter by national society
+        url = f"/api/v2/active-dref/?country={country_1.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+
+        url = f"/api/v2/active-dref/?type_of_dref={Dref.DrefType.ASSESSMENT}"
+        response = self.client.get(url)
+        print(response.content)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['results'][0]['final_report_details']), 1)

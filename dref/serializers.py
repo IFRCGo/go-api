@@ -128,10 +128,6 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
-    operational_update_details = MiniOperationalUpdateSerializer(
-        source="drefoperationalupdate_set", many=True, read_only=True
-    )
-    final_report_details = MiniDrefFinalReportSerializer(source="dreffinalreport", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     has_ops_update = serializers.SerializerMethodField()
     has_final_report = serializers.SerializerMethodField()
@@ -139,6 +135,8 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     application_type_display = serializers.SerializerMethodField()
     unpublished_op_update_count = serializers.SerializerMethodField()
     unpublished_final_report_count = serializers.SerializerMethodField()
+    operational_update_details = serializers.SerializerMethodField()
+    final_report_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Dref
@@ -167,6 +165,20 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "unpublished_op_update_count",
             "unpublished_final_report_count",
         ]
+
+    def get_operational_update_details(self, obj):
+        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
+        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id)
+        if type_of_dref:
+            queryset = queryset.filter(type_of_dref=type_of_dref)
+        return MiniOperationalUpdateSerializer(queryset, many=True).data
+
+    def get_final_report_details(self, obj):
+        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
+        queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
+        if type_of_dref:
+            queryset = queryset.filter(type_of_dref=type_of_dref)
+        return MiniDrefFinalReportSerializer(queryset, many=True).data
 
     def get_has_ops_update(self, obj):
         op_count_count = obj.drefoperationalupdate_set.count()
