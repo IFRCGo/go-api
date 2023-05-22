@@ -142,6 +142,14 @@ variable "GO_DBPASS" {
   type = string
 }
 
+variable "APPEALS_USER" {
+  type = string
+}
+
+variable "APPEALS_PASS" {
+  type = string
+}
+
 variable "DJANGO_DEBUG" {
   type = string
   default = "False"

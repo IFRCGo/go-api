@@ -177,6 +177,16 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
+    name = "env.APPEALS_USER"
+    value = var.APPEALS_USER
+  }
+
+  set {
+    name = "env.APPEALS_PASS"
+    value = var.APPEALS_PASS
+  }
+
+  set {
     name = "env.DJANGO_DEBUG"
     value = var.DJANGO_DEBUG
   }
