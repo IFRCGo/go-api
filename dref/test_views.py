@@ -1165,7 +1165,7 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(user1)
         data = {
             "users": [user2.id, user3.id, user4.id],
-            "final_report": final_report.id
+            "dref": dref1.id
         }
 
         # share url

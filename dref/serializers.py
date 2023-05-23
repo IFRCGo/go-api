@@ -128,6 +128,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     has_ops_update = serializers.SerializerMethodField()
     has_final_report = serializers.SerializerMethodField()
@@ -164,6 +165,8 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "application_type_display",
             "unpublished_op_update_count",
             "unpublished_final_report_count",
+            "status",
+            "status_display",
         ]
 
     def get_operational_update_details(self, obj):
@@ -1149,22 +1152,26 @@ class AddDrefUserSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         write_only=True
     )
-    final_report = serializers.IntegerField(write_only=True)
+    dref = serializers.IntegerField(write_only=True)
 
     def save(self):
         users_list = self.validated_data['users']
-        final_report = self.validated_data['final_report']
+        dref = self.validated_data['dref']
 
         users = [User.objects.get(id=user_id) for user_id in users_list]
-        # get the final_report and add the users_list to user
-        final_report = DrefFinalReport.objects.filter(id=final_report).first()
-        final_report.users.set(users)
 
-        # lets also add to the dref as well
-        dref = Dref.objects.filter(dreffinalreport=final_report.id).first()
+        # get the dref and add the users_list to user
+        dref = Dref.objects.filter(id=dref).first()
         dref.users.set(users)
 
         # lets also add to operational update as well
         op_updates = DrefOperationalUpdate.objects.filter(dref=dref.id)
-        for op in op_updates:
-            op.users.set(users)
+        if op_updates.exists():
+            for op in op_updates:
+                op.users.set(users)
+
+        # lets also add to the dref_final_report as well
+        final_report = DrefFinalReport.objects.filter(dref=dref.id)
+        if final_report.exists():
+            final_report.first().users.set(users)
+
