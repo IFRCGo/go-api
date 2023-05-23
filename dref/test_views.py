@@ -651,7 +651,12 @@ class DrefTestCase(APITestCase):
 
     def test_update_dref_for_final_report_created(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(title="Test Title", created_by=user1, is_published=True)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_published=True,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+        )
         url = "/api/v2/dref-final-report/"
         data = {"dref": dref.id}
         self.authenticate(self.user)
