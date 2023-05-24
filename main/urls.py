@@ -164,6 +164,7 @@ router.register(r"dref-op-update", dref_views.DrefOperationalUpdateViewSet, base
 router.register(r"dref-final-report", dref_views.DrefFinalReportViewSet, basename="dref_final_report")
 router.register(r"completed-dref", dref_views.CompletedDrefOperationsViewSet, basename="completed_dref")
 router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename="active_dref")
+router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="dref_share_user")
 
 router.register(r"review-country", api_views.CountryOfFieldReportToReviewViewset, basename="review_country")
 

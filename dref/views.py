@@ -32,13 +32,15 @@ from dref.serializers import (
     CompletedDrefOperationsSerializer,
     MiniOperationalUpdateSerializer,
     MiniDrefSerializer,
-    AddDrefUserSerializer
+    AddDrefUserSerializer,
+    DrefShareUserSerializer,
 )
 from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter,
     CompletedDrefOperationsFilterSet,
     ActiveDrefFilterSet,
+    DrefShareUserFilterSet,
 )
 from dref.permissions import (
     DrefOperationalUpdateUpdatePermission,
@@ -299,3 +301,17 @@ class DrefShareView(views.APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(status=status.HTTP_200_OK)
+
+
+class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
+    permissions_classes = [permissions.IsAuthenticated]
+    serializer_class = DrefShareUserSerializer
+    filterset_class = DrefShareUserFilterSet
+
+    def get_queryset(self):
+        return Dref.objects.prefetch_related(
+            "planned_interventions",
+            "needs_identified",
+            "national_society_actions",
+            "users"
+        ).order_by("-created_at").distinct()

@@ -1175,3 +1175,15 @@ class AddDrefUserSerializer(serializers.Serializer):
         if final_report.exists():
             final_report.first().users.set(users)
 
+
+class DrefShareUserSerializer(serializers.ModelSerializer):
+
+    users_details = UserNameSerializer(source="users", many=True, read_only=True)
+
+    class Meta:
+        model = Dref
+        fields = (
+            'id',
+            'users',
+            'users_details'
+        )

@@ -1277,7 +1277,51 @@ class DrefTestCase(APITestCase):
 
         url = f"/api/v2/active-dref/?type_of_dref={Dref.DrefType.ASSESSMENT}"
         response = self.client.get(url)
-        print(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(len(response.data['results'][0]['final_report_details']), 1)
+
+    def test_dref_share_users(self):
+        user1 = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
+        )
+        user3 = UserFactory.create(
+            username="user4@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user4@test.com",
+        )
+        user4 = UserFactory.create(
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User4",
+            password="admin123",
+            email="user3@test.com",
+        )
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+        )
+        dref.users.set([user2, user3, user4])
+        url = '/api/v2/dref-share-user/'
+        self.client.force_authenticate(user1)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(
+            set(response.data['results'][0]['users']),
+            set([user2.id, user3.id, user4.id])
+        )
