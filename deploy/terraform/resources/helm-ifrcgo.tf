@@ -46,14 +46,24 @@ resource "helm_release" "ifrcgo" {
     value = var.DJANGO_DB_PORT
   }
 
+#  set {
+#    name = "env.AZURE_STORAGE_ACCOUNT"
+#    value = azurerm_storage_account.ifrcgo.id
+#  }
+#
+#  set {
+#    name = "env.AZURE_STORAGE_KEY"
+#    value = azurerm_storage_account.ifrcgo.primary_access_key
+#  }
+
   set {
     name = "env.AZURE_STORAGE_ACCOUNT"
-    value = azurerm_storage_account.ifrcgo.id
+    value = var.AZURE_STORAGE_ACCOUNT
   }
 
   set {
     name = "env.AZURE_STORAGE_KEY"
-    value = azurerm_storage_account.ifrcgo.primary_access_key
+    value = var.AZURE_STORAGE_KEY
   }
 
   set {

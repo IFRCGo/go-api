@@ -1,4 +1,5 @@
 data "azurerm_container_registry" "ifrcgo" {
+  # we'll use the common resource group and ACR for staging and prod
   name                = var.ifrcgo_test_resources_acr
   resource_group_name = var.ifrcgo_test_resources_rg
 }

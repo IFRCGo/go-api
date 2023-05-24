@@ -1,16 +1,13 @@
 #!/bin/bash
 
-set -e
-
-if [[ "${CI}" ]]; then
-    set -x
-fi
+set -x
 
 function usage() {
     echo -n \
         "Usage: $(basename "$0") -t TERRAFORM_DIR [--plan,--skip-tf]
 Deploys the project infrastructure.
 -t TERRAFORM_DIR: The terraform directory. Required.
+-e ENVIRONMENT: The environment to deploy. Required.
 --plan: Only run Terraform plan.
 --skip-tf: Skips Terraform apply. Will still gather terraform output
 "
@@ -19,11 +16,16 @@ Deploys the project infrastructure.
 ###################
 # Parse arguments #
 ###################
+echo "The arguments passed to this script are: $@"
 
 while [[ "$#" -gt 0 ]]; do case $1 in
     -t)
         TERRAFORM_DIR=${2}
         shift
+        shift
+        ;;
+    -e)
+        ENVIRONMENT=${2}
         shift
         ;;
     --skip-tf)
@@ -63,15 +65,23 @@ function require_env() {
     fi
 }
 
+echo $ENVIRONMENT
 if [[ -z ${TERRAFORM_DIR} ]]; then
     echo "Must pass in TERRAFORM_DIR with -t"
     exit 1
 fi
 
+if [[ -z ${ENVIRONMENT} ]]; then
+    echo "Must pass in ENVIRONMENT with -e"
+    exit 1
+fi
 
 # Print some information
 
-echo "===== Running Deploy ====="
+echo "===== Running Deploy for $ENVIRONMENT ====="
+
+# Replace the backend state key in the main.tf to pick the right environment
+sed -i "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" ${TERRAFORM_DIR}/main.tf
 
 
 # ---- TODO: Run Chartpress ------
@@ -85,6 +95,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     #####################
 
     pushd ${TERRAFORM_DIR}
+
 
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."

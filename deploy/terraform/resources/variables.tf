@@ -190,6 +190,7 @@ variable "DEBUG_EMAIL" {
 # Attach ACR
 # Defaults to common resources
 
+# Staging Resources
 variable "ifrcgo_test_resources_acr" {
   type    = string
   default = "ifrcgoacr"
@@ -209,6 +210,28 @@ variable "ifrcgo_test_resources_db" {
   type = string
   default = "postgres"
 }
+
+# Production Resources
+variable "ifrcgo_prod_resources_acr" {
+  type    = string
+  default = "ifrcgoacr"
+}
+
+variable "ifrcgo_prod_resources_rg" {
+  type = string
+  default = "ifrcpgo002rg"
+}
+
+variable "ifrcgo_prod_resources_db_server" {
+  type = string
+  default = "ifrcpgokdb001"
+}
+
+variable "ifrcgo_prod_resources_db" {
+  type = string
+  default = "postgres"
+}
+
 
 # -----------------
 # Local variables
