@@ -8,14 +8,14 @@ python manage.py collectstatic --noinput --clear
 python manage.py collectstatic --noinput -l
 #python manage.py make_permissions
 
-# # Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
-# if [ "$GO_ENVIRONMENT"x = productionx ]; then
-#     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
-#     sed -i 's/CHANGE_ME_BEFORE_START/prod/' /etc/nginx/sites-available/nginx.conf
-# else
-#     sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
-#     sed -i 's/CHANGE_ME_BEFORE_START/'$GO_ENVIRONMENT'/' /etc/nginx/sites-available/nginx.conf
-# fi
+# Add server name(s) to django settings and nginx - later maybe only nginx would be enough, and ALLOWED_HOSTS could be "*"
+if [ "$GO_ENVIRONMENT"x = productionx ]; then
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN' api.go.ifrc.org/g' /etc/nginx/sites-available/nginx.conf
+    sed -i 's/CHANGE_ME_BEFORE_START/prod/' /etc/nginx/sites-available/nginx.conf
+else
+    sed -i 's/\$NGINX_SERVER_NAME/'$API_FQDN'/g' /etc/nginx/sites-available/nginx.conf
+    sed -i 's/CHANGE_ME_BEFORE_START/'$GO_ENVIRONMENT'/' /etc/nginx/sites-available/nginx.conf
+fi
 
 # Prepare log files and start outputting logs to stdout
 touch $HOME/logs/gunicorn.log
@@ -33,6 +33,8 @@ gunicorn main.wsgi:application \
     --log-level=debug \
     --log-file=$HOME/logs/gunicorn.log \
     --access-logfile=$HOME/logs/access.log
+
+
 
 # set up cron
 # rm $HOME/.env
@@ -56,7 +58,7 @@ gunicorn main.wsgi:application \
 # service cron start
 
 
-# tail -n 0 -f $HOME/logs/*.log &
+tail -n 0 -f $HOME/logs/*.log &
 
-# echo Starting nginx
-# exec nginx -g 'daemon off;'
+echo Starting nginx
+exec nginx -g 'daemon off;'
