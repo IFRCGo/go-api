@@ -1,5 +1,5 @@
 trigger:
-- terraform-prod
+- terraform
 
 resources:
   repositories:
