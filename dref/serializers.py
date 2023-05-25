@@ -4,6 +4,7 @@ import datetime
 from django.utils.translation import gettext
 from django.db import models, transaction
 from django.conf import settings
+from django.contrib.auth.models import User
 
 
 from rest_framework import serializers
@@ -54,13 +55,16 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
-class MiniDrefSerializer(serializers.ModelSerializer):
+class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
 
     class Meta:
-        model = Dref
+        model = DrefOperationalUpdate
         fields = [
             "id",
             "title",
@@ -72,7 +76,135 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "disaster_category_display",
             "type_of_onset_display",
             "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+            "operational_update_number",
+            "country",
+            "country_details",
+            "application_type",
+            "application_type_display",
+            "is_published"
         ]
+
+    def get_application_type(self, obj):
+        return "OPS_UPDATE"
+
+    def get_application_type_display(self, obj):
+        op_number = obj.operational_update_number
+        return f"Operational update #{op_number}"
+
+
+class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "national_society",
+            "disaster_type",
+            "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+            "country",
+            "country_details",
+            "application_type",
+            "application_type_display",
+        ]
+
+    def get_application_type(self, obj):
+        return "FINAL_REPORT"
+
+    def get_application_type_display(self, obj):
+        return "Final report"
+
+
+class MiniDrefSerializer(serializers.ModelSerializer):
+    type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
+    disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
+    type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    has_ops_update = serializers.SerializerMethodField()
+    has_final_report = serializers.SerializerMethodField()
+    application_type = serializers.SerializerMethodField()
+    application_type_display = serializers.SerializerMethodField()
+    unpublished_op_update_count = serializers.SerializerMethodField()
+    unpublished_final_report_count = serializers.SerializerMethodField()
+    operational_update_details = serializers.SerializerMethodField()
+    final_report_details = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dref
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "national_society",
+            "disaster_type",
+            "type_of_onset",
+            "type_of_dref",
+            "disaster_category",
+            "disaster_category_display",
+            "type_of_onset_display",
+            "type_of_dref_display",
+            "appeal_code",
+            "created_at",
+            "operational_update_details",
+            "final_report_details",
+            "country",
+            "country_details",
+            "has_ops_update",
+            "has_final_report",
+            "application_type",
+            "application_type_display",
+            "unpublished_op_update_count",
+            "unpublished_final_report_count",
+            "status",
+            "status_display",
+        ]
+
+    def get_operational_update_details(self, obj):
+        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
+        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id)
+        if type_of_dref:
+            queryset = queryset.filter(type_of_dref=type_of_dref)
+        return MiniOperationalUpdateSerializer(queryset, many=True).data
+
+    def get_final_report_details(self, obj):
+        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
+        queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
+        if type_of_dref:
+            queryset = queryset.filter(type_of_dref=type_of_dref)
+        return MiniDrefFinalReportSerializer(queryset, many=True).data
+
+    def get_has_ops_update(self, obj):
+        op_count_count = obj.drefoperationalupdate_set.count()
+        if op_count_count > 0:
+            return True
+        return False
+
+    def get_has_final_report(self, obj):
+        if hasattr(obj, 'dreffinalreport'):
+            return True
+        return False
+
+    def get_application_type(self, obj):
+        return "DREF"
+
+    def get_application_type_display(self, obj):
+        return "DREF application"
+
+    def get_unpublished_op_update_count(self, obj):
+        return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
+
+    def get_unpublished_final_report_count(self, obj):
+        return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
 
 
 class PlannedInterventionSerializer(ModelSerializer):
@@ -149,27 +281,6 @@ class IdentifiedNeedSerializer(ModelSerializer):
             request = self.context["request"]
             return IdentifiedNeed.get_image_map(title, request)
         return None
-
-
-class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DrefOperationalUpdate
-        fields = [
-            "id",
-            "title",
-            "is_published",
-            "operational_update_number",
-        ]
-
-
-class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DrefFinalReport
-        fields = [
-            "id",
-            "title",
-            "is_published",
-        ]
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
@@ -536,8 +647,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["people_in_need"] = dref.people_in_need
             validated_data["communication"] = dref.communication
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
-            validated_data['ns_request_date'] = dref.ns_request_date
-            validated_data['date_of_approval'] = dref.date_of_approval
+            validated_data["ns_request_date"] = dref.ns_request_date
+            validated_data["date_of_approval"] = dref.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -582,7 +693,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["national_society_contact_name"] = dref_operational_update.national_society_contact_name
             validated_data["national_society_contact_email"] = dref_operational_update.national_society_contact_email
             validated_data["national_society_contact_title"] = dref_operational_update.national_society_contact_title
-            validated_data["national_society_contact_phone_number"] = dref_operational_update.national_society_contact_phone_number
+            validated_data[
+                "national_society_contact_phone_number"
+            ] = dref_operational_update.national_society_contact_phone_number
             validated_data["media_contact_name"] = dref_operational_update.media_contact_name
             validated_data["media_contact_email"] = dref_operational_update.media_contact_email
             validated_data["media_contact_title"] = dref_operational_update.media_contact_title
@@ -631,7 +744,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["ns_respond_date"] = dref_operational_update.ns_respond_date
             validated_data["did_ns_respond"] = dref_operational_update.did_ns_respond
             validated_data["total_targeted_population"] = dref_operational_update.total_targeted_population
-            validated_data["is_there_major_coordination_mechanism"] = dref_operational_update.is_there_major_coordination_mechanism
+            validated_data[
+                "is_there_major_coordination_mechanism"
+            ] = dref_operational_update.is_there_major_coordination_mechanism
             validated_data["human_resource"] = dref_operational_update.human_resource
             validated_data["is_surge_personnel_deployed"] = dref_operational_update.is_surge_personnel_deployed
             validated_data["surge_personnel_deployed"] = dref_operational_update.surge_personnel_deployed
@@ -641,8 +756,8 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
             validated_data["communication"] = dref_operational_update.communication
             validated_data["people_in_need"] = dref_operational_update.people_in_need
             validated_data["total_operation_timeframe"] = dref_operational_update.total_operation_timeframe
-            validated_data['ns_request_date'] = dref_operational_update.ns_request_date
-            validated_data['date_of_approval'] = dref_operational_update.date_of_approval
+            validated_data["ns_request_date"] = dref_operational_update.ns_request_date
+            validated_data["date_of_approval"] = dref_operational_update.date_of_approval
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -888,9 +1003,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["assessment_report"] = dref_operational_update.assessment_report
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
-                raise serializers.ValidationError(
-                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
-                )
+                raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -980,9 +1093,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
             validated_data["ns_respond_date"] = dref.ns_respond_date
 
             if validated_data["type_of_dref"] == Dref.DrefType.LOAN:
-                raise serializers.ValidationError(
-                    gettext("Can\'t create final report for dref type %s" % Dref.DrefType.LOAN)
-                )
+                raise serializers.ValidationError(gettext("Can't create final report for dref type %s" % Dref.DrefType.LOAN))
             dref_final_report = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -1015,3 +1126,64 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
 
         validated_data["updated_by"] = self.context["request"].user
         return super().update(instance, validated_data)
+
+
+class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    dref = MiniDrefSerializer(read_only=True)
+
+    class Meta:
+        model = DrefFinalReport
+        fields = (
+            "id",
+            "created_at",
+            "title",
+            "appeal_code",
+            "glide_code",
+            "country",
+            "date_of_publication",
+            "country_details",
+            "dref",
+        )
+
+
+class AddDrefUserSerializer(serializers.Serializer):
+    users = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True
+    )
+    dref = serializers.IntegerField(write_only=True)
+
+    def save(self):
+        users_list = self.validated_data['users']
+        dref = self.validated_data['dref']
+
+        users = [User.objects.get(id=user_id) for user_id in users_list]
+
+        # get the dref and add the users_list to user
+        dref = Dref.objects.filter(id=dref).first()
+        dref.users.set(users)
+
+        # lets also add to operational update as well
+        op_updates = DrefOperationalUpdate.objects.filter(dref=dref.id)
+        if op_updates.exists():
+            for op in op_updates:
+                op.users.set(users)
+
+        # lets also add to the dref_final_report as well
+        final_report = DrefFinalReport.objects.filter(dref=dref.id)
+        if final_report.exists():
+            final_report.first().users.set(users)
+
+
+class DrefShareUserSerializer(serializers.ModelSerializer):
+
+    users_details = UserNameSerializer(source="users", many=True, read_only=True)
+
+    class Meta:
+        model = Dref
+        fields = (
+            'id',
+            'users',
+            'users_details'
+        )
