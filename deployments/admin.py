@@ -125,7 +125,7 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     list_filter = (ProjectNSFilter, ProjectCountryFilter,)
     autocomplete_fields = (
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
-        'event', 'dtype',
+        'event', 'dtype', 'project_admin2'
     )
     inlines = [ProjectAnnualSplitAdminInline]
 
@@ -287,7 +287,7 @@ class EmergencyProjectAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = (
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
-        'country', 'districts',
+        'country', 'districts', 'admin2',
     )
     list_display = [
         'title',
