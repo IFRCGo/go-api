@@ -378,7 +378,8 @@ class ProjectViewset(
         'user', 'modified_by', 'project_country', 'reporting_ns',
         'dtype', 'regional_project', 'primary_sector'
     ).prefetch_related(
-        'project_districts', 'event', 'annual_splits', 'secondary_sectors'
+        'project_districts', 'event', 'annual_splits',
+        'secondary_sectors', 'project_admin2'
     ).all()
     filterset_class = ProjectFilter
     serializer_class = ProjectSerializer
@@ -728,7 +729,7 @@ class EmergencyProjectViewSet(
 ):
     queryset = EmergencyProject.objects.\
         select_related('created_by', 'reporting_ns', 'event', 'country', 'deployed_eru', 'modified_by').\
-        prefetch_related('districts', 'activities').\
+        prefetch_related('districts', 'activities', 'admin2').\
         order_by('-modified_at').all()
     # Intentionally not IsAuthenticated. Anons should see public EmergencyProjects:
     permission_classes = []

@@ -432,6 +432,10 @@ snapshots['TestProjectAPI::test_project_create 1'] = {
     'primary_sector_display': 'sect-blDLTmDfquSPTYkTUhfhTCOxfHTyUYGNkyJycXkvKQjkjlXTdA',
     'programme_type': 2,
     'programme_type_display': 'Domestic',
+    'project_admin2': [
+    ],
+    'project_admin2_detail': [
+    ],
     'project_country': 1,
     'project_country_detail': {
         'average_household_size': None,
@@ -559,6 +563,10 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
             'programme_type': 2,
             'programme_type_display': 'Domestic',
+            'project_admin2': [
+            ],
+            'project_admin2_detail': [
+            ],
             'project_country': 2,
             'project_country_detail': {
                 'average_household_size': None,
@@ -666,6 +674,10 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
             'programme_type': 2,
             'programme_type_display': 'Domestic',
+            'project_admin2': [
+            ],
+            'project_admin2_detail': [
+            ],
             'project_country': 2,
             'project_country_detail': {
                 'average_household_size': None,
@@ -765,6 +777,10 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
             'programme_type': 0,
             'programme_type_display': 'Bilateral',
+            'project_admin2': [
+            ],
+            'project_admin2_detail': [
+            ],
             'project_country': 4,
             'project_country_detail': {
                 'average_household_size': None,
@@ -875,6 +891,10 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
     'programme_type': 2,
     'programme_type_display': 'Domestic',
+    'project_admin2': [
+    ],
+    'project_admin2_detail': [
+    ],
     'project_country': 2,
     'project_country_detail': {
         'average_household_size': None,
@@ -981,6 +1001,10 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
     'programme_type': 2,
     'programme_type_display': 'Domestic',
+    'project_admin2': [
+    ],
+    'project_admin2_detail': [
+    ],
     'project_country': 3,
     'project_country_detail': {
         'average_household_size': None,
