@@ -62,6 +62,7 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -83,7 +84,9 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
             "country_details",
             "application_type",
             "application_type_display",
-            "is_published"
+            "is_published",
+            "status",
+            "status_display",
         ]
 
     def get_application_type(self, obj):
@@ -99,6 +102,7 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     application_type = serializers.SerializerMethodField()
     application_type_display = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -115,6 +119,8 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
             "country_details",
             "application_type",
             "application_type_display",
+            "status",
+            "status_display"
         ]
 
     def get_application_type(self, obj):
@@ -1131,6 +1137,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializer
 class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     dref = MiniDrefSerializer(read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = DrefFinalReport
@@ -1144,6 +1151,8 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "date_of_publication",
             "country_details",
             "dref",
+            "status",
+            "status_display",
         )
 
 
