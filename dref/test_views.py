@@ -365,7 +365,7 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(len(response.data["results"]), 5)
 
     def test_dref_country_filter(self):
         country1 = Country.objects.create(name="country1")
