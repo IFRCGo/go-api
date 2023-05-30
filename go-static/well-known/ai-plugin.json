@@ -9,7 +9,7 @@
     },
     "api": {
       "type": "openapi",
-      "url": "https://goadmin-stage.ifrc.org/.well-known/openapi.yaml",
+      "url": "https://goadmin-stage.ifrc.org/.well-known/openapi.yml",
       "has_user_authentication": false
     },
     "logo_url": "https://go.ifrc.org/assets/graphics/layout/go-logo-2020.svg",
