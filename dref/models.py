@@ -1262,7 +1262,7 @@ class DrefFinalReport(models.Model):
         verbose_name_plural = _("Dref Final Reports")
 
     @staticmethod
-    def get_for(user):
+    def get_for(user, is_published=False):
         from dref.utils import get_dref_users
 
         # get the user in dref
@@ -1280,4 +1280,7 @@ class DrefFinalReport(models.Model):
         ).distinct()
         final_report_created_by = DrefFinalReport.objects.filter(created_by=user).distinct()
         union_query = final_report_users.union(final_report_created_by)
-        return DrefFinalReport.objects.filter(id__in=union_query.values("id")).distinct()
+        queryset = DrefFinalReport.objects.filter(id__in=union_query.values("id")).distinct()
+        if is_published:
+            return queryset.filter(is_published=True)
+        return queryset

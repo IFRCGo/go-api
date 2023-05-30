@@ -77,6 +77,7 @@ class GeoSerializerMixin:
         else:
             return None
 
+
 class DisasterTypeSerializer(ModelSerializer):
     class Meta:
         model = DisasterType
@@ -210,7 +211,6 @@ class DistrictSerializer(ModelSerializer):
         fields = ('name', 'code', 'country', 'id', 'is_deprecated',)
 
 
-
 class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
@@ -218,7 +218,15 @@ class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
 
     class Meta:
         model = Admin2
-        fields = ('district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
+        fields = ('id', 'district_id', 'name', 'code', 'bbox', 'centroid', 'is_deprecated',)
+
+
+class MiniAdmin2Serializer(ModelSerializer):
+    district_id = serializers.IntegerField(source='admin1.id', read_only=True)
+
+    class Meta:
+        model = Admin2
+        fields = ('id', 'name', 'code', 'district_id')
 
 
 class MiniDistrictSerializer(ModelSerializer):
