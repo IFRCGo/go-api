@@ -232,7 +232,7 @@ urlpatterns = [
     url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
     url(r"^docs/", include_docs_urls(title="IFRC GO API", public=False)),
     url(r"^tinymce/", include("tinymce.urls")),
-    url(r"^admin/", RedirectView.as_view(url="/")),
+    url(r"^$", RedirectView.as_view(url="/admin")),
     # url(r'^', admin.site.urls),
     url(r"^favicon\.ico$", RedirectView.as_view(url="/static/favicon.ico")),
     url(r"^server-error-for-devs", DummyHttpStatusError.as_view()),
@@ -267,7 +267,7 @@ if settings.DEBUG:
 
 # API With language URL patterns
 urlpatterns += i18n_patterns(
-    path("", admin.site.urls),
+    path("admin/", admin.site.urls),
     # NOTE: Current language switcher will not work if set to False.
     # TODO: Fix admin panel language switcher before enabling switcher in production
     prefix_default_language=True,
