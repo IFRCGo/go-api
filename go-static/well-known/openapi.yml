@@ -2,6 +2,9 @@ openapi: 3.0.0
 info:
   title: Search API
   version: 1.0.0
+servers:
+  - url: https://goadmin-stage.ifrc.org/
+    description: Main API server
 paths:
   /api/v1/search:
     get:
