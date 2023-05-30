@@ -9,7 +9,7 @@ paths:
   /api/v1/search:
     get:
       summary: Search resources
-      description: Allows users to search through the available resources.
+      description: Allows searching through the various resources on the IFRC GO platform pertaining to humanitarian emergencies. It will return an object with all the resources on the GO platform that match the keyword searched for. 
       parameters:
         - name: keyword
           in: query
