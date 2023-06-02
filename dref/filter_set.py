@@ -6,7 +6,10 @@ from dref.models import (
     DrefOperationalUpdate,
     DrefFinalReport,
 )
-from api.models import Country
+from api.models import (
+    Country,
+    DisasterType,
+)
 
 
 class DrefFilter(filters.FilterSet):
@@ -38,6 +41,14 @@ class BaseDrefFilterSet(filters.FilterSet):
         choices=Dref.DrefType.choices,
         lookup_expr="in",
         widget=filters.widgets.CSVWidget,
+    )
+    disaster_type = filters.ModelChoiceFilter(
+        field_name="disaster_type",
+        queryset=DisasterType.objects.all(),
+    )
+    appeal_code = filters.CharFilter(
+        field_name="appeal_code",
+        lookup_expr="icontains"
     )
 
 

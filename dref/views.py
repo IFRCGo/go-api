@@ -1,7 +1,6 @@
 from itertools import chain
 from operator import attrgetter
 
-from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from reversion.views import RevisionMixin
 
@@ -30,7 +29,6 @@ from dref.serializers import (
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
     CompletedDrefOperationsSerializer,
-    MiniOperationalUpdateSerializer,
     MiniDrefSerializer,
     AddDrefUserSerializer,
     DrefShareUserSerializer,
@@ -43,8 +41,6 @@ from dref.filter_set import (
     DrefShareUserFilterSet,
 )
 from dref.permissions import (
-    DrefOperationalUpdateUpdatePermission,
-    DrefFinalReportUpdatePermission,
     PublishDrefPermission
 )
 
@@ -76,7 +72,8 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_published(self, request, pk=None, version=None):
         dref = self.get_object()
         dref.is_published = True
-        dref.save(update_fields=["is_published"])
+        dref.status = Dref.Status.COMPLETED
+        dref.save(update_fields=["is_published", "status"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -125,7 +122,8 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
         operational_update.is_published = True
-        operational_update.save(update_fields=["is_published"])
+        operational_update.status = Dref.Status.COMPLETED
+        operational_update.save(update_fields=["is_published", "status"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -161,7 +159,8 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         if field_report.is_published:
             raise serializers.ValidationError(gettext("Final Report %s is already published" % field_report))
         field_report.is_published = True
-        field_report.save(update_fields=["is_published"])
+        field_report.status = Dref.Status.COMPLETED
+        field_report.save(update_fields=["is_published", "status"])
         if not field_report.dref.is_final_report_created:
             field_report.dref.is_final_report_created = True
             field_report.dref.save(update_fields=["is_final_report_created"])

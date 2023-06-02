@@ -1,8 +1,7 @@
 from django.test import override_settings
 from django.contrib.auth.models import User, AnonymousUser
-from django.conf import settings
 
-from main.settings import *
+from main.settings import env
 from main.test_case import APITestCase
 from api import models
 
@@ -15,6 +14,7 @@ FAKE_REDIS_CACHE = {
         }
     }
 }
+
 
 class CacheForUserMiddlewareTest(APITestCase):
     fixtures = ['DisasterTypes', 'Actions']
@@ -51,17 +51,17 @@ class CacheForUserMiddlewareTest(APITestCase):
         with self.capture_on_commit_callbacks(execute=True):
             self.client.post('/api/v2/create_field_report/', body, format='json').json()
 
-        response = self.client.get(f'/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
+        response = self.client.get('/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
         response_json = response.json()
         self.assert_200(response)
         self.assertEquals(response_json['count'], 1)
 
-        # Create a new object 
+        # Create a new object
         with self.capture_on_commit_callbacks(execute=True):
             self.client.post('/api/v2/create_field_report/', body, format='json').json()
 
         # The result should be cached, the user only sees one object
-        response = self.client.get(f'/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
+        response = self.client.get('/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
         response_json = response.json()
         self.assert_200(response)
         self.assertEquals(response_json['count'], 1)
@@ -69,11 +69,11 @@ class CacheForUserMiddlewareTest(APITestCase):
         # A different user, accessing for the first time should see both items
         user2 = User.objects.create(username='john')
         self.client.force_authenticate(user=user2)
-        response = self.client.get(f'/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
+        response = self.client.get('/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
         response_json = response.json()
         self.assert_200(response)
         self.assertEquals(response_json['count'], 2)
-    
+
     @override_settings(CACHES=FAKE_REDIS_CACHE)
     def test_caches_for_anonymous_user(self):
         user = User.objects.create(username='jo')
@@ -107,19 +107,19 @@ class CacheForUserMiddlewareTest(APITestCase):
             self.client.post('/api/v2/create_field_report/', body, format='json').json()
 
         self.client.force_authenticate(user=AnonymousUser())
-        response = self.client.get(f'/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
+        response = self.client.get('/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
         response_json = response.json()
         self.assert_200(response)
         self.assertEquals(response_json['count'], 1)
 
-        # Create a new object 
+        # Create a new object
         self.client.force_authenticate(user=user)
         with self.capture_on_commit_callbacks(execute=True):
             self.client.post('/api/v2/create_field_report/', body, format='json').json()
 
         # The result should be cached, the user only sees one object
         self.client.force_authenticate(user=AnonymousUser())
-        response = self.client.get(f'/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
+        response = self.client.get('/api/v2/field_report/', HTTP_ACCEPT_LANGUAGE='en')
         response_json = response.json()
         self.assert_200(response)
         self.assertEquals(response_json['count'], 1)

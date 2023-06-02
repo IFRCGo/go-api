@@ -7,11 +7,13 @@ from notifications.models import Country, Region, DisasterType, RecordType, Subs
 from .models import Appeal, Event, FieldReport
 from api.management.commands.index_and_notify import Command as Notify
 
+
 def get_user():
     user_number = get_random_string(8)
     username = 'user%s' % user_number
     email = '%s@email.com' % username
     return User.objects.create(username=username, password='12345678', email=email)
+
 
 class FieldReportNotificationTest(TestCase):
     def setUp(self):
@@ -31,13 +33,13 @@ class FieldReportNotificationTest(TestCase):
         user = get_user()
         Subscription.objects.create(
             user=user,
-            rtype=RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
+            rtype=RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             stype=SubscriptionType.NEW,
         )
         notify = Notify()
         emails = notify.gather_subscribers(
             FieldReport.objects.filter(created_at__gte=notify.diff_5_minutes()),
-            RecordType.NEW_EMERGENCIES, #FIELD_REPORT,
+            RecordType.NEW_EMERGENCIES,  # FIELD_REPORT,
             SubscriptionType.NEW,
         )
         self.assertEqual(len(emails), 1)
@@ -178,7 +180,6 @@ class AppealNotificationTest(TestCase):
         )
         self.assertEqual(len(emails), 1)
         self.assertEqual(emails[0], user.email)
-
 
     def test_region_and_country_subscription(self):
         user = get_user()
