@@ -5,9 +5,9 @@ from dref.models import Dref as Status
 
 class Migration(migrations.Migration):
 
-    def update_dref_staus(apps, schema_editor):
-        # Update all the `is_published` dref to status completed all other
-        # on_going
+    def update_dref_status(apps, schema_editor):
+        # Update all the `is_published` dref to status completed
+        # – all other to in_progress (ongoing)
         Dref = apps.get_model('dref', 'Dref')
         DrefOperationalUpdate = apps.get_model('dref', 'DrefOperationalUpdate')
         DrefFinalReport = apps.get_model('dref', 'DrefFinalReport')
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 op.status = Status.Status.IN_PROGRESS
             op.save(update_fields=['status'])
 
-        # dref operational update
+        # dref final report
         for final_report in final_reports:
             if final_report.is_published:
                 final_report.status = Status.Status.COMPLETED
@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            update_dref_staus,
+            update_dref_status,
             reverse_code=migrations.RunPython.noop
         ),
     ]

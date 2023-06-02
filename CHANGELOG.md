@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.476
+
+### Added
+ - Hotfix for emergencyproject revision
+
 ## 1.1.475
 
 ### Added
@@ -2211,7 +2216,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.475...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.476...HEAD
+[1.1.476]: https://github.com/IFRCGo/go-api/compare/1.1.475...1.1.476
 [1.1.475]: https://github.com/IFRCGo/go-api/compare/1.1.474...1.1.475
 [1.1.474]: https://github.com/IFRCGo/go-api/compare/1.1.473...1.1.474
 [1.1.473]: https://github.com/IFRCGo/go-api/compare/1.1.472...1.1.473

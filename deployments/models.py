@@ -549,7 +549,7 @@ class Project(models.Model):
 #        return 'secondary_sectors__title'
 
 
-@reversion.register()
+@reversion.register(follow=('project',))
 class AnnualSplit(models.Model):
     """Annual split for Project"""
 
@@ -783,7 +783,7 @@ class EmergencyProjectActivityLocation(models.Model):
         return f"{self.latitude} - {self.longitude}"
 
 
-@reversion.register()
+@reversion.register(follow=('project',))
 class EmergencyProjectActivity(models.Model):
     class PeopleHouseholds(models.TextChoices):
         PEOPLE = (
