@@ -84,6 +84,10 @@ variable "CELERY_REDIS_URL" {
   type = string
 }
 
+variable "CACHE_MIDDLEWARE_SECONDS" {
+  type = string
+}
+
 variable "MOLNIX_API_BASE" {
   type = string
 }

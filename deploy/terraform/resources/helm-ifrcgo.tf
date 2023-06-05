@@ -117,6 +117,11 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
+    name = "env.CACHE_MIDDLEWARE_SECONDS"
+    value = var.CACHE_MIDDLEWARE_SECONDS
+  }
+
+  set {
     name = "env.MOLNIX_API_BASE"
     value = var.MOLNIX_API_BASE
   }
