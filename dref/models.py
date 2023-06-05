@@ -979,6 +979,12 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         blank=True,
     )
+    identified_gaps = models.TextField(
+        verbose_name=_("identified gaps"),
+        blank=True,
+        null=True,
+        help_text=_("Any identified gaps/limitations in the assessment"),
+    )
 
     class Meta:
         verbose_name = _("Dref Operational Update")
