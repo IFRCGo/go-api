@@ -2,6 +2,7 @@ from itertools import chain
 from operator import attrgetter
 
 from django.utils.translation import gettext
+import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 
 from rest_framework import (
@@ -163,7 +164,8 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         field_report.save(update_fields=["is_published", "status"])
         if not field_report.dref.is_final_report_created:
             field_report.dref.is_final_report_created = True
-            field_report.dref.save(update_fields=["is_final_report_created"])
+            field_report.date_of_approval = timezone.now().date()
+            field_report.dref.save(update_fields=["is_final_report_created", "date_of_approval"])
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 
