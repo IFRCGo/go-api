@@ -156,7 +156,7 @@ class EventSourceFilter(admin.SimpleListFilter):
             return queryset.filter(auto_generated=True).filter(auto_generated_source__isnull=True)
 
 
-class DisasterTypeAdmin(TranslationAdmin, admin.ModelAdmin):
+class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     search_fields = ('name',)
 
 
