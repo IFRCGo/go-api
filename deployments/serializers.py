@@ -20,6 +20,7 @@ from api.serializers import (
     MiniCountrySerializer,
     NanoCountrySerializer,
     MiniDistrictSerializer,
+    MiniAdmin2Serializer
 )
 
 from .models import (
@@ -41,7 +42,6 @@ from .models import (
     EmergencyProjectActivityActionSupply,
     EmergencyProjectActivity,
     EmergencyProjectActivityLocation,
-
     OperationTypes,
     ProgrammeTypes,
 )
@@ -242,6 +242,7 @@ class PersonnelCsvSerializerBase(ModelSerializer):
         end = obj.end_date if obj.end_date else today
         return start <= today <= end
 
+
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
     # For logged in users | no molnix_status
@@ -352,6 +353,7 @@ class AnnualSplitSerializer(ModelSerializer):
 class ProjectSerializer(ModelSerializer):
     project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
+    project_admin2_detail = MiniAdmin2Serializer(source='project_admin2', read_only=True, many=True)
     reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
@@ -547,7 +549,6 @@ class EmergencyProjectActivitySerializer(
 
 
 class EmergencyProjectSerializer(
-    
     NestedUpdateMixin,
     NestedCreateMixin,
     ModelSerializer,
@@ -558,6 +559,7 @@ class EmergencyProjectSerializer(
     reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
+    admin2_details = MiniAdmin2Serializer(source='admin2', read_only=True, many=True)
     activities = EmergencyProjectActivitySerializer(many=True, required=False)
     # Enums
     activity_lead_display = serializers.CharField(source='get_activity_lead_display', read_only=True)
@@ -571,7 +573,7 @@ class EmergencyProjectSerializer(
                   'deployed_eru_details', 'districts_details', 'activities', 'event_details',
                   'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
                   'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts', 'status',
-                  'created_at', 'modified_at', 'start_date', 'end_date',
+                  'created_at', 'modified_at', 'start_date', 'end_date', 'admin2', 'admin2_details',
                   )  # '__all__' | Both X_details + X fields are needed: outgoing + incoming data.
         read_only_fields = (
             'created_by',

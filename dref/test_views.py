@@ -9,7 +9,11 @@ from django.contrib.auth.models import Permission
 
 from main.test_case import APITestCase
 
-from dref.models import Dref, DrefFile
+from dref.models import (
+    Dref,
+    DrefFile,
+    DrefFinalReport,
+)
 
 from dref.factories.dref import (
     DrefFactory,
@@ -361,7 +365,7 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(len(response.data["results"]), 5)
 
     def test_dref_country_filter(self):
         country1 = Country.objects.create(name="country1")
@@ -647,7 +651,12 @@ class DrefTestCase(APITestCase):
 
     def test_update_dref_for_final_report_created(self):
         user1 = UserFactory.create()
-        dref = DrefFactory.create(title="Test Title", created_by=user1, is_published=True)
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+            is_published=True,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+        )
         url = "/api/v2/dref-final-report/"
         data = {"dref": dref.id}
         self.authenticate(self.user)
@@ -1110,3 +1119,209 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data=data)
         self.assert_201(response)
         self.assertEqual(DrefFinalReport.objects.count(), old_count + 1)
+
+    def test_dref_share(self):
+        user1 = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
+        )
+        user3 = UserFactory.create(
+            username="user4@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user4@test.com",
+        )
+        user4 = UserFactory.create(
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User4",
+            password="admin123",
+            email="user3@test.com",
+        )
+        dref1 = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+        )
+        op_update = DrefOperationalUpdateFactory.create(
+            dref=dref1,
+            created_by=user1,
+        )
+        final_report = DrefFinalReportFactory.create(
+            dref=dref1,
+            created_by=user1,
+        )
+        self.client.force_authenticate(user1)
+        data = {
+            "users": [user2.id, user3.id, user4.id],
+            "dref": dref1.id
+        }
+
+        # share url
+        url = '/api/v2/dref-share/'
+        response = self.client.post(url, data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            set(list(DrefFinalReport.objects.filter(id=final_report.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )
+        self.assertEqual(
+            set(list(Dref.objects.filter(id=dref1.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )
+        self.assertEqual(
+            set(list(DrefOperationalUpdate.objects.filter(id=op_update.id).values_list('users', flat=True))),
+            set([user2.id, user3.id, user4.id])
+        )
+
+    def test_completed_dref_operations(self):
+        country_1 = Country.objects.create(name="country1")
+        country_2 = Country.objects.create(name="country2")
+        country_3 = Country.objects.create(name="country3")
+
+        # create some dref final report
+        DrefFinalReport.objects.all().delete()
+        DrefFinalReportFactory.create(
+            is_published=True,
+            country=country_1,
+            type_of_dref=Dref.DrefType.ASSESSMENT
+        )
+        DrefFinalReportFactory.create(
+            is_published=True,
+            country=country_3,
+            type_of_dref=Dref.DrefType.ASSESSMENT
+        )
+        final_report_1, final_report_2 = DrefFinalReportFactory.create_batch(
+            2,
+            is_published=True,
+            country=country_2,
+            type_of_dref=Dref.DrefType.LOAN
+        )
+        DrefFinalReportFactory.create(country=country_2)
+
+        url = '/api/v2/completed-dref/'
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 4)
+
+        # filter by national society
+        url = f"/api/v2/completed-dref/?country={country_2.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(
+            set([item['id'] for item in response.data['results']]),
+            set([final_report_1.id, final_report_2.id])
+        )
+        url = "/api/v2/completed-dref/?type_of_dref=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+    def test_filter_active_dref(self):
+        country_1 = Country.objects.create(name="country1")
+        country_2 = Country.objects.create(name="country2")
+
+        # create some dref
+        dref_1 = DrefFactory.create(
+            is_published=False,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            country=country_1,
+            created_by=self.root_user
+        )
+        dref_2 = DrefFactory.create(
+            is_published=False,
+            type_of_dref=Dref.DrefType.LOAN,
+            country=country_2,
+            created_by=self.root_user
+        )
+        # some dref final report
+        DrefFinalReportFactory.create(
+            is_published=False,
+            country=country_1,
+            type_of_dref=Dref.DrefType.ASSESSMENT,
+            dref=dref_1,
+            created_by=self.root_user
+        )
+        DrefFinalReportFactory.create(
+            is_published=False,
+            country=country_2,
+            type_of_dref=Dref.DrefType.LOAN,
+            dref=dref_2,
+            created_by=self.root_user
+        )
+
+        url = '/api/v2/active-dref/'
+        self.client.force_authenticate(self.root_user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 2)
+
+        # filter by national society
+        url = f"/api/v2/active-dref/?country={country_1.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+
+        url = f"/api/v2/active-dref/?type_of_dref={Dref.DrefType.ASSESSMENT}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['results'][0]['final_report_details']), 1)
+
+    def test_dref_share_users(self):
+        user1 = UserFactory.create(
+            username="user1@test.com",
+            first_name="Test",
+            last_name="User1",
+            password="admin123",
+            email="user1@test.com",
+            is_superuser=True,
+        )
+        user2 = UserFactory.create(
+            username="user2@test.com",
+            first_name="Test",
+            last_name="User2",
+            password="admin123",
+            email="user2@test.com",
+        )
+        user3 = UserFactory.create(
+            username="user4@test.com",
+            first_name="Test",
+            last_name="User3",
+            password="admin123",
+            email="user4@test.com",
+        )
+        user4 = UserFactory.create(
+            username="user3@test.com",
+            first_name="Test",
+            last_name="User4",
+            password="admin123",
+            email="user3@test.com",
+        )
+        dref = DrefFactory.create(
+            title="Test Title",
+            created_by=user1,
+        )
+        dref.users.set([user2, user3, user4])
+        url = '/api/v2/dref-share-user/'
+        self.client.force_authenticate(user1)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(
+            set(response.data['results'][0]['users']),
+            set([user2.id, user3.id, user4.id])
+        )

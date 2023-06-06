@@ -52,6 +52,7 @@ env = environ.Env(
     CELERY_REDIS_URL=str,
     CACHE_REDIS_URL=str,
     CACHE_TEST_REDIS_URL=(str, None),
+    CACHE_MIDDLEWARE_SECONDS=(int, None),
     # MOLNIX
     MOLNIX_API_BASE=(str, 'https://api.ifrc-staging.rpm.molnix.com/api/'),
     MOLNIX_USERNAME=(str, None),
@@ -204,8 +205,6 @@ GRAPHENE = {
     'SCHEMA': 'api.schema.schema'
 }
 
-# To find a more suitable caching strategy, not loading the cache middleware
-# temporarily. At enable time pls rename api/t_est_cache.py also. FIXME: search # ¤ - also in /api/drf_views.py
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -214,9 +213,9 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # ¤ 'middlewares.cache.UpdateCacheForUserMiddleware',
+    'middlewares.cache.UpdateCacheForUserMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # ¤ 'middlewares.cache.FetchFromCacheForUserMiddleware',
+    'middlewares.cache.FetchFromCacheForUserMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -543,4 +542,4 @@ CACHES = {
         }
     }
 }
-CACHE_MIDDLEWARE_SECONDS = 600
+CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod

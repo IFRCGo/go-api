@@ -1,5 +1,8 @@
-from django.contrib.auth.models import User
+from itertools import chain
+from operator import attrgetter
+
 from django.utils.translation import gettext
+import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 
 from rest_framework import (
@@ -26,11 +29,19 @@ from dref.serializers import (
     DrefFileSerializer,
     DrefOperationalUpdateSerializer,
     DrefFinalReportSerializer,
+    CompletedDrefOperationsSerializer,
+    MiniDrefSerializer,
+    AddDrefUserSerializer,
+    DrefShareUserSerializer,
 )
-from dref.filter_set import DrefFilter, DrefOperationalUpdateFilter
+from dref.filter_set import (
+    DrefFilter,
+    DrefOperationalUpdateFilter,
+    CompletedDrefOperationsFilterSet,
+    ActiveDrefFilterSet,
+    DrefShareUserFilterSet,
+)
 from dref.permissions import (
-    DrefOperationalUpdateUpdatePermission,
-    DrefFinalReportUpdatePermission,
     PublishDrefPermission
 )
 
@@ -62,7 +73,8 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_published(self, request, pk=None, version=None):
         dref = self.get_object()
         dref.is_published = True
-        dref.save(update_fields=["is_published"])
+        dref.status = Dref.Status.COMPLETED
+        dref.save(update_fields=["is_published", "status"])
         serializer = DrefSerializer(dref, context={"request": request})
         return response.Response(serializer.data)
 
@@ -111,7 +123,8 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
     def get_published(self, request, pk=None, version=None):
         operational_update = self.get_object()
         operational_update.is_published = True
-        operational_update.save(update_fields=["is_published"])
+        operational_update.status = Dref.Status.COMPLETED
+        operational_update.save(update_fields=["is_published", "status"])
         serializer = DrefOperationalUpdateSerializer(operational_update, context={"request": request})
         return response.Response(serializer.data)
 
@@ -147,10 +160,12 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         if field_report.is_published:
             raise serializers.ValidationError(gettext("Final Report %s is already published" % field_report))
         field_report.is_published = True
-        field_report.save(update_fields=["is_published"])
+        field_report.status = Dref.Status.COMPLETED
+        field_report.save(update_fields=["is_published", "status"])
         if not field_report.dref.is_final_report_created:
             field_report.dref.is_final_report_created = True
-            field_report.dref.save(update_fields=["is_final_report_created"])
+            field_report.date_of_approval = timezone.now().date()
+            field_report.dref.save(update_fields=["is_final_report_created", "date_of_approval"])
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 
@@ -204,3 +219,100 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CompletedDrefOperationsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_class = CompletedDrefOperationsFilterSet
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = (
+            DrefFinalReport.objects.filter(is_published=True)
+            .order_by("-created_at")
+            .distinct()
+        )
+        if user.is_superuser:
+            return queryset
+        else:
+            return DrefFinalReport.get_for(user, is_published=True)
+
+
+class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = MiniDrefSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_class = ActiveDrefFilterSet
+
+    def get_queryset(self):
+        user = self.request.user
+        dref = Dref.get_for(user)
+        dref_op_update = DrefOperationalUpdate.get_for(user)
+        dref_final_report = DrefFinalReport.get_for(user)
+        result_list = sorted(
+            chain(dref, dref_op_update, dref_final_report),
+            key=attrgetter('created_at'),
+            reverse=True
+        )
+        dref_list = []
+        for data in result_list:
+            if data.__class__.__name__ == "DrefFinalReport":
+                final_report = DrefFinalReport.objects.get(id=data.id)
+                dref_list.append(final_report)
+            elif data.__class__.__name__ == "DrefOperationalUpdate":
+                operational_update = DrefOperationalUpdate.objects.get(id=data.id)
+                dref_list.append(operational_update)
+            elif data.__class__.__name__ == "Dref":
+                dref = Dref.objects.get(id=data.id)
+                dref_list.append(dref)
+        # iterate over the list and get the dref from that
+        # check the dref in the new list if exists
+        # annotated dref here
+        annoatated_drefs = []
+        for dref in dref_list:
+            if dref.__class__.__name__ == 'DrefOperationalUpdate':
+                # annotate the dref and other operational update for that dref
+                operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
+                dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+            elif dref.__class__.__name__ == 'Dref':
+                dref_object = Dref.objects.get(id=dref.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+            elif dref.__class__.__name__ == 'DrefFinalReport':
+                final_report = DrefFinalReport.objects.get(id=dref.id)
+                dref_object = Dref.objects.get(dreffinalreport=final_report.id)
+                if dref_object not in annoatated_drefs:
+                    annoatated_drefs.append(dref_object)
+        dref_list = []
+        for dref in annoatated_drefs:
+            new_dref = Dref.objects.get(id=dref.id)
+            dref_list.append(new_dref.id)
+        return Dref.objects.filter(id__in=dref_list).order_by('-created_at')
+
+
+class DrefShareView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = AddDrefUserSerializer(
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(status=status.HTTP_200_OK)
+
+
+class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
+    permissions_classes = [permissions.IsAuthenticated]
+    serializer_class = DrefShareUserSerializer
+    filterset_class = DrefShareUserFilterSet
+
+    def get_queryset(self):
+        return Dref.objects.prefetch_related(
+            "planned_interventions",
+            "needs_identified",
+            "national_society_actions",
+            "users"
+        ).order_by("-created_at").distinct()

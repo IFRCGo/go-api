@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.478
+
+### Added
+ - DREF Final Report - Date of approval
+
+## 1.1.477
+
+### Added
+ - RelatedDropdownFilter for Projects
+ - API cache for not-logged-in users
+ - Add identified_gaps in dref-op-update
+ - Better follow Projects in revision
+ - Bump cryptography from 39.0.1 to 41.0.0
+ - Add display name in completed DREFs
+
 ## 1.1.476
 
 ### Added
@@ -2216,7 +2231,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.476...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.478...HEAD
+[1.1.478]: https://github.com/IFRCGo/go-api/compare/1.1.477...1.1.478
+[1.1.477]: https://github.com/IFRCGo/go-api/compare/1.1.476...1.1.477
 [1.1.476]: https://github.com/IFRCGo/go-api/compare/1.1.475...1.1.476
 [1.1.475]: https://github.com/IFRCGo/go-api/compare/1.1.474...1.1.475
 [1.1.474]: https://github.com/IFRCGo/go-api/compare/1.1.473...1.1.474

@@ -63,7 +63,6 @@ class SituationReportTypeTest(APITestCase):
 
         # Filter by event
         response = self.client.get('/api/v2/situation_report/?limit=100&event=%s' % event1.id)
-        print(response)
         self.assertEqual(response.status_code, 200)
         count = response.json()['count']
         self.assertEqual(count, 3)

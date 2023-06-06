@@ -9,6 +9,7 @@ from django.http import StreamingHttpResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from admin_auto_filters.filters import AutocompleteFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
 from api.utils import Echo
 import deployments.models as models
@@ -122,10 +123,13 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
-    list_filter = (ProjectNSFilter, ProjectCountryFilter,)
+    list_filter = (
+        ('reporting_ns', RelatedDropdownFilter),
+        ('project_country', RelatedDropdownFilter),
+    )
     autocomplete_fields = (
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
-        'event', 'dtype',
+        'event', 'dtype', 'project_admin2'
     )
     inlines = [ProjectAnnualSplitAdminInline]
 
@@ -287,7 +291,7 @@ class EmergencyProjectAdmin(admin.ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = (
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
-        'country', 'districts',
+        'country', 'districts', 'admin2',
     )
     list_display = [
         'title',

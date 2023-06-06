@@ -14,9 +14,8 @@ from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
-# ¤ FIXME for cache switch-on (see also /main/settings.py)
-# ¤ from django.utils.decorators import method_decorator
-# ¤ from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from main.utils import is_tableau
 from deployments.models import Personnel
@@ -33,17 +32,14 @@ from .models import (
     DisasterType,
     ExternalPartner,
     SupportedActivity,
-
     Region,
     RegionKeyFigure,
     RegionSnippet,
-
     Country,
     CountryKeyFigure,
     CountrySnippet,
     District,
     Admin2,
-
     Event,
     Snippet,
     SituationReport,
@@ -57,7 +53,6 @@ from .models import (
     ActionsTaken,
     Source,
     SourceType,
-
     VisibilityChoices,
     RequestChoices,
     EPISourceChoices,
@@ -73,25 +68,20 @@ from .serializers import (
     DisasterTypeSerializer,
     ExternalPartnerSerializer,
     SupportedActivitySerializer,
-
     RegionGeoSerializer,
     RegionKeyFigureSerializer,
     RegionSnippetSerializer,
     RegionRelationSerializer,
-
     CountryGeoSerializer,
     MiniCountrySerializer,
     CountryKeyFigureSerializer,
     CountrySnippetSerializer,
     CountryRelationSerializer,
     CountrySerializerRMD,
-
     DistrictSerializer,
     MiniDistrictGeoSerializer,
     DistrictSerializerRMD,
-
     Admin2Serializer,
-
     SnippetSerializer,
     ListMiniEventSerializer,
     ListEventSerializer,
@@ -113,7 +103,6 @@ from .serializers import (
     CreateFieldReportSerializer,
     MainContactSerializer,
     NsSerializer,
-
     # Tableau Serializers
     AppealDocumentTableauSerializer,
     # AppealTableauSerializer,
@@ -124,10 +113,8 @@ from .serializers import (
     ListFieldReportTableauSerializer,
     RegionSnippetTableauSerializer,
     SituationReportTableauSerializer,
-
     # Go Historical
     GoHistoricalSerializer,
-
     CountryOfFieldReportToReviewSerializer,
 )
 from api.filter_set import UserFilterSet
@@ -140,19 +127,22 @@ class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
-        return Event.objects.prefetch_related('personneldeployment_set__personnel_set__country_from') \
-                            .annotate(
-                                personnel_count=Count(
-                                    'personneldeployment__personnel',
-                                    filter=Q(
-                                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
-                                        personneldeployment__personnel__start_date__date__lte=today,
-                                        personneldeployment__personnel__end_date__date__gte=today,
-                                        personneldeployment__personnel__is_active=True
-                                    )
-                                )
-                            ).filter(personnel_count__gt=0) \
-                            .order_by('-disaster_start_date')
+        return (
+            Event.objects.prefetch_related("personneldeployment_set__personnel_set__country_from")
+            .annotate(
+                personnel_count=Count(
+                    "personneldeployment__personnel",
+                    filter=Q(
+                        personneldeployment__personnel__type=Personnel.TypeChoices.RR,
+                        personneldeployment__personnel__start_date__date__lte=today,
+                        personneldeployment__personnel__end_date__date__gte=today,
+                        personneldeployment__personnel__is_active=True,
+                    ),
+                )
+            )
+            .filter(personnel_count__gt=0)
+            .order_by("-disaster_start_date")
+        )
 
 
 # These two should give the same result: ^ v
@@ -161,140 +151,136 @@ class EventDeploymentsViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         today = timezone.now().date().strftime("%Y-%m-%d")
-        return Personnel.objects.filter(
-            start_date__date__lte=today,
-            end_date__date__gte=today,
-            is_active=True
-        ).order_by().values(
-            'deployment__event_deployed_to', 'type',
-        ).annotate(
-            id=models.F('deployment__event_deployed_to'),
-            deployments=models.Count('type')
-        ).values('id', 'type', 'deployments')
+        return (
+            Personnel.objects.filter(start_date__date__lte=today, end_date__date__gte=today, is_active=True)
+            .order_by()
+            .values(
+                "deployment__event_deployed_to",
+                "type",
+            )
+            .annotate(id=models.F("deployment__event_deployed_to"), deployments=models.Count("type"))
+            .values("id", "type", "deployments")
+        )
 
 
 class DisasterTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DisasterType.objects.all()
     serializer_class = DisasterTypeSerializer
-    search_fields = ('name',)  # for /docs
+    search_fields = ("name",)  # for /docs
 
 
 class RegionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Region.objects.annotate(
-        country_plan_count=Count(
-            'country__country_plan', filter=Q(country__country_plan__is_publish=True)
-        )
+        country_plan_count=Count("country__country_plan", filter=Q(country__country_plan__is_publish=True))
     )
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return RegionGeoSerializer
         return RegionRelationSerializer
 
 
 class CountryFilter(filters.FilterSet):
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    record_type = filters.NumberFilter(field_name='record_type', lookup_expr='exact')
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
+    record_type = filters.NumberFilter(field_name="record_type", lookup_expr="exact")
 
     class Meta:
         model = Country
         fields = {
-            'id': ('exact', 'in'),
-            'region': ('exact', 'in'),
-            'record_type': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "region": ("exact", "in"),
+            "record_type": ("exact", "in"),
         }
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).annotate(
-        has_country_plan=models.Exists(CountryPlan.objects.filter(country=OuterRef('pk'), is_publish=True))
+        has_country_plan=models.Exists(CountryPlan.objects.filter(country=OuterRef("pk"), is_publish=True))
     )
     filterset_class = CountryFilter
-    search_fields = ('name',)  # for /docs
+    search_fields = ("name",)  # for /docs
 
     def get_object(self):
-        pk = self.kwargs['pk']
+        pk = self.kwargs["pk"]
         qs = self.get_queryset()
         try:
             return qs.get(pk=int(pk))
         except ValueError:
             # NOTE: If pk is not integer try searching for name or iso
-            country = qs.filter(
-                models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk))
-            )
+            country = qs.filter(models.Q(name__iexact=str(pk)) | models.Q(iso__iexact=str(pk)))
             if country.exists():
                 return country.first()
-            raise Country.DoesNotExist(
-                'Country matching query does not exist.'
-            )
+            raise Country.DoesNotExist("Country matching query does not exist.")
 
     def get_serializer_class(self):
-        if self.request.GET.get('mini', 'false').lower() == 'true':
+        if self.request.GET.get("mini", "false").lower() == "true":
             return MiniCountrySerializer
         if is_tableau(self.request) is True:
             return CountryTableauSerializer
-        if self.action == 'list':
+        if self.action == "list":
             return CountryGeoSerializer
         return CountryRelationSerializer
 
     @action(
         detail=True,
-        url_path='databank',
+        url_path="databank",
         # Only for Documentation
         serializer_class=CountryOverviewSerializer,
     )
     def get_databank(self, request, pk):
         country = self.get_object()
-        if hasattr(country, 'countryoverview'):
-            return Response(
-                CountryOverviewSerializer(country.countryoverview).data
-            )
+        if hasattr(country, "countryoverview"):
+            return Response(CountryOverviewSerializer(country.countryoverview).data)
         raise Http404
 
 
 class CountryFilterRMD(filters.FilterSet):
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
+
     class Meta:
         model = Country
         fields = {
-            'id': ('exact', 'in'),
-            'region': ('exact', 'in'),
-            'record_type': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "region": ("exact", "in"),
+            "record_type": ("exact", "in"),
         }
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
     filterset_class = CountryFilterRMD
-    search_fields = ('name',) 
-    serializer_class = CountrySerializerRMD 
+    search_fields = ("name",)
+    serializer_class = CountrySerializerRMD
 
 
 class DistrictRMDFilter(filters.FilterSet):
     class Meta:
         model = District
         fields = {
-            'id': ('exact', 'in'),
-            'country': ('exact', 'in'),
-            'country__iso3': ('exact', 'in'),
-            'country__name': ('exact', 'in'),
-            'name': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "country": ("exact", "in"),
+            "country__iso3": ("exact", "in"),
+            "country__name": ("exact", "in"),
+            "name": ("exact", "in"),
         }
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.select_related('country').filter(is_deprecated=False)
+    queryset = District.objects.select_related("country").filter(is_deprecated=False)
     filterset_class = DistrictRMDFilter
-    search_fields = ('name', 'country__name',)
+    search_fields = (
+        "name",
+        "country__name",
+    )
     serializer_class = DistrictSerializerRMD
 
 
 class RegionKeyFigureFilter(filters.FilterSet):
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
 
     class Meta:
         model = RegionKeyFigure
-        fields = ('region',)
+        fields = ("region",)
 
 
 class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
@@ -305,11 +291,11 @@ class RegionKeyFigureViewset(ReadOnlyVisibilityViewset):
 
 
 class CountryKeyFigureFilter(filters.FilterSet):
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
 
     class Meta:
         model = CountryKeyFigure
-        fields = ('country',)
+        fields = ("country",)
 
 
 class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
@@ -320,11 +306,11 @@ class CountryKeyFigureViewset(ReadOnlyVisibilityViewset):
 
 
 class RegionSnippetFilter(filters.FilterSet):
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
 
     class Meta:
         model = RegionSnippet
-        fields = ('region',)
+        fields = ("region",)
 
 
 class RegionSnippetViewset(ReadOnlyVisibilityViewset):
@@ -340,11 +326,11 @@ class RegionSnippetViewset(ReadOnlyVisibilityViewset):
 
 
 class CountrySnippetFilter(filters.FilterSet):
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
 
     class Meta:
         model = CountrySnippet
-        fields = ('country',)
+        fields = ("country",)
 
 
 class CountrySnippetViewset(ReadOnlyVisibilityViewset):
@@ -363,24 +349,24 @@ class DistrictFilter(filters.FilterSet):
     class Meta:
         model = District
         fields = {
-            'id': ('exact', 'in'),
-            'country': ('exact', 'in'),
-            'country__iso3': ('exact', 'in'),
-            'country__name': ('exact', 'in'),
-            'name': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "country": ("exact", "in"),
+            "country__iso3": ("exact", "in"),
+            "country__name": ("exact", "in"),
+            "name": ("exact", "in"),
         }
 
 
 class DistrictViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = District.objects.\
-        select_related('country').\
-        filter(country__is_deprecated=False).\
-        filter(is_deprecated=False)
+    queryset = District.objects.select_related("country").filter(country__is_deprecated=False).filter(is_deprecated=False)
     filterset_class = DistrictFilter
-    search_fields = ('name', 'country__name',)  # for /docs
+    search_fields = (
+        "name",
+        "country__name",
+    )  # for /docs
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return MiniDistrictGeoSerializer
         else:
             return DistrictSerializer
@@ -390,84 +376,102 @@ class Admin2Filter(filters.FilterSet):
     class Meta:
         model = Admin2
         fields = {
-            'id': ('exact', 'in'),
-            'admin1': ('exact', 'in'),
-            'admin1__country': ('exact', 'in'),
-            'admin1__country__iso3': ('exact', 'in'),
-            'name': ('exact', 'in'),
+            "id": ("exact", "in"),
+            "admin1": ("exact", "in"),
+            "admin1__country": ("exact", "in"),
+            "admin1__country__iso3": ("exact", "in"),
+            "name": ("exact", "in"),
         }
 
 
 class Admin2Viewset(viewsets.ReadOnlyModelViewSet):
-    queryset = Admin2.objects.\
-        select_related('admin1').\
-        filter(admin1__country__is_deprecated=False).\
-        filter(admin1__is_deprecated=False).\
-        filter(is_deprecated=False)
     filterset_class = Admin2Filter
-    search_fields = ('name', 'district__name', 'district__country__name')
+    search_fields = ("name", "district__name", "district__country__name")
     serializer_class = Admin2Serializer
+
+    def get_queryset(self):
+        return (
+            Admin2.objects.select_related("admin1")
+            .filter(admin1__country__is_deprecated=False)
+            .filter(admin1__is_deprecated=False)
+            .filter(is_deprecated=False)
+        )
 
 
 class EventFilter(filters.FilterSet):
-    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
-    is_featured = filters.BooleanFilter(field_name='is_featured')
-    is_featured_region = filters.BooleanFilter(field_name='is_featured_region')
-    countries__in = ListFilter(field_name='countries__id')
-    regions__in = ListFilter(field_name='regions__id')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
+    is_featured = filters.BooleanFilter(field_name="is_featured")
+    is_featured_region = filters.BooleanFilter(field_name="is_featured_region")
+    countries__in = ListFilter(field_name="countries__id")
+    regions__in = ListFilter(field_name="regions__id")
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
     auto_generated_source = filters.ChoiceFilter(
-        label='Auto generated source choices', choices=[(v, v) for v in SOURCES.values()],
+        label="Auto generated source choices",
+        choices=[(v, v) for v in SOURCES.values()],
     )
 
     class Meta:
         model = Event
         fields = {
-            'disaster_start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "disaster_start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class EventViewset(ReadOnlyVisibilityViewset):
     ordering_fields = (
-        'disaster_start_date', 'created_at', 'name', 'summary', 'num_affected', 'glide', 'ifrc_severity_level',
+        "disaster_start_date",
+        "created_at",
+        "name",
+        "summary",
+        "num_affected",
+        "glide",
+        "ifrc_severity_level",
     )
     filterset_class = EventFilter
     visibility_model_class = Event
-    search_fields = ('name', 'countries__name', 'dtype__name',)  # for /docs
+    search_fields = (
+        "name",
+        "countries__name",
+        "dtype__name",
+    )  # for /docs
 
     def get_queryset(self, *args, **kwargs):
         # import pdb; pdb.set_trace();
         qset = super().get_queryset()
-        if self.action == 'mini_events':
+        if self.action == "mini_events":
             # return Event.objects.filter(parent_event__isnull=True).select_related('dtype')
-            return qset.filter(parent_event__isnull=True).select_related('dtype')
-        if self.action == 'response_activity_events':
-            return qset.filter(parent_event__isnull=True).filter(
-                Q(auto_generated=False) | Q(auto_generated_source='New field report')
-                ).select_related('dtype')
+            return qset.filter(parent_event__isnull=True).select_related("dtype")
+        if self.action == "response_activity_events":
+            return (
+                qset.filter(parent_event__isnull=True)
+                .filter(Q(auto_generated=False) | Q(auto_generated_source="New field report"))
+                .select_related("dtype")
+            )
         return (
             # Event.objects.filter(parent_event__isnull=True)
-            qset.filter(parent_event__isnull=True).select_related('dtype')
+            qset.filter(parent_event__isnull=True)
+            .select_related("dtype")
             .prefetch_related(
-                'regions',
-                Prefetch('appeals', queryset=Appeal.objects.select_related('dtype', 'event', 'country', 'region')),
-                Prefetch('countries', queryset=Country.objects.select_related('region')),
-                Prefetch('districts', queryset=District.objects.select_related('country')),
+                "regions",
+                Prefetch("appeals", queryset=Appeal.objects.select_related("dtype", "event", "country", "region")),
+                Prefetch("countries", queryset=Country.objects.select_related("region")),
+                Prefetch("districts", queryset=District.objects.select_related("country")),
                 Prefetch(
-                    'field_reports',
-                    queryset=FieldReport.objects.select_related('user', 'dtype', 'event')
-                                                .prefetch_related('districts', 'countries', 'regions', 'contacts')
+                    "field_reports",
+                    queryset=FieldReport.objects.select_related("user", "dtype", "event").prefetch_related(
+                        "districts", "countries", "regions", "contacts"
+                    ),
                 ),
             )
         )
 
     def get_serializer_class(self):
-        if self.action == 'mini_events':
+        if self.action == "mini_events":
             return ListMiniEventSerializer
-        elif self.action == 'list':
-            request_format_type = self.request.GET.get('format', 'json')
-            if request_format_type == 'csv':
+        elif self.action == "list":
+            request_format_type = self.request.GET.get("format", "json")
+            if request_format_type == "csv":
                 return ListEventCsvSerializer
             elif is_tableau(self.request) is True:
                 return ListEventTableauSerializer
@@ -484,61 +488,65 @@ class EventViewset(ReadOnlyVisibilityViewset):
                     if is_user_ifrc(self.request.user):
                         instance = Event.objects.get(pk=pk)
                     else:
-                        user_countries = UserCountry.objects\
-                            .filter(user=request.user.id).values('country')\
-                            .union(
-                                Profile.objects.filter(user=request.user.id).values('country')
-                            )
-                        instance = Event.objects\
-                            .exclude(
-                                visibility=VisibilityChoices.IFRC)\
-                            .exclude(
-                                Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))\
+                        user_countries = (
+                            UserCountry.objects.filter(user=request.user.id)
+                            .values("country")
+                            .union(Profile.objects.filter(user=request.user.id).values("country"))
+                        )
+                        instance = (
+                            Event.objects.exclude(visibility=VisibilityChoices.IFRC)
+                            .exclude(Q(visibility=VisibilityChoices.IFRC_NS) & ~Q(countries__id__in=user_countries))
                             .get(pk=pk)
+                        )
                 else:
                     instance = Event.objects.filter(visibility=VisibilityChoices.PUBLIC).get(pk=pk)
                 # instance = Event.get_for(request.user).get(pk=pk)
             except Exception:
                 raise Http404
-        elif kwargs['slug']:
-            instance = Event.objects.filter(slug=kwargs['slug']).first()
+        elif kwargs["slug"]:
+            instance = Event.objects.filter(slug=kwargs["slug"]).first()
             # instance = Event.get_for(request.user).filter(slug=kwargs['slug']).first()
             if not instance:
                 raise Http404
         else:
-            raise BadRequest('Emergency ID or Slug parameters are missing')
+            raise BadRequest("Emergency ID or Slug parameters are missing")
 
         serializer = self.get_serializer(instance)
 
         # Hide the "affected" values that are kept only for history – see (¤) in other code parts
-        if 'field_reports' in serializer.data:
-            for j, fr in enumerate(serializer.data['field_reports']):
-                if 'recent_affected' in fr:  # should always be True
-                    for i, field in enumerate([
-                        'num_affected',             'gov_num_affected',             'other_num_affected',
-                        'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected']):
-                        if fr['recent_affected'] - 1 != i and field in serializer.data['field_reports'][j]:
-                            del serializer.data['field_reports'][j][field]
-                    del serializer.data['field_reports'][j]['recent_affected']
-
-
+        if "field_reports" in serializer.data:
+            for j, fr in enumerate(serializer.data["field_reports"]):
+                if "recent_affected" in fr:  # should always be True
+                    for i, field in enumerate(
+                        [
+                            "num_affected",
+                            "gov_num_affected",
+                            "other_num_affected",
+                            "num_potentially_affected",
+                            "gov_num_potentially_affected",
+                            "other_num_potentially_affected",
+                        ]
+                    ):
+                        if fr["recent_affected"] - 1 != i and field in serializer.data["field_reports"][j]:
+                            del serializer.data["field_reports"][j][field]
+                    del serializer.data["field_reports"][j]["recent_affected"]
         return Response(serializer.data)
 
-    @action(methods=['get'], detail=False, url_path='mini')
+    @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
         return super().list(request)
 
-    @action(methods=['get'], detail=False, url_path='response-activity')
+    @action(methods=["get"], detail=False, url_path="response-activity")
     def response_activity_events(self, request):
         return super().list(request)
 
 
 class EventSnippetFilter(filters.FilterSet):
-    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+    event = filters.NumberFilter(field_name="event", lookup_expr="exact")
 
     class Meta:
         model = Snippet
-        fields = ('event',)
+        fields = ("event",)
 
 
 class EventSnippetViewset(ReadOnlyVisibilityViewset):
@@ -551,29 +559,35 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
     queryset = SituationReportType.objects.all()
     serializer_class = SituationReportTypeSerializer
-    ordering_fields = ('type',)
-    search_fields = ('type',)  # for /docs
+    ordering_fields = ("type",)
+    search_fields = ("type",)  # for /docs
 
 
 class SituationReportFilter(filters.FilterSet):
-    event = filters.NumberFilter(field_name='event', lookup_expr='exact')
-    type = filters.NumberFilter(field_name='type', lookup_expr='exact')
+    event = filters.NumberFilter(field_name="event", lookup_expr="exact")
+    type = filters.NumberFilter(field_name="type", lookup_expr="exact")
 
     class Meta:
         model = SituationReport
         fields = {
-            'name': ('exact',),
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "name": ("exact",),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class SituationReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     serializer_class = SituationReportSerializer
-    ordering_fields = ('created_at', 'name',)
+    ordering_fields = (
+        "created_at",
+        "name",
+    )
     filterset_class = SituationReportFilter
     visibility_model_class = SituationReport
-    search_fields = ('name', 'event__name',)  # for /docs
+    search_fields = (
+        "name",
+        "event__name",
+    )  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -582,57 +596,76 @@ class SituationReportViewset(ReadOnlyVisibilityViewset):
 
 
 class AppealFilter(filters.FilterSet):
-    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
-    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    code = filters.CharFilter(field_name='code', lookup_expr='exact')
-    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
+    atype = filters.NumberFilter(field_name="atype", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
+    code = filters.CharFilter(field_name="code", lookup_expr="exact")
+    status = filters.NumberFilter(field_name="status", lookup_expr="exact")
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
 
     class Meta:
         model = Appeal
         fields = {
-            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "end_date": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class AppealHistoryFilter(filters.FilterSet):
-    atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
-    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
-    country = filters.NumberFilter(field_name='country', lookup_expr='exact')
-    region = filters.NumberFilter(field_name='region', lookup_expr='exact')
-    code = filters.CharFilter(field_name='code', lookup_expr='exact')
-    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
+    atype = filters.NumberFilter(field_name="atype", lookup_expr="exact")
+    dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
+    code = filters.CharFilter(field_name="code", lookup_expr="exact")
+    status = filters.NumberFilter(field_name="status", lookup_expr="exact")
     # Do not use, misleading: id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    appeal_id = filters.NumberFilter(field_name='appeal_id', lookup_expr='exact', help_text='Use this (or code) for appeal identification.')
+    appeal_id = filters.NumberFilter(
+        field_name="appeal_id", lookup_expr="exact", help_text="Use this (or code) for appeal identification."
+    )
 
     class Meta:
         model = AppealHistory
         fields = {
-            'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'end_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'valid_from': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'valid_to': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'appeal__real_data_update': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'country__iso3': ('exact',),
+            "start_date": ("exact", "gt", "gte", "lt", "lte"),
+            "end_date": ("exact", "gt", "gte", "lt", "lte"),
+            "valid_from": ("exact", "gt", "gte", "lt", "lte"),
+            "valid_to": ("exact", "gt", "gte", "lt", "lte"),
+            "appeal__real_data_update": ("exact", "gt", "gte", "lt", "lte"),
+            "country__iso3": ("exact",),
         }
 
 
 # Instead of viewsets.ReadOnlyModelViewSet:
 class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
-    """ Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'. """
+    """Used to get Appeals from AppealHistory. Has no 'read' option, just 'list'."""
+
     # queryset = Appeal.objects.select_related('dtype', 'country', 'region').all()
     # queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').all()
-    queryset = AppealHistory.objects.select_related('appeal__event', 'dtype', 'country', 'region').filter(appeal__code__isnull=False)
+    queryset = AppealHistory.objects.select_related("appeal__event", "dtype", "country", "region").filter(
+        appeal__code__isnull=False
+    )
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
-    ordering_fields = ('start_date', 'end_date', 'appeal__name', 'aid', 'dtype', 'num_beneficiaries',
-                       'amount_requested', 'amount_funded', 'status', 'atype', 'event',)
+    ordering_fields = (
+        "start_date",
+        "end_date",
+        "appeal__name",
+        "aid",
+        "dtype",
+        "num_beneficiaries",
+        "amount_requested",
+        "amount_funded",
+        "status",
+        "atype",
+        "event",
+    )
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
-    search_fields = ('appeal__name', 'code',)  # for /docs
+    search_fields = (
+        "appeal__name",
+        "code",
+    )  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -642,18 +675,18 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         # return AppealSerializer
 
     def remove_unconfirmed_event(self, obj):
-        if obj['needs_confirmation']:
-            obj['event'] = None
+        if obj["needs_confirmation"]:
+            obj["event"] = None
         return obj
 
     def remove_unconfirmed_events(self, objs):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
     # Overwrite to exclude the events which require confirmation
-    # ¤ @method_decorator(cache_page(1200))
+    @method_decorator(cache_page(1200))
     def list(self, request, *args, **kwargs):
         now = timezone.now()
-        date = request.GET.get('date', now)
+        date = request.GET.get("date", now)
         queryset = self.filter_queryset(self.get_queryset()).filter(valid_from__lt=date, valid_to__gt=date)
 
         page = self.paginate_queryset(queryset)
@@ -664,6 +697,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(self.remove_unconfirmed_events(serializer.data))
 
+
 #    def retrieve(self, request, *args, **kwargs):
 #        instance = self.get_object()
 #
@@ -672,22 +706,25 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class AppealDocumentFilter(filters.FilterSet):
-    appeal = filters.NumberFilter(field_name='appeal', lookup_expr='exact')
-    appeal__in = ListFilter(field_name='appeal__id')
+    appeal = filters.NumberFilter(field_name="appeal", lookup_expr="exact")
+    appeal__in = ListFilter(field_name="appeal__id")
 
     class Meta:
         model = AppealDocument
         fields = {
-            'name': ('exact',),
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "name": ("exact",),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class AppealDocumentViewset(viewsets.ReadOnlyModelViewSet):
     queryset = AppealDocument.objects.all()
-    ordering_fields = ('created_at', 'name',)
+    ordering_fields = (
+        "created_at",
+        "name",
+    )
     filterset_class = AppealDocumentFilter
-    search_fields = ('name', 'appeal__code', 'appeal__name')  # for /docs
+    search_fields = ("name", "appeal__code", "appeal__name")  # for /docs
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -714,56 +751,57 @@ class UserViewset(viewsets.ModelViewSet):
 
     @action(
         detail=False,
-        url_path='me',
+        url_path="me",
         serializer_class=UserMeSerializer,
     )
     def get_authenticated_user_info(self, request, *args, **kwargs):
-        return Response(
-            self.get_serializer_class()(request.user).data
-        )
+        return Response(self.get_serializer_class()(request.user).data)
 
 
 class FieldReportFilter(filters.FilterSet):
-    dtype = filters.NumberFilter(field_name='dtype', lookup_expr='exact')
-    user = filters.NumberFilter(field_name='user', lookup_expr='exact')
-    countries__in = ListFilter(field_name='countries__id')
-    regions__in = ListFilter(field_name='regions__id')
-    id = filters.NumberFilter(field_name='id', lookup_expr='exact')
-    is_covid_report = filters.BooleanFilter(field_name='is_covid_report')
-    summary = filters.CharFilter(field_name='summary', lookup_expr='icontains')
+    dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
+    user = filters.NumberFilter(field_name="user", lookup_expr="exact")
+    countries__in = ListFilter(field_name="countries__id")
+    regions__in = ListFilter(field_name="regions__id")
+    id = filters.NumberFilter(field_name="id", lookup_expr="exact")
+    is_covid_report = filters.BooleanFilter(field_name="is_covid_report")
+    summary = filters.CharFilter(field_name="summary", lookup_expr="icontains")
 
     class Meta:
         model = FieldReport
         fields = {
-            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'updated_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            "created_at": ("exact", "gt", "gte", "lt", "lte"),
+            "updated_at": ("exact", "gt", "gte", "lt", "lte"),
         }
 
 
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
-    search_fields = ('countries__name', 'regions__label', 'summary',)  # for /docs
+    search_fields = (
+        "countries__name",
+        "regions__label",
+        "summary",
+    )  # for /docs
 
     def get_queryset(self, *args, **kwargs):
         qset = super().get_queryset()
-        qset = qset.select_related('dtype', 'event')
-        return qset.prefetch_related('actions_taken', 'actions_taken__actions',
-                                     'countries', 'districts', 'regions')
+        qset = qset.select_related("dtype", "event")
+        return qset.prefetch_related("actions_taken", "actions_taken__actions", "countries", "districts", "regions")
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
             return ListFieldReportTableauSerializer
-        if self.action == 'list':
-            request_format_type = self.request.GET.get('format', 'json')
-            if request_format_type == 'csv':
+        if self.action == "list":
+            request_format_type = self.request.GET.get("format", "json")
+            if request_format_type == "csv":
                 return ListFieldReportCsvSerializer
             else:
                 return ListFieldReportSerializer
         else:
             return DetailFieldReportSerializer
 
-    ordering_fields = ('summary', 'event', 'dtype', 'created_at', 'updated_at')
+    ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
 
 
@@ -791,71 +829,71 @@ class GenericFieldReportView(GenericAPIView):
         # Replace integer values for Int Enum types.
         # Otherwise, validation will fail.
         # This applies to visibility and request choices.
-        if data['visibility'] == 2 or data['visibility'] == '2':
-            data['visibility'] = VisibilityChoices.IFRC
-        elif data['visibility'] == 3 or data['visibility'] == '3':
-            data['visibility'] = VisibilityChoices.PUBLIC
-        elif data['visibility'] == 4 or data['visibility'] == '4':
-            data['visibility'] = VisibilityChoices.IFRC_NS    
+        if data["visibility"] == 2 or data["visibility"] == "2":
+            data["visibility"] = VisibilityChoices.IFRC
+        elif data["visibility"] == 3 or data["visibility"] == "3":
+            data["visibility"] = VisibilityChoices.PUBLIC
+        elif data["visibility"] == 4 or data["visibility"] == "4":
+            data["visibility"] = VisibilityChoices.IFRC_NS
         else:
-            data['visibility'] = VisibilityChoices.MEMBERSHIP
+            data["visibility"] = VisibilityChoices.MEMBERSHIP
 
         # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
-        if 'status' in data and data['status'] == FieldReport.Status.EW:  # Early Warning
-            if 'num_potentially_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.RCRC_POTENTIALLY
-            elif 'gov_num_potentially_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
-            elif 'other_num_potentially_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.OTHER_POTENTIALLY
+        if "status" in data and data["status"] == FieldReport.Status.EW:  # Early Warning
+            if "num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.RCRC_POTENTIALLY
+            elif "gov_num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
+            elif "other_num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.OTHER_POTENTIALLY
         else:  # Event related
-            if 'num_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.RCRC
-            elif 'gov_num_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.GOVERNMENT
-            elif 'other_num_affected' in data:
-                data['recent_affected'] = FieldReport.RecentAffected.OTHER
+            if "num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.RCRC
+            elif "gov_num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT
+            elif "other_num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.OTHER
 
         # Handle EPI Figures' Source dropdown saving
-        if 'epi_figures_source' in data:
-            if data['epi_figures_source'] == 0 or data['epi_figures_source'] == '0':
-                data['epi_figures_source'] = EPISourceChoices.MINISTRY_OF_HEALTH
-            elif data['epi_figures_source'] == 1 or data['epi_figures_source'] == '1':
-                data['epi_figures_source'] = EPISourceChoices.WHO
-            elif data['epi_figures_source'] == 2 or data['epi_figures_source'] == '2':
-                data['epi_figures_source'] = EPISourceChoices.OTHER
+        if "epi_figures_source" in data:
+            if data["epi_figures_source"] == 0 or data["epi_figures_source"] == "0":
+                data["epi_figures_source"] = EPISourceChoices.MINISTRY_OF_HEALTH
+            elif data["epi_figures_source"] == 1 or data["epi_figures_source"] == "1":
+                data["epi_figures_source"] = EPISourceChoices.WHO
+            elif data["epi_figures_source"] == 2 or data["epi_figures_source"] == "2":
+                data["epi_figures_source"] = EPISourceChoices.OTHER
             else:
-                data['epi_figures_source'] = None
+                data["epi_figures_source"] = None
         else:
-            data['epi_figures_source'] = None
+            data["epi_figures_source"] = None
 
         request_choices = [
-            'bulletin',
-            'dref',
-            'appeal',
-            'rdrt',
-            'fact',
-            'ifrc_staff',
-            'imminent_dref',
-            'forecast_based_action',
-            'eru_base_camp',
-            'eru_basic_health_care',
-            'eru_it_telecom',
-            'eru_logistics',
-            'eru_deployment_hospital',
-            'eru_referral_hospital',
-            'eru_relief',
-            'eru_water_sanitation_15',
-            'eru_water_sanitation_40',
-            'eru_water_sanitation_20',
+            "bulletin",
+            "dref",
+            "appeal",
+            "rdrt",
+            "fact",
+            "ifrc_staff",
+            "imminent_dref",
+            "forecast_based_action",
+            "eru_base_camp",
+            "eru_basic_health_care",
+            "eru_it_telecom",
+            "eru_logistics",
+            "eru_deployment_hospital",
+            "eru_referral_hospital",
+            "eru_relief",
+            "eru_water_sanitation_15",
+            "eru_water_sanitation_40",
+            "eru_water_sanitation_20",
         ]
         for prop in request_choices:
             if prop in data:
-                if data[prop] == 1 or data[prop] == '1':
+                if data[prop] == 1 or data[prop] == "1":
                     data[prop] = RequestChoices.REQUESTED
-                elif data[prop] == 2 or data[prop] == '2':
+                elif data[prop] == 2 or data[prop] == "2":
                     data[prop] = RequestChoices.PLANNED
-                elif data[prop] == 3 or data[prop] == '3':
+                elif data[prop] == 3 or data[prop] == "3":
                     data[prop] = RequestChoices.COMPLETE
                 else:
                     data[prop] = RequestChoices.NO
@@ -872,18 +910,18 @@ class GenericFieldReportView(GenericAPIView):
 
         # Query foreign key relations, these are attached on model save/update.
         mappings = [
-            ('user', User),
-            ('dtype', DisasterType),
-            ('event', Event),
+            ("user", User),
+            ("dtype", DisasterType),
+            ("event", Event),
         ]
-        for (prop, model) in mappings:
+        for prop, model in mappings:
             if prop in data and data[prop] is not None:
                 try:
                     data[prop] = model.objects.get(pk=data[prop])
                 except Exception:
-                    raise BadRequest('Valid %s is required' % prop)
-            elif prop != 'event':
-                raise BadRequest('Valid %s is required' % prop)
+                    raise BadRequest("Valid %s is required" % prop)
+            elif prop != "event":
+                raise BadRequest("Valid %s is required" % prop)
 
         return data
 
@@ -891,50 +929,47 @@ class GenericFieldReportView(GenericAPIView):
         # Query many-to-many mappings. These are removed from the data object,
         # So they can be added later.
         mappings = [
-            ('countries', Country),
-            ('regions', Region),
-            ('districts', District),
+            ("countries", Country),
+            ("regions", Region),
+            ("districts", District),
         ]
 
         locations = {}
-        for (prop, model) in mappings:
-            if prop in data and hasattr(data[prop], '__iter__') and len(data[prop]):
+        for prop, model in mappings:
+            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
                 locations[prop] = list(data[prop])
             if prop in data:
                 del data[prop]
 
         # Sources, actions, and contacts
         mappings = [
-            ('actions_taken'),
-            ('contacts'),
-            ('sources'),
+            ("actions_taken"),
+            ("contacts"),
+            ("sources"),
         ]
 
         meta = {}
-        for (prop) in mappings:
-            if prop in data and hasattr(data[prop], '__iter__') and len(data[prop]):
+        for prop in mappings:
+            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
                 meta[prop] = list(data[prop])
             if prop in data:
                 del data[prop]
 
-        mappings = [
-            ('external_partners', ExternalPartner),
-            ('supported_activities', SupportedActivity)
-        ]
+        mappings = [("external_partners", ExternalPartner), ("supported_activities", SupportedActivity)]
 
         partners = {}
-        for (prop, model) in mappings:
-            if prop in data and hasattr(data[prop], '__iter__') and len(data[prop]):
+        for prop, model in mappings:
+            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
                 partners[prop] = list(data[prop])
             if prop in data:
                 del data[prop]
 
-        if 'start_date' in data:
-            data['start_date'] = datetime.strptime(data['start_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
-                .replace(tzinfo=utc)
-        if 'sit_fields_date' in data:
-            data['sit_fields_date'] = datetime.strptime(data['sit_fields_date'], '%Y-%m-%dT%H:%M:%S.%f%z')\
-                .replace(tzinfo=utc)
+        if "start_date" in data:
+            data["start_date"] = datetime.strptime(data["start_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(tzinfo=utc)
+        if "sit_fields_date" in data:
+            data["sit_fields_date"] = datetime.strptime(data["sit_fields_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(
+                tzinfo=utc
+            )
         return data, locations, meta, partners
 
     def save_locations(self, instance, locations, is_update=False):
@@ -942,24 +977,22 @@ class GenericFieldReportView(GenericAPIView):
             instance.districts.clear()
             instance.countries.clear()
             instance.regions.clear()
-        if 'districts' in locations:
-            instance.districts.add(*locations['districts'])
-        if 'countries' in locations:
-            instance.countries.add(*locations['countries'])
+        if "districts" in locations:
+            instance.districts.add(*locations["districts"])
+        if "countries" in locations:
+            instance.countries.add(*locations["countries"])
             # Add countries in automatically, based on regions
-            countries = Country.objects.filter(pk__in=locations['countries'])
-            instance.regions.add(*[country.region for country in countries if (
-                country.region is not None
-            )])
+            countries = Country.objects.filter(pk__in=locations["countries"])
+            instance.regions.add(*[country.region for country in countries if (country.region is not None)])
 
     def save_partners_activities(self, instance, locations, is_update=False):
         if is_update:
             instance.external_partners.clear()
             instance.supported_activities.clear()
-        if 'external_partners' in locations:
-            instance.external_partners.add(*locations['external_partners'])
-        if 'supported_activities' in locations:
-            instance.supported_activities.add(*locations['supported_activities'])
+        if "external_partners" in locations:
+            instance.external_partners.add(*locations["external_partners"])
+        if "supported_activities" in locations:
+            instance.supported_activities.add(*locations["supported_activities"])
 
     def save_meta(self, fieldreport, meta, is_update=False):
         if is_update:
@@ -967,25 +1000,23 @@ class GenericFieldReportView(GenericAPIView):
             FieldReportContact.objects.filter(field_report=fieldreport).delete()
             Source.objects.filter(field_report=fieldreport).delete()
 
-        if 'actions_taken' in meta:
-            for action_taken in meta['actions_taken']:
-                actions = action_taken['actions']
-                del action_taken['actions']
+        if "actions_taken" in meta:
+            for action_taken in meta["actions_taken"]:
+                actions = action_taken["actions"]
+                del action_taken["actions"]
                 actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
                 actions_taken.actions.add(*actions)
 
-        if 'contacts' in meta:
+        if "contacts" in meta:
             FieldReportContact.objects.bulk_create(
-                [FieldReportContact(field_report=fieldreport, **fields) for fields in meta['contacts']]
+                [FieldReportContact(field_report=fieldreport, **fields) for fields in meta["contacts"]]
             )
 
-        if 'sources' in meta:
-            for source in meta['sources']:
-                stype, created = SourceType.objects.get_or_create(name=source['stype'])
-                source['stype'] = stype
-            Source.objects.bulk_create(
-                [Source(field_report=fieldreport, **fields) for fields in meta['sources']]
-            )
+        if "sources" in meta:
+            for source in meta["sources"]:
+                stype, created = SourceType.objects.get_or_create(name=source["stype"])
+                source["stype"] = stype
+            Source.objects.bulk_create([Source(field_report=fieldreport, **fields) for fields in meta["sources"]])
 
 
 class CreateFieldReport(CreateAPIView, GenericFieldReportView):
@@ -998,10 +1029,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         event = Event.objects.create(
             name=report.summary,
             dtype=report.dtype,
-            summary=report.description or '',
+            summary=report.description or "",
             disaster_start_date=report.start_date,
             auto_generated=True,
-            auto_generated_source=SOURCES['new_report'],
+            auto_generated_source=SOURCES["new_report"],
             visibility=report.visibility,
         )
         report.event = event
@@ -1012,9 +1043,9 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         serializer = self.serialize(request.data)
         if not serializer.is_valid():
             try:
-                logger.error('Create Field Report serializer errors: {}'.format(serializer.errors))
+                logger.error("Create Field Report serializer errors: {}".format(serializer.errors))
             except Exception:
-                logger.error('Could not log create Field Report serializer errors')
+                logger.error("Could not log create Field Report serializer errors")
             raise BadRequest(serializer.errors)
 
         data = self.map_foreign_key_relations(request.data)
@@ -1027,10 +1058,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
         except Exception as e:
             try:
                 err_msg = str(e)
-                logger.error('Could not create Field Report.', exc_info=True)
-                raise BadRequest('Could not create Field Report. Error: {}'.format(err_msg))
+                logger.error("Could not create Field Report.", exc_info=True)
+                raise BadRequest("Could not create Field Report. Error: {}".format(err_msg))
             except Exception:
-                raise BadRequest('Could not create Field Report')
+                raise BadRequest("Could not create Field Report")
 
         # ### Creating relations ###
         # These are *not* handled in a transaction block.
@@ -1057,11 +1088,11 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
                 errors.append(e)
 
         if len(errors):
-            logger.error('%s errors creating new field reports' % len(errors))
+            logger.error("%s errors creating new field reports" % len(errors))
             for error in errors:
                 logger.error(str(error)[:200])
 
-        return Response({'id': fieldreport.id}, status=HTTP_201_CREATED)
+        return Response({"id": fieldreport.id}, status=HTTP_201_CREATED)
 
 
 class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
@@ -1085,8 +1116,8 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
         try:
             serializer.save()
         except Exception:
-            logger.error('Faild to update field report', exc_info=True)
-            raise BadRequest('Could not update field report')
+            logger.error("Faild to update field report", exc_info=True)
+            raise BadRequest("Could not update field report")
 
         errors = []
         try:
@@ -1101,31 +1132,28 @@ class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
             errors.append(e)
 
         if len(errors):
-            logger.error('%s errors creating new field reports' % len(errors))
+            logger.error("%s errors creating new field reports" % len(errors))
             for error in errors:
                 logger.error(str(error)[:200])
 
-        return Response({'id': instance.id}, status=HTTP_200_OK)
+        return Response({"id": instance.id}, status=HTTP_200_OK)
 
 
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = MainContactSerializer
-    queryset = MainContact.objects.order_by('extent')
-    search_fields = ('name', 'email')  # for /docs
+    queryset = MainContact.objects.order_by("extent")
+    search_fields = ("name", "email")  # for /docs
 
 
 class NSLinksViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = NsSerializer
-    queryset = Country.objects.filter(url_ifrc__contains='/').order_by('url_ifrc')
+    queryset = Country.objects.filter(url_ifrc__contains="/").order_by("url_ifrc")
 
 
 class GoHistoricalFilter(filters.FilterSet):
-    countries = filters.ModelMultipleChoiceFilter(
-        field_name='countries',
-        queryset=Country.objects.all()
-    )
-    iso3 = filters.CharFilter(field_name='countries__iso3', lookup_expr='icontains')
-    region = filters.NumberFilter(field_name='countries__region', lookup_expr='exact')
+    countries = filters.ModelMultipleChoiceFilter(field_name="countries", queryset=Country.objects.all())
+    iso3 = filters.CharFilter(field_name="countries__iso3", lookup_expr="icontains")
+    region = filters.NumberFilter(field_name="countries__region", lookup_expr="exact")
 
     class Meta:
         model = Event
@@ -1141,19 +1169,20 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):
-    queryset = CountryOfFieldReportToReview.objects.order_by('country')
+    queryset = CountryOfFieldReportToReview.objects.order_by("country")
     serializer_class = CountryOfFieldReportToReviewSerializer
-    search_fields = ('country__name',)  # for /docs
+    search_fields = ("country__name",)  # for /docs
 
     class Meta:
         model = CountryOfFieldReportToReview
-        fields = ('country_id')
+        fields = "country_id"
 
 
 class UsersViewset(viewsets.ReadOnlyModelViewSet):
     """
     List all active users
     """
+
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     filterset_class = UserFilterSet

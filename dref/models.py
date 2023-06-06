@@ -593,7 +593,7 @@ class Dref(models.Model):
             else:
                 raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
 
-        self.status = Dref.Status.COMPLETED if self.date_of_approval else Dref.Status.IN_PROGRESS
+        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         self.__budget_file_id = self.budget_file_id
         super().save(*args, **kwargs)
 
@@ -698,6 +698,7 @@ class DrefOperationalUpdate(models.Model):
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
+    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
     dref_allocated_so_far = models.IntegerField(verbose_name=_("Dref allocated so far"), null=True, blank=True)
@@ -978,10 +979,20 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         blank=True,
     )
+    identified_gaps = models.TextField(
+        verbose_name=_("identified gaps"),
+        blank=True,
+        null=True,
+        help_text=_("Any identified gaps/limitations in the assessment"),
+    )
 
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
+
+    def save(self, *args, **kwargs):
+        # self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        super().save(*args, **kwargs)
 
     @staticmethod
     def get_for(user):
@@ -1044,6 +1055,7 @@ class DrefFinalReport(models.Model):
     disaster_category = models.IntegerField(
         choices=Dref.DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
     )
+    status = models.IntegerField(choices=Dref.Status.choices, verbose_name=_("status"), null=True, blank=True)
     number_of_people_targeted = models.IntegerField(verbose_name=_("Number of people targeted"), blank=True, null=True)
     number_of_people_affected = models.IntegerField(verbose_name=_("number of people affected"), blank=True, null=True)
     total_dref_allocation = models.IntegerField(verbose_name=_("Total dref allocation"), null=True, blank=True)
@@ -1256,13 +1268,22 @@ class DrefFinalReport(models.Model):
         verbose_name=_("National Society conducted description"), null=True, blank=True
     )
     financial_report_description = models.TextField(verbose_name=_("Financial Report Description"), null=True, blank=True)
+    date_of_approval = models.DateField(
+        verbose_name=_("Date of Approval"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
 
+    def save(self, *args, **kwargs):
+        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        super().save(*args, **kwargs)
+
     @staticmethod
-    def get_for(user):
+    def get_for(user, is_published=False):
         from dref.utils import get_dref_users
 
         # get the user in dref
@@ -1280,4 +1301,7 @@ class DrefFinalReport(models.Model):
         ).distinct()
         final_report_created_by = DrefFinalReport.objects.filter(created_by=user).distinct()
         union_query = final_report_users.union(final_report_created_by)
-        return DrefFinalReport.objects.filter(id__in=union_query.values("id")).distinct()
+        queryset = DrefFinalReport.objects.filter(id__in=union_query.values("id")).distinct()
+        if is_published:
+            return queryset.filter(is_published=True)
+        return queryset
