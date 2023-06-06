@@ -9,6 +9,7 @@ from django.http import StreamingHttpResponse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from admin_auto_filters.filters import AutocompleteFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 
 from api.utils import Echo
 import deployments.models as models
@@ -122,7 +123,10 @@ class ProjectAdmin(CompareVersionAdmin, TranslationAdmin):
     form = ProjectForm
     reporting_ns_in = 'country_from__in'
     search_fields = ('name',)
-    list_filter = (ProjectNSFilter, ProjectCountryFilter,)
+    list_filter = (
+        ('reporting_ns', RelatedDropdownFilter),
+        ('project_country', RelatedDropdownFilter),
+    )
     autocomplete_fields = (
         'user', 'reporting_ns', 'project_country', 'project_districts', 'regional_project',
         'event', 'dtype', 'project_admin2'
