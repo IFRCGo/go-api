@@ -1268,6 +1268,11 @@ class DrefFinalReport(models.Model):
         verbose_name=_("National Society conducted description"), null=True, blank=True
     )
     financial_report_description = models.TextField(verbose_name=_("Financial Report Description"), null=True, blank=True)
+    date_of_approval = models.DateField(
+        verbose_name=_("Date of Approval"),
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("Dref Final Report")

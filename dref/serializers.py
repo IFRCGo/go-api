@@ -87,6 +87,7 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
             "is_published",
             "status",
             "status_display",
+            "date_of_approval"
         ]
 
     def get_application_type(self, obj):
@@ -120,7 +121,8 @@ class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
             "application_type",
             "application_type_display",
             "status",
-            "status_display"
+            "status_display",
+            "date_of_approval"
         ]
 
     def get_application_type(self, obj):
@@ -173,6 +175,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "unpublished_final_report_count",
             "status",
             "status_display",
+            "date_of_approval"
         ]
 
     def get_operational_update_details(self, obj):
