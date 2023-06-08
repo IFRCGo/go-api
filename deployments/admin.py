@@ -36,18 +36,18 @@ class ERUOwnerAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
         return super().get_queryset(request).select_related('national_society_country')
 
 
-class SectorAdmin(admin.ModelAdmin):
+class SectorAdmin(CompareVersionAdmin, admin.ModelAdmin):
     model = models.Sector
     search_fields = ('title',)
 
 
-class SectorTagAdmin(admin.ModelAdmin):
+class SectorTagAdmin(CompareVersionAdmin, admin.ModelAdmin):
     model = models.SectorTag
     search_fields = ('title',)
 
 
 @admin.register(models.ERU)
-class ERUAdmin(admin.ModelAdmin):
+class ERUAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('national_society_country__name',)
 
 
@@ -269,13 +269,13 @@ class EmergencyProjectActivityActionInline(admin.TabularInline):
 
 
 @admin.register(models.EmergencyProjectActivityAction)
-class EmergencyProjectActivityActionAdmin(admin.ModelAdmin):
+class EmergencyProjectActivityActionAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     inlines = (EmergencyProjectActivityActionSupplyInline,)
 
 
 @admin.register(models.EmergencyProjectActivitySector)
-class EmergencyProjectActivitySectorAdmin(admin.ModelAdmin):
+class EmergencyProjectActivitySectorAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     inlines = (EmergencyProjectActivityActionInline,)
 
@@ -287,7 +287,7 @@ class EmergencyProjectActivityInline(admin.TabularInline):
 
 
 @admin.register(models.EmergencyProject)
-class EmergencyProjectAdmin(admin.ModelAdmin):
+class EmergencyProjectAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('title',)
     autocomplete_fields = (
         'created_by', 'modified_by', 'event', 'reporting_ns', 'deployed_eru',
