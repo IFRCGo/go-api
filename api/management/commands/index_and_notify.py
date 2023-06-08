@@ -864,7 +864,7 @@ class Command(BaseCommand):
             send_notification('API monitor – ingest issues!',
                               ['im@ifrc.org'],  # Could be an ENV var
                               'Ingest issue(s) occured, one of them is ' + ingestor_name +
-                              ', via CronJob log record id: https://' + settings.BASE_URL + '/api/cronjob/' +
+                              ', via CronJob log record id: https://' + settings.BASE_URL + '/admin/api/cronjob/' +
                               str(ingest_issue_id) + '. Please fix it ASAP.',
                               'Ingestion error')
             logger.info('Ingest issue occured, e.g. by ' + ingestor_name +
