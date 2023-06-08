@@ -493,9 +493,12 @@ class Brief(APIView):
         r = FieldReport.objects.filter(description__contains="base64").count()
         u = FlashUpdate.objects.filter(situational_overview__contains="base64").count()
         c = CronJob.objects.filter(status=2).count()
+        f = Event.objects.filter(disaster_start_date__gt=timezone.now()).count()
+
         res = ES_CLIENT.cluster.health()
         res["--------------------------------"] = "----------"
         res["base64_img"] = e + s + r + u
+        res["events_in_future"] = f
         res["cronjob_err"] = c
         res["maintenance_mode"] = settings.DJANGO_READ_ONLY
         res["git_last_tag"] = settings.LAST_GIT_TAG
