@@ -139,6 +139,26 @@ class FormPrioritizationComponentAdmin(admin.ModelAdmin):
     pass
 
 
+class FormAssessmentAdmin(admin.ModelAdmin):
+    pass
+
+
+class FormAreaResponseAdmin(admin.ModelAdmin):
+    pass
+
+
+class FormComponentResponseAdmin(admin.ModelAdmin):
+    pass
+
+
+class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
+    pass
+
+
+class FormComponentConsiderationsAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -154,3 +174,8 @@ admin.site.register(models.PerWorkPlan, PerWorkPlanAdmin)
 admin.site.register(models.PerWorkPlanComponent, PerWorkPlanComponentAdmin)
 admin.site.register(models.FormPrioritization, FormPrioritizationAdmin)
 admin.site.register(models.FormPrioritizationComponent, FormPrioritizationComponentAdmin)
+admin.site.register(models.PerAssessment, FormAssessmentAdmin)
+admin.site.register(models.AreaResponse, FormAreaResponseAdmin)
+admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
+admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
+admin.site.register(models.FormComponentConsiderations, FormComponentConsiderationsAdmin)
