@@ -180,20 +180,26 @@ class PerTestCase(APITestCase):
     def test_form_prioritization_formdata(self):
         overview = OverviewFactory.create()
         component = FormComponentFactory.create()
+        component2 = FormComponentFactory.create()
         data = {
             "overview": overview.id,
-            "form_proritization_component": [
-                {"is_prioritized": True, "justification_text": "yeysysysyayas", "component": component.id},
+            "component_responses": [
                 {
                     "is_prioritized": True,
-                    "justification_text": "ahahahashadhalkshdlajkshdkljashjkldasdasd",
-                    "component": component.id,
+                    "justification_text": "yeysysysyayas",
+                    "component": component.id
+                },
+                {
+                    "component": component2.id,
+                    "is_prioritized": None,
+                    "justification_text": "asdasdasd",
                 },
             ],
         }
         url = "/api/v2/per-prioritization/"
         self.authenticate(self.ifrc_user)
         response = self.client.post(url, data, format="json")
+        print(response.content)
         self.assert_201(response)
 
     def test_overview_date_of_assessment(self):
@@ -462,34 +468,36 @@ class PerTestCase(APITestCase):
 
     def test_validate_custom_action(self):
         overview = OverviewFactory.create()
-        area = FormAreaFactory.create()
         component = FormComponentFactory.create()
         old_count = PerWorkPlan.objects.count()
         data = {
             "overview": overview.id,
-            "workplan_component": [
+            "component_responses": [
                 {
                     "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
-                    "responsible_email": "new@gmail.com",
-                    "responsible_name": "nanananan",
                     "component": component.id,
-                    "area": area.id,
+                    "due_date": "2020-10-20",
                     "status": WorkPlanStatus.PENDING,
                 },
                 {
                     "actions": "tetststakaskljsakjdsakjaslhjkasdklhjasdhjklasdjklhasdk,l.j",
-                    "responsible_email": "new@gmail.com",
-                    "responsible_name": "nanananan",
                     "component": component.id,
-                    "area": area.id,
+                    "due_date": "2020-10-20",
                     "status": WorkPlanStatus.PENDING,
                 },
             ],
-            "custom_component": {
-                "actions": "test",
-                "due_date": "2020-10-20",
-                "status": WorkPlanStatus.PENDING
-            }
+            "custom_component_responses": [
+                {
+                    "actions": "test",
+                    "due_date": "2020-10-20",
+                    "status": WorkPlanStatus.PENDING
+                },
+                {
+                    "actions": "test",
+                    "due_date": "2020-10-20",
+                    "status": WorkPlanStatus.PENDING
+                }
+            ]
         }
         url = "/api/v2/per-work-plan/"
         self.authenticate(self.ifrc_user)

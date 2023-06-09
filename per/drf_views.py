@@ -35,7 +35,8 @@ from .models import (
     AssessmentType,
     PerWorkPlan,
     FormPrioritization,
-    WorkPlanStatus
+    WorkPlanStatus,
+    PerAssessment,
 )
 from .serializers import (
     FormStatSerializer,
@@ -61,7 +62,8 @@ from .serializers import (
     PerProcessSerializer,
     FormAsessmentDraftSerializer,
     FormAsessmentSerializer,
-    FormSerializer
+    FormSerializer,
+    PerAssessmentSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -721,20 +723,8 @@ class FormAssessmentDraftViewSet(viewsets.ModelViewSet):
 
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
-    serializer_class = FormAsessmentSerializer
-    filterset_class = FormAssessmentFilterSet
+    serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Form.objects.select_related('area')
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return response.Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
+        return PerAssessment.objects.select_related('overview')
