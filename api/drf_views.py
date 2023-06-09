@@ -14,8 +14,8 @@ from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+# ¤ from django.utils.decorators import method_decorator
+# ¤ from django.views.decorators.cache import cache_page
 
 from main.utils import is_tableau
 from deployments.models import Personnel
@@ -683,7 +683,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
         return [self.remove_unconfirmed_event(obj) for obj in objs]
 
     # Overwrite to exclude the events which require confirmation
-    @method_decorator(cache_page(1200))
+# ¤    @method_decorator(cache_page(1200))
     def list(self, request, *args, **kwargs):
         now = timezone.now()
         date = request.GET.get("date", now)
