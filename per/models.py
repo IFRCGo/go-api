@@ -150,7 +150,8 @@ class FormComponentResponse(models.Model):
     component = models.ForeignKey(
         FormComponent,
         verbose_name=_("Form Component"),
-        on_delete=models.CASCADE
+        on_delete=models.PROTECT,
+        blank=True, null=True,
     )
     status = models.CharField(
         verbose_name=_("status"), max_length=100,
@@ -191,7 +192,8 @@ class PerAssessment(models.Model):
     overview = models.ForeignKey(
         "Overview",
         verbose_name="Overview",
-        on_delete=models.CASCADE
+        on_delete=models.PROTECT,
+        blank=True, null=True,
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_("user"),
