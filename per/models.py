@@ -71,6 +71,38 @@ class FormArea(models.Model):
 
 
 @reversion.register()
+class FormComponentConsiderations(models.Model):
+    urban_considerations = models.TextField(
+        verbose_name=_("Urban Considerations"),
+        null=True, blank=True
+    )
+    epi_considerations = models.TextField(
+        verbose_name=_("Epi Considerations"),
+        null=True, blank=True
+    )
+    climate_environmental_conisderations = models.TextField(
+        verbose_name=_("Climate Environmental Considerations"),
+        null=True, blank=True
+    )
+
+
+@reversion.register()
+class FormComponentQuestionAndAnswer(models.Model):
+    question = models.ForeignKey(
+        "FormQuestion", verbose_name=_("question"),
+        null=True, on_delete=models.CASCADE
+    )
+    answer = models.ForeignKey(
+        "FormAnswer", verbose_name=_("answer"),
+        null=True, on_delete=models.CASCADE
+    )
+    notes = models.TextField(
+        verbose_name=_("notes"),
+        null=True, blank=True
+    )
+
+
+@reversion.register()
 class FormComponent(models.Model):
     """PER Form Components inside Areas"""
 
@@ -87,23 +119,93 @@ class FormComponent(models.Model):
     component_letter = models.CharField(verbose_name=_("component letter"), max_length=3, null=True, blank=True)
     description = models.TextField(verbose_name=_("description"), null=True, blank=True)
     status = models.CharField(
-        verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
+        verbose_name=_("status"), max_length=100,
+        choices=FormComponentStatus.choices, null=True, blank=True
     )
-    urban_considerations = models.TextField(
-        verbose_name=_("Urban Considerations"),
-        null=True, blank=True
+    consideration_responses = models.ManyToManyField(
+        FormComponentConsiderations,
+        verbose_name=_("Consideration responses"),
+        blank=True
     )
-    epi_considerations = models.TextField(
-        verbose_name=_("Epi Considerations"),
-        null=True, blank=True
-    )
-    climate_environmental_conisderations = models.TextField(
-        verbose_name=_("Climate Environmental Considerations"),
-        null=True, blank=True
+    question_responses = models.ManyToManyField(
+        FormComponentQuestionAndAnswer,
+        verbose_name=_("Question responses"),
+        blank=True
     )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
+
+
+@reversion.register()
+class FormComponentResponse(models.Model):
+
+    class FormComponentStatus(models.TextChoices):
+        HIGH_PERFORMANCE = "high_performance", _("High Performance")
+        EXISTS_COULD_BE_STRENGTHENED = "exists_could_be_strengthened", _("Exits Could be Strengthened")
+        NEEDS_IMPROVEMENT = "needs_improvement", _("Needs Improvement")
+        PARTIALLY_EXISTS = "partially_exists", _("Partially Exists")
+        DOES_NOT_EXIST = "does_not_exist", _("Does Not Exist")
+
+    component = models.ForeignKey(
+        FormComponent,
+        verbose_name=_("Form Component"),
+        on_delete=models.CASCADE
+    )
+    status = models.CharField(
+        verbose_name=_("status"), max_length=100,
+        choices=FormComponentStatus.choices, null=True, blank=True
+    )
+    consideration_responses = models.ManyToManyField(
+        FormComponentConsiderations,
+        verbose_name=_("Consideration responses"),
+        blank=True
+    )
+    question_responses = models.ManyToManyField(
+        FormComponentQuestionAndAnswer,
+        verbose_name=_("Question responses"),
+        blank=True
+    )
+
+
+@reversion.register()
+class AreaResponse(models.Model):
+    area = models.ForeignKey(
+        FormArea,
+        verbose_name=_("Area"),
+        on_delete=models.CASCADE
+    )
+    component_response = models.ManyToManyField(
+        FormComponentResponse,
+        verbose_name=_("Component Response"),
+        blank=True,
+    )
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        null=True, blank=True
+    )
+
+
+@reversion.register()
+class PerAssessment(models.Model):
+    overview = models.ForeignKey(
+        "Overview",
+        verbose_name="Overview",
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_("user"),
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
+    area_responses = models.ManyToManyField(
+        AreaResponse,
+        verbose_name=_("Area Response"),
+        blank=True,
+    )
+
+    def __str__(self):
+        return f'{self.overview.country.name} - {self.overview.assessment_number}'
 
 
 @reversion.register()
@@ -135,7 +237,7 @@ class FormQuestion(models.Model):
 
 @reversion.register()
 class FormPrioritizationComponent(models.Model):
-    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
+    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT, null=True, blank=True)
     is_prioritized = models.BooleanField(verbose_name=_("Is prioritized"), null=True, blank=True)
     justification_text = models.TextField(verbose_name=_("Justification Text"), null=True, blank=True)
 
@@ -146,7 +248,7 @@ class FormPrioritizationComponent(models.Model):
 @reversion.register()
 class FormPrioritization(models.Model):
     overview = models.ForeignKey("Overview", verbose_name=_("Overview"), null=True, blank=True, on_delete=models.PROTECT)
-    form_proritization_component = models.ManyToManyField(
+    component_responses = models.ManyToManyField(
         FormPrioritizationComponent,
         verbose_name=_("Form prioritization component"),
         blank=True,
@@ -327,10 +429,6 @@ class Form(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True, auto_now=False)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     comment = models.TextField(verbose_name=_("comment"), null=True, blank=True)  # form level comment
-    is_draft = models.BooleanField(
-        verbose_name=_("is draft"),
-        null=True, blank=True
-    )
 
     class Meta:
         ordering = ("area", "created_at")
@@ -457,31 +555,29 @@ class PerWorkPlanComponent(models.Model):
     component = models.ForeignKey(
         FormComponent, verbose_name=_("Component"), on_delete=models.PROTECT, null=True, blank=True
     )
-    area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.PROTECT, null=True, blank=True)
+    actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
+    due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
+    status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
+
+
+class CustomPerWorkPlanComponent(models.Model):
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
 
 
 class PerWorkPlan(models.Model):
-    # Fixes Circular Import
-    from per.validators import validate_custom_component
-
-    overview = models.ForeignKey(Overview, verbose_name=_("Overview"), null=True, blank=True, on_delete=models.PROTECT)
-    workplan_component = models.ManyToManyField(
+    overview = models.ForeignKey(Overview, verbose_name=_("Overview"), null=True, blank=True, on_delete=models.SET_NULL)
+    component_responses = models.ManyToManyField(
         PerWorkPlanComponent,
         verbose_name=_("WorkPlan Component"),
         blank=True,
     )
-    custom_component = models.JSONField(
-        verbose_name=_("Custom Component"),
-        default=dict, blank=True,
-        validators=[validate_custom_component]
+    custom_component_responses = models.ManyToManyField(
+        CustomPerWorkPlanComponent,
+        verbose_name=_("Custom Per-WorkPlan Component"),
+        blank=True,
     )
 
     def __str__(self):
         return f"{self.overview.id}"
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
