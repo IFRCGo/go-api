@@ -323,7 +323,7 @@ class PerWorkPlanComponentSerializer(
         model = PerWorkPlanComponent
         fields = (
             'id',
-            'component_id',
+            'component',
             'actions',
             'due_date',
             'status',
@@ -504,8 +504,8 @@ class QuestionResponsesSerializer(
         model = FormComponentQuestionAndAnswer
         fields = (
             'id',
-            'question_id',
-            'answer_id',
+            'question',
+            'answer',
             'notes',
         )
 
@@ -523,7 +523,7 @@ class FormComponentResponseSerializer(
         model = FormComponentResponse
         fields = (
             'id',
-            'component_id',
+            'component',
             'status',
             'consideration_responses',
             'question_responses',
