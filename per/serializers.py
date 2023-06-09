@@ -21,7 +21,13 @@ from .models import (
     PerWorkPlanComponent,
     FormPrioritization,
     FormPrioritizationComponent,
-    WorkPlanStatus
+    WorkPlanStatus,
+    PerAssessment,
+    AreaResponse,
+    FormComponentConsiderations,
+    FormComponentQuestionAndAnswer,
+    FormComponentResponse,
+    CustomPerWorkPlanComponent
 )
 from api.serializers import (
     UserNameSerializer,
@@ -45,12 +51,16 @@ class FormAreaSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class FormComponentSerializer(serializers.ModelSerializer):
-    area = FormAreaSerializer()
+class FormComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    #area = FormAreaSerializer()
 
     class Meta:
         model = FormComponent
-        fields = ("area", "title", "component_num", "component_letter", "description", "id")
+        fields = '__all__'
 
 
 class FormAnswerSerializer(serializers.ModelSerializer):
@@ -301,12 +311,34 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         fields = ("id", "country_id", "assessment_number", "date_of_assessment", "type_of_assessment")
 
 
-class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    area_details = FormAreaSerializer(source="area", read_only=True)
+class PerWorkPlanComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
     component_details = FormComponentSerializer(source="component", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = PerWorkPlanComponent
+        fields = (
+            'id',
+            'component_id',
+            'actions',
+            'due_date',
+            'status',
+            'status_display',
+            'component_details'
+        )
+
+
+class CustomPerWorkPlanComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    class Meta:
+        model = CustomPerWorkPlanComponent
         fields = "__all__"
 
 
@@ -324,8 +356,8 @@ class MiniOverviewSerializer(serializers.ModelSerializer):
 
 
 class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    workplan_component = PerWorkPlanComponentSerializer(many=True, required=True)
-    custom_component = serializers.JSONField(required=False)
+    component_responses = PerWorkPlanComponentSerializer(many=True, required=False)
+    custom_component_responses = CustomPerWorkPlanComponentSerializer(many=True, required=False)
     overview_details = MiniOverviewSerializer(source='overview', read_only=True)
 
     class Meta:
@@ -333,8 +365,8 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
         fields = (
             "id",
             "overview",
-            "workplan_component",
-            "custom_component",
+            "component_responses",
+            "custom_component_responses",
             "overview_details",
         )
 
@@ -362,20 +394,33 @@ class FormComponentQuestionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class FormPrioritizationComponentSerializer(serializers.ModelSerializer):
-    component_details = FormComponentQuestionSerializer(source="component", read_only=True)
+class FormPrioritizationComponentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    component_details = FormComponentQuestionSerializer(
+        source="component",
+        read_only=True
+    )
 
     class Meta:
         model = FormPrioritizationComponent
-        fields = "__all__"
+        fields = (
+            'id',
+            'component',
+            'is_prioritized',
+            'justification_text',
+            'component_details'
+        )
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    form_proritization_component = FormPrioritizationComponentSerializer(many=True, required=False)
+    component_responses = FormPrioritizationComponentSerializer(many=True, required=False)
 
     class Meta:
         model = FormPrioritization
-        fields = ("id", "overview", "form_proritization_component")
+        fields = ("id", "overview", "component_responses")
 
 
 class PerOverviewSerializer(serializers.ModelSerializer):
@@ -433,3 +478,90 @@ class PerProcessSerializer(serializers.ModelSerializer):
         elif hasattr(obj, 'date_of_assessment'):
             return "1-Orientation"
         return None
+
+
+class FormComponentConsiderationsSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    class Meta:
+        model = FormComponentConsiderations
+        fields = (
+            'id',
+            'urban_considerations',
+            'epi_considerations',
+            'climate_environmental_conisderations'
+        )
+
+
+class QuestionResponsesSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    class Meta:
+        model = FormComponentQuestionAndAnswer
+        fields = (
+            'id',
+            'question_id',
+            'answer_id',
+            'notes',
+        )
+
+
+class FormComponentResponseSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    consideration_responses = FormComponentConsiderationsSerializer(required=False, many=True)
+    question_responses = QuestionResponsesSerializer(required=False, many=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = FormComponentResponse
+        fields = (
+            'id',
+            'component_id',
+            'status',
+            'consideration_responses',
+            'question_responses',
+            'status_display'
+        )
+
+
+class AreaResponseSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    area_details = FormAreaSerializer(
+        source='area', read_only=True
+    )
+    component_response = FormComponentResponseSerializer(
+        many=True,
+        required=False,
+    )
+
+    class Meta:
+        model = AreaResponse
+        fields = (
+            'id',
+            'area_details',
+            'area',
+            'component_response',
+            'is_draft'
+        )
+
+
+class PerAssessmentSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
+    area_responses = AreaResponseSerializer(many=True, required=False)
+
+    class Meta:
+        model = PerAssessment
+        fields = '__all__'
