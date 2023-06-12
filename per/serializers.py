@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from django.contrib.auth.models import User
-from django.db import transaction
 
 from api.models import Region
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -21,7 +20,6 @@ from .models import (
     PerWorkPlanComponent,
     FormPrioritization,
     FormPrioritizationComponent,
-    WorkPlanStatus,
     PerAssessment,
     AreaResponse,
     FormComponentConsiderations,
@@ -30,12 +28,9 @@ from .models import (
     CustomPerWorkPlanComponent
 )
 from api.serializers import (
-    UserNameSerializer,
-    DisasterTypeSerializer,
-    MiniDistrictSerializer,
     MiniCountrySerializer,
 )
-from .admin_classes import RegionRestrictedAdmin
+# from .admin_classes import RegionRestrictedAdmin
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 
 
@@ -56,7 +51,7 @@ class FormComponentSerializer(
     NestedUpdateMixin,
     serializers.ModelSerializer
 ):
-    #area = FormAreaSerializer()
+    # area = FormAreaSerializer()
 
     class Meta:
         model = FormComponent
@@ -422,19 +417,48 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
         model = FormPrioritization
         fields = ("id", "overview", "component_responses")
 
+    def create(self, validated_data):
+        overview = validated_data['overview']
+        PerWorkPlan.objects.create(overview=overview)
+        return super().create(validated_data)
 
-class PerOverviewSerializer(serializers.ModelSerializer):
+
+class MiniAssessmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerAssessment
+        fields = ('id', 'overview')
+
+
+class PerOverviewSerializer(
+    NestedCreateMixin,
+    NestedUpdateMixin,
+    serializers.ModelSerializer
+):
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
     # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
-    forms = FormAsessmentSerializer(many=True, required=False, read_only=True)
-    workplan = PerWorkPlanSerializer(read_only=True, source="perworkplan_set", many=True)
-    formprioritization = FormPrioritizationSerializer(read_only=True, many=True, source="formprioritization_set")
+    # forms = FormAsessmentSerializer(many=True, required=False, read_only=True)
+    # workplan = PerWorkPlanSerializer(read_only=True, source="perworkplan_set", many=True)
+    # formprioritization = FormPrioritizationSerializer(read_only=True, many=True, source="formprioritization_set")
+    assessment = serializers.SerializerMethodField()
+    prioritization = serializers.SerializerMethodField()
 
     class Meta:
         model = Overview
         fields = "__all__"
+
+    def get_assessment(self, obj):
+        assessment = PerAssessment.objects.filter(overview=obj).last()
+        if assessment:
+            return assessment.id
+        return None
+
+    def get_prioritization(self, obj):
+        prioritization = FormPrioritization.objects.filter(overview=obj).last()
+        if prioritization:
+            return prioritization.id
+        return None
 
     def validate_orientation_document(self, document):
         if self.date_of_orientation:
@@ -445,6 +469,12 @@ class PerOverviewSerializer(serializers.ModelSerializer):
         if self.date_of_assessment:
             raise serializers.ValidationError("This field is required")
         return type_of_assessment
+
+    def create(self, validated_data):
+        overview = super().create(validated_data)
+        # create associated assessment also
+        PerAssessment.objects.create(overview=overview)
+        return overview
 
 
 class PerProcessSerializer(serializers.ModelSerializer):
@@ -565,3 +595,8 @@ class PerAssessmentSerializer(
     class Meta:
         model = PerAssessment
         fields = '__all__'
+
+    def create(self, validated_data):
+        overview = validated_data['overview']
+        FormPrioritization.objects.create(overview=overview)
+        return super().create(validated_data)
