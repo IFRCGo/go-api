@@ -296,8 +296,13 @@ class Overview(models.Model):
 
     # Orientation
     date_of_orientation = models.DateField(verbose_name=_("Date of Orientation"), null=True, blank=True)
-    orientation_document = models.FileField(
-        verbose_name=_("Orientation Document"), null=True, blank=True, upload_to="per/documents/"
+    orientation_document = models.ForeignKey(
+        "PerFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("orientation document"),
+        related_name="orientation_document_dref",
     )
 
     # Assessment
@@ -415,6 +420,25 @@ class Overview(models.Model):
             overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
+
+
+class PerFile(models.Model):
+    file = models.FileField(
+        verbose_name=_("file"),
+        upload_to="per/images/",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created_by"),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    caption = models.CharField(max_length=225, blank=True, null=True)
+    client_id = models.CharField(max_length=50, null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("per file")
+        verbose_name_plural = _("per files")
 
 
 @reversion.register()
