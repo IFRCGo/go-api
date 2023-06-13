@@ -9,7 +9,8 @@ from rest_framework import (
     views,
     response,
     permissions,
-    status
+    status,
+    mixins
 )
 from rest_framework.views import APIView
 from django.http import HttpResponse
@@ -37,6 +38,7 @@ from .models import (
     FormPrioritization,
     WorkPlanStatus,
     PerAssessment,
+    PerFile
 )
 from .serializers import (
     FormStatSerializer,
@@ -63,7 +65,8 @@ from .serializers import (
     FormAsessmentDraftSerializer,
     FormAsessmentSerializer,
     FormSerializer,
-    PerAssessmentSerializer
+    PerAssessmentSerializer,
+    PerFileSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -728,3 +731,17 @@ class FormAssessmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return PerAssessment.objects.select_related('overview')
+
+
+class PerFileViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
+    permission_class = [permissions.IsAuthenticated]
+    serializer_class = PerFileSerializer
+
+    def get_queryset(self):
+        if self.request is None:
+            return PerFile.objects.none()
+        return PerFile.objects.filter(created_by=self.request.user)
