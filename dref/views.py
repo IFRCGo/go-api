@@ -234,7 +234,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             regions = [0, 1, 2, 3, 4]
             for region in regions:
                 codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(user=user, codename=codename).exists():
+                if Permission.objects.filter(group__user=user, codename=codename).exists():
                     final_report = (
                         DrefFinalReport.objects.prefetch_related(
                             "dref__planned_interventions",
