@@ -43,7 +43,11 @@ class IsFinalOverviewSerializer(serializers.ModelSerializer):
 class FormAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormArea
-        fields = "__all__"
+        fields = (
+            'id',
+            'title',
+            'area_num'
+        )
 
 
 class FormComponentSerializer(
@@ -61,16 +65,41 @@ class FormComponentSerializer(
 class FormAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormAnswer
-        fields = "__all__"
+        fields = (
+            'id',
+            'text',
+        )
+
+
+class MiniFormComponentSerializer(serializers.ModelSerializer):
+    area = FormAreaSerializer()
+
+    class Meta:
+        model = FormComponent
+        fields = (
+            'id',
+            'component_num',
+            'title',
+            "area"
+        )
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
-    component = FormComponentSerializer()
+    component = MiniFormComponentSerializer()
     answers = FormAnswerSerializer(many=True)
 
     class Meta:
         model = FormQuestion
-        fields = ("component", "question", "question_num", "answers", "is_epi", "is_benchmark", "description", "id")
+        fields = (
+            "component",
+            "question",
+            "question_num",
+            "answers",
+            "is_epi",
+            "is_benchmark",
+            "description",
+            "id",
+        )
 
 
 class MiniQuestionSerailizer(serializers.ModelSerializer):
@@ -437,10 +466,6 @@ class PerOverviewSerializer(
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
-    # get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
-    # forms = FormAsessmentSerializer(many=True, required=False, read_only=True)
-    # workplan = PerWorkPlanSerializer(read_only=True, source="perworkplan_set", many=True)
-    # formprioritization = FormPrioritizationSerializer(read_only=True, many=True, source="formprioritization_set")
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
 
@@ -460,54 +485,49 @@ class PerOverviewSerializer(
             return prioritization.id
         return None
 
-    def validate_orientation_document(self, document):
-        if self.date_of_orientation:
-            raise serializers.ValidationError("This field is required")
-        return document
-
-    def validate_type_of_assessment(self, type_of_assessment):
-        if self.date_of_assessment:
-            raise serializers.ValidationError("This field is required")
-        return type_of_assessment
-
     def create(self, validated_data):
         overview = super().create(validated_data)
         # create associated assessment also
         PerAssessment.objects.create(overview=overview)
         return overview
 
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
+
 
 class PerProcessSerializer(serializers.ModelSerializer):
-    # per_cycle = serializers.IntegerField(source="assessment_number")
-    phase = serializers.SerializerMethodField()
-    # start_date = serializers.DateTimeField(source="date_of_assessment")
+    country_details = MiniCountrySerializer(source="country", read_only=True)
+    # phase = serializers.SerializerMethodField()
 
     class Meta:
         model = Overview
-        fields = "__all__"
+        fields = (
+            'id',
+            'assessment_number',
+            'date_of_assessment',
+            'country',
+            'country_details',
+        )
 
-    def get_phase(self, obj):
-        print(obj.id)
-        # check for workplan_phase
-        workplan = obj.perworkplan_set.exist()
-        print(workplan)
-        obj_workplan = PerWorkPlan.objects.get(overview_id=obj.id)
-        print(obj_workplan)
-        form_filter = obj.forms
-        # assuming that all forms are filled again
-        completed_form = list(form_filter.filter(is_draft=False))
-        draft_form = list(form_filter.filter(is_draft=True))
-        # if WorkPlanStatus.ONGOING in component_status:
-        #     return "5-Action and accountability"
-        if workplan:
-            return "4-Workplan"
-        elif len(completed_form) > 0:
-            return "3-Prioritisation"
-        elif len(draft_form) > 0:
-            return "2-Assessment"
-        elif hasattr(obj, 'date_of_assessment'):
-            return "1-Orientation"
-        return None
+    # def get_phase(self, obj):
+    #     # check for workplan_phase
+    #     if PerWorkPlan.objects.filter(overview_id=obj.id).exist():
+    #         return "4-Workplan"
+    #     elif 
+    #     # assuming that all forms are filled again
+    #     completed_form = list(form_filter.filter(is_draft=False))
+    #     draft_form = list(form_filter.filter(is_draft=True))
+    #     # if WorkPlanStatus.ONGOING in component_status:
+    #     #     return "5-Action and accountability"
+    #     if workplan:
+            
+    #     elif len(completed_form) > 0:
+    #         return "3-Prioritisation"
+    #     elif len(draft_form) > 0:
+    #         return "2-Assessment"
+    #     elif hasattr(obj, 'date_of_assessment'):
+    #         return "1-Orientation"
+    #     return None
 
 
 class FormComponentConsiderationsSerializer(
