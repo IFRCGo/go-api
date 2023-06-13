@@ -4,6 +4,7 @@ from operator import attrgetter
 from django.utils.translation import gettext
 import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
+from django.contrib.auth.models import Permission
 
 from rest_framework import (
     views,
@@ -41,9 +42,7 @@ from dref.filter_set import (
     ActiveDrefFilterSet,
     DrefShareUserFilterSet,
 )
-from dref.permissions import (
-    PublishDrefPermission
-)
+from dref.permissions import PublishDrefPermission
 
 
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
@@ -189,7 +188,7 @@ class DrefOptionsView(views.APIView):
             "national_society_actions": [
                 {"key": action[0], "value": action[1]} for action in NationalSocietyAction.Title.choices
             ],
-            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType]
+            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType],
         }
         return response.Response(options)
 
@@ -228,15 +227,25 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = (
-            DrefFinalReport.objects.filter(is_published=True)
-            .order_by("-created_at")
-            .distinct()
-        )
+        queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
         if user.is_superuser:
             return queryset
         else:
-            return DrefFinalReport.get_for(user, is_published=True)
+            regions = [0, 1, 2, 3, 4]
+            for region in regions:
+                codename = f"dref_region_admin_{region}"
+                if Permission.objects.filter(user=user, codename=codename).exists():
+                    final_report = (
+                        DrefFinalReport.objects.prefetch_related(
+                            "dref__planned_interventions",
+                            "dref__needs_identified",
+                        )
+                        .filter(country__region=region, is_published=True)
+                        .distinct()
+                    )
+                    return final_report
+                else:
+                    return DrefFinalReport.get_for(user, is_published=True)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -246,14 +255,92 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        dref = Dref.get_for(user)
-        dref_op_update = DrefOperationalUpdate.get_for(user)
-        dref_final_report = DrefFinalReport.get_for(user)
-        result_list = sorted(
-            chain(dref, dref_op_update, dref_final_report),
-            key=attrgetter('created_at'),
-            reverse=True
-        )
+        if user.is_superuser:
+            dref = (
+                Dref.objects.prefetch_related(
+                    "planned_interventions", "needs_identified", "national_society_actions", "users"
+                )
+                .filter(is_final_report_created=False)
+                .distinct()
+            )
+            dref_op_update = (
+                DrefOperationalUpdate.objects.select_related(
+                    "national_society",
+                    "national_society",
+                    "disaster_type",
+                    "event_map",
+                    "cover_image",
+                    "budget_file",
+                    "assessment_report",
+                )
+                .prefetch_related(
+                    "dref",
+                    "planned_interventions",
+                    "needs_identified",
+                    "national_society_actions",
+                    "users",
+                    "images",
+                    "photos",
+                )
+                .filter(dref__is_final_report_created=False)
+                .distinct()
+            )
+            dref_final_report = (
+                DrefFinalReport.objects.prefetch_related(
+                    "dref__planned_interventions",
+                    "dref__needs_identified",
+                )
+                .filter(dref__is_final_report_created=False)
+                .distinct()
+            )
+        else:
+            # get current user dref regions
+            regions = [0, 1, 2, 3, 4]
+            for region in regions:
+                codename = f"dref_region_admin_{region}"
+                if Permission.objects.filter(user=user, codename=codename).exists():
+                    dref = (
+                        Dref.objects.prefetch_related(
+                            "planned_interventions", "needs_identified", "national_society_actions", "users"
+                        )
+                        .filter(country__region=region, is_final_report_created=False)
+                        .distinct()
+                    )
+                    dref_op_update = (
+                        DrefOperationalUpdate.objects.select_related(
+                            "national_society",
+                            "national_society",
+                            "disaster_type",
+                            "event_map",
+                            "cover_image",
+                            "budget_file",
+                            "assessment_report",
+                        )
+                        .prefetch_related(
+                            "dref",
+                            "planned_interventions",
+                            "needs_identified",
+                            "national_society_actions",
+                            "users",
+                            "images",
+                            "photos",
+                        )
+                        .filter(country__region=region, dref__is_final_report_created=False)
+                        .distinct()
+                    )
+                    dref_final_report = (
+                        DrefFinalReport.objects.prefetch_related(
+                            "dref__planned_interventions",
+                            "dref__needs_identified",
+                        )
+                        .filter(country__region=region, dref__is_final_report_created=False)
+                        .distinct()
+                    )
+                else:
+                    dref = Dref.get_for(user).filter(dref__is_final_report_created=False)
+                    dref_op_update = DrefOperationalUpdate.get_for(user).filter(dref__is_final_report_created=False)
+                    dref_final_report = DrefFinalReport.get_for(user).filter(dref__is_final_report_created=False)
+        result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
         dref_list = []
         for data in result_list:
             if data.__class__.__name__ == "DrefFinalReport":
@@ -270,17 +357,17 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         # annotated dref here
         annoatated_drefs = []
         for dref in dref_list:
-            if dref.__class__.__name__ == 'DrefOperationalUpdate':
+            if dref.__class__.__name__ == "DrefOperationalUpdate":
                 # annotate the dref and other operational update for that dref
                 operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
                 dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
                 if dref_object not in annoatated_drefs:
                     annoatated_drefs.append(dref_object)
-            elif dref.__class__.__name__ == 'Dref':
+            elif dref.__class__.__name__ == "Dref":
                 dref_object = Dref.objects.get(id=dref.id)
                 if dref_object not in annoatated_drefs:
                     annoatated_drefs.append(dref_object)
-            elif dref.__class__.__name__ == 'DrefFinalReport':
+            elif dref.__class__.__name__ == "DrefFinalReport":
                 final_report = DrefFinalReport.objects.get(id=dref.id)
                 dref_object = Dref.objects.get(dreffinalreport=final_report.id)
                 if dref_object not in annoatated_drefs:
@@ -289,7 +376,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         for dref in annoatated_drefs:
             new_dref = Dref.objects.get(id=dref.id)
             dref_list.append(new_dref.id)
-        return Dref.objects.filter(id__in=dref_list).order_by('-created_at')
+        return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
 
 
 class DrefShareView(views.APIView):
@@ -310,9 +397,8 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = DrefShareUserFilterSet
 
     def get_queryset(self):
-        return Dref.objects.prefetch_related(
-            "planned_interventions",
-            "needs_identified",
-            "national_society_actions",
-            "users"
-        ).order_by("-created_at").distinct()
+        return (
+            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
