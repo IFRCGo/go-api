@@ -25,7 +25,8 @@ from .models import (
     FormComponentConsiderations,
     FormComponentQuestionAndAnswer,
     FormComponentResponse,
-    CustomPerWorkPlanComponent
+    CustomPerWorkPlanComponent,
+    PerFile
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -458,6 +459,19 @@ class MiniAssessmentSerializer(serializers.ModelSerializer):
         fields = ('id', 'overview')
 
 
+class PerFileSerializer(serializers.ModelSerializer):
+    created_by_details = UserNameSerializer(source="created_by", read_only=True)
+
+    class Meta:
+        model = PerFile
+        fields = "__all__"
+        read_only_fields = ("created_by",)
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+
 class PerOverviewSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -468,6 +482,7 @@ class PerOverviewSerializer(
     user_details = UserNameSerializer(source="user", read_only=True)
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
+    orientation_document_details = PerFileSerializer(source='orientation_document', read_only=True)
 
     class Meta:
         model = Overview
@@ -498,6 +513,9 @@ class PerOverviewSerializer(
 class PerProcessSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     # phase = serializers.SerializerMethodField()
+    assessment = serializers.SerializerMethodField()
+    prioritization = serializers.SerializerMethodField()
+    workplan = serializers.SerializerMethodField()
 
     class Meta:
         model = Overview
@@ -507,6 +525,9 @@ class PerProcessSerializer(serializers.ModelSerializer):
             'date_of_assessment',
             'country',
             'country_details',
+            'assessment',
+            'prioritization',
+            'workplan'
         )
 
     # def get_phase(self, obj):
@@ -520,7 +541,6 @@ class PerProcessSerializer(serializers.ModelSerializer):
     #     # if WorkPlanStatus.ONGOING in component_status:
     #     #     return "5-Action and accountability"
     #     if workplan:
-            
     #     elif len(completed_form) > 0:
     #         return "3-Prioritisation"
     #     elif len(draft_form) > 0:
@@ -528,6 +548,24 @@ class PerProcessSerializer(serializers.ModelSerializer):
     #     elif hasattr(obj, 'date_of_assessment'):
     #         return "1-Orientation"
     #     return None
+
+    def get_assessment(self, obj):
+        assessment = PerAssessment.objects.filter(overview=obj).last()
+        if assessment:
+            return assessment.id
+        return None
+
+    def get_prioritization(self, obj):
+        prioritization = FormPrioritization.objects.filter(overview=obj).last()
+        if prioritization:
+            return prioritization.id
+        return None
+
+    def get_workplan(self, obj):
+        workplan = PerWorkPlan.objects.filter(overview=obj).last()
+        if workplan:
+            return workplan.id
+        return None
 
 
 class FormComponentConsiderationsSerializer(
