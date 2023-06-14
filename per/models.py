@@ -388,8 +388,8 @@ class Overview(models.Model):
     )
 
     # Misc
-    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False)
-    is_finalized = models.BooleanField(verbose_name=_("is finalized"), default=False)
+    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False, null=True, blank=True)
+    is_finalized = models.BooleanField(verbose_name=_("is finalized"), default=False, null=True, blank=True)
     other_consideration = models.CharField(
         verbose_name=_("other consideration"),
         max_length=400,
@@ -414,12 +414,14 @@ class Overview(models.Model):
         return f"{name}{fpname}"
 
     def save(self, *args, **kwargs):
-        super().save()
         # get the latest
         if self.pk is None:
             overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
+            else:
+                self.assessment_number = 1
+        super().save()
 
 
 class PerFile(models.Model):
