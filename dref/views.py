@@ -230,11 +230,12 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
         if user.is_superuser:
             return queryset
-        else:
+        elif not user.is_superuser:
             regions = [0, 1, 2, 3, 4]
+            final_report_list = []
             for region in regions:
                 codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(user=user, codename=codename).exists():
+                if Permission.objects.filter(group__user=user, codename=codename).exists():
                     final_report = (
                         DrefFinalReport.objects.prefetch_related(
                             "dref__planned_interventions",
@@ -243,9 +244,16 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                         .filter(country__region=region, is_published=True)
                         .distinct()
                     )
-                    return final_report
-                else:
-                    return DrefFinalReport.get_for(user, is_published=True)
+                    final_report_list.append(final_report)
+            final = []
+            for final_report in final_report_list:
+                id = list(final_report.values_list('id', flat=True))
+                new_dref = DrefFinalReport.objects.filter(id__in=id).first()
+                final.append(new_dref.id)
+            if len(final):
+                return DrefFinalReport.objects.filter(id__in=final).order_by('-created_at')
+            else:
+                return DrefFinalReport.get_for(user)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -283,7 +291,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                     "photos",
                 )
                 .filter(dref__is_final_report_created=False)
-                .distinct()
+                .order_by('-operational_update_number').distinct()
             )
             dref_final_report = (
                 DrefFinalReport.objects.prefetch_related(
@@ -330,9 +338,10 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 new_dref = Dref.objects.get(id=dref.id)
                 dref_list.append(new_dref.id)
             return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
-        else:
+        elif not user.is_superuser:
             # get current user dref regions
             regions = [0, 1, 2, 3, 4]
+            final_report_list = []
             for region in regions:
                 codename = f"dref_region_admin_{region}"
                 if Permission.objects.filter(group__user=user, codename=codename).exists():
@@ -363,7 +372,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                             "photos",
                         )
                         .filter(country__region=region, dref__is_final_report_created=False)
-                        .distinct()
+                        .order_by('-operational_update_number').distinct()
                     )
                     dref_final_report = (
                         DrefFinalReport.objects.prefetch_related(
@@ -374,84 +383,86 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                         .distinct()
                     )
                     result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
-                    dref_list = []
-                    for data in result_list:
-                        if data.__class__.__name__ == "DrefFinalReport":
-                            final_report = DrefFinalReport.objects.get(id=data.id)
-                            dref_list.append(final_report)
-                        elif data.__class__.__name__ == "DrefOperationalUpdate":
-                            operational_update = DrefOperationalUpdate.objects.get(id=data.id)
-                            dref_list.append(operational_update)
-                        elif data.__class__.__name__ == "Dref":
-                            dref = Dref.objects.get(id=data.id)
-                            dref_list.append(dref)
-                    # iterate over the list and get the dref from that
-                    # check the dref in the new list if exists
-                    # annotated dref here
-                    annoatated_drefs = []
-                    for dref in dref_list:
-                        if dref.__class__.__name__ == "DrefOperationalUpdate":
-                            # annotate the dref and other operational update for that dref
-                            operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
-                            dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                        elif dref.__class__.__name__ == "Dref":
-                            dref_object = Dref.objects.get(id=dref.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                        elif dref.__class__.__name__ == "DrefFinalReport":
-                            final_report = DrefFinalReport.objects.get(id=dref.id)
-                            dref_object = Dref.objects.get(dreffinalreport=final_report.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                    dref_list = []
-                    for dref in annoatated_drefs:
-                        new_dref = Dref.objects.get(id=dref.id)
-                        dref_list.append(new_dref.id)
-                    return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
-                else:
-                    dref = Dref.get_for(user).filter(dref__is_final_report_created=False)
-                    dref_op_update = DrefOperationalUpdate.get_for(user).filter(dref__is_final_report_created=False)
-                    dref_final_report = DrefFinalReport.get_for(user).filter(dref__is_final_report_created=False)
-                    result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
-                    dref_list = []
-                    for data in result_list:
-                        if data.__class__.__name__ == "DrefFinalReport":
-                            final_report = DrefFinalReport.objects.get(id=data.id)
-                            dref_list.append(final_report)
-                        elif data.__class__.__name__ == "DrefOperationalUpdate":
-                            operational_update = DrefOperationalUpdate.objects.get(id=data.id)
-                            dref_list.append(operational_update)
-                        elif data.__class__.__name__ == "Dref":
-                            dref = Dref.objects.get(id=data.id)
-                            dref_list.append(dref)
-                    # iterate over the list and get the dref from that
-                    # check the dref in the new list if exists
-                    # annotated dref here
-                    annoatated_drefs = []
-                    for dref in dref_list:
-                        if dref.__class__.__name__ == "DrefOperationalUpdate":
-                            # annotate the dref and other operational update for that dref
-                            operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
-                            dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                        elif dref.__class__.__name__ == "Dref":
-                            dref_object = Dref.objects.get(id=dref.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                        elif dref.__class__.__name__ == "DrefFinalReport":
-                            final_report = DrefFinalReport.objects.get(id=dref.id)
-                            dref_object = Dref.objects.get(dreffinalreport=final_report.id)
-                            if dref_object not in annoatated_drefs:
-                                annoatated_drefs.append(dref_object)
-                    dref_list = []
-                    for dref in annoatated_drefs:
-                        new_dref = Dref.objects.get(id=dref.id)
-                        dref_list.append(new_dref.id)
-                    return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
-        
+                    final_report_list.append(result_list)
+            dref_list = []
+            for data in final_report_list:
+                for new in data:
+                    if new.__class__.__name__ == "DrefFinalReport":
+                        final_report = DrefFinalReport.objects.get(id=new.id)
+                        dref_list.append(final_report)
+                    elif new.__class__.__name__ == "DrefOperationalUpdate":
+                        operational_update = DrefOperationalUpdate.objects.get(id=new.id)
+                        dref_list.append(operational_update)
+                    elif new.__class__.__name__ == "Dref":
+                        dref = Dref.objects.get(id=new.id)
+                        dref_list.append(dref)
+            # iterate over the list and get the dref from that
+            # check the dref in the new list if exists
+            # annotated dref here
+            annoatated_drefs = []
+            for dref in dref_list:
+                if dref.__class__.__name__ == "DrefOperationalUpdate":
+                    # annotate the dref and other operational update for that dref
+                    operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
+                    dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
+                    if dref_object not in annoatated_drefs:
+                        annoatated_drefs.append(dref_object)
+                elif dref.__class__.__name__ == "Dref":
+                    dref_object = Dref.objects.get(id=dref.id)
+                    if dref_object not in annoatated_drefs:
+                        annoatated_drefs.append(dref_object)
+                elif dref.__class__.__name__ == "DrefFinalReport":
+                    final_report = DrefFinalReport.objects.get(id=dref.id)
+                    dref_object = Dref.objects.get(dreffinalreport=final_report.id)
+                    if dref_object not in annoatated_drefs:
+                        annoatated_drefs.append(dref_object)
+            dref_list = []
+            for dref in annoatated_drefs:
+                new_dref = Dref.objects.get(id=dref.id)
+                dref_list.append(new_dref.id)
+            if len(dref_list):
+                return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
+            else:
+                dref = Dref.get_for(user).filter(is_final_report_created=False)
+                dref_op_update = DrefOperationalUpdate.get_for(user).filter(dref__is_final_report_created=False)
+                dref_final_report = DrefFinalReport.get_for(user).filter(dref__is_final_report_created=False)
+                result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
+                dref_list = []
+                for data in result_list:
+                    if data.__class__.__name__ == "DrefFinalReport":
+                        final_report = DrefFinalReport.objects.get(id=data.id)
+                        dref_list.append(final_report)
+                    elif data.__class__.__name__ == "DrefOperationalUpdate":
+                        operational_update = DrefOperationalUpdate.objects.get(id=data.id)
+                        dref_list.append(operational_update)
+                    elif data.__class__.__name__ == "Dref":
+                        dref = Dref.objects.get(id=data.id)
+                        dref_list.append(dref)
+                # iterate over the list and get the dref from that
+                # check the dref in the new list if exists
+                # annotated dref here
+                annoatated_drefs = []
+                for dref in dref_list:
+                    if dref.__class__.__name__ == "DrefOperationalUpdate":
+                        # annotate the dref and other operational update for that dref
+                        operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
+                        dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
+                        if dref_object not in annoatated_drefs:
+                            annoatated_drefs.append(dref_object)
+                    elif dref.__class__.__name__ == "Dref":
+                        dref_object = Dref.objects.get(id=dref.id)
+                        if dref_object not in annoatated_drefs:
+                            annoatated_drefs.append(dref_object)
+                    elif dref.__class__.__name__ == "DrefFinalReport":
+                        final_report = DrefFinalReport.objects.get(id=dref.id)
+                        dref_object = Dref.objects.get(dreffinalreport=final_report.id)
+                        if dref_object not in annoatated_drefs:
+                            annoatated_drefs.append(dref_object)
+                dref_list = []
+                for dref in annoatated_drefs:
+                    new_dref = Dref.objects.get(id=dref.id)
+                    dref_list.append(new_dref.id)
+                return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
 
 
 class DrefShareView(views.APIView):
