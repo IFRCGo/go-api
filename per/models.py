@@ -286,6 +286,13 @@ class AssessmentType(models.Model):
 
 @reversion.register()
 class Overview(models.Model):
+    class Phase(models.IntegerChoices):
+        ORIENTATION = 1, _('Orientation')
+        ASSESSMENT = 2, _('Assessment')
+        PRIORITIZATION = 3, _('Prioritisation')
+        WORKPLAN = 4, _('WorkPlan')
+        ACTION_AND_ACCOUNTABILITY = 5, _('Action And Accoutability')
+
     country = models.ForeignKey(
         Country, verbose_name=_("country"),
         related_name="per_overviews",
@@ -397,6 +404,13 @@ class Overview(models.Model):
     other_consideration = models.CharField(
         verbose_name=_("other consideration"),
         max_length=400,
+        null=True, blank=True
+    )
+
+    # phase calculation
+    phase = models.IntegerField(
+        verbose_name=_("phase"),
+        choices=Phase.choices,
         null=True, blank=True
     )
 
