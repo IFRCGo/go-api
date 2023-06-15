@@ -323,7 +323,7 @@ class CustomPerWorkPlanComponentSerializer(
 
 
 class MiniOverviewSerializer(serializers.ModelSerializer):
-    user_details = MiniUserSerializer(source="user", read_only=True)
+    user_details = PerMiniUserSerializer(source="user", read_only=True)
 
     class Meta:
         model = Overview
