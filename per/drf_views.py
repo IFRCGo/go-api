@@ -692,39 +692,6 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
         return Overview.objects.order_by('country', '-assessment_number',)
 
 
-class FormAssessmentDraftViewSet(viewsets.ModelViewSet):
-    serializer_class = FormAsessmentDraftSerializer
-    filterset_class = FormAssessmentFilterSet
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Form.objects.filter(is_draft=True).select_related('area')
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return response.Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
-
-    # def update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return response.Response(
-    #         serializer.data,
-    #         status=status.HTTP_200_OK,
-    #         headers=headers
-    #     )
-
-
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
