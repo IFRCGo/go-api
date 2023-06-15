@@ -9,7 +9,6 @@ from rest_framework import (
     views,
     response,
     permissions,
-    status,
     mixins
 )
 from rest_framework.views import APIView
@@ -63,7 +62,6 @@ from .serializers import (
     FormPrioritizationSerializer,
     PerProcessSerializer,
     FormAsessmentSerializer,
-    FormSerializer,
     PerAssessmentSerializer,
     PerFileSerializer
 )
@@ -676,7 +674,8 @@ class PerOptionsView(views.APIView):
     def get(self, request, version=None):
         options = {
             'formcomponentstatus': [{"key": status.value, "value": status.label} for status in FormComponent.FormComponentStatus],
-            'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus]
+            'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus],
+            'phase': [{"key": status.value, "value": status.label} for status in Overview.Phase]
         }
         return response.Response(options)
 
