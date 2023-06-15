@@ -205,6 +205,10 @@ class PerAssessment(models.Model):
         verbose_name=_("Area Response"),
         blank=True,
     )
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f'{self.overview.country.name} - {self.overview.assessment_number}'

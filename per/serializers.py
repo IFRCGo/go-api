@@ -449,9 +449,15 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
         fields = ("id", "overview", "component_responses")
 
     def create(self, validated_data):
-        overview = validated_data['overview']
-        PerWorkPlan.objects.create(overview=overview)
+        # overview = validated_data['overview']
+        # PerWorkPlan.objects.create(overview=overview)
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        overview = validated_data.get('overview')
+        if overview:
+            PerWorkPlan.objects.create(overview=overview)
+        return super().update(instance, validated_data)
 
 
 class MiniAssessmentSerializer(serializers.ModelSerializer):
@@ -546,7 +552,6 @@ class PerProcessSerializer(serializers.ModelSerializer):
             return '1-Orientation'
         else:
             return None
-
 
     def get_assessment(self, obj):
         assessment = PerAssessment.objects.filter(overview=obj).last()
@@ -655,6 +660,11 @@ class PerAssessmentSerializer(
         fields = '__all__'
 
     def create(self, validated_data):
-        overview = validated_data['overview']
-        FormPrioritization.objects.create(overview=overview)
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        overview = validated_data.get('overview')
+        is_draft = validated_data.get('is_draft')
+        if is_draft:
+            FormPrioritization.objects.create(overview=overview)
+        return super().update(instance, validated_data)
