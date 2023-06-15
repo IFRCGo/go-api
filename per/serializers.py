@@ -165,52 +165,6 @@ class FormDataWOFormSerializer(
         )
 
 
-class FormAsessmentDraftSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
-    form_data = FormDataWOFormSerializer(many=True)
-
-    class Meta:
-        model = Form
-        fields = (
-            "area",
-            "overview",
-            "form_data",
-            "updated_at",
-            "comment",
-            "id",
-            "is_draft",
-        )
-
-    def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user
-        validated_data["is_draft"] = True
-        form_data = validated_data.pop('form_data')
-        form = super().create(validated_data)
-        for data in form_data:
-            data['form'] = Form.objects.get(id=form.id)
-            FormData.objects.create(**data)
-        return form
-
-    # def update(self, instance, validated_data):
-    #     validated_data["user"] = self.context["request"].user
-    #     with transaction.atomic():
-    #         form_data = validated_data.pop('form_data', None)
-    #         for key, value in validated_data.items():
-    #             setattr(instance, key, value)
-    #         instance.save()
-
-    #         for item in form_data:
-    #             inv_item, created = FormData.objects.update_or_create(
-    #                 id=item['id'],
-    #                 form=instance,
-    #                 defaults={**item}
-    #             )
-    #         return instance
-
-
 class FormAsessmentSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -396,6 +350,12 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
             "overview_details",
         )
 
+    def update(self, instance, validated_data):
+        overview = validated_data["overview"]
+        if overview:
+            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.WORKPLAN)
+        return super().update(instance, validated_data)
+
 
 class FormSerializer(serializers.ModelSerializer):
     class Meta:
@@ -455,6 +415,7 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
 
     def update(self, instance, validated_data):
         overview = validated_data.get('overview')
+        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.PRIORITIZATION)
         if overview:
             PerWorkPlan.objects.create(overview=overview)
         return super().update(instance, validated_data)
@@ -487,8 +448,6 @@ class PerOverviewSerializer(
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
-    assessment = serializers.SerializerMethodField()
-    prioritization = serializers.SerializerMethodField()
     orientation_document_details = PerFileSerializer(source='orientation_document', read_only=True)
     assessment_number = serializers.IntegerField(required=False, allow_null=True)
 
@@ -496,20 +455,10 @@ class PerOverviewSerializer(
         model = Overview
         fields = "__all__"
 
-    def get_assessment(self, obj):
-        assessment = PerAssessment.objects.filter(overview=obj).last()
-        if assessment:
-            return assessment.id
-        return None
-
-    def get_prioritization(self, obj):
-        prioritization = FormPrioritization.objects.filter(overview=obj).last()
-        if prioritization:
-            return prioritization.id
-        return None
-
     def create(self, validated_data):
         overview = super().create(validated_data)
+        if hasattr(overview, 'date_of_assessment'):
+            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ORIENTATION)
         # create associated assessment also
         PerAssessment.objects.create(overview=overview)
         return overview
@@ -520,10 +469,10 @@ class PerOverviewSerializer(
 
 class PerProcessSerializer(serializers.ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
-    phase = serializers.SerializerMethodField()
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
 
     class Meta:
         model = Overview
@@ -536,22 +485,10 @@ class PerProcessSerializer(serializers.ModelSerializer):
             'assessment',
             'prioritization',
             'workplan',
-            'phase'
+            'phase',
+            'phase_display',
 
         )
-
-    def get_phase(self, obj):
-        workplan = PerWorkPlan.objects.filter(overview_id=obj.id)
-        if workplan.exists():
-            return '4-Workplan'
-        elif FormPrioritization.objects.filter(overview_id=obj.id).exists():
-            return '3-Prioritisation'
-        elif PerAssessment.objects.filter(overview_id=obj.id).exists():
-            return '2-Assessment'
-        elif hasattr(obj, 'date_of_assessment'):
-            return '1-Orientation'
-        else:
-            return None
 
     def get_assessment(self, obj):
         assessment = PerAssessment.objects.filter(overview=obj).last()
@@ -665,6 +602,7 @@ class PerAssessmentSerializer(
     def update(self, instance, validated_data):
         overview = validated_data.get('overview')
         is_draft = validated_data.get('is_draft')
-        if is_draft:
+        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
+        if is_draft is False:
             FormPrioritization.objects.create(overview=overview)
         return super().update(instance, validated_data)
