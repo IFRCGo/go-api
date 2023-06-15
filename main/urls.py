@@ -237,6 +237,9 @@ urlpatterns = [
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
     url(r"^api/v2/", include(router.urls)),
+    # PER options
+    url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
+
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
     url(r"^api/v2/exportperresults/", per_views.ExportAssessmentToCSVViewset.as_view()),
