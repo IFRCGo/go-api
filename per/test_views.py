@@ -250,54 +250,54 @@ class PerTestCase(APITestCase):
         response = self.client.post(url, data, format="multipart")
         self.assert_403(response)
 
-    # def test_create_per_assessment(self):
-    #     area1 = FormAreaFactory.create(title="area1")
-    #     area2 = FormAreaFactory.create(title="area2")
-    #     area3 = FormAreaFactory.create(title="area3")
-    #     area4 = FormAreaFactory.create(title="area4")
-    #     area5 = FormAreaFactory.create(title="area5")
-    #     overview = OverviewFactory.create()
-    #     question1, question2, question3, question4, question5 = FormQuestionFactory.create_batch(5)
-    #     answer1, answer2, answer3, answer4, answer5 = FormAnswerFactory.create_batch(5)
-    #     component = FormComponentFactory.create()
-    #     component2 = FormComponentFactory.create()
+    def test_create_per_assessment(self):
+        area1 = FormAreaFactory.create(title="area1")
+        area2 = FormAreaFactory.create(title="area2")
+        area3 = FormAreaFactory.create(title="area3")
+        area4 = FormAreaFactory.create(title="area4")
+        area5 = FormAreaFactory.create(title="area5")
+        overview = OverviewFactory.create()
+        question1, question2, question3, question4, question5 = FormQuestionFactory.create_batch(5)
+        answer1, answer2, answer3, answer4, answer5 = FormAnswerFactory.create_batch(5)
+        component = FormComponentFactory.create()
+        component2 = FormComponentFactory.create()
 
-    #     data = {
-    #         "overview": overview.id,
-    #         #"user": self.user.id,
-    #         "area_responses": [
-    #             {
+        data = {
+            "overview": overview.id,
+            #"user": self.user.id,
+            "area_responses": [
+                {
 
-    #                 "area": area1.id,
-    #                 "component_response": [
-    #                     {
-    #                         "component": component.id,
-    #                         #"status": FormComponentResponse.FormComponentStatus.HIGH_PERFORMANCE,
-    #                         "consideration_responses": [
-    #                             {
-    #                                 "urban_considerations": "testtss",
-    #                                 "epi_considerations": "dasdasd",
-    #                                 "climate_environmental_conisderations": "dasdasdasd"
-    #                             }
-    #                         ],
-    #                         "question_responses": [
-    #                             {
-    #                                 "question": question1.id,
-    #                                 "answer": answer1.id,
-    #                                 "notes": "testststs"
-    #                             }
-    #                         ],
-    #                     }
-    #                 ],
-    #                 #"is_draft": True
-    #             }
-    #         ]
-    # }
+                    "area": area1.id,
+                    # "component_responses": [
+                    #     {
+                    #         "component": component.id,
+                    #         #"status": FormComponentResponse.FormComponentStatus.HIGH_PERFORMANCE,
+                    #         "consideration_responses": [
+                    #             {
+                    #                 "urban_considerations": "testtss",
+                    #                 "epi_considerations": "dasdasd",
+                    #                 "climate_environmental_conisderations": "dasdasdasd"
+                    #             }
+                    #         ],
+                    #         "question_responses": [
+                    #             {
+                    #                 "question": question1.id,
+                    #                 "answer": answer1.id,
+                    #                 "notes": "testststs"
+                    #             }
+                    #         ],
+                    #     }
+                    # ],
+                    #"is_draft": True
+                }
+            ]
+    }
 
-    #     url = '/api/v2/per-assessment/'
-    #     self.authenticate(self.user)
-    #     response = self.client.post(url, data=data, format="json")
-    #     print(response.content)
-    #     self.assertEqual(response.status_code, 201)
-    #     response_data = json.loads(response.content)
-    #     form_id = response_data[0]['id']
+        url = '/api/v2/per-assessment/'
+        self.authenticate(self.user)
+        response = self.client.post(url, data=data, format="json")
+        print(response.content)
+        self.assertEqual(response.status_code, 201)
+        response_data = json.loads(response.content)
+        form_id = response_data[0]['id']
