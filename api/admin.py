@@ -402,9 +402,13 @@ class AppealAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
 
 
 class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+    def appeal_document_label(self, obj):
+        return '%s - %s' % (obj.appeal, obj.name)
+
     country_in = 'appeal__country__in'
     region_in = 'appeal__region__in'
-    search_fields = ('name', 'appeal__code', 'appeal__name')
+    list_display = ('appeal_document_label', 'description', 'iso', 'created_at')
+    search_fields = ('name', 'appeal__code', 'appeal__name', 'description', 'iso__name')
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('appeal')
