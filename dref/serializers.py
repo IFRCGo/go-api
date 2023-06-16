@@ -179,17 +179,11 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         ]
 
     def get_operational_update_details(self, obj):
-        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
-        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id)
-        if type_of_dref:
-            queryset = queryset.filter(type_of_dref=type_of_dref)
+        queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateSerializer(queryset, many=True).data
 
     def get_final_report_details(self, obj):
-        type_of_dref = self.context['view'].kwargs.get('type_of_dref')
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
-        if type_of_dref:
-            queryset = queryset.filter(type_of_dref=type_of_dref)
         return MiniDrefFinalReportSerializer(queryset, many=True).data
 
     def get_has_ops_update(self, obj):
