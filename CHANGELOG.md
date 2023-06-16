@@ -6,13 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.482
+ - Add more columns to AppealDocument Admin list
+ - Put back caching
+
 ## 1.1.481
 
 ### Added
- - Put back caching
  - DREF regional permission views
  - DREF account page and users behaviour
- - Add more columns to AppealDocument Admin list
 
 ## 1.1.480
 
@@ -2250,7 +2252,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.481...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.482...HEAD
+[1.1.482]: https://github.com/IFRCGo/go-api/compare/1.1.481...1.1.482
 [1.1.481]: https://github.com/IFRCGo/go-api/compare/1.1.480...1.1.481
 [1.1.480]: https://github.com/IFRCGo/go-api/compare/1.1.479...1.1.480
 [1.1.479]: https://github.com/IFRCGo/go-api/compare/1.1.478...1.1.479
