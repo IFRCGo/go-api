@@ -411,7 +411,8 @@ class Overview(models.Model):
     phase = models.IntegerField(
         verbose_name=_("phase"),
         choices=Phase.choices,
-        null=True, blank=True
+        null=True, blank=True,
+        default=Phase.ORIENTATION
     )
 
     class Meta:
