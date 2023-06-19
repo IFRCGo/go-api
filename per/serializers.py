@@ -269,7 +269,10 @@ class WorkPlanSerializer(serializers.ModelSerializer):
 class AssessmentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssessmentType
-        fields = "__all__"
+        fields = (
+            'id',
+            'name',
+        )
 
 
 class OverviewSerializer(serializers.ModelSerializer):
@@ -353,7 +356,7 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
     def update(self, instance, validated_data):
         overview = validated_data["overview"]
         if overview:
-            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.WORKPLAN)
+            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ACTION_AND_ACCOUNTABILITY)
         return super().update(instance, validated_data)
 
 
@@ -415,7 +418,7 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
 
     def update(self, instance, validated_data):
         overview = validated_data.get('overview')
-        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.PRIORITIZATION)
+        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.WORKPLAN)
         if overview:
             PerWorkPlan.objects.create(overview=overview)
         return super().update(instance, validated_data)
@@ -457,13 +460,14 @@ class PerOverviewSerializer(
 
     def create(self, validated_data):
         overview = super().create(validated_data)
-        if hasattr(overview, 'date_of_assessment'):
-            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ORIENTATION)
+        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
         # create associated assessment also
         PerAssessment.objects.create(overview=overview)
         return overview
 
     def update(self, instance, validated_data):
+        if hasattr(instance, 'date_of_assessment'):
+            Overview.objects.filter(id=instance.id).update(phase=Overview.Phase.ASSESSMENT)
         return super().update(instance, validated_data)
 
 
@@ -602,7 +606,71 @@ class PerAssessmentSerializer(
     def update(self, instance, validated_data):
         overview = validated_data.get('overview')
         is_draft = validated_data.get('is_draft')
-        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
+        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.PRIORITIZATION)
         if is_draft is False:
             FormPrioritization.objects.create(overview=overview)
         return super().update(instance, validated_data)
+
+
+class PublicPerCountrySerializer(serializers.ModelSerializer):
+    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
+    type_of_assessment = AssessmentTypeSerializer(read_only=True)
+
+    class Meta:
+        model = Overview
+        fields = (
+            'id',
+            'date_of_assessment',
+            'phase',
+            'assessment_number',
+            'ns_focal_point_name',
+            'ns_focal_point_email',
+            'type_of_assessment',
+            'phase_display',
+        )
+
+
+class MiniFormComponentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormComponent
+        fields = (
+            'id',
+            'status',
+        )
+
+
+class UserPerCountrySerializer(serializers.ModelSerializer):
+    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
+    type_of_assessment = AssessmentTypeSerializer(read_only=True)
+    component_rating_results = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Overview
+        fields = (
+            'id',
+            'date_of_assessment',
+            'phase',
+            'assessment_number',
+            'ns_focal_point_name',
+            'ns_focal_point_email',
+            'type_of_assessment',
+            'phase_display',
+            'component_rating_results'
+        )
+
+    def get_component_rating_results(self, obj):
+        assessment_qs = PerAssessment.objects.filter(overview=obj)
+        for data in assessment_qs:
+            areas = data.area_responses.all()
+            for area in areas:
+                component_list = []
+                for component_response in area.component_response.all():
+                    if hasattr(component_response, 'component'):
+                        component_list.append({
+                            "id": component_response.component.id,
+                            "title": component_response.component.title,
+                            "status": component_response.status,
+                            "description": component_response.description,
+                        })
+            print(component_list)
+        return component_list
