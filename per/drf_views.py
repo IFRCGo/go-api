@@ -63,7 +63,9 @@ from .serializers import (
     PerProcessSerializer,
     FormAsessmentSerializer,
     PerAssessmentSerializer,
-    PerFileSerializer
+    PerFileSerializer,
+    PublicPerCountrySerializer,
+    UserPerCountrySerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -686,7 +688,7 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Overview.objects.order_by('country', '-assessment_number',)
+        return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
 
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
@@ -709,3 +711,26 @@ class PerFileViewSet(
         if self.request is None:
             return PerFile.objects.none()
         return PerFile.objects.filter(created_by=self.request.user)
+
+
+class PerCountryViewSet(
+    viewsets.ReadOnlyModelViewSet
+):
+
+    def get_serializer_class(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return PublicPerCountrySerializer
+        else:
+            return UserPerCountrySerializer
+
+    def get_queryset(self):
+        country_id = self.request.GET.get("country_id", None)
+        if country_id:
+            return Overview.objects.select_related(
+                "country",
+                "type_of_assessment"
+            ).filter(
+                country_id=country_id
+            ).order_by("-created_at")[:1]
+        return {}
