@@ -1236,13 +1236,13 @@ class DrefTestCase(APITestCase):
 
         # create some dref
         dref_1 = DrefFactory.create(
-            is_published=False,
+            is_active=True,
             type_of_dref=Dref.DrefType.ASSESSMENT,
             country=country_1,
             created_by=self.root_user
         )
         dref_2 = DrefFactory.create(
-            is_published=False,
+            is_active=True,
             type_of_dref=Dref.DrefType.LOAN,
             country=country_2,
             created_by=self.root_user
