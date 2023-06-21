@@ -137,15 +137,13 @@ class FormComponent(models.Model):
         return f"Component {self.component_num} - {self.title}"
 
 
+class PerComponentRating(models.Model):
+    title = models.CharField(verbose_name=_("title"), max_length=250)
+    value = models.IntegerField(verbose_name=_("value"))
+
+
 @reversion.register()
 class FormComponentResponse(models.Model):
-
-    class ComponentRating(models.TextChoices):
-        HIGH_PERFORMANCE = "high_performance", _("High Performance")
-        EXISTS_COULD_BE_STRENGTHENED = "exists_could_be_strengthened", _("Exits Could be Strengthened")
-        NEEDS_IMPROVEMENT = "needs_improvement", _("Needs Improvement")
-        PARTIALLY_EXISTS = "partially_exists", _("Partially Exists")
-        DOES_NOT_EXIST = "does_not_exist", _("Does Not Exist")
 
     component = models.ForeignKey(
         FormComponent,
@@ -153,9 +151,10 @@ class FormComponentResponse(models.Model):
         on_delete=models.PROTECT,
         blank=True, null=True,
     )
-    rating = models.CharField(
-        verbose_name=_("status"), max_length=100,
-        choices=ComponentRating.choices, null=True, blank=True
+    rating = models.ForeignKey(
+        PerComponentRating,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
     )
     consideration_responses = models.ManyToManyField(
         FormComponentConsiderations,
