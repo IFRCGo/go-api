@@ -140,7 +140,7 @@ class FormComponent(models.Model):
 @reversion.register()
 class FormComponentResponse(models.Model):
 
-    class FormComponentStatus(models.TextChoices):
+    class ComponentRating(models.TextChoices):
         HIGH_PERFORMANCE = "high_performance", _("High Performance")
         EXISTS_COULD_BE_STRENGTHENED = "exists_could_be_strengthened", _("Exits Could be Strengthened")
         NEEDS_IMPROVEMENT = "needs_improvement", _("Needs Improvement")
@@ -153,9 +153,9 @@ class FormComponentResponse(models.Model):
         on_delete=models.PROTECT,
         blank=True, null=True,
     )
-    status = models.CharField(
+    rating = models.CharField(
         verbose_name=_("status"), max_length=100,
-        choices=FormComponentStatus.choices, null=True, blank=True
+        choices=ComponentRating.choices, null=True, blank=True
     )
     consideration_responses = models.ManyToManyField(
         FormComponentConsiderations,
@@ -415,6 +415,12 @@ class Overview(models.Model):
         default=Phase.ORIENTATION
     )
 
+    # Added to track the draft overview
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        null=True, blank=True,
+    )
+
     class Meta:
         ordering = ("country",)
         verbose_name = _("PER General Overview")
@@ -605,6 +611,10 @@ class PerWorkPlanComponent(models.Model):
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
+    supported_by = models.ForeignKey(
+        Country, on_delete=models.CASCADE,
+        null=True, blank=True
+    )
 
 
 class CustomPerWorkPlanComponent(models.Model):
