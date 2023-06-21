@@ -575,6 +575,7 @@ class Dref(models.Model):
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
     __budget_file_id = None
+    is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("dref")

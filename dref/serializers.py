@@ -424,6 +424,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
+        validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
