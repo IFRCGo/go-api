@@ -38,7 +38,8 @@ from .models import (
     WorkPlanStatus,
     PerAssessment,
     PerFile,
-    FormComponentResponse
+    FormComponentResponse,
+    PerComponentRating
 )
 from .serializers import (
     FormStatSerializer,
@@ -66,7 +67,8 @@ from .serializers import (
     PerAssessmentSerializer,
     PerFileSerializer,
     PublicPerCountrySerializer,
-    UserPerCountrySerializer
+    UserPerCountrySerializer,
+    PerComponentRatingSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -676,7 +678,19 @@ class PerOptionsView(views.APIView):
 
     def get(self, request, version=None):
         options = {
-            'componentratings': [{"key": status.value, "value": status.label} for status in FormComponentResponse.ComponentRating],
+            'componentratings': [
+                {
+                    "id": rating.id,
+                    "title": rating.title,
+                    "value": rating.value
+                } for rating in PerComponentRating.objects.all()
+            ],
+            'answers': [
+                {
+                    "id": answer.id,
+                    "text": answer.text
+                } for answer in FormAnswer.objects.all()
+            ],
             'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus],
             'perphases': [{"key": status.value, "value": status.label} for status in Overview.Phase]
         }
