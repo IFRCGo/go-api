@@ -4,7 +4,6 @@ from per.models import (
     Overview,
     FormPrioritization,
     PerWorkPlan,
-    FormArea,
     Form,
 )
 from api.models import Country

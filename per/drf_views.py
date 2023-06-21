@@ -37,7 +37,8 @@ from .models import (
     FormPrioritization,
     WorkPlanStatus,
     PerAssessment,
-    PerFile
+    PerFile,
+    FormComponentResponse
 )
 from .serializers import (
     FormStatSerializer,
@@ -675,9 +676,9 @@ class PerOptionsView(views.APIView):
 
     def get(self, request, version=None):
         options = {
-            'formcomponentstatus': [{"key": status.value, "value": status.label} for status in FormComponent.FormComponentStatus],
+            'componentratings': [{"key": status.value, "value": status.label} for status in FormComponentResponse.ComponentRating],
             'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus],
-            'phase': [{"key": status.value, "value": status.label} for status in Overview.Phase]
+            'perphases': [{"key": status.value, "value": status.label} for status in Overview.Phase]
         }
         return response.Response(options)
 
