@@ -301,6 +301,7 @@ class PerWorkPlanComponentSerializer(
 ):
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
+    supported_by_details = MiniCountrySerializer(source='supported_by', read_only=True)
 
     class Meta:
         model = PerWorkPlanComponent
@@ -310,8 +311,10 @@ class PerWorkPlanComponentSerializer(
             'actions',
             'due_date',
             'status',
+            'supported_by',
             'status_display',
-            'component_details'
+            'component_details',
+            'supported_by_details'
         )
 
 
@@ -458,15 +461,33 @@ class PerOverviewSerializer(
         model = Overview
         fields = "__all__"
 
+    # def validate(self, attrs):
+    #     date_of_orientation = attrs.get('date_of_orientation')
+    #     date_of_assessment = attrs.get('date_of_assessment')
+    #     type_of_assessment = attrs.get('type_of_assessment')
+    #     if date_of_orientation is None or date_of_assessment is None:
+    #         raise serializers.ValidationError("Date of Orientation or Date of Assessment can't be empty")
+
+    #     if date_of_assessment and type_of_assessment is None:
+    #         raise serializers.ValidationError({
+    #             "type_of_assessment": "Type of assessment is required if date of assessment is filled"
+    #         })
+    #     return attrs
+
     def create(self, validated_data):
         overview = super().create(validated_data)
-        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
-        # create associated assessment also
-        PerAssessment.objects.create(overview=overview)
+        if overview.is_draft is False:
+            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ORIENTATION)
+        else:
+            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
+            # create associated assessment also
+            PerAssessment.objects.create(overview=overview)
         return overview
 
     def update(self, instance, validated_data):
-        if hasattr(instance, 'date_of_assessment'):
+        if instance.is_draft is False:
+            Overview.objects.filter(id=instance.id).update(phase=Overview.Phase.ORIENTATION)
+        else:
             Overview.objects.filter(id=instance.id).update(phase=Overview.Phase.ASSESSMENT)
         return super().update(instance, validated_data)
 
@@ -550,17 +571,17 @@ class FormComponentResponseSerializer(
 ):
     consideration_responses = FormComponentConsiderationsSerializer(required=False, many=True)
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    rating_display = serializers.CharField(source='get_rating_display', read_only=True)
 
     class Meta:
         model = FormComponentResponse
         fields = (
             'id',
             'component',
-            'status',
+            'rating',
             'consideration_responses',
             'question_responses',
-            'status_display'
+            'rating_display'
         )
 
 
@@ -642,7 +663,6 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 class UserPerCountrySerializer(serializers.ModelSerializer):
     phase_display = serializers.CharField(source='get_phase_display', read_only=True)
     type_of_assessment = AssessmentTypeSerializer(read_only=True)
-    component_rating_results = serializers.SerializerMethodField()
 
     class Meta:
         model = Overview
@@ -653,24 +673,8 @@ class UserPerCountrySerializer(serializers.ModelSerializer):
             'assessment_number',
             'ns_focal_point_name',
             'ns_focal_point_email',
-            'type_of_assessment',
+            'component_rating_results',
+            'total_benchmark_summary',
             'phase_display',
-            'component_rating_results'
+            'type_of_assessment',
         )
-
-    def get_component_rating_results(self, obj):
-        assessment_qs = PerAssessment.objects.filter(overview=obj)
-        for data in assessment_qs:
-            areas = data.area_responses.all()
-            for area in areas:
-                component_list = []
-                for component_response in area.component_response.all():
-                    if hasattr(component_response, 'component'):
-                        component_list.append({
-                            "id": component_response.component.id,
-                            "title": component_response.component.title,
-                            "status": component_response.status,
-                            "description": component_response.description,
-                        })
-            print(component_list)
-        return component_list
