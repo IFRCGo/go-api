@@ -28,6 +28,7 @@ from .models import (
     CustomPerWorkPlanComponent,
     PerFile,
     WorkPlanStatus,
+    PerComponentRating
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -564,6 +565,12 @@ class QuestionResponsesSerializer(
         )
 
 
+class PerComponentRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerComponentRating
+        fields = '__all__'
+
+
 class FormComponentResponseSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -571,7 +578,7 @@ class FormComponentResponseSerializer(
 ):
     consideration_responses = FormComponentConsiderationsSerializer(required=False, many=True)
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    rating_display = serializers.CharField(source='get_rating_display', read_only=True)
+    rating_details = PerComponentRatingSerializer(source='rating', read_only=True)
 
     class Meta:
         model = FormComponentResponse
@@ -581,7 +588,7 @@ class FormComponentResponseSerializer(
             'rating',
             'consideration_responses',
             'question_responses',
-            'rating_display'
+            'rating_details'
         )
 
 
