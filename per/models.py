@@ -599,7 +599,7 @@ class NiceDocument(models.Model):
 
 class PerWorkPlanComponent(models.Model):
     component = models.ForeignKey(
-        FormComponent, verbose_name=_("Component"), on_delete=models.PROTECT, null=True, blank=True
+        FormComponent, verbose_name=_("Component"), on_delete=models.CASCADE,
     )
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
@@ -614,6 +614,10 @@ class CustomPerWorkPlanComponent(models.Model):
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
+    supported_by = models.ForeignKey(
+        Country, on_delete=models.CASCADE,
+        null=True, blank=True
+    )
 
 
 class PerWorkPlan(models.Model):
