@@ -180,10 +180,6 @@ class AreaResponse(models.Model):
         verbose_name=_("Component Response"),
         blank=True,
     )
-    is_draft = models.BooleanField(
-        verbose_name=_("is draft"),
-        null=True, blank=True
-    )
 
 
 @reversion.register()
