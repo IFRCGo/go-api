@@ -140,6 +140,7 @@ TESTING = any([
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
     'modeltranslation',  # https://django-modeltranslation.readthedocs.io/en/latest/installation.html#installed-apps
+    'drf_yasg',
 
     # Django Apps
     'django.contrib.admin',
@@ -557,6 +558,8 @@ CACHES = {
     }
 }
 CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+
+OPEN_API_DOCS_TIMEOUT = 60
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

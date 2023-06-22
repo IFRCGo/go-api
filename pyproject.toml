@@ -81,6 +81,7 @@ celery = { version = "==5.1.2", extras = ["redis"] }
 django-redis = "==5.0.0"
 sentry-sdk = "*"
 django-haystack = { version = "*", extras = ["elasticsearch"] }
+drf_yasg = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"

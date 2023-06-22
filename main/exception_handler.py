@@ -14,6 +14,8 @@ standard_error_string = (
     'Please contact an admin to fix this issue.'
 )
 
+logger = logging.getLogger(__name__)
+
 
 def custom_exception_handler(exc, context):
     # Default exception handler
@@ -45,6 +47,11 @@ def custom_exception_handler(exc, context):
                     'non_field_errors': [standard_error_string]
                 },
             }
+            logger.error(
+                '{}.{}'.format(type(exc).__module__, type(exc).__name__),
+                exc_info=True,
+                extra={'request': context.get('request')},
+            )
         response = Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return response

@@ -47,7 +47,7 @@ from .models import (
 )
 
 
-class MiniUserSerializer(ModelSerializer):
+class DeploymentMiniUserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = (
@@ -365,7 +365,7 @@ class ProjectSerializer(ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
     annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
-    modified_by_detail = MiniUserSerializer(source='modified_by', read_only=True)
+    modified_by_detail = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
     def get_secondary_sectors_display(obj):
@@ -553,8 +553,8 @@ class EmergencyProjectSerializer(
     NestedCreateMixin,
     ModelSerializer,
 ):
-    created_by_details = MiniUserSerializer(source='created_by', read_only=True)
-    modified_by_details = MiniUserSerializer(source='modified_by', read_only=True)
+    created_by_details = DeploymentMiniUserSerializer(source='created_by', read_only=True)
+    modified_by_details = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
     event_details = MiniEventSerializer(source='event', read_only=True)
     reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
