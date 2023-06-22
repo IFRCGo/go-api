@@ -62,7 +62,13 @@ class FormComponentSerializer(
 
     class Meta:
         model = FormComponent
-        fields = '__all__'
+        fields = (
+            "id",
+            "title",
+            "component_num",
+            "description",
+            "area",
+        )
 
 
 class FormAnswerSerializer(serializers.ModelSerializer):
@@ -98,8 +104,6 @@ class FormQuestionSerializer(serializers.ModelSerializer):
             "question",
             "question_num",
             "answers",
-            "is_epi",
-            "is_benchmark",
             "description",
             "id",
         )
