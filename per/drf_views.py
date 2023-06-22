@@ -76,7 +76,7 @@ from per.filter_set import (
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
-
+from django.db import models
 
 class FormFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -756,3 +756,17 @@ class PerCountryViewSet(
                 country_id=country_id
             ).order_by("-created_at")[:1]
         return {}
+
+
+class PerAggregatedViewSet(
+    viewsets.ReadOnlyModelViewSet
+):
+
+    serializer_class = PerProcessSerializer
+    filterset_class = PerOverviewFilter
+    permission_classes = [permissions.IsAuthenticated]
+    ordering_fields = ['assessment_number', 'phase']
+
+    def get_queryset(self):
+        return Overview.objects.filter(
+            id__in=Overview.objects.order_by('country_id', '-assessment_number').distinct('country_id').values('id'))
