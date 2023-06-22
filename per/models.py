@@ -232,9 +232,6 @@ class FormQuestion(models.Model):
     description = HTMLField(verbose_name=_("description"), null=True, blank=True)
     question_num = models.IntegerField(verbose_name=_("question number"), null=True, blank=True)
     answers = models.ManyToManyField(FormAnswer, verbose_name=_("answers"), blank=True)
-    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False)
-    is_benchmark = models.BooleanField(verbose_name=_("is benchmark"), default=False)
-    # NOTE: What about the status field????
 
     def __str__(self):
         return self.question
@@ -242,7 +239,10 @@ class FormQuestion(models.Model):
 
 @reversion.register()
 class FormPrioritizationComponent(models.Model):
-    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT, null=True, blank=True)
+    component = models.ForeignKey(
+        FormComponent, verbose_name=_("component"),
+        on_delete=models.PROTECT, null=True, blank=True
+    )
     is_prioritized = models.BooleanField(verbose_name=_("Is prioritized"), null=True, blank=True)
     justification_text = models.TextField(verbose_name=_("Justification Text"), null=True, blank=True)
 
@@ -292,6 +292,11 @@ class Overview(models.Model):
         WORKPLAN = 4, _('WorkPlan')
         ACTION_AND_ACCOUNTABILITY = 5, _('Action And Accoutability')
 
+    class AssessmentMethod(models.TextChoices):
+        PER = 'per', _('Per')
+        DRCE = 'drce', _('Drce')
+        WPNS = 'wpns', _('WPNS')
+
     country = models.ForeignKey(
         Country, verbose_name=_("country"),
         related_name="per_overviews",
@@ -327,7 +332,10 @@ class Overview(models.Model):
     branches_involved = models.CharField(verbose_name=_("branches involved"), max_length=400, null=True, blank=True)
     date_of_assessment = models.DateField(verbose_name=_("date of assessment"))
     method_asmt_used = models.CharField(
-        verbose_name=_("what method has this assessment used"), max_length=90, null=True, blank=True
+        verbose_name=_("what method has this assessment used"),
+        max_length=90,
+        null=True, blank=True,
+        choices=AssessmentMethod.choices
     )
     assess_preparedness_of_country = models.BooleanField(
         verbose_name=_("Do you want to assess the preparedness of your National Society for epidemics and pandemics?"),
@@ -346,11 +354,6 @@ class Overview(models.Model):
     type_of_per_assessment = models.CharField(
         verbose_name=_("Type of Per Asessement"), max_length=255, null=True, blank=True
     )
-    # Reviews Planned
-    date_of_mid_term_review = models.DateField(
-        verbose_name=_("estimated date of mid term review"), null=True, blank=True
-    )
-    date_of_next_asmt = models.DateField(verbose_name=_("estimated date of next assessment"), null=True, blank=True)
 
     # Workplan reviews planned
     workplan_development_date = models.DateField(
@@ -395,15 +398,6 @@ class Overview(models.Model):
     ns_second_focal_point_phone = models.CharField(
         verbose_name=_("ns second focal point phone"),
         max_length=90, null=True, blank=True
-    )
-
-    # Misc
-    is_epi = models.BooleanField(verbose_name=_("is epi"), default=False, null=True, blank=True)
-    is_finalized = models.BooleanField(verbose_name=_("is finalized"), default=False, null=True, blank=True)
-    other_consideration = models.CharField(
-        verbose_name=_("other consideration"),
-        max_length=400,
-        null=True, blank=True
     )
 
     # phase calculation
