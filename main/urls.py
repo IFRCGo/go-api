@@ -121,7 +121,7 @@ router.register(r'main_contact', api_views.MainContactViewset, basename='main_co
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
 router.register(r'per', per_views.FormViewset, basename='per')
-router.register(r'new-per', per_views.PerOverviewViewSet, basename='new_per')
+router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
 router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
 router.register(r'perdata', per_views.FormDataViewset)
 router.register(r'perdocs', per_views.PERDocsViewset)
@@ -148,6 +148,7 @@ router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='pe
 router.register(r'per-prioritization', per_views.FormPrioritizationViewSet, basename='per-priorirization')
 router.register(r'per-assessment', per_views.FormAssessmentViewSet, basename='per-assessent')
 router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
+router.register(r'aggregated-per-process-status', per_views.PerAggregatedViewSet, basename='aggregated-per-process-status'),
 router.register(r'per-file', per_views.PerFileViewSet, basename='per-file')
 router.register(r'profile', api_views.ProfileViewset, basename='profile')
 router.register(r'project', deployment_views.ProjectViewset)
@@ -221,15 +222,7 @@ urlpatterns = [
     url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
-    url(r"^register", RegistrationView.as_view()),
-    # url(r'^createperform', CreatePerForm.as_view()),
-    url(r"^updateperform", UpdatePerForm.as_view()),
-    url(r"^updatemultipleperforms", UpdatePerForms.as_view()),
-    # url(r'^deleteperform', DeletePerForm.as_view()),
-    url(r"^createperoverview", CreatePerOverview.as_view()),
-    url(r"^updateperoverview", UpdatePerOverview.as_view()),
-    url(r"^deleteperoverview", DeletePerOverview.as_view()),
-    url(r"^sendperworkplan", WorkPlanSent.as_view()),
+    url(r"^register", NewRegistration.as_view()),
     url(r"^api/v2/del_perworkplan", DelWorkPlan.as_view()),
     url(r"^verify_email", VerifyEmail.as_view()),
     url(r"^validate_user", ValidateUser.as_view()),
@@ -243,7 +236,6 @@ urlpatterns = [
 
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
-    url(r"^api/v2/exportperresults/", per_views.ExportAssessmentToCSVViewset.as_view()),
     url(r"^api/v2/local-unit/(?P<pk>\d+)", LocalUnitDetailAPIView.as_view()),
     url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
     url(r"^tinymce/", include("tinymce.urls")),
