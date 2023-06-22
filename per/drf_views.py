@@ -692,7 +692,14 @@ class PerOptionsView(views.APIView):
                 } for answer in FormAnswer.objects.all()
             ],
             'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus],
-            'perphases': [{"key": status.value, "value": status.label} for status in Overview.Phase]
+            'perphases': [{"key": status.value, "value": status.label} for status in Overview.Phase],
+            'overviewassessmentmethods': [{"key": status.value, "value": status.label} for status in Overview.AssessmentMethod],
+            'overviewassessmenttypes': [
+                {
+                    "id": assessment.id,
+                    "name": assessment.name,
+                } for assessment in AssessmentType.objects.all()
+            ]
         }
         return response.Response(options)
 
