@@ -396,7 +396,7 @@ class FormPrioritizationComponentSerializer(
     NestedUpdateMixin,
     serializers.ModelSerializer
 ):
-    component_details = FormComponentQuestionSerializer(
+    component_details = MiniFormComponentSerializer(
         source="component",
         read_only=True
     )
@@ -617,7 +617,6 @@ class AreaResponseSerializer(
             'area_details',
             'area',
             'component_responses',
-            'is_draft'
         )
 
 
