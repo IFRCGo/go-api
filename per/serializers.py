@@ -674,8 +674,6 @@ class UserPerCountrySerializer(serializers.ModelSerializer):
             'assessment_number',
             'ns_focal_point_name',
             'ns_focal_point_email',
-            'component_rating_results',
-            'total_benchmark_summary',
             'phase_display',
             'type_of_assessment',
         )
