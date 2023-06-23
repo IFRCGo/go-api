@@ -9,8 +9,9 @@ from rest_framework import (
     views,
     response,
     permissions,
-    mixins
+    mixins,
 )
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
@@ -734,6 +735,22 @@ class PerFileViewSet(
             return PerFile.objects.none()
         return PerFile.objects.filter(created_by=self.request.user)
 
+    @action(
+        detail=False,
+        url_path="multiple",
+        methods=["POST"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def multiple_file(self, request, pk=None, version=None):
+        # converts querydict to original dict
+        files = dict((request.data).lists())["file"]
+        data = [{"file": file} for file in files]
+        file_serializer = PerFileSerializer(data=data, context={"request": request}, many=True)
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PerCountryViewSet(
     viewsets.ReadOnlyModelViewSet
@@ -761,12 +778,14 @@ class PerCountryViewSet(
 class PerAggregatedViewSet(
     viewsets.ReadOnlyModelViewSet
 ):
-
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = ['assessment_number', 'phase']
+    ordering_fields = ['assessment_number', 'phase', 'date_of_assessment']
 
     def get_queryset(self):
         return Overview.objects.filter(
-            id__in=Overview.objects.order_by('country_id', '-assessment_number').distinct('country_id').values('id'))
+            id__in=Overview.objects.order_by(
+                'country_id',
+                '-assessment_number'
+            ).distinct('country_id').values('id'))
