@@ -1,12 +1,16 @@
+import os
 import json
+import time
 from datetime import datetime, timedelta
 
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.core.files.storage import FileSystemStorage, get_storage_class
 from django.conf import settings
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models.fields import IntegerField
 from django.db.models import Count, Sum, Q, F, Case, When
@@ -37,6 +41,14 @@ from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 from .utils import is_user_ifrc
 
+DefaultMediaStorageClass = get_storage_class()
+
+
+def get_full_media_url(media_path):
+    if DefaultMediaStorageClass != FileSystemStorage:
+        return f"{settings.BASE_URL}{media_path}"
+    return media_path
+
 
 def bad_request(message):
     return JsonResponse({"statusCode": 400, "error_message": message}, status=400)
@@ -48,6 +60,48 @@ def bad_http_request(header, message):
 
 def unauthorized(message="You must be logged in"):
     return JsonResponse({"statusCode": 401, "error_message": message}, status=401)
+
+
+@csrf_exempt
+def upload_image(request):
+    # import pdb; pdb.set_trace()
+    if request.method == "POST":
+        file_obj = request.FILES['file']
+        file_name_suffix = file_obj.name.split(".")[-1]
+        if file_name_suffix not in ["jpg", "png", "gif", "jpeg", ]:
+            return JsonResponse({"message": "Wrong file format"})
+
+        import pdb; pdb.set_trace()
+        path = os.path.join(
+            settings.MEDIA_ROOT,
+            'tinymce',
+        )
+        # If there is no such path, create
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        file_path = os.path.join(path, file_obj.name)
+
+#       file_url = f'{settings.MEDIA_URL}tinymce/{time.time_ns()}_{file_obj.name}'
+        file_url = f'{settings.MEDIA_URL}tinymce/{file_obj.name}'
+
+        if os.path.exists(file_path):
+            return JsonResponse({
+                "message": "file already exist",
+                'location': file_url
+            })
+
+        storage = DefaultMediaStorageClass()
+        storage.save(file_path, file_obj)
+#        with open(file_path, 'wb+') as f:
+#            for chunk in file_obj.chunks():
+#                f.write(chunk)
+
+        return JsonResponse({
+            'message': 'Image uploaded successfully',
+            'location': file_url
+        })
+    return JsonResponse({'detail': "Wrong request"})
 
 
 class UpdateSubscriptionPreferences(APIView):

@@ -282,6 +282,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
+    'images_upload_url': '/upload_image',  # Image upload address in Django route
     'entity_encoding': 'raw',
     'height': 360,
     'width': 1120,

@@ -54,6 +54,7 @@ from api.views import (
     DummyExceptionError,
     ResendValidation,
     HayStackSearch,
+    upload_image,
 )
 from registrations.views import NewRegistration, VerifyEmail, ValidateUser
 from per.views import (
@@ -208,6 +209,7 @@ urlpatterns = [
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
     url(r"^register", NewRegistration.as_view()),
+    url(r"^upload_image", upload_image),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r"^updateperform", UpdatePerForm.as_view()),
     url(r"^updatemultipleperforms", UpdatePerForms.as_view()),
