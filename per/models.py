@@ -307,13 +307,10 @@ class Overview(models.Model):
 
     # Orientation
     date_of_orientation = models.DateField(verbose_name=_("Date of Orientation"), null=True, blank=True)
-    orientation_document = models.ForeignKey(
+    orientation_documents = models.ManyToManyField(
         "PerFile",
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
-        verbose_name=_("orientation document"),
-        related_name="orientation_document_dref",
+        verbose_name=_("orientation documents"),
     )
 
     # Assessment
