@@ -27,7 +27,6 @@ from .models import (
     FormComponentResponse,
     CustomPerWorkPlanComponent,
     PerFile,
-    WorkPlanStatus,
     PerComponentRating
 )
 from api.serializers import (
@@ -459,25 +458,17 @@ class PerOverviewSerializer(
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
-    orientation_document_details = PerFileSerializer(source='orientation_document', read_only=True)
     assessment_number = serializers.IntegerField(required=False, allow_null=True)
+    orientation_documents_file = PerFileSerializer(
+        many=True, required=False,
+        allow_null=True,
+        source='orientation_documents'
+    )
 
     class Meta:
         model = Overview
-        fields = "__all__"
-
-    # def validate(self, attrs):
-    #     date_of_orientation = attrs.get('date_of_orientation')
-    #     date_of_assessment = attrs.get('date_of_assessment')
-    #     type_of_assessment = attrs.get('type_of_assessment')
-    #     if date_of_orientation is None or date_of_assessment is None:
-    #         raise serializers.ValidationError("Date of Orientation or Date of Assessment can't be empty")
-
-    #     if date_of_assessment and type_of_assessment is None:
-    #         raise serializers.ValidationError({
-    #             "type_of_assessment": "Type of assessment is required if date of assessment is filled"
-    #         })
-    #     return attrs
+        read_only_fields = ["user"]
+        exclude = ["orientation_documents"]
 
     def create(self, validated_data):
         overview = super().create(validated_data)
