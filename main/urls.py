@@ -72,7 +72,6 @@ from per.views import (
     DeletePerOverview,
     DelWorkPlan,
 )
-
 from databank.views import CountryOverviewViewSet
 from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
@@ -120,36 +119,25 @@ router.register(r'latest_country_overview', per_views.LatestCountryOverviewViews
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
-router.register(r'per', per_views.FormViewset, basename='per')
+
+# PER apis
 router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
-router.register(r'percountry', per_views.FormCountryViewset, basename='percountry')
-router.register(r'perdata', per_views.FormDataViewset)
-router.register(r'perdocs', per_views.PERDocsViewset)
-router.register(r'peroverview', per_views.OverviewViewset, basename='peroverview')
-router.register(r'peroverviewstrict', per_views.OverviewStrictViewset, basename='peroverviewstrict')
-router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
-router.register(r'personnel', deployment_views.PersonnelViewset, basename='personnel')
-router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset, basename='personnel_by_event')
-router.register(r'perstat', per_views.FormStatViewset, basename='perstat')
-router.register(r'perworkplan', per_views.WorkPlanViewset)
+router.register(r'per-assessment', per_views.FormAssessmentViewSet, basename='per-assessent')
+router.register(r'per-prioritization', per_views.FormPrioritizationViewSet, basename='per-priorirization')
 router.register(r'per-work-plan', per_views.NewPerWorkPlanViewSet)
-router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')
-# router.register(r'per-form-data', per_views.PerFormDataViewSet, basename='per-form-data')
-router.register(r'per_country_duedate', per_views.CountryDuedateViewset)
-router.register(r'per_engaged_ns_percentage', per_views.EngagedNSPercentageViewset, basename='per_engaged_ns_percentage')
-router.register(r'per_global_preparedness', per_views.GlobalPreparednessViewset, basename='per_global_preparedness')
-router.register(r'per_mission', per_views.FormPermissionViewset, basename='per_mission')
-router.register(r'per_ns_phase', per_views.NSPhaseViewset)
-router.register(r'per-assessmenttype', per_views.AssessmentTypeViewset, basename='per-assessmenttype')
 router.register(r'per-formanswer', per_views.FormAnswerViewset, basename='per-formanswer')
 router.register(r'per-formarea', per_views.FormAreaViewset, basename='per-formarea')
 router.register(r'per-formcomponent', per_views.FormComponentViewset, basename='per-formcomponent')
 router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='per-formquestion')
-router.register(r'per-prioritization', per_views.FormPrioritizationViewSet, basename='per-priorirization')
-router.register(r'per-assessment', per_views.FormAssessmentViewSet, basename='per-assessent')
-router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
 router.register(r'aggregated-per-process-status', per_views.PerAggregatedViewSet, basename='aggregated-per-process-status'),
 router.register(r'per-file', per_views.PerFileViewSet, basename='per-file')
+router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')
+router.register(r'perdocs', per_views.PERDocsViewset)
+router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
+
+router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
+router.register(r'personnel', deployment_views.PersonnelViewset, basename='personnel')
+router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset, basename='personnel_by_event')
 router.register(r'profile', api_views.ProfileViewset, basename='profile')
 router.register(r'project', deployment_views.ProjectViewset)
 router.register(r'emergency-project', deployment_views.EmergencyProjectViewSet)
@@ -222,8 +210,7 @@ urlpatterns = [
     url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
-    url(r"^register", NewRegistration.as_view()),
-    url(r"^api/v2/del_perworkplan", DelWorkPlan.as_view()),
+    url(r"^register", RegistrationView.as_view()),
     url(r"^verify_email", VerifyEmail.as_view()),
     url(r"^validate_user", ValidateUser.as_view()),
     url(r"^change_password", registration_views.ChangePasswordView.as_view()),
