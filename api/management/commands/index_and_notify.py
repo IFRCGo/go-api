@@ -609,6 +609,7 @@ class Command(BaseCommand):
             }
         elif rtype == RecordType.WEEKLY_DIGEST:
             rec_obj = {
+                'resource_uri': settings.FRONTEND_URL,
                 'active_dref': self.get_weekly_digest_data('dref'),
                 'active_ea': self.get_weekly_digest_data('ea'),
                 'funding_coverage': self.get_weekly_digest_data('fund'),
@@ -647,7 +648,7 @@ class Command(BaseCommand):
 
         # Decide if it is a personal notification or batch
         if uid is None:
-            emails = self.gather_subscribers(records, rtype, stype)
+            emails = list(set(self.gather_subscribers(records, rtype, stype)))
             if not len(emails):
                 return
         else:
