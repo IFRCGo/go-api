@@ -378,6 +378,7 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
             "component_responses",
             "custom_component_responses",
             "overview_details",
+            "is_draft",
         )
 
     def create(self, _):
