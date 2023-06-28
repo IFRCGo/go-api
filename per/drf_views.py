@@ -10,6 +10,7 @@ from rest_framework import (
     response,
     permissions,
     mixins,
+    status as drf_status,
 )
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -309,14 +310,16 @@ class PerFileViewSet(
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
-        files = dict((request.data).lists())["file"]
+        files = [
+            files[0]
+            for files in dict((request.data).lists()).values()
+        ]
         data = [{"file": file} for file in files]
         file_serializer = PerFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
             file_serializer.save()
-            return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response(file_serializer.data, status=drf_status.HTTP_201_CREATED)
+        return response.Response(file_serializer.errors, status=drf_status.HTTP_400_BAD_REQUEST)
 
 
 class PerCountryViewSet(
