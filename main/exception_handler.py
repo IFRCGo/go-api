@@ -1,11 +1,13 @@
 import logging
 import sentry_sdk
+import logging
 
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
 from django_read_only import DjangoReadOnlyError
 
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger('api')
 
