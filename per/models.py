@@ -202,7 +202,7 @@ class PerAssessment(models.Model):
     )
     is_draft = models.BooleanField(
         verbose_name=_("is draft"),
-        null=True, blank=True
+        default=True,
     )
 
     def __str__(self):
@@ -253,6 +253,10 @@ class FormPrioritization(models.Model):
         FormPrioritizationComponent,
         verbose_name=_("Form prioritization component"),
         blank=True,
+    )
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        default=True,
     )
 
     def __str__(self):
@@ -404,7 +408,7 @@ class Overview(models.Model):
     # Added to track the draft overview
     is_draft = models.BooleanField(
         verbose_name=_("is draft"),
-        null=True, blank=True,
+        default=True,
     )
 
     class Meta:
@@ -415,6 +419,12 @@ class Overview(models.Model):
     def get_included_forms(self):
         allForms = self.forms.all()
         return ", ".join(f"Area {form.area.area_num}" for form in allForms)
+
+    def update_phase(self, new_phase: Phase, save_phase: bool = True):
+        if self.phase != new_phase:
+            self.phase = new_phase
+            if save_phase:
+                self.save(update_fields=('phase',))
 
     def __str__(self):
         if self.country is None:
@@ -624,6 +634,10 @@ class PerWorkPlan(models.Model):
         CustomPerWorkPlanComponent,
         verbose_name=_("Custom Per-WorkPlan Component"),
         blank=True,
+    )
+    is_draft = models.BooleanField(
+        verbose_name=_("is draft"),
+        default=True,
     )
 
     def __str__(self):
