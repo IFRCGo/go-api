@@ -1,3 +1,4 @@
+import typing
 from rest_framework import serializers
 
 from django.contrib.auth.models import User
@@ -34,6 +35,26 @@ from api.serializers import (
 )
 # from .admin_classes import RegionRestrictedAdmin
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
+
+
+def check_draft_change(
+    instance,
+    is_draft: typing.Union[bool, None],
+    allow_change_for_non_draft: bool = False,
+) -> bool:
+    """
+    Validate if draft change is allowed
+    Respond with draft change status
+    """
+    if not allow_change_for_non_draft and not instance.is_draft:
+        raise serializers.ValidationError('Update is not allowed for non draft')
+    # If draft is not provided
+    if is_draft is None:
+        return False
+    # If already is not draft and new status is draft
+    if instance.is_draft is False and is_draft is True:
+        raise serializers.ValidationError("Can't revert back to draft")
+    return instance.is_draft != is_draft
 
 
 class IsFinalOverviewSerializer(serializers.ModelSerializer):
@@ -360,10 +381,18 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
             "overview_details",
         )
 
+    def create(self, _):
+        # NOTE: This is not created manually
+        # This is created by FormPrioritizationSerializer
+        raise serializers.ValidationError('Create is not allowed')
+
     def update(self, instance, validated_data):
-        overview = validated_data["overview"]
-        if overview:
-            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ACTION_AND_ACCOUNTABILITY)
+        is_draft = validated_data.get('is_draft')
+        if check_draft_change(instance, is_draft) and is_draft is False:
+            overview = validated_data.get('overview')
+            if overview is None:
+                raise serializers.ValidationError('Overview is required')
+            overview.update_phase(Overview.Phase.ACTION_AND_ACCOUNTABILITY)
         return super().update(instance, validated_data)
 
 
@@ -416,17 +445,20 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
 
     class Meta:
         model = FormPrioritization
-        fields = ("id", "overview", "component_responses")
+        fields = ("id", "overview", "component_responses", "is_draft")
 
-    def create(self, validated_data):
-        # overview = validated_data['overview']
-        # PerWorkPlan.objects.create(overview=overview)
-        return super().create(validated_data)
+    def create(self, _):
+        # NOTE: This is not created manually
+        # This is created by PerAssessmentSerializer
+        raise serializers.ValidationError('Create is not allowed')
 
     def update(self, instance, validated_data):
-        overview = validated_data.get('overview')
-        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.WORKPLAN)
-        if overview:
+        is_draft = validated_data.get('is_draft')
+        if check_draft_change(instance, is_draft) and is_draft is False:
+            overview = validated_data.get('overview')
+            if overview is None:
+                raise serializers.ValidationError('Overview is required')
+            overview.update_phase(Overview.Phase.WORKPLAN)
             PerWorkPlan.objects.create(overview=overview)
         return super().update(instance, validated_data)
 
@@ -472,19 +504,21 @@ class PerOverviewSerializer(
 
     def create(self, validated_data):
         overview = super().create(validated_data)
-        if overview.is_draft is False:
-            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ORIENTATION)
+        if overview.is_draft:
+            overview.update_phase(Overview.Phase.ORIENTATION)
         else:
-            Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.ASSESSMENT)
-            # create associated assessment also
+            overview.update_phase(Overview.Phase.ASSESSMENT)
+            # Create associated assessment also
             PerAssessment.objects.create(overview=overview)
         return overview
 
     def update(self, instance, validated_data):
-        if instance.is_draft is False:
-            Overview.objects.filter(id=instance.id).update(phase=Overview.Phase.ORIENTATION)
-        else:
-            Overview.objects.filter(id=instance.id).update(phase=Overview.Phase.ASSESSMENT)
+        # TODO: Add a validation to only allow changes for specific fields after is_draft is False
+        is_draft = validated_data.get('is_draft')
+        if check_draft_change(instance, is_draft, allow_change_for_non_draft=True) and is_draft is False:
+            validated_data['phase'] = Overview.Phase.ASSESSMENT
+            # Create associated assessment if not exists already
+            PerAssessment.objects.get_or_create(overview=instance)
         return super().update(instance, validated_data)
 
 
@@ -623,13 +657,17 @@ class PerAssessmentSerializer(
         fields = '__all__'
 
     def create(self, validated_data):
-        return super().create(validated_data)
+        # NOTE: This is not created manually
+        # This is created by PerOverviewSerializer
+        raise serializers.ValidationError('Create is not allowed')
 
     def update(self, instance, validated_data):
-        overview = validated_data.get('overview')
         is_draft = validated_data.get('is_draft')
-        Overview.objects.filter(id=overview.id).update(phase=Overview.Phase.PRIORITIZATION)
-        if is_draft is False:
+        if check_draft_change(instance, is_draft) and is_draft is False:
+            overview = validated_data.get('overview')
+            if overview is None:
+                raise serializers.ValidationError('Overview is required')
+            overview.update_phase(Overview.Phase.PRIORITIZATION)
             FormPrioritization.objects.create(overview=overview)
         return super().update(instance, validated_data)
 
