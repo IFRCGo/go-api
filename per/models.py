@@ -71,22 +71,6 @@ class FormArea(models.Model):
 
 
 @reversion.register()
-class FormComponentConsiderations(models.Model):
-    urban_considerations = models.TextField(
-        verbose_name=_("Urban Considerations"),
-        null=True, blank=True
-    )
-    epi_considerations = models.TextField(
-        verbose_name=_("Epi Considerations"),
-        null=True, blank=True
-    )
-    climate_environmental_conisderations = models.TextField(
-        verbose_name=_("Climate Environmental Considerations"),
-        null=True, blank=True
-    )
-
-
-@reversion.register()
 class FormComponentQuestionAndAnswer(models.Model):
     question = models.ForeignKey(
         "FormQuestion", verbose_name=_("question"),
@@ -122,11 +106,6 @@ class FormComponent(models.Model):
         verbose_name=_("status"), max_length=100,
         choices=FormComponentStatus.choices, null=True, blank=True
     )
-    consideration_responses = models.ManyToManyField(
-        FormComponentConsiderations,
-        verbose_name=_("Consideration responses"),
-        blank=True
-    )
     question_responses = models.ManyToManyField(
         FormComponentQuestionAndAnswer,
         verbose_name=_("Question responses"),
@@ -156,15 +135,23 @@ class FormComponentResponse(models.Model):
         on_delete=models.CASCADE,
         null=True, blank=True,
     )
-    consideration_responses = models.ManyToManyField(
-        FormComponentConsiderations,
-        verbose_name=_("Consideration responses"),
-        blank=True
-    )
     question_responses = models.ManyToManyField(
         FormComponentQuestionAndAnswer,
         verbose_name=_("Question responses"),
         blank=True
+    )
+    # consideration_responses fields
+    urban_considerations = models.TextField(
+        verbose_name=_("Urban Considerations"),
+        null=True, blank=True
+    )
+    epi_considerations = models.TextField(
+        verbose_name=_("Epi Considerations"),
+        null=True, blank=True
+    )
+    climate_environmental_considerations = models.TextField(
+        verbose_name=_("Climate Environmental Considerations"),
+        null=True, blank=True
     )
 
 

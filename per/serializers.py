@@ -23,7 +23,6 @@ from .models import (
     FormPrioritizationComponent,
     PerAssessment,
     AreaResponse,
-    FormComponentConsiderations,
     FormComponentQuestionAndAnswer,
     FormComponentResponse,
     CustomPerWorkPlanComponent,
@@ -564,21 +563,6 @@ class PerProcessSerializer(serializers.ModelSerializer):
         return None
 
 
-class FormComponentConsiderationsSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
-    class Meta:
-        model = FormComponentConsiderations
-        fields = (
-            'id',
-            'urban_considerations',
-            'epi_considerations',
-            'climate_environmental_conisderations'
-        )
-
-
 class QuestionResponsesSerializer(
     NestedCreateMixin,
     NestedUpdateMixin,
@@ -605,7 +589,6 @@ class FormComponentResponseSerializer(
     NestedUpdateMixin,
     serializers.ModelSerializer
 ):
-    consideration_responses = FormComponentConsiderationsSerializer(required=False, many=True)
     question_responses = QuestionResponsesSerializer(required=False, many=True)
     rating_details = PerComponentRatingSerializer(source='rating', read_only=True)
 
@@ -615,9 +598,12 @@ class FormComponentResponseSerializer(
             'id',
             'component',
             'rating',
-            'consideration_responses',
             'question_responses',
-            'rating_details'
+            'rating_details',
+            # Considerations fields
+            'urban_considerations',
+            'epi_considerations',
+            'climate_environmental_considerations',
         )
 
 
