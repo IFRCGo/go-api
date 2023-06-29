@@ -1,9 +1,5 @@
 import threading
 
-from rest_framework import permissions
-from django.conf import settings
-from django.http import JsonResponse
-from django.utils.translation import gettext, get_language
 # from reversion.middleware import RevisionMiddleware
 
 
@@ -51,25 +47,6 @@ class RequestMiddleware:
         # return response
         setattr(_threadlocal, "request", request)
         return self.get_response(request)
-
-    @staticmethod
-    def process_view(request, view_function, *args, **kwargs):
-        # NOTE: For POST raise error on non default language
-        request_match = request.resolver_match
-        reject_the_request = (
-            # is Non-safe methods
-            (request and request.method not in permissions.SAFE_METHODS) and
-            # is API Request
-            request_match and request_match.route.startswith('^api/') and
-            # is Non-english language
-            get_language() != settings.LANGUAGE_CODE
-        )
-        if reject_the_request:
-            return JsonResponse({
-                'error': gettext('Currently %(method)s method is only allowed for non-English language.') % {
-                    'method': request.method
-                },
-            }, status=405)
 
 
 # Without this class the 'request revision' still works fine.

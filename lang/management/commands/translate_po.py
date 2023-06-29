@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import polib
-from lang.translation import AmazonTranslate, AVAILABLE_LANGUAGES
+from lang.translation import AVAILABLE_LANGUAGES, get_translator_class
 from django.core.management import BaseCommand
 
 
@@ -12,7 +12,7 @@ def translate_po_file(po, language):
     Update a given .po file with translated strings from Amazon Translate.
     """
     # Get a client for translations
-    translate = AmazonTranslate()
+    translate = get_translator_class()()
     for s in po.untranslated_entries():
         # We replace the formatting specifiers with something
         # that Amazon Translate will just assume is a title and

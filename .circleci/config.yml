@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            docker-compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py" &&
+            time docker-compose run --rm serve ./manage.py test --keepdb -v 2 --pattern="test_fake.py" &&
             docker-compose run --rm serve pytest --reuse-db --durations=10
       - run:
           name: Push image to Docker Hub
