@@ -36,6 +36,10 @@ x-server: &base_server_setup
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
     # Maintenance mode
     DJANGO_READ_ONLY: ${DJANGO_READ_ONLY:-false}
+    # IFRC dynamic translation
+    AUTO_TRANSLATION_TRANSLATOR: ${AUTO_TRANSLATION_TRANSLATOR:-}
+    IFRC_TRANSLATION_URL: ${IFRC_TRANSLATION_URL:-}
+    IFRC_TRANSLATION_API_KEY: ${IFRC_TRANSLATION_API_KEY:-}
 
   env_file:
     - .env

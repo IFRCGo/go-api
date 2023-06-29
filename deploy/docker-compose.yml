@@ -56,6 +56,10 @@ services:
         - TF_VAR_API_FQDN=${API_FQDN}
         - TF_VAR_FRONTEND_URL=${FRONTEND_URL}
         - TF_VAR_DEBUG_EMAIL=${DEBUG_EMAIL}
+        # IFRC dynamic translation
+        - TF_VAR_AUTO_TRANSLATION_TRANSLATOR=${AUTO_TRANSLATION_TRANSLATOR}
+        - TF_VAR_IFRC_TRANSLATION_URL=${IFRC_TRANSLATION_URL}
+        - TF_VAR_IFRC_TRANSLATION_API_KEY=${IFRC_TRANSLATION_API_KEY}
         - ARM_SUBSCRIPTION_ID=${subscriptionId}
         - ARM_TENANT_ID=${tenantId}
         - ARM_CLIENT_ID=${servicePrincipalId}

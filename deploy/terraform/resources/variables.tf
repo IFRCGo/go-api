@@ -189,6 +189,21 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
+variable "AUTO_TRANSLATION_TRANSLATOR" {
+  type = string
+  default = ""
+}
+
+variable "IFRC_TRANSLATION_URL" {
+  type = string
+  default = ""
+}
+
+variable "IFRC_TRANSLATION_API_KEY" {
+  type = string
+  default = ""
+}
+
 
 # -----------------
 # Attach ACR

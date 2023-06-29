@@ -234,6 +234,24 @@ resource "helm_release" "ifrcgo" {
   set {
     name = "env.DEBUG_EMAIL"
     value = var.DEBUG_EMAIL
+
+  set {
+    name = "env.AUTO_TRANSLATION_TRANSLATOR"
+    value = var.AUTO_TRANSLATION_TRANSLATOR
+  }
+
+
+  set {
+    name = "env.IFRC_TRANSLATION_URL"
+    value = var.IFRC_TRANSLATION_URL
+  }
+
+
+  set {
+    name = "env.IFRC_TRANSLATION_API_KEY"
+    value = var.IFRC_TRANSLATION_API_KEY
+  }
+
   }
 
   set {

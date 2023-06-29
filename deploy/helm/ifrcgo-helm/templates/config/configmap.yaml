@@ -19,3 +19,5 @@ data:
   API_FQDN: {{ .Values.env.API_FQDN | quote }}
   FRONTEND_URL: {{ .Values.env.FRONTEND_URL | quote }}
   DEBUG_EMAIL: {{ .Values.env.DEBUG_EMAIL | quote }}
+  IFRC_TRANSLATION_URL: {{ .Values.env.IFRC_TRANSLATION_URL | quote }}
+  AUTO_TRANSLATION_TRANSLATOR: {{ .Values.env.AUTO_TRANSLATION_TRANSLATOR | quote }}

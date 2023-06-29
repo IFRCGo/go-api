@@ -43,6 +43,9 @@ env:
   API_FQDN: ''
   FRONTEND_URL: ''
   DEBUG_EMAIL: ''
+  AUTO_TRANSLATION_TRANSLATOR: ''
+  IFRC_TRANSLATION_URL: ''
+  IFRC_TRANSLATION_API_KEY: ''
 
 api:
   domain: "go-staging.ifrc.org"
