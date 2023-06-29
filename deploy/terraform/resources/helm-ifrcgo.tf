@@ -234,6 +234,7 @@ resource "helm_release" "ifrcgo" {
   set {
     name = "env.DEBUG_EMAIL"
     value = var.DEBUG_EMAIL
+  }
 
   set {
     name = "env.AUTO_TRANSLATION_TRANSLATOR"
@@ -252,12 +253,11 @@ resource "helm_release" "ifrcgo" {
     value = var.IFRC_TRANSLATION_API_KEY
   }
 
-  }
-
   set {
     name  = "elasticsearch.disk.name"
     value = "${local.prefix}-disk"
   }
+
   set {
     name  = "elasticsearch.disk.uri"
     value = azurerm_managed_disk.ifrcgo.id
