@@ -7,7 +7,8 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
-from django.core.files.storage import FileSystemStorage, get_storage_class
+from django.core.files.storage import get_storage_class
+from django.core.files.base import File
 from django.conf import settings
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -45,9 +46,10 @@ DefaultMediaStorageClass = get_storage_class()
 
 
 def get_full_media_url(media_path):
-    if DefaultMediaStorageClass != FileSystemStorage:
-        return f"{settings.BASE_URL}{media_path}"
-    return media_path
+    if settings.AZURE_STORAGE_ACCOUNT:
+        return f"https://{settings.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/api/tinymce/{media_path}"
+    else:
+        return media_path
 
 
 def bad_request(message):
@@ -64,26 +66,30 @@ def unauthorized(message="You must be logged in"):
 
 @csrf_exempt
 def upload_image(request):
-    # import pdb; pdb.set_trace()
+#    import pdb; pdb.set_trace()
     if request.method == "POST":
         file_obj = request.FILES['file']
+        segments = request.environ['HTTP_REFERER'].split('/')
+        file_obj.name = f"{'_'.join(segments[5:8])}_{file_obj.name}"
         file_name_suffix = file_obj.name.split(".")[-1]
         if file_name_suffix not in ["jpg", "png", "gif", "jpeg", ]:
             return JsonResponse({"message": "Wrong file format"})
 
-        import pdb; pdb.set_trace()
-        path = os.path.join(
-            settings.MEDIA_ROOT,
-            'tinymce',
-        )
-        # If there is no such path, create
-        if not os.path.exists(path):
-            os.makedirs(path)
+#        import pdb; pdb.set_trace()
+        if settings.AZURE_STORAGE_ACCOUNT:
+            file_path = file_obj.name
+        else:
+            path = os.path.join(
+                settings.MEDIA_ROOT,
+                'tinymce',
+            )
+            # If there is no such path, create it
+            if not os.path.exists(path):
+                os.makedirs(path)
 
-        file_path = os.path.join(path, file_obj.name)
+            file_path = os.path.join(path, file_obj.name)
 
-#       file_url = f'{settings.MEDIA_URL}tinymce/{time.time_ns()}_{file_obj.name}'
-        file_url = f'{settings.MEDIA_URL}tinymce/{file_obj.name}'
+        file_url = get_full_media_url(file_path)
 
         if os.path.exists(file_path):
             return JsonResponse({
@@ -91,11 +97,18 @@ def upload_image(request):
                 'location': file_url
             })
 
-        storage = DefaultMediaStorageClass()
-        storage.save(file_path, file_obj)
-#        with open(file_path, 'wb+') as f:
-#            for chunk in file_obj.chunks():
-#                f.write(chunk)
+        storage = DefaultMediaStorageClass
+        filebytes = bytearray()
+        for chunk in file_obj.chunks():
+            filebytes.extend(chunk)
+        f = File(filebytes)
+        # import pdb; pdb.set_trace()
+        if settings.AZURE_STORAGE_ACCOUNT:
+            storage.save(name=file_path, content=file_obj)
+        else:
+            with open(file_path, 'wb+') as f:
+                for chunk in file_obj.chunks():
+                    f.write(chunk)
 
         return JsonResponse({
             'message': 'Image uploaded successfully',
