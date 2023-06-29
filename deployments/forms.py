@@ -307,13 +307,15 @@ class ProjectImportForm(forms.Form):
         file = self.cleaned_data['file']
         delimiter = self.cleaned_data['field_delimiter']
         quotechar = self.cleaned_data['string_delimiter']
-        project_import = ProjectImport.objects.create(
-            created_by=request.user,
-            file=file,
-        )
 
         try:
+            project_import = ProjectImport.objects.none()  # for later reference, if next command fails
+            # this should be the first to avoid file.closed state on Azure due to the following command:
             projects = self._handle_bulk_upload(request.user, file, delimiter, quotechar)
+            project_import = ProjectImport.objects.create(
+                created_by=request.user,
+                file=file,
+            )
             project_import.projects_created.add(*projects)
             project_import.message = f'Successfully added <b>{len(projects)}</b> project(s) using <b>{file}</b>.'
             project_import.status = ProjectImport.ProjImpStatus.SUCCESS
@@ -330,4 +332,5 @@ class ProjectImportForm(forms.Form):
                 )
             messages.add_message(request, messages.ERROR, mark_safe(project_import.message))
             project_import.status = ProjectImport.ProjImpStatus.FAILURE
-        project_import.save()
+        if project_import:
+            project_import.save()
