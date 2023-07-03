@@ -21,6 +21,8 @@ from .models import Pending, DomainWhitelist
 
 
 def is_valid_domain(email):
+    if email is None:
+        return False
     domain = email.lower().split('@')[1]
     is_allowed = (
         DomainWhitelist.objects
