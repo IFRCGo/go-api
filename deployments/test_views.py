@@ -550,14 +550,15 @@ class TranslationTest(APITestCase):
                     resp = self.client.post('/api/v2/project/', body, HTTP_ACCEPT_LANGUAGE=current_language)
 
                 # NOTE: non-safe methods are not allowd for non english language
-                if current_language == settings.LANGUAGE_CODE:
-                    self.assertEqual(resp.status_code, 201, resp.content)
-                else:
-                    self.assertEqual(resp.status_code, 405, resp.content)
+                self.assertEqual(resp.status_code, 201, resp.content)
 
                 project_id = resp.json().get('id')
                 if project_id is None:
                     continue
+
+                # non current language field should not be None
+                project = Project.objects.get(pk=project_id)
+                assert project.translation_module_original_language == current_language
 
                 # GET
                 for lang, _ in settings.LANGUAGES:
@@ -575,6 +576,15 @@ class TranslationTest(APITestCase):
                     assert resp_body['dtype_detail']['name'] == disaster_names[lang], \
                         f"Name ({lang}): <{resp_body['dtype_detail']['name']}> should be <{disaster_names[lang]}>"
 
+                # POST/PATCH with other language willn't work
+                for lang, _ in settings.LANGUAGES:
+                    if lang == current_language:
+                        continue
+                    resp = self.client.patch(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=lang)
+                    self.assertEqual(resp.status_code, 400, resp.content)
+                    resp = self.client.put(f'/api/v2/project/{project_id}/', body, HTTP_ACCEPT_LANGUAGE=lang)
+                    self.assertEqual(resp.status_code, 400, resp.content)
+
                 # Update (This doesn't reset other language)
                 body['name'] += ''
                 with self.capture_on_commit_callbacks(execute=True):
@@ -588,7 +598,7 @@ class TranslationTest(APITestCase):
                     if lang == current_language:
                         assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
                     else:
-                        assert value is not None, f"Name ({lang}): value shouldn't be None"
+                        assert value != '', f"Name ({lang}): value shouldn't be ''"
 
                 # Update (Reset other language) (Without onCommit Trigger by not using self.capture_on_commit_callbacks)
                 # This way the language field are reset but auto translation work is reverted back i.e reset is preserved
@@ -603,7 +613,7 @@ class TranslationTest(APITestCase):
                     if lang == current_language:
                         assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
                     else:
-                        assert value is None, f"Name ({lang}): <{value}> should be None"
+                        assert value == '', f"Name ({lang}): <{value}> should be ''"
 
                 # Again Update (With onCommit Trigger: Mock Translation)
                 body['name'] += ' Again Changed'
@@ -618,4 +628,4 @@ class TranslationTest(APITestCase):
                     if lang == current_language:
                         assert value == body['name'], f"Name ({lang}): <{value}> should be {body['name']}"
                     else:
-                        assert value is not None, f"Name ({lang}): <{value}> should not be None"
+                        assert value != '', f"Name ({lang}): <{value}> should not be ''"

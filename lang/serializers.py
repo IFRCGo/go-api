@@ -2,12 +2,14 @@ import logging
 from rest_framework import serializers
 from django.db import transaction
 from django.conf import settings
-from django.utils.translation import get_language as django_get_language
+from django.utils.translation import gettext, get_language as django_get_language
 from modeltranslation.utils import build_localized_fieldname
+from modeltranslation.translator import translator
 from modeltranslation.manager import (
     get_translatable_fields_for_model,
 )
 
+from main.translation import TRANSLATOR_SKIP_FIELD_NAME, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from api.utils import get_model_name
 
 from .tasks import translate_model_fields, translate_model_fields_in_bulk
@@ -53,6 +55,9 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     Not feasible:
     - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
     """
+
+    TRANSLATION_REGISTERED_MODELS = set(translator.get_registered_models(abstract=False))
+
     @classmethod
     def _get_included_excluded_fields(cls, model, selected_fields=None):
         requested_lang = django_get_language()
@@ -103,39 +108,30 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
                 if lang_field == current_lang_field:
                     continue
                 if type(validated_data) == dict:
-                    validated_data[lang_field] = None
+                    validated_data[lang_field] = ''
                 else:  # NOTE: Assuming it's model instance
-                    setattr(validated_data, lang_field, None)
+                    setattr(validated_data, lang_field, '')
                 cleared = True
         return cleared
 
     @classmethod
     def trigger_field_translation(cls, instance):
-        if not settings.TESTING:
-            # NOTE: Skip triggering translation
+        if getattr(instance, TRANSLATOR_SKIP_FIELD_NAME):
+            # Skip translation
             return
-            transaction.on_commit(
-                lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
-            )
-        else:
-            # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields(get_model_name(type(instance)), instance.pk)
-            )
+        transaction.on_commit(
+            lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
+        )
 
     @classmethod
     def trigger_field_translation_in_bulk(cls, model, instances):
-        pks = [instance.pk for instance in instances]
-        if not settings.TESTING:
-            # NOTE: Skip triggering translation
-            return
+        pks = [
+            instance.pk for instance in instances
+            if not getattr(instance, TRANSLATOR_SKIP_FIELD_NAME)
+        ]
+        if pks:
             transaction.on_commit(
                 lambda: translate_model_fields_in_bulk.delay(get_model_name(model), pks)
-            )
-        else:
-            # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields_in_bulk(get_model_name(model), pks)
             )
 
     @classmethod
@@ -160,6 +156,8 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         Overwrite Serializer get_fields_names to exclude non-active language fields
         """
         fields = super().get_field_names(declared_fields, info)
+        if not self.is_translate_model:
+            return fields
         (
             self.included_fields_lang,
             excluded_fields,
@@ -174,22 +172,49 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         Overwrite Serializer get_fields to include active language on translated fields
         """
         fields = super().get_fields(*args, **kwargs)
+        if not self.is_translate_model:
+            return fields
+
         for field, lang_field in self.included_fields_lang.items():
             fields[field] = fields.pop(lang_field)
             # Commented out, hopefully makes the fallback work
             # fields[field].source = lang_field
-        return fields
+
+        return {
+            **fields,
+            'translation_module_original_language': serializers.CharField(read_only=True),
+        }
+
+    @property
+    def is_translate_model(self):
+        return self.Meta.model in self.TRANSLATION_REGISTERED_MODELS
+
+    def run_validation(self, data):
+        if self.instance and self.is_translate_model:
+            entity_original_language = getattr(self.instance, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
+            if entity_original_language != django_get_language():
+                raise serializers.ValidationError({
+                    'non_field_errors': gettext(
+                        "Only original langauge is supported: %s"
+                        % (entity_original_language)
+                    )
+                })
+        return super().run_validation(data)
 
     def create(self, validated_data):
+        if self.is_translate_model:
+            validated_data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
         instance = super().create(validated_data)
-        self.trigger_field_translation(instance)
+        if self.is_translate_model:
+            self.trigger_field_translation(instance)
         return instance
 
     def update(self, instance, validated_data):
-        # NOTE: Skip reset+triggering translation (Keeping for test cases)
-        if settings.TESTING:
-            if self._get_language_clear_validated_data(instance, validated_data, self.included_fields_lang):
-                self.trigger_field_translation(instance)
+        if (
+            self.is_translate_model and
+            self._get_language_clear_validated_data(instance, validated_data, self.included_fields_lang)
+        ):
+            self.trigger_field_translation(instance)
         return super().update(instance, validated_data)
 
 

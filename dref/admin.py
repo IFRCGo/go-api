@@ -27,6 +27,9 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "status",
     )
     autocomplete_fields = (
+        "created_by",
+        "modified_by",
+        "field_report",
         "national_society",
         "disaster_type",
         "users",
@@ -45,7 +48,7 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
 
 
 @admin.register(DrefOperationalUpdate)
-class DrefOperationalUpdateAdmin(CompareVersionAdmin, admin.ModelAdmin):
+class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     list_display = ("title", "national_society", "disaster_type")
     autocomplete_fields = (
         "national_society",

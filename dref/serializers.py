@@ -286,6 +286,27 @@ class IdentifiedNeedSerializer(ModelSerializer):
         return None
 
 
+class MiniOperationalUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "operational_update_number",
+        ]
+
+
+class MiniDrefFinalReportSerializer(ModelSerializer):
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            "id",
+            "title",
+            "is_published",
+        ]
+
+
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     MAX_NUMBER_OF_IMAGES = 2
     ALLOWED_BUDGET_FILE_EXTENSIONS = ["pdf"]
@@ -503,7 +524,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return dref
 
 
-class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
+class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -869,7 +890,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
         return super().update(instance, validated_data)
 
 
-class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
+class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     MAX_NUMBER_OF_PHOTOS = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
