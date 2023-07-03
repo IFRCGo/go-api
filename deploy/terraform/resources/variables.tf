@@ -189,6 +189,21 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
+variable "SENTRY_DSN" {
+  type = string
+  default = ""
+}
+
+variable "SENTRY_SAMPLE_RATE" {
+  type = string
+  default = "0.2"
+}
+
+variable "DJANGO_READ_ONLY" {
+  type = string
+  default = "false"
+}
+
 variable "AUTO_TRANSLATION_TRANSLATOR" {
   type = string
   default = ""

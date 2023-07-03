@@ -237,6 +237,21 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
+    name = "env.SENTRY_DSN"
+    value = var.SENTRY_DSN
+  }
+
+  set {
+    name = "env.SENTRY_SAMPLE_RATE"
+    value = var.SENTRY_SAMPLE_RATE
+  }
+
+  set {
+    name = "env.DJANGO_READ_ONLY"
+    value = var.DJANGO_READ_ONLY
+  }
+
+  set {
     name = "env.AUTO_TRANSLATION_TRANSLATOR"
     value = var.AUTO_TRANSLATION_TRANSLATOR
   }

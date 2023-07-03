@@ -201,3 +201,18 @@ variable "AUTO_TRANSLATION_TRANSLATOR" {
   type = string
   default = ""
 }
+
+variable "DJANGO_READ_ONLY" {
+  type = string
+  default = "false"
+}
+
+variable "SENTRY_SAMPLE_RATE" {
+  type = string
+  default = "0.2"
+}
+
+variable "SENTRY_DSN" {
+  type = string
+  default = ""
+}
