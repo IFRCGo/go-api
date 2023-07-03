@@ -49,7 +49,8 @@ def get_full_media_url(media_path):
     if settings.AZURE_STORAGE_ACCOUNT:
         return f"https://{settings.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/api/tinymce/{media_path}"
     else:
-        return media_path
+        segments = media_path.split('/')
+        return '/' + '/'.join(segments[4:])  # so we exclude ['', 'home', 'foobar', 'go-api']
 
 
 def bad_request(message):
@@ -66,16 +67,14 @@ def unauthorized(message="You must be logged in"):
 
 @csrf_exempt
 def upload_image(request):
-#    import pdb; pdb.set_trace()
     if request.method == "POST":
         file_obj = request.FILES['file']
         segments = request.environ['HTTP_REFERER'].split('/')
-        file_obj.name = f"{'_'.join(segments[5:8])}_{file_obj.name}"
+        file_obj.name = f"{'_'.join(segments[5:8])}_{time.time_ns()}_{file_obj.name}"
         file_name_suffix = file_obj.name.split(".")[-1]
         if file_name_suffix not in ["jpg", "png", "gif", "jpeg", ]:
             return JsonResponse({"message": "Wrong file format"})
 
-#        import pdb; pdb.set_trace()
         if settings.AZURE_STORAGE_ACCOUNT:
             file_path = file_obj.name
         else:
@@ -98,13 +97,16 @@ def upload_image(request):
             })
 
         storage = DefaultMediaStorageClass
-        filebytes = bytearray()
-        for chunk in file_obj.chunks():
-            filebytes.extend(chunk)
-        f = File(filebytes)
-        # import pdb; pdb.set_trace()
+
+#        filebytes = bytearray()
+#        for chunk in file_obj.chunks():
+#            filebytes.extend(chunk)
+#        f = File(filebytes)
+
         if settings.AZURE_STORAGE_ACCOUNT:
-            storage.save(name=file_path, content=file_obj)
+            # import pdb; pdb.set_trace()
+            myAzureBlue = storage(file_obj)
+            myAzureBlue._save(name=file_url, content=file_obj)
         else:
             with open(file_path, 'wb+') as f:
                 for chunk in file_obj.chunks():
