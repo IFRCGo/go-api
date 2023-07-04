@@ -11,7 +11,8 @@ from per.models import (
     FormAnswer,
     FormQuestion,
     Form,
-    FormData
+    FormData,
+    FormPrioritization,
 )
 
 
@@ -87,3 +88,10 @@ class FormDataFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = FormData
+
+
+class FormPrioritizationFactory(factory.django.DjangoModelFactory):
+    overview = factory.SubFactory(OverviewFactory)
+
+    class Meta:
+        model = FormPrioritization
