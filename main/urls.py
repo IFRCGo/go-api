@@ -73,8 +73,6 @@ from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
 # DRF routes
 from rest_framework import routers
-from rest_framework.documentation import include_docs_urls
-from rest_framework import permissions
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from api import drf_views as api_views
 from flash_update import views as flash_views
@@ -240,11 +238,9 @@ urlpatterns = [
     url(r"^exception-error-for-devs", DummyExceptionError.as_view()),
     path("i18n/", include("django.conf.urls.i18n")),
     # Docs
-    url(r"^docs/", include_docs_urls(title="IFRC GO API", public=False)),  # TODO: Remove this?
+    path("docs/", SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path("api-docs/", SpectacularAPIView.as_view(), name='schema'),
     path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path("api-docs/redoc/", SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
 ]
 
 if settings.DEBUG:
@@ -255,9 +251,7 @@ if settings.DEBUG:
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
-        ]
-        + urlpatterns
-        + static.static(
+        ] + urlpatterns + static.static(
             settings.MEDIA_URL,
             view=xframe_options_exempt(serve),
             document_root=settings.MEDIA_ROOT,
