@@ -140,6 +140,7 @@ TESTING = any([
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
     'modeltranslation',  # https://django-modeltranslation.readthedocs.io/en/latest/installation.html#installed-apps
+    'drf_spectacular',
 
     # Django Apps
     'django.contrib.admin',
@@ -207,7 +208,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_csv.renderers.PaginatedCSVRenderer',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 GRAPHENE = {
@@ -557,6 +558,13 @@ CACHES = {
     }
 }
 CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'IFRC-GO API',
+    'DESCRIPTION': 'IFRC-GO API Documenation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

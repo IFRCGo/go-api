@@ -142,14 +142,14 @@ class NSPhaseSerializer(serializers.ModelSerializer):
         fields = ('id', 'country', 'phase', 'phase_display', 'updated_at')
 
 
-class MiniUserSerializer(serializers.ModelSerializer):
+class PerMiniUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name', 'email')
 
 
 class WorkPlanSerializer(serializers.ModelSerializer):
-    user = MiniUserSerializer()
+    user = PerMiniUserSerializer()
     prioritization_display = serializers.CharField(source='get_prioritization_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
@@ -165,7 +165,7 @@ class AssessmentTypeSerializer(serializers.ModelSerializer):
 
 
 class OverviewSerializer(serializers.ModelSerializer):
-    user = MiniUserSerializer()
+    user = PerMiniUserSerializer()
     country = RegoCountrySerializer()
     type_of_assessment = AssessmentTypeSerializer()
     included_forms = serializers.CharField(source='get_included_forms', read_only=True)
