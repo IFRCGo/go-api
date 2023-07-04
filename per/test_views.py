@@ -10,6 +10,8 @@ from per.factories import (
     OverviewFactory,
     FormAreaFactory,
     FormComponentFactory,
+    FormPrioritizationFactory,
+    PerWorkPlanFactory
 )
 
 
@@ -88,7 +90,9 @@ class PerTestCase(APITestCase):
         overview = OverviewFactory.create()
         area = FormAreaFactory.create()
         component = FormComponentFactory.create()
-        old_count = PerWorkPlan.objects.count()
+        workplan = PerWorkPlanFactory.create(
+            overview=overview,
+        )
         data = {
             "overview": overview.id,
             "workplan_component": [
@@ -110,16 +114,25 @@ class PerTestCase(APITestCase):
                 },
             ],
         }
+        url = f"/api/v2/per-work-plan/{workplan.id}/"
+        self.authenticate(self.ifrc_user)
+        response = self.client.patch(url, data=data, format="json")
+        self.assert_200(response)
+
+        # try to post to api
+
         url = "/api/v2/per-work-plan/"
         self.authenticate(self.ifrc_user)
         response = self.client.post(url, data=data, format="json")
-        self.assertEqual(PerWorkPlan.objects.count(), old_count + 1)
-        self.assert_201(response)
+        self.assert_400(response)
 
     def test_form_prioritization_formdata(self):
         overview = OverviewFactory.create()
         component = FormComponentFactory.create()
         component2 = FormComponentFactory.create()
+        proritization = FormPrioritizationFactory.create(
+            overview=overview,
+        )
         data = {
             "overview": overview.id,
             "component_responses": [
@@ -135,11 +148,16 @@ class PerTestCase(APITestCase):
                 },
             ],
         }
+        url = f"/api/v2/per-prioritization/{proritization.id}/"
+        self.authenticate(self.ifrc_user)
+        response = self.client.patch(url, data, format="json")
+        self.assert_200(response)
+
+        # try to post
         url = "/api/v2/per-prioritization/"
         self.authenticate(self.ifrc_user)
-        response = self.client.post(url, data, format="json")
-        print(response.content)
-        self.assert_201(response)
+        response = self.client.post(url, data=data, format="json")
+        self.assert_400(response)
 
     def test_overview_date_of_assessment(self):
         country = CountryFactory.create()
