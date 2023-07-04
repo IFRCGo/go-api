@@ -75,8 +75,7 @@ from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 from rest_framework import routers
 from rest_framework.documentation import include_docs_urls
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from api import drf_views as api_views
 from flash_update import views as flash_views
 from per import drf_views as per_views
@@ -171,17 +170,6 @@ router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="d
 
 router.register(r"review-country", api_views.CountryOfFieldReportToReviewViewset, basename="review_country")
 
-api_schema_view = get_schema_view(
-    openapi.Info(
-        title="IFRC-GO API",
-        default_version='v1',
-        description="IFRC-GO API Openapi schema",
-        contact=openapi.Contact(email="im@ifrc.org"),  # TODO: Update this
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
-
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
 
@@ -244,9 +232,6 @@ urlpatterns = [
     url(r"^api/v2/exportperresults/", per_views.ExportAssessmentToCSVViewset.as_view()),
     url(r"^api/v2/local-unit/(?P<pk>\d+)", LocalUnitDetailAPIView.as_view()),
     url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
-    url(r"^docs/", include_docs_urls(title="IFRC GO API", public=False)),
-    url(r'^api-docs(?P<format>\.json|\.yaml)$',
-            api_schema_view.without_ui(cache_timeout=settings.OPEN_API_DOCS_TIMEOUT), name='api-schema'),
     url(r"^tinymce/", include("tinymce.urls")),
     url(r"^$", RedirectView.as_view(url="/admin")),
     # url(r'^', admin.site.urls),
@@ -254,6 +239,12 @@ urlpatterns = [
     url(r"^server-error-for-devs", DummyHttpStatusError.as_view()),
     url(r"^exception-error-for-devs", DummyExceptionError.as_view()),
     path("i18n/", include("django.conf.urls.i18n")),
+    # Docs
+    url(r"^docs/", include_docs_urls(title="IFRC GO API", public=False)),  # TODO: Remove this?
+    path("api-docs/", SpectacularAPIView.as_view(), name='schema'),
+    path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path("api-docs/redoc/", SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
 ]
 
 if settings.DEBUG:
