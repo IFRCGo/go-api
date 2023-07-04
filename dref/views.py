@@ -209,14 +209,16 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
-        files = dict((request.data).lists())["file"]
+        files = [
+            files[0]
+            for files in dict((request.data).lists()).values()
+        ]
         data = [{"file": file} for file in files]
         file_serializer = DrefFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
             file_serializer.save()
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):

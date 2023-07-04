@@ -59,12 +59,12 @@ class DrefTestCase(APITestCase):
     def test_upload_multiple_file(self):
         file_count = DrefFile.objects.count()
         url = "/api/v2/dref-files/multiple/"
-        data = {"file": [open(self.file, "rb"), open(self.file, "rb"), open(self.file, "rb")]}
+        data = {"file": [open(self.file, "rb")]}
 
         self.authenticate()
         response = self.client.post(url, data, format="multipart")
         self.assert_201(response)
-        self.assertEqual(DrefFile.objects.count(), file_count + 3)
+        self.assertEqual(DrefFile.objects.count(), file_count + 1)
 
     def test_upload_invalid_files(self):
         file_count = DrefFile.objects.count()

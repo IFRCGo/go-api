@@ -5,7 +5,7 @@ from .models import LocalUnit, LocalUnitType
 from api.models import Country
 
 
-class CountrySerializer(ModelSerializer):
+class LocalUnitCountrySerializer(ModelSerializer):
 
     class Meta:
         model = Country
@@ -23,7 +23,7 @@ class LocalUnitTypeSerializer(ModelSerializer):
 
 class LocalUnitSerializer(ModelSerializer):
     location = SerializerMethodField()
-    country = CountrySerializer()
+    country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
     class Meta:
         model = LocalUnit
