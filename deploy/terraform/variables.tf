@@ -187,12 +187,17 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
-variable "IFRC_TRANSLATION_API_KEY" {
+variable "IFRC_TRANSLATION_DOMAIN" {
   type = string
   default = ""
 }
 
-variable "IFRC_TRANSLATION_URL" {
+variable "IFRC_TRANSLATION_GET_API_KEY" {
+  type = string
+  default = ""
+}
+
+variable "IFRC_TRANSLATION_HEADER_API_KEY" {
   type = string
   default = ""
 }
