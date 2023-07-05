@@ -60,6 +60,8 @@ from registrations.views import (
     VerifyEmail,
     ValidateUser,
 )
+from registrations.views import VerifyEmail, ValidateUser
+from registrations.drf_views import RegistrationView
 from per.views import (
     # CreatePerForm,
     UpdatePerForm,
@@ -211,7 +213,7 @@ urlpatterns = [
     url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
-    url(r"^register", NewRegistration.as_view()),
+    url(r"^register", RegistrationView.as_view()),
     # url(r'^createperform', CreatePerForm.as_view()),
     url(r"^updateperform", UpdatePerForm.as_view()),
     url(r"^updatemultipleperforms", UpdatePerForms.as_view()),
