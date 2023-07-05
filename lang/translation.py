@@ -65,21 +65,24 @@ class IfrcTranslator(BaseTranslator):
     """
     IFRC Translator helper
     """
+    domain: str
     url: str
     params: dict
 
     def __init__(self):
-        if settings.TESTING:
-            return
-
         if (
-            not settings.IFRC_TRANSLATION_URL or
-            not settings.IFRC_TRANSLATION_API_KEY
+            not settings.IFRC_TRANSLATION_DOMAIN or
+            not settings.IFRC_TRANSLATION_GET_API_KEY or
+            not settings.IFRC_TRANSLATION_HEADER_API_KEY
         ):
             raise Exception('Translation configuration missing')
-        self.url = settings.IFRC_TRANSLATION_URL
+        self.domain = settings.IFRC_TRANSLATION_DOMAIN.strip('/')
+        self.url = f'{self.domain}/TranslationV2_API/api/Home/Translate'
+        self.headers = {
+            'X-API-KEY': settings.IFRC_TRANSLATION_HEADER_API_KEY,
+        }
         self.params = dict(
-            apiKey=settings.IFRC_TRANSLATION_API_KEY
+            apiKey=settings.IFRC_TRANSLATION_GET_API_KEY
         )
 
     def translate_text(self, text, dest_language, source_language=None):
@@ -93,10 +96,11 @@ class IfrcTranslator(BaseTranslator):
         }
         response = requests.post(
             self.url,
+            headers=self.headers,
             params=self.params,
             json=payload,
         )
-        return response.json()[0]["Translations"][0]["Text"]
+        return response.json()[0]["translations"][0]["text"]
 
 
 def get_translator_class():

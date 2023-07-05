@@ -1,7 +1,13 @@
+import unittest
+from unittest import mock
+
+from django.test import override_settings
 from django.conf import settings
 from django.core import management
 from django.contrib.auth.models import User, Permission
 from main.test_case import APITestCase
+
+from lang.translation import IfrcTranslator
 
 from .serializers import LanguageBulkActionSerializer
 from .models import String
@@ -153,3 +159,44 @@ class LangTest(APITestCase):
         self.authenticate(user)
         resp = self.client.post(f'/api/v2/language/{language}/bulk-action/', data, format='json')
         self.assertEqual(resp.status_code, 200)
+
+
+class TranslatorMockTest(unittest.TestCase):
+
+    @mock.patch('lang.translation.requests')
+    def test_ifrc_translator(self, requests_mock):
+        # Simple mock test where we define what the expected response is from provider
+        requests_mock.post.return_value.json.return_value = [{
+            "detectedLanguage": {"language": "en", "score": 1},
+            "translations": [{"text": "Hola", "to": "es"}]
+        }]
+
+        # Without valid settings provided
+        for settings_params in [
+            dict(),
+            dict(
+                IFRC_TRANSLATION_GET_API_KEY='dummy-api-param-key',
+                IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key',
+            ),
+            dict(IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key'),
+        ]:
+            with override_settings(
+                AUTO_TRANSLATION_TRANSLATOR='lang.translation.IfrcTranslator',
+                **settings_params,
+            ):
+                with self.assertRaises(Exception):
+                    IfrcTranslator()
+
+        # With valid settings provided
+        with override_settings(
+            AUTO_TRANSLATION_TRANSLATOR='lang.translation.IfrcTranslator',
+            IFRC_TRANSLATION_DOMAIN='http://example.org',
+            IFRC_TRANSLATION_GET_API_KEY='dummy-api-param-key',
+            IFRC_TRANSLATION_HEADER_API_KEY='dummy-api-header-key',
+        ):
+            # with settings.TESTING True
+            ifrc_translator = IfrcTranslator()
+            assert ifrc_translator.translate_text('hello', 'es') == 'hello translated to "es" using source language "None"'
+            # with settings.TESTING False
+            with override_settings(TESTING=False):
+                assert ifrc_translator.translate_text('hello', 'es') == "Hola"
