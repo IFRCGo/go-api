@@ -6,10 +6,14 @@
 # 6. Use the admin token and new user username to query views.ValidateUser
 # 7. Confirm that a user without an official email is activated.
 
+from unittest import mock
+
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
+
 from .models import Pending
-from api.models import Country
+from api.models import Country, Profile
+from .utils import send_notification_create
 
 
 class TwoGatekeepersTest(APITestCase):
@@ -99,13 +103,15 @@ class TwoGatekeepersTest(APITestCase):
             'username': newusr,
             'password': '87654321',
             'country': country.pk,
-            'organizationType': 'OTHR',
+            'organization_type': 'OTHR',
             'organization': 'Zoo',
-            'firstname': 'Peter',
-            'lastname': 'Falk',
+            'first_name': 'Peter',
+            'last_name': 'Falk',
+            'justification': 'aaaa',
+            'city': 'kathmandu'
         }
         headers = {'CONTENT_TYPE': 'application/json'}
-        resp = self.client.post('/register', body, format='json', headers=headers)
+        resp = self.client.post('/register', data=body, format='json')
         # json.loads(resp.content): 'status': 'ok'
         self.assertEqual(resp.status_code, 200)
 
@@ -124,3 +130,36 @@ class TwoGatekeepersTest(APITestCase):
         # 5b. Confirming that a user with an official email is activated
         boarded_user = User.objects.get(username=newusr)
         self.assertTrue(boarded_user.is_active)
+
+    @mock.patch('registrations.serializers.send_notification_create')
+    def test_user_registration(self, send_notification_create):
+        country = Country.objects.get(name='country')
+        User.objects.create(email='testuser@gmail.com')
+        old_user_count = User.objects.filter(is_active=False).count()
+        newusr = 'testuser@gmail.com'
+        data = {
+            'email': newusr,
+            'username': "tetsts",
+            'password': '87654321',
+            'country': country.pk,
+            'organization_type': 'OTHR',
+            'organization': 'Zoo',
+            'first_name': 'Peter',
+            'last_name': 'Falk',
+            'justification': 'aaaa',
+            'city': 'kathmandu'
+        }
+        resp = self.client.post('/register', data, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+        # update the email now should create user
+        data['email'] = "test@gmail.com"
+        resp = self.client.post('/register', data, format='json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(User.objects.filter(is_active=False).count(), old_user_count + 1)
+
+        # check profile is created for the user
+        self.assertEqual(Profile.objects.filter(user__email=data['email']).exists(), True)
+
+        # check if the notification is called
+        self.assertTrue(send_notification_create.is_called())
