@@ -7,6 +7,7 @@ from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
 from django.db import models
 
+from drf_spectacular.utils import extend_schema_view
 from rest_framework import (
     views,
     viewsets,
@@ -244,6 +245,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         return filter_dref_queryset_by_user_access(user, queryset)
 
 
+@extend_schema_view(request=None, responses=MiniDrefSerializer)
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated]
