@@ -1,5 +1,6 @@
 import os
 import datetime
+from typing import List
 
 from django.utils.translation import gettext
 from django.db import models, transaction
@@ -90,10 +91,10 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "OPS_UPDATE"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         op_number = obj.operational_update_number
         return f"Operational update #{op_number}"
 
@@ -125,10 +126,10 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "FINAL_REPORT"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "Final report"
 
 
@@ -178,35 +179,35 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
-    def get_operational_update_details(self, obj):
+    def get_operational_update_details(self, obj) -> MiniOperationalUpdateActiveSerializer:
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
-    def get_final_report_details(self, obj):
+    def get_final_report_details(self, obj) -> MiniDrefFinalReportActiveSerializer:
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
         return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
 
-    def get_has_ops_update(self, obj):
+    def get_has_ops_update(self, obj) -> bool:
         op_count_count = obj.drefoperationalupdate_set.count()
         if op_count_count > 0:
             return True
         return False
 
-    def get_has_final_report(self, obj):
+    def get_has_final_report(self, obj) -> bool:
         if hasattr(obj, 'dreffinalreport'):
             return True
         return False
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "DREF"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "DREF application"
 
-    def get_unpublished_op_update_count(self, obj):
+    def get_unpublished_op_update_count(self, obj) -> int:
         return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
 
-    def get_unpublished_final_report_count(self, obj):
+    def get_unpublished_final_report_count(self, obj) -> int:
         return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
 
 
@@ -234,7 +235,7 @@ class PlannedInterventionSerializer(ModelSerializer):
         intervention = super().update(instance, validated_data)
         return intervention
 
-    def get_image_url(self, plannedintervention):
+    def get_image_url(self, plannedintervention) -> str:
         title = plannedintervention.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -256,7 +257,7 @@ class NationalSocietyActionSerializer(ModelSerializer):
             "title_display",
         )
 
-    def get_image_url(self, nationalsocietyactions):
+    def get_image_url(self, nationalsocietyactions) -> str:
         title = nationalsocietyactions.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -278,7 +279,7 @@ class IdentifiedNeedSerializer(ModelSerializer):
             "title_display",
         )
 
-    def get_image_url(self, identifiedneed):
+    def get_image_url(self, identifiedneed) -> str:
         title = identifiedneed.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -346,7 +347,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
         exclude = ("cover_image", "event_map", "images")
 
-    def get_dref_access_user_list(self, obj):
+    def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
         for dref in dref_users_list:
             if obj.id == dref["id"]:
@@ -1180,10 +1181,10 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "status_display",
         )
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "FINAL_REPORT"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "Final report"
 
 

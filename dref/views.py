@@ -5,7 +5,7 @@ from django.utils.translation import gettext
 import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
-
+from drf_spectacular.utils import extend_schema_view
 from rest_framework import (
     views,
     viewsets,
@@ -257,6 +257,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 return DrefFinalReport.get_for(user).filter(is_published=True)
 
 
+@extend_schema_view(request=None, responses=MiniDrefSerializer)
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated]
