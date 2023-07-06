@@ -20,4 +20,3 @@ kubectl get secret --namespace loki-stack loki-stack-grafana -o jsonpath="{.data
 ```
 
 Then login with username `admin` and password as the auth token obtained above.
-
