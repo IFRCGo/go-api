@@ -21,6 +21,15 @@ class UpdateCacheForUserMiddleware(UpdateCacheMiddleware):
 
 class FetchFromCacheForUserMiddleware(FetchFromCacheMiddleware):
     def process_request(self, request):
+        # FIXME: TinyMCE Image Upload CSRF check skip:
+        if request.method == 'POST' \
+        and request.path == '/upload_image' \
+        and request._cors_enabled == True \
+        and hasattr(request, 'META') \
+        and 'HTTP_HOST' in request.META \
+        and request.META['HTTP_HOST'] in \
+        ('localhost:8000', 'goadmin-stage.ifrc.org', 'goadmin.ifrc.org'):
+            request._dont_enforce_csrf_checks = True
         if key_prefix := get_cache_key_prefix(request):
             self.key_prefix = key_prefix
             return super().process_request(request)

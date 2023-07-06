@@ -18,12 +18,12 @@ logger.setLevel('DEBUG')
 logger.addHandler(screen_handler)
 
 if (
-    settings.AZURE_STORAGE_ACCOUNT is not None and
-    settings.AZURE_STORAGE_KEY is not None
+    settings.AZURE_ACCOUNT_NAME is not None and
+    settings.AZURE_ACCOUNT_KEY is not None
 ):
     handler = storage(
-        account_name=settings.AZURE_STORAGE_ACCOUNT,
-        account_key=settings.AZURE_STORAGE_KEY,
+        account_name=settings.AZURE_ACCOUNT_NAME,
+        account_key=settings.AZURE_ACCOUNT_KEY,
         filename='go.log',
         when='M',
         interval=90,

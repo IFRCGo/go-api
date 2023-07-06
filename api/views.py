@@ -8,7 +8,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.files.storage import get_storage_class
-from django.core.files.base import File
 from django.conf import settings
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -46,8 +45,8 @@ DefaultMediaStorageClass = get_storage_class()
 
 
 def get_full_media_url(media_path):
-    if settings.AZURE_STORAGE_ACCOUNT:
-        return f"https://{settings.AZURE_STORAGE_ACCOUNT}.blob.core.windows.net/api/tinymce/{media_path}"
+    if settings.AZURE_ACCOUNT_NAME:
+        return f"tinymce/{media_path}"
     else:
         segments = media_path.split('/')
         return '/' + '/'.join(segments[4:])  # so we exclude ['', 'home', 'foobar', 'go-api']
@@ -67,15 +66,22 @@ def unauthorized(message="You must be logged in"):
 
 @csrf_exempt
 def upload_image(request):
+    # TODO: check is_user_ifrc
     if request.method == "POST":
         file_obj = request.FILES['file']
-        segments = request.environ['HTTP_REFERER'].split('/')
-        file_obj.name = f"{'_'.join(segments[5:8])}_{time.time_ns()}_{file_obj.name}"
         file_name_suffix = file_obj.name.split(".")[-1]
         if file_name_suffix not in ["jpg", "png", "gif", "jpeg", ]:
             return JsonResponse({"message": "Wrong file format"})
+        if 'HTTP_REFERER' in request.environ:
+            segments = request.environ['HTTP_REFERER'].split('/')
+        if len(segments) > 8:
+            # like:            api_event_6338_1699965380777354422.png
+            file_obj.name = f"{'_'.join(segments[5:8])}_{time.time_ns()}.{file_name_suffix}"
+        else:
+            # like:            1699965380777354422.png
+            file_obj.name = f"{time.time_ns()}.{file_name_suffix}"
 
-        if settings.AZURE_STORAGE_ACCOUNT:
+        if settings.AZURE_ACCOUNT_NAME:
             file_path = file_obj.name
         else:
             path = os.path.join(
@@ -96,21 +102,13 @@ def upload_image(request):
                 'location': file_url
             })
 
-        storage = DefaultMediaStorageClass
+        storage = DefaultMediaStorageClass()
 
-#        filebytes = bytearray()
-#        for chunk in file_obj.chunks():
-#            filebytes.extend(chunk)
-#        f = File(filebytes)
-
-        if settings.AZURE_STORAGE_ACCOUNT:
-            # import pdb; pdb.set_trace()
-            myAzureBlue = storage(file_obj)
-            myAzureBlue._save(name=file_url, content=file_obj)
+        if settings.AZURE_ACCOUNT_NAME:
+            storage.save(name=file_url, content=file_obj)
+            file_url = f"https://{storage.account_name}.blob.core.windows.net/api/{file_url}"
         else:
-            with open(file_path, 'wb+') as f:
-                for chunk in file_obj.chunks():
-                    f.write(chunk)
+            storage.save(name=file_path, content=file_obj)
 
         return JsonResponse({
             'message': 'Image uploaded successfully',
