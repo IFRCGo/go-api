@@ -28,6 +28,7 @@ from dref.models import (
 
 from .tasks import send_dref_email
 from dref.utils import get_dref_users
+from deployments.serializers import CharKeyValueSerializer
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -1163,3 +1164,28 @@ class DrefShareUserSerializer(serializers.ModelSerializer):
             'users',
             'users_details'
         )
+
+
+class IntegerKeyValueSerializer(serializers.Serializer):
+    key = serializers.IntegerField()
+    value = serializers.CharField()
+
+    @staticmethod
+    def choices_to_data(choices):
+        return [
+            {
+                'key': key,
+                'value': value,
+            }
+            for key, value in choices
+        ]
+
+
+class DrefOptionsSerializer(serializers.Serializer):
+    status = IntegerKeyValueSerializer(read_only=True, many=True)
+    type_of_onset = IntegerKeyValueSerializer(read_only=True, many=True)
+    disaster_category = IntegerKeyValueSerializer(read_only=True, many=True)
+    planned_interventions = CharKeyValueSerializer(read_only=True, many=True)
+    needs_identified = CharKeyValueSerializer(read_only=True, many=True)
+    national_society_actions = CharKeyValueSerializer(read_only=True, many=True)
+    type_of_dref = IntegerKeyValueSerializer(read_only=True, many=True)
