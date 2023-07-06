@@ -30,7 +30,7 @@ class ChangePasswordView(views.APIView):
 
 class RegistrationView(views.APIView):
 
-    @extend_schema(request=None, responses=RegistrationSerializer)
+    @extend_schema(request=RegistrationSerializer, responses=None)
     def post(self, request, version=None):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
