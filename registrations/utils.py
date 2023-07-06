@@ -8,46 +8,8 @@ from .models import DomainWhitelist
 from notifications.notification import send_notification
 
 
-def create_inactive_user(
-    username,
-    first_name,
-    last_name,
-    email,
-    password
-):
-    user = User.objects.create_user(
-        username=username,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        password=password,
-        is_active=False
-    )
-    return user
-
-
-def set_user_profile(
-    user,
-    country,
-    organization_type,
-    organization,
-    city,
-    department,
-    position,
-    phone_number
-):
-    user.profile.country = Country.objects.get(pk=country)
-    user.profile.org_type = organization_type
-    user.profile.org = organization
-    user.profile.city = city
-    user.profile.department = department
-    user.profile.position = position
-    user.profile.phone_number = phone_number
-    user.save()
-    return user
-
-
 def is_valid_domain(email):
+    # TODO: Rename function name
     domain = email.lower().split('@')[1]
     is_allowed = (
         DomainWhitelist.objects.filter(
