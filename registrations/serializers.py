@@ -10,11 +10,10 @@ from rest_framework import serializers
 
 from .models import DomainWhitelist, Pending
 from .utils import (
-    create_inactive_user,
-    set_user_profile,
     is_valid_domain,
     send_notification_create
 )
+from api.models import Country
 
 
 class DomainWhitelistSerializer(serializers.ModelSerializer):
@@ -57,42 +56,25 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class RegistrationSerializer(serializers.Serializer):
     # required fields
-    email = serializers.CharField()
-    password = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    country = serializers.IntegerField()
-    organization_type = serializers.CharField()
-    organization = serializers.CharField()
-    justification = serializers.CharField()
-    city = serializers.CharField()
+    email = serializers.EmailField(max_length=255)
+    password = serializers.CharField(max_length=255)
+    first_name = serializers.CharField(max_length=255)
+    last_name = serializers.CharField(max_length=255)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
+    organization_type = serializers.CharField(max_length=255)
+    organization = serializers.CharField(max_length=255)
+    justification = serializers.CharField(max_length=255)
+    city = serializers.CharField(max_length=255)
 
     # optional fields
-    department = serializers.CharField(required=False)
-    position = serializers.CharField(required=False)
-    phone_number = serializers.CharField(required=False)
+    department = serializers.CharField(required=False, max_length=255)
+    position = serializers.CharField(required=False, max_length=255)
+    phone_number = serializers.CharField(required=False, max_length=255)
 
     def validate_email(self, email) -> str:
-        if User.objects.filter(email__iexact=email).exists():
+        if User.objects.filter(username__iexact=email).exists():
             raise serializers.ValidationError('A user with that email address already exists.')
         return email
-
-
-    def validate(self, attrs):
-        username = attrs['email']
-        if User.objects.filter(username__iexact=username).exists():
-            raise serializers.ValidationError(
-                {
-                    'username' : 'That username is taken, please choose a different one.'
-                }
-            )
-        if ' ' in username:
-            raise serializers.ValidationError(
-                {
-                    'username' : 'Username can not contain spaces, please choose a different one.'
-                }
-            )
-        return attrs
 
     def save(self):
         # using email as username for user registration
@@ -115,26 +97,30 @@ class RegistrationSerializer(serializers.Serializer):
 
         # Create the User object
         try:
-            user = create_inactive_user(username, first_name, last_name, email, password)
+            user = User.objects.create_user(
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=password,
+                is_active=False
+            )
         except Exception:
             raise serializers.ValidationError('Could not create user.')
 
         try:
-            set_user_profile(
-                user,
-                country,
-                organization_type,
-                organization,
-                city,
-                department,
-                position,
-                phone_number
-            )
+            user.profile.country = country
+            user.profile.org_type = organization_type
+            user.profile.org = organization
+            user.profile.city = city
+            user.profile.department = department
+            user.profile.position = position
+            user.profile.phone_number = phone_number
+            user.profile.save()
         except Exception:
-            User.objects.filter(username=username).delete()
-            return serializers.ValidationError('Could not create user profile.')
+            raise serializers.ValidationError('Could not create user profile.')
 
-        pending = Pending.objects.create(
+        pending = Pending(
             user=user,
             justification=justification,
             token=get_random_string(length=32)
