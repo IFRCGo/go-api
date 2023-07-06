@@ -519,7 +519,7 @@ class ListEventSerializer(ModelSerializer):
             'emergency_response_contact_email', 'active_deployments',
         )
 
-    def get_active_deployments(self, event):
+    def get_active_deployments(self, event) -> int:
         now = timezone.now()
         return Personnel.objects.filter(
             type=Personnel.TypeChoices.RR,
@@ -707,10 +707,10 @@ class DetailEventSerializer(ModelSerializer):
         )
         lookup_field = 'slug'
 
-    def get_response_activity_count(self, event):
+    def get_response_activity_count(self, event) -> int:
         return EmergencyProject.objects.filter(event=event).count()
 
-    def get_active_deployments(self, event):
+    def get_active_deployments(self, event) -> int:
         now = timezone.now()
         return Personnel.objects.filter(
             type=Personnel.TypeChoices.RR,
@@ -719,6 +719,7 @@ class DetailEventSerializer(ModelSerializer):
             deployment__event_deployed_to=event,
             is_active=True
         ).count()
+
 
 class SituationReportTypeSerializer(ModelSerializer):
     class Meta:
@@ -1098,8 +1099,9 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(DetailFieldReportSerializer, self).__init__(*args, **kwargs)
         for i, field in enumerate([
-            'num_affected',             'gov_num_affected',             'other_num_affected',
-            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected']):
+            'num_affected', 'gov_num_affected', 'other_num_affected',
+            'num_potentially_affected', 'gov_num_potentially_affected', 'other_num_potentially_affected'
+        ]):
             # We allow only 1 of these _affected values ^, pointed by RecentAffected. The other 5 gets 0 on client side.
             # About "recent_affected - 1" as index see (¤) in other code parts:
             if self.instance.recent_affected - 1 != i:
