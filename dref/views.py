@@ -36,7 +36,10 @@ from dref.serializers import (
     MiniDrefSerializer,
     AddDrefUserSerializer,
     DrefShareUserSerializer,
+    DrefOptionsSerializer,
+    IntegerKeyValueSerializer
 )
+from deployments.serializers import CharKeyValueSerializer
 from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter,
@@ -188,21 +191,21 @@ class DrefOptionsView(views.APIView):
 
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=None, responses=DrefOptionsSerializer)
     def get(self, request, version=None):
-        options = {
-            "status": [{"key": status.value, "value": status.label} for status in Dref.Status],
-            "type_of_onset": [{"key": onset.value, "value": onset.label} for onset in Dref.OnsetType],
-            "disaster_category": [{"key": disaster.value, "value": disaster.label} for disaster in Dref.DisasterCategory],
-            "planned_interventions": [
-                {"key": intervention[0], "value": intervention[1]} for intervention in PlannedIntervention.Title.choices
-            ],
-            "needs_identified": [{"key": need[0], "value": need[1]} for need in IdentifiedNeed.Title.choices],
-            "national_society_actions": [
-                {"key": action[0], "value": action[1]} for action in NationalSocietyAction.Title.choices
-            ],
-            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType],
-        }
-        return response.Response(options)
+        return response.Response(DrefOptionsSerializer(
+            dict(
+                status=IntegerKeyValueSerializer.choices_to_data(Dref.Status.choices),
+                type_of_onset=IntegerKeyValueSerializer.choices_to_data(Dref.OnsetType.choices),
+                disaster_category=IntegerKeyValueSerializer.choices_to_data(Dref.DisasterCategory.choices),
+                planned_interventions=CharKeyValueSerializer.choices_to_data(PlannedIntervention.Title.choices),
+                needs_identified=CharKeyValueSerializer.choices_to_data(IdentifiedNeed.Title.choices),
+                national_society_actions=CharKeyValueSerializer.choices_to_data(NationalSocietyAction.Title.choices),
+                type_of_dref=IntegerKeyValueSerializer.choices_to_data(Dref.DrefType.choices),
+            )
+        ).data
+    )
+
 
 
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
