@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema
 
 from django_filters import rest_framework as filters
 from django.contrib.postgres.fields import ArrayField
@@ -65,6 +66,7 @@ from .serializers import (
     EmergencyProjectSerializer,
     EmergencyProjectOptionsSerializer,
     CharKeyValueSerializer,
+    AggregateDeploymentsSerializer,
 )
 
 
@@ -296,6 +298,7 @@ class AggregateDeployments(APIView):
     """
 
     @classmethod
+    @extend_schema(request=None, responses=AggregateDeploymentsSerializer)
     def get(cls, request):
         today = timezone.now().date().strftime("%Y-%m-%d")
         this_year = timezone.now().year
@@ -313,11 +316,13 @@ class AggregateDeployments(APIView):
             is_active=True, start_date__year__lte=this_year, end_date__year__gte=this_year
         ).count()
         return Response(
-            {
-                "active_deployments": active_deployments,
-                "active_erus": active_erus,
-                "deployments_this_year": deployments_this_year,
-            }
+            AggregateDeploymentsSerializer(
+                dict(
+                    active_deployments=active_deployments,
+                    active_erus=active_erus,
+                    deployments_this_year=deployments_this_year,
+                )
+            ).data
         )
 
 

@@ -647,3 +647,9 @@ class EmergencyProjectSerializer(
         return super().update(instance, validated_data)
 
 # ------ Emergency Project -- [End]
+
+
+class AggregateDeploymentsSerializer(serializers.Serializer):
+    active_deployments = serializers.IntegerField(required=False)
+    active_erus = serializers.IntegerField(required=False)
+    deployment_this_year = serializers.IntegerField(required=False)
