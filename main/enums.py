@@ -1,94 +1,68 @@
-#  Note: This is already implemented in the newer version of Django and need to use that instead of this only upgrade is done.
-# Source: https://github.com/django/django/blob/main/django/db/models/enums.py
+from rest_framework import serializers
 
-import enum
-from types import DynamicClassAttribute
-
-from django.utils.functional import Promise
-
-__all__ = ['Choices', 'IntegerChoices', 'TextChoices']
+from dref import enums as dref_enums
+from api import enums as api_enums
+from flash_update import enums as flash_update_enums
 
 
-class ChoicesMeta(enum.EnumMeta):
-    """A metaclass for creating a enum choices."""
-
-    def __new__(metacls, classname, bases, classdict, **kwds):
-        labels = []
-        for key in classdict._member_names:
-            value = classdict[key]
-            if (
-                isinstance(value, (list, tuple)) and
-                len(value) > 1 and
-                isinstance(value[-1], (Promise, str))
-            ):
-                *value, label = value
-                value = tuple(value)
-            else:
-                label = key.replace('_', ' ').title()
-            labels.append(label)
-            # Use dict.__setitem__() to suppress defenses against double
-            # assignment in enum's classdict.
-            dict.__setitem__(classdict, key, value)
-        cls = super().__new__(metacls, classname, bases, classdict, **kwds)
-        for member, label in zip(cls.__members__.values(), labels):
-            member._label_ = label
-        return enum.unique(cls)
-
-    def __contains__(cls, member):
-        if not isinstance(member, enum.Enum):
-            # Allow non-enums to match against member values.
-            return any(x.value == member for x in cls)
-        return super().__contains__(member)
-
-    @property
-    def names(cls):
-        empty = ['__empty__'] if hasattr(cls, '__empty__') else []
-        return empty + [member.name for member in cls]
-
-    @property
-    def choices(cls):
-        empty = [(None, cls.__empty__)] if hasattr(cls, '__empty__') else []
-        return empty + [(member.value, member.label) for member in cls]
-
-    @property
-    def labels(cls):
-        return [label for _, label in cls.choices]
-
-    @property
-    def values(cls):
-        return [value for value, _ in cls.choices]
+apps_enum_register = [
+    ('dref', dref_enums.enum_register),
+    ('api', api_enums.enum_register),
+    ('flash_update', flash_update_enums.enum_register),
+]
 
 
-class Choices(enum.Enum, metaclass=ChoicesMeta):
-    """Class for creating enumerated choices."""
-
-    @DynamicClassAttribute
-    def label(self):
-        return self._label_
-
-    @property
-    def do_not_call_in_templates(self):
-        return True
-
-    def __str__(self):
-        """
-        Use value when cast to str, so that Choices set as model instance
-        attributes are rendered as expected in templates and similar contexts.
-        """
-        return str(self.value)
-
-    # A similar format was proposed for Python 3.10.
-    def __repr__(self):
-        return f'{self.__class__.__qualname__}.{self._name_}'
+def underscore_to_camel(text):
+    return text.replace('_', ' ').title().replace(' ', '')
 
 
-class IntegerChoices(int, Choices):
-    """Class for creating enumerated integer choices."""
-    pass
+def generate_global_enum_register():
+    enum_map = {}
+    enum_names = set()
+    for app_prefix, app_enum_register in apps_enum_register:
+        for enum_field, enum in app_enum_register.items():
+            # Change field dref_national_society_action_title -> DrefNationalSocietyActionTitle
+            _enum_field = f'{app_prefix}_{enum_field}'
+            enum_name = f'{underscore_to_camel(_enum_field)}EnumSerializer'
+            if enum_name in enum_names:
+                raise Exception(f'Duplicate enum_names found for {enum_name} in {enum_names}')
+            enum_names.add(enum_name)
+            enum_map[_enum_field] = (enum_name, enum)
+    return enum_map
 
 
-class TextChoices(str, Choices):
-    """Class for creating enumerated string choices."""
+global_enum_registers = generate_global_enum_register()
 
-    def _generate_next_value_(name, start, count, last_values):
-        return name
+
+def generate_enum_global_serializer(name):
+    def _get_enum_key_value_serializer(enum, enum_name):
+        return type(
+            enum_name,
+            (serializers.Serializer,),
+            {
+                'key': serializers.ChoiceField(enum.choices),
+                'value': serializers.CharField(),
+            },
+        )
+
+    fields = {}
+    for enum_field, (enum_name, enum) in global_enum_registers.items():
+        fields[enum_field] = _get_enum_key_value_serializer(enum, enum_name)(many=True, required=False)
+    return type(name, (serializers.Serializer,), fields)
+
+
+GlobalEnumSerializer = generate_enum_global_serializer('GlobalEnumSerializer')
+
+
+def get_enum_values():
+    enum_data = {
+        enum_field: [
+            {
+                'key': key,
+                'value': value,
+            }
+            for key, value in enum.choices
+        ]
+        for enum_field, (_, enum) in global_enum_registers.items()
+    }
+    return GlobalEnumSerializer(enum_data).data
