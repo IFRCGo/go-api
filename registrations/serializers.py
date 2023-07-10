@@ -57,19 +57,19 @@ class ChangePasswordSerializer(serializers.Serializer):
 class RegistrationSerializer(serializers.Serializer):
     # required fields
     email = serializers.EmailField(max_length=255)
-    password = serializers.CharField(max_length=255)
-    first_name = serializers.CharField(max_length=255)
-    last_name = serializers.CharField(max_length=255)
-    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all())
-    organization_type = serializers.CharField(max_length=255)
-    organization = serializers.CharField(max_length=255)
-    justification = serializers.CharField(max_length=255)
-    city = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=255, write_only=True)
+    first_name = serializers.CharField(max_length=255, write_only=True)
+    last_name = serializers.CharField(max_length=255, write_only=True)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True)
+    organization_type = serializers.CharField(max_length=255, write_only=True)
+    organization = serializers.CharField(max_length=255, write_only=True)
+    justification = serializers.CharField(max_length=255, write_only=True)
+    city = serializers.CharField(max_length=255, write_only=True)
 
     # optional fields
-    department = serializers.CharField(required=False, max_length=255)
-    position = serializers.CharField(required=False, max_length=255)
-    phone_number = serializers.CharField(required=False, max_length=255)
+    department = serializers.CharField(required=False, max_length=255, write_only=True)
+    position = serializers.CharField(required=False, max_length=255, write_only=True)
+    phone_number = serializers.CharField(required=False, max_length=255, write_only=True)
 
     def validate_email(self, email) -> str:
         if User.objects.filter(username__iexact=email).exists():
