@@ -1,7 +1,10 @@
 import json
+from typing import Union, List
+
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
@@ -53,6 +56,7 @@ from .models import (
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
+from registrations.models import Recovery
 
 
 class GeoSerializerMixin:
@@ -132,11 +136,11 @@ class CountryGeoSerializer(ModelSerializer):
     record_type_display = serializers.CharField(source='get_record_type_display', read_only=True)
 
     @staticmethod
-    def get_bbox(country):
+    def get_bbox(country) -> dict:
         return country.bbox and json.loads(country.bbox.geojson)
 
     @staticmethod
-    def get_centroid(country):
+    def get_centroid(country) -> dict:
         return country.centroid and json.loads(country.centroid.geojson)
 
     class Meta:
@@ -243,14 +247,14 @@ class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
     country_iso3 = serializers.CharField(source='country.iso3', read_only=True)
 
     @staticmethod
-    def get_bbox(district):
+    def get_bbox(district) -> Union[dict, None]:
         if district.bbox:
             return json.loads(district.bbox.geojson)
         else:
             return None
 
     @staticmethod
-    def get_centroid(district):
+    def get_centroid(district) -> Union[dict, None]:
         if district.centroid:
             return json.loads(district.centroid.geojson)
         else:
@@ -880,6 +884,9 @@ class UserSerializer(ModelSerializer):
         fields = ('id', 'username', 'first_name', 'last_name', 'email', 'profile', 'subscription', 'is_superuser',
                   'is_ifrc_admin')
 
+    def create(self, _):
+        raise serializers.ValidationError('Create is not allowed')
+
     def update(self, instance, validated_data):
         if 'profile' in validated_data:
             profile_data = validated_data.pop('profile')
@@ -892,6 +899,7 @@ class UserSerializer(ModelSerializer):
             profile.phone_number = profile_data.get('phone_number', profile.phone_number)
             profile.country = profile_data.get('country', profile.country)
             profile.save()
+        # TODO: Do we allow this to change as well?
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
@@ -899,7 +907,7 @@ class UserSerializer(ModelSerializer):
         return instance
 
     @staticmethod
-    def get_is_ifrc_admin(obj):
+    def get_is_ifrc_admin(obj) -> bool:
         return obj.groups.filter(name__iexact="IFRC Admins").exists()
 
 
@@ -921,21 +929,21 @@ class UserMeSerializer(UserSerializer):
         )
 
     @staticmethod
-    def get_is_admin_for_countries(user):
+    def get_is_admin_for_countries(user) -> List[int]:
         return set([
             int(permission[18:]) for permission in user.get_all_permissions()
             if ('api.country_admin_' in permission and permission[18:].isdigit())
         ])
 
     @staticmethod
-    def get_is_admin_for_regions(user):
+    def get_is_admin_for_regions(user) -> List[int]:
         return set([
             int(permission[17:]) for permission in user.get_all_permissions()
             if ('api.region_admin_' in permission and permission[17:].isdigit())
         ])
 
     @staticmethod
-    def get_lang_permissions(user):
+    def get_lang_permissions(user) -> dict:
         return String.get_user_permissions_per_language(user)
 
 
