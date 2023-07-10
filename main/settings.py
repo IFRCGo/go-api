@@ -243,6 +243,7 @@ AUTHENTICATION_BACKENDS = (
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'sentry-trace',
+    'baggage',
 ]
 
 ROOT_URLCONF = 'main.urls'

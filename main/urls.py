@@ -239,6 +239,8 @@ urlpatterns = [
     url(r"^server-error-for-devs", DummyHttpStatusError.as_view()),
     url(r"^exception-error-for-devs", DummyExceptionError.as_view()),
     path("i18n/", include("django.conf.urls.i18n")),
+    # Enums
+    url(r"^api/v2/global-enums/", api_views.GlobalEnumView.as_view(), name="global_enums"),
     # Docs
     path("docs/", SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path("api-docs/", SpectacularAPIView.as_view(), name='schema'),

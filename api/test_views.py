@@ -565,3 +565,10 @@ class DistrictTest(APITestCase):
         country.save()
         response = self.client.get('/api/v2/district/').json()
         self.assertEqual(response['count'], 2)
+
+
+class GlobalEnumEndpointTest(APITestCase):
+    def test_200_response(self):
+        response = self.client.get('/api/v2/global-enums/')
+        self.assert_200(response)
+        self.assertIsNotNone(response.json())
