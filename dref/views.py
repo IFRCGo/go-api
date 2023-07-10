@@ -36,10 +36,7 @@ from dref.serializers import (
     MiniDrefSerializer,
     AddDrefUserSerializer,
     DrefShareUserSerializer,
-    DrefOptionsSerializer,
-    IntegerKeyValueSerializer
 )
-from deployments.serializers import CharKeyValueSerializer
 from dref.filter_set import (
     DrefFilter,
     DrefOperationalUpdateFilter,
@@ -182,31 +179,6 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         field_report.dref.save(update_fields=["is_active", "date_of_approval"])
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
-
-
-class DrefOptionsView(views.APIView):
-    """
-    Options for various attribute related to Dref
-    """
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    @extend_schema(request=None, responses=DrefOptionsSerializer)
-    def get(self, request, version=None):
-        return response.Response(DrefOptionsSerializer(
-            dict(
-                status=IntegerKeyValueSerializer.choices_to_data(Dref.Status.choices),
-                type_of_onset=IntegerKeyValueSerializer.choices_to_data(Dref.OnsetType.choices),
-                disaster_category=IntegerKeyValueSerializer.choices_to_data(Dref.DisasterCategory.choices),
-                planned_interventions=CharKeyValueSerializer.choices_to_data(PlannedIntervention.Title.choices),
-                needs_identified=CharKeyValueSerializer.choices_to_data(IdentifiedNeed.Title.choices),
-                national_society_actions=CharKeyValueSerializer.choices_to_data(NationalSocietyAction.Title.choices),
-                type_of_dref=IntegerKeyValueSerializer.choices_to_data(Dref.DrefType.choices),
-            )
-        ).data
-    )
-
-
 
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_class = [permissions.IsAuthenticated]

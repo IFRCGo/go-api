@@ -67,6 +67,10 @@ from .serializers import (
     EmergencyProjectOptionsSerializer,
     CharKeyValueSerializer,
     AggregateDeploymentsSerializer,
+    GlobalProjectNSOngoingProjectsStatsSerializer,
+    GlobalProjectOverviewSerializer,
+    DeploymentByNSSerializer,
+    DeploymentsByMonthSerializer
 )
 
 
@@ -328,8 +332,13 @@ class AggregateDeployments(APIView):
 
 class DeploymentsByMonth(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=DeploymentsByMonthSerializer,
+    )
     def get(cls, request):
-        """Returns count of Personnel Deployments
+        """
+        Returns count of Personnel Deployments
         for last 12 months, aggregated by month.
         """
         now = datetime.datetime.now()
@@ -339,13 +348,26 @@ class DeploymentsByMonth(APIView):
             month_string = month[0]
             first_day = month[1]
             last_day = month[2]
-            count = Personnel.objects.filter(start_date__date__lte=last_day, end_date__date__gte=first_day).count()
+            count = Personnel.objects.filter(
+                start_date__date__lte=last_day,
+                end_date__date__gte=first_day
+            ).count()
             deployment_counts[month_string] = count
-        return Response(deployment_counts)
+        return Response(
+            DeploymentsByMonthSerializer(
+                dict(
+                    deployment_counts=deployment_counts
+                )
+            ).data
+        )
 
 
 class DeploymentsByNS(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=DeploymentByNSSerializer
+    )
     def get(cls, request):
         """Returns count of Personnel Deployments
         by National Society, for the current year.
@@ -364,7 +386,9 @@ class DeploymentsByNS(APIView):
             .order_by("-deployments_count")
             .values("id", "society_name", "deployments_count")[0:limit]
         )
-        return Response(societies)
+        return Response(
+            DeploymentByNSSerializer(societies, many=True).data
+        )
 
 
 class PartnerDeploymentFilterset(filters.FilterSet):
@@ -675,6 +699,11 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             status=Statuses.ONGOING,
         )
 
+    @extend_schema(
+        methods=['GET'],
+        request=None,
+        responses=GlobalProjectOverviewSerializer
+    )
     @action(detail=False, url_path="overview", methods=("get",))
     def overview(self, request, pk=None):
         def _get_projects_per_enum_field(EnumType, enum_field):
@@ -726,25 +755,31 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         projects = self.get_projects()
 
         target_total = projects.aggregate(target_total=models.Sum("target_total"))["target_total"]
+        response_data = {
+            "total_ongoing_projects": projects.filter(status=Statuses.ONGOING).count(),
+            "ns_with_ongoing_activities": (
+                projects.filter(status=Statuses.ONGOING)
+                .order_by("reporting_ns")
+                .values("reporting_ns")
+                .distinct()
+                .count()
+            ),
+            "target_total": target_total,
+            "projects_per_sector": _get_projects_per_foreign_field("primary_sector", "primary_sector__title"),
+            "projects_per_programme_type": _get_projects_per_enum_field(ProgrammeTypes, "programme_type"),
+            "projects_per_secondary_sectors": _get_projects_per_foreign_field(
+                "secondary_sectors", "secondary_sectors__title"
+            ),
+        }
         return Response(
-            {
-                "total_ongoing_projects": projects.filter(status=Statuses.ONGOING).count(),
-                "ns_with_ongoing_activities": (
-                    projects.filter(status=Statuses.ONGOING)
-                    .order_by("reporting_ns")
-                    .values("reporting_ns")
-                    .distinct()
-                    .count()
-                ),
-                "target_total": target_total,
-                "projects_per_sector": _get_projects_per_foreign_field("primary_sector", "primary_sector__title"),
-                "projects_per_programme_type": _get_projects_per_enum_field(ProgrammeTypes, "programme_type"),
-                "projects_per_secondary_sectors": _get_projects_per_foreign_field(
-                    "secondary_sectors", "secondary_sectors__title"
-                ),
-            }
+            GlobalProjectOverviewSerializer(response_data).data
         )
 
+    @extend_schema(
+        methods=['GET'],
+        request=None,
+        responses=GlobalProjectNSOngoingProjectsStatsSerializer
+    )
     @action(detail=False, url_path="ns-ongoing-projects-stats", methods=("get",))
     def ns_ongoing_projects_stats(self, request, pk=None):
         projects = self.get_projects()
@@ -765,67 +800,67 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 }
             )
 
-        return Response(
+        response_data = [
             {
-                "results": [
-                    {
-                        **ns_data,
-                        "projects_per_sector": project_per_sector.get(ns_data["id"]),
-                        "operation_types_display": [
-                            OperationTypes(operation_type).label for operation_type in ns_data["operation_types"]
-                        ],
-                    }
-                    for ns_data in Country.objects.annotate(
-                        ongoing_projects=Coalesce(
-                            models.Subquery(
-                                ref_projects.values("reporting_ns").annotate(count=models.Count("id")).values("count")[:1],
-                                output_field=models.IntegerField(),
-                            ),
-                            0,
-                        ),
-                        target_total=Coalesce(
-                            models.Subquery(
-                                ref_projects.values("reporting_ns")
-                                .annotate(target_total=models.Sum("target_total"))
-                                .values("target_total")[:1],
-                                output_field=models.IntegerField(),
-                            ),
-                            0,
-                        ),
-                        budget_amount_total=Coalesce(
-                            models.Subquery(
-                                ref_projects.values("reporting_ns")
-                                .annotate(budget_amount_total=models.Sum("budget_amount"))
-                                .values("budget_amount_total")[:1],
-                                output_field=models.IntegerField(),
-                            ),
-                            0,
-                        ),
-                        operation_types=Coalesce(
-                            models.Subquery(
-                                ref_projects.values("reporting_ns")
-                                .annotate(operation_types=ArrayAgg("operation_type", distinct=True))
-                                .values("operation_types")[:1],
-                                output_field=ArrayField(models.IntegerField()),
-                            ),
-                            [],
-                        ),
-                    )
-                    .filter(ongoing_projects__gt=0)
-                    .order_by("id")
-                    .values(
-                        "id",
-                        "name",
-                        "iso3",
-                        "iso3",
-                        "society_name",
-                        "ongoing_projects",
-                        "target_total",
-                        "budget_amount_total",
-                        "operation_types",
-                    )
-                ]
+                **ns_data,
+                "projects_per_sector": project_per_sector.get(ns_data["id"]),
+                "operation_types_display": [
+                    OperationTypes(operation_type).label for operation_type in ns_data["operation_types"]
+                ],
             }
+            for ns_data in Country.objects.annotate(
+                ongoing_projects=Coalesce(
+                    models.Subquery(
+                        ref_projects.values("reporting_ns").annotate(count=models.Count("id")).values("count")[:1],
+                        output_field=models.IntegerField(),
+                    ),
+                    0,
+                ),
+                target_total=Coalesce(
+                    models.Subquery(
+                        ref_projects.values("reporting_ns")
+                        .annotate(target_total=models.Sum("target_total"))
+                        .values("target_total")[:1],
+                        output_field=models.IntegerField(),
+                    ),
+                    0,
+                ),
+                budget_amount_total=Coalesce(
+                    models.Subquery(
+                        ref_projects.values("reporting_ns")
+                        .annotate(budget_amount_total=models.Sum("budget_amount"))
+                        .values("budget_amount_total")[:1],
+                        output_field=models.IntegerField(),
+                    ),
+                    0,
+                ),
+                operation_types=Coalesce(
+                    models.Subquery(
+                        ref_projects.values("reporting_ns")
+                        .annotate(operation_types=ArrayAgg("operation_type", distinct=True))
+                        .values("operation_types")[:1],
+                        output_field=ArrayField(models.IntegerField()),
+                    ),
+                    [],
+                ),
+            )
+            .filter(ongoing_projects__gt=0)
+            .order_by("id")
+            .values(
+                "id",
+                "name",
+                "iso3",
+                "society_name",
+                "ongoing_projects",
+                "target_total",
+                "budget_amount_total",
+                "operation_types",
+            )
+        ]
+        return Response(
+            GlobalProjectNSOngoingProjectsStatsSerializer(
+                response_data, many=True
+            ).data
         )
 
 
