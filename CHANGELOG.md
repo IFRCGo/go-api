@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.483
+
+### Added
+ - Add global endpoint for fetching enums
+ - Update logic for new translation API
+ - Replace old doc page with redoc (OpenAPI)
+ - Add OpenAPI endpoint using drf_yasg
+ - Rename DREF serializer to active
+ - Fix Project CSV importing
+
 ## 1.1.482
  - Add more columns to AppealDocument Admin list
  - Put back caching
@@ -2252,7 +2262,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.482...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.483...HEAD
+[1.1.483]: https://github.com/IFRCGo/go-api/compare/1.1.482...1.1.483
 [1.1.482]: https://github.com/IFRCGo/go-api/compare/1.1.481...1.1.482
 [1.1.481]: https://github.com/IFRCGo/go-api/compare/1.1.480...1.1.481
 [1.1.480]: https://github.com/IFRCGo/go-api/compare/1.1.479...1.1.480
