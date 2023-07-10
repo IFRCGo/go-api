@@ -355,7 +355,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return
 
     def to_representation(self, instance):
-        def _remove_digits_after_decimal(value):
+        def _remove_digits_after_decimal(value) -> float:
             # NOTE: We are doing this to remove decimal after 3 digits whole numbers
             # eg: 100.00% be replaced with 100%
             if value and len(value.split(".")[0]) == 3:
