@@ -44,10 +44,20 @@ env = environ.Env(
     EMAIL_PASS=(str, None),
     DEBUG_EMAIL=(bool, False),  # This was 0/1 before
     # TEST_EMAILS=(list, ['im@ifrc.org']), # maybe later
+    # Translation
+    # Translator Available:
+    #   - lang.translation.DummyTranslator
+    #   - lang.translation.IfrcTranslator
+    #   - lang.translation.AmazonTranslator
+    AUTO_TRANSLATION_TRANSLATOR=(str, 'lang.translation.DummyTranslator'),
     # AWS Translate NOTE: not used right now
     AWS_TRANSLATE_ACCESS_KEY=(str, None),
     AWS_TRANSLATE_SECRET_KEY=(str, None),
     AWS_TRANSLATE_REGION=(str, None),
+    # IFRC Translation
+    IFRC_TRANSLATION_DOMAIN=(str, None),  # https://example.ifrc.org
+    IFRC_TRANSLATION_GET_API_KEY=(str, None),
+    IFRC_TRANSLATION_HEADER_API_KEY=(str, None),
     # Celery NOTE: Not used right now
     CELERY_REDIS_URL=str,
     CACHE_REDIS_URL=str,
@@ -131,6 +141,7 @@ TESTING = any([
 INSTALLED_APPS = [
     # External App (This app has to defined before django.contrib.admin)
     'modeltranslation',  # https://django-modeltranslation.readthedocs.io/en/latest/installation.html#installed-apps
+    'drf_spectacular',
 
     # Django Apps
     'django.contrib.admin',
@@ -198,7 +209,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_csv.renderers.PaginatedCSVRenderer',
     ),
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 GRAPHENE = {
@@ -232,6 +243,7 @@ AUTHENTICATION_BACKENDS = (
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'sentry-trace',
+    'baggage',
 ]
 
 ROOT_URLCONF = 'main.urls'
@@ -332,6 +344,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+# Make sure to update main.translation if this is updated
 LANGUAGES = (
     ('en', _('English')),
     ('es', _('Spanish')),
@@ -340,6 +353,11 @@ LANGUAGES = (
 )
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en', 'fr', 'es', 'ar')
+AUTO_TRANSLATION_TRANSLATOR = env('AUTO_TRANSLATION_TRANSLATOR')
+
+IFRC_TRANSLATION_DOMAIN = env('IFRC_TRANSLATION_DOMAIN')
+IFRC_TRANSLATION_GET_API_KEY = env('IFRC_TRANSLATION_GET_API_KEY')
+IFRC_TRANSLATION_HEADER_API_KEY = env('IFRC_TRANSLATION_HEADER_API_KEY')
 
 MEDIA_URL = env('DJANGO_MEDIA_URL')
 MEDIA_ROOT = env('DJANGO_MEDIA_ROOT')
@@ -543,3 +561,13 @@ CACHES = {
     }
 }
 CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'IFRC-GO API',
+    'DESCRIPTION': 'IFRC-GO API Documenation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# Need to load this to overwrite modeltranslation module
+import main.translation  # noqa: F401 E402

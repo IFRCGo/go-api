@@ -2,6 +2,7 @@ from datetime import datetime
 from pytz import utc
 from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
 from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -13,8 +14,12 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
+from django.utils.translation import get_language as django_get_language
+from drf_spectacular.utils import extend_schema
 
 from main.utils import is_tableau
+from main.enums import GlobalEnumSerializer, get_enum_values
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
@@ -1000,7 +1005,9 @@ class GenericFieldReportView(GenericAPIView):
             for action_taken in meta["actions_taken"]:
                 actions = action_taken["actions"]
                 del action_taken["actions"]
+                action_taken[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
                 actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
+                CreateFieldReportSerializer.trigger_field_translation(actions_taken)
                 actions_taken.actions.add(*actions)
 
         if "contacts" in meta:
@@ -1030,7 +1037,9 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
             auto_generated=True,
             auto_generated_source=SOURCES["new_report"],
             visibility=report.visibility,
+            **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
+        CreateFieldReportSerializer.trigger_field_translation(event)
         report.event = event
         report.save()
         return event
@@ -1049,7 +1058,10 @@ class CreateFieldReport(CreateAPIView, GenericFieldReportView):
 
         try:
             # TODO: Use serializer to create fieldreport
-            fieldreport = FieldReport.objects.create(**data)
+            data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
+            fieldreport = FieldReport.objects.create(
+                **data,
+            )
             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
         except Exception as e:
             try:
@@ -1185,3 +1197,16 @@ class UsersViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return User.objects.filter(is_active=True)
+
+
+class GlobalEnumView(APIView):
+    """
+    Provide a single endpoint to fetch enum metadata
+    """
+
+    @extend_schema(responses=GlobalEnumSerializer)
+    def get(self, _):
+        """
+        Return a list of all enums.
+        """
+        return Response(get_enum_values())

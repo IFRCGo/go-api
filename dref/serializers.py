@@ -55,7 +55,7 @@ class DrefFileSerializer(ModelSerializer):
         return super().create(validated_data)
 
 
-class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
+class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
     type_of_onset_display = serializers.CharField(source="get_type_of_onset_display", read_only=True)
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
@@ -98,7 +98,7 @@ class MiniOperationalUpdateSerializer(serializers.ModelSerializer):
         return f"Operational update #{op_number}"
 
 
-class MiniDrefFinalReportSerializer(serializers.ModelSerializer):
+class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     application_type = serializers.SerializerMethodField()
@@ -180,11 +180,11 @@ class MiniDrefSerializer(serializers.ModelSerializer):
 
     def get_operational_update_details(self, obj):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
-        return MiniOperationalUpdateSerializer(queryset, many=True).data
+        return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
     def get_final_report_details(self, obj):
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
-        return MiniDrefFinalReportSerializer(queryset, many=True).data
+        return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
 
     def get_has_ops_update(self, obj):
         op_count_count = obj.drefoperationalupdate_set.count()
@@ -284,6 +284,27 @@ class IdentifiedNeedSerializer(ModelSerializer):
             request = self.context["request"]
             return IdentifiedNeed.get_image_map(title, request)
         return None
+
+
+class MiniOperationalUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = DrefOperationalUpdate
+        fields = [
+            "id",
+            "title",
+            "is_published",
+            "operational_update_number",
+        ]
+
+
+class MiniDrefFinalReportSerializer(ModelSerializer):
+    class Meta:
+        model = DrefFinalReport
+        fields = [
+            "id",
+            "title",
+            "is_published",
+        ]
 
 
 class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
@@ -424,6 +445,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
+        validated_data["is_active"] = True
         type_of_dref = validated_data.get("type_of_dref")
         if type_of_dref and type_of_dref == Dref.DrefType.ASSESSMENT:
             # Previous Operations
@@ -502,7 +524,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
         return dref
 
 
-class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
+class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)
     planned_interventions = PlannedInterventionSerializer(many=True, required=False)
@@ -868,7 +890,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, seri
         return super().update(instance, validated_data)
 
 
-class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, serializers.ModelSerializer):
+class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     MAX_NUMBER_OF_PHOTOS = 2
     national_society_actions = NationalSocietyActionSerializer(many=True, required=False)
     needs_identified = IdentifiedNeedSerializer(many=True, required=False)

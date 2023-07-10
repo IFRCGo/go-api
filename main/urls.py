@@ -18,7 +18,7 @@ In case of an api endpoint search, grep url_path in other files also, e.g:
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf.urls import url, include
 from django.conf import settings
-from django.urls import path, re_path
+from django.urls import path
 from django.contrib import admin
 from django.conf.urls import static
 from django.views.static import serve
@@ -73,7 +73,7 @@ from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
 # DRF routes
 from rest_framework import routers
-from rest_framework.documentation import include_docs_urls
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from api import drf_views as api_views
 from flash_update import views as flash_views
 from per import drf_views as per_views
@@ -230,7 +230,6 @@ urlpatterns = [
     url(r"^api/v2/exportperresults/", per_views.ExportAssessmentToCSVViewset.as_view()),
     url(r"^api/v2/local-unit/(?P<pk>\d+)", LocalUnitDetailAPIView.as_view()),
     url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
-    url(r"^docs/", include_docs_urls(title="IFRC GO API", public=False)),
     url(r"^tinymce/", include("tinymce.urls")),
     url(r"^$", RedirectView.as_view(url="/admin")),
     # url(r'^', admin.site.urls),
@@ -238,6 +237,12 @@ urlpatterns = [
     url(r"^server-error-for-devs", DummyHttpStatusError.as_view()),
     url(r"^exception-error-for-devs", DummyExceptionError.as_view()),
     path("i18n/", include("django.conf.urls.i18n")),
+    # Enums
+    url(r"^api/v2/global-enums/", api_views.GlobalEnumView.as_view(), name="global_enums"),
+    # Docs
+    path("docs/", SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path("api-docs/", SpectacularAPIView.as_view(), name='schema'),
+    path("api-docs/swagger-ui/", SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.DEBUG:
@@ -248,9 +253,7 @@ if settings.DEBUG:
             url("__debug__/", include(debug_toolbar.urls)),
             # For django versions before 2.0:
             # url(r'^__debug__/', include(debug_toolbar.urls)),
-        ]
-        + urlpatterns
-        + static.static(
+        ] + urlpatterns + static.static(
             settings.MEDIA_URL,
             view=xframe_options_exempt(serve),
             document_root=settings.MEDIA_ROOT,

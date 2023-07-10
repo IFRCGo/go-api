@@ -161,10 +161,9 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         field_report.is_published = True
         field_report.status = Dref.Status.COMPLETED
         field_report.save(update_fields=["is_published", "status"])
-        if not field_report.dref.is_final_report_created:
-            field_report.dref.is_final_report_created = True
-            field_report.date_of_approval = timezone.now().date()
-            field_report.dref.save(update_fields=["is_final_report_created", "date_of_approval"])
+        field_report.dref.is_active = False
+        field_report.date_of_approval = timezone.now().date()
+        field_report.dref.save(update_fields=["is_active", "date_of_approval"])
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
 
@@ -210,14 +209,16 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
-        files = dict((request.data).lists())["file"]
+        files = [
+            files[0]
+            for files in dict((request.data).lists()).values()
+        ]
         data = [{"file": file} for file in files]
         file_serializer = DrefFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
             file_serializer.save()
             return response.Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -251,9 +252,9 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 new_dref = DrefFinalReport.objects.filter(id__in=id).first()
                 final.append(new_dref.id)
             if len(final):
-                return DrefFinalReport.objects.filter(id__in=final).order_by('-created_at')
+                return DrefFinalReport.objects.filter(id__in=final, is_published=True).order_by('-created_at')
             else:
-                return DrefFinalReport.get_for(user)
+                return DrefFinalReport.get_for(user).filter(is_published=True)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -267,9 +268,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             dref = (
                 Dref.objects.prefetch_related(
                     "planned_interventions", "needs_identified", "national_society_actions", "users"
-                )
-                .filter(is_final_report_created=False)
-                .distinct()
+                ).distinct()
             )
             dref_op_update = (
                 DrefOperationalUpdate.objects.select_related(
@@ -289,17 +288,13 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                     "users",
                     "images",
                     "photos",
-                )
-                .filter(dref__is_final_report_created=False)
-                .order_by('-operational_update_number').distinct()
+                ).order_by('-operational_update_number').distinct()
             )
             dref_final_report = (
                 DrefFinalReport.objects.prefetch_related(
                     "dref__planned_interventions",
                     "dref__needs_identified",
-                )
-                .filter(dref__is_final_report_created=False)
-                .distinct()
+                ).distinct()
             )
             result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
             dref_list = []
@@ -337,7 +332,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             for dref in annoatated_drefs:
                 new_dref = Dref.objects.get(id=dref.id)
                 dref_list.append(new_dref.id)
-            return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
+            return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
         elif not user.is_superuser:
             # get current user dref regions
             regions = [0, 1, 2, 3, 4]
@@ -349,7 +344,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                         Dref.objects.prefetch_related(
                             "planned_interventions", "needs_identified", "national_society_actions", "users"
                         )
-                        .filter(country__region=region, is_final_report_created=False)
+                        .filter(country__region=region)
                         .distinct()
                     )
                     dref_op_update = (
@@ -371,7 +366,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                             "images",
                             "photos",
                         )
-                        .filter(country__region=region, dref__is_final_report_created=False)
+                        .filter(country__region=region)
                         .order_by('-operational_update_number').distinct()
                     )
                     dref_final_report = (
@@ -379,7 +374,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                             "dref__planned_interventions",
                             "dref__needs_identified",
                         )
-                        .filter(country__region=region, dref__is_final_report_created=False)
+                        .filter(country__region=region)
                         .distinct()
                     )
                     result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
@@ -421,11 +416,11 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 new_dref = Dref.objects.get(id=dref.id)
                 dref_list.append(new_dref.id)
             if len(dref_list):
-                return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
+                return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
             else:
-                dref = Dref.get_for(user).filter(is_final_report_created=False)
-                dref_op_update = DrefOperationalUpdate.get_for(user).filter(dref__is_final_report_created=False)
-                dref_final_report = DrefFinalReport.get_for(user).filter(dref__is_final_report_created=False)
+                dref = Dref.get_for(user)
+                dref_op_update = DrefOperationalUpdate.get_for(user)
+                dref_final_report = DrefFinalReport.get_for(user)
                 result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
                 dref_list = []
                 for data in result_list:
@@ -462,7 +457,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 for dref in annoatated_drefs:
                     new_dref = Dref.objects.get(id=dref.id)
                     dref_list.append(new_dref.id)
-                return Dref.objects.filter(id__in=dref_list).order_by("-created_at")
+                return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
 
 
 class DrefShareView(views.APIView):

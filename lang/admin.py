@@ -19,6 +19,7 @@ from django.utils.translation import get_language
 
 # from middlewares.middlewares import get_signal_request
 
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME, TRANSLATOR_SKIP_FIELD_NAME
 from .translation import AVAILABLE_LANGUAGES
 from .serializers import TranslatedModelSerializerMixin
 
@@ -60,6 +61,19 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
         url = reverse(self.get_url_namespace('toggle_edit_all_language')) + f'?next={request.get_full_path()}'
         label = gettext('hide all language') if self._go__show_all_language_in_form() else gettext('show all language')
         return [{'url': url, 'label': label}]
+
+    def get_readonly_fields(self, request, obj=None):
+        return [
+            *super().get_readonly_fields(request, obj=obj),
+            TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
+        ]
+
+    def get_list_filter(self, request):
+        return [
+            *super().get_list_filter(request),
+            TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
+            TRANSLATOR_SKIP_FIELD_NAME,
+        ]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}

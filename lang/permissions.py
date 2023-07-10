@@ -16,7 +16,7 @@ class LangStringPermission(permissions.BasePermission):
                 hasattr(request, '_request') and request.path[:6] == '/docs/' and \
                 hasattr(view, 'basename') and view.basename == 'language':
             return True
-        return String.has_perm(request.user, view.kwargs['pk'])
+        return String.has_perm(request.user, view.kwargs.get('pk'))
 
     def has_object_permission(self, request, view, obj):
         return self.has_permission(self, request, view)
