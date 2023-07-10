@@ -55,7 +55,11 @@ from api.views import (
     ResendValidation,
     HayStackSearch,
 )
-from registrations.views import NewRegistration, VerifyEmail, ValidateUser
+from registrations.views import (
+    NewRegistration,
+    VerifyEmail,
+    ValidateUser,
+)
 from per.views import (
     # CreatePerForm,
     UpdatePerForm,
@@ -219,12 +223,11 @@ urlpatterns = [
     url(r"^api/v2/del_perworkplan", DelWorkPlan.as_view()),
     url(r"^verify_email", VerifyEmail.as_view()),
     url(r"^validate_user", ValidateUser.as_view()),
-    url(r"^change_password", ChangePassword.as_view()),
+    url(r"^change_password", registration_views.ChangePasswordView.as_view()),
     url(r"^recover_password", RecoverPassword.as_view()),
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),
     url(r"^api/v2/", include(router.urls)),
-    url(r"^api/v2/dref-options/", dref_views.DrefOptionsView.as_view()),
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
     url(r"^api/v2/exportperresults/", per_views.ExportAssessmentToCSVViewset.as_view()),
