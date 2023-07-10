@@ -80,7 +80,7 @@ class ERUOwnerSerializer(ModelSerializer):
 
 class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
-    event = ListEventSerializer()
+    event = ListEventSerializer(allow_null=True)
     eru_owner = ERUOwnerSerializer()
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
@@ -653,3 +653,59 @@ class AggregateDeploymentsSerializer(serializers.Serializer):
     active_deployments = serializers.IntegerField(required=False)
     active_erus = serializers.IntegerField(required=False)
     deployment_this_year = serializers.IntegerField(required=False)
+
+
+class GlobalProjectNSOngoingProjectsStatsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    iso3 = serializers.CharField()
+    society_name = serializers.CharField()
+    ongoing_projects = serializers.IntegerField(allow_null=True, required=False)
+    target_total = serializers.IntegerField(allow_null=True, required=False)
+    budget_amount_total = serializers.IntegerField(allow_null=True, required=False)
+    operation_types = serializers.ListField(
+        serializers.IntegerField(), required=False, allow_null=True
+    )
+    projects_per_sector = serializers.ListField(
+        serializers.DictField(), required=False, allow_null=True
+    )
+    operation_types_display = serializers.ListField(
+        serializers.CharField(), required=False, allow_null=True
+    )
+
+
+class OverviewProjectsPerSector(serializers.Serializer):
+    primary_sector = serializers.IntegerField()
+    primary_sector_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class OverviewProjectsPerProgrammeType(serializers.Serializer):
+    programme_type = serializers.IntegerField()
+    programme_type_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class OverviewProjectsPerSecondarySectors(serializers.Serializer):
+    secondary_sectors = serializers.IntegerField()
+    secondary_sectors_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class GlobalProjectOverviewSerializer(serializers.Serializer):
+    total_ongoing_projects = serializers.IntegerField(allow_null=True, required=False)
+    ns_with_ongoing_activities = serializers.IntegerField(allow_null=True, required=False)
+    target_total = serializers.IntegerField(allow_null=True, required=False)
+    projects_per_sector = OverviewProjectsPerSector(many=True, allow_null=True)
+    projects_per_programme_type = OverviewProjectsPerProgrammeType(many=True, allow_null=True)
+    projects_per_secondary_sectors = OverviewProjectsPerSecondarySectors(many=True, allow_null=True)
+
+
+class DeploymentByNSSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    society_name = serializers.CharField()
+    deployments_count = serializers.IntegerField(allow_null=True, required=False)
+
+
+class DeploymentsByMonthSerializer(serializers.Serializer):
+    deployment_counts = serializers.DictField(serializers.CharField())
