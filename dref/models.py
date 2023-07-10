@@ -16,7 +16,6 @@ from api.models import Country, DisasterType, District, FieldReport
 
 @reversion.register()
 class NationalSocietyAction(models.Model):
-    # NOTE: Replace `TextChoices` to `models.TextChoices` after upgrade to Django version 3
     class Title(models.TextChoices):
         NATIONAL_SOCIETY_READINESS = "national_society_readiness", _("National Society Readiness")
         ASSESSMENT = "assessment", _("Assessment")
