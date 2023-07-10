@@ -56,7 +56,6 @@ from api.views import (
     HayStackSearch,
 )
 from registrations.views import (
-    NewRegistration,
     VerifyEmail,
     ValidateUser,
 )

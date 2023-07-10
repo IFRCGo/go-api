@@ -8,14 +8,9 @@ from drf_spectacular.utils import extend_schema
 from .models import DomainWhitelist
 from .serializers import (
     DomainWhitelistSerializer,
-    ChangePasswordSerializer
-    status,
-    response
+    ChangePasswordSerializer,
+    RegistrationSerializer
 )
-from drf_spectacular.utils import extend_schema
-
-from .models import DomainWhitelist
-from .serializers import DomainWhitelistSerializer, RegistrationSerializer
 
 
 class DomainWhitelistViewset(viewsets.ReadOnlyModelViewSet):
@@ -27,14 +22,20 @@ class ChangePasswordView(views.APIView):
     @extend_schema(request=ChangePasswordSerializer, responses=None)
     def post(self, request, version=None):
         serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(
+            serializer.data, status=status.HTTP_200_OK
+        )
+
 
 class RegistrationView(views.APIView):
 
-    @extend_schema(request=RegistrationSerializer, responses=None)
+    @extend_schema(request=RegistrationSerializer, responses=RegistrationSerializer)
     def post(self, request, version=None):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(
-            "OK", status=status.HTTP_200_OK
+            serializer.data, status=status.HTTP_200_OK
         )
