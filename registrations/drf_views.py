@@ -17,11 +17,11 @@ class DomainWhitelistViewset(viewsets.ReadOnlyModelViewSet):
 
 class RegistrationView(views.APIView):
 
-    @extend_schema(request=RegistrationSerializer, responses=None)
+    @extend_schema(request=RegistrationSerializer, responses=RegistrationSerializer)
     def post(self, request, version=None):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(
-            "OK", status=status.HTTP_200_OK
+            serializer.data, status=status.HTTP_200_OK
         )
