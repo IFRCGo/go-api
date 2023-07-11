@@ -702,3 +702,25 @@ class UserPerCountrySerializer(serializers.ModelSerializer):
             'phase_display',
             'type_of_assessment',
         )
+
+
+class OptionsPerComponentRatingSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    title = serializers.CharField()
+    value = serializers.IntegerField()
+
+
+class OptionsFormAnswerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    text = serializers.CharField()
+
+
+class OptionsAssessmentTypeSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class PerOptionsSerializer(serializers.Serializer):
+    componentratings = OptionsPerComponentRatingSerializer(many=True)
+    answers = OptionsFormAnswerSerializer(many=True)
+    overviewassessmenttypes = OptionsAssessmentTypeSerializer(many=True)
