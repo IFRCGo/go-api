@@ -17,7 +17,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
-from rest_framework.pagination import LimitOffsetPagination
+from drf_spectacular.utils import extend_schema
 
 from deployments.models import Heop, ERUType, Sector, SectorTag, ProgrammeTypes, OperationTypes, Statuses
 from notifications.models import Subscription, SurgeAlert
@@ -25,7 +25,6 @@ from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
 from deployments.models import Project, ERU, Personnel
 from flash_update.models import FlashUpdate
-from dref.models import Dref, DrefOperationalUpdate
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealHistory, AppealType, CronJob, Event, FieldReport, Snippet
@@ -33,9 +32,12 @@ from .indexes import ES_PAGE_NAME
 from .logger import logger
 from haystack.query import SearchQuerySet
 from api.models import Country, Region, District
-from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 from .utils import is_user_ifrc
+from api.serializers import (
+    AggregateHeaderFiguresSerializer,
+    SearchSerializer,
+)
 
 
 def bad_request(message):
@@ -114,6 +116,8 @@ class EsPageSearch(APIView):
 
 
 class HayStackSearch(APIView):
+
+    @extend_schema(request=None, responses=SearchSerializer)
     def get(self, request):
         phrase = request.GET.get("keyword", None)
         phrase = phrase.lower()
@@ -482,7 +486,7 @@ class HayStackSearch(APIView):
                 for data in rapid_response_deployments[:50]
             ],
         }
-        return Response(result)
+        return Response(SearchSerializer(result).data)
 
 
 class Brief(APIView):
@@ -568,8 +572,10 @@ class ProjectStatuses(APIView):
 
 
 class AggregateHeaderFigures(APIView):
-    """Used mainly for the key-figures header and by FDRS"""
-
+    """
+        Used mainly for the key-figures header and by FDRS
+    """
+    @extend_schema(request=None, responses=AggregateHeaderFiguresSerializer)
     def get(self, request):
         iso3 = request.GET.get("iso3", None)
         country = request.GET.get("country", None)
@@ -630,7 +636,11 @@ class AggregateHeaderFigures(APIView):
             amount_funded=Sum("amof"),
         )
 
-        return Response(dict(appeals_aggregated))
+        return Response(
+            AggregateHeaderFiguresSerializer(
+                appeals_aggregated
+            ).data
+        )
 
 
 class AreaAggregate(APIView):
