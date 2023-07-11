@@ -27,11 +27,12 @@ from .models import (
     FormComponentResponse,
     CustomPerWorkPlanComponent,
     PerFile,
-    PerComponentRating
+    PerComponentRating,
 )
 from api.serializers import (
     MiniCountrySerializer,
 )
+
 # from .admin_classes import RegionRestrictedAdmin
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 
@@ -46,7 +47,7 @@ def check_draft_change(
     Respond with draft change status
     """
     if not allow_change_for_non_draft and not instance.is_draft:
-        raise serializers.ValidationError('Update is not allowed for non draft')
+        raise serializers.ValidationError("Update is not allowed for non draft")
     # If draft is not provided
     if is_draft is None:
         return False
@@ -65,18 +66,10 @@ class IsFinalOverviewSerializer(serializers.ModelSerializer):
 class FormAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormArea
-        fields = (
-            'id',
-            'title',
-            'area_num'
-        )
+        fields = ("id", "title", "area_num")
 
 
-class FormComponentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     # area = FormAreaSerializer()
 
     class Meta:
@@ -94,8 +87,8 @@ class FormAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormAnswer
         fields = (
-            'id',
-            'text',
+            "id",
+            "text",
         )
 
 
@@ -104,12 +97,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = (
-            'id',
-            'component_num',
-            'title',
-            "area"
-        )
+        fields = ("id", "component_num", "title", "area")
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
@@ -169,31 +157,16 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         fields = ("form", "question_id", "selected_answer", "notes", "id")
 
 
-class FormDataWOFormSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
-    selected_answer_details = FormAnswerSerializer(source='selected_answer', read_only=True)
-    question_details = MiniQuestionSerailizer(source='question', read_only=True)
+class FormDataWOFormSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    selected_answer_details = FormAnswerSerializer(source="selected_answer", read_only=True)
+    question_details = MiniQuestionSerailizer(source="question", read_only=True)
 
     class Meta:
         model = FormData
-        fields = (
-            "question",
-            "selected_answer",
-            "notes",
-            "id",
-            "selected_answer_details",
-            "question_details"
-        )
+        fields = ("question", "selected_answer", "notes", "id", "selected_answer_details", "question_details")
 
 
-class FormAsessmentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class FormAsessmentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     form_data = FormDataWOFormSerializer(many=True)
 
     class Meta:
@@ -209,10 +182,10 @@ class FormAsessmentSerializer(
 
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
-        form_data = validated_data.pop('form_data')
+        form_data = validated_data.pop("form_data")
         form = super().create(validated_data)
         for data in form_data:
-            data['form'] = Form.objects.get(id=form.id)
+            data["form"] = Form.objects.get(id=form.id)
             FormData.objects.create(**data)
         return form
 
@@ -282,8 +255,8 @@ class PerMiniUserSerializer(serializers.ModelSerializer):
 
 class WorkPlanSerializer(serializers.ModelSerializer):
     user = PerMiniUserSerializer()
-    prioritization_display = serializers.CharField(source='get_prioritization_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    prioritization_display = serializers.CharField(source="get_prioritization_display", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = WorkPlan
@@ -294,8 +267,8 @@ class AssessmentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssessmentType
         fields = (
-            'id',
-            'name',
+            "id",
+            "name",
         )
 
 
@@ -318,35 +291,27 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         fields = ("id", "country_id", "assessment_number", "date_of_assessment", "type_of_assessment")
 
 
-class PerWorkPlanComponentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    supported_by_details = MiniCountrySerializer(source='supported_by', read_only=True)
+    supported_by_details = MiniCountrySerializer(source="supported_by", read_only=True)
 
     class Meta:
         model = PerWorkPlanComponent
         fields = (
-            'id',
-            'component',
-            'actions',
-            'due_date',
-            'status',
-            'supported_by',
-            'status_display',
-            'component_details',
-            'supported_by_details'
+            "id",
+            "component",
+            "actions",
+            "due_date",
+            "status",
+            "supported_by",
+            "status_display",
+            "component_details",
+            "supported_by_details",
         )
 
 
-class CustomPerWorkPlanComponentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class CustomPerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     class Meta:
         model = CustomPerWorkPlanComponent
         fields = "__all__"
@@ -368,7 +333,7 @@ class MiniOverviewSerializer(serializers.ModelSerializer):
 class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     component_responses = PerWorkPlanComponentSerializer(many=True, required=False)
     custom_component_responses = CustomPerWorkPlanComponentSerializer(many=True, required=False)
-    overview_details = MiniOverviewSerializer(source='overview', read_only=True)
+    overview_details = MiniOverviewSerializer(source="overview", read_only=True)
 
     class Meta:
         model = PerWorkPlan
@@ -384,14 +349,14 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
     def create(self, _):
         # NOTE: This is not created manually
         # This is created by FormPrioritizationSerializer
-        raise serializers.ValidationError('Create is not allowed')
+        raise serializers.ValidationError("Create is not allowed")
 
     def update(self, instance, validated_data):
-        is_draft = validated_data.get('is_draft')
+        is_draft = validated_data.get("is_draft")
         if check_draft_change(instance, is_draft) and is_draft is False:
-            overview = validated_data.get('overview')
+            overview = validated_data.get("overview")
             if overview is None:
-                raise serializers.ValidationError('Overview is required')
+                raise serializers.ValidationError("Overview is required")
             overview.update_phase(Overview.Phase.ACTION_AND_ACCOUNTABILITY)
         return super().update(instance, validated_data)
 
@@ -419,25 +384,12 @@ class FormComponentQuestionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class FormPrioritizationComponentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
-    component_details = MiniFormComponentSerializer(
-        source="component",
-        read_only=True
-    )
+class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    component_details = MiniFormComponentSerializer(source="component", read_only=True)
 
     class Meta:
         model = FormPrioritizationComponent
-        fields = (
-            'id',
-            'component',
-            'is_prioritized',
-            'justification_text',
-            'component_details'
-        )
+        fields = ("id", "component", "is_prioritized", "justification_text", "component_details")
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
@@ -450,14 +402,14 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
     def create(self, _):
         # NOTE: This is not created manually
         # This is created by PerAssessmentSerializer
-        raise serializers.ValidationError('Create is not allowed')
+        raise serializers.ValidationError("Create is not allowed")
 
     def update(self, instance, validated_data):
-        is_draft = validated_data.get('is_draft')
+        is_draft = validated_data.get("is_draft")
         if check_draft_change(instance, is_draft) and is_draft is False:
-            overview = validated_data.get('overview')
+            overview = validated_data.get("overview")
             if overview is None:
-                raise serializers.ValidationError('Overview is required')
+                raise serializers.ValidationError("Overview is required")
             overview.update_phase(Overview.Phase.WORKPLAN)
             PerWorkPlan.objects.create(overview=overview)
         return super().update(instance, validated_data)
@@ -466,7 +418,7 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
 class MiniAssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerAssessment
-        fields = ('id', 'overview')
+        fields = ("id", "overview")
 
 
 class PerFileSerializer(serializers.ModelSerializer):
@@ -482,25 +434,16 @@ class PerFileSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class PerOverviewSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class PerOverviewSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
     country_details = MiniCountrySerializer(source="country", read_only=True)
     user_details = UserNameSerializer(source="user", read_only=True)
     assessment_number = serializers.IntegerField(required=False, allow_null=True)
-    orientation_documents_file = PerFileSerializer(
-        many=True, required=False,
-        allow_null=True,
-        source='orientation_documents'
-    )
+    orientation_documents_details = PerFileSerializer(many=True, read_only=True, source="orientation_documents")
 
     class Meta:
         model = Overview
-        read_only_fields = ["user"]
-        exclude = ["orientation_documents"]
+        fields = "__all__"
 
     def create(self, validated_data):
         overview = super().create(validated_data)
@@ -514,9 +457,9 @@ class PerOverviewSerializer(
 
     def update(self, instance, validated_data):
         # TODO: Add a validation to only allow changes for specific fields after is_draft is False
-        is_draft = validated_data.get('is_draft')
+        is_draft = validated_data.get("is_draft")
         if check_draft_change(instance, is_draft, allow_change_for_non_draft=True) and is_draft is False:
-            validated_data['phase'] = Overview.Phase.ASSESSMENT
+            validated_data["phase"] = Overview.Phase.ASSESSMENT
             # Create associated assessment if not exists already
             PerAssessment.objects.get_or_create(overview=instance)
         return super().update(instance, validated_data)
@@ -527,153 +470,134 @@ class PerProcessSerializer(serializers.ModelSerializer):
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
-    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
         fields = (
-            'id',
-            'assessment_number',
-            'date_of_assessment',
-            'country',
-            'country_details',
-            'assessment',
-            'prioritization',
-            'workplan',
-            'phase',
-            'phase_display',
-
+            "id",
+            "assessment_number",
+            "date_of_assessment",
+            "country",
+            "country_details",
+            "assessment",
+            "prioritization",
+            "workplan",
+            "phase",
+            "phase_display",
         )
 
-    def get_assessment(self, obj):
+    def get_assessment(self, obj) -> typing.Optional[int]:
         assessment = PerAssessment.objects.filter(overview=obj).last()
         if assessment:
             return assessment.id
         return None
 
-    def get_prioritization(self, obj):
+    def get_prioritization(self, obj) -> typing.Optional[int]:
         prioritization = FormPrioritization.objects.filter(overview=obj).last()
         if prioritization:
             return prioritization.id
         return None
 
-    def get_workplan(self, obj):
+    def get_workplan(self, obj) -> typing.Optional[int]:
         workplan = PerWorkPlan.objects.filter(overview=obj).last()
         if workplan:
             return workplan.id
         return None
 
 
-class QuestionResponsesSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     class Meta:
         model = FormComponentQuestionAndAnswer
         fields = (
-            'id',
-            'question',
-            'answer',
-            'notes',
+            "id",
+            "question",
+            "answer",
+            "notes",
         )
 
 
 class PerComponentRatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerComponentRating
-        fields = '__all__'
+        fields = "__all__"
 
 
-class FormComponentResponseSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    rating_details = PerComponentRatingSerializer(source='rating', read_only=True)
+    rating_details = PerComponentRatingSerializer(source="rating", read_only=True)
 
     class Meta:
         model = FormComponentResponse
         fields = (
-            'id',
-            'component',
-            'rating',
-            'question_responses',
-            'rating_details',
+            "id",
+            "component",
+            "rating",
+            "question_responses",
+            "rating_details",
             # Considerations fields
-            'urban_considerations',
-            'epi_considerations',
-            'climate_environmental_considerations',
+            "urban_considerations",
+            "epi_considerations",
+            "climate_environmental_considerations",
         )
 
 
-class AreaResponseSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
-    area_details = FormAreaSerializer(
-        source='area', read_only=True
-    )
+class AreaResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    area_details = FormAreaSerializer(source="area", read_only=True)
     component_responses = FormComponentResponseSerializer(
         many=True,
         required=False,
-        source='component_response',
+        source="component_response",
     )
 
     class Meta:
         model = AreaResponse
         fields = (
-            'id',
-            'area_details',
-            'area',
-            'component_responses',
+            "id",
+            "area_details",
+            "area",
+            "component_responses",
         )
 
 
-class PerAssessmentSerializer(
-    NestedCreateMixin,
-    NestedUpdateMixin,
-    serializers.ModelSerializer
-):
+class PerAssessmentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     area_responses = AreaResponseSerializer(many=True, required=False)
 
     class Meta:
         model = PerAssessment
-        fields = '__all__'
+        fields = "__all__"
 
     def create(self, validated_data):
         # NOTE: This is not created manually
         # This is created by PerOverviewSerializer
-        raise serializers.ValidationError('Create is not allowed')
+        raise serializers.ValidationError("Create is not allowed")
 
     def update(self, instance, validated_data):
-        is_draft = validated_data.get('is_draft')
+        is_draft = validated_data.get("is_draft")
         if check_draft_change(instance, is_draft) and is_draft is False:
-            overview = validated_data.get('overview')
+            overview = validated_data.get("overview")
             if overview is None:
-                raise serializers.ValidationError('Overview is required')
+                raise serializers.ValidationError("Overview is required")
             overview.update_phase(Overview.Phase.PRIORITIZATION)
             FormPrioritization.objects.create(overview=overview)
         return super().update(instance, validated_data)
 
 
 class PublicPerCountrySerializer(serializers.ModelSerializer):
-    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
     type_of_assessment = AssessmentTypeSerializer(read_only=True)
 
     class Meta:
         model = Overview
         fields = (
-            'id',
-            'date_of_assessment',
-            'phase',
-            'assessment_number',
-            'ns_focal_point_name',
-            'ns_focal_point_email',
-            'type_of_assessment',
-            'phase_display',
+            "id",
+            "date_of_assessment",
+            "phase",
+            "assessment_number",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
+            "type_of_assessment",
+            "phase_display",
         )
 
 
@@ -681,26 +605,26 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormComponent
         fields = (
-            'id',
-            'status',
+            "id",
+            "status",
         )
 
 
 class UserPerCountrySerializer(serializers.ModelSerializer):
-    phase_display = serializers.CharField(source='get_phase_display', read_only=True)
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
     type_of_assessment = AssessmentTypeSerializer(read_only=True)
 
     class Meta:
         model = Overview
         fields = (
-            'id',
-            'date_of_assessment',
-            'phase',
-            'assessment_number',
-            'ns_focal_point_name',
-            'ns_focal_point_email',
-            'phase_display',
-            'type_of_assessment',
+            "id",
+            "date_of_assessment",
+            "phase",
+            "assessment_number",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
+            "phase_display",
+            "type_of_assessment",
         )
 
 
