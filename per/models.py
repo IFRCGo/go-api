@@ -318,7 +318,7 @@ class Overview(models.Model):
     assessment_number = models.IntegerField(verbose_name=_("assessment number"), default=1)
     branches_involved = models.CharField(verbose_name=_("branches involved"), max_length=400, null=True, blank=True)
     date_of_assessment = models.DateField(verbose_name=_("date of assessment"))
-    method_asmt_used = models.CharField(
+    assessment_method = models.CharField(
         verbose_name=_("what method has this assessment used"),
         max_length=90,
         null=True, blank=True,
@@ -338,8 +338,12 @@ class Overview(models.Model):
 
     # Previouse PER Assessment
     date_of_previous_assessment = models.DateField(verbose_name=_("Date of previous assessment"), null=True, blank=True)
-    type_of_per_assessment = models.CharField(
-        verbose_name=_("Type of Per Asessement"), max_length=255, null=True, blank=True
+    type_of_previous_assessment = models.ForeignKey(
+        AssessmentType,
+        verbose_name=_("type of previous assessment"),
+        related_name="type_of_previous_assessment",
+        null=True,
+        on_delete=models.SET_NULL,
     )
 
     # Workplan reviews planned
@@ -431,6 +435,7 @@ class Overview(models.Model):
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
                 self.date_of_previous_assessment = overview[0].date_of_assessment
+                self.type_of_previous_assessment = overview[0].type_of_assessment
             else:
                 self.assessment_number = 1
         super().save()
