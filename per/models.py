@@ -202,6 +202,9 @@ class FormAnswer(models.Model):
 
     text = models.CharField(verbose_name=_("text"), max_length=40)
 
+    class Meta:
+        ordering = ('id',)
+
     def __str__(self):
         return self.text
 
@@ -427,6 +430,7 @@ class Overview(models.Model):
             overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
+                self.date_of_previous_assessment = overview[0].date_of_assessment
             else:
                 self.assessment_number = 1
         super().save()
@@ -611,7 +615,12 @@ class CustomPerWorkPlanComponent(models.Model):
 
 
 class PerWorkPlan(models.Model):
-    overview = models.ForeignKey(Overview, verbose_name=_("Overview"), null=True, blank=True, on_delete=models.SET_NULL)
+    overview = models.ForeignKey(
+        Overview,
+        verbose_name=_("Overview"),
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
     component_responses = models.ManyToManyField(
         PerWorkPlanComponent,
         verbose_name=_("WorkPlan Component"),

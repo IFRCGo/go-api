@@ -15,6 +15,7 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
+from drf_spectacular.utils import extend_schema
 
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
@@ -61,7 +62,8 @@ from .serializers import (
     PerFileSerializer,
     PublicPerCountrySerializer,
     UserPerCountrySerializer,
-    PerComponentRatingSerializer
+    PerComponentRatingSerializer,
+    PerOptionsSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -191,7 +193,7 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
-    authentication_classes = (TokenAuthentication,)
+    # authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
 
@@ -204,7 +206,7 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
                 .filter(country_id=country_id)
                 .order_by("-created_at")[:1]  # first() gives error for len() and count()
             )
-        return None
+        return {}
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
@@ -235,32 +237,17 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
 class PerOptionsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=None, responses=PerOptionsSerializer)
     def get(self, request, version=None):
-        options = {
-            'componentratings': [
-                {
-                    "id": rating.id,
-                    "title": rating.title,
-                    "value": rating.value
-                } for rating in PerComponentRating.objects.all()
-            ],
-            'answers': [
-                {
-                    "id": answer.id,
-                    "text": answer.text
-                } for answer in FormAnswer.objects.all()
-            ],
-            'workplanstatus': [{"key": status.value, "value": status.label} for status in WorkPlanStatus],
-            'perphases': [{"key": status.value, "value": status.label} for status in Overview.Phase],
-            'overviewassessmentmethods': [{"key": status.value, "value": status.label} for status in Overview.AssessmentMethod],
-            'overviewassessmenttypes': [
-                {
-                    "id": assessment.id,
-                    "name": assessment.name,
-                } for assessment in AssessmentType.objects.all()
-            ]
-        }
-        return response.Response(options)
+        return response.Response(
+            PerOptionsSerializer(
+                dict(
+                    componentratings=PerComponentRating.objects.all(),
+                    answers=FormAnswer.objects.all(),
+                    overviewassessmenttypes=AssessmentType.objects.all()
+                )
+            ).data
+        )
 
 
 class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
