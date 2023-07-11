@@ -1551,11 +1551,11 @@ class Source(models.Model):
 class Profile(models.Model):
     """ Holds location and identifying information about users """
     class OrgTypes(models.TextChoices):
-         NTLS = 'NTLS', _('National Society')
-         DLGN = 'DLGN', _('Delegation')
-         SCRT = 'SCRT', _('Secretariat')
-         ICRC = 'ICRC', _('ICRC')
-         OTHR = 'OTHR', _('Other')
+        NTLS = 'NTLS', _('National Society')
+        DLGN = 'DLGN', _('Delegation')
+        SCRT = 'SCRT', _('Secretariat')
+        ICRC = 'ICRC', _('ICRC')
+        OTHR = 'OTHR', _('Other')
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
