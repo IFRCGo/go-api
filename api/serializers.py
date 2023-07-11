@@ -56,7 +56,6 @@ from .models import (
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
-from registrations.models import Recovery
 
 
 class GeoSerializerMixin:
@@ -69,13 +68,13 @@ class GeoSerializerMixin:
         FIXME: use this base class for existing serializers using geo objects.
         FIXME: the methods can probably be thought through a bit better
     '''
-    def get_bbox(self, district):
+    def get_bbox(self, district) -> dict:
         if district.bbox:
             return json.loads(district.bbox.geojson)
         else:
             return None
 
-    def get_centroid(self, district):
+    def get_centroid(self, district) -> dict:
         if district.centroid:
             return json.loads(district.centroid.geojson)
         else:
@@ -1166,3 +1165,132 @@ class CountryOfFieldReportToReviewSerializer(ModelSerializer):
     class Meta:
         model = CountryOfFieldReportToReview
         fields = '__all__'
+
+
+class AggregateHeaderFiguresSerializer(serializers.Serializer):
+    active_drefs = serializers.IntegerField()
+    active_appeals = serializers.IntegerField()
+    total_appeals = serializers.IntegerField()
+    target_population = serializers.IntegerField()
+    amount_requested = serializers.IntegerField()
+    amount_requested_dref_included = serializers.IntegerField()
+    amount_funded = serializers.IntegerField()
+
+
+# SearchPage Serializer
+class SearchRegionSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    score = serializers.FloatField()
+
+
+class SearchDistrictSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    country = serializers.CharField()
+    country_id = serializers.IntegerField()
+    score = serializers.FloatField()
+
+
+class SearchCountrySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    society_name = serializers.CharField()
+    iso3 = serializers.CharField()
+    score = serializers.FloatField()
+
+
+class SearchEmergencySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    disaster_type = serializers.CharField()
+    funding_requirements = serializers.CharField()
+    funding_coverage = serializers.CharField()
+    start_date = serializers.DateTimeField()
+    countries = serializers.ListField(serializers.CharField())
+    countries_id = serializers.ListField(serializers.IntegerField())
+    iso3 = serializers.ListField(serializers.CharField())
+    crisis_categorization = serializers.CharField()
+    appeal_type = serializers.CharField()
+    score = serializers.FloatField()
+
+
+class SearchSurgeAlertSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    keywords = serializers.ListField(serializers.CharField())
+    event_name = serializers.CharField()
+    country = serializers.CharField()
+    start_date = serializers.DateTimeField()
+    alert_date = serializers.DateTimeField()
+    event_id = serializers.IntegerField()
+    status = serializers.CharField()
+    deadline = serializers.CharField()
+    surge_type = serializers.CharField()
+    country_id = serializers.IntegerField()
+    score = serializers.FloatField()
+
+
+class SearchProjectsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    event_name = serializers.CharField()
+    national_society = serializers.CharField()
+    tags = serializers.ListField(serializers.CharField())
+    sector = serializers.CharField()
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    regions = serializers.ListField(serializers.CharField())
+    people_targeted = serializers.IntegerField()
+    event_id = serializers.IntegerField()
+    national_society_id = serializers.IntegerField()
+    score = serializers.FloatField()
+
+
+class SearchSurgeDeploymentSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    event_name = serializers.CharField()
+    deployed_country = serializers.CharField()
+    type = serializers.CharField()
+    owner = serializers.CharField()
+    personnel_units = serializers.IntegerField()
+    equipment_units = serializers.IntegerField()
+    event_id = serializers.IntegerField()
+    deployed_country_id = serializers.IntegerField()
+    deployed_country_name = serializers.CharField()
+    score = serializers.FloatField()
+
+
+class SearchRapidResponseDeploymentsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    event_name = serializers.CharField()
+    event_id = serializers.IntegerField()
+    start_date = serializers.DateTimeField()
+    end_date = serializers.DateTimeField()
+    position = serializers.CharField(allow_null=True)
+    type = serializers.CharField()
+    deploying_country_name = serializers.CharField()
+    deploying_country_id = serializers.IntegerField()
+    deployed_to_country_name = serializers.CharField()
+    deployed_to_country_id = serializers.IntegerField()
+
+
+class SearchReportSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    type = serializers.CharField()
+    score = serializers.FloatField()
+
+
+class SearchSerializer(serializers.Serializer):
+    regions = SearchRegionSerializer(many=True, required=False, allow_null=True)
+    district_province_response = SearchDistrictSerializer(many=True, required=False, allow_null=True)
+    countries = SearchCountrySerializer(many=True, required=False, allow_null=True)
+    emergencies = SearchEmergencySerializer(many=True, required=False, allow_null=True)
+    surge_alerts = SearchSurgeAlertSerializer(many=True, required=False, allow_null=True)
+    projects = SearchProjectsSerializer(many=True, required=False, allow_null=True)
+    surge_deployments = SearchSurgeDeploymentSerializer(many=True, required=False, allow_null=True)
+    rapid_response_deployments = SearchRapidResponseDeploymentsSerializer(many=True, required=False, allow_null=True)
+    reports = SearchReportSerializer(many=True, required=False, allow_null=True)
