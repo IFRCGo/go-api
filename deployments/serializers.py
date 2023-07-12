@@ -80,13 +80,23 @@ class ERUOwnerSerializer(ModelSerializer):
 
 class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
-    event = ListEventSerializer(allow_null=True)
+    event = ListEventSerializer(allow_null=True, required=False)
     eru_owner = ERUOwnerSerializer()
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = (
+            'type',
+            'type_display',
+            'units',
+            'equipment_units',
+            'deployed_to',
+            'event',
+            'eru_owner',
+            'available',
+            'id',
+        )
 
 
 class ERUOwnerMiniSerializer(ModelSerializer):
