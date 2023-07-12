@@ -21,7 +21,7 @@ class DomainWhitelistViewset(viewsets.ReadOnlyModelViewSet):
 class ChangePasswordView(views.APIView):
     @extend_schema(request=ChangePasswordSerializer, responses=None)
     def post(self, request, version=None):
-        serializer = ChangePasswordSerializer(data=request.data)
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(
