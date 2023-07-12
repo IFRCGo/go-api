@@ -362,7 +362,7 @@ class DeploymentsByNS(APIView):
     @classmethod
     @extend_schema(
         request=None,
-        responses=DeploymentByNSSerializer
+        responses=DeploymentByNSSerializer(many=True)
     )
     def get(cls, request):
         """Returns count of Personnel Deployments
