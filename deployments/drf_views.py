@@ -334,7 +334,7 @@ class DeploymentsByMonth(APIView):
     @classmethod
     @extend_schema(
         request=None,
-        responses=DeploymentsByMonthSerializer,
+        responses=DeploymentsByMonthSerializer(many=True),
     )
     def get(cls, request):
         """
@@ -343,7 +343,7 @@ class DeploymentsByMonth(APIView):
         """
         now = datetime.datetime.now()
         months = get_previous_months(now, 12)
-        deployment_counts = {}
+        deployment_counts = []
         for month in months:
             month_string = month[0]
             first_day = month[1]
@@ -352,13 +352,9 @@ class DeploymentsByMonth(APIView):
                 start_date__date__lte=last_day,
                 end_date__date__gte=first_day
             ).count()
-            deployment_counts[month_string] = count
+            deployment_counts.append(dict(date=month_string, count=count))
         return Response(
-            DeploymentsByMonthSerializer(
-                dict(
-                    deployment_counts=deployment_counts
-                )
-            ).data
+            DeploymentsByMonthSerializer(deployment_counts, many=True).data
         )
 
 
