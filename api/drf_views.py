@@ -784,25 +784,15 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
         "regions__label",
         "summary",
     )  # for /docs
-    ordering_fields = (
-        "summary",
-        "event",
-        "dtype",
-        "created_at",
-        "updated_at"
-    )
+    ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
 
     def get_queryset(self, *args, **kwargs):
-        return super().get_queryset().select_related(
-            "dtype",
-            "event"
-        ).prefetch_related(
-            "actions_taken",
-            "actions_taken__actions",
-            "countries",
-            "districts",
-            "regions"
+        return (
+            super()
+            .get_queryset()
+            .select_related("dtype", "event")
+            .prefetch_related("actions_taken", "actions_taken__actions", "countries", "districts", "regions")
         )
 
     def get_serializer_class(self):
