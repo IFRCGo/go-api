@@ -5,6 +5,7 @@ from django.utils import timezone
 from api.models import Country, Region, Event, DisasterType
 from deployments.models import MolnixTag
 
+
 class SurgeAlertType(models.IntegerChoices):
     FACT = 0, _('fact')
     SIMS = 1, _('SIMS')
