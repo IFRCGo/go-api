@@ -405,9 +405,8 @@ class HayStackSearch(APIView):
                     "funding_coverage": data.amount_funded,
                     "start_date": data.disaster_start_date,
                     "score": data.score,
-                    "countries": data.countries,
-                    "countries_id": data.countries_id,
-                    "iso3": data.iso3,
+                    "countries": Country.objects.filter(id__in=data.countries_id),
+                    # "iso3": data.iso3,
                     "crisis_categorization": data.crisis_categorization,
                     "appeal_type": data.appeal_type,
                 }
