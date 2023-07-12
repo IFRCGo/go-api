@@ -110,9 +110,9 @@ class ERUViewset(viewsets.ReadOnlyModelViewSet):
         "type",
         "units",
         "equipment_units",
-        "deployed_to",
-        "event",
-        "eru_owner",
+        "deployed_to__society_name",
+        "event__name",
+        "eru_owner__national_society_country__society_name",
         "available",
     )
 
