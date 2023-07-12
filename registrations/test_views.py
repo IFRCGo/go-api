@@ -151,7 +151,7 @@ class TwoGatekeepersTest(APITestCase):
         }
         resp = self.client.post('/register', json=data)
         self.assertEqual(resp.status_code, 400)
-        self.assertEqual(User.objects.filter(is_active=False).count(), old_user_count)  # No new user to be cr
+        self.assertEqual(User.objects.filter(is_active=False).count(), old_user_count)  # No new user to be created
 
         # update the email now should create user
         data['email'] = "test@gmail.com"
