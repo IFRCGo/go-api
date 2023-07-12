@@ -30,7 +30,6 @@ class Pending(models.Model):
     justification = models.CharField(verbose_name=_('justification'), max_length=500, blank=True, null=True)
     reminder_sent_to_admin = models.BooleanField(verbose_name=_('reminder sent to admin?'), default=False, editable=False)
 
-
     class Meta:
         verbose_name = _('Pending user')
         verbose_name_plural = _('Pending users')
