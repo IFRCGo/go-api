@@ -74,11 +74,11 @@ class FormArea(models.Model):
 class FormComponentQuestionAndAnswer(models.Model):
     question = models.ForeignKey(
         "FormQuestion", verbose_name=_("question"),
-        null=True, on_delete=models.CASCADE
+        on_delete=models.CASCADE
     )
     answer = models.ForeignKey(
         "FormAnswer", verbose_name=_("answer"),
-        null=True, on_delete=models.CASCADE
+        on_delete=models.CASCADE
     )
     notes = models.TextField(
         verbose_name=_("notes"),
@@ -127,8 +127,7 @@ class FormComponentResponse(models.Model):
     component = models.ForeignKey(
         FormComponent,
         verbose_name=_("Form Component"),
-        on_delete=models.PROTECT,
-        blank=True, null=True,
+        on_delete=models.CASCADE,
     )
     rating = models.ForeignKey(
         PerComponentRating,
@@ -227,7 +226,7 @@ class FormQuestion(models.Model):
 class FormPrioritizationComponent(models.Model):
     component = models.ForeignKey(
         FormComponent, verbose_name=_("component"),
-        on_delete=models.PROTECT, null=True, blank=True
+        on_delete=models.CASCADE
     )
     is_prioritized = models.BooleanField(verbose_name=_("Is prioritized"), null=True, blank=True)
     justification_text = models.TextField(verbose_name=_("Justification Text"), null=True, blank=True)
