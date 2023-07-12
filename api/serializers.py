@@ -1767,6 +1767,11 @@ class SearchCountrySerializer(serializers.Serializer):
     score = serializers.FloatField()
 
 
+class SearchMiniCountrySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
 class SearchEmergencySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
@@ -1774,9 +1779,9 @@ class SearchEmergencySerializer(serializers.Serializer):
     funding_requirements = serializers.CharField()
     funding_coverage = serializers.CharField()
     start_date = serializers.DateTimeField()
-    countries = serializers.ListField(serializers.CharField())
-    countries_id = serializers.ListField(serializers.IntegerField())
-    iso3 = serializers.ListField(serializers.CharField())
+    countries = SearchMiniCountrySerializer(many=True)
+    # countries_id = serializers.ListField(serializers.IntegerField())
+    # iso3 = serializers.ListField(serializers.CharField())
     crisis_categorization = serializers.CharField()
     appeal_type = serializers.CharField()
     score = serializers.FloatField()
