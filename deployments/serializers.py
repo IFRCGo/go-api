@@ -718,4 +718,5 @@ class DeploymentByNSSerializer(serializers.Serializer):
 
 
 class DeploymentsByMonthSerializer(serializers.Serializer):
-    deployment_counts = serializers.DictField(serializers.CharField())
+    date = serializers.CharField()
+    count = serializers.IntegerField()
