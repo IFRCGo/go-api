@@ -39,362 +39,360 @@ snapshots['TestProjectAPI::test_global_project_api 1'] = {
     'total_ongoing_projects': 16
 }
 
-snapshots['TestProjectAPI::test_global_project_api 2'] = {
-    'results': [
-        {
-            'budget_amount_total': 7890000,
-            'id': 5,
-            'iso3': 'YvZ',
-            'name': 'country-SZuAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkg',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-JNSRTdkyOaZfjEMBfeqoxfMcUyzNPHsTMdXlOFCamQZHsmcYMG',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 1430000,
-            'id': 7,
-            'iso3': 'kfs',
-            'name': 'country-ZwjrVnVzStakFageXSAHAPsUBklxlTimFlGhCKnlmdVlZWmqAC',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-fyhrevbLpEFRWgadrWaQLYcgnHYayMHWrFEWvMBvxRvupxQzyN',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 4740000,
-            'id': 9,
-            'iso3': 'RTM',
-            'name': 'country-XrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgLYPgKghW',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-AzTVcwPYCDKHczZOVXBQbnKlbOvgsAZbUDqwRwwprCYduDSOqX',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 1510000,
-            'id': 11,
-            'iso3': 'upQ',
-            'name': 'country-jfwLeHpiSEbcdrzABgtvOLbWeYhdCLFQDhqcbVPqLpIXJeTKWS',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-TeuYlcqNMGcZLtPMFzYMHFOoPemDLCRhAyMJVsgAygjnFsdFEK',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 2590000,
-            'id': 13,
-            'iso3': 'DUn',
-            'name': 'country-HMXjEmKAVfuMCBqXaumRPVuACdVEGMDFTvwqkBeLTbpYHqjlEn',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-ldTllPjEggWeDxPFBMhFgBkdXskNIxhsrJzKJocxlgBLanLZll',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 4880000,
-            'id': 15,
-            'iso3': 'Rap',
-            'name': 'country-pUBMSvIcwbWUYtuZdxUcMlIrzDkUadDmrlWMWmKcSDCoVFjLur',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-JbeAivJwhwcRiSSOatvbQlJgtnvoeiDMqXRRRRooWFNWvmfZUU',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 6060000,
-            'id': 17,
-            'iso3': 'ZEZ',
-            'name': 'country-SQTvZhsNCjqMSdmiiprEFesBYNvcLpTwuxwSCcjccAhEqemAtq',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-zhXkgJKpQMfOjERUWYaAubCVzgjkjIPpPTObxyssAJSwpQaqxx',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 1230000,
-            'id': 19,
-            'iso3': 'zEf',
-            'name': 'country-hpQyDQuMgAtrSOKhumYjUhJPbggmdHuingwzIXkpslIqTaUijU',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-OpXkaiupWqkpIBCZcCEybtXiNUmPOQQLWIFOTBTzEtdISFFiec',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 1150000,
-            'id': 21,
-            'iso3': 'Bzu',
-            'name': 'country-GtArEivAdsyZDGkPcRnBNbzSguTYSwcQlzepqbSNEofijYXRdT',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-sPauoVOlrkOPhSAKrovoSkGVBeDJQaxJepHcvColhoyXZCJWPJ',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 8860000,
-            'id': 23,
-            'iso3': 'CQe',
-            'name': 'country-qWYnIFiQbCuCMmUgtPtqPMrZYZhLTKyQruRKWWPylOqQmJraKT',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-wCoQOAHvaPCduRhIjwfPhYbmfPIBCibEwLgrrVxABeNAZzUDRy',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 2410000,
-            'id': 25,
-            'iso3': 'uBA',
-            'name': 'country-icmMwRdPTZdCGBCCvvacXumVuEYOOyTdPozCnnyerlqErfwWfB',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-TePrGXYYSkSqPpAtIveCHkSCRxVFEmdWyeqzbfFQqXfMytbUdd',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 4770000,
-            'id': 27,
-            'iso3': 'rMT',
-            'name': 'country-OaaikPCKBXkVrtvlCGsmaSaoMIFGOWcAYsBvKtVMfQWIAIPUtM',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-mSlanULjkyJzGEbPRnExxVYFIxYsuETSyunaLjqVAsnbGhoijl',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 1590000,
-            'id': 29,
-            'iso3': 'nUd',
-            'name': 'country-vywZNUlnadilslioCfzytonQUmVZSwfZMNNCOVkeeeuiNkCWaY',
-            'ongoing_projects': 1,
-            'operation_types': [
-                0
-            ],
-            'operation_types_display': [
-                'Programme'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-AZEBOqidOTSYhUXfFWSpececNhbRXqzcdvlPctLvyAIZzTwfbm',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 8470000,
-            'id': 31,
-            'iso3': 'tSc',
-            'name': 'country-UMYoFEUEYltXVlqkEGtYSelIQFOAXYgiWVGjBgkrTLNJDCMKMs',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-ATJhlDwzfUascJBEmjuYHzGrHebykrDeywzNmOWSYYIVAuelbv',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 3720000,
-            'id': 33,
-            'iso3': 'qdv',
-            'name': 'country-gEjLhkzKGguporwomItnbNOiAMDGGPmnhdTlXdGvSjcPxzqvNH',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-IZwBwUNxfLEVqSpXMXwcqsWTQOQtTSKUYiWRbLxruxrMflWHne',
-            'target_total': 0
-        },
-        {
-            'budget_amount_total': 7040000,
-            'id': 35,
-            'iso3': 'rSa',
-            'name': 'country-vqBqljxxKiiFeNlOaEtrfQgsRHykMQTFGmiOGsumHhWkWKVhOB',
-            'ongoing_projects': 1,
-            'operation_types': [
-                1
-            ],
-            'operation_types_display': [
-                'Emergency Operation'
-            ],
-            'projects_per_sector': [
-                {
-                    'count': 1,
-                    'primary_sector': 1,
-                    'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
-                }
-            ],
-            'society_name': 'society-name-SXZWbVLJLoVBIUCceEjexSfIqPYDWsqYcdduqRpPfQkikTAtLl',
-            'target_total': 0
-        }
-    ]
-}
+snapshots['TestProjectAPI::test_global_project_api 2'] = [
+    {
+        'budget_amount_total': 7890000,
+        'id': 5,
+        'iso3': 'YvZ',
+        'name': 'country-SZuAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkg',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-JNSRTdkyOaZfjEMBfeqoxfMcUyzNPHsTMdXlOFCamQZHsmcYMG',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 1430000,
+        'id': 7,
+        'iso3': 'kfs',
+        'name': 'country-ZwjrVnVzStakFageXSAHAPsUBklxlTimFlGhCKnlmdVlZWmqAC',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-fyhrevbLpEFRWgadrWaQLYcgnHYayMHWrFEWvMBvxRvupxQzyN',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 4740000,
+        'id': 9,
+        'iso3': 'RTM',
+        'name': 'country-XrUUrqOGvAQqwfagTZFpLFoLBQrgXTFJMKyMHQycMgLYPgKghW',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-AzTVcwPYCDKHczZOVXBQbnKlbOvgsAZbUDqwRwwprCYduDSOqX',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 1510000,
+        'id': 11,
+        'iso3': 'upQ',
+        'name': 'country-jfwLeHpiSEbcdrzABgtvOLbWeYhdCLFQDhqcbVPqLpIXJeTKWS',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-TeuYlcqNMGcZLtPMFzYMHFOoPemDLCRhAyMJVsgAygjnFsdFEK',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 2590000,
+        'id': 13,
+        'iso3': 'DUn',
+        'name': 'country-HMXjEmKAVfuMCBqXaumRPVuACdVEGMDFTvwqkBeLTbpYHqjlEn',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-ldTllPjEggWeDxPFBMhFgBkdXskNIxhsrJzKJocxlgBLanLZll',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 4880000,
+        'id': 15,
+        'iso3': 'Rap',
+        'name': 'country-pUBMSvIcwbWUYtuZdxUcMlIrzDkUadDmrlWMWmKcSDCoVFjLur',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-JbeAivJwhwcRiSSOatvbQlJgtnvoeiDMqXRRRRooWFNWvmfZUU',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 6060000,
+        'id': 17,
+        'iso3': 'ZEZ',
+        'name': 'country-SQTvZhsNCjqMSdmiiprEFesBYNvcLpTwuxwSCcjccAhEqemAtq',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-zhXkgJKpQMfOjERUWYaAubCVzgjkjIPpPTObxyssAJSwpQaqxx',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 1230000,
+        'id': 19,
+        'iso3': 'zEf',
+        'name': 'country-hpQyDQuMgAtrSOKhumYjUhJPbggmdHuingwzIXkpslIqTaUijU',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-OpXkaiupWqkpIBCZcCEybtXiNUmPOQQLWIFOTBTzEtdISFFiec',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 1150000,
+        'id': 21,
+        'iso3': 'Bzu',
+        'name': 'country-GtArEivAdsyZDGkPcRnBNbzSguTYSwcQlzepqbSNEofijYXRdT',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-sPauoVOlrkOPhSAKrovoSkGVBeDJQaxJepHcvColhoyXZCJWPJ',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 8860000,
+        'id': 23,
+        'iso3': 'CQe',
+        'name': 'country-qWYnIFiQbCuCMmUgtPtqPMrZYZhLTKyQruRKWWPylOqQmJraKT',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-wCoQOAHvaPCduRhIjwfPhYbmfPIBCibEwLgrrVxABeNAZzUDRy',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 2410000,
+        'id': 25,
+        'iso3': 'uBA',
+        'name': 'country-icmMwRdPTZdCGBCCvvacXumVuEYOOyTdPozCnnyerlqErfwWfB',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-TePrGXYYSkSqPpAtIveCHkSCRxVFEmdWyeqzbfFQqXfMytbUdd',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 4770000,
+        'id': 27,
+        'iso3': 'rMT',
+        'name': 'country-OaaikPCKBXkVrtvlCGsmaSaoMIFGOWcAYsBvKtVMfQWIAIPUtM',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-mSlanULjkyJzGEbPRnExxVYFIxYsuETSyunaLjqVAsnbGhoijl',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 1590000,
+        'id': 29,
+        'iso3': 'nUd',
+        'name': 'country-vywZNUlnadilslioCfzytonQUmVZSwfZMNNCOVkeeeuiNkCWaY',
+        'ongoing_projects': 1,
+        'operation_types': [
+            0
+        ],
+        'operation_types_display': [
+            'Programme'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-AZEBOqidOTSYhUXfFWSpececNhbRXqzcdvlPctLvyAIZzTwfbm',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 8470000,
+        'id': 31,
+        'iso3': 'tSc',
+        'name': 'country-UMYoFEUEYltXVlqkEGtYSelIQFOAXYgiWVGjBgkrTLNJDCMKMs',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-ATJhlDwzfUascJBEmjuYHzGrHebykrDeywzNmOWSYYIVAuelbv',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 3720000,
+        'id': 33,
+        'iso3': 'qdv',
+        'name': 'country-gEjLhkzKGguporwomItnbNOiAMDGGPmnhdTlXdGvSjcPxzqvNH',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-IZwBwUNxfLEVqSpXMXwcqsWTQOQtTSKUYiWRbLxruxrMflWHne',
+        'target_total': 0
+    },
+    {
+        'budget_amount_total': 7040000,
+        'id': 35,
+        'iso3': 'rSa',
+        'name': 'country-vqBqljxxKiiFeNlOaEtrfQgsRHykMQTFGmiOGsumHhWkWKVhOB',
+        'ongoing_projects': 1,
+        'operation_types': [
+            1
+        ],
+        'operation_types_display': [
+            'Emergency Operation'
+        ],
+        'projects_per_sector': [
+            {
+                'count': 1,
+                'primary_sector': 1,
+                'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
+            }
+        ],
+        'society_name': 'society-name-SXZWbVLJLoVBIUCceEjexSfIqPYDWsqYcdduqRpPfQkikTAtLl',
+        'target_total': 0
+    }
+]
 
 snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,surge_alert_id,appraisal_received,gender,location,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
 ,,,,,,,,,,,,False,,,,1,,,,,,,,,,,True,True,,,,,,,,\r

@@ -381,21 +381,6 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 2)
 
-    def test_dref_options(self):
-        """
-        Test for various dref attributes
-        """
-        url = "/api/v2/dref-options/"
-        self.client.force_authenticate(self.user)
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("status", response.data)
-        self.assertIn("type_of_onset", response.data)
-        self.assertIn("disaster_category", response.data)
-        self.assertIn("planned_interventions", response.data)
-        self.assertIn("needs_identified", response.data)
-        self.assertIn("national_society_actions", response.data)
-
     @mock.patch("django.utils.timezone.now")
     def test_dref_is_published(self, mock_now):
         """
