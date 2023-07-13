@@ -17,6 +17,8 @@ from .models import (
     ERU,
     EmergencyProjectActivitySector,
     EmergencyProject,
+    ERUOwner,
+    ERUType
 )
 
 
@@ -125,3 +127,35 @@ class EmergencyProjectFilter(filters.FilterSet):
         fields = {
             'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
+
+
+class ERUOwnerFilter(filters.FilterSet):
+    eru_type = filters.MultipleChoiceFilter(
+        choices=ERUType.choices,
+        label='eru_type',
+        widget=filters.widgets.CSVWidget,
+        method='filter_noop'
+    )
+    available = filters.BooleanFilter(
+        method='filter_noop',
+        label='available'
+    )
+
+    class Meta:
+        model = ERUOwner
+        fields = ()
+
+    def filter_noop(self, qs, name, value, *_):
+        return qs
+
+    @property
+    def qs(self):
+        qs = super().qs
+        eru_type = self.form.cleaned_data.get('eru_type')
+        available = self.form.cleaned_data.get('available')
+        eru_qs = ERU.objects.all()
+        if eru_type:
+            eru_qs = eru_qs.filter(type__in=eru_type)
+        if available is not None:
+            eru_qs = eru_qs.filter(available=available)
+        return qs.filter(eru__in=eru_qs).distinct()
