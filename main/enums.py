@@ -3,12 +3,14 @@ from rest_framework import serializers
 from dref import enums as dref_enums
 from api import enums as api_enums
 from flash_update import enums as flash_update_enums
+from deployments import enums as deployments_enums
 
 
 apps_enum_register = [
     ('dref', dref_enums.enum_register),
     ('api', api_enums.enum_register),
     ('flash_update', flash_update_enums.enum_register),
+    ('deployments', deployments_enums.enum_register),
 ]
 
 
