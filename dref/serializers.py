@@ -1,6 +1,7 @@
 import os
 import datetime
 from typing import List
+import math
 
 from django.utils.translation import gettext
 from django.db import models, transaction
@@ -354,23 +355,23 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
                 return dref["users"]
         return
 
-    def to_representation(self, instance):
-        def _remove_digits_after_decimal(value) -> float:
-            # NOTE: We are doing this to remove decimal after 3 digits whole numbers
-            # eg: 100.00% be replaced with 100%
-            if value and len(value.split(".")[0]) == 3:
-                return value.split(".")[0]
-            return value
+    # def to_representation(self, instance):
+    #     def _remove_digits_after_decimal(value) -> float:
+    #         # NOTE: We are doing this to remove decimal after 3 digits whole numbers
+    #         # eg: 100.00% be replaced with 100%
+    #         if value and len(value) == 3:
+    #             return value.split(".")[0]
+    #         return value
 
-        data = super().to_representation(instance)
-        for key in [
-            "disability_people_per",
-            "people_per_urban",
-            "people_per_local",
-        ]:
-            value = data.get(key) or ""
-            data[key] = _remove_digits_after_decimal(value)
-        return data
+    #     data = super().to_representation(instance)
+    #     for key in [
+    #         "disability_people_per",
+    #         "people_per_urban",
+    #         "people_per_local",
+    #     ]:
+    #         value = data.get(key) or ""
+    #         data[key] = _remove_digits_after_decimal(value)
+    #     return data
 
     def validate(self, data):
         event_date = data.get("event_date")

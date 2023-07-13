@@ -28,7 +28,7 @@ from api.models import (
 from api.view_filters import ListFilter
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
-from .filters import ProjectFilter, EmergencyProjectFilter
+from .filters import ProjectFilter, EmergencyProjectFilter, ERUOwnerFilter
 from .utils import get_previous_months
 from .models import (
     ERU,
@@ -84,6 +84,7 @@ class ERUOwnerViewset(viewsets.ReadOnlyModelViewSet):
         "created_at",
         "updated_at",
     )
+    filterset_class = ERUOwnerFilter
     search_fields = ("national_society_country__name",)  # for /docs
 
 
