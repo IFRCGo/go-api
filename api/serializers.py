@@ -1782,9 +1782,10 @@ class SearchEmergencySerializer(serializers.Serializer):
     countries = SearchMiniCountrySerializer(many=True)
     # countries_id = serializers.ListField(serializers.IntegerField())
     # iso3 = serializers.ListField(serializers.CharField())
-    crisis_categorization = serializers.CharField()
+    severity_level_display = serializers.CharField()
     appeal_type = serializers.CharField()
     score = serializers.FloatField()
+    severity_level = serializers.IntegerField()
 
 
 class SearchSurgeAlertSerializer(serializers.Serializer):
