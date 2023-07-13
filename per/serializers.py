@@ -526,6 +526,7 @@ class PerComponentRatingSerializer(serializers.ModelSerializer):
 class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
     rating_details = PerComponentRatingSerializer(source="rating", read_only=True)
+    component_details = FormComponentSerializer(source="component", read_only=True)
 
     class Meta:
         model = FormComponentResponse
@@ -535,6 +536,7 @@ class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, seri
             "rating",
             "question_responses",
             "rating_details",
+            "component_details",
             # Considerations fields
             "urban_considerations",
             "epi_considerations",
