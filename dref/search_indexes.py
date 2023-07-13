@@ -20,7 +20,7 @@ class DrefIndex(indexes.SearchIndex, indexes.Indexable):
 
 
 class DrefOperationalUpdateIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.EdgeNgramField(document=True, use_template=True)
+    text = indexes.EdgeNgramField(document=True, use_template=True, null=True)
     name = indexes.EdgeNgramField(model_attr='title')
     created_at = indexes.DateTimeField(model_attr='created_at')
     code = indexes.CharField(model_attr='appeal_code', null=True)
