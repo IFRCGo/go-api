@@ -1846,6 +1846,7 @@ class SearchRapidResponseDeploymentsSerializer(serializers.Serializer):
     deploying_country_id = serializers.IntegerField()
     deployed_to_country_name = serializers.CharField()
     deployed_to_country_id = serializers.IntegerField()
+    score = serializers.FloatField()
 
 
 class SearchReportSerializer(serializers.Serializer):
