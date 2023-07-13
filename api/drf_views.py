@@ -744,7 +744,7 @@ class ProfileViewset(viewsets.ModelViewSet):
 
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    # authentication_classes = (TokenAuthentication,)
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
@@ -777,7 +777,7 @@ class FieldReportFilter(filters.FilterSet):
 
 
 class FieldReportViewset(ReadOnlyVisibilityViewset):
-    # authentication_classes = (TokenAuthentication,)
+    authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
     search_fields = (
         "countries__name",
