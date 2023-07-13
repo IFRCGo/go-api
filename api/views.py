@@ -407,8 +407,9 @@ class HayStackSearch(APIView):
                     "score": data.score,
                     "countries": Country.objects.filter(id__in=data.countries_id),
                     # "iso3": data.iso3,
-                    "crisis_categorization": data.crisis_categorization,
+                    "severity_level_display": data.crisis_categorization,
                     "appeal_type": data.appeal_type,
+                    "severity_level": data.severity_level,
                 }
                 for data in emergency_response[:50]
             ],
