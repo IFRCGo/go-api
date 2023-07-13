@@ -357,29 +357,23 @@ class Dref(models.Model):
         blank=True,
         null=True,
     )
-    disability_people_per = models.DecimalField(
+    disability_people_per = models.FloatField(
         verbose_name=_("disability people per"),
         help_text=_("Estimated % people disability"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
-    people_per_urban = models.DecimalField(
+    people_per_urban = models.FloatField(
         verbose_name=_("people per urban"),
         help_text=_("Estimated % people Urban"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
-    people_per_local = models.DecimalField(
+    people_per_local = models.FloatField(
         verbose_name=_("people per local"),
         help_text=_("Estimated % people Rural"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"),
