@@ -85,6 +85,7 @@ class EmergenciesIndex(indexes.Indexable, indexes.SearchIndex):
     crisis_categorization = indexes.CharField(model_attr='get_ifrc_severity_level_display', null=True)
     iso3 = indexes.MultiValueField(null=True)
     visibility = indexes.CharField(model_attr='get_visibility_display', null=True)
+    severity_level = indexes.IntegerField(model_attr='ifrc_severity_level', null=True)
 
     def get_model(self):
         return Event
