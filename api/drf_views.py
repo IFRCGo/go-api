@@ -534,6 +534,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
                     del serializer.data["field_reports"][j]["recent_affected"]
         return Response(serializer.data)
 
+    @extend_schema(
+        request=None,
+        responses=ListMiniEventSerializer(many=True),
+    )
     @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
         return super().list(request)
