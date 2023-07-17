@@ -579,6 +579,7 @@ class CountryRelationSerializer(ModelSerializer):
             "contacts",
             "name",
             "iso",
+            "iso3",
             "society_name",
             "society_url",
             "region",
