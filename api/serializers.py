@@ -1869,3 +1869,17 @@ class SearchSerializer(serializers.Serializer):
     surge_deployments = SearchSurgeDeploymentSerializer(many=True, required=False, allow_null=True)
     rapid_response_deployments = SearchRapidResponseDeploymentsSerializer(many=True, required=False, allow_null=True)
     reports = SearchReportSerializer(many=True, required=False, allow_null=True)
+
+
+class ProjectPrimarySectorsSerializer(serializers.Serializer):
+    key = serializers.IntegerField()
+    label = serializers.CharField()
+    color = serializers.CharField()
+    is_deprecated = serializers.BooleanField()
+
+
+class ProjectSecondarySectorsSerializer(serializers.Serializer):
+    key = serializers.IntegerField()
+    label = serializers.CharField()
+    color = serializers.CharField()
+    is_deprecated = serializers.BooleanField()
