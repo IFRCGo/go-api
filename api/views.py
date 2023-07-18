@@ -37,6 +37,8 @@ from .utils import is_user_ifrc
 from api.serializers import (
     AggregateHeaderFiguresSerializer,
     SearchSerializer,
+    ProjectPrimarySectorsSerializer,
+    ProjectSecondarySectorsSerializer
 )
 
 
@@ -540,21 +542,33 @@ class ProjectProgrammeTypes(APIView):
 
 class ProjectPrimarySectors(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=ProjectPrimarySectorsSerializer(many=True),
+    )
     def get(cls, request):
         keys_labels = [
             {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated} for s in Sector.objects.all()
         ]
-        return JsonResponse(keys_labels, safe=False)
+        return Response(
+            ProjectPrimarySectorsSerializer(keys_labels, many=True).data
+        )
 
 
 class ProjectSecondarySectors(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=ProjectSecondarySectorsSerializer(many=True),
+    )
     def get(cls, request):
         keys_labels = [
             {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated}
             for s in SectorTag.objects.all()
         ]
-        return JsonResponse(keys_labels, safe=False)
+        return Response(
+            ProjectSecondarySectorsSerializer(keys_labels, many=True).data
+        )
 
 
 class ProjectOperationTypes(APIView):
