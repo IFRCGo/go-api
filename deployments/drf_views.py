@@ -70,7 +70,9 @@ from .serializers import (
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
     DeploymentByNSSerializer,
-    DeploymentsByMonthSerializer
+    DeploymentsByMonthSerializer,
+    ProjectRegionOverviewSerializer,
+    ProjectRegionMovementActivitiesSerializer,
 )
 
 
@@ -468,6 +470,10 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         # Filter by GET params
         return ProjectFilter(self.request.query_params, queryset=qs).qs
 
+    @extend_schema(
+        request=None,
+        responses=ProjectRegionOverviewSerializer
+    )
     @action(detail=True, url_path="overview", methods=("get",))
     def overview(self, request, pk=None):
         projects = self.get_projects()
@@ -476,24 +482,29 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             target_total=models.Sum("target_total"),
             reached_total=models.Sum("reached_total"),
         )
+        data = {
+            "total_projects": projects.count(),
+            "ns_with_ongoing_activities": projects.filter(status=Statuses.ONGOING)
+            .order_by("reporting_ns")
+            .values("reporting_ns")
+            .distinct()
+            .count(),
+            "total_budget": aggregate_data["total_budget"],
+            "target_total": aggregate_data["target_total"],
+            "reached_total": aggregate_data["reached_total"],
+            "projects_by_status": projects.order_by()
+            .values("status")
+            .annotate(count=models.Count("id", distinct=True))
+            .values("status", "count"),
+        }
         return Response(
-            {
-                "total_projects": projects.count(),
-                "ns_with_ongoing_activities": projects.filter(status=Statuses.ONGOING)
-                .order_by("reporting_ns")
-                .values("reporting_ns")
-                .distinct()
-                .count(),
-                "total_budget": aggregate_data["total_budget"],
-                "target_total": aggregate_data["target_total"],
-                "reached_total": aggregate_data["reached_total"],
-                "projects_by_status": projects.order_by()
-                .values("status")
-                .annotate(count=models.Count("id", distinct=True))
-                .values("status", "count"),
-            }
+            data
         )
 
+    @extend_schema(
+        request=None,
+        responses=ProjectRegionMovementActivitiesSerializer
+    )
     @action(detail=True, url_path="movement-activities", methods=("get",))
     def movement_activities(self, request, pk=None):
         projects = self.get_projects()
@@ -563,31 +574,32 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
             for status, status_label in Statuses.choices
         }
 
-        return Response(
-            {
-                "total_projects": projects.count(),
-                "countries_count": countries.annotate(
-                    projects_count=Coalesce(
-                        models.Subquery(
-                            projects.filter(project_country=models.OuterRef("pk"))
-                            .values("project_country")
-                            .annotate(count=models.Count("id", distinct=True))
-                            .values("count")[:1],
-                            output_field=models.IntegerField(),
-                        ),
-                        0,
+        data = {
+            "total_projects": projects.count(),
+            "countries_count": countries.annotate(
+                projects_count=Coalesce(
+                    models.Subquery(
+                        projects.filter(project_country=models.OuterRef("pk"))
+                        .values("project_country")
+                        .annotate(count=models.Count("id", distinct=True))
+                        .values("count")[:1],
+                        output_field=models.IntegerField(),
                     ),
-                    **country_annotate,
-                ).values("id", "name", "iso", "iso3", "projects_count", *country_annotate.keys()),
-                "country_ns_sector_count": _get_country_ns_sector_count(),
-                "supporting_ns": [
-                    {"id": id, "name": name, "count": count}
-                    for id, name, count in projects.order_by()
-                    .values("reporting_ns")
-                    .annotate(count=models.Count("id", distinct=True))
-                    .values_list("reporting_ns", "reporting_ns__name", "count")
-                ],
-            }
+                    0,
+                ),
+                **country_annotate,
+            ).values("id", "name", "iso", "iso3", "projects_count", *country_annotate.keys()),
+            "country_ns_sector_count": _get_country_ns_sector_count(),
+            "supporting_ns": [
+                {"id": id, "name": name, "count": count}
+                for id, name, count in projects.order_by()
+                .values("reporting_ns")
+                .annotate(count=models.Count("id", distinct=True))
+                .values_list("reporting_ns", "reporting_ns__name", "count")
+            ],
+        }
+        return Response(
+            ProjectRegionMovementActivitiesSerializer(data).data
         )
 
     @action(detail=True, url_path="national-society-activities", methods=("get",))

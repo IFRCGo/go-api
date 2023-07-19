@@ -427,6 +427,10 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 class DrefShareView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        request=AddDrefUserSerializer,
+        responses=None
+    )
     def post(self, request):
         serializer = AddDrefUserSerializer(
             data=request.data,
@@ -443,7 +447,10 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return (
-            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
-            .distinct()
+            Dref.objects.prefetch_related(
+                "planned_interventions",
+                "needs_identified",
+                "national_society_actions",
+                "users"
+            ).order_by("-created_at").distinct()
         )

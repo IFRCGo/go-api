@@ -720,3 +720,59 @@ class DeploymentByNSSerializer(serializers.Serializer):
 class DeploymentsByMonthSerializer(serializers.Serializer):
     date = serializers.CharField()
     count = serializers.IntegerField()
+
+
+class ProjectRegionOverviewStatusSerializer(serializers.Serializer):
+    status = serializers.IntegerField()
+    count = serializers.IntegerField()
+
+
+class ProjectRegionOverviewSerializer(serializers.Serializer):
+    total_projects = serializers.IntegerField(allow_null=True)
+    ns_with_ongoing_activities = serializers.IntegerField(allow_null=True)
+    total_budget = serializers.IntegerField(allow_null=True)
+    target_total = serializers.IntegerField(allow_null=True)
+    reached_total = serializers.IntegerField(allow_null=True)
+    projects_by_status = ProjectRegionOverviewStatusSerializer(allow_null=True, many=True)
+
+
+class ProjectRegionMovementActivitiesCountrySerializer(serializers.Serializer):
+    iso3 = serializers.CharField()
+    iso = serializers.CharField()
+    id = serializers.IntegerField()
+    projects_count = serializers.IntegerField()
+    planned_projects_count = serializers.IntegerField()
+    ongoing_projects_count = serializers.IntegerField()
+    completed_projects_count = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class ProjectRegionMovementActivitiesReportingNSSector(serializers.Serializer):
+    id = serializers.IntegerField()
+    sector = serializers.CharField()
+    count = serializers.IntegerField(allow_null=True)
+
+
+class ProjectRegionMovementActivitiesReportingNS(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    sectors = ProjectRegionMovementActivitiesReportingNSSector(many=True)
+
+
+class ProjectRegionMovementActivitiesCountrySectorSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    reporting_national_societies = ProjectRegionMovementActivitiesReportingNS(many=True)
+
+
+class ProjectRegionMovementActivitiesSupportingNSSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
+    total_projects = serializers.IntegerField(allow_null=True)
+    countries_count = ProjectRegionMovementActivitiesCountrySerializer(many=True)
+    country_ns_sector_count = ProjectRegionMovementActivitiesCountrySectorSerializer(many=True)
+    supporting_ns = ProjectRegionMovementActivitiesSupportingNSSerializer(many=True)
