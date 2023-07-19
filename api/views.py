@@ -122,11 +122,11 @@ class HayStackSearch(APIView):
     @extend_schema(request=None, responses=SearchSerializer)
     def get(self, request):
         phrase = request.GET.get("keyword", None)
-        phrase = phrase.lower()
         if phrase is None:
             return bad_request("Must include a `keyword`")
 
         if phrase:
+            phrase = phrase.lower()
             if self.request.user.is_authenticated:
                 if is_user_ifrc(self.request.user):
                     project_response = (
