@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from django.db import transaction
 from django.db.models import Q
@@ -203,7 +202,7 @@ def handle_fr_for_erp(sender, instance, using, **kwargs):
 def add_update_appeal_history(sender, instance, created, **kwargs):
     fields_watched = [
         field.name for field in AppealHistory._meta.get_fields()
-        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to','aid','amount_funded']
+        if field.name not in ['id', 'appeal', 'valid_from', 'valid_to', 'aid', 'amount_funded']
     ]
     now = timezone.now()
     changed = False
@@ -228,10 +227,10 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             status=instance.status,
             code=instance.code,
             triggering_amount=instance.triggering_amount
-            # deleted_at = instance.deleted_at
         )
 
-    else:  # Appeal Update
+    else:
+        # Appeal Update
         appeal = Appeal.objects.get(code=instance.code)
         appeal_history = AppealHistory.objects.filter(aid=instance.aid).order_by('id').last()
         for field in fields_watched:
@@ -266,7 +265,6 @@ def add_update_appeal_history(sender, instance, created, **kwargs):
             status=instance.status,
             code=instance.code,
             triggering_amount=instance.triggering_amount
-            # deleted_at = instance.deleted_at
         )
 
 
@@ -278,5 +276,4 @@ def remove_appeal_filter(sender, instance, using, **kwargs):
         lstCodesToSkip.append(instance.code)
 
     appealFilter.value = ",".join(lstCodesToSkip)
-    # appealFilter.value = ",".join(appealFilter.value.split(",").remove(self.code))
     appealFilter.save()

@@ -145,4 +145,3 @@ class EventFeaturedDocumentTO(TranslationOptions):
 @register(EventLink)
 class EventLinkTO(TranslationOptions):
     fields = ('title', 'description')
-

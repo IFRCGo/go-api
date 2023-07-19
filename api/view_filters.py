@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django_filters import Filter
 
+
 # https://github.com/carltongibson/django-filter/issues/137#issuecomment-127073878
 class ListFilter(Filter):
     def __init__(self, filter_value=lambda x: x, **kwargs):
@@ -17,5 +18,5 @@ class ListFilter(Filter):
         f = Q()
         for v in values:
             kwargs = {self.field_name: v}
-            f = f|Q(**kwargs)
+            f = f | Q(**kwargs)
         return qs.filter(f)
