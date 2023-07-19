@@ -15,7 +15,7 @@ from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
 from django.utils.translation import get_language as django_get_language
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from main.utils import is_tableau
 from main.enums import GlobalEnumSerializer, get_enum_values
@@ -780,6 +780,12 @@ class FieldReportFilter(filters.FilterSet):
         }
 
 
+@extend_schema_view(
+    retrieve=extend_schema(
+        request=None,
+        responses=DetailFieldReportSerializer
+    )
+)
 class FieldReportViewset(ReadOnlyVisibilityViewset):
     authentication_classes = (TokenAuthentication,)
     visibility_model_class = FieldReport
@@ -808,8 +814,7 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
                 return ListFieldReportCsvSerializer
             else:
                 return ListFieldReportSerializer
-        else:
-            return DetailFieldReportSerializer
+        return DetailFieldReportSerializer
 
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
