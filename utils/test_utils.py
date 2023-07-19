@@ -9,6 +9,7 @@ from api.factories import country as countryFactory
 from api.factories import event as eventFactory
 from api.factories import field_report as fieldReportFactory
 
+
 class ERPTest(TestCase):
 
     @patch('requests.post', side_effect=erp_request_side_effect_mock)

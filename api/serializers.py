@@ -1883,3 +1883,22 @@ class ProjectSecondarySectorsSerializer(serializers.Serializer):
     label = serializers.CharField()
     color = serializers.CharField()
     is_deprecated = serializers.BooleanField()
+
+
+class AggregateByTimeSeriesSerializer(serializers.Serializer):
+    timespan = serializers.DateTimeField()
+    count = serializers.IntegerField()
+    beneficiaries = serializers.IntegerField(allow_null=True)
+    amount_funded = serializers.FloatField(allow_null=True)
+
+
+class AreaAggregateSerializer(serializers.Serializer):
+    num_beneficiaries = serializers.IntegerField()
+    amount_requested = serializers.FloatField()
+    amount_funded = serializers.FloatField()
+    count = serializers.IntegerField()
+
+
+class AggregateByDtypeSerializer(serializers.Serializer):
+    dtype = serializers.IntegerField()
+    count = serializers.IntegerField()

@@ -28,7 +28,6 @@ from django.conf.urls.i18n import i18n_patterns
 
 from api.views import (
     GetAuthToken,
-    ChangePassword,
     RecoverPassword,
     ShowUsername,
     EsPageSearch,
@@ -59,19 +58,7 @@ from registrations.views import (
     VerifyEmail,
     ValidateUser,
 )
-from registrations.views import VerifyEmail, ValidateUser
 from registrations.drf_views import RegistrationView
-from per.views import (
-    # CreatePerForm,
-    UpdatePerForm,
-    UpdatePerForms,
-    # DeletePerForm,
-    WorkPlanSent,
-    CreatePerOverview,
-    UpdatePerOverview,
-    DeletePerOverview,
-    DelWorkPlan,
-)
 from databank.views import CountryOverviewViewSet
 from local_units.views import LocalUnitListAPIView, LocalUnitDetailAPIView
 
@@ -178,7 +165,7 @@ admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
 urlpatterns = [
-    url(r"^api/v1/es_search/", EsPageSearch.as_view()),
+    # url(r"^api/v1/es_search/", EsPageSearch.as_view()),
     url(r"^api/v1/search/", HayStackSearch.as_view()),
     url(r"^api/v1/es_health/", EsPageHealth.as_view()),
     # If we want to use the next one, some fixes needed, e.g.
@@ -207,7 +194,6 @@ urlpatterns = [
     url(r"^api/v2/add_subscription/", AddSubscription.as_view()),
     url(r"^api/v2/del_subscription/", DelSubscription.as_view()),
     url(r"^api/v2/add_cronjob_log/", AddCronJobLog.as_view()),
-    url(r"^api/v2/flash-update-options/", flash_views.FlashUpdateOptions.as_view()),
     url(r"^api/v2/export-flash-update/(?P<pk>\d+)/", flash_views.ExportFlashUpdateView.as_view()),
     url(r"^api/v2/dref-share/", dref_views.DrefShareView.as_view()),
     url(r"^register", RegistrationView.as_view()),
