@@ -185,6 +185,20 @@ class RegionViewset(viewsets.ReadOnlyModelViewSet):
 class CountryFilter(filters.FilterSet):
     region = filters.NumberFilter(field_name="region", lookup_expr="exact")
     record_type = filters.NumberFilter(field_name="record_type", lookup_expr="exact")
+    is_independent = filters.BooleanFilter(
+        field_name="independent",
+        label="is_independent",
+        lookup_expr="exact"
+    )
+    is_deprecated = filters.BooleanFilter(
+        field_name="is_deprecated",
+        label="is_deprecated",
+        lookup_expr="exact"
+    )
+    is_nationalsociety = filters.BooleanFilter(
+        label="is_nationalsociety",
+        method="filter_national_society"
+    )
 
     class Meta:
         model = Country
@@ -193,6 +207,19 @@ class CountryFilter(filters.FilterSet):
             "region": ("exact", "in"),
             "record_type": ("exact", "in"),
         }
+
+    def filter_national_society(self, qs, name, value):
+        if not value:
+            return qs
+        return qs.filter(
+            (
+                models.Q(independent=True) &
+                models.Q(society_name__isnull=False)
+            ) |
+            (
+                (models.Q(name__icontains="RC")) | models.Q(iso="BX")
+            )
+        )
 
 
 class CountryViewset(viewsets.ReadOnlyModelViewSet):
@@ -540,7 +567,13 @@ class EventViewset(ReadOnlyVisibilityViewset):
     )
     @action(methods=["get"], detail=False, url_path="mini")
     def mini_events(self, request):
-        return super().list(request)
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = ListMiniEventSerializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
 
     @action(methods=["get"], detail=False, url_path="response-activity")
     def response_activity_events(self, request):
