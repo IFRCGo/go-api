@@ -1660,7 +1660,7 @@ class ListFieldReportCsvSerializer(FieldReportEnumDisplayMixin, ModelSerializer)
 
 class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     def __init__(self, *args, **kwargs):
-        super(DetailFieldReportSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for i, field in enumerate(
             [
                 "num_affected",
@@ -1673,7 +1673,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
         ):
             # We allow only 1 of these _affected values ^, pointed by RecentAffected. The other 5 gets 0 on client side.
             # About "recent_affected - 1" as index see (¤) in other code parts:
-            if self.instance.recent_affected - 1 != i:
+            if self.instance and self.instance.recent_affected - 1 != i:
                 self.fields.pop(field)
 
     user = UserSerializer()
