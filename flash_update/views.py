@@ -12,6 +12,7 @@ from rest_framework import (
     response,
 )
 from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema
 
 from api.serializers import ActionSerializer
 from .models import (
@@ -28,6 +29,7 @@ from .serializers import (
     DonorGroupSerializer,
     DonorsSerializer,
     ShareFlashUpdateSerializer,
+    ExportFlashUpdateViewSerializer
 )
 from .filter_set import FlashUpdateFilter
 from .tasks import export_to_pdf
@@ -94,19 +96,6 @@ class FlashActionViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = ActionSerializer
 
 
-class FlashUpdateOptions(views.APIView):
-    def get(self, request, format=None):
-        options = {
-            'share_with_options': [
-                {
-                    'value': value,
-                    'label': label,
-                } for value, label in FlashUpdate.FlashShareWith.choices
-            ]
-        }
-        return Response(options)
-
-
 class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DonorGroup.objects.all()
     serializer_class = DonorGroupSerializer
@@ -130,15 +119,26 @@ class ShareFlashUpdateViewSet(
 class ExportFlashUpdateView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        request=None,
+        responses=ExportFlashUpdateViewSerializer
+    )
     def get(self, request, pk, format=None):
         flash_update = get_object_or_404(FlashUpdate, pk=pk)
         if flash_update.extracted_file and flash_update.modified_at < flash_update.extracted_at:
-            return Response({
-                'status': 'ready',
-                'url': request.build_absolute_uri(flash_update.extracted_file.url)
-            })
+            return Response(ExportFlashUpdateViewSerializer(
+                dict(
+                    status='ready',
+                    url=request.build_absolute_uri(flash_update.extracted_file.url)
+                )
+            ).data)
         else:
             transaction.on_commit(
                 lambda: export_to_pdf.delay(flash_update.id)
             )
-            return Response({'status': 'pending', 'url': None})
+            return Response(ExportFlashUpdateViewSerializer(
+                dict(
+                    status='pending',
+                    url=None
+                )
+            ).data)

@@ -38,7 +38,10 @@ from api.serializers import (
     AggregateHeaderFiguresSerializer,
     SearchSerializer,
     ProjectPrimarySectorsSerializer,
-    ProjectSecondarySectorsSerializer
+    ProjectSecondarySectorsSerializer,
+    AggregateByTimeSeriesSerializer,
+    AreaAggregateSerializer,
+    AggregateByDtypeSerializer
 )
 
 
@@ -589,7 +592,10 @@ class AggregateHeaderFigures(APIView):
     """
         Used mainly for the key-figures header and by FDRS
     """
-    @extend_schema(request=None, responses=AggregateHeaderFiguresSerializer)
+    @extend_schema(
+        request=None,
+        responses=AggregateHeaderFiguresSerializer
+    )
     def get(self, request):
         iso3 = request.GET.get("iso3", None)
         country = request.GET.get("country", None)
@@ -658,6 +664,10 @@ class AggregateHeaderFigures(APIView):
 
 
 class AreaAggregate(APIView):
+    @extend_schema(
+        request=None,
+        responses=AreaAggregateSerializer
+    )
     def get(self, request):
         region_type = request.GET.get("type", None)
         region_id = request.GET.get("id", None)
@@ -669,14 +679,26 @@ class AreaAggregate(APIView):
 
         aggregate = (
             Appeal.objects.filter(**{region_type: region_id})
-            .annotate(count=Count("id"))
-            .aggregate(Sum("num_beneficiaries"), Sum("amount_requested"), Sum("amount_funded"), Sum("count"))
+            .annotate(count_id=Count("id"))
+            .aggregate(
+                num_beneficiaries=Sum("num_beneficiaries"),
+                amount_requested=Sum("amount_requested"),
+                amount_funded=Sum("amount_funded"),
+                count=Sum("count_id")
+            )
         )
 
-        return JsonResponse(dict(aggregate))
+        return Response(
+            AreaAggregateSerializer(aggregate).data
+        )
 
 
 class AggregateByDtype(APIView):
+
+    @extend_schema(
+        request=None,
+        responses=AggregateByDtypeSerializer(many=True),
+    )
     def get(self, request):
         models = {
             "appeal": Appeal,
@@ -689,12 +711,25 @@ class AggregateByDtype(APIView):
             return bad_request("Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`")
 
         model = models[mtype]
-        aggregate = model.objects.values("dtype").annotate(count=Count("id")).order_by("count").values("dtype", "count")
+        aggregate = model.objects.values(
+            "dtype"
+        ).annotate(
+            count=Count("id")
+        ).order_by(
+            "count"
+        ).values("dtype", "count")
 
-        return JsonResponse(dict(aggregate=list(aggregate)))
+        return Response(
+            AggregateByDtypeSerializer(aggregate, many=True).data
+        )
 
 
 class AggregateByTime(APIView):
+
+    @extend_schema(
+        request=None,
+        responses=AggregateByTimeSeriesSerializer(many=True)
+    )
     def get(self, request):
         models = {
             "appeal": Appeal,
@@ -772,7 +807,9 @@ class AggregateByTime(APIView):
             .values(*output_values)
         )
 
-        return JsonResponse(dict(aggregate=list(aggregate)))
+        return Response(
+            AggregateByTimeSeriesSerializer(aggregate, many=True).data
+        )
 
 
 class GetAuthToken(APIView):
@@ -790,7 +827,7 @@ class GetAuthToken(APIView):
             return bad_request("Body must contain `email/username` and `password`")
 
         user = authenticate(username=username, password=password)
-        if user == None and User.objects.filter(email=username).count() > 1:
+        if user is None and User.objects.filter(email=username).count() > 1:
             users = User.objects.filter(email=username, is_active=True)
             if users:
                 # We get the first one if there are still multiple available is_active:
@@ -841,47 +878,6 @@ class GetAuthToken(APIView):
             )
         else:
             return bad_request("Invalid username or password")  # most probably password issue
-
-
-class ChangePassword(APIView):
-    permissions_classes = []
-
-    def post(self, request):
-        username = request.data.get("username", None)
-        password = request.data.get("password", None)
-        new_pass = request.data.get("new_password", None)
-        token = request.data.get("token", None)
-        # 'password' is checked for Change Password, 'token' is checked for Password Recovery
-        if username is None or (password is None and token is None):
-            return bad_request("Must include a `username` and either a `password` or `token`")
-
-        if new_pass is None:
-            return bad_request("Must include a `new_password` property")
-        try:
-            validate_password(new_pass)
-        except Exception as exc:
-            ers = " ".join(str(err) for err in exc)
-            return bad_request(ers)
-
-        user = User.objects.filter(username__iexact=username).first()
-        if user is None:
-            return bad_request("Could not authenticate")
-
-        if password and not user.check_password(password):
-            return bad_request("Could not authenticate")
-        elif token:
-            recovery = Recovery.objects.filter(user=user).first()
-            if recovery is None:
-                return bad_request("Could not authenticate")
-
-            if recovery.token != token:
-                return bad_request("Could not authenticate")
-            recovery.delete()
-
-        user.set_password(new_pass)
-        user.save()
-
-        return JsonResponse({"status": "ok"})
 
 
 class RecoverPassword(APIView):

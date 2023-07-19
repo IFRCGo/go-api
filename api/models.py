@@ -1206,14 +1206,19 @@ class FieldReport(models.Model):
     description = HTMLField(verbose_name=_('description'), blank=True, default='')
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), on_delete=models.PROTECT)
     event = models.ForeignKey(
-        Event, verbose_name=_('event'), related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL
+        Event, verbose_name=_('event'),
+        related_name='field_reports',
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     # This entity is more a type than a status, so let's label it this way on admin page:
-    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0,
-        help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>')
+    status = models.IntegerField(
+        choices=Status.choices, verbose_name=_('type'), default=0,
+        help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>'
+    )
     request_assistance = models.BooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
     ns_request_assistance = models.BooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
@@ -1256,14 +1261,30 @@ class FieldReport(models.Model):
     )
     epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
-    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True, help_text=_('not used any more'))
-    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (ministry of health)'), null=True, blank=True, help_text=_('not used any more'))
+    who_num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted (who)'),
+        null=True, blank=True,
+        help_text=_('not used any more')
+    )
+    health_min_num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted (ministry of health)'),
+        null=True, blank=True,
+        help_text=_('not used any more')
+    )
 
     # Early Warning fields
-    gov_num_potentially_affected = models.IntegerField(verbose_name=_('potentially affected (goverment)'), null=True, blank=True)
-    gov_num_highest_risk = models.IntegerField(verbose_name=_('people at highest risk (goverment)'), null=True, blank=True)
+    gov_num_potentially_affected = models.IntegerField(
+        verbose_name=_('potentially affected (goverment)'),
+        null=True, blank=True
+    )
+    gov_num_highest_risk = models.IntegerField(
+        verbose_name=_('people at highest risk (goverment)'),
+        null=True, blank=True
+    )
     gov_affected_pop_centres = models.CharField(
-        verbose_name=_('affected population centres (goverment)'), max_length=512, blank=True, null=True)
+        verbose_name=_('affected population centres (goverment)'),
+        max_length=512, blank=True, null=True
+    )
 
     other_num_injured = models.IntegerField(verbose_name=_('number of injured (other)'), null=True, blank=True)
     other_num_dead = models.IntegerField(verbose_name=_('number of dead (other)'), null=True, blank=True)
@@ -1277,7 +1298,10 @@ class FieldReport(models.Model):
         verbose_name=_('number of potentially affected (other)'), null=True, blank=True)
     other_num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk (other)'), null=True, blank=True)
     other_affected_pop_centres = models.CharField(
-        verbose_name=_('number of affected population centres (other)'), max_length=512, blank=True, null=True)
+        verbose_name=_('number of affected population centres (other)'),
+        max_length=512,
+        blank=True, null=True
+    )
 
     # Date of data for situation fields
     sit_fields_date = models.DateTimeField(verbose_name=_('situation fields date'), blank=True, null=True)
@@ -1299,7 +1323,11 @@ class FieldReport(models.Model):
     appeal_amount = models.IntegerField(verbose_name=_('appeal amount'), null=True, blank=True)
     imminent_dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('imminent dref'), default=0)  # only EW
     imminent_dref_amount = models.IntegerField(null=True, verbose_name=_('imminent dref amount'), blank=True)  # only EW
-    forecast_based_action = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('forecast based action'), default=0)  # only EW
+    forecast_based_action = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('forecast based action'),
+        default=0
+    )  # only EW
     forecast_based_action_amount = models.IntegerField(
         verbose_name=_('forecast based action amount'), null=True, blank=True)  # only EW
 
@@ -1353,8 +1381,12 @@ class FieldReport(models.Model):
     supported_activities = models.ManyToManyField(
         SupportedActivity, verbose_name=_('supported activities'), blank=True
     )
-    recent_affected = models.IntegerField(choices=RecentAffected.choices, verbose_name=_('recent source of affected people'), default=0,
-        help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>')
+    recent_affected = models.IntegerField(
+        choices=RecentAffected.choices,
+        verbose_name=_('recent source of affected people'),
+        default=0,
+        help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>'
+    )
 
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)
@@ -1391,7 +1423,7 @@ class FieldReport(models.Model):
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
-        ns =        [c.id   for c in self.countries.all()]
+        ns = [c.id for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.event_id,
@@ -1603,7 +1635,10 @@ class EmergencyOperationsBase(models.Model):
     raw_glide_number = models.TextField(verbose_name=_('glide number (raw)'), null=True, blank=True)
     raw_num_of_people_to_be_assisted = models.TextField(
         verbose_name=_('number of people to be assisted (raw)'), null=True, blank=True)
-    raw_num_of_people_affected = models.TextField(verbose_name=_('number of people affected (raw)'), null=True, blank=True)
+    raw_num_of_people_affected = models.TextField(
+        verbose_name=_('number of people affected (raw)'),
+        null=True, blank=True
+    )
     raw_operation_start_date = models.TextField(null=True, blank=True)
     raw_dref_allocated = models.TextField(null=True, blank=True)
 
@@ -1651,7 +1686,10 @@ class EmergencyOperationsBase(models.Model):
         verbose_name=_('number of protection gender and inclusion requirements (raw)'), null=True, blank=True)
     raw_shelter_female = models.TextField(verbose_name=_('number of shelter female (raw)'), null=True, blank=True)
     raw_shelter_male = models.TextField(verbose_name=_('number of shelter male (raw)'), null=True, blank=True)
-    raw_shelter_people_reached = models.TextField(verbose_name=_('number of shelter people reached (raw)'), null=True, blank=True)
+    raw_shelter_people_reached = models.TextField(
+        verbose_name=_('number of shelter people reached (raw)'),
+        null=True, blank=True
+    )
     raw_shelter_people_targeted = models.TextField(
         verbose_name=_('number of shelter people targeted (raw)'), null=True, blank=True)
     raw_shelter_requirements = models.TextField(verbose_name=_('number of shelter requirements (raw)'), null=True, blank=True)
@@ -1672,7 +1710,10 @@ class EmergencyOperationsBase(models.Model):
     date_of_issue = models.DateField(verbose_name=_('date of issue'), null=True, blank=True)
     glide_number = models.CharField(verbose_name=_('glide number'), max_length=18, null=True, blank=True)
     num_of_people_affected = models.IntegerField(verbose_name=_('number of people affected'), null=True, blank=True)
-    num_of_people_to_be_assisted = models.IntegerField(verbose_name=_('number of people to be assisted'), null=True, blank=True)
+    num_of_people_to_be_assisted = models.IntegerField(
+        verbose_name=_('number of people to be assisted'),
+        null=True, blank=True
+    )
     operation_start_date = models.DateField(verbose_name=_('operation start date'), null=True, blank=True)
 
     dref_allocated = models.IntegerField(verbose_name=_('DREF allocated'), null=True, blank=True)
@@ -1718,8 +1759,12 @@ class EmergencyOperationsBase(models.Model):
         verbose_name=_('number of protection gender and inclusion requirements'), null=True, blank=True)
     shelter_female = models.IntegerField(verbose_name=_('number of shelter female'), null=True, blank=True)
     shelter_male = models.IntegerField(verbose_name=_('number of shelter male'), null=True, blank=True)
-    shelter_people_reached = models.IntegerField(verbose_name=_('number of shelter people reached'), null=True, blank=True)
-    shelter_people_targeted = models.IntegerField(verbose_name=_('number of shelter people targeted'), null=True, blank=True)
+    shelter_people_reached = models.IntegerField(
+        verbose_name=_('number of shelter people reached'), null=True, blank=True
+    )
+    shelter_people_targeted = models.IntegerField(
+        verbose_name=_('number of shelter people targeted'), null=True, blank=True
+    )
     shelter_requirements = models.IntegerField(verbose_name=_('number of shelter people requirements'), null=True, blank=True)
     water_sanitation_and_hygiene_female = models.IntegerField(
         verbose_name=_('water sanitation and hygiene female'), null=True, blank=True)
