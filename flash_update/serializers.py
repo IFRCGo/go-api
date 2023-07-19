@@ -168,3 +168,8 @@ class ShareFlashUpdateSerializer(serializers.ModelSerializer):
             lambda: share_flash_update.delay(flash_update_share.id)
         )
         return flash_update_share
+
+
+class ExportFlashUpdateViewSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    url = serializers.CharField(allow_null=True)

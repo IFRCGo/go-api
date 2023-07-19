@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db.models import Q
 
+
 # Extend the model admin with methods for determining whether a user has
 # country- and region-specific permissions.
 # If the user does not have specific permissions for any country or region,
