@@ -17,6 +17,7 @@ from api.models import (
     Country,
     District,
     DisasterType,
+    VisibilityCharChoices,
 )
 
 from .models import (
@@ -43,7 +44,7 @@ class ProjectForm(forms.ModelForm):
 
 class ProjectImportForm(forms.Form):
     file = forms.FileField(label=_('file'), widget=forms.FileInput(attrs={'accept': '.csv'}))
-    field_delimiter = forms.CharField(label=_('file delimiter'), initial=';')
+    field_delimiter = forms.CharField(label=_('field delimiter'), initial=',')
     string_delimiter = forms.CharField(label=_('string delimiter'), initial='"')
 
     class Columns:
@@ -69,6 +70,12 @@ class ProjectImportForm(forms.Form):
         REACHED_FEMALES = 'Reached Females'
         REACHED_OTHERS = 'Reached Others'
         REACHED_TOTAL = 'Reached Total'
+        VISIBILITY = 'Visibility'
+        ACTUAL_EXPENDITURE = 'Actual Expenditure'
+        REPORTING_NS_CONTACT_EMAIL = 'Contact Email'
+        REPORTING_NS_CONTACT_NAME = 'Contact Name'
+        REPORTING_NS_CONTACT_ROLE = 'Contact Role'
+        DESCRIPTION = 'Description'
 
     @classmethod
     def generate_template(cls):
@@ -109,6 +116,12 @@ class ProjectImportForm(forms.Form):
             c.REACHED_FEMALES,
             c.REACHED_OTHERS,
             c.REACHED_TOTAL,
+            c.VISIBILITY,
+            c.ACTUAL_EXPENDITURE,
+            c.REPORTING_NS_CONTACT_EMAIL,
+            c.REPORTING_NS_CONTACT_NAME,
+            c.REPORTING_NS_CONTACT_ROLE,
+            c.DESCRIPTION
         ]
 
         rows = [
@@ -152,7 +165,7 @@ class ProjectImportForm(forms.Form):
             try:
                 if isinstance(integer, str):
                     # ALL are integer fields. Change this if not
-                    return int(float(integer.replace(',', '')))
+                    return int(integer)
                 return integer
             except ValueError:
                 return None
@@ -182,6 +195,7 @@ class ProjectImportForm(forms.Form):
         sectors.update(add_to_sectors)
         sector_tags = {t.title.lower(): t.id for t in SectorTag.objects.all()}
         disaster_types = {t.name.lower(): t.id for t in DisasterType.objects.all()}
+        visibilities = {t.label: t.value for t in VisibilityCharChoices}
 
         c = self.Columns
 
@@ -253,6 +267,7 @@ class ProjectImportForm(forms.Form):
             # Optional, but can be invalid
             if disaster_type_id is None and disaster_type_name != '':
                 row_errors['disaster_type'] = [f'Given disaster type "{disaster_type_name}" is not available.']
+            visibility = row[c.VISIBILITY].strip()
 
             project = Project(
                 user=user,
@@ -270,7 +285,7 @@ class ProjectImportForm(forms.Form):
                 name=row[c.PROJECT_NAME],
                 start_date=_parse_date(row[c.START_DATE], 'start_date', row_errors),
                 end_date=_parse_date(row[c.END_DATE], 'end_date', row_errors),
-                budget_amount=_parse_integer(row[c.BUDGET]),
+                budget_amount=_parse_integer(row[c.BUDGET].strip()),
 
                 # Optional fields
                 target_male=_parse_integer(row[c.TARGETED_MALES]),
@@ -281,6 +296,12 @@ class ProjectImportForm(forms.Form):
                 reached_female=_parse_integer(row[c.REACHED_FEMALES]),
                 reached_other=_parse_integer(row[c.REACHED_OTHERS]),
                 reached_total=_parse_integer(row[c.REACHED_TOTAL]),
+                visibility=visibilities[visibility] if visibility in visibilities else None,
+                actual_expenditure=_parse_integer(row[c.ACTUAL_EXPENDITURE]),
+                reporting_ns_contact_email=row[c.REPORTING_NS_CONTACT_EMAIL].strip(),
+                reporting_ns_contact_name=row[c.REPORTING_NS_CONTACT_NAME].strip(),
+                reporting_ns_contact_role=row[c.REPORTING_NS_CONTACT_ROLE].strip(),
+                description=row[c.DESCRIPTION].strip(),
             )
             try:
                 project.full_clean()
