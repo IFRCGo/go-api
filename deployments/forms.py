@@ -227,6 +227,7 @@ class ProjectImportForm(forms.Form):
             disaster_type_id = disaster_types[disaster_type_name.lower()] if disaster_type_name else None
 
             row_errors = {}
+            project_country = Country.objects.filter(name__iexact=country_name).first()
             project_districts = []
             if district_names:
                 project_districts = list(District.objects.filter(
@@ -240,12 +241,11 @@ class ProjectImportForm(forms.Form):
                 ).all())
                 # Check if all district_names is available in db
                 if len(project_districts) == len(district_names):
-                    project_country = project_districts[0].country
+                    if project_country is None:  # in case of we did not find a proper country name, trying to know it:
+                        project_country = project_districts[0].country
                 else:
-                    # District list can be empty. If not empty, we get country name from the first one.
-                    project_country = None
-            else:
-                project_country = Country.objects.filter(name__iexact=country_name).first()
+                    # but it can not happen that some of the given district-names cannot be found:
+                    row_errors['project_districts'] = [f'Some given district_names are not available. "{district_names}"']
 
             # A validation error will be raised. This is just a custom message
             if project_country is None:

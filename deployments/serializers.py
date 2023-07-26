@@ -144,6 +144,7 @@ class PersonnelSerializer(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
+            'surge_alert_id',
             'name',  # plus
         )
 
@@ -160,6 +161,7 @@ class PersonnelSerializerAnon(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
+            'surge_alert_id',
         )
 
 
@@ -175,10 +177,12 @@ class PersonnelSerializerSuper(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
+            'surge_alert_id',
             'name', 'molnix_status',  # 2 plus
         )
 
 
+# Don't forget to adapt drf_views::get_renderer_context if you change this:
 class PersonnelCsvSerializerBase(ModelSerializer):
     country_from = NanoCountrySerializer()
     country_to = NanoCountrySerializer()
@@ -194,6 +198,7 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     inactive_status = serializers.SerializerMethodField()
     start_date = serializers.SerializerMethodField()
     end_date = serializers.SerializerMethodField()
+    surge_alert_id = serializers.SerializerMethodField()
 
     @staticmethod
     def get_start_date(obj):
@@ -242,6 +247,10 @@ class PersonnelCsvSerializerBase(ModelSerializer):
         end = obj.end_date if obj.end_date else today
         return start <= today <= end
 
+    @staticmethod
+    def get_surge_alert_id(obj):
+        return obj.surge_alert_id
+
 
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
@@ -256,6 +265,7 @@ class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
+            'surge_alert_id',
         )
 
 
@@ -270,6 +280,7 @@ class PersonnelCsvSerializerAnon(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
+            'surge_alert_id',
         )
 
 
@@ -286,6 +297,7 @@ class PersonnelCsvSerializerSuper(PersonnelCsvSerializerBase):
             'molnix_status',  # plus
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
+            'surge_alert_id',
         )
 
 
