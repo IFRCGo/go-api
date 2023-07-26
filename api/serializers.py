@@ -539,14 +539,8 @@ class RegionRelationSerializer(ModelSerializer):
     national_society_count = serializers.SerializerMethodField()
     country_cluster_count = serializers.SerializerMethodField()
     country_plan_count = serializers.IntegerField(read_only=True)
-
-    @staticmethod
-    def get_national_society_count(obj):
-        return obj.get_national_society_count()
-
-    @staticmethod
-    def get_country_cluster_count(obj):
-        return obj.get_country_cluster_count()
+    bbox = serializers.SerializerMethodField()
+    #centroid = serializers.SerializerMethodField()
 
     class Meta:
         model = Region
@@ -564,13 +558,29 @@ class RegionRelationSerializer(ModelSerializer):
             "country_plan_count",
             "national_society_count",
             "country_cluster_count",
+            "bbox",
+            # "centroid"
         )
+
+    @staticmethod
+    def get_national_society_count(obj) -> int:
+        return obj.get_national_society_count()
+
+    @staticmethod
+    def get_country_cluster_count(obj) -> int:
+        return obj.get_country_cluster_count()
+
+    @staticmethod
+    def get_bbox(region) -> dict:
+        return region.bbox and json.loads(region.bbox.geojson)
 
 
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
     has_country_plan = serializers.BooleanField(read_only=True)
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
 
     class Meta:
         model = Country
@@ -610,7 +620,17 @@ class CountryRelationSerializer(ModelSerializer):
             "wash_ndrt_trained",
             "wash_rdrt_trained",
             "has_country_plan",
+            "bbox",
+            "centroid"
         )
+
+    @staticmethod
+    def get_bbox(country) -> dict:
+        return country.bbox and json.loads(country.bbox.geojson)
+
+    @staticmethod
+    def get_centroid(country) -> dict:
+        return country.centroid and json.loads(country.centroid.geojson)
 
 
 class RelatedAppealSerializer(ModelSerializer):
