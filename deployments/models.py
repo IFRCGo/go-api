@@ -224,6 +224,13 @@ class Personnel(DeployedPerson):
         verbose_name=_("molnix status"), max_length=8, choices=StatusChoices.choices, default=StatusChoices.ACTIVE
     )
     is_active = models.BooleanField(default=True)  # Active in Molnix API
+    surge_alert = models.ForeignKey(  # position_id in Molnix API
+        'notifications.SurgeAlert',  # import as string to avoid circular import (MolnixTag)
+        verbose_name=_("surge alert"),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+    )
 
     def __str__(self):
         return "%s: %s - %s" % (self.type.upper(), self.name, self.role)

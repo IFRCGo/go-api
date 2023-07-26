@@ -197,6 +197,15 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             logger.warning('Did not import Deployment with Molnix ID %d. Invalid Event.' % md['id'])
             continue
 
+        try:
+            if md['position_id']:
+                surge_alert = SurgeAlert.objects.get(molnix_id=md['position_id'])
+            else:
+                surge_alert = None
+        except:
+            logger.warning('Did not find SurgeAlert with Molnix position_id %d.' % md['position_id'])
+            continue
+
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
         if md['hidden'] == 1:
@@ -221,6 +230,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             country_to = None
         personnel.country_to = country_to
         country_from = None
+        personnel.surge_alert = surge_alert
 
         # Sometimes the `incoming` value from Molnix is null.
         if md['incoming']:
