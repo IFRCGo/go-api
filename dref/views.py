@@ -5,6 +5,7 @@ from django.utils.translation import gettext
 import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
+from django.db import models
 
 from rest_framework import (
     views,
@@ -59,8 +60,24 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         if user.is_superuser:
             return queryset
-        else:
-            return Dref.get_for(user)
+        elif not user.is_superuser:
+            # get current user dref regions
+            regions = [0, 1, 2, 3, 4]
+            dref_list = []
+            for region in regions:
+                codename = f"dref_region_admin_{region}"
+                if Permission.objects.filter(group__user=user, codename=codename).exists():
+                    _queryset = queryset.filter(country__region=region).distinct()
+                    dref_list.append(_queryset)
+            drefs = []
+            for dref in dref_list:
+                id = list(dref.values_list('id', flat=True))
+                new_dref = Dref.objects.filter(id__in=id).first()
+                drefs.append(new_dref.id)
+            if len(drefs):
+                return queryset.filter(models.Q(id__in=drefs) | models.Q(created_by=user)).distinct()
+            else:
+                return Dref.get_for(user)
 
     @action(
         detail=True,
@@ -109,8 +126,24 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         if user.is_superuser:
             return queryset
-        else:
-            return DrefOperationalUpdate.get_for(user)
+        elif not user.is_superuser:
+            # get current user dref regions
+            regions = [0, 1, 2, 3, 4]
+            dref_op_list = []
+            for region in regions:
+                codename = f"dref_region_admin_{region}"
+                if Permission.objects.filter(group__user=user, codename=codename).exists():
+                    _queryset = queryset.filter(country__region=region).distinct()
+                    dref_op_list.append(_queryset)
+            ops = []
+            for op in dref_op_list:
+                id = list(op.values_list('id', flat=True))
+                new_dref_op = DrefOperationalUpdate.objects.filter(id__in=id).first()
+                ops.append(new_dref_op.id)
+            if len(ops):
+                return queryset.filter(models.Q(id__in=ops) | models.Q(created_by=user)).distinct()
+            else:
+                return DrefOperationalUpdate.get_for(user)
 
     @action(
         detail=True,
@@ -144,8 +177,24 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         )
         if user.is_superuser:
             return queryset
-        else:
-            return DrefFinalReport.get_for(user)
+        elif not user.is_superuser:
+            # get current user dref regions
+            regions = [0, 1, 2, 3, 4]
+            dref_final_list = []
+            for region in regions:
+                codename = f"dref_region_admin_{region}"
+                if Permission.objects.filter(group__user=user, codename=codename).exists():
+                    _queryset = queryset.filter(country__region=region).distinct()
+                    dref_final_list.append(_queryset)
+            finals = []
+            for final in dref_final_list:
+                id = list(final.values_list('id', flat=True))
+                new_final = DrefFinalReport.objects.filter(id__in=id).first()
+                finals.append(new_final.id)
+            if len(finals):
+                return queryset.filter(models.Q(id__in=finals) | models.Q(created_by=user)).distinct()
+            else:
+                return DrefFinalReport.get_for(user)
 
     @action(
         detail=True,
