@@ -1706,6 +1706,8 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     districts = MiniDistrictSerializer(many=True)
     external_partners = ExternalPartnerSerializer(many=True)
     supported_activities = SupportedActivitySerializer(many=True)
+    regions = RegionSerializer(many=True)
+    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
 
     class Meta:
         model = FieldReport
