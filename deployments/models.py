@@ -158,6 +158,24 @@ class PersonnelDeployment(models.Model):
 
 
 @reversion.register()
+class MolnixTagGroup(models.Model):
+    molnix_id = models.IntegerField()
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_("Is this a deprecated group?"))
+
+    # Example input: {"id":5,"name":"Sector","created_at":"2020-07-13T08:44:50.000000Z","updated_at":"2020-07-13T08:44:50.000000Z"}
+
+    class Meta:
+        verbose_name = _("Molnix Tag Group")
+        verbose_name_plural = _("Molnix Tag Groups")
+
+    def __str__(self):
+        return self.name
+
+
+@reversion.register()
 class MolnixTag(models.Model):
     """
     We store tags from molnix in its own model, to make m2m relations
@@ -170,6 +188,11 @@ class MolnixTag(models.Model):
     color = models.CharField(max_length=6)
     tag_type = models.CharField(max_length=127)
     tag_category = models.CharField(null=True, max_length=127)
+    groups = models.ManyToManyField(
+        MolnixTagGroup,
+        related_name="groups",
+        blank=True,
+    )
 
     def __str__(self):
         return self.name
