@@ -535,14 +535,6 @@ class RecentAffecteds(APIView):
         keys_labels = [{"key": i, "label": v} for i, v in FieldReport.RecentAffected.choices]
         return JsonResponse(keys_labels, safe=False)
 
-
-class ProjectProgrammeTypes(APIView):
-    @classmethod
-    def get(cls, request):
-        keys_labels = [{"key": i, "label": v} for i, v in ProgrammeTypes.choices]
-        return JsonResponse(keys_labels, safe=False)
-
-
 class ProjectPrimarySectors(APIView):
     @classmethod
     @extend_schema(
@@ -572,13 +564,6 @@ class ProjectSecondarySectors(APIView):
         return Response(
             ProjectSecondarySectorsSerializer(keys_labels, many=True).data
         )
-
-
-class ProjectOperationTypes(APIView):
-    @classmethod
-    def get(cls, request):
-        keys_labels = [{"key": i, "label": v} for i, v in OperationTypes.choices]
-        return JsonResponse(keys_labels, safe=False)
 
 
 class ProjectStatuses(APIView):
