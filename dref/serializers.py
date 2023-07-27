@@ -916,7 +916,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
 
     class Meta:
         model = DrefFinalReport
-        read_only_fields = ("modified_by", "created_by")
+        read_only_fields = ("modified_by", "created_by", "financial_report_preview")
         exclude = (
             "images",
             "photos",

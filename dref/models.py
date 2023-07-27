@@ -1262,6 +1262,9 @@ class DrefFinalReport(models.Model):
         verbose_name=_("financial report"),
         related_name="financial_report_dref_final_report",
     )
+    financial_report_preview = models.FileField(
+        verbose_name=_("financial preview"), null=True, blank=True, upload_to="dref/images/"
+    )
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
     has_national_society_conducted = models.BooleanField(
         verbose_name=_("Has national society conducted any intervention"), null=True, blank=True
@@ -1275,13 +1278,27 @@ class DrefFinalReport(models.Model):
         null=True,
         blank=True,
     )
+    __financial_report_id = None
 
     class Meta:
         verbose_name = _("Dref Final Report")
         verbose_name_plural = _("Dref Final Reports")
 
     def save(self, *args, **kwargs):
+        if self.financial_report_id and self.financial_report_id != self.__financial_report_id:
+            pages = convert_from_bytes(self.financial_report.file.read())
+            if len(pages) > 0:
+                financial_report_preview = pages[0]  # get first page
+                filename = f'preview_{self.financial_report.file.name.split("/")[0]}.png'
+                temp_image = open(os.path.join("/tmp", filename), "wb")
+                financial_report_preview.save(temp_image, "PNG")
+                thumb_data = open(os.path.join("/tmp", filename), "rb")
+                self.financial_report_preview.save(filename, thumb_data, save=False)
+            else:
+                raise ValidationError({"financial_report": "Sorry cannot generate preview for empty pdf"})
+
         self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        self.__financial_report_id = self.financial_report_id
         super().save(*args, **kwargs)
 
     @staticmethod
