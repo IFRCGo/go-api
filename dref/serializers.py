@@ -549,7 +549,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
     class Meta:
         model = DrefOperationalUpdate
-        read_only_fields = ("operational_update_number",)
+        read_only_fields = ("operational_update_number", "modified_by", "created_by")
         exclude = ("images", "photos", "event_map", "cover_image")
 
     def validate(self, data):
@@ -574,7 +574,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         return data
 
     def validate_appeal_code(self, appeal_code):
-        if appeal_code != self.instance.appeal_code:
+        if appeal_code and appeal_code != self.instance.appeal_code:
             raise serializers.ValidationError("Can't edit MDR Code")
         return appeal_code
 
@@ -590,6 +590,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
         )
+        validated_data["created_by"] = self.context["request"].user
         if not dref_operational_update:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -807,7 +808,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
         return operational_update
 
     def update(self, instance, validated_data):
-        validated_data["updated_by"] = self.context["request"].user
+        validated_data["modified_by"] = self.context["request"].user
         # changing_timeframe_operation = validated_data.get(
         #     "changing_timeframe_operation", instance.changing_timeframe_operation
         # )
@@ -911,9 +912,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
     financial_report_details = DrefFileSerializer(source="financial_report", read_only=True)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     users_details = UserNameSerializer(source="users", many=True, read_only=True)
+    modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
 
     class Meta:
         model = DrefFinalReport
+        read_only_fields = ("modified_by", "created_by")
         exclude = (
             "images",
             "photos",
@@ -955,6 +958,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         dref_operational_update = (
             DrefOperationalUpdate.objects.filter(dref=dref, is_published=True).order_by("-operational_update_number").first()
         )
+        validated_data["created_by"] = self.context["request"].user
         if dref_operational_update:
             validated_data["title"] = dref_operational_update.title
             validated_data["title_prefix"] = dref_operational_update.title_prefix
@@ -1151,7 +1155,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
 
-        validated_data["updated_by"] = self.context["request"].user
+        validated_data["modified_by"] = self.context["request"].user
         return super().update(instance, validated_data)
 
 

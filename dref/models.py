@@ -657,6 +657,7 @@ class DrefFile(models.Model):
         return clone
 
 
+@reversion.register()
 class DrefOperationalUpdate(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True, blank=True)
@@ -1014,6 +1015,7 @@ class DrefOperationalUpdate(models.Model):
         return DrefOperationalUpdate.objects.filter(id__in=union_query.values("id")).distinct()
 
 
+@reversion.register()
 class DrefFinalReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True)
