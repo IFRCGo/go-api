@@ -165,8 +165,6 @@ class MolnixTagGroup(models.Model):
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     is_deprecated = models.BooleanField(default=False, help_text=_("Is this a deprecated group?"))
 
-    # Example input: {"id":5,"name":"Sector","created_at":"2020-07-13T08:44:50.000000Z","updated_at":"2020-07-13T08:44:50.000000Z"}
-
     class Meta:
         verbose_name = _("Molnix Tag Group")
         verbose_name_plural = _("Molnix Tag Groups")
