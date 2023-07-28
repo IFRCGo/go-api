@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.484
+
+### Added
+ - Hotfix for DREF final reports
+
 ## 1.1.483
 
 ### Added
@@ -2262,7 +2267,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.483...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.484...HEAD
+[1.1.484]: https://github.com/IFRCGo/go-api/compare/1.1.483...1.1.484
 [1.1.483]: https://github.com/IFRCGo/go-api/compare/1.1.482...1.1.483
 [1.1.482]: https://github.com/IFRCGo/go-api/compare/1.1.481...1.1.482
 [1.1.481]: https://github.com/IFRCGo/go-api/compare/1.1.480...1.1.481
