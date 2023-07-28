@@ -402,7 +402,7 @@ class DrefTestCase(APITestCase):
         Test for dref if is_published = True
         """
 
-        initial_now = datetime(2011, 11, 11)
+        initial_now = datetime(2023, 7, 28)
         mock_now.return_value = initial_now
 
         region = Region.objects.create(name=RegionName.AFRICA)
@@ -430,6 +430,7 @@ class DrefTestCase(APITestCase):
         )
         url = f"/api/v2/dref/{not_published_dref.id}/"
         self.client.force_authenticate(self.user)
+        data["modified_at"] = initial_now + timedelta(days=10)
         response = self.client.patch(url, data)
         self.assert_200(response)
 

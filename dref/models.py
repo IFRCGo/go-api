@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.utils import timezone
 
 from api.models import Country, DisasterType, District, FieldReport
 
@@ -224,7 +225,7 @@ class Dref(models.Model):
         COMPLETED = 1, _("Completed")
 
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True, blank=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
@@ -660,7 +661,7 @@ class DrefFile(models.Model):
 @reversion.register()
 class DrefOperationalUpdate(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True, blank=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
@@ -1018,7 +1019,7 @@ class DrefOperationalUpdate(models.Model):
 @reversion.register()
 class DrefFinalReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name=_("modified at"), auto_now=True)
+    modified_at = models.DateTimeField(verbose_name=_("modified at"), default=timezone.now, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
