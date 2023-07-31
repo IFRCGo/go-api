@@ -5,8 +5,10 @@ variable "environment" {
 variable "subscriptionId" {
   type = string
 }
-variable "region" {
+
+variable "REGION" {
   type = string
+  default = ""
 }
 
 variable "domain" {
@@ -276,7 +278,7 @@ variable "ifrcgo_prod_resources_db" {
 
 locals {
   stack_id              = "ifrcgo"
-  location              = lower(replace(var.region, " ", ""))
+  location              = lower(replace(var.REGION, " ", ""))
   prefix                = var.environment == "staging" ? "ifrctgo" : "ifrcpgo"
   # prefixnodashes        = "${local.stack_id}${var.environment}"
   storage               = "${local.prefix}"

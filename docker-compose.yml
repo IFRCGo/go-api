@@ -36,6 +36,8 @@ x-server: &base_server_setup
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
     # Maintenance mode
     DJANGO_READ_ONLY: ${DJANGO_READ_ONLY:-false}
+    # Region
+    REGION: ${REGION:-}
     # IFRC dynamic translation
     AUTO_TRANSLATION_TRANSLATOR: ${AUTO_TRANSLATION_TRANSLATOR:-}
     IFRC_TRANSLATION_DOMAIN: ${IFRC_TRANSLATION_DOMAIN:-}

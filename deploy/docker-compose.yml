@@ -56,6 +56,8 @@ services:
         - TF_VAR_API_FQDN=${API_FQDN}
         - TF_VAR_FRONTEND_URL=${FRONTEND_URL}
         - TF_VAR_DEBUG_EMAIL=${DEBUG_EMAIL}
+        # Region
+        - TF_VAR_REGION=${REGION}
         # Sentry
         - TF_VAR_SENTRY_DSN=${SENTRY_DSN}
         - TF_VAR_SENTRY_SAMPLE_RATE=${SENTRY_SAMPLE_RATE}

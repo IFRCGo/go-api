@@ -5,8 +5,10 @@ variable "environment" {
 variable "subscriptionId" {
   type = string
 }
-variable "region" {
+
+variable "REGION" {
   type = string
+  default = ""
 }
 
 variable "domain" {
