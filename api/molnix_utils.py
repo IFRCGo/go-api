@@ -55,6 +55,9 @@ class MolnixApi:
     def get_tags(self):
         return self.call_api(path='tags')['tags']
 
+    def get_tag_groups(self, id):
+        return self.call_api(path='tags/edit/%d' % id)['tag']['groups']
+
     def get_open_positions(self):
         #return self.call_api_paginated(path='positions', response_key='positions')
         return self.call_api(path='positions/open')

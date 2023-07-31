@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from api.molnix_utils import MolnixApi
 from api.logger import logger
-from deployments.models import MolnixTag, PersonnelDeployment, Personnel
+from deployments.models import MolnixTag, MolnixTagGroup, PersonnelDeployment, Personnel
 from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
 from api.models import Event, Country, CronJobStatus
 from api.create_cron import create_cron_record
@@ -30,6 +30,7 @@ NS_MATCHING_OVERRIDES = {
     'ICRC': 'ICRC'
 }
 
+
 def get_unique_tags(deployments, open_positions):
     tags = []
     tag_ids = []
@@ -41,7 +42,7 @@ def get_unique_tags(deployments, open_positions):
     return tags
 
 
-def add_tags(molnix_tags):
+def add_tags(molnix_tags, api):
     modality = ['In Person', 'Remote']
     region = ['ASIAP', 'AMER', 'AFRICA', 'MENA', 'EURO']
     scope = ['REGIONAL', 'GLOBAL']
@@ -52,6 +53,16 @@ def add_tags(molnix_tags):
 
     for molnix_tag in molnix_tags:
         tag, created = MolnixTag.objects.get_or_create(molnix_id=molnix_tag['id'])
+        tag_groups = api.get_tag_groups(molnix_tag['id']) if molnix_tag['id'] else []
+        for g in tag_groups:
+            tag_group, created = MolnixTagGroup.objects.get_or_create(
+                molnix_id=g['id'],
+                name=g['name'])
+            if created:
+                tag_group.created_at = g['created_at']
+            tag_group.updated_at = g['updated_at']
+            tag_group.save()
+            tag.groups.add(tag_group)
         tag.molnix_id = molnix_tag['id']
         tag.name = n = molnix_tag['name']
         tag.description = molnix_tag['description']
@@ -388,7 +399,7 @@ class Command(BaseCommand):
 
         try:
             used_tags = get_unique_tags(deployments, open_positions)
-            add_tags(used_tags)
+            add_tags(used_tags, molnix)  # FIXME 2nd arg: a workaround to be able to get the group details inside.
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments, molnix, countries)
         except Exception as ex:
