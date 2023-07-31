@@ -61,7 +61,7 @@ module "resources" {
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "ifrcpgoterraform001rg"
+    resource_group_name  = "ifrctgo002rg"
     storage_account_name = "ifrcgoterraform"
     container_name       = "terraform"
     # this is meant to be replaced in bin/deploy function so the correct environment is deployed
