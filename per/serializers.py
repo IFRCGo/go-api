@@ -537,6 +537,7 @@ class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, seri
             "question_responses",
             "rating_details",
             "component_details",
+            "notes",
             # Considerations fields
             "urban_considerations",
             "epi_considerations",
