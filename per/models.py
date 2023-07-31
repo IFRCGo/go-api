@@ -599,13 +599,21 @@ class NiceDocument(models.Model):
         return "%s - %s" % (self.country, self.name)
 
 
+class PerWorkPlanStaus(models.IntegerChoices):
+    NOT_STARTED = 0, _("Not Started")
+    ONGOING = 1, _("Ongoing")
+    DELAYED = 2, _("Delayed")
+    STANDBY = 3, _("Standby")
+    FINISHED = 4, _("Finished")
+
+
 class PerWorkPlanComponent(models.Model):
     component = models.ForeignKey(
         FormComponent, verbose_name=_("Component"), on_delete=models.CASCADE,
     )
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
-    status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
+    status = models.IntegerField(choices=PerWorkPlanStaus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(
         Country, on_delete=models.CASCADE,
         null=True, blank=True
@@ -615,7 +623,7 @@ class PerWorkPlanComponent(models.Model):
 class CustomPerWorkPlanComponent(models.Model):
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
-    status = models.IntegerField(choices=WorkPlanStatus.choices, default=0, verbose_name=_("status"))
+    status = models.IntegerField(choices=PerWorkPlanStaus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(
         Country, on_delete=models.CASCADE,
         null=True, blank=True
