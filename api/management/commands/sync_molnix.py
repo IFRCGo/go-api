@@ -59,11 +59,9 @@ def add_tags(molnix_tags, api):
                 molnix_id=g['id'],
                 name=g['name'])
             if created:
-                # Bad ide to put these rows into get_or_create, because it would multiply records unnecessary.
-                # The below 3 rows are optional (just keeps these date parallel with Molnix).
                 tag_group.created_at = g['created_at']
-                tag_group.updated_at = g['updated_at']
-                tag_group.save()
+            tag_group.updated_at = g['updated_at']
+            tag_group.save()
             tag.groups.add(tag_group)
         tag.molnix_id = molnix_tag['id']
         tag.name = n = molnix_tag['name']
