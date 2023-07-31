@@ -5,10 +5,12 @@ variable "environment" {
 variable "subscriptionId" {
   type = string
 }
+variable "region" {
+  type = string
+}
 
 variable "domain" {
-    type = string
-    default = "api.ifrcgo.com"
+  type = string
 }
 
 variable "DJANGO_SECRET_KEY" {
@@ -17,7 +19,6 @@ variable "DJANGO_SECRET_KEY" {
 
 variable "DJANGO_DB_NAME" {
   type = string
-  default = "postgres"
 }
 
 variable "DJANGO_DB_USER" {
@@ -159,7 +160,7 @@ variable "DJANGO_DEBUG" {
 
 variable "DOCKER_HOST_IP" {
   type = string
-  default = "127.0.0.1"
+  default = ""
 }
 
 variable "DJANGO_ADDITIONAL_ALLOWED_HOSTS" {
@@ -174,17 +175,37 @@ variable "GO_ENVIRONMENT" {
 
 variable "API_FQDN" {
   type = string
-  default = "ifrcgo-test.ds.io"
+  default = ""
 }
 
 variable "FRONTEND_URL" {
   type = string
-  default = "https://ifrcgo-test.ds.io"
+  default = ""
 }
 
 variable "DEBUG_EMAIL" {
   type = string
   default = "sanjay@developmentseed.org"
+}
+
+variable "SENTRY_DSN" {
+  type = string
+  default = ""
+}
+
+variable "SENTRY_SAMPLE_RATE" {
+  type = string
+  default = "0.2"
+}
+
+variable "DJANGO_READ_ONLY" {
+  type = string
+  default = "false"
+}
+
+variable "AUTO_TRANSLATION_TRANSLATOR" {
+  type = string
+  default = ""
 }
 
 variable "IFRC_TRANSLATION_DOMAIN" {
@@ -202,22 +223,3 @@ variable "IFRC_TRANSLATION_HEADER_API_KEY" {
   default = ""
 }
 
-variable "AUTO_TRANSLATION_TRANSLATOR" {
-  type = string
-  default = ""
-}
-
-variable "DJANGO_READ_ONLY" {
-  type = string
-  default = "false"
-}
-
-variable "SENTRY_SAMPLE_RATE" {
-  type = string
-  default = "0.2"
-}
-
-variable "SENTRY_DSN" {
-  type = string
-  default = ""
-}

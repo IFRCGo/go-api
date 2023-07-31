@@ -7,7 +7,6 @@ variable "subscriptionId" {
 }
 variable "region" {
   type = string
-default = "West Europe"
 }
 
 variable "domain" {
