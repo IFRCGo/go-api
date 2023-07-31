@@ -190,6 +190,26 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
+variable "RESOURCES_RG" {
+  type = string
+  default = ""
+}
+
+variable "RESOURCES_ACR" {
+  type = string
+  default = ""
+}
+
+variable "RESOURCES_DB_NAME" {
+  type = string
+  default = ""
+}
+
+variable "RESOURCES_DB_SERVER" {
+  type = string
+  default = ""
+}
+
 variable "SENTRY_DSN" {
   type = string
   default = ""
@@ -230,7 +250,55 @@ variable "IFRC_TRANSLATION_HEADER_API_KEY" {
 # Attach ACR
 # Defaults to common resources
 
-# Staging Resources
+### Staging Resources
+
+# variable "ifrcgo_test_resources_acr" {
+#   type    = string
+#   default = ""
+# }
+#
+# variable "ifrcgo_test_resources_rg" {
+#   type = string
+#   default = ""
+# }
+
+variable "ifrcgo_test_resources_db_server" {
+ type = string
+ default = ""
+}
+
+variable "ifrcgo_test_resources_db" {
+ type = string
+ default = ""
+}
+
+### Production Resources
+
+# variable "ifrcgo_prod_resources_acr" {
+#   type    = string
+#   default = ""
+# }
+#
+# variable "ifrcgo_prod_resources_rg" {
+#   type = string
+#   default = ""
+# }
+
+variable "ifrcgo_prod_resources_db_server" {
+ type = string
+ default = ""
+}
+
+variable "ifrcgo_prod_resources_db" {
+ type = string
+ default = ""
+}
+
+# Wired-in style:
+##################
+
+### Staging Resources
+
 variable "ifrcgo_test_resources_acr" {
   type    = string
   default = "ifrcgoacr"
@@ -238,20 +306,11 @@ variable "ifrcgo_test_resources_acr" {
 
 variable "ifrcgo_test_resources_rg" {
   type = string
-  default = "ifrcpgoterraform001rg"
+  default = "ifrctgo002rg"
 }
 
-variable "ifrcgo_test_resources_db_server" {
-  type = string
-  default = "ifrctgokdb003"
-}
+### Production Resources
 
-variable "ifrcgo_test_resources_db" {
-  type = string
-  default = "postgres"
-}
-
-# Production Resources
 variable "ifrcgo_prod_resources_acr" {
   type    = string
   default = "ifrcgoacr"
@@ -260,16 +319,6 @@ variable "ifrcgo_prod_resources_acr" {
 variable "ifrcgo_prod_resources_rg" {
   type = string
   default = "ifrcpgo002rg"
-}
-
-variable "ifrcgo_prod_resources_db_server" {
-  type = string
-  default = "ifrcpgokdb001"
-}
-
-variable "ifrcgo_prod_resources_db" {
-  type = string
-  default = "postgres"
 }
 
 
@@ -283,4 +332,15 @@ locals {
   # prefixnodashes        = "${local.stack_id}${var.environment}"
   storage               = "${local.prefix}"
   deploy_secrets_prefix = "${local.prefix}"
+
+### Should work environment-wise.
+# ifrcgo_test_resources_rg = var.RESOURCES_RG    # Does not work this way.
+# ifrcgo_prod_resources_rg = var.RESOURCES_RG    # Does not work this way.
+# ifrcgo_test_resources_acr = var.RESOURCES_ACR  # Does not work this way.
+# ifrcgo_prod_resources_acr = var.RESOURCES_ACR  # Does not work this way.
+  ifrcgo_test_resources_db_server = var.RESOURCES_DB_SERVER
+  ifrcgo_prod_resources_db_server = var.RESOURCES_DB_SERVER
+  ifrcgo_test_resources_db = var.RESOURCES_DB_NAME
+  ifrcgo_prod_resources_db = var.RESOURCES_DB_NAME
+
 }
