@@ -46,6 +46,13 @@ class SectorTagAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('title',)
 
 
+class MolnixTagGroupAdmin(CompareVersionAdmin, admin.ModelAdmin):
+    model = models.MolnixTagGroup
+    list_display = ['name', 'molnix_id']
+    ordering = ('molnix_id',)
+    search_fields = ('name',)
+
+
 @admin.register(models.ERU)
 class ERUAdmin(CompareVersionAdmin, admin.ModelAdmin):
     search_fields = ('national_society_country__name',)
@@ -315,3 +322,4 @@ admin.site.register(models.RegionalProject, RegionalProjectAdmin)
 admin.site.register(models.ERUReadiness, ERUReadinessAdmin)
 admin.site.register(models.Sector, SectorAdmin)
 admin.site.register(models.SectorTag, SectorTagAdmin)
+admin.site.register(models.MolnixTagGroup, MolnixTagGroupAdmin)

@@ -29,6 +29,7 @@ from .models import (
     ERU,
     PersonnelDeployment,
     MolnixTag,
+    MolnixTagGroup,
     Personnel,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
@@ -117,10 +118,17 @@ class PersonnelDeploymentSerializer(ModelSerializer):
 
 
 class MolnixTagSerializer(ModelSerializer):
+    groups = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ('id', 'molnix_id', 'name', 'description', 'color', 'tag_type')
+        fields = ('id', 'molnix_id', 'name', 'description', 'color', 'tag_type', 'groups')
         model = MolnixTag
+
+    @staticmethod
+    def get_groups(obj):
+        return [t.name for t in obj.groups.all() if not t.is_deprecated]
+        # or a detailed response, if needed:
+        # return [{"molnix_id": t.molnix_id, "name": t.name} for t in obj.groups.all() if not t.is_deprecated]
 
 
 class PersonnelDeploymentCsvSerializer(ModelSerializer):
