@@ -71,9 +71,10 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
                     dref_list.append(_queryset)
             drefs = []
             for dref in dref_list:
-                id = list(dref.values_list('id', flat=True))
-                new_dref = Dref.objects.filter(id__in=id).first()
-                drefs.append(new_dref.id)
+                ids = list(dref.values_list('id', flat=True))
+                for id in ids:
+                    new_dref = Dref.objects.filter(id=id).first()
+                    drefs.append(new_dref.id)
             if len(drefs):
                 return queryset.filter(models.Q(id__in=drefs) | models.Q(created_by=user)).distinct()
             else:
@@ -137,9 +138,10 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
                     dref_op_list.append(_queryset)
             ops = []
             for op in dref_op_list:
-                id = list(op.values_list('id', flat=True))
-                new_dref_op = DrefOperationalUpdate.objects.filter(id__in=id).first()
-                ops.append(new_dref_op.id)
+                ids = list(op.values_list('id', flat=True))
+                for id in ids:
+                    new_dref_op = DrefOperationalUpdate.objects.filter(id=id).first()
+                    ops.append(new_dref_op.id)
             if len(ops):
                 return queryset.filter(models.Q(id__in=ops) | models.Q(created_by=user)).distinct()
             else:
@@ -188,9 +190,10 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
                     dref_final_list.append(_queryset)
             finals = []
             for final in dref_final_list:
-                id = list(final.values_list('id', flat=True))
-                new_final = DrefFinalReport.objects.filter(id__in=id).first()
-                finals.append(new_final.id)
+                ids = list(final.values_list('id', flat=True))
+                for id in ids:
+                    new_final = DrefFinalReport.objects.filter(id__in=id).first()
+                    finals.append(new_final.id)
             if len(finals):
                 return queryset.filter(models.Q(id__in=finals) | models.Q(created_by=user)).distinct()
             else:
