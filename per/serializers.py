@@ -327,6 +327,8 @@ class MiniOverviewSerializer(serializers.ModelSerializer):
             "workplan_development_date",
             "user",
             "user_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
 
