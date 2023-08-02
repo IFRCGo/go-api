@@ -2,6 +2,7 @@ import typing
 from rest_framework import serializers
 
 from django.contrib.auth.models import User
+from django.db import models
 
 from api.models import Region
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -35,6 +36,7 @@ from api.serializers import (
 
 # from .admin_classes import RegionRestrictedAdmin
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
+from drf_spectacular.utils import extend_schema_field
 
 
 def check_draft_change(
@@ -80,6 +82,7 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
             "component_num",
             "description",
             "area",
+            "component_letter",
         )
 
 
@@ -97,7 +100,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = ("id", "component_num", "title", "area", "description")
+        fields = ("id", "component_num", "title", "area", "description", "component_letter")
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
@@ -283,12 +286,42 @@ class OverviewSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class AssessmentRatingSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    date_of_assessment = serializers.DateField()
+    assessment_number = serializers.IntegerField()
+
+
 class LatestCountryOverviewSerializer(serializers.ModelSerializer):
     type_of_assessment = AssessmentTypeSerializer()
+    assessment_ratings = serializers.SerializerMethodField()
 
     class Meta:
         model = Overview
-        fields = ("id", "country_id", "assessment_number", "date_of_assessment", "type_of_assessment")
+        fields = (
+            "id",
+            "country_id",
+            "assessment_number",
+            "date_of_assessment",
+            "type_of_assessment",
+            "assessment_ratings",
+        )
+
+    @extend_schema_field(AssessmentRatingSerializer(many=True))
+    def get_assessment_ratings(self, overview):
+        country_id = overview.country_id
+        if country_id:
+            qs = PerAssessment.objects.filter(
+                overview__country_id=country_id
+            ).values(
+                'overview__assessment_number'
+            ).annotate(
+                count=models.Avg('area_responses__component_response__rating'),
+                date_of_assessment=models.F('overview__date_of_assessment'),
+                assessment_number=models.F('overview__assessment_number')
+            )
+            return AssessmentRatingSerializer(qs, many=True).data
+        return None
 
 
 class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
@@ -606,13 +639,13 @@ class PublicPerCountrySerializer(serializers.ModelSerializer):
         )
 
 
-class MiniFormComponentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FormComponent
-        fields = (
-            "id",
-            "status",
-        )
+# class MiniFormComponentSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = FormComponent
+#         fields = (
+#             "id",
+#             "status",
+#         )
 
 
 class UserPerCountrySerializer(serializers.ModelSerializer):
