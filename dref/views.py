@@ -5,6 +5,7 @@ from django.utils.translation import gettext
 import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
+from django.db import models
 
 from rest_framework import (
     views,
@@ -45,6 +46,25 @@ from dref.filter_set import (
 from dref.permissions import PublishDrefPermission
 
 
+def filter_dref_queryset_by_user_access(user, queryset):
+    if user.is_superuser:
+        return queryset
+    # Check if regional admin
+    dref_admin_regions_id = [
+        codename.replace('dref_region_admin_', '')
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith='dref_region_admin_',
+        ).values_list('codename', flat=True)
+    ]
+    if len(dref_admin_regions_id):
+        return queryset.filter(
+            models.Q(created_by=user) | models.Q(country__region__in=dref_admin_regions_id) | models.Q(users=user)
+        ).distinct()
+    # Normal access
+    return queryset.model.get_for(user)
+
+
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -57,10 +77,8 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return Dref.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
+            
 
     @action(
         detail=True,
@@ -107,10 +125,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return DrefOperationalUpdate.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
@@ -142,10 +157,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return DrefFinalReport.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
@@ -229,32 +241,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
-        if user.is_superuser:
-            return queryset
-        elif not user.is_superuser:
-            regions = [0, 1, 2, 3, 4]
-            final_report_list = []
-            for region in regions:
-                codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(group__user=user, codename=codename).exists():
-                    final_report = (
-                        DrefFinalReport.objects.prefetch_related(
-                            "dref__planned_interventions",
-                            "dref__needs_identified",
-                        )
-                        .filter(country__region=region, is_published=True)
-                        .distinct()
-                    )
-                    final_report_list.append(final_report)
-            final = []
-            for final_report in final_report_list:
-                id = list(final_report.values_list('id', flat=True))
-                new_dref = DrefFinalReport.objects.filter(id__in=id).first()
-                final.append(new_dref.id)
-            if len(final):
-                return DrefFinalReport.objects.filter(id__in=final, is_published=True).order_by('-created_at')
-            else:
-                return DrefFinalReport.get_for(user).filter(is_published=True)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
 
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -332,7 +319,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
             for dref in annoatated_drefs:
                 new_dref = Dref.objects.get(id=dref.id)
                 dref_list.append(new_dref.id)
-            return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
+            return Dref.objects.filter((models.Q(id__in=dref_list) | models.Q(created_by=user) | models.Q(users=user)), is_active=True).distinct().order_by("-created_at")
         elif not user.is_superuser:
             # get current user dref regions
             regions = [0, 1, 2, 3, 4]
@@ -416,7 +403,7 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
                 new_dref = Dref.objects.get(id=dref.id)
                 dref_list.append(new_dref.id)
             if len(dref_list):
-                return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
+                return Dref.objects.filter((models.Q(id__in=dref_list) | models.Q(created_by=user) | models.Q(users=user)), is_active=True).distinct().order_by("-created_at")
             else:
                 dref = Dref.get_for(user)
                 dref_op_update = DrefOperationalUpdate.get_for(user)
