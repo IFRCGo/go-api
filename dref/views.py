@@ -46,6 +46,25 @@ from dref.filter_set import (
 from dref.permissions import PublishDrefPermission
 
 
+def filter_dref_queryset_by_user_access(user, queryset):
+    if user.is_superuser:
+        return queryset
+    # Check if regional admin
+    dref_admin_regions_id = [
+        codename.replace('dref_region_admin_', '')
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith='dref_region_admin_',
+        ).values_list('codename', flat=True)
+    ]
+    if len(dref_admin_regions_id):
+        return queryset.filter(
+            models.Q(created_by=user) | models.Q(country__region__in=dref_admin_regions_id)
+        ).distinct()
+    # Normal access
+    return queryset.model.get_for(user)
+
+
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -58,27 +77,8 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        elif not user.is_superuser:
-            # get current user dref regions
-            regions = [0, 1, 2, 3, 4]
-            dref_list = []
-            for region in regions:
-                codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(group__user=user, codename=codename).exists():
-                    _queryset = queryset.filter(country__region=region).distinct()
-                    dref_list.append(_queryset)
-            drefs = []
-            for dref in dref_list:
-                ids = list(dref.values_list('id', flat=True))
-                for id in ids:
-                    new_dref = Dref.objects.filter(id=id).first()
-                    drefs.append(new_dref.id)
-            if len(drefs):
-                return queryset.filter(models.Q(id__in=drefs) | models.Q(created_by=user)).distinct()
-            else:
-                return Dref.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
+            
 
     @action(
         detail=True,
@@ -125,27 +125,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        elif not user.is_superuser:
-            # get current user dref regions
-            regions = [0, 1, 2, 3, 4]
-            dref_op_list = []
-            for region in regions:
-                codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(group__user=user, codename=codename).exists():
-                    _queryset = queryset.filter(country__region=region).distinct()
-                    dref_op_list.append(_queryset)
-            ops = []
-            for op in dref_op_list:
-                ids = list(op.values_list('id', flat=True))
-                for id in ids:
-                    new_dref_op = DrefOperationalUpdate.objects.filter(id=id).first()
-                    ops.append(new_dref_op.id)
-            if len(ops):
-                return queryset.filter(models.Q(id__in=ops) | models.Q(created_by=user)).distinct()
-            else:
-                return DrefOperationalUpdate.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
@@ -177,27 +157,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        elif not user.is_superuser:
-            # get current user dref regions
-            regions = [0, 1, 2, 3, 4]
-            dref_final_list = []
-            for region in regions:
-                codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(group__user=user, codename=codename).exists():
-                    _queryset = queryset.filter(country__region=region).distinct()
-                    dref_final_list.append(_queryset)
-            finals = []
-            for final in dref_final_list:
-                ids = list(final.values_list('id', flat=True))
-                for id in ids:
-                    new_final = DrefFinalReport.objects.filter(id__in=id).first()
-                    finals.append(new_final.id)
-            if len(finals):
-                return queryset.filter(models.Q(id__in=finals) | models.Q(created_by=user)).distinct()
-            else:
-                return DrefFinalReport.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
