@@ -5,6 +5,7 @@ from django.utils.translation import gettext
 import django.utils.timezone as timezone
 from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
+from django.db import models
 
 from rest_framework import (
     views,
@@ -45,6 +46,25 @@ from dref.filter_set import (
 from dref.permissions import PublishDrefPermission
 
 
+def filter_dref_queryset_by_user_access(user, queryset):
+    if user.is_superuser:
+        return queryset
+    # Check if regional admin
+    dref_admin_regions_id = [
+        codename.replace('dref_region_admin_', '')
+        for codename in Permission.objects.filter(
+            group__user=user,
+            codename__startswith='dref_region_admin_',
+        ).values_list('codename', flat=True)
+    ]
+    if len(dref_admin_regions_id):
+        return queryset.filter(
+            models.Q(created_by=user) | models.Q(country__region__in=dref_admin_regions_id)
+        ).distinct()
+    # Normal access
+    return queryset.model.get_for(user)
+
+
 class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
     serializer_class = DrefSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -57,10 +77,8 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return Dref.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
+            
 
     @action(
         detail=True,
@@ -107,10 +125,7 @@ class DrefOperationalUpdateViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return DrefOperationalUpdate.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
@@ -142,10 +157,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
             .order_by("-created_at")
             .distinct()
         )
-        if user.is_superuser:
-            return queryset
-        else:
-            return DrefFinalReport.get_for(user)
+        return filter_dref_queryset_by_user_access(user, queryset)
 
     @action(
         detail=True,
