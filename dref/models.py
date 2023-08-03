@@ -230,14 +230,14 @@ class Dref(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="created_by_dref",
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("modified by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="modified_by_dref",
     )
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_("users"), blank=True, related_name="user_dref")
@@ -582,6 +582,7 @@ class Dref(models.Model):
         verbose_name_plural = _("drefs")
 
     def save(self, *args, **kwargs):
+        self.full_clean()  # required for choice field validation
         if self.budget_file and self.budget_file_id != self.__budget_file_id:
             pages = convert_from_bytes(self.budget_file.file.read())
             if len(pages) > 0:
@@ -666,14 +667,14 @@ class DrefOperationalUpdate(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="created_by_dref_operational_update",
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("modified by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="modified_by_dref_operational_update",
     )
     dref = models.ForeignKey(Dref, verbose_name=_("Dref"), on_delete=models.CASCADE)
@@ -994,6 +995,7 @@ class DrefOperationalUpdate(models.Model):
 
     def save(self, *args, **kwargs):
         # self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        self.full_clean()  # required for choice field validation
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -1024,14 +1026,14 @@ class DrefFinalReport(models.Model):
         settings.AUTH_USER_MODEL,
         verbose_name=_("created by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="created_by_dref_final_report",
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("modified by"),
         on_delete=models.SET_NULL,
-        null=True,
+        null=True, blank=True,
         related_name="modified_by_dref_final_report",
     )
     dref = models.OneToOneField(Dref, verbose_name=_("Dref"), on_delete=models.CASCADE)
@@ -1291,6 +1293,7 @@ class DrefFinalReport(models.Model):
         verbose_name_plural = _("Dref Final Reports")
 
     def save(self, *args, **kwargs):
+        self.full_clean()  # required for choice field validation
         if self.financial_report_id and self.financial_report_id != self.__financial_report_id:
             pages = convert_from_bytes(self.financial_report.file.read())
             if len(pages) > 0:
