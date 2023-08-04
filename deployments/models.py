@@ -247,7 +247,7 @@ class Personnel(DeployedPerson):
     type = models.CharField(verbose_name=_("type"), choices=TypeChoices.choices, max_length=4)
     gender = models.CharField(verbose_name=_("gender"), choices=GenderChoices.choices, null=True, blank=True, max_length=15)
     appraisal_score = models.IntegerField(verbose_name=_("appraisal score"), blank=True, null=True)
-    location = models.CharField(verbose_name=_("location"), null=True, max_length=300)
+    location = models.CharField(verbose_name=_("location"), blank=True, null=True, max_length=300)
     country_from = models.ForeignKey(
         Country, verbose_name=_("country from"), related_name="personnel_deployments", null=True, on_delete=models.SET_NULL
     )
