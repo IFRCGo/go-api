@@ -1,12 +1,16 @@
+import os
 import json
+import time
 from datetime import datetime, timedelta
 
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.core.files.storage import get_storage_class
 from django.conf import settings
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models.fields import IntegerField
 from django.db.models import Count, Sum, Q, F, Case, When
@@ -37,6 +41,16 @@ from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 from .utils import is_user_ifrc
 
+DefaultMediaStorageClass = get_storage_class()
+
+
+def get_full_media_url(media_path):
+    if settings.AZURE_ACCOUNT_NAME:
+        return f"tinymce/{media_path}"
+    else:
+        segments = media_path.split('/')
+        return '/' + '/'.join(segments[4:])  # so we exclude ['', 'home', 'foobar', 'go-api']
+
 
 def bad_request(message):
     return JsonResponse({"statusCode": 400, "error_message": message}, status=400)
@@ -48,6 +62,59 @@ def bad_http_request(header, message):
 
 def unauthorized(message="You must be logged in"):
     return JsonResponse({"statusCode": 401, "error_message": message}, status=401)
+
+
+@csrf_exempt
+def upload_image(request):
+    # TODO: check is_user_ifrc
+    if request.method == "POST":
+        file_obj = request.FILES['file']
+        file_name_suffix = file_obj.name.split(".")[-1]
+        if file_name_suffix not in ["jpg", "png", "gif", "jpeg", ]:
+            return JsonResponse({"message": "Wrong file format"})
+        if 'HTTP_REFERER' in request.environ:
+            segments = request.environ['HTTP_REFERER'].split('/')
+        if len(segments) > 8:
+            # like:            api_event_6338_1699965380777354422.png
+            file_obj.name = f"{'_'.join(segments[5:8])}_{time.time_ns()}.{file_name_suffix}"
+        else:
+            # like:            1699965380777354422.png
+            file_obj.name = f"{time.time_ns()}.{file_name_suffix}"
+
+        if settings.AZURE_ACCOUNT_NAME:
+            file_path = file_obj.name
+        else:
+            path = os.path.join(
+                settings.MEDIA_ROOT,
+                'tinymce',
+            )
+            # If there is no such path, create it
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            file_path = os.path.join(path, file_obj.name)
+
+        file_url = get_full_media_url(file_path)
+
+        if os.path.exists(file_path):
+            return JsonResponse({
+                "message": "file already exist",
+                'location': file_url
+            })
+
+        storage = DefaultMediaStorageClass()
+
+        if settings.AZURE_ACCOUNT_NAME:
+            storage.save(name=file_url, content=file_obj)
+            file_url = f"https://{storage.account_name}.blob.core.windows.net/api/{file_url}"
+        else:
+            storage.save(name=file_path, content=file_obj)
+
+        return JsonResponse({
+            'message': 'Image uploaded successfully',
+            'location': file_url
+        })
+    return JsonResponse({'detail': "Wrong request"})
 
 
 class UpdateSubscriptionPreferences(APIView):

@@ -294,6 +294,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 TINYMCE_DEFAULT_CONFIG = {
+    'images_upload_url': '/upload_image',  # Image upload route TODO: reverse_lazy
     'entity_encoding': 'raw',
     'height': 360,
     'width': 1120,
@@ -370,9 +371,9 @@ STATICFILES_DIRS = [
 ]
 
 
+""" REMOVE ME if the below django-storages-based "Azure config" works:
 AZURE_STORAGE_ACCOUNT = env('AZURE_STORAGE_ACCOUNT')
 AZURE_STORAGE_KEY = env('AZURE_STORAGE_KEY')
-
 AZURE_STORAGE = {
     'CONTAINER': 'api',
     'ACCOUNT_NAME': AZURE_STORAGE_ACCOUNT,
@@ -382,15 +383,19 @@ AZURE_STORAGE = {
 }
 if AZURE_STORAGE_ACCOUNT:
     DEFAULT_FILE_STORAGE = 'api.storage.AzureStorage'
-
 """
-# FIXME: TODO: Use this instead. https://django-storages.readthedocs.io/en/latest/backends/azure.html
-AZURE_ACCOUNT_NAME = env('AZURE_STORAGE_ACCOUNT')
+
+
+# Azure config
+# Use this instead of the above ^ old style. When tested, remove that ^ block and api/storage.py
+# Based on https://django-storages.readthedocs.io/en/latest/backends/azure.html
+# FIXME: AZURE_STORAGE_ACCOUNT->...NAME, AZURE_STORAGE_KEY->...ACCOUNT_KEY rename in env vars.
+#
+AZURE_ACCOUNT_NAME = env('AZURE_STORAGE_ACCOUNT')  # -> None if you want to simulate no-Azure
 AZURE_ACCOUNT_KEY = env('AZURE_STORAGE_KEY')
 AZURE_CONTAINER = 'api'
-if AZURE_STORAGE_ACCOUNT:
+if AZURE_ACCOUNT_NAME:
     DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-"""
 
 # Email config
 EMAIL_API_ENDPOINT = env('EMAIL_API_ENDPOINT')
@@ -399,13 +404,11 @@ EMAIL_PORT = env('EMAIL_PORT')
 EMAIL_USER = env('EMAIL_USER')
 EMAIL_PASS = env('EMAIL_PASS')
 DEBUG_EMAIL = env('DEBUG_EMAIL')
-# TEST_EMAILS = env('TEST_EMAILS') # maybe later
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # default 2621440, 2.5MB -> 100MB
 # default 1000, was not enough for Mozambique Cyclone Idai data
 # second  2000, was not enouch for Global COVID Emergency
 
-# See: https://github.com/IFRCGo/go-api/issues/1127
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 timezone = pytz.timezone("Europe/Zurich")
