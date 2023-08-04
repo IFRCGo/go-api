@@ -3,13 +3,21 @@
       "model": "per.PerComponentRating",
       "pk": "1",
       "fields": {
+        "title": "Not Reviewed",
+        "value": 0
+      }
+    },
+    {
+      "model": "per.PerComponentRating",
+      "pk": "2",
+      "fields": {
         "title": "Does Not Exist",
         "value": 1
       }
     },
     {
       "model": "per.PerComponentRating",
-      "pk": "2",
+      "pk": "3",
       "fields": {
         "title": "Partially Exists",
         "value": 2
@@ -17,7 +25,7 @@
     },
     {
       "model": "per.PerComponentRating",
-      "pk": "3",
+      "pk": "4",
       "fields": {
         "title": "Needs Improvement",
         "value": 3
@@ -25,7 +33,7 @@
     },
     {
       "model": "per.PerComponentRating",
-      "pk": "4",
+      "pk": "5",
       "fields": {
         "title": "Exits Could be Strengthened",
         "value": 4
@@ -33,7 +41,7 @@
     },
     {
         "model": "per.PerComponentRating",
-        "pk": "5",
+        "pk": "6",
         "fields": {
           "title": "High Performance",
           "value": 5
