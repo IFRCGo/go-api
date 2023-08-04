@@ -7,7 +7,7 @@ from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
 from django.db import models
 
-from drf_spectacular.utils import extend_schema_view
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import (
     views,
     viewsets,
