@@ -11,7 +11,7 @@ custom_component_schema = {
         "actions": {
             "type": "string"
         },
-        "due_date" : {
+        "due_date": {
             "type": "string",
             "format": "date"
         },
