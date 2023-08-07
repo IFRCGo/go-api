@@ -14,6 +14,7 @@ enum_register = {
     'episource_choices': models.EPISourceChoices,
     'field_report_status': models.FieldReport.Status,
     'field_report_recent_affected': models.FieldReport.RecentAffected,
+    'field_report_bulletin': models.RequestChoices,
     'action_org': models.ActionOrg,
     'action_type': models.ActionType,
     'action_category': models.ActionCategory,

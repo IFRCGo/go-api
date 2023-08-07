@@ -21,10 +21,7 @@ from dref.factories.dref import (
     DrefOperationalUpdateFactory,
     DrefFinalReportFactory,
 )
-from dref.models import (
-    DrefOperationalUpdate,
-    DrefFinalReport,
-)
+from dref.models import DrefOperationalUpdate
 
 from deployments.factories.user import UserFactory
 

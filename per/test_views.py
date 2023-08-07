@@ -1,10 +1,8 @@
 import json
 
 from main.test_case import APITestCase
-from .models import (
-    PerWorkPlan,
-    WorkPlanStatus,
-)
+from .models import WorkPlanStatus
+
 from api.factories.country import CountryFactory
 from per.factories import (
     OverviewFactory,
