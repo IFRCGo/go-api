@@ -1,7 +1,6 @@
 import os
 import datetime
 from typing import List
-import math
 
 from django.utils.translation import gettext
 from django.db import models, transaction

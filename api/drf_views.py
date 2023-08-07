@@ -575,6 +575,10 @@ class EventViewset(ReadOnlyVisibilityViewset):
             return self.get_paginated_response(serializer.data)
         return Response(serializer.data)
 
+    @extend_schema(
+        request=None,
+        responses=ListEventSerializer(many=True),
+    )
     @action(methods=["get"], detail=False, url_path="response-activity")
     def response_activity_events(self, request):
         return super().list(request)
