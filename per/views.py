@@ -1,7 +1,9 @@
 import logging
+from datetime import datetime, timezone
+
 from django.db import transaction
 from django.http import JsonResponse
-from datetime import datetime, timezone
+
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from rest_framework import (
@@ -21,8 +23,6 @@ from .models import (
     Overview,
     FormArea,
     FormQuestion,
-    PerWorkPlan,
-    PerWorkPlanComponent,
 )
 from .admin_classes import RegionRestrictedAdmin
 from api.views import bad_request
