@@ -79,7 +79,6 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             .distinct()
         )
         return filter_dref_queryset_by_user_access(user, queryset)
-            
 
     @action(
         detail=True,
@@ -179,6 +178,7 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         field_report.dref.save(update_fields=["is_active", "date_of_approval"])
         serializer = DrefFinalReportSerializer(field_report, context={"request": request})
         return response.Response(serializer.data)
+
 
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_class = [permissions.IsAuthenticated]
