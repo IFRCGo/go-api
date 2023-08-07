@@ -621,7 +621,8 @@ class CountryRelationSerializer(ModelSerializer):
             "wash_rdrt_trained",
             "has_country_plan",
             "bbox",
-            "centroid"
+            "centroid",
+            "fdrs",
         )
 
     @staticmethod
