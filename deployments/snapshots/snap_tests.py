@@ -396,17 +396,17 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = {
     ]
 }
 
-snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,surge_alert_id,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
-,,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
-,,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
+snapshots['TestProjectAPI::test_personnel_csv_api 1'] = '''event_id,event_glide_id,event_name,event_ifrc_severity_level,event_disaster_type,event_country_name,event_country_iso3,event_country_nationalsociety,event_country_regionname,role,type,surge_alert_id,appraisal_received,gender,location,name,deployed_id,deployed_to_name,deployed_to_iso3,deployed_to_nationalsociety,deployed_to_regionname,deployed_from_name,deployed_from_iso3,deployed_from_nationalsociety,deployed_from_regionname,start_date,end_date,ongoing,is_active,molnix_id,molnix_sector,molnix_role_profile,molnix_language,molnix_region,molnix_scope,molnix_modality,molnix_operation\r
+,,,,,,,,,,,,,,,,1,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,2,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,3,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,4,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,5,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,6,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,7,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,8,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,9,,,,,,,,,,,True,True,,,,,,,,\r
+,,,,,,,,,,,,,,,,10,,,,,,,,,,,True,True,,,,,,,,\r
 '''
 
 snapshots['TestProjectAPI::test_project_create 1'] = {
