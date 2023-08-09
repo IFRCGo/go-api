@@ -228,7 +228,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
         location = None
         try:
-            if md['contact'] and 'addresses' in md['contact'] and len(md['contact']['addresses']) and 'city' in md['contact'][0]:
+            if md['contact'] and 'addresses' in md['contact'] and len(md['contact']['addresses']) and 'city' in md['contact']['addresses'][0]:
                 location = md['contact']['addresses'][0]['city']
         except:
             logger.warning('Did not find city info in %d' % md['id'])
