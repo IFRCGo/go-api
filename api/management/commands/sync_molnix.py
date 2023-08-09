@@ -216,13 +216,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             logger.warning('Did not find SurgeAlert with Molnix position_id %d.' % md['position_id'])
             continue
 
-        appraisal_score = None
-        try:
-            if md['appraisals'] and len(md['appraisals']) and 'score' in md['appraisals'][0]:
-                appraisal_score = md['appraisals'][0]['score']
-        except:
-            logger.warning('Did not find appraisals score in %d' % md['id'])
-            continue
+        appraisal_received = 'appraisals' in md and len(md['appraisals'])
 
         gender = None
         try:
@@ -239,7 +233,6 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         except:
             logger.warning('Did not find city info in %d' % md['id'])
             continue
-
 
         personnel.deployment = deployment
         personnel.molnix_id = md['id']
@@ -266,13 +259,8 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         personnel.country_to = country_to
         country_from = None
         personnel.surge_alert = surge_alert
-        personnel.appraisal_score = appraisal_score
-        if gender == 'male':
-            personnel.gender = Personnel.GenderChoices.MALE
-        elif gender == 'female':
-            personnel.gender = Personnel.GenderChoices.FEMALE
-        elif gender:
-            personnel.gender = Personnel.GenderChoices.HIDDEN
+        personnel.appraisal_received = appraisal_received
+        personnel.gender = gender
         personnel.location = location
 
         # Sometimes the `incoming` value from Molnix is null.

@@ -231,22 +231,9 @@ class Personnel(DeployedPerson):
         DRAFT = "draft", _("DRAFT")
         DELETED = "deleted", _("DELETED")
 
-    class GenderChoices(models.TextChoices):
-        MALE = "male", _("MALE")
-        FEMALE = "female", _("FEMALE")
-        AGENDER = "agender", _("AGENDER")
-        PANGENDER = "pangender", _("PANGENDER")
-        TRANSGENDER = "transgender", _("TRANSGENDER")
-        THIRD_GENDER = "third-gender", _("THIRD_GENDER")
-        GENDERQUEER = "genderqueer", _("GENDERQUEER")
-        GENDER_NEUTRAL = "gender-neutral", _("GENDER_NEUTRAL")
-        NON_BINARY = "non-binary", _("NON_BINARY")
-        TWO_SPIRIT = "two-spirit", _("TWO_SPIRIT")
-        HIDDEN = "hidden", _("HIDDEN")
-
     type = models.CharField(verbose_name=_("type"), choices=TypeChoices.choices, max_length=4)
-    gender = models.CharField(verbose_name=_("gender"), choices=GenderChoices.choices, null=True, blank=True, max_length=15)
-    appraisal_score = models.IntegerField(verbose_name=_("appraisal score"), blank=True, null=True)
+    gender = models.CharField(verbose_name=_("gender"), null=True, blank=True, max_length=15)
+    appraisal_received = models.BooleanField(default=False, verbose_name=_("appraisal received"))
     location = models.CharField(verbose_name=_("location"), blank=True, null=True, max_length=300)
     country_from = models.ForeignKey(
         Country, verbose_name=_("country from"), related_name="personnel_deployments", null=True, on_delete=models.SET_NULL
