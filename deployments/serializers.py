@@ -288,7 +288,7 @@ class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
@@ -303,7 +303,7 @@ class PersonnelCsvSerializerAnon(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
@@ -320,7 +320,7 @@ class PersonnelCsvSerializerSuper(PersonnelCsvSerializerBase):
             'molnix_status',  # plus
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
