@@ -402,7 +402,7 @@ class DrefTestCase(APITestCase):
         Test for dref if is_published = True
         """
 
-        initial_now = datetime(2023, 7, 28)
+        initial_now = datetime.now()
         mock_now.return_value = initial_now
 
         region = Region.objects.create(name=RegionName.AFRICA)

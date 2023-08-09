@@ -1070,6 +1070,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["total_operation_timeframe"] = dref.operation_timeframe
             validated_data["operation_start_date"] = dref.date_of_approval
             validated_data["appeal_code"] = dref.appeal_code
+            validated_data["total_dref_allocation"] = dref.amount_requested
             validated_data["glide_code"] = dref.glide_code
             validated_data["ifrc_appeal_manager_name"] = dref.ifrc_appeal_manager_name
             validated_data["ifrc_appeal_manager_email"] = dref.ifrc_appeal_manager_email
