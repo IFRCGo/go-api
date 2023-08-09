@@ -223,6 +223,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "role",
             "type",
             "surge_alert_id",
+            "appraisal_received",
+            "gender",
+            "location",
         ]
         if not self.request.user.is_anonymous:
             context["header"] += ["name"]
@@ -277,6 +280,9 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         context["labels"]["country_from.society_name"] = "deployed_from_nationalsociety"
         context["labels"]["country_from.region"] = "deployed_from_regionname"
         context["labels"]["surge_alert_id"] = "surge_alert_id"
+        context["labels"]["appraisal_received"] = "appraisal_received"
+        context["labels"]["gender"] = "gender"
+        context["labels"]["location"] = "location"
 
         # https://github.com/mjumbewu/django-rest-framework-csv/blob/master/rest_framework_csv/renderers.py#L226-L229 uses bom when required:
         context["bom"] = True

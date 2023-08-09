@@ -152,7 +152,7 @@ class PersonnelSerializer(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
             'name',  # plus
         )
 
@@ -169,7 +169,7 @@ class PersonnelSerializerAnon(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
@@ -185,7 +185,7 @@ class PersonnelSerializerSuper(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
             'name', 'molnix_status',  # 2 plus
         )
 
@@ -207,6 +207,9 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     start_date = serializers.SerializerMethodField()
     end_date = serializers.SerializerMethodField()
     surge_alert_id = serializers.SerializerMethodField()
+    appraisal_received = serializers.SerializerMethodField()
+    gender = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
 
     @staticmethod
     def get_start_date(obj):
@@ -259,6 +262,18 @@ class PersonnelCsvSerializerBase(ModelSerializer):
     def get_surge_alert_id(obj):
         return obj.surge_alert_id
 
+    @staticmethod
+    def get_appraisal_received(obj):
+        return obj.appraisal_received
+
+    @staticmethod
+    def get_gender(obj):
+        return obj.gender
+
+    @staticmethod
+    def get_location(obj):
+        return obj.location
+
 
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
@@ -273,7 +288,7 @@ class PersonnelCsvSerializer(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
@@ -288,7 +303,7 @@ class PersonnelCsvSerializerAnon(PersonnelCsvSerializerBase):
             'deployment', 'id', 'is_active', 'molnix_sector', 'molnix_id',
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
@@ -305,7 +320,7 @@ class PersonnelCsvSerializerSuper(PersonnelCsvSerializerBase):
             'molnix_status',  # plus
             'molnix_role_profile', 'molnix_language', 'molnix_region', 'molnix_scope',
             'molnix_modality', 'molnix_operation', 'ongoing', 'inactive_status',
-            'surge_alert_id',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location',
         )
 
 
