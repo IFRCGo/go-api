@@ -56,4 +56,10 @@ class Command(BaseCommand):
                 unit.location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
                 unit.save()
                 name = unit.local_branch_name if unit.local_branch_name else unit.english_branch_name
-                print(f'{i} | {name} saved')
+                city = unit.city_loc if unit.city_loc else unit.city_en
+                if name:
+                    print(f'{i} | {name} saved')
+                elif city:
+                    print(f'{i} | ** {city} city location saved')
+                else:
+                    print(f'{i} | *** entity with ID saved')
