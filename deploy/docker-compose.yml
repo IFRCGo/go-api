@@ -56,9 +56,7 @@ services:
         - TF_VAR_API_FQDN=${API_FQDN}
         - TF_VAR_FRONTEND_URL=${FRONTEND_URL}
         - TF_VAR_DEBUG_EMAIL=${DEBUG_EMAIL}
-        # Main resources
-        - TF_VAR_RESOURCES_RG=${RESOURCES_RG}
-        - TF_VAR_RESOURCES_ACR=${RESOURCES_ACR}
+        # DB resources
         - TF_VAR_RESOURCES_DB_SERVER=${RESOURCES_DB_SERVER}
         - TF_VAR_RESOURCES_DB_NAME=${RESOURCES_DB_NAME}
         # Region

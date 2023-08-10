@@ -36,9 +36,7 @@ x-server: &base_server_setup
     SENTRY_SAMPLE_RATE: ${SENTRY_SAMPLE_RATE:-0.2}
     # Maintenance mode
     DJANGO_READ_ONLY: ${DJANGO_READ_ONLY:-false}
-    # Main resources
-    RESOURCES_RG: ${RESOURCES_RG:-}
-    RESOURCES_ACR: ${RESOURCES_ACR:-}
+    # DB resources
     RESOURCES_DB_SERVER: ${RESOURCES_DB_SERVER:-}
     RESOURCES_DB_NAME: ${RESOURCES_DB_NAME:-}
     # Region
