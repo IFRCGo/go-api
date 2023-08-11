@@ -1,6 +1,9 @@
 trigger:
 - terraform
 
+# no PR triggers
+pr: none
+
 resources:
   repositories:
   - repository: go-api
