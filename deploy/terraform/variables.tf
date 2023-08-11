@@ -190,16 +190,6 @@ variable "DEBUG_EMAIL" {
   default = "sanjay@developmentseed.org"
 }
 
-variable "RESOURCES_RG" {
-  type = string
-  default = ""
-}
-
-variable "RESOURCES_ACR" {
-  type = string
-  default = ""
-}
-
 variable "RESOURCES_DB_NAME" {
   type = string
   default = ""
