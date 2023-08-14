@@ -1,7 +1,6 @@
 import base64
 from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
-# from .models import VisibilityChoices
 
 
 def pretty_request(request):
