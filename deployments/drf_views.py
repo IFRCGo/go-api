@@ -40,7 +40,6 @@ from .models import (
     ProgrammeTypes,
     Project,
     RegionalProject,
-    SectorTag,
     Sector,
     Statuses,
     EmergencyProject,
@@ -905,11 +904,6 @@ class EmergencyProjectViewSet(
                 instance=dict(
                     sectors=EmergencyProjectActivitySector.objects.all(),
                     actions=EmergencyProjectActivityAction.objects.prefetch_related("supplies").all(),
-                    activity_leads=CharKeyValueSerializer.choices_to_data(EmergencyProject.ActivityLead.choices),
-                    activity_status=CharKeyValueSerializer.choices_to_data(EmergencyProject.ActivityStatus.choices),
-                    activity_people_households=CharKeyValueSerializer.choices_to_data(
-                        EmergencyProjectActivity.PeopleHouseholds.choices
-                    ),
                 )
             ).data
         )
