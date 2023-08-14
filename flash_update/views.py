@@ -78,9 +78,11 @@ class FlashUpdateFileViewSet(
         permission_classes=[permissions.IsAuthenticated],
     )
     def multiple_file(self, request, pk=None, version=None):
-        # converts querydict to original dict
-        files = dict((request.data).lists())['file']
-        data = [{'file': file} for file in files]
+        files = [
+            files[0]
+            for files in dict((request.data).lists()).values()
+        ]
+        data = [{"file": file} for file in files]
         if len(data) > 3:
             raise serializers.ValidationError("Number of files selected should not be greater than 3")
         file_serializer = FlashGraphicMapSerializer(data=data, context={'request': request}, many=True)

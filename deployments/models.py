@@ -704,19 +704,19 @@ class EmergencyProject(models.Model):
         null=True,
     )
     reporting_ns_contact_name = models.CharField(
-        verbose_name=_("NS Contanct Information: Name"),
+        verbose_name=_("NS Contact Information: Name"),
         max_length=255,
         blank=True,
         null=True,
     )
     reporting_ns_contact_role = models.CharField(
-        verbose_name=_("NS Contanct Information: Role"),
+        verbose_name=_("NS Contact Information: Role"),
         max_length=255,
         blank=True,
         null=True,
     )
     reporting_ns_contact_email = models.CharField(
-        verbose_name=_("NS Contanct Information: Email"),
+        verbose_name=_("NS Contact Information: Email"),
         max_length=255,
         blank=True,
         null=True,
@@ -817,10 +817,7 @@ class EmergencyProjectActivityLocation(models.Model):
 @reversion.register(follow=('project',))
 class EmergencyProjectActivity(models.Model):
     class PeopleHouseholds(models.TextChoices):
-        PEOPLE = (
-            "people",
-            _("People"),
-        )
+        PEOPLE = "people", _("People")
         HOUSEHOLDS = "households", _("Households")
 
     sector = models.ForeignKey(
