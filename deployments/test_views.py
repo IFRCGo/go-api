@@ -91,7 +91,6 @@ class ProjectGetTest(APITestCase):
         third.project_districts.set([self.district3])
         third.secondary_sectors.set([SectorTag.objects.get(pk=0), SectorTag.objects.get(pk=3)]),
 
-
     def create_project(self, **kwargs):
         project = Project.objects.create(
             user=self.user,

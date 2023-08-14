@@ -108,7 +108,6 @@ class FlashCountryDistrictSerializer(serializers.ModelSerializer):
 
 
 class FlashUpdateSerializer(
-    
     NestedUpdateMixin,
     NestedCreateMixin,
     serializers.ModelSerializer
@@ -134,7 +133,7 @@ class FlashUpdateSerializer(
         for country_district in attrs:
             country_list.append(country_district['country'])
         if len(country_list) > len(set(country_list)):
-            raise serializers.ValidationError("Dublicate country selected")
+            raise serializers.ValidationError("Duplicate country selected")
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user

@@ -11,7 +11,6 @@ from deployments.models import Project, VisibilityCharChoices, SectorTag
 from .factories.personnel import PersonnelFactory
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityFactory,
-    EmergencyProjectFactory,
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivitySectorFactory,
     EruFactory,

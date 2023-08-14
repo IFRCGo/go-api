@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
@@ -19,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from drf_spectacular.utils import extend_schema
 
-from deployments.models import Heop, ERUType, Sector, SectorTag, ProgrammeTypes, OperationTypes, Statuses
+from deployments.models import Heop, ERUType, Sector, SectorTag, Statuses
 from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
