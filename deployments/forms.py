@@ -11,8 +11,6 @@ from django.utils.safestring import mark_safe
 from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
-from api.logger import logger
-
 from api.models import (
     Country,
     District,
@@ -187,7 +185,7 @@ class ProjectImportForm(forms.Form):
 
         # Not enums, but can be used to avoid multiple queries for foreign key id-s
         sectors = {t.title.lower(): t.id for t in Sector.objects.all()}
-        add_to_sectors = dict() # Add the main words of sectors to the definition:
+        add_to_sectors = dict()  # Add the main words of sectors to the definition:
         for s in sectors.keys():
             tt = s.replace(' and', '').replace(', ', ',').replace(' ', ',').split(',')
             for t in tt:

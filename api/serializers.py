@@ -4,7 +4,6 @@ from typing import Union, List
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
