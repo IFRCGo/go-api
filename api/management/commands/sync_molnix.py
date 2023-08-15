@@ -216,7 +216,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             logger.warning('Did not find SurgeAlert with Molnix position_id %d.' % md['position_id'])
             continue
 
-        appraisal_received = 'appraisals' in md and len(md['appraisals'])
+        appraisal_received = 'appraisals' in md and bool(len(md['appraisals']))
 
         gender = None
         try:
