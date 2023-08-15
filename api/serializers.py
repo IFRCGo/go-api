@@ -4,11 +4,13 @@ from typing import Union, List
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.utils.translation import gettext
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from lang.models import String
-
+from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+from .event_sources import SOURCES
 from .models import (
     DisasterType,
     ExternalPartner,
@@ -810,7 +812,16 @@ class MiniEventSerializer(ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ("name", "dtype", "id", "slug", "parent_event", "emergency_response_contact_email", "countries_for_preview")
+        fields = (
+            "name",
+            "dtype",
+            "id",
+            "slug",
+            "parent_event",
+            "emergency_response_contact_email",
+            "countries_for_preview",
+            "start_date",
+        )
 
 
 class ListMiniEventSerializer(ModelSerializer):
@@ -1526,7 +1537,7 @@ class ActionSerializer(ModelSerializer):
 
 
 class ActionsTakenSerializer(ModelSerializer):
-    actions = ActionSerializer(many=True)
+    actions_details = ActionSerializer(many=True, read_only=True, source="actions")
 
     class Meta:
         model = ActionsTaken
@@ -1534,6 +1545,7 @@ class ActionsTakenSerializer(ModelSerializer):
             "organization",
             "actions",
             "summary",
+            "actions_details",
             "id",
         )
 
@@ -1551,7 +1563,7 @@ class SupportedActivitySerializer(ModelSerializer):
 
 
 class SourceSerializer(ModelSerializer):
-    stype = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    #stype = serializers.SlugRelatedField(slug_field="name", read_only=True)
 
     class Meta:
         model = Source
@@ -1714,10 +1726,75 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
         exclude = ()
 
 
-class CreateFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
+class FieldReportSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer,
+):
+    epi_figures_source_display = serializers.CharField(source="get_epi_figures_source_display", read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
+    bulletin_display = serializers.CharField(source="get_bulletin_display", read_only=True)
+    dref_display = serializers.CharField(source="get_dref_display", read_only=True)
+    appeal_display = serializers.CharField(source="get_appeal_display", read_only=True)
+    imminent_dref_display = serializers.CharField(source="get_imminent_dref_display", read_only=True)
+    forecast_based_action_display = serializers.CharField(source="get_forecast_based_action_display", read_only=True)
+    rdrt_display = serializers.CharField(source="get_rdrt_display", read_only=True)
+    fact_display = serializers.CharField(source="get_fact_display", read_only=True)
+    ifrc_staff_display = serializers.CharField(source="get_ifrc_staff_display", read_only=True)
+    eru_base_camp_display = serializers.CharField(source="get_eru_base_camp_display", read_only=True)
+    eru_basic_health_care_display = serializers.CharField(source="get_eru_basic_health_care_display", read_only=True)
+    eru_it_telecom_display = serializers.CharField(source="get_eru_it_telecom_display", read_only=True)
+    eru_logistics_display = serializers.CharField(source="get_eru_logistics_display", read_only=True)
+    eru_deployment_hospital_display = serializers.CharField(source="get_eru_deployment_hospital_display", read_only=True)
+    eru_referral_hospital_display = serializers.CharField(source="get_eru_referral_hospital_display", read_only=True)
+    eru_relief_display = serializers.CharField(source="get_eru_relief_display", read_only=True)
+    eru_water_sanitation_15_display = serializers.CharField(source="get_eru_water_sanitation_15_display", read_only=True)
+    eru_water_sanitation_40_display = serializers.CharField(source="get_eru_water_sanitation_40_display", read_only=True)
+    eru_water_sanitation_20_display = serializers.CharField(source="get_eru_water_sanitation_20_display", read_only=True)
+    actions_taken = ActionsTakenSerializer(many=True, required=False)
+    contacts = FieldReportContactSerializer(many=True, required=False)
+    sources = SourceSerializer(many=True, required=False)
+    countries_details = MiniCountrySerializer(source="countries", many=True, read_only=True)
+    districts_details = MiniDistrictSerializer(source="districts", many=True, read_only=True)
+    regions_details = RegionSerializer(source="regions", many=True, read_only=True)
+    event_details = MiniEventSerializer(source="event", read_only=True)
+    dtype_details = DisasterTypeSerializer(source="dtype", read_only=True)
+    external_partners_details = ExternalPartnerSerializer(source="external_partners", many=True, read_only=True)
+    supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
+
     class Meta:
         model = FieldReport
         fields = "__all__"
+
+    def create_event(self, report):
+        event = Event.objects.create(
+            name=report.summary,
+            dtype=report.dtype,
+            summary=report.description or "",
+            disaster_start_date=report.start_date,
+            auto_generated=True,
+            auto_generated_source=SOURCES["new_report"],
+            visibility=report.visibility,
+        )
+        event.countries.add(*report.countries.all())
+        event.districts.add(*report.districts.all())
+        event.regions.add(*report.regions.all())
+        report.event = event
+        report.save(update_fields=['event'])
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context["request"].user
+        countries = validated_data["countries"]
+        field_report = super().create(validated_data)
+        # also add regions for the coutries selected
+        field_report.regions.add(*[country.region for country in countries if (country.region is not None)])
+        if field_report.event is None:
+            self.create_event(field_report)
+        return field_report
+
+    def update(self, instance, validated_data):
+        validated_data['user'] = self.context["request"].user
+        return super().update(instance, validated_data)
 
 
 class MainContactSerializer(ModelSerializer):
