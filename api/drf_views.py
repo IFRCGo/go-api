@@ -102,7 +102,7 @@ from .serializers import (
     ListFieldReportSerializer,
     ListFieldReportCsvSerializer,
     DetailFieldReportSerializer,
-    CreateFieldReportSerializer,
+    FieldReportSerializer,
     MainContactSerializer,
     NsSerializer,
     # Tableau Serializers
@@ -141,6 +141,7 @@ from api.filter_set import (
 )
 
 from .logger import logger
+from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 
 class DeploymentsByEventViewset(viewsets.ReadOnlyModelViewSet):
@@ -606,18 +607,16 @@ class UserViewset(viewsets.ModelViewSet):
         return Response(self.get_serializer_class()(request.user).data)
 
 
-
-
-
 @extend_schema_view(
     retrieve=extend_schema(
         request=None,
-        responses=DetailFieldReportSerializer
+        responses=FieldReportSerializer
     )
 )
-class FieldReportViewset(ReadOnlyVisibilityViewset):
-    authentication_classes = (TokenAuthentication,)
-    visibility_model_class = FieldReport
+class FieldReportViewset(
+    ReadOnlyVisibilityViewsetMixin,
+    viewsets.ModelViewSet
+):
     search_fields = (
         "countries__name",
         "regions__label",
@@ -625,14 +624,16 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
     )  # for /docs
     ordering_fields = ("summary", "event", "dtype", "created_at", "updated_at")
     filterset_class = FieldReportFilter
-
-    def get_queryset(self, *args, **kwargs):
-        return (
-            super()
-            .get_queryset()
-            .select_related("dtype", "event")
-            .prefetch_related("actions_taken", "actions_taken__actions", "countries", "districts", "regions")
-        )
+    authentication_class = [IsAuthenticated]
+    queryset = FieldReport.objects.select_related(
+        "dtype", "event"
+    ).prefetch_related(
+        "actions_taken",
+        "actions_taken__actions",
+        "countries",
+        "districts",
+        "regions"
+    )
 
     def get_serializer_class(self):
         if is_tableau(self.request) is True:
@@ -642,8 +643,8 @@ class FieldReportViewset(ReadOnlyVisibilityViewset):
             if request_format_type == "csv":
                 return ListFieldReportCsvSerializer
             else:
-                return ListFieldReportSerializer
-        return DetailFieldReportSerializer
+                return FieldReportSerializer
+        return FieldReportSerializer
 
 
 class ActionViewset(viewsets.ReadOnlyModelViewSet):
@@ -661,330 +662,330 @@ class SupportedActivityViewset(viewsets.ReadOnlyModelViewSet):
     serializer_class = SupportedActivitySerializer
 
 
-class GenericFieldReportView(GenericAPIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    queryset = FieldReport.objects.all()
+# class GenericFieldReportView(GenericAPIView):
+#     authentication_classes = (TokenAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+#     queryset = FieldReport.objects.all()
 
-    def serialize(self, data, instance=None):
-        # Replace integer values for Int Enum types.
-        # Otherwise, validation will fail.
-        # This applies to visibility and request choices.
-        if data["visibility"] == 2 or data["visibility"] == "2":
-            data["visibility"] = VisibilityChoices.IFRC
-        elif data["visibility"] == 3 or data["visibility"] == "3":
-            data["visibility"] = VisibilityChoices.PUBLIC
-        elif data["visibility"] == 4 or data["visibility"] == "4":
-            data["visibility"] = VisibilityChoices.IFRC_NS
-        else:
-            data["visibility"] = VisibilityChoices.MEMBERSHIP
+#     def serialize(self, data, instance=None):
+#         # Replace integer values for Int Enum types.
+#         # Otherwise, validation will fail.
+#         # This applies to visibility and request choices.
+#         if data["visibility"] == 2 or data["visibility"] == "2":
+#             data["visibility"] = VisibilityChoices.IFRC
+#         elif data["visibility"] == 3 or data["visibility"] == "3":
+#             data["visibility"] = VisibilityChoices.PUBLIC
+#         elif data["visibility"] == 4 or data["visibility"] == "4":
+#             data["visibility"] = VisibilityChoices.IFRC_NS
+#         else:
+#             data["visibility"] = VisibilityChoices.MEMBERSHIP
 
-        # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
-        if "status" in data and data["status"] == FieldReport.Status.EW:  # Early Warning
-            if "num_potentially_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.RCRC_POTENTIALLY
-            elif "gov_num_potentially_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
-            elif "other_num_potentially_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.OTHER_POTENTIALLY
-        else:  # Event related
-            if "num_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.RCRC
-            elif "gov_num_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT
-            elif "other_num_affected" in data:
-                data["recent_affected"] = FieldReport.RecentAffected.OTHER
+#         # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
+#         if "status" in data and data["status"] == FieldReport.Status.EW:  # Early Warning
+#             if "num_potentially_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.RCRC_POTENTIALLY
+#             elif "gov_num_potentially_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
+#             elif "other_num_potentially_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.OTHER_POTENTIALLY
+#         else:  # Event related
+#             if "num_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.RCRC
+#             elif "gov_num_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT
+#             elif "other_num_affected" in data:
+#                 data["recent_affected"] = FieldReport.RecentAffected.OTHER
 
-        # Handle EPI Figures' Source dropdown saving
-        if "epi_figures_source" in data:
-            if data["epi_figures_source"] == 0 or data["epi_figures_source"] == "0":
-                data["epi_figures_source"] = EPISourceChoices.MINISTRY_OF_HEALTH
-            elif data["epi_figures_source"] == 1 or data["epi_figures_source"] == "1":
-                data["epi_figures_source"] = EPISourceChoices.WHO
-            elif data["epi_figures_source"] == 2 or data["epi_figures_source"] == "2":
-                data["epi_figures_source"] = EPISourceChoices.OTHER
-            else:
-                data["epi_figures_source"] = None
-        else:
-            data["epi_figures_source"] = None
+#         # Handle EPI Figures' Source dropdown saving
+#         if "epi_figures_source" in data:
+#             if data["epi_figures_source"] == 0 or data["epi_figures_source"] == "0":
+#                 data["epi_figures_source"] = EPISourceChoices.MINISTRY_OF_HEALTH
+#             elif data["epi_figures_source"] == 1 or data["epi_figures_source"] == "1":
+#                 data["epi_figures_source"] = EPISourceChoices.WHO
+#             elif data["epi_figures_source"] == 2 or data["epi_figures_source"] == "2":
+#                 data["epi_figures_source"] = EPISourceChoices.OTHER
+#             else:
+#                 data["epi_figures_source"] = None
+#         else:
+#             data["epi_figures_source"] = None
 
-        request_choices = [
-            "bulletin",
-            "dref",
-            "appeal",
-            "rdrt",
-            "fact",
-            "ifrc_staff",
-            "imminent_dref",
-            "forecast_based_action",
-            "eru_base_camp",
-            "eru_basic_health_care",
-            "eru_it_telecom",
-            "eru_logistics",
-            "eru_deployment_hospital",
-            "eru_referral_hospital",
-            "eru_relief",
-            "eru_water_sanitation_15",
-            "eru_water_sanitation_40",
-            "eru_water_sanitation_20",
-        ]
-        for prop in request_choices:
-            if prop in data:
-                if data[prop] == 1 or data[prop] == "1":
-                    data[prop] = RequestChoices.REQUESTED
-                elif data[prop] == 2 or data[prop] == "2":
-                    data[prop] = RequestChoices.PLANNED
-                elif data[prop] == 3 or data[prop] == "3":
-                    data[prop] = RequestChoices.COMPLETE
-                else:
-                    data[prop] = RequestChoices.NO
+#         request_choices = [
+#             "bulletin",
+#             "dref",
+#             "appeal",
+#             "rdrt",
+#             "fact",
+#             "ifrc_staff",
+#             "imminent_dref",
+#             "forecast_based_action",
+#             "eru_base_camp",
+#             "eru_basic_health_care",
+#             "eru_it_telecom",
+#             "eru_logistics",
+#             "eru_deployment_hospital",
+#             "eru_referral_hospital",
+#             "eru_relief",
+#             "eru_water_sanitation_15",
+#             "eru_water_sanitation_40",
+#             "eru_water_sanitation_20",
+#         ]
+#         for prop in request_choices:
+#             if prop in data:
+#                 if data[prop] == 1 or data[prop] == "1":
+#                     data[prop] = RequestChoices.REQUESTED
+#                 elif data[prop] == 2 or data[prop] == "2":
+#                     data[prop] = RequestChoices.PLANNED
+#                 elif data[prop] == 3 or data[prop] == "3":
+#                     data[prop] = RequestChoices.COMPLETE
+#                 else:
+#                     data[prop] = RequestChoices.NO
 
-        if instance is not None:
-            serializer = CreateFieldReportSerializer(instance, data=data)
-        else:
-            serializer = CreateFieldReportSerializer(data=data)
-        return serializer
+#         if instance is not None:
+#             serializer = CreateFieldReportSerializer(instance, data=data)
+#         else:
+#             serializer = CreateFieldReportSerializer(data=data)
+#         return serializer
 
-    def map_foreign_key_relations(self, data):
-        # The request data object will come with a lot of relation mappings.
-        # For foreign key, we want to replace instance ID's with querysets.
+#     def map_foreign_key_relations(self, data):
+#         # The request data object will come with a lot of relation mappings.
+#         # For foreign key, we want to replace instance ID's with querysets.
 
-        # Query foreign key relations, these are attached on model save/update.
-        mappings = [
-            ("user", User),
-            ("dtype", DisasterType),
-            ("event", Event),
-        ]
-        for prop, model in mappings:
-            if prop in data and data[prop] is not None:
-                try:
-                    data[prop] = model.objects.get(pk=data[prop])
-                except Exception:
-                    raise BadRequest("Valid %s is required" % prop)
-            elif prop != "event":
-                raise BadRequest("Valid %s is required" % prop)
+#         # Query foreign key relations, these are attached on model save/update.
+#         mappings = [
+#             ("user", User),
+#             ("dtype", DisasterType),
+#             ("event", Event),
+#         ]
+#         for prop, model in mappings:
+#             if prop in data and data[prop] is not None:
+#                 try:
+#                     data[prop] = model.objects.get(pk=data[prop])
+#                 except Exception:
+#                     raise BadRequest("Valid %s is required" % prop)
+#             elif prop != "event":
+#                 raise BadRequest("Valid %s is required" % prop)
 
-        return data
+#         return data
 
-    def map_many_to_many_relations(self, data):
-        # Query many-to-many mappings. These are removed from the data object,
-        # So they can be added later.
-        mappings = [
-            ("countries", Country),
-            ("regions", Region),
-            ("districts", District),
-        ]
+#     def map_many_to_many_relations(self, data):
+#         # Query many-to-many mappings. These are removed from the data object,
+#         # So they can be added later.
+#         mappings = [
+#             ("countries", Country),
+#             ("regions", Region),
+#             ("districts", District),
+#         ]
 
-        locations = {}
-        for prop, model in mappings:
-            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
-                locations[prop] = list(data[prop])
-            if prop in data:
-                del data[prop]
+#         locations = {}
+#         for prop, model in mappings:
+#             if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
+#                 locations[prop] = list(data[prop])
+#             if prop in data:
+#                 del data[prop]
 
-        # Sources, actions, and contacts
-        mappings = [
-            ("actions_taken"),
-            ("contacts"),
-            ("sources"),
-        ]
+#         # Sources, actions, and contacts
+#         mappings = [
+#             ("actions_taken"),
+#             ("contacts"),
+#             ("sources"),
+#         ]
 
-        meta = {}
-        for prop in mappings:
-            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
-                meta[prop] = list(data[prop])
-            if prop in data:
-                del data[prop]
+#         meta = {}
+#         for prop in mappings:
+#             if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
+#                 meta[prop] = list(data[prop])
+#             if prop in data:
+#                 del data[prop]
 
-        mappings = [("external_partners", ExternalPartner), ("supported_activities", SupportedActivity)]
+#         mappings = [("external_partners", ExternalPartner), ("supported_activities", SupportedActivity)]
 
-        partners = {}
-        for prop, model in mappings:
-            if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
-                partners[prop] = list(data[prop])
-            if prop in data:
-                del data[prop]
+#         partners = {}
+#         for prop, model in mappings:
+#             if prop in data and hasattr(data[prop], "__iter__") and len(data[prop]):
+#                 partners[prop] = list(data[prop])
+#             if prop in data:
+#                 del data[prop]
 
-        if "start_date" in data:
-            data["start_date"] = datetime.strptime(data["start_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(tzinfo=utc)
-        if "sit_fields_date" in data:
-            data["sit_fields_date"] = datetime.strptime(data["sit_fields_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(
-                tzinfo=utc
-            )
-        return data, locations, meta, partners
+#         if "start_date" in data:
+#             data["start_date"] = datetime.strptime(data["start_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(tzinfo=utc)
+#         if "sit_fields_date" in data:
+#             data["sit_fields_date"] = datetime.strptime(data["sit_fields_date"], "%Y-%m-%dT%H:%M:%S.%f%z").replace(
+#                 tzinfo=utc
+#             )
+#         return data, locations, meta, partners
 
-    def save_locations(self, instance, locations, is_update=False):
-        if is_update:
-            instance.districts.clear()
-            instance.countries.clear()
-            instance.regions.clear()
-        if "districts" in locations:
-            instance.districts.add(*locations["districts"])
-        if "countries" in locations:
-            instance.countries.add(*locations["countries"])
-            # Add countries in automatically, based on regions
-            countries = Country.objects.filter(pk__in=locations["countries"])
-            instance.regions.add(*[country.region for country in countries if (country.region is not None)])
+#     def save_locations(self, instance, locations, is_update=False):
+#         if is_update:
+#             instance.districts.clear()
+#             instance.countries.clear()
+#             instance.regions.clear()
+#         if "districts" in locations:
+#             instance.districts.add(*locations["districts"])
+#         if "countries" in locations:
+#             instance.countries.add(*locations["countries"])
+#             # Add countries in automatically, based on regions
+#             countries = Country.objects.filter(pk__in=locations["countries"])
+#             instance.regions.add(*[country.region for country in countries if (country.region is not None)])
 
-    def save_partners_activities(self, instance, locations, is_update=False):
-        if is_update:
-            instance.external_partners.clear()
-            instance.supported_activities.clear()
-        if "external_partners" in locations:
-            instance.external_partners.add(*locations["external_partners"])
-        if "supported_activities" in locations:
-            instance.supported_activities.add(*locations["supported_activities"])
+#     def save_partners_activities(self, instance, locations, is_update=False):
+#         if is_update:
+#             instance.external_partners.clear()
+#             instance.supported_activities.clear()
+#         if "external_partners" in locations:
+#             instance.external_partners.add(*locations["external_partners"])
+#         if "supported_activities" in locations:
+#             instance.supported_activities.add(*locations["supported_activities"])
 
-    def save_meta(self, fieldreport, meta, is_update=False):
-        if is_update:
-            ActionsTaken.objects.filter(field_report=fieldreport).delete()
-            FieldReportContact.objects.filter(field_report=fieldreport).delete()
-            Source.objects.filter(field_report=fieldreport).delete()
+#     def save_meta(self, fieldreport, meta, is_update=False):
+#         if is_update:
+#             ActionsTaken.objects.filter(field_report=fieldreport).delete()
+#             FieldReportContact.objects.filter(field_report=fieldreport).delete()
+#             Source.objects.filter(field_report=fieldreport).delete()
 
-        if "actions_taken" in meta:
-            for action_taken in meta["actions_taken"]:
-                actions = action_taken["actions"]
-                del action_taken["actions"]
-                action_taken[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
-                actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
-                CreateFieldReportSerializer.trigger_field_translation(actions_taken)
-                actions_taken.actions.add(*actions)
+#         if "actions_taken" in meta:
+#             for action_taken in meta["actions_taken"]:
+#                 actions = action_taken["actions"]
+#                 del action_taken["actions"]
+#                 action_taken[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
+#                 actions_taken = ActionsTaken.objects.create(field_report=fieldreport, **action_taken)
+#                 CreateFieldReportSerializer.trigger_field_translation(actions_taken)
+#                 actions_taken.actions.add(*actions)
 
-        if "contacts" in meta:
-            FieldReportContact.objects.bulk_create(
-                [FieldReportContact(field_report=fieldreport, **fields) for fields in meta["contacts"]]
-            )
+#         if "contacts" in meta:
+#             FieldReportContact.objects.bulk_create(
+#                 [FieldReportContact(field_report=fieldreport, **fields) for fields in meta["contacts"]]
+#             )
 
-        if "sources" in meta:
-            for source in meta["sources"]:
-                stype, created = SourceType.objects.get_or_create(name=source["stype"])
-                source["stype"] = stype
-            Source.objects.bulk_create([Source(field_report=fieldreport, **fields) for fields in meta["sources"]])
-
-
-class CreateFieldReport(CreateAPIView, GenericFieldReportView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    queryset = FieldReport.objects.all()
-    serializer_class = CreateFieldReportSerializer
-
-    def create_event(self, report):
-        event = Event.objects.create(
-            name=report.summary,
-            dtype=report.dtype,
-            summary=report.description or "",
-            disaster_start_date=report.start_date,
-            auto_generated=True,
-            auto_generated_source=SOURCES["new_report"],
-            visibility=report.visibility,
-            **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
-        )
-        CreateFieldReportSerializer.trigger_field_translation(event)
-        report.event = event
-        report.save()
-        return event
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.serialize(request.data)
-        if not serializer.is_valid():
-            try:
-                logger.error("Create Field Report serializer errors: {}".format(serializer.errors))
-            except Exception:
-                logger.error("Could not log create Field Report serializer errors")
-            raise BadRequest(serializer.errors)
-
-        data = self.map_foreign_key_relations(request.data)
-        data, locations, meta, partners = self.map_many_to_many_relations(data)
-
-        try:
-            # TODO: Use serializer to create fieldreport
-            data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
-            fieldreport = FieldReport.objects.create(
-                **data,
-            )
-            CreateFieldReportSerializer.trigger_field_translation(fieldreport)
-        except Exception as e:
-            try:
-                err_msg = str(e)
-                logger.error("Could not create Field Report.", exc_info=True)
-                raise BadRequest("Could not create Field Report. Error: {}".format(err_msg))
-            except Exception:
-                raise BadRequest("Could not create Field Report")
-
-        # ### Creating relations ###
-        # These are *not* handled in a transaction block.
-        # The data model for these is very permissive. We're more interested in the
-        # Numerical data being there than not.
-        errors = []
-        try:
-            self.save_locations(fieldreport, locations)
-            self.save_partners_activities(fieldreport, partners)
-        except Exception as e:
-            errors.append(e)
-
-        try:
-            self.save_meta(fieldreport, meta)
-        except Exception as e:
-            errors.append(e)
-
-        # If the report doesn't have an emergency attached, create one.
-        if fieldreport.event is None:
-            event = self.create_event(fieldreport)
-            try:
-                self.save_locations(event, locations)
-            except Exception as e:
-                errors.append(e)
-
-        if len(errors):
-            logger.error("%s errors creating new field reports" % len(errors))
-            for error in errors:
-                logger.error(str(error)[:200])
-
-        return Response({"id": fieldreport.id}, status=HTTP_201_CREATED)
+#         if "sources" in meta:
+#             for source in meta["sources"]:
+#                 stype, created = SourceType.objects.get_or_create(name=source["stype"])
+#                 source["stype"] = stype
+#             Source.objects.bulk_create([Source(field_report=fieldreport, **fields) for fields in meta["sources"]])
 
 
-class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    queryset = FieldReport.objects.all()
-    serializer_class = CreateFieldReportSerializer
+# class CreateFieldReport(CreateAPIView, GenericFieldReportView):
+#     authentication_classes = (TokenAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+#     queryset = FieldReport.objects.all()
+#     serializer_class = CreateFieldReportSerializer
 
-    def partial_update(self, request, *args, **kwargs):
-        self.update(request, *args, **kwargs)
+#     def create_event(self, report):
+#         event = Event.objects.create(
+#             name=report.summary,
+#             dtype=report.dtype,
+#             summary=report.description or "",
+#             disaster_start_date=report.start_date,
+#             auto_generated=True,
+#             auto_generated_source=SOURCES["new_report"],
+#             visibility=report.visibility,
+#             **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
+#         )
+#         CreateFieldReportSerializer.trigger_field_translation(event)
+#         report.event = event
+#         report.save()
+#         return event
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.serialize(request.data, instance=instance)
-        if not serializer.is_valid():
-            raise BadRequest(serializer.errors)
+#     def create(self, request, *args, **kwargs):
+#         serializer = self.serialize(request.data)
+#         if not serializer.is_valid():
+#             try:
+#                 logger.error("Create Field Report serializer errors: {}".format(serializer.errors))
+#             except Exception:
+#                 logger.error("Could not log create Field Report serializer errors")
+#             raise BadRequest(serializer.errors)
 
-        data = self.map_foreign_key_relations(request.data)
-        data, locations, meta, partners = self.map_many_to_many_relations(data)
+#         data = self.map_foreign_key_relations(request.data)
+#         data, locations, meta, partners = self.map_many_to_many_relations(data)
 
-        try:
-            serializer.save()
-        except Exception:
-            logger.error("Faild to update field report", exc_info=True)
-            raise BadRequest("Could not update field report")
+#         try:
+#             # TODO: Use serializer to create fieldreport
+#             data[TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME] = django_get_language()
+#             fieldreport = FieldReport.objects.create(
+#                 **data,
+#             )
+#             CreateFieldReportSerializer.trigger_field_translation(fieldreport)
+#         except Exception as e:
+#             try:
+#                 err_msg = str(e)
+#                 logger.error("Could not create Field Report.", exc_info=True)
+#                 raise BadRequest("Could not create Field Report. Error: {}".format(err_msg))
+#             except Exception:
+#                 raise BadRequest("Could not create Field Report")
 
-        errors = []
-        try:
-            self.save_locations(instance, locations, is_update=True)
-            self.save_partners_activities(instance, partners, is_update=True)
-        except Exception as e:
-            errors.append(e)
+#         # ### Creating relations ###
+#         # These are *not* handled in a transaction block.
+#         # The data model for these is very permissive. We're more interested in the
+#         # Numerical data being there than not.
+#         errors = []
+#         try:
+#             self.save_locations(fieldreport, locations)
+#             self.save_partners_activities(fieldreport, partners)
+#         except Exception as e:
+#             errors.append(e)
 
-        try:
-            self.save_meta(instance, meta, is_update=True)
-        except Exception as e:
-            errors.append(e)
+#         try:
+#             self.save_meta(fieldreport, meta)
+#         except Exception as e:
+#             errors.append(e)
 
-        if len(errors):
-            logger.error("%s errors creating new field reports" % len(errors))
-            for error in errors:
-                logger.error(str(error)[:200])
+#         # If the report doesn't have an emergency attached, create one.
+#         if fieldreport.event is None:
+#             event = self.create_event(fieldreport)
+#             try:
+#                 self.save_locations(event, locations)
+#             except Exception as e:
+#                 errors.append(e)
 
-        return Response({"id": instance.id}, status=HTTP_200_OK)
+#         if len(errors):
+#             logger.error("%s errors creating new field reports" % len(errors))
+#             for error in errors:
+#                 logger.error(str(error)[:200])
+
+#         return Response({"id": fieldreport.id}, status=HTTP_201_CREATED)
+
+
+# class UpdateFieldReport(UpdateAPIView, GenericFieldReportView):
+#     authentication_classes = (TokenAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+#     queryset = FieldReport.objects.all()
+#     serializer_class = CreateFieldReportSerializer
+
+#     def partial_update(self, request, *args, **kwargs):
+#         self.update(request, *args, **kwargs)
+
+#     def update(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         serializer = self.serialize(request.data, instance=instance)
+#         if not serializer.is_valid():
+#             raise BadRequest(serializer.errors)
+
+#         data = self.map_foreign_key_relations(request.data)
+#         data, locations, meta, partners = self.map_many_to_many_relations(data)
+
+#         try:
+#             serializer.save()
+#         except Exception:
+#             logger.error("Faild to update field report", exc_info=True)
+#             raise BadRequest("Could not update field report")
+
+#         errors = []
+#         try:
+#             self.save_locations(instance, locations, is_update=True)
+#             self.save_partners_activities(instance, partners, is_update=True)
+#         except Exception as e:
+#             errors.append(e)
+
+#         try:
+#             self.save_meta(instance, meta, is_update=True)
+#         except Exception as e:
+#             errors.append(e)
+
+#         if len(errors):
+#             logger.error("%s errors creating new field reports" % len(errors))
+#             for error in errors:
+#                 logger.error(str(error)[:200])
+
+#         return Response({"id": instance.id}, status=HTTP_200_OK)
 
 
 class MainContactViewset(viewsets.ReadOnlyModelViewSet):

@@ -7,6 +7,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
+from django.db.models import Q
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
@@ -304,18 +305,18 @@ class Admin2Geoms(models.Model):
 
 
 class VisibilityChoices(models.IntegerChoices):
-    MEMBERSHIP = 1, _('Membership')
-    IFRC = 2, _('IFRC Only')
+    MEMBERSHIP = 1, _('RCRC Movement')
+    IFRC = 2, _('IFRC Secretariat')
     PUBLIC = 3, _('Public')
-    IFRC_NS = 4, _('IFRC_NS')
+    IFRC_NS = 4, _('IFRC and NS')
 
 
 class VisibilityCharChoices(models.TextChoices):
     """Same as VisibilityChoices but using char instead of Enum"""
-    MEMBERSHIP = 'logged_in_user', _('Membership')
-    IFRC = 'ifrc_only', _('IFRC Only')
+    MEMBERSHIP = 'logged_in_user', _('RCRC Movement')
+    IFRC = 'ifrc_only', _('IFRC Secretariat')
     PUBLIC = 'public', _('Public')
-    IFRC_NS = 'ifrc_ns', _('IFRC_NS')
+    IFRC_NS = 'ifrc_ns', _('IFRC and NS')
 
 
 # Common parent class for key figures.
@@ -1089,7 +1090,7 @@ class RequestChoices(models.IntegerChoices):
     NO = 0, _('No')
     REQUESTED = 1, _('Requested')
     PLANNED = 2, _('Planned')
-    COMPLETE = 3, _('Complete')
+    COMPLETE = 3, _('Completed')
 
 
 class EPISourceChoices(models.IntegerChoices):
@@ -1175,9 +1176,9 @@ class FieldReport(models.Model):
         UNKNOWN = 0, _('Unknown')
         TWO = 2, _('Two')  # legacy usage
         THREE = 3, _('Three')  # legacy usage
-        EW = 8, _('Early Warning')
+        EW = 8, _('Early Warning / Early Action')
         EVT = 9, _('Event-related')
-        TEN = 10, _('Ten')  # legacy usage. Covid?
+        TEN = 10, _('Event')  # legacy usage. Covid?
 
     class RecentAffected(models.IntegerChoices):
         UNKNOWN = 0, _('Unknown')
@@ -1454,6 +1455,18 @@ class FieldReport(models.Model):
     #         _queryset = cls.objects
     #     import pdb; pdb.set_trace();
     #     return _queryset.filter(user=user)
+
+    @staticmethod
+    def get_for(user, queryset=None):
+        countries_qs = (
+            UserCountry.objects.filter(user=user)
+            .values("country")
+            .union(Profile.objects.filter(user=user).values("country"))
+        )
+        return queryset.exclude(
+            Q(visibility=VisibilityChoices.IFRC_NS) &
+            ~Q(countries__in=countries_qs)
+        )
 
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
