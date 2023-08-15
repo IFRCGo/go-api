@@ -30,7 +30,6 @@ from api.views import (
     GetAuthToken,
     RecoverPassword,
     ShowUsername,
-    EsPageSearch,
     EsPageHealth,
     Brief,
     ERUTypes,
@@ -96,7 +95,7 @@ router.register(r'eru_owner', deployment_views.ERUOwnerViewset, basename='eru_ow
 router.register(r'event', api_views.EventViewset, basename='event')
 router.register(r'go-historical', api_views.GoHistoricalViewSet, basename='go_historical')
 router.register(r'featured_event_deployments', api_views.EventDeploymentsViewset, basename='featured_event_deployments')
-router.register(r'field_report', api_views.FieldReportViewset, basename='field_report')
+router.register(r'field-report', api_views.FieldReportViewset, basename='field_report')
 router.register(r'event_snippet', api_views.EventSnippetViewset, basename='event_snippet')
 router.register(r'external_partner', api_views.ExternalPartnerViewset, basename='external_partner')
 router.register(r'language', lang_views.LanguageViewSet, basename='language')
@@ -144,7 +143,6 @@ router.register(r'donor-group', flash_views.DonorGroupViewSet, basename='donor_g
 router.register(r'donor', flash_views.DonorsViewSet, basename='donor')
 router.register(r'share-flash-update', flash_views.ShareFlashUpdateViewSet, basename='share_flash_update')
 router.register(r'users', api_views.UsersViewset, basename='users')
-
 # Dref apis
 router.register(r"dref", dref_views.DrefViewSet, basename="dref")
 router.register(r"dref-files", dref_views.DrefFileViewSet, basename="dref_files")
@@ -183,8 +181,8 @@ urlpatterns = [
     url(r"^api/v2/primarysector", ProjectPrimarySectors.as_view()),
     url(r"^api/v2/secondarysector", ProjectSecondarySectors.as_view()),
     url(r"^api/v2/projectstatus", ProjectStatuses.as_view()),
-    url(r"^api/v2/create_field_report/", api_views.CreateFieldReport.as_view()),
-    url(r"^api/v2/update_field_report/(?P<pk>\d+)/", api_views.UpdateFieldReport.as_view()),
+    # url(r"^api/v2/create_field_report/", api_views.CreateFieldReport.as_view()),
+    # url(r"^api/v2/update_field_report/(?P<pk>\d+)/", api_views.UpdateFieldReport.as_view()),
     url(r"^get_auth_token", GetAuthToken.as_view()),
     url(r"^api/v2/update_subscriptions/", UpdateSubscriptionPreferences.as_view()),
     url(r"^api/v2/add_subscription/", AddSubscription.as_view()),
