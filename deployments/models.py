@@ -158,6 +158,22 @@ class PersonnelDeployment(models.Model):
 
 
 @reversion.register()
+class MolnixTagGroup(models.Model):
+    molnix_id = models.IntegerField()
+    name = models.CharField(max_length=255, verbose_name=_("name"))
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
+    is_deprecated = models.BooleanField(default=False, help_text=_("Is this a deprecated group?"))
+
+    class Meta:
+        verbose_name = _("Molnix Tag Group")
+        verbose_name_plural = _("Molnix Tag Groups")
+
+    def __str__(self):
+        return self.name
+
+
+@reversion.register()
 class MolnixTag(models.Model):
     """
     We store tags from molnix in its own model, to make m2m relations
@@ -170,6 +186,11 @@ class MolnixTag(models.Model):
     color = models.CharField(max_length=6)
     tag_type = models.CharField(max_length=127)
     tag_category = models.CharField(null=True, max_length=127)
+    groups = models.ManyToManyField(
+        MolnixTagGroup,
+        related_name="groups",
+        blank=True,
+    )
 
     def __str__(self):
         return self.name
@@ -211,6 +232,9 @@ class Personnel(DeployedPerson):
         DELETED = "deleted", _("DELETED")
 
     type = models.CharField(verbose_name=_("type"), choices=TypeChoices.choices, max_length=4)
+    gender = models.CharField(verbose_name=_("gender"), null=True, blank=True, max_length=15)
+    appraisal_received = models.BooleanField(default=False, verbose_name=_("appraisal received"))
+    location = models.CharField(verbose_name=_("location"), blank=True, null=True, max_length=300)
     country_from = models.ForeignKey(
         Country, verbose_name=_("country from"), related_name="personnel_deployments", null=True, on_delete=models.SET_NULL
     )
@@ -224,6 +248,13 @@ class Personnel(DeployedPerson):
         verbose_name=_("molnix status"), max_length=8, choices=StatusChoices.choices, default=StatusChoices.ACTIVE
     )
     is_active = models.BooleanField(default=True)  # Active in Molnix API
+    surge_alert = models.ForeignKey(  # position_id in Molnix API
+        'notifications.SurgeAlert',  # import as string to avoid circular import (MolnixTag)
+        verbose_name=_("surge alert"),
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+    )
 
     def __str__(self):
         return "%s: %s - %s" % (self.type.upper(), self.name, self.role)
