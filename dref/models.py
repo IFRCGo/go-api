@@ -1279,6 +1279,11 @@ class DrefFinalReport(models.Model):
         null=True,
         blank=True,
     )
+    main_donors = models.TextField(
+        verbose_name=_("Main Donors"),
+        null=True,
+        blank=True
+    )
     __financial_report_id = None
 
     class Meta:
