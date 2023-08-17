@@ -2132,6 +2132,7 @@ class ERPGUID(models.Model):
     )
     field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=models.CASCADE)
 
+
 class CountryOfFieldReportToReview(models.Model):
     country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
 
