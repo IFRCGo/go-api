@@ -14,6 +14,7 @@ spec:
     spec:
       template:
         spec:
+          concurrencyPolicy: "Forbid"
           restartPolicy: "Never"
           containers:
             - name: {{ template "ifrcgo-helm.fullname" $ }}-{{ $job.command | trunc 16 | nospace | lower | replace "_" "-" }}-{{ $i }}
