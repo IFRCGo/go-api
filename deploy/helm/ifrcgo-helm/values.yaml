@@ -53,6 +53,7 @@ env:
 
 api:
   domain: "go-staging.ifrc.org"
+  additionalDomain: ""
   enabled: true
   replicaCount: 1
   containerPort: 80
