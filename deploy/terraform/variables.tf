@@ -15,6 +15,11 @@ variable "domain" {
   type = string
 }
 
+variable "additionalDomain" {
+  type = string
+  default = ""
+}
+
 variable "DJANGO_SECRET_KEY" {
   type = string
 }

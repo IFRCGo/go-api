@@ -17,6 +17,11 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
+    name  = "api.additionalDomain"
+    value = var.additionalDomain
+  }
+
+  set {
     name = "env.DJANGO_SECRET_KEY"
     value = var.DJANGO_SECRET_KEY
   }
