@@ -19,11 +19,18 @@ spec:
             - name: {{ template "ifrcgo-helm.fullname" $ }}-{{ $job.command | trunc 16 | nospace | lower | replace "_" "-" }}-{{ $i }}
               image: "{{ $.Values.api.image.name }}:{{ $.Values.api.image.tag }}"
               command: ["python", "/home/ifrc/go-api/manage.py", "{{ $job.command }}"]
-              #FIXME: add resources
               envFrom:
                 - secretRef:
                     name: {{ template "ifrcgo-helm.fullname" $ }}-api-secret
                 - configMapRef:
                     name: {{ template "ifrcgo-helm.fullname" $ }}-api-configmap
+              # We may eventually want these resources to be configurable per job
+              resources:
+                requests:
+                  cpu: 2
+                  memory: 4Gi 
+                limits:
+                  cpu: 3
+                  memory: 6Gi
               #FIXME: Add onFailure policy, retries, etc.
 {{- end }}
