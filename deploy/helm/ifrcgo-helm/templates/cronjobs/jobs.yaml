@@ -10,11 +10,11 @@ metadata:
     release: {{ $.Release.Name }}
 spec:
   schedule: {{ $job.schedule | quote }}
+  concurrencyPolicy: "Forbid"
   jobTemplate:
     spec:
       template:
         spec:
-          concurrencyPolicy: "Forbid"
           restartPolicy: "Never"
           containers:
             - name: {{ template "ifrcgo-helm.fullname" $ }}-{{ $job.command | trunc 16 | nospace | lower | replace "_" "-" }}-{{ $i }}
