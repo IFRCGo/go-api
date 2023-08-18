@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.488
+
+### Added
+ - Hotfix for main donors
+
+## 1.1.487
+## 1.1.486
+
+### Added
+ - Hotfix for Molnix changes (3 new fields)
+
 ## 1.1.485
 
 ### Added
@@ -2272,7 +2283,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.485...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.487...HEAD
+[1.1.487]: https://github.com/IFRCGo/go-api/compare/1.1.486...1.1.487
+[1.1.486]: https://github.com/IFRCGo/go-api/compare/1.1.485...1.1.486
 [1.1.485]: https://github.com/IFRCGo/go-api/compare/1.1.484...1.1.485
 [1.1.484]: https://github.com/IFRCGo/go-api/compare/1.1.483...1.1.484
 [1.1.483]: https://github.com/IFRCGo/go-api/compare/1.1.482...1.1.483
