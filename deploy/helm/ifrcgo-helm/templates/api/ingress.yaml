@@ -13,6 +13,13 @@ spec:
     - hosts:
       - {{ .Values.api.domain }}
       secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api
+    # TODO: uncomment this when we have a second domain set up and pointed
+    # to the cluster
+    # {{- if .Values.api.additionalDomain }}
+    # - hosts:
+    #   - {{ .Values.api.additionalDomain }}
+    #   secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain
+    # {{- end }}
 
   rules:
   - host: {{ .Values.api.domain }}
@@ -25,4 +32,16 @@ spec:
             name: {{ template "ifrcgo-helm.fullname" . }}-api
             port:
               number: 80
+  {{- if .Values.api.additionalDomain }}
+  - host: {{ .Values.api.additionalDomain }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ template "ifrcgo-helm.fullname" . }}-api
+            port:
+              number: 80
+  {{- end }}
 {{- end }}
