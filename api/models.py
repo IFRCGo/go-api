@@ -1,4 +1,6 @@
 import reversion
+import uuid
+
 from django.utils.translation import gettext_lazy as _
 # from django.db import models
 from django.contrib.gis.db import models
@@ -2139,3 +2141,21 @@ class CountryOfFieldReportToReview(models.Model):
     class Meta:
         verbose_name = "Country of Field Report to review"
         verbose_name_plural = "Countries of Field Report to review"
+
+
+class ExportToken(models.Model):
+    class ExportStatus(models.IntegerChoices):
+        STARTED = 0, _('Started')
+        PENDING = 1, _('Pending')
+        COMPLETED = 2, _('Completed')
+        ERRORED = 3, _('Errored')
+
+    url = models.URLField(verbose_name=_("Url"), max_length=255)
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    requested_at = models.DateTimeField(verbose_name=_('Requested At'), null=True, blank=True)
+    completed_at = models.DateTimeField(verbose_name=_('Completed At'), null=True, blank=True)
+    status = models.IntegerField(verbose_name=_('Status'), choices=ExportStatus.choices)
+    pdf_url = models.URLField(verbose_name=_('Pdf Url'), max_length=255)
+
+    def __str__(self):
+        return f'{self.url} - {self.token} - {self.pdf_url}'

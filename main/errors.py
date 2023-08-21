@@ -15,7 +15,6 @@ def map_error_codes(codes, default=None):
 
     if isinstance(codes, str):
         return error_code_map.get(codes, default)
-
     if codes == {'non_field_errors': ['invalid']}:
         return error_codes.TOKEN_INVALID
 
