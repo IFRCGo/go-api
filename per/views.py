@@ -29,7 +29,7 @@ from api.views import bad_request
 from api.models import Country
 
 logger = logging.getLogger(__name__)
-
+from playwright.sync_api import sync_playwright
 
 def get_now_str():
     return datetime.now(timezone.utc)
