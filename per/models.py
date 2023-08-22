@@ -74,11 +74,13 @@ class FormArea(models.Model):
 class FormComponentQuestionAndAnswer(models.Model):
     question = models.ForeignKey(
         "FormQuestion", verbose_name=_("question"),
-        on_delete=models.CASCADE
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     answer = models.ForeignKey(
         "FormAnswer", verbose_name=_("answer"),
-        on_delete=models.CASCADE
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     notes = models.TextField(
         verbose_name=_("notes"),
