@@ -116,6 +116,8 @@ services:
     tty: true
     environment:
       - NODE_NO_WARNINGS=1
+    ports:
+      - "5900:5900"
 
   serve:
     <<: *base_server_setup
