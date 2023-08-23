@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pvc
+  labels:
+    component: elasticsearch
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.elasticsearch.storageSize }}
+  storageClassName: managed-csi
+  volumeName:  {{ template "ifrcgo-helm.fullname" . }}-elasticsearch-pv

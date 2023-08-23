@@ -24,20 +24,22 @@ touch $HOME/logs/ingest_mdb.log
 
 # Start Gunicorn processes
 echo Starting Gunicorn.
-exec gunicorn main.wsgi:application \
-    --name main \
+gunicorn main.wsgi:application \
     --preload \
-    --bind unix:/home/ifrc/django_app.sock \
+    --name main \
+    --bind 0.0.0.0:8000 \
     --workers 3 \
     --timeout 120 \
-    --log-level=info \
+    --log-level=debug \
     --log-file=$HOME/logs/gunicorn.log \
-    --access-logfile=$HOME/logs/access.log &
+    --access-logfile=$HOME/logs/access.log
+
+
 
 # set up cron
 # rm $HOME/.env
 # Exporting env vars, like: echo "export PRODUCTION=\"$PRODUCTION\"" >> $HOME/.env
-printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
+# printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 
 # # XXX: Changing cron schedule expressions may break or send multiple notifications.
 # (crontab -l 2>/dev/null; echo 'SHELL=/bin/bash') | crontab -
@@ -53,7 +55,6 @@ printenv | sed 's/^\([a-zA-Z0-9_]*\)=\(.*\)$/export \1="\2"/g' > $HOME/.env
 # (crontab -l 2>/dev/null; echo '*/10 * * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py sync_molnix >> /home/ifrc/logs/sync_molnix.log 2>&1') | crontab -
 # (crontab -l 2>/dev/null; echo '0 3 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py update_project_status >> /home/ifrc/logs/update_project_status.log 2>&1') | crontab -
 # (crontab -l 2>/dev/null; echo '0 9 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py user_registration_reminder >> /home/ifrc/logs/user_registration_reminder.log 2>&1') | crontab -
-# (crontab -l 2>/dev/null; echo '0 0 * * * . /home/ifrc/.env; python /home/ifrc/go-api/manage.py ingest_country_plan_file >> /home/ifrc/logs/ingest_country_plan_file.log 2>&1') | crontab -
 # service cron start
 
 

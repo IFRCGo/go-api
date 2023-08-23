@@ -236,6 +236,14 @@ urlpatterns = [
     url(r"^favicon\.ico$", RedirectView.as_view(url="/static/favicon.ico")),
     url(r"^server-error-for-devs", DummyHttpStatusError.as_view()),
     url(r"^exception-error-for-devs", DummyExceptionError.as_view()),
+    path(".well-known/ai-plugin.json", serve, {
+        "document_root": settings.STATICFILES_DIRS[0],
+        'path': 'well-known/ai-plugin.json'
+    }),
+    path(".well-known/openapi.yml", serve, {
+        "document_root": settings.STATICFILES_DIRS[0],
+        'path': 'well-known/openapi.yml'
+    }),
     path("i18n/", include("django.conf.urls.i18n")),
     # Enums
     url(r"^api/v2/global-enums/", api_views.GlobalEnumView.as_view(), name="global_enums"),

@@ -1,0 +1,117 @@
+#!/bin/bash
+
+set -x
+
+function usage() {
+    echo -n \
+        "Usage: $(basename "$0") -t TERRAFORM_DIR [--plan,--skip-tf]
+Deploys the project infrastructure.
+-t TERRAFORM_DIR: The terraform directory. Required.
+-e ENVIRONMENT: The environment to deploy. Required.
+--plan: Only run Terraform plan.
+--skip-tf: Skips Terraform apply. Will still gather terraform output
+"
+}
+
+###################
+# Parse arguments #
+###################
+echo "The arguments passed to this script are: $@"
+
+while [[ "$#" -gt 0 ]]; do case $1 in
+    -t)
+        TERRAFORM_DIR=${2}
+        shift
+        shift
+        ;;
+    -e)
+        ENVIRONMENT=${2}
+        shift
+        ;;
+    --skip-tf)
+        SKIP_TF=1
+        shift
+        ;;
+    --plan)
+        PLAN_ONLY=1
+        shift
+        ;;
+    --destroy)
+        DESTROY=1
+        shift
+        ;;
+    --help)
+        usage
+        exit 0
+        shift
+        ;;
+    *)
+        usage "Unknown parameter passed: $1"
+        shift
+        shift
+        ;;
+    esac done
+
+###################################
+# Check and configure environment #
+###################################
+
+function require_env() {
+    v=$(eval echo \$${1})
+
+    if [[ -z ${v} ]]; then
+        echo "Must set ${1} as environment variable" >&2
+        exit 1
+    fi
+}
+
+echo $ENVIRONMENT
+if [[ -z ${TERRAFORM_DIR} ]]; then
+    echo "Must pass in TERRAFORM_DIR with -t"
+    exit 1
+fi
+
+if [[ -z ${ENVIRONMENT} ]]; then
+    echo "Must pass in ENVIRONMENT with -e"
+    exit 1
+fi
+
+# Print some information
+
+echo "===== Running Deploy for $ENVIRONMENT ====="
+
+# Replace the backend state key in the main.tf to pick the right environment
+sed -i "s/ENVIRONMENT_TO_REPLACE/$ENVIRONMENT/g" ${TERRAFORM_DIR}/main.tf
+
+
+# ---- TODO: Run Chartpress ------
+
+# ---------------------------------------------------
+
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+
+    #####################
+    # Deploy Terraform  #
+    #####################
+
+    pushd ${TERRAFORM_DIR}
+
+
+    if [[ "${SKIP_TF}" != 1 ]]; then
+        echo "Deploying infrastructure with Terraform..."
+        terraform init
+
+        if [ "${PLAN_ONLY}" ]; then
+            terraform plan
+            exit 0
+        fi
+
+        if [ "${DESTROY}" ]; then
+            terraform destroy --auto-approve
+            exit 0
+        fi
+
+        terraform apply -auto-approve
+    fi
+
+fi

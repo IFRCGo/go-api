@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info:
+  title: Search API
+  version: 1.0.0
+servers:
+  - url: https://goadmin-stage.ifrc.org/
+    description: Main API server
+paths:
+  /api/v1/search:
+    get:
+      summary: Search resources
+      description: Allows searching through the various resources on the IFRC GO platform pertaining to humanitarian emergencies. It will return an object with all the resources on the GO platform that match the keyword searched for. 
+      parameters:
+        - name: keyword
+          in: query
+          description: The query string for searching.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  regions:
+                    type: object
+                    description: Continental regions matching the search term.
+                  district_province_response:
+                    type: object
+                    description: Admin2 boundaries matching the search term.
+                  countries:
+                    type: object
+                    description: Countries matching the search term.
+                  emergencies:
+                    type: object
+                    description: Emergency objects of various past and ongoing emergencies matching the search term.
+                  surge_alerts:
+                    type: object
+                    description: Various alerts and calls for personnel to be deployed to various emergencies matching the search term.
+                  reports:
+                    type: object
+                    description: Field reports filed by national societies about emergencies matching the search term.
+                  rapid_response_deployments:
+                    type: object
+                    description: Details of various personnel deployments to ongoing emergencies matching the search term.
