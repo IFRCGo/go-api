@@ -198,6 +198,20 @@ For updating the index
 docker-compose exec serve bash python manage.py update_index
 ```
 
+## See logs from Kubernetes
+There are a few different ways to see logs in the new Kubernetes based stack. Both of the options require `kubectl`, access to the cluster. Once the cluster is added to your local kubernetes context, follow the steps below:
+
+### 1. Using Grafana
+Grafana is an open source log analytics software. We use [Grafana along with Loki](https://grafana.com/docs/loki/latest/installation/helm/) to interactively fetch logs, run custom queries and analysis. To access the Grafana dashboard and view logs:
+1. Proxy the Grafana server to you localhost: `kubectl port-forward --namespace loki-stack service/loki-stack-grafana 3000:80`
+2. Now visit http://localhost:3000 to see the login page
+3. Get the password using `kubectl get secret --namespace loki-stack loki-stack-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo`. The username is `admin`
+4. Now go to the Dashboard > Logs. Currently we have added API and Elastic Search logs ![image](https://github.com/developmentseed/ds-business/assets/371666/b8cd96a9-dd97-4cad-8574-c03697c8b5d5)
+5. If you want to run custom queries, use the Explore tab.
+
+### 2. Using kubectl
+Using `kubectl` is a more direct way to looking at logs. Once you find the pod name (using `kubectl get pods`), run `kubectl logs podname`.
+
 # Management commands to update and import admin0 and admin1 data
 
 There are two Django management commands that helps to work with ICRC admin0 and admin1 shapefiles. These commands should be used only when you want to update geometries, or import new ones from a shapefile. The structure of the shapefile is not very flexible, but can be adjusted easily in the scripts. 

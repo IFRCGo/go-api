@@ -1,0 +1,18 @@
+{
+    "schema_version": "v1",
+    "name_for_model": "International Federation of the Red Cross Data Platform",
+    "name_for_human": "IFRC GO",
+    "description_for_model": "Plugin to search for information on the GO Platform, maintained by the International Federation of the Red Cross. You can use this API to ask questions about various past an ongoing humanitarian emergencies around the World, and details of Red Cross national societies and their capacity.",
+    "description_for_human": "Search through the GO API",
+    "auth": {
+      "type": "none"
+    },
+    "api": {
+      "type": "openapi",
+      "url": "https://goadmin-stage.ifrc.org/.well-known/openapi.yml",
+      "has_user_authentication": false
+    },
+    "logo_url": "https://go.ifrc.org/assets/graphics/layout/go-logo-2020.svg",
+    "contact_email": "im@ifrc.org", 
+    "legal_info_url": "https://www.ifrc.org/disclaimer"
+  }

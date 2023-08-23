@@ -1,0 +1,26 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-api-configmap
+  labels:
+    component: api-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+data:
+  CELERY_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/0"
+  CACHE_REDIS_URL: "redis://{{ template "ifrcgo-helm.fullname" . }}-redis:6379/1"
+  CACHE_MIDDLEWARE_SECONDS: {{ .Values.env.CACHE_MIDDLEWARE_SECONDS | quote }}
+  DJANGO_DB_NAME: postgres
+  DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
+  ELASTIC_SEARCH_HOST: "elasticsearch://{{ template "ifrcgo-helm.fullname" . }}-elasticsearch:9200" #FIXME: double check format
+  DOCKER_HOST_IP: {{ .Values.env.DOCKER_HOST_IP | quote }}
+  DJANGO_ADDITIONAL_ALLOWED_HOSTS: {{ .Values.env.DJANGO_ADDITIONAL_ALLOWED_HOSTS | quote }}
+  GO_ENVIRONMENT: {{ .Values.env.GO_ENVIRONMENT | quote }}
+  API_FQDN: {{ .Values.env.API_FQDN | quote }}
+  FRONTEND_URL: {{ .Values.env.FRONTEND_URL | quote }}
+  DEBUG_EMAIL: {{ .Values.env.DEBUG_EMAIL | quote }}
+  IFRC_TRANSLATION_DOMAIN: {{ .Values.env.IFRC_TRANSLATION_DOMAIN | quote }}
+  AUTO_TRANSLATION_TRANSLATOR: {{ .Values.env.AUTO_TRANSLATION_TRANSLATOR | quote }}
+  DJANGO_READ_ONLY: {{ .Values.env.DJANGO_READ_ONLY | quote }}
+  SENTRY_SAMPLE_RATE: {{ .Values.env.SENTRY_SAMPLE_RATE | quote }}
+  SENTRY_DSN: {{ .Values.env.SENTRY_DSN | quote }}
