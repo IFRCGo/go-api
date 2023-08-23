@@ -45,6 +45,10 @@ from .models import (
     EmergencyProjectActivityLocation,
     OperationTypes,
     ProgrammeTypes,
+    Country,
+    District,
+    Region,
+    Admin2,
 )
 
 
@@ -395,11 +399,50 @@ class AnnualSplitSerializer(ModelSerializer):
         )
 
 
+class DeployemntCountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = (
+            'id',
+            'name',
+            "iso",
+            "iso3",
+            "society_name",
+        )
+
+
+class DeploymentDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = (
+            "id",
+            "name"
+        )
+
+
+class DeploymentRegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = (
+            "id",
+            "name"
+        )
+
+
+class DeploymentAdmin2Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Admin2
+        fields = (
+            "id",
+            "name"
+        )
+
+
 class ProjectSerializer(ModelSerializer):
-    project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
-    project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
-    project_admin2_detail = MiniAdmin2Serializer(source='project_admin2', read_only=True, many=True)
-    reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    project_country_detail = DeployemntCountrySerializer(source='project_country', read_only=True)
+    project_districts_detail = DeploymentDistrictSerializer(source='project_districts', read_only=True, many=True)
+    project_admin2_detail = DeploymentAdmin2Serializer(source='project_admin2', read_only=True, many=True)
+    reporting_ns_detail = DeployemntCountrySerializer(source='reporting_ns', read_only=True)
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
