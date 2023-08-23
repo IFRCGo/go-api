@@ -1,4 +1,6 @@
 import base64
+from playwright.sync_api import sync_playwright
+
 from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
 
@@ -64,3 +66,12 @@ class Echo:
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
+
+
+def pdf_exporter(url):
+    from playwright.sync_api import Playwright, sync_playwright, expect
+
+    p = sync_playwright().start()
+    browser = p.chromium.connect_over_cdp(r"http://localhost:5900/")
+    print(browser)
+
