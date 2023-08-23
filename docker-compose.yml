@@ -116,6 +116,7 @@ services:
     tty: true
     environment:
       - NODE_NO_WARNINGS=1
+      # - URL=http://playwright:5900
     ports:
       - "5900:5900"
 

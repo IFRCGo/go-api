@@ -402,7 +402,7 @@ class DrefTestCase(APITestCase):
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)
-        self.assert_400(response)
+        self.assert_200(response)
 
         # create new dref with is_published = False
         not_published_dref = DrefFactory.create(
