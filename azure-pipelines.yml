@@ -1,7 +1,6 @@
 trigger:
 - develop
 - master
-- terraform
 
 # no PR triggers
 pr: none
@@ -106,7 +105,7 @@ jobs:
       DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --production
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/terraform')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     displayName: "Deploy Production"
     env:
       environment: production
