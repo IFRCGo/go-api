@@ -49,9 +49,11 @@ from .models import (
     FieldReport,
     MainContact,
     CountryOfFieldReportToReview,
+    ExportToken
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
+from api.utils import pdf_exporter
 
 
 class GeoSerializerMixin:
@@ -2001,3 +2003,20 @@ class AreaAggregateSerializer(serializers.Serializer):
 class AggregateByDtypeSerializer(serializers.Serializer):
     dtype = serializers.IntegerField()
     count = serializers.IntegerField()
+
+
+class ExportTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExportToken
+        fields = "__all__"
+
+    def create(self, validated_data):
+        export = super().create(validated_data)
+        if export.url:
+            pdf_exporter(export.url)
+            # call the pdf_exporter_function
+            # if pdf_url generated update that url and also update the status and completed_at
+        return export
+
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError("Update is not allowed")

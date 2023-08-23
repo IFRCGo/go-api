@@ -28,6 +28,7 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     # Clean-up
     && pip uninstall -y poetry virtualenv-clone virtualenv
 
+
 # TODO: Refactor the whole Azure storage part. (Upgrade is not enough, was tested.)
 # Until then avoid some SyntaxWarnings ("is" with a literal):
 ENV AZUREROOT=/usr/local/lib/python3.8/site-packages/azure/storage/
