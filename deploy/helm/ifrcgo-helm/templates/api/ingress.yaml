@@ -6,20 +6,17 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
-    #FIXME: We probably need to use custom certs and not LE
     cert-manager.io/cluster-issuer: letsencrypt-prod-issuer
 spec:
   tls:
     - hosts:
       - {{ .Values.api.domain }}
       secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api
-    # TODO: uncomment this when we have a second domain set up and pointed
-    # to the cluster
-    # {{- if .Values.api.additionalDomain }}
-    # - hosts:
-    #   - {{ .Values.api.additionalDomain }}
-    #   secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain
-    # {{- end }}
+    {{- if .Values.api.additionalDomain }}
+    - hosts:
+      - {{ .Values.api.additionalDomain }}
+      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain
+    {{- end }}
 
   rules:
   - host: {{ .Values.api.domain }}
