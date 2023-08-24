@@ -110,7 +110,11 @@ def get_go_country(countries, country_id):
     if not country_id in countries:
         return None
     iso = countries[country_id]
-    country = Country.objects.get(iso=iso, independent=True)
+    try:
+        country = Country.objects.get(iso=iso, independent=True)
+    except:
+        logger.warning('Country with unknown ISO: %s' % iso)
+        return None
     return country
 
 def get_datetime(datetime_string):
