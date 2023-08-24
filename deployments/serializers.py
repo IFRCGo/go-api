@@ -29,13 +29,10 @@ from .models import (
     ERU,
     PersonnelDeployment,
     MolnixTag,
-    MolnixTagGroup,
     Personnel,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
     RegionalProject,
-    Sector,
-    SectorTag,
     Project,
     EmergencyProject,
     EmergencyProjectActivitySector,
@@ -49,6 +46,7 @@ from .models import (
     District,
     Region,
     Admin2,
+    Event,
 )
 
 
@@ -435,6 +433,18 @@ class DeploymentAdmin2Serializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name"
+        )
+
+
+class DeploymentEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "dtype",
+            "id",
+            "slug",
+            "parent_event",
         )
 
 
