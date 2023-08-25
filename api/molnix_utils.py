@@ -88,7 +88,7 @@ class MolnixApi:
             return None
 
     def get_countries(self):
-        countries = self.call_api(path='countries')
+        countries = self.call_api_paginated(path='countries')
         countries_list = countries['countries']
         countries_dict = {}
         for country in countries_list:
