@@ -27,23 +27,42 @@ class DrefAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
         "status",
     )
     autocomplete_fields = (
-        "created_by",
-        "modified_by",
-        "field_report",
         "national_society",
         "disaster_type",
-        "users",
+        "created_by",
+        "modified_by",
         "event_map",
+        "assessment_report",
+        "country",
+        "district",
         "images",
-        "budget_file",
         "cover_image",
+        "users",
+        "field_report",
+        "supporting_document"
     )
 
     def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .select_related(
+                "created_by",
+                "modified_by",
+                "national_society",
+                "disaster_type",
+                "event_map",
+                "cover_image",
+                "country",
+                "field_report",
+                "supporting_document"
+            )
+            .prefetch_related(
+                "planned_interventions",
+                "needs_identified",
+                "national_society_actions",
+                "users"
+            )
         )
 
 
@@ -66,7 +85,22 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         return (
             super()
             .get_queryset(request)
-            .prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .select_related(
+                "created_by",
+                "modified_by",
+                "national_society",
+                "disaster_type",
+                "event_map",
+                "cover_image",
+                "country",
+                "budget_file",
+            )
+            .prefetch_related(
+                "planned_interventions",
+                "needs_identified",
+                "national_society_actions",
+                "users"
+            )
         )
 
 
@@ -77,6 +111,39 @@ class DrefFinalReportAdmin(CompareVersionAdmin, admin.ModelAdmin):
         "national_society",
         "disaster_type",
         "photos",
+        "dref",
+        "created_by",
+        "modified_by",
+        "event_map",
+        "photos",
+        "assessment_report",
+        "country",
+        "district",
+        "images",
+        "cover_image",
+        "financial_report"
     )
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name"]
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related(
+                "created_by",
+                "modified_by",
+                "national_society",
+                "disaster_type",
+                "event_map",
+                "cover_image",
+                "country",
+                "assessment_report",
+            )
+            .prefetch_related(
+                "planned_interventions",
+                "needs_identified",
+                "national_society_actions",
+                "users"
+            )
+        )
