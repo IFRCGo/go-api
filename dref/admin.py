@@ -124,6 +124,16 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "images",
         "budget_file",
         "cover_image",
+        "created_by",
+        "modified_by",
+        "dref",
+        "assessment_report",
+        "photos",
+        "national_society_actions",
+        "needs_identified",
+        "planned_interventions",
+        "country",
+        "district",
     )
     list_filter = ["dref"]
 
@@ -132,20 +142,27 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
             super()
             .get_queryset(request)
             .select_related(
-                "created_by",
-                "modified_by",
                 "national_society",
                 "disaster_type",
                 "event_map",
-                "cover_image",
-                "country",
                 "budget_file",
+                "cover_image",
+                "created_by",
+                "modified_by",
+                "dref",
+                "assessment_report",
+                "country",
             )
             .prefetch_related(
                 "planned_interventions",
                 "needs_identified",
                 "national_society_actions",
-                "users"
+                "users",
+                "district",
+                "photos",
+                "images",
+                "district"
+
             )
         )
 
