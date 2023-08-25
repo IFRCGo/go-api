@@ -53,7 +53,7 @@ class MolnixApi:
         return True
 
     def get_tags(self):
-        return self.call_api(path='tags')['tags']
+        return self.call_api_paginated(path='tags')['tags']
 
     def get_tag_groups(self, id):
         return self.call_api(path='tags/edit/%d' % id)['tag']['groups']
@@ -88,7 +88,7 @@ class MolnixApi:
             return None
 
     def get_countries(self):
-        countries = self.call_api(path='countries')
+        countries = self.call_api_paginated(path='countries')
         countries_list = countries['countries']
         countries_dict = {}
         for country in countries_list:
