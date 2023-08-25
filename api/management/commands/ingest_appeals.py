@@ -226,8 +226,8 @@ class Command(BaseCommand):
         details = sorted(r['Details'], key=lambda x: self.parse_date(x['APD_startDate']))
         detail0 = details[0]  # first
         detail1 = details[-1]  # last
-        start_date = self.parse_date(detail0['APD_startDate'])
-        end_date = self.parse_date(detail1['APD_endDate'])
+        start_date = self.parse_date(r['APP_startDate'])  # not self.parse_date(detail0['APD_startDate'])
+        end_date = self.parse_date(r['APP_endDate'])  # not self.parse_date(detail1['APD_endDate'])
         atypes = {66: AppealType.DREF, 64: AppealType.APPEAL, 1537: AppealType.INTL}
         atype = atypes[detail1['APD_TYP_Id']]
 
