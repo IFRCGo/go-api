@@ -369,6 +369,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "go-static"),
 ]
 
+# Needed to generate correct https links when running behind a reverse proxy
+# when SSL is terminated at the proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 AZURE_STORAGE_ACCOUNT = env('AZURE_STORAGE_ACCOUNT')
 AZURE_STORAGE_KEY = env('AZURE_STORAGE_KEY')
