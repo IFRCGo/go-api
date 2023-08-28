@@ -9,8 +9,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360s"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod-issuer
 spec:
   tls:
