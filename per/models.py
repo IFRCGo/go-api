@@ -244,7 +244,7 @@ class FormPrioritizationComponent(models.Model):
 @reversion.register()
 class FormPrioritization(models.Model):
     overview = models.ForeignKey("Overview", verbose_name=_("Overview"), null=True, blank=True, on_delete=models.PROTECT)
-    component_responses = models.ManyToManyField(
+    prioritized_action_responses = models.ManyToManyField(
         FormPrioritizationComponent,
         verbose_name=_("Form prioritization component"),
         blank=True,
@@ -639,12 +639,12 @@ class PerWorkPlan(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL
     )
-    component_responses = models.ManyToManyField(
+    prioritized_action_responses = models.ManyToManyField(
         PerWorkPlanComponent,
         verbose_name=_("WorkPlan Component"),
         blank=True,
     )
-    custom_component_responses = models.ManyToManyField(
+    additional_action_responses = models.ManyToManyField(
         CustomPerWorkPlanComponent,
         verbose_name=_("Custom Per-WorkPlan Component"),
         blank=True,
