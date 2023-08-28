@@ -70,7 +70,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.MULTI_PURPOSE_CASH: "cash.png",
             NationalSocietyAction.Title.OTHER: "favicon.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title]))).replace('http:', 'https:')  # FIXME SOON
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
 
 
 @reversion.register()
@@ -116,7 +116,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
             IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: "migration.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title]))).replace('http:', 'https:')  # FIXME SOON
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
 
 
 @reversion.register()
@@ -193,7 +193,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: "environment.png",
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title]))).replace('http:', 'https:')  # FIXME SOON
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
 
 
 @reversion.register()
