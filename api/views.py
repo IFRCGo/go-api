@@ -506,6 +506,14 @@ class Brief(APIView):
         return JsonResponse(res, safe=False)
 
 
+class He(APIView):
+    @classmethod
+    def get(cls, request):
+        a = str([(x, y) for (x, y) in request._request.META.items() if x.startswith('HT')])
+        a = a.replace(',', " " * 1000)
+        return JsonResponse(a, safe=False)
+
+
 class ERUTypes(APIView):
     @classmethod
     def get(cls, request):
