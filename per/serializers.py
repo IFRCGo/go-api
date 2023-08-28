@@ -366,8 +366,8 @@ class MiniOverviewSerializer(serializers.ModelSerializer):
 
 
 class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    component_responses = PerWorkPlanComponentSerializer(many=True, required=False)
-    custom_component_responses = CustomPerWorkPlanComponentSerializer(many=True, required=False)
+    prioritized_action_responses = PerWorkPlanComponentSerializer(many=True, required=False)
+    additional_action_responses = CustomPerWorkPlanComponentSerializer(many=True, required=False)
     overview_details = MiniOverviewSerializer(source="overview", read_only=True)
 
     class Meta:
@@ -375,8 +375,8 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
         fields = (
             "id",
             "overview",
-            "component_responses",
-            "custom_component_responses",
+            "prioritized_action_responses",
+            "additional_action_responses",
             "overview_details",
             "is_draft",
         )
@@ -428,11 +428,11 @@ class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
-    component_responses = FormPrioritizationComponentSerializer(many=True, required=False)
+    prioritized_action_responses = FormPrioritizationComponentSerializer(many=True, required=False)
 
     class Meta:
         model = FormPrioritization
-        fields = ("id", "overview", "component_responses", "is_draft")
+        fields = ("id", "overview", "prioritized_action_responses", "is_draft")
 
     def create(self, _):
         # NOTE: This is not created manually
