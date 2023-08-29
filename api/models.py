@@ -2143,12 +2143,11 @@ class CountryOfFieldReportToReview(models.Model):
         verbose_name_plural = "Countries of Field Report to review"
 
 
-class ExportToken(models.Model):
+class Export(models.Model):
     class ExportStatus(models.IntegerChoices):
-        STARTED = 0, _('Started')
-        PENDING = 1, _('Pending')
-        COMPLETED = 2, _('Completed')
-        ERRORED = 3, _('Errored')
+        PENDING = 0, _('Pending')
+        COMPLETED = 1, _('Completed')
+        ERRORED = 2, _('Errored')
 
     url = models.URLField(verbose_name=_("Url"), max_length=255)
     token = models.UUIDField(
@@ -2167,13 +2166,13 @@ class ExportToken(models.Model):
     status = models.IntegerField(
         verbose_name=_('Status'),
         choices=ExportStatus.choices,
-        default=ExportStatus.STARTED
+        default=ExportStatus.PENDING
     )
-    pdf_url = models.URLField(
-        verbose_name=_('Pdf Url'),
+    pdf_file = models.FileField(
+        verbose_name=_('Pdf File'),
         max_length=255,
         null=True, blank=True
     )
 
     def __str__(self):
-        return f'{self.url} - {self.token} - {self.pdf_url}'
+        return f'{self.url} - {self.token}'
