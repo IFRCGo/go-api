@@ -39,6 +39,11 @@ def get_unique_tags(deployments, open_positions):
             if tag['id'] not in tag_ids:
                 tags.append(tag)
                 tag_ids.append(tag['id'])
+    for position in open_positions:
+        for tag in position['tags']:
+            if tag['id'] not in tag_ids:
+                tags.append(tag)
+                tag_ids.append(tag['id'])
     return tags
 
 
