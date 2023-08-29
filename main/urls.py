@@ -153,7 +153,7 @@ router.register(r"active-dref", dref_views.ActiveDrefOperationsViewSet, basename
 router.register(r"dref-share-user", dref_views.DrefShareUserViewSet, basename="dref_share_user")
 
 router.register(r"review-country", api_views.CountryOfFieldReportToReviewViewset, basename="review_country")
-router.register(r"export", api_views.ExportTokenViewSet, basename="export_token")
+router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")

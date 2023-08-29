@@ -61,7 +61,7 @@ from .models import (
     MainContact,
     UserCountry,
     CountryOfFieldReportToReview,
-    ExportToken
+    Export
 )
 
 from country_plan.models import CountryPlan
@@ -119,7 +119,7 @@ from .serializers import (
     # Go Historical
     GoHistoricalSerializer,
     CountryOfFieldReportToReviewSerializer,
-    ExportTokenSerializer
+    ExportSerializer
 )
 from api.filter_set import (
     UserFilterSet,
@@ -1045,9 +1045,9 @@ class GlobalEnumView(APIView):
         return Response(get_enum_values())
 
 
-class ExportTokenViewSet(viewsets.ModelViewSet):
-    serializer_class = ExportTokenSerializer
+class ExportViewSet(viewsets.ModelViewSet):
+    serializer_class = ExportSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ExportToken.objects.all()
+        return Export.objects.all()
