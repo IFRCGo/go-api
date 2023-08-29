@@ -6,12 +6,17 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 
 from api.models import Export
+from .logger import logger
 
 
 @shared_task
 def generate_url(url, export_id):
-    with sync_playwright() as p:
-        try:
+    export = Export.objects.filter(id=export_id)
+    if not export.exists():
+        return
+    export = export.first()
+    try:
+        with sync_playwright() as p:
             browser = p.chromium.launch(
                 headless=True,
                 args=[
@@ -32,14 +37,12 @@ def generate_url(url, export_id):
             page.goto(url)
             file_name = f'dref-export-{datetime.now()}.pdf'
             file = ContentFile(page.pdf(format="A4"))
-            export = Export.objects.filter(id=export_id).first()
-            if export:
-                export.pdf_file.save(file_name, file)
-                export.status = Export.ExportStatus.COMPLETED
-                export.completed_at = timezone.now()
-                export.save(update_fields=['status', 'completed_at'])
             browser.close()
-        except Exception as e:
-            print(e)
-            export.status = Export.ExportStatus.ERRORED
-            export.save(update_fields=['status'])
+        export.pdf_file.save(file_name, file)
+        export.status = Export.ExportStatus.COMPLETED
+        export.completed_at = timezone.now()
+        export.save(update_fields=['status', 'completed_at'])
+    except Exception as e:
+        logger.error(e)
+        export.status = Export.ExportStatus.ERRORED
+        export.save(update_fields=['status'])
