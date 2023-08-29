@@ -788,6 +788,11 @@ class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
 
+@admin.register(models.Export)
+class ExportTokenAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(models.DisasterType, DisasterTypeAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.GDACSEvent, GdacsAdmin)
