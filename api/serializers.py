@@ -1,10 +1,12 @@
 import json
 from typing import Union, List
+import os
 
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
+from django.conf import settings
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
@@ -49,11 +51,12 @@ from .models import (
     FieldReport,
     MainContact,
     CountryOfFieldReportToReview,
-    ExportToken
+    Export
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
-from api.utils import pdf_exporter
+# from api.utils import pdf_exporter
+from api.tasks import generate_url
 
 
 class GeoSerializerMixin:
@@ -2005,17 +2008,18 @@ class AggregateByDtypeSerializer(serializers.Serializer):
     count = serializers.IntegerField()
 
 
-class ExportTokenSerializer(serializers.ModelSerializer):
+class ExportSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExportToken
+        model = Export
         fields = "__all__"
 
     def create(self, validated_data):
         export = super().create(validated_data)
         if export.url:
-            pdf_exporter(export.url)
-            # call the pdf_exporter_function
-            # if pdf_url generated update that url and also update the status and completed_at
+            export.status = Export.ExportStatus.PENDING
+            export.requested_at = timezone.now()
+            export.save(update_fields=['status', 'requested_at'])
+            generate_url.delay(export.url, export.id)
         return export
 
     def update(self, instance, validated_data):

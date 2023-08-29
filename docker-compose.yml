@@ -56,7 +56,6 @@ x-server: &base_server_setup
     - redis
     - elasticsearch
     - kibana
-    - playwright
 
 
 services:
@@ -106,29 +105,21 @@ services:
     depends_on:
       - elasticsearch
 
-  playwright:
-    image: mcr.microsoft.com/playwright:v1.37.0-jammy
-    user: pwuser
-    security_opt:
-      - seccomp=seccomp_profile.json
-    ipc: host
-    stdin_open: true
-    tty: true
-    environment:
-      - NODE_NO_WARNINGS=1
-      # - URL=http://playwright:5900
-    ports:
-      - "5900:5900"
-
   serve:
     <<: *base_server_setup
     ports:
       - 8000:8000
+    build:
+      context: ./
+      dockerfile: api.Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
 
   # For development only
   celery:
     <<: *base_server_setup
+    build:
+      context: ./
+      dockerfile: playwright.Dockerfile
     command: python manage.py run_celery_dev
 
   bash:
