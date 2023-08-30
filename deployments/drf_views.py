@@ -207,10 +207,10 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             elif self.request.user.is_superuser:
                 return PersonnelCsvSerializerSuper
             return PersonnelCsvSerializer
-        if self.request.user.is_anonymous:
-            return PersonnelSerializerAnon
-        elif self.request.user.is_superuser:
-            return PersonnelSerializerSuper
+        # if self.request.user.is_anonymous:
+        #     return PersonnelSerializerAnon
+        # elif self.request.user.is_superuser:
+        #     return PersonnelSerializerSuper
         return PersonnelSerializer
 
     def get_renderer_context(self):
