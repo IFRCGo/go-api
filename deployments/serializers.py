@@ -121,7 +121,7 @@ class ERUMiniSerializer(ModelSerializer):
 
 
 class PersonnelDeploymentSerializer(ModelSerializer):
-    country_deployed_to = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer(allow_null=True)
     event_deployed_to = SurgeEventSerializer()
 
     class Meta:
@@ -154,10 +154,12 @@ class PersonnelDeploymentCsvSerializer(ModelSerializer):
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelSerializer(ModelSerializer):
     # For regular logged in users | no molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
+    name = serializers.SerializerMethodField(allow_null=True)
+    molnix_status = serializers.SerializerMethodField(allow_null=True)
 
     class Meta:
         model = Personnel
@@ -165,14 +167,26 @@ class PersonnelSerializer(ModelSerializer):
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
             'surge_alert_id', 'appraisal_received', 'gender', 'location',
-            'name',  # plus
+            'name', 'molnix_status',
         )
+
+    def get_name(self, obj) -> str:
+        user = self.context['request'].user
+        if not user.is_anonymous:
+            return obj.name
+        return None
+
+    def get_molnix_status(self, obj) -> str:
+        user = self.context['request'].user
+        if not user.is_anonymous and user.is_superuser:
+            return obj.get_molnix_status_display
+        return None
 
 
 class PersonnelSerializerAnon(ModelSerializer):
     # Not logged in users | no name and molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
@@ -181,14 +195,14 @@ class PersonnelSerializerAnon(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
-            'surge_alert_id', 'appraisal_received', 'gender', 'location',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location', "name",
         )
 
 
 class PersonnelSerializerSuper(ModelSerializer):
     # Superusers can see molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
@@ -204,8 +218,8 @@ class PersonnelSerializerSuper(ModelSerializer):
 
 # Don't forget to adapt drf_views::get_renderer_context if you change this:
 class PersonnelCsvSerializerBase(ModelSerializer):
-    country_from = NanoCountrySerializer()
-    country_to = NanoCountrySerializer()
+    country_from = NanoCountrySerializer(allow_null=True)
+    country_to = NanoCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentCsvSerializer()
     molnix_sector = serializers.SerializerMethodField()
     molnix_role_profile = serializers.SerializerMethodField()
