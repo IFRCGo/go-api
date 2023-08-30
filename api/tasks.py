@@ -10,7 +10,7 @@ from .logger import logger
 
 
 @shared_task
-def generate_url(url, export_id):
+def generate_url(url, export_id, selector):
     export = Export.objects.filter(id=export_id).first()
     try:
         with sync_playwright() as p:
@@ -25,13 +25,14 @@ def generate_url(url, export_id):
                 ],
                 devtools=False,
             )
-            timeout = 5000000
+            timeout = 1 * 60 * 60
             page = browser.new_page(
                 user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
             )
             page.set_default_navigation_timeout(timeout)
             page.set_default_timeout(timeout)
             page.goto(url)
+            page.wait_for_selector(selector, state="attached")
             file_name = f'dref-export-{datetime.now()}.pdf'
             file = ContentFile(page.pdf(format="A4"))
             browser.close()
