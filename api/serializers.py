@@ -244,6 +244,14 @@ class DistrictSerializerRMD(ModelSerializer):
             "is_deprecated",
         )
 
+    @staticmethod
+    def get_bbox(district) -> dict:
+        return district.bbox and json.loads(district.bbox.geojson)
+
+    @staticmethod
+    def get_centroid(district) -> dict:
+        return district.centroid and json.loads(district.centroid.geojson)
+
 
 class MicroCountrySerializer(ModelSerializer):
     class Meta:

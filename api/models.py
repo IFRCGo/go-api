@@ -2171,7 +2171,8 @@ class Export(models.Model):
     pdf_file = models.FileField(
         verbose_name=_('Pdf File'),
         max_length=255,
-        null=True, blank=True
+        null=True, blank=True,
+        upload_to="pdf-export/",
     )
 
     def __str__(self):
