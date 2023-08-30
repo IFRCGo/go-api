@@ -11,10 +11,7 @@ from .logger import logger
 
 @shared_task
 def generate_url(url, export_id):
-    export = Export.objects.filter(id=export_id)
-    if not export.exists():
-        return
-    export = export.first()
+    export = Export.objects.filter(id=export_id).first()
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(
