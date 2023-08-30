@@ -2029,7 +2029,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.status = Export.ExportStatus.PENDING
             export.requested_at = timezone.now()
             export.save(update_fields=['status', 'requested_at'])
-            generate_url.delay(export.url, export.id)
+            generate_url.delay(export.url, export.id, export.selector)
         return export
 
     def update(self, instance, validated_data):
