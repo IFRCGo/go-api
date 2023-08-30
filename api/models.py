@@ -2174,6 +2174,10 @@ class Export(models.Model):
         null=True, blank=True,
         upload_to="pdf-export/",
     )
+    selector = models.CharField(
+        verbose_name=_('Selector'),
+        max_length=255,
+    )
 
     def __str__(self):
         return f'{self.url} - {self.token}'
