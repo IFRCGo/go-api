@@ -363,7 +363,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
         go_alert.closes = get_datetime(position['closes'])
         go_alert.start = get_datetime(position['start'])
         go_alert.end = get_datetime(position['end'])
-        go_alert.is_active = True
+        go_alert.is_active = position['status'] == 'active'
         go_alert.save()
         add_tags_to_obj(go_alert, position['tags'])
         if created:
