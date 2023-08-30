@@ -2009,6 +2009,8 @@ class AggregateByDtypeSerializer(serializers.Serializer):
 
 
 class ExportSerializer(serializers.ModelSerializer):
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
     class Meta:
         model = Export
         fields = "__all__"
