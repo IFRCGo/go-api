@@ -39,12 +39,12 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         return SurgeAlertSerializer
 
     def get_queryset(self):
-        limit = 14  # days
-        cond1 = Q(is_stood_down=True)
-        cond2 = Q(end__lt=datetime.utcnow().replace(tzinfo=timezone.utc)-timedelta(days=limit))
+        # limit = 14  # days
+        # cond1 = Q(is_stood_down=True)
+        # cond2 = Q(end__lt=datetime.utcnow().replace(tzinfo=timezone.utc)-timedelta(days=limit))
         return super().get_queryset().\
-            select_related('country').\
-            exclude(cond1 & cond2)  # 'event' inclusion ^ to _related needs frontend change, otherwise the Position column shows garbage in /alerts/all
+            select_related('country')
+        #    exclude(cond1 & cond2)  # 'event' inclusion ^ to _related needs frontend change, otherwise the Position column shows garbage in /alerts/all
 
 
 class SubscriptionViewset(viewsets.ModelViewSet):
