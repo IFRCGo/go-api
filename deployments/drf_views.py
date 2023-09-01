@@ -235,8 +235,6 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "gender",
             "location",
         ]
-        if not self.request.user.is_anonymous:
-            context["header"] += ["name"]
         context["header"] += [
             "id",
             "country_to.name",
@@ -251,9 +249,10 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "end_date",
             "ongoing",
             "is_active",
+            "name",
+            "molnix_status"
         ]
-        if self.request.user.is_superuser:
-            context["header"] += ["molnix_status"]
+        context['request'] = self.request
         context["header"] += [
             "molnix_id",
             "molnix_sector",
