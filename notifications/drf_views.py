@@ -21,6 +21,8 @@ class SurgeAlertFilter(filters.FilterSet):
         model = SurgeAlert
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'end': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'is_stood_down': ('exact',),
             'is_active': ('exact',)
         }
 
