@@ -158,8 +158,8 @@ class PersonnelSerializer(ModelSerializer):
     country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
-    name = serializers.SerializerMethodField(allow_null=True)
-    molnix_status = serializers.SerializerMethodField(allow_null=True)
+    name = serializers.SerializerMethodField()
+    molnix_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Personnel
@@ -170,16 +170,16 @@ class PersonnelSerializer(ModelSerializer):
             'name', 'molnix_status',
         )
 
-    def get_name(self, obj) -> str:
+    def get_name(self, personnel) -> str:
         user = self.context['request'].user
-        if not user.is_anonymous:
-            return obj.name
+        if user.is_authenticated:
+            return personnel.name
         return None
 
-    def get_molnix_status(self, obj) -> str:
+    def get_molnix_status(self, personnel) -> str:
         user = self.context['request'].user
-        if not user.is_anonymous and user.is_superuser:
-            return obj.get_molnix_status_display
+        if user.is_authenticated and user.is_superuser:
+            return personnel.molnix_status
         return None
 
 
