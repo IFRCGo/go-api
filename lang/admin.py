@@ -10,12 +10,16 @@ from modeltranslation.manager import (
     append_fallback,
 )
 
-from django.utils.translation import gettext, gettext_lazy as _
 from django.contrib import admin
 from django.db import models
 from django.urls import reverse, path
 from django.shortcuts import redirect
-from django.utils.translation import get_language
+from django.utils.translation import (
+    get_language,
+    gettext,
+    gettext_lazy as _,
+    override as translation_override,
+)
 
 # from middlewares.middlewares import get_signal_request
 
@@ -62,11 +66,12 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
         label = gettext('hide all language') if self._go__show_all_language_in_form() else gettext('show all language')
         return [{'url': url, 'label': label}]
 
-    def get_readonly_fields(self, request, obj=None):
-        return [
-            *super().get_readonly_fields(request, obj=obj),
-            TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
-        ]
+    # NOTE: Experimental change
+    # def get_readonly_fields(self, request, obj=None):
+    #     return [
+    #         *super().get_readonly_fields(request, obj=obj),
+    #         TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
+    #     ]
 
     def get_list_filter(self, request):
         return [
@@ -103,14 +108,33 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
 
     def save_model(self, request, obj, form, change):
         # To trigger translate
+        entity_original_language = getattr(obj, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
+        with translation_override(entity_original_language):
+            if obj.pk is None:
+                TranslatedModelSerializerMixin.trigger_field_translation(obj)
+            else:
+                TranslatedModelSerializerMixin.reset_and_trigger_translation_fields(obj)
         super().save_model(request, obj, form, change)
-        TranslatedModelSerializerMixin.trigger_field_translation(obj)
 
     def save_formset(self, request, form, formset, change):
         # To trigger translate for inline models
-        instances = formset.save()
-        if instances and formset.model in self.TRANSLATION_REGISTERED_MODELS:
-            TranslatedModelSerializerMixin.trigger_field_translation_in_bulk(formset.model, instances)
+        # commit=False as we will be changing per the translation need
+        instances = formset.save(commit=False)
+        # Need to manually delete deleted_objects
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        # Manually trigger translation
+        for instance in instances:
+            if type(instance) in self.TRANSLATION_REGISTERED_MODELS:
+                entity_original_language = getattr(instance, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME)
+                with translation_override(entity_original_language):
+                    if instance.pk is None:
+                        TranslatedModelSerializerMixin.trigger_field_translation(instance)
+                    else:
+                        TranslatedModelSerializerMixin.reset_and_trigger_translation_fields(instance)
+            instance.save()
+        formset.save_m2m()
 
     def get_search_fields(self, request):
         # Ex. 'name' is translatable - add 'name_fr', 'name_es', etc
@@ -123,7 +147,13 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
 
 
 class TranslationInlineModelAdmin(TranslationAdminMixin, O_TranslationInlineModelAdmin):
-    pass
+    # NOTE: Experimental change
+    # def get_readonly_fields(self, request, obj=None):
+    #     return [
+    #         *super().get_readonly_fields(request, obj=obj),
+    #         TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
+    #     ]
+    ...
 
 
 # NOTE: Fixing modeltranslation Queryset to support experssions in Queryset values()
