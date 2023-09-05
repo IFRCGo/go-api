@@ -64,7 +64,7 @@ class LanguageViewSet(viewsets.ViewSet):
             if page_name:
                 pages = (Q(page_name__icontains=page) for page in page_name_list)
                 query = functools.reduce(operator.or_, pages)
-                queryset = String.objects.filter(query)
+                queryset = String.objects.filter(query, language=code)
                 obj = {
                     "code": code,
                     "title": title,
