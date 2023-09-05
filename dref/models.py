@@ -870,14 +870,23 @@ class DrefOperationalUpdate(models.Model):
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
     boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.DecimalField(
-        verbose_name=_("disability people per"), blank=True, null=True, max_digits=5, decimal_places=2
+    disability_people_per = models.FloatField(
+        verbose_name=_("disability people per"),
+        help_text=_("Estimated % people disability"),
+        blank=True,
+        null=True,
     )
-    people_per_urban = models.DecimalField(
-        verbose_name=_("people per urban"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_urban = models.FloatField(
+        verbose_name=_("people per urban"),
+        help_text=_("Estimated % people Urban"),
+        blank=True,
+        null=True,
     )
-    people_per_local = models.DecimalField(
-        verbose_name=_("people per local"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_local = models.FloatField(
+        verbose_name=_("people per local"),
+        help_text=_("Estimated % people Rural"),
+        blank=True,
+        null=True,
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"), blank=True, null=True
@@ -981,6 +990,9 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         help_text=_("Any identified gaps/limitations in the assessment"),
     )
+    is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
+    event_text = models.TextField(verbose_name=_("event text"), blank=True, null=True)
+    did_national_society = models.BooleanField(verbose_name=_("Did National Society"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Dref Operational Update")
