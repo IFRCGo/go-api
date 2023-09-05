@@ -1187,7 +1187,9 @@ class DetailEventSerializer(ModelSerializer):
         ).count()
 
 
-class SituationReportTypeSerializer(ModelSerializer):
+class SituationReportTypeSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(allow_null=False, allow_blank=False, required=True)
+
     class Meta:
         model = SituationReportType
         fields = (
@@ -1416,8 +1418,17 @@ class AppealDocumentTableauSerializer(serializers.ModelSerializer):
         )
 
 
+class AppealDocumentAppealSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appeal
+        fields = (
+            'id',
+            'code',
+        )
+
+
 class AppealDocumentSerializer(ModelSerializer):
-    appeal = serializers.CharField(source="appeal.code", read_only=True)
+    appeal = AppealDocumentAppealSerializer(read_only=True)
     type = serializers.CharField(source="type.name", read_only=True)  # seems to be identical to the appealdoc name
 
     class Meta:
