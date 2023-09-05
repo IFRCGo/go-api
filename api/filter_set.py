@@ -235,8 +235,11 @@ class AppealHistoryFilter(filters.FilterSet):
 
 
 class AppealDocumentFilter(filters.FilterSet):
-    appeal = filters.NumberFilter(field_name="appeal", lookup_expr="exact")
-    appeal__in = ListFilter(field_name="appeal__id")
+    appeal = filters.ModelMultipleChoiceFilter(
+        method='get_appeal_filter',
+        widget=filters.widgets.CSVWidget,
+        queryset=Appeal.objects.all(),
+    )
 
     class Meta:
         model = AppealDocument
@@ -244,6 +247,11 @@ class AppealDocumentFilter(filters.FilterSet):
             "name": ("exact",),
             "created_at": ("exact", "gt", "gte", "lt", "lte"),
         }
+
+    def get_appeal_filter(self, qs, name, value):
+        if value:
+            return qs.filter(appeal__in=value).distinct()
+        return qs
 
 
 class FieldReportFilter(filters.FilterSet):
