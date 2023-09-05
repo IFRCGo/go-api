@@ -223,3 +223,25 @@ class ModelSerializer(TranslatedModelSerializerMixin, serializers.ModelSerialize
     """
 
     pass
+
+
+class LanguageCodeTitleSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    title = serializers.CharField()
+
+
+class LanguageListSerializer(serializers.Serializer):
+    count = serializers.IntegerField(required=False, allow_null=True)
+    results = LanguageCodeTitleSerializer(many=True, required=False, allow_null=True)
+
+
+class LanguageRetriveSerializer(serializers.Serializer):
+    code = serializers.CharField(required=False, allow_null=True)
+    title = serializers.CharField(required=False, allow_null=True)
+    strings = StringSerializer(many=True, required=False, allow_null=True)
+
+
+class LanguageBulkActionResponseSerializer(serializers.Serializer):
+    new_strings = StringSerializer(many=True, required=False, allow_null=True)
+    updated_strings = StringSerializer(many=True, required=False, allow_null=True)
+    deleted_strings_keys = serializers.ListField(allow_null=True, required=False)
