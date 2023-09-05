@@ -678,6 +678,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["ns_request_date"] = dref.ns_request_date
             validated_data["date_of_approval"] = dref.date_of_approval
             validated_data["identified_gaps"] = dref.identified_gaps
+            validated_data["is_man_made_event"] = dref.is_man_made_event
+            validated_data["event_text"] = dref.event_text
+            validated_data["did_national_society"] = dref.did_national_society
+
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -788,6 +792,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["ns_request_date"] = dref_operational_update.ns_request_date
             validated_data["date_of_approval"] = dref_operational_update.date_of_approval
             validated_data["identified_gaps"] = dref_operational_update.identified_gaps
+            validated_data["is_man_made_event"] = dref_operational_update.is_man_made_event
+            validated_data["event_text"] = dref_operational_update.event_text
+            validated_data["did_national_society"] = dref_operational_update.did_national_society
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
