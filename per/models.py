@@ -322,7 +322,7 @@ class Overview(models.Model):
     )
     assessment_number = models.IntegerField(verbose_name=_("assessment number"), default=1)
     branches_involved = models.CharField(verbose_name=_("branches involved"), max_length=400, null=True, blank=True)
-    date_of_assessment = models.DateField(verbose_name=_("date of assessment"))
+    date_of_assessment = models.DateField(verbose_name=_("date of assessment"), null=True, blank=True)
     assessment_method = models.CharField(
         verbose_name=_("what method has this assessment used"),
         max_length=90,

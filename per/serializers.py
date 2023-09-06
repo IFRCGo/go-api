@@ -304,11 +304,16 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
             "assessment_number",
             "date_of_assessment",
             "type_of_assessment",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
             "assessment_ratings",
         )
 
     @extend_schema_field(AssessmentRatingSerializer(many=True))
     def get_assessment_ratings(self, overview):
+        user = self.context['request'].user
+        if not user.is_authenticated:
+            return None
         country_id = overview.country_id
         if country_id:
             qs = PerAssessment.objects.filter(
