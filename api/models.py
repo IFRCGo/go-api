@@ -2177,6 +2177,7 @@ class Export(models.Model):
     selector = models.CharField(
         verbose_name=_('Selector'),
         max_length=255,
+        null=True, blank=True
     )
 
     def __str__(self):
