@@ -18,16 +18,17 @@ CRON_NAME = 'sync_molnix'
 '''
 NS_MATCHING_OVERRIDES = {
     'Red Cross Society of China-Hong Kong Branch': 'China',
+    'Red Cross Society Of China-Hong Kong Branch': 'China',
     'Macau Red Cross': 'China',
     'Ifrc Headquarters': 'IFRC',
-    'Ifrc Mena': 'IFRC',
-    'Ifrc Asia Pacific': 'IFRC',
-    'Ifrc Africa': 'IFRC',
-    'Ifrc Americas': 'IFRC',
-    'Ifrc Europe': 'IFRC',
-    'IFRC': 'IFRC',
+    'Ifrc Mena': 'IFRC MENA',
+    'Ifrc Asia Pacific': 'IFRC Asia-Pacific',
+    'Ifrc Africa': 'IFRC Africa',
+    'Ifrc Americas': 'IFRC Americas',
+    'Ifrc Europe': 'IFRC Europe',
+# ? 'IFRC': 'IFRC',
     'Icrc Staff': 'ICRC',
-    'ICRC': 'ICRC'
+# ? 'ICRC': 'ICRC',
 }
 
 
@@ -222,7 +223,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md['position_id']:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md['position_id'])
         except:
-            logger.warning('Did not find SurgeAlert with Molnix position_id %d.' % md['position_id'])
+            logger.warning('%d deployment did not find SurgeAlert with Molnix position_id %d.' % (md['id'], md['position_id']))
             continue
 
         appraisal_received = 'appraisals' in md and bool(len(md['appraisals']))
@@ -288,6 +289,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             else:
                 try:
                     country_from = Country.objects.get(society_name=incoming_name, independent=True)
+                    # maybe somewhen:  .filter(society_name__iexact=incoming_name, independent=True).first()
                 except:
                     #FIXME: Catch possibility of .get() returning multiple records
                     # even though that should ideally never happen
