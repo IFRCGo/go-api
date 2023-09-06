@@ -397,9 +397,11 @@ class PerWorkPlanSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.Mo
 
     def update(self, instance, validated_data):
         overview = validated_data.get("overview")
+        is_draft = validated_data.get("is_draft")
         if overview is None:
             raise serializers.ValidationError("Overview is required")
-        overview.update_phase(Overview.Phase.ACTION_AND_ACCOUNTABILITY)
+        if is_draft is False:
+            overview.update_phase(Overview.Phase.ACTION_AND_ACCOUNTABILITY)
         return super().update(instance, validated_data)
 
 
@@ -447,12 +449,13 @@ class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, seriali
         raise serializers.ValidationError("Create is not allowed")
 
     def update(self, instance, validated_data):
-        # is_draft = validated_data.get("is_draft")
+        is_draft = validated_data.get("is_draft")
         overview = validated_data.get("overview")
         if overview is None:
             raise serializers.ValidationError("Overview is required")
-        overview.update_phase(Overview.Phase.WORKPLAN)
-        PerWorkPlan.objects.create(overview=overview)
+        if is_draft is False:
+            overview.update_phase(Overview.Phase.WORKPLAN)
+            PerWorkPlan.objects.get_or_create(overview=overview)
         return super().update(instance, validated_data)
 
 
