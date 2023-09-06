@@ -404,6 +404,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        logger.info("Starting Sync Molnix job")
         molnix = MolnixApi(
             url=settings.MOLNIX_API_BASE,
             username=settings.MOLNIX_USERNAME,
@@ -411,15 +412,20 @@ class Command(BaseCommand):
         )
         try:
             molnix.login()
+            logger.info("Logged into Molnix")
         except Exception as ex:
             msg = 'Failed to login to Molnix API: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
         try:
+            logger.info("Fetching countries")
             countries = molnix.get_countries()
+            logger.info("Fetched countries, now fetching deployments")
             deployments = molnix.get_deployments()
+            logger.info("Fetched deployments, now fetching positions")
             open_positions = molnix.get_open_positions()
+            logger.info("Fetched positions")
         except Exception as ex:
             msg = 'Failed to fetch data from Molnix API: %s' % str(ex)
             logger.error(msg)
@@ -427,10 +433,14 @@ class Command(BaseCommand):
             return
 
         try:
+            logger.info("Processing tags")
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags, molnix)  # FIXME 2nd arg: a workaround to be able to get the group details inside.
+            logger.info("Processed tags, syncing positions")
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
+            logger.info("Synced positions, syncing deployments")
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments, molnix, countries)
+            logger.info("Synced deployments)")
         except Exception as ex:
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
@@ -442,4 +452,5 @@ class Command(BaseCommand):
         has_warnings = len(positions_warnings) > 0 or len(deployments_warnings) > 0
         cron_status = CronJobStatus.WARNED if has_warnings else CronJobStatus.SUCCESSFUL
         create_cron_record(CRON_NAME, msg, cron_status, num_result=num_records)
+        logger.info("Created CRON record, logging out")
         molnix.logout()
