@@ -36,6 +36,7 @@ from dref.serializers import (
     MiniDrefSerializer,
     AddDrefUserSerializer,
     DrefShareUserSerializer,
+    DrefFileInputSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -189,6 +190,10 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
             return DrefFile.objects.none()
         return DrefFile.objects.filter(created_by=self.request.user)
 
+    @extend_schema(
+        request=DrefFileInputSerializer,
+        responses=DrefFileSerializer(many=True)
+    )
     @action(
         detail=False,
         url_path="multiple",

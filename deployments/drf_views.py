@@ -796,7 +796,7 @@ class GlobalProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
     @extend_schema(
         methods=['GET'],
         request=None,
-        responses=GlobalProjectNSOngoingProjectsStatsSerializer
+        responses=GlobalProjectNSOngoingProjectsStatsSerializer(many=True)
     )
     @action(detail=False, url_path="ns-ongoing-projects-stats", methods=("get",))
     def ns_ongoing_projects_stats(self, request, pk=None):

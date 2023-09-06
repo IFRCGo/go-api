@@ -877,8 +877,8 @@ class Appeal(models.Model):
     sector = models.CharField(verbose_name=_('sector'), max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
-    amount_requested = models.DecimalField(verbose_name=_('amount requested'), max_digits=12, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(verbose_name=_('amount funded'), max_digits=12, decimal_places=2, default=0.00)
+    amount_requested = models.FloatField(verbose_name=_('amount requested'), default=0.00)
+    amount_funded = models.FloatField(verbose_name=_('amount funded'), default=0.00)
 
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
