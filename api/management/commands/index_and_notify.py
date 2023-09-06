@@ -919,8 +919,8 @@ class Command(BaseCommand):
             # self.notify(updated_appeals, RecordType.APPEAL, SubscriptionType.EDIT)
             self.notify(new_events, RecordType.EVENT, SubscriptionType.NEW)
             # self.notify(updated_events, RecordType.EVENT, SubscriptionType.EDIT)
-            self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
-            self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
+            # temporary switched off while historical data is uploaded: self.notify(new_surgealerts, RecordType.SURGE_ALERT, SubscriptionType.NEW)
+            # temporary switched off while historical data is uploaded: self.notify(new_pers_deployments, RecordType.SURGE_DEPLOYMENT_MESSAGES, SubscriptionType.NEW)
 
         # Followed Events
         if self.is_daily_checkup_time():
