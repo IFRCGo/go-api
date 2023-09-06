@@ -18,16 +18,17 @@ CRON_NAME = 'sync_molnix'
 '''
 NS_MATCHING_OVERRIDES = {
     'Red Cross Society of China-Hong Kong Branch': 'China',
+    'Red Cross Society Of China-Hong Kong Branch': 'China',
     'Macau Red Cross': 'China',
     'Ifrc Headquarters': 'IFRC',
-    'Ifrc Mena': 'IFRC',
-    'Ifrc Asia Pacific': 'IFRC',
-    'Ifrc Africa': 'IFRC',
-    'Ifrc Americas': 'IFRC',
-    'Ifrc Europe': 'IFRC',
-    'IFRC': 'IFRC',
+    'Ifrc Mena': 'IFRC MENA',
+    'Ifrc Asia Pacific': 'IFRC Asia-Pacific',
+    'Ifrc Africa': 'IFRC Africa',
+    'Ifrc Americas': 'IFRC Americas',
+    'Ifrc Europe': 'IFRC Europe',
+# ? 'IFRC': 'IFRC',
     'Icrc Staff': 'ICRC',
-    'ICRC': 'ICRC'
+# ? 'ICRC': 'ICRC',
 }
 
 
@@ -222,7 +223,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             if md['position_id']:
                 surge_alert = SurgeAlert.objects.get(molnix_id=md['position_id'])
         except:
-            logger.warning('Did not find SurgeAlert with Molnix position_id %d.' % md['position_id'])
+            logger.warning('%d deployment did not find SurgeAlert with Molnix position_id %d.' % (md['id'], md['position_id']))
             continue
 
         appraisal_received = 'appraisals' in md and bool(len(md['appraisals']))
@@ -288,6 +289,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             else:
                 try:
                     country_from = Country.objects.get(society_name=incoming_name, independent=True)
+                    # maybe somewhen:  .filter(society_name__iexact=incoming_name, independent=True).first()
                 except:
                     #FIXME: Catch possibility of .get() returning multiple records
                     # even though that should ideally never happen
@@ -404,6 +406,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        logger.info("Starting Sync Molnix job")
         molnix = MolnixApi(
             url=settings.MOLNIX_API_BASE,
             username=settings.MOLNIX_USERNAME,
@@ -411,15 +414,20 @@ class Command(BaseCommand):
         )
         try:
             molnix.login()
+            logger.info("Logged into Molnix")
         except Exception as ex:
             msg = 'Failed to login to Molnix API: %s' % str(ex)
             logger.error(msg)
             create_cron_record(CRON_NAME, msg, CronJobStatus.ERRONEOUS)
             return
         try:
+            logger.info("Fetching countries")
             countries = molnix.get_countries()
+            logger.info("Fetched countries, now fetching deployments")
             deployments = molnix.get_deployments()
+            logger.info("Fetched deployments, now fetching positions")
             open_positions = molnix.get_open_positions()
+            logger.info("Fetched positions")
         except Exception as ex:
             msg = 'Failed to fetch data from Molnix API: %s' % str(ex)
             logger.error(msg)
@@ -427,10 +435,14 @@ class Command(BaseCommand):
             return
 
         try:
+            logger.info("Processing tags")
             used_tags = get_unique_tags(deployments, open_positions)
             add_tags(used_tags, molnix)  # FIXME 2nd arg: a workaround to be able to get the group details inside.
+            logger.info("Processed tags, syncing positions")
             positions_messages, positions_warnings, positions_created = sync_open_positions(open_positions, molnix, countries)
+            logger.info("Synced positions, syncing deployments")
             deployments_messages, deployments_warnings, deployments_created = sync_deployments(deployments, molnix, countries)
+            logger.info("Synced deployments)")
         except Exception as ex:
             msg = 'Unknown Error occurred: %s' % str(ex)
             logger.error(msg)
@@ -442,4 +454,5 @@ class Command(BaseCommand):
         has_warnings = len(positions_warnings) > 0 or len(deployments_warnings) > 0
         cron_status = CronJobStatus.WARNED if has_warnings else CronJobStatus.SUCCESSFUL
         create_cron_record(CRON_NAME, msg, cron_status, num_result=num_records)
+        logger.info("Created CRON record, logging out")
         molnix.logout()
