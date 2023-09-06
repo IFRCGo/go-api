@@ -838,7 +838,7 @@ class MiniEventSerializer(ModelSerializer):
 
 
 class ListMiniEventSerializer(ModelSerializer):
-    dtype = DisasterTypeSerializer(read_only=True)
+    dtype = DisasterTypeSerializer(read_only=True, required=False)
     countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
 
     class Meta:
@@ -858,7 +858,7 @@ class ListEventSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
     field_reports = MiniFieldReportSerializer(many=True, read_only=True)
-    dtype = DisasterTypeSerializer()
+    dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
     active_deployments = serializers.SerializerMethodField()
 
@@ -905,7 +905,7 @@ class ListEventSerializer(ModelSerializer):
 class SurgeEventSerializer(ModelSerializer):
     appeals = RelatedAppealSerializer(many=True, read_only=True)
     countries = MiniCountrySerializer(many=True)
-    dtype = DisasterTypeSerializer()
+    dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     class Meta:
@@ -940,7 +940,7 @@ class ListEventTableauSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
-    dtype = DisasterTypeSerializer()
+    dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     @staticmethod
@@ -984,7 +984,7 @@ class ListEventCsvSerializer(serializers.ModelSerializer):
     appeals = serializers.SerializerMethodField()
     field_reports = serializers.SerializerMethodField()
     countries = serializers.SerializerMethodField()
-    dtype = DisasterTypeSerializer()
+    dtype = DisasterTypeSerializer(required=False)
     ifrc_severity_level_display = serializers.CharField(source="get_ifrc_severity_level_display", read_only=True)
 
     @staticmethod
@@ -1858,6 +1858,13 @@ class CountryOfFieldReportToReviewSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class AggregateHeaderFiguresInputSerializer(serializers.Serializer):
+    iso3 = serializers.IntegerField(required=False)
+    country = serializers.IntegerField(required=False)
+    region = serializers.IntegerField(required=False)
+    date = serializers.DateTimeField(required=False)
+
+
 class AggregateHeaderFiguresSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
     active_appeals = serializers.IntegerField()
@@ -1982,6 +1989,10 @@ class SearchReportSerializer(serializers.Serializer):
     score = serializers.FloatField()
 
 
+class SearchInputSerializer(serializers.Serializer):
+    keyword = serializers.CharField(required=True)
+
+
 class SearchSerializer(serializers.Serializer):
     regions = SearchRegionSerializer(many=True, required=False, allow_null=True)
     district_province_response = SearchDistrictSerializer(many=True, required=False, allow_null=True)
@@ -2007,6 +2018,13 @@ class ProjectSecondarySectorsSerializer(serializers.Serializer):
     color = serializers.CharField()
     is_deprecated = serializers.BooleanField()
 
+
+class AggregateByTimeSeriesInputSerializer(serializers.Serializer):
+    unit = serializers.CharField(required=False)
+    start_date = serializers.DateTimeField(required=False)
+    mtype = serializers.CharField(required=False)
+    country = serializers.IntegerField(required=False)
+    region = serializers.IntegerField(required=False)
 
 class AggregateByTimeSeriesSerializer(serializers.Serializer):
     timespan = serializers.DateTimeField()

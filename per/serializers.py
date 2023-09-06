@@ -292,6 +292,10 @@ class AssessmentRatingSerializer(serializers.Serializer):
     assessment_number = serializers.IntegerField()
 
 
+class LatestCountryOverviewInputSerializer(serializers.Serializer):
+    country_id = serializers.IntegerField(required=True)
+
+
 class LatestCountryOverviewSerializer(serializers.ModelSerializer):
     type_of_assessment = AssessmentTypeSerializer()
     assessment_ratings = serializers.SerializerMethodField()
@@ -459,6 +463,12 @@ class MiniAssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerAssessment
         fields = ("id", "overview")
+
+
+class PerFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(
+        child=serializers.FileField()
+    )
 
 
 class PerFileSerializer(serializers.ModelSerializer):
