@@ -15,7 +15,7 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
@@ -63,7 +63,9 @@ from .serializers import (
     PublicPerCountrySerializer,
     UserPerCountrySerializer,
     PerComponentRatingSerializer,
-    PerOptionsSerializer
+    PerOptionsSerializer,
+    LatestCountryOverviewInputSerializer,
+    PerFileInputSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -192,6 +194,12 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     queryset = FormAnswer.objects.all()
 
 
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[LatestCountryOverviewInputSerializer],
+        responses=LatestCountryOverviewSerializer
+    )
+)
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
     # authentication_classes = (TokenAuthentication,)
     # permission_classes = (IsAuthenticated,)
@@ -279,6 +287,10 @@ class PerFileViewSet(
             return PerFile.objects.none()
         return PerFile.objects.filter(created_by=self.request.user)
 
+    @extend_schema(
+        request=PerFileInputSerializer,
+        responses=PerFileSerializer(many=True)
+    )
     @action(
         detail=False,
         url_path="multiple",

@@ -43,9 +43,15 @@ class DonorsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FlashGraphicMapFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(
+        child=serializers.FileField()
+    )
+
+
 class FlashGraphicMapSerializer(serializers.ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    file = serializers.FileField(required=False)
+    file = serializers.FileField(required=True)
 
     class Meta:
         model = FlashGraphicMap
