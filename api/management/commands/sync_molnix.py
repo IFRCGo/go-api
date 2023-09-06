@@ -13,25 +13,26 @@ from api.create_cron import create_cron_record
 CRON_NAME = 'sync_molnix'
 
 '''
-    Some NS names coming from Molnix are mapped to "countries"
+    Some NS names coming from Molnix are mapped to "countries" (!)
+    – so not to NS names –
     in the GO db via this mapping below, as the NS names do not line up.
 '''
-NS_MATCHING_OVERRIDES = {
+NS_MATCHING_OVERRIDES = {  # NS -> contry
     'Red Cross Society of China-Hong Kong Branch': 'China',
     'Red Cross Society Of China-Hong Kong Branch': 'China',
     'Macau Red Cross': 'China',
     'Ifrc Headquarters': 'IFRC',
     'IFRC Headquarters': 'IFRC',
-    'Ifrc Mena': 'IFRC MENA',
-    'Ifrc Asia Pacific': 'IFRC Asia-Pacific',
-    'IFRC Asia Pacific': 'IFRC Asia-Pacific',
-    'Ifrc Africa': 'IFRC Africa',
-    'Ifrc Americas': 'IFRC Americas',
-    'Ifrc Europe': 'IFRC Europe',
-# ? 'IFRC': 'IFRC',
+    'Ifrc Mena': 'MENA Region',
+    'Ifrc Asia Pacific': 'Asia-Pacific Region',
+    'IFRC Asia Pacific': 'Asia-Pacific Region',
+    'Ifrc Africa': 'Africa Region',
+    'Ifrc Americas': 'Americas Region',
+    'Ifrc Europe': 'Europe Region',
+    'IFRC': 'IFRC',
     'Icrc Staff': 'ICRC',
     'ICRC Staff': 'ICRC',
-# ? 'ICRC': 'ICRC',
+    'ICRC': 'ICRC',
 }
 
 
