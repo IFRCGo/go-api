@@ -21,13 +21,16 @@ NS_MATCHING_OVERRIDES = {
     'Red Cross Society Of China-Hong Kong Branch': 'China',
     'Macau Red Cross': 'China',
     'Ifrc Headquarters': 'IFRC',
+    'IFRC Headquarters': 'IFRC',
     'Ifrc Mena': 'IFRC MENA',
     'Ifrc Asia Pacific': 'IFRC Asia-Pacific',
+    'IFRC Asia Pacific': 'IFRC Asia-Pacific',
     'Ifrc Africa': 'IFRC Africa',
     'Ifrc Americas': 'IFRC Americas',
     'Ifrc Europe': 'IFRC Europe',
 # ? 'IFRC': 'IFRC',
     'Icrc Staff': 'ICRC',
+    'ICRC Staff': 'ICRC',
 # ? 'ICRC': 'ICRC',
 }
 
