@@ -17,7 +17,7 @@ CRON_NAME = 'sync_molnix'
     – so not to NS names –
     in the GO db via this mapping below, as the NS names do not line up.
 '''
-NS_MATCHING_OVERRIDES = {  # NS -> contry
+NS_MATCHING_OVERRIDES = {  # NS -> country
     'Red Cross Society of China-Hong Kong Branch': 'China',
     'Red Cross Society Of China-Hong Kong Branch': 'China',
     'Macau Red Cross': 'China',
@@ -266,7 +266,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         personnel.role = md['title']
         country_to = get_go_country(countries, md['country_id'])
         if not country_to:
-            warning = 'Position id %d does not have a valid Country To' % (md['id'])
+            warning = 'Position (id %d) does not have a valid Country To (%s)' % (md['id'], md['country_id'])
             logger.warning(warning)
             warnings.append(warning)
             country_to = None
