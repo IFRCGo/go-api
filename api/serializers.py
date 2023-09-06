@@ -7,6 +7,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django.conf import settings
+from django.db import transaction
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
@@ -2058,7 +2059,9 @@ class ExportSerializer(serializers.ModelSerializer):
             export.status = Export.ExportStatus.PENDING
             export.requested_at = timezone.now()
             export.save(update_fields=['status', 'requested_at'])
-            generate_url.delay(export.url, export.id, export.selector)
+            transaction.on_commit(
+                lambda: generate_url.delay(export.url, export.id, export.selector)
+            )
         return export
 
     def update(self, instance, validated_data):
