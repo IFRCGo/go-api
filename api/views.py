@@ -16,7 +16,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from deployments.models import Heop, ERUType, Sector, SectorTag, Statuses
 from notifications.models import Subscription, SurgeAlert
@@ -40,7 +40,10 @@ from api.serializers import (
     ProjectSecondarySectorsSerializer,
     AggregateByTimeSeriesSerializer,
     AreaAggregateSerializer,
-    AggregateByDtypeSerializer
+    AggregateByDtypeSerializer,
+    AggregateByTimeSeriesInputSerializer,
+    SearchInputSerializer,
+    AggregateHeaderFiguresInputSerializer
 )
 
 
@@ -119,9 +122,14 @@ class EsPageSearch(APIView):
         return JsonResponse(results["hits"])
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[SearchInputSerializer],
+        responses=SearchSerializer
+    )
+)
 class HayStackSearch(APIView):
 
-    @extend_schema(request=None, responses=SearchSerializer)
     def get(self, request):
         phrase = request.GET.get("keyword", None)
         if phrase is None:
@@ -534,6 +542,7 @@ class RecentAffecteds(APIView):
         keys_labels = [{"key": i, "label": v} for i, v in FieldReport.RecentAffected.choices]
         return JsonResponse(keys_labels, safe=False)
 
+
 class ProjectPrimarySectors(APIView):
     @classmethod
     @extend_schema(
@@ -572,14 +581,16 @@ class ProjectStatuses(APIView):
         return JsonResponse(keys_labels, safe=False)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[AggregateHeaderFiguresInputSerializer],
+        responses=AggregateHeaderFiguresSerializer
+    )
+)
 class AggregateHeaderFigures(APIView):
     """
         Used mainly for the key-figures header and by FDRS
     """
-    @extend_schema(
-        request=None,
-        responses=AggregateHeaderFiguresSerializer
-    )
     def get(self, request):
         iso3 = request.GET.get("iso3", None)
         country = request.GET.get("country", None)
@@ -708,12 +719,14 @@ class AggregateByDtype(APIView):
         )
 
 
-class AggregateByTime(APIView):
-
-    @extend_schema(
-        request=None,
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[AggregateByTimeSeriesInputSerializer],
         responses=AggregateByTimeSeriesSerializer(many=True)
     )
+)
+class AggregateByTime(APIView):
+
     def get(self, request):
         models = {
             "appeal": Appeal,

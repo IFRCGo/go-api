@@ -29,7 +29,8 @@ from .serializers import (
     DonorGroupSerializer,
     DonorsSerializer,
     ShareFlashUpdateSerializer,
-    ExportFlashUpdateViewSerializer
+    ExportFlashUpdateViewSerializer,
+    FlashGraphicMapFileInputSerializer
 )
 from .filter_set import FlashUpdateFilter
 from .tasks import export_to_pdf
@@ -71,6 +72,10 @@ class FlashUpdateFileViewSet(
     def get_queryset(self):
         return FlashGraphicMap.objects.all().select_related('created_by')
 
+    @extend_schema(
+        request=FlashGraphicMapFileInputSerializer,
+        responses=FlashGraphicMapSerializer(many=True)
+    )
     @action(
         detail=False,
         url_path='multiple',

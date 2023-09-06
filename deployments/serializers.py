@@ -732,6 +732,12 @@ class AggregateDeploymentsSerializer(serializers.Serializer):
     deployment_this_year = serializers.IntegerField(required=False)
 
 
+class ProjectPerSector(serializers.Serializer):
+    primary_sector = serializers.IntegerField()
+    primary_sector_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
 class GlobalProjectNSOngoingProjectsStatsSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
@@ -741,13 +747,11 @@ class GlobalProjectNSOngoingProjectsStatsSerializer(serializers.Serializer):
     target_total = serializers.IntegerField(allow_null=True, required=False)
     budget_amount_total = serializers.IntegerField(allow_null=True, required=False)
     operation_types = serializers.ListField(
-        serializers.IntegerField(), required=False, allow_null=True
+        child=serializers.IntegerField(), required=False, allow_null=True
     )
-    projects_per_sector = serializers.ListField(
-        serializers.DictField(), required=False, allow_null=True
-    )
+    projects_per_sector = ProjectPerSector(many=True, required=False)
     operation_types_display = serializers.ListField(
-        serializers.CharField(), required=False, allow_null=True
+        child=serializers.CharField(), required=False, allow_null=True
     )
 
 

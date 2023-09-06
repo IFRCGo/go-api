@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from lang.serializers import ModelSerializer
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
@@ -40,6 +41,12 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
     class Meta:
         model = PlannedInterventionIndicators
         fields = "__all__"
+
+
+class DrefFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(
+        child=serializers.FileField()
+    )
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -179,10 +186,12 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
+    @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
     def get_operational_update_details(self, obj) -> MiniOperationalUpdateActiveSerializer:
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
+    @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
     def get_final_report_details(self, obj) -> MiniDrefFinalReportActiveSerializer:
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
         return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
@@ -212,7 +221,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
 
 
 class PlannedInterventionSerializer(ModelSerializer):
-    budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
+    # budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
     title_display = serializers.CharField(source="get_title_display", read_only=True)
