@@ -194,12 +194,11 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
 
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
     # authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
 
     def get_queryset(self):
         country_id = self.request.GET.get("country_id", None)
-
         if country_id:
             return (
                 Overview.objects.select_related("country", "type_of_assessment")
