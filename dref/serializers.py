@@ -187,12 +187,12 @@ class MiniDrefSerializer(serializers.ModelSerializer):
         ]
 
     @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
-    def get_operational_update_details(self, obj) -> MiniOperationalUpdateActiveSerializer:
+    def get_operational_update_details(self, obj):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
     @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
-    def get_final_report_details(self, obj) -> MiniDrefFinalReportActiveSerializer:
+    def get_final_report_details(self, obj):
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
         return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
 
@@ -354,7 +354,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images")
+        exclude = ("cover_image", "event_map", "images", "users")
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
@@ -561,7 +561,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     class Meta:
         model = DrefOperationalUpdate
         read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image")
+        exclude = ("images", "photos", "event_map", "cover_image", "users")
 
     def validate(self, data):
         dref = data.get("dref")
@@ -869,6 +869,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "photos",
             "event_map",
             "cover_image",
+            "users",
         )
 
     def validate(self, data):
