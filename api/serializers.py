@@ -839,7 +839,7 @@ class MiniEventSerializer(ModelSerializer):
 
 
 class ListMiniEventSerializer(ModelSerializer):
-    dtype = DisasterTypeSerializer(read_only=True, required=False)
+    dtype = DisasterTypeSerializer(required=False)
     countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
 
     class Meta:
@@ -1751,6 +1751,18 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
         exclude = ()
 
 
+class FieldReportMiniUserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'email',
+            'first_name',
+            'last_name'
+        )
+
+
 class FieldReportSerializer(
     NestedUpdateMixin,
     NestedCreateMixin,
@@ -1786,6 +1798,7 @@ class FieldReportSerializer(
     dtype_details = DisasterTypeSerializer(source="dtype", read_only=True)
     external_partners_details = ExternalPartnerSerializer(source="external_partners", many=True, read_only=True)
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
+    user_details = FieldReportMiniUserSerializer(source='user', read_only=True)
 
     class Meta:
         model = FieldReport
@@ -2052,6 +2065,13 @@ class ExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Export
         fields = "__all__"
+        read_only_fields = (
+            "pdf_file",
+            "token",
+            "requested_at",
+            "completed_at",
+            "status"
+        )
 
     def create(self, validated_data):
         user = self.context['request'].user
