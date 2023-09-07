@@ -1184,14 +1184,17 @@ class DrefFinalReport(models.Model):
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
     boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.DecimalField(
-        verbose_name=_("disability people per"), blank=True, null=True, max_digits=5, decimal_places=2
+    disability_people_per = models.FloatField(
+        verbose_name=_("disability people per"),
+        blank=True, null=True
     )
-    people_per_urban = models.DecimalField(
-        verbose_name=_("people per urban"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_urban = models.FloatField(
+        verbose_name=_("people per urban"),
+        blank=True, null=True
     )
-    people_per_local = models.DecimalField(
-        verbose_name=_("people per local"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_local = models.FloatField(
+        verbose_name=_("people per local"),
+        blank=True, null=True
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"), blank=True, null=True
@@ -1290,6 +1293,11 @@ class DrefFinalReport(models.Model):
         null=True,
         blank=True
     )
+    operation_end_date = models.DateField(
+        verbose_name=_("Operation End Date"),
+        null=True, blank=True
+    )
+
     __financial_report_id = None
 
     class Meta:
