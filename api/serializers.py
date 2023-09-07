@@ -2054,13 +2054,14 @@ class ExportSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
+        user = self.context['request'].user
         export = super().create(validated_data)
         if export.url:
             export.status = Export.ExportStatus.PENDING
             export.requested_at = timezone.now()
             export.save(update_fields=['status', 'requested_at'])
             transaction.on_commit(
-                lambda: generate_url.delay(export.url, export.id, export.selector)
+                lambda: generate_url.delay(export.url, export.id, export.selector, user.id)
             )
         return export
 
