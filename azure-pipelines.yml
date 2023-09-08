@@ -1,6 +1,7 @@
 trigger:
 - develop
 - master
+- project/web-rewrite
 
 # no PR triggers
 pr: none
@@ -40,7 +41,7 @@ jobs:
     displayName: "Build and Push"
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/project/web-rewrite')
     displayName: "Deploy Staging"
     env:
       environment: staging
