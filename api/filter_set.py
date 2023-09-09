@@ -164,6 +164,10 @@ class EventFilter(filters.FilterSet):
         label="Auto generated source choices",
         choices=[(v, v) for v in SOURCES.values()],
     )
+    is_subscribed = filters.BooleanFilter(
+        label="is_subscribed",
+        method='get_is_subcribed_event'
+    )
 
     class Meta:
         model = Event
@@ -171,6 +175,12 @@ class EventFilter(filters.FilterSet):
             "disaster_start_date": ("exact", "gt", "gte", "lt", "lte"),
             "created_at": ("exact", "gt", "gte", "lt", "lte"),
         }
+
+    def get_is_subcribed_event(self, qs, name, value):
+        user = self.request.user
+        if value:
+            return qs.filter(subscription__user=user).distinct()
+        return qs
 
 
 class EventSnippetFilter(filters.FilterSet):
