@@ -314,6 +314,7 @@ class DistrictSerializer(ModelSerializer):
     def get_centroid(district) -> dict:
         return district.centroid and json.loads(district.centroid.geojson)
 
+
 class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()

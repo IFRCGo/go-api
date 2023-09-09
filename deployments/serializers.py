@@ -442,11 +442,14 @@ class DeploymentRegionSerializer(serializers.ModelSerializer):
 
 
 class DeploymentAdmin2Serializer(serializers.ModelSerializer):
+    district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+
     class Meta:
         model = Admin2
         fields = (
             "id",
-            "name"
+            "name",
+            "district_id",
         )
 
 
@@ -480,7 +483,10 @@ class ProjectSerializer(
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
-    annual_splits = AnnualSplitSerializer(many=True, required=False)
+    annual_splits = AnnualSplitSerializer(
+        many=True,
+        required=False
+    )
     modified_by_detail = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
