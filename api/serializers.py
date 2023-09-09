@@ -291,6 +291,8 @@ class NotCountrySerializer(ModelSerializer):  # fake serializer for a short data
 
 class DistrictSerializer(ModelSerializer):
     country = MiniCountrySerializer()
+    bbox = serializers.SerializerMethodField()
+    centroid = serializers.SerializerMethodField()
 
     class Meta:
         model = District
@@ -300,8 +302,17 @@ class DistrictSerializer(ModelSerializer):
             "country",
             "id",
             "is_deprecated",
+            "bbox",
+            "centroid",
         )
 
+    @staticmethod
+    def get_bbox(district) -> dict:
+        return district.bbox and json.loads(district.bbox.geojson)
+
+    @staticmethod
+    def get_centroid(district) -> dict:
+        return district.centroid and json.loads(district.centroid.geojson)
 
 class Admin2Serializer(GeoSerializerMixin, ModelSerializer):
     bbox = serializers.SerializerMethodField()
@@ -823,6 +834,7 @@ class EventLinkSerializer(ModelSerializer):
 # Also include a very minimal one for linking, and no other related fields.
 class MiniEventSerializer(ModelSerializer):
     countries_for_preview = MiniCountrySerializer(many=True, read_only=True)
+    dtype_details = DisasterTypeSerializer(read_only=True)
 
     class Meta:
         model = Event
@@ -835,6 +847,7 @@ class MiniEventSerializer(ModelSerializer):
             "emergency_response_contact_email",
             "countries_for_preview",
             "start_date",
+            "dtype_details"
         )
 
 

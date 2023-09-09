@@ -123,7 +123,7 @@ router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentVie
 router.register(r'personnel', deployment_views.PersonnelViewset, basename='personnel')
 router.register(r'personnel_by_event', api_views.DeploymentsByEventViewset, basename='personnel_by_event')
 router.register(r'profile', api_views.ProfileViewset, basename='profile')
-router.register(r'project', deployment_views.ProjectViewset)
+router.register(r'project', deployment_views.ProjectViewset, basename='project')
 router.register(r'emergency-project', deployment_views.EmergencyProjectViewSet)
 router.register(r'region', api_views.RegionViewset, basename='region')
 router.register(r'region_key_figure', api_views.RegionKeyFigureViewset, basename='region_key_figure')
