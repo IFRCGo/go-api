@@ -529,7 +529,7 @@ class Project(models.Model):
         if hasattr(self, "annual_split_detail"):
             # NO NEED: and self.annual_split_detail – because we want to get here in case of [] also:
             if hasattr(self, "is_annual_report") and self.is_annual_report:
-                arrivingIds = [asd["id"] for asd in self.annual_split_detail]
+                arrivingIds = [asd["id"] for asd in self.annual_splits]
                 # Remove the records frontend has not sent, due to frontend-wise row removal:
                 AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
                 for split in self.annual_split_detail:
