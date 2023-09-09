@@ -2,7 +2,7 @@ from django.db import connection
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from api.logger import logger
-# from main.frontend import frontend_url
+
 
 class Command(BaseCommand):
     help = 'Set triggers for updating previous_updated fields in api_event, _appeal, _fieldreport tables'
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                        OR (OLD.amount_funded     IS DISTINCT FROM NEW.amount_funded))
                     EXECUTE PROCEDURE appeal_real_data_update();
 
-                DROP   TABLE if exists archived_not_sub;
+                DROP TABLE if exists archived_not_sub;
                 CREATE TABLE archived_not_sub as select * from notifications_subscription;
                 BEGIN;
                 UPDATE      notifications_subscription set rtype=12, stype=0 where rtype=0; -- EVENT    > EMERGENCY
@@ -93,4 +93,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.apply()
-        print("Db changes finished.");
+        print("Db changes finished.")
