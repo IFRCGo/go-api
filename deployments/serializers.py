@@ -462,7 +462,11 @@ class DeploymentEventSerializer(serializers.ModelSerializer):
         )
 
 
-class ProjectSerializer(ModelSerializer):
+class ProjectSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer
+):
     project_country_detail = DeployemntCountrySerializer(source='project_country', read_only=True)
     project_districts_detail = DeploymentDistrictSerializer(source='project_districts', read_only=True, many=True)
     project_admin2_detail = DeploymentAdmin2Serializer(source='project_admin2', read_only=True, many=True)
@@ -476,7 +480,7 @@ class ProjectSerializer(ModelSerializer):
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
-    annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
+    annual_splits = AnnualSplitSerializer(many=True, required=False)
     modified_by_detail = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
@@ -491,7 +495,12 @@ class ProjectSerializer(ModelSerializer):
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'project_districts',
+                'reporting_ns',
+                'name',
+                'project_country',
+                'programme_type',
+                'primary_sector',
+                'project_districts',
             )
         }
 
@@ -519,8 +528,8 @@ class ProjectSerializer(ModelSerializer):
         if self.context and 'request' in self.context:
             if 'is_annual_report' in self.context['request'].data:
                 project.is_annual_report = self.context['request'].data['is_annual_report']
-            if 'annual_split_detail' in self.context['request'].data:
-                project.annual_split_detail = self.context['request'].data['annual_split_detail']
+            # if 'annual_split_detail' in self.context['request'].data:
+            #     project.annual_split_detail = self.context['request'].data['annual_split_detail']
         project.user = self.context['request'].user
         project.save()
         return project
@@ -530,8 +539,8 @@ class ProjectSerializer(ModelSerializer):
         if self.context and 'request' in self.context:  # code đuplication
             if 'is_annual_report' in self.context['request'].data:
                 validated_data['is_annual_report'] = self.context['request'].data['is_annual_report']
-            if 'annual_split_detail' in self.context['request'].data:
-                validated_data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
+            # if 'annual_split_detail' in self.context['request'].data:
+            #     validated_data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         return super().update(instance, validated_data)
 
 
