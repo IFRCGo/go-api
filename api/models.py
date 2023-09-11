@@ -2149,7 +2149,16 @@ class Export(models.Model):
         COMPLETED = 1, _('Completed')
         ERRORED = 2, _('Errored')
 
-    url = models.URLField(verbose_name=_("Url"), max_length=255)
+    class ExportType(models.TextChoices):
+        DREF = 'dref-applications', _('Dref Applications')
+
+    export_id = models.IntegerField(verbose_name=_('Export Id'))
+    export_type = models.CharField(
+        verbose_name=_('Export Type'),
+        max_length=255,
+        choices=ExportType.choices
+    )
+    url = models.URLField(verbose_name=_("Url"), max_length=255, null=True, blank=True)
     token = models.UUIDField(
         default=uuid.uuid4,
         editable=False,
@@ -2178,6 +2187,11 @@ class Export(models.Model):
         verbose_name=_('Selector'),
         max_length=255,
         null=True, blank=True
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
     )
 
     def __str__(self):

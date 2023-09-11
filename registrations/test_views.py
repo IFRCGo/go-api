@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 
 from .models import Pending
 from api.models import Country, Profile
-from .utils import send_notification_create
+from .tasks import send_notification_create
 
 
 class TwoGatekeepersTest(APITestCase):
