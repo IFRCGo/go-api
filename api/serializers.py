@@ -2084,16 +2084,23 @@ class ExportSerializer(serializers.ModelSerializer):
             "token",
             "requested_at",
             "completed_at",
-            "status"
+            "status",
+            "requested_by",
+            "url"
         )
 
     def create(self, validated_data):
+        export_id = validated_data.get('export_id')
+        export_type = validated_data.get('export_type')
         user = self.context['request'].user
+        validated_data['url'] = f'{settings.FRONTEND_URL}{export_type}/{export_id}/export/'
+        validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:
             export.status = Export.ExportStatus.PENDING
             export.requested_at = timezone.now()
             export.save(update_fields=['status', 'requested_at'])
+
             transaction.on_commit(
                 lambda: generate_url.delay(export.url, export.id, export.selector, user.id)
             )
