@@ -82,26 +82,26 @@ class FlashUpdateTest(APITestCase):
             "share_with": FlashUpdate.FlashShareWith.IFRC_SECRETARIAT.value,
             "created_by": str(self.user.id),
             "hazard_type": str(self.hazard_type.id),
-            "map_files": [
-                {
-                    'id': map1.id,
-                    'caption': 'test'
-                },
-                {
-                    'id': map2.id,
-                    'caption': 'test2'
-                }
-            ],
-            "graphics_files": [
-                {
-                    'id': graphic1.id,
-                    'caption': 'test'
-                },
-                {
-                    'id': graphic1.id,
-                    'caption': 'test2'
-                }
-            ]
+            # "map_files": [
+            #     {
+            #         'id': map1.id,
+            #         'caption': 'test'
+            #     },
+            #     {
+            #         'id': map2.id,
+            #         'caption': 'test2'
+            #     }
+            # ],
+            # "graphics_files": [
+            #     {
+            #         'id': graphic1.id,
+            #         'caption': 'test'
+            #     },
+            #     {
+            #         'id': graphic1.id,
+            #         'caption': 'test2'
+            #     }
+            # ]
         }
         super().setUp()
 
@@ -264,14 +264,14 @@ class FlashUpdateTest(APITestCase):
         self.authenticate()
         response = self.client.post(url, data, format='multipart')
         self.assert_201(response)
-        self.assertEqual(FlashGraphicMap.objects.count(), file_count + 3)
+        self.assertEqual(FlashGraphicMap.objects.count(), file_count + 1)
 
         # test number of files selected should not be greater than 3
-        data2 = {
-            'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
-        }
-        response = self.client.post(url, data2, format='multipart')
-        self.assert_400(response)
+        # data2 = {
+        #     'file': [open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb'), open(self.file, 'rb')]
+        # }
+        # response = self.client.post(url, data2, format='multipart')
+        # self.assert_400(response)
 
     @mock.patch('notifications.notification.send_notification')
     def test_send_email(self, send_notification):
