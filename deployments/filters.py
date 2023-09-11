@@ -32,7 +32,10 @@ class ProjectFilter(filters.FilterSet):
     primary_sector = filters.ModelMultipleChoiceFilter(label='Sector', queryset=Sector.objects.all(), widget=filters.widgets.CSVWidget)
     secondary_sectors = filters.ModelMultipleChoiceFilter(label='SectorTag', queryset=SectorTag.objects.all(), widget=filters.widgets.CSVWidget)
     status = filters.MultipleChoiceFilter(choices=Statuses.choices, widget=filters.widgets.CSVWidget)
-
+    # project_country = filters.ModelMultipleChoiceFilter(
+    #     field_name='project_country',
+    #     queryset=Country.objects.all()
+    # )
     # Supporting/Receiving NS Filters (Multiselect)
     reporting_ns = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
     exclude_within = filters.BooleanFilter(

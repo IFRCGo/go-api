@@ -45,6 +45,3 @@ def getRegionalAdmins(userId):
 
     admins = UserRegion.objects.filter(region_id=regionId).values_list('user__email', flat=True)
     return admins
-
-
-
