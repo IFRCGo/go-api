@@ -10,9 +10,10 @@ from rest_framework import serializers
 
 from .models import DomainWhitelist, Pending
 from .utils import (
-    is_valid_domain,
-    send_notification_create
+    is_valid_domain
 )
+from registrations.tasks import send_notification_create
+
 from api.models import Country
 
 
