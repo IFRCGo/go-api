@@ -1,7 +1,5 @@
 from django.contrib.auth.models import User
 from django.db.models.functions import Lower
-from django.conf import settings
-from django.template.loader import render_to_string
 
 from api.models import Country, Profile, UserRegion
 from .models import DomainWhitelist
@@ -49,24 +47,4 @@ def getRegionalAdmins(userId):
     return admins
 
 
-def send_notification_create(token, username, is_staff, email):
-    email_context = {
-        'confirmation_link': 'https://%s/verify_email/?token=%s&user=%s' % (
-            settings.BASE_URL,  # on PROD it should point to goadmin...
-            token,
-            username,
-        )
-    }
 
-    # if validated email accounts get a different message
-    if is_staff:
-        template = 'email/registration/verify-staff-email.html'
-    else:
-        template = 'email/registration/verify-outside-email.html'
-
-    send_notification(
-        'Validate your account',
-        [email],
-        render_to_string(template, email_context),
-        'Validate account - ' + username
-    )
