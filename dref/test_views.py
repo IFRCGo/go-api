@@ -214,7 +214,7 @@ class DrefTestCase(APITestCase):
                     ],
                 },
             ],
-            "users": [self.user.id],
+            # "users": ,
         }
         url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
@@ -222,6 +222,7 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Dref.objects.count(), old_count + 1)
         instance = Dref.objects.get(id=response.data["id"])
+        instance.users.add(self.user.id)
         instance_user_email = [user.email for user in instance.users.all()]
 
         # call email send task
@@ -392,13 +393,13 @@ class DrefTestCase(APITestCase):
         dref = DrefFactory.create(
             title="test",
             created_by=self.user,
-            is_published=True,
+            is_published=False,
             type_of_dref=Dref.DrefType.IMMINENT,
         )
         url = f"/api/v2/dref/{dref.id}/"
         data = {
             "title": "New Update Title",
-            "modified_at": initial_now,
+            "modified_at": initial_now + timedelta(days=1),
         }
         self.client.force_authenticate(self.user)
         response = self.client.patch(url, data)

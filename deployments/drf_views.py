@@ -432,24 +432,13 @@ class ProjectViewset(
     csv_serializer_class = ProjectCsvSerializer
     ordering_fields = ("name",)
     search_fields = ("name",)  # for /docs
-
-    def get_queryset(self):
-        return Project.objects.select_related(
-            "user",
-            "modified_by",
-            "project_country",
-            "reporting_ns",
-            "dtype",
-            "regional_project",
-            "primary_sector",
-            "event",
-            "document",
-        ).prefetch_related(
-            "project_districts",
-            "annual_splits",
-            "secondary_sectors",
-            "project_admin2",
-        ).order_by("-modified_at").all()
+    queryset = (
+        Project.objects.select_related(
+            "user", "modified_by", "project_country", "reporting_ns", "dtype", "regional_project", "primary_sector"
+        )
+        .prefetch_related("project_districts", "event", "annual_splits", "secondary_sectors", "project_admin2")
+        .order_by("-modified_at").all()
+    )
 
     def get_permissions(self):
         # Require authentication for unsafe methods only
