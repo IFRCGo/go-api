@@ -10,6 +10,7 @@ from playwright.sync_api import sync_playwright
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from api.models import Export
 from .logger import logger
@@ -23,7 +24,7 @@ def build_storage_state(tmp_dir, user, token):
     state = {
         "origins": [
             {
-                "origin": "https://ifrc-go-nightly.surge.sh",
+                "origin": settings.FRONTEND_URL,
                 "localStorage": [
                     {
                         "name": "user",
