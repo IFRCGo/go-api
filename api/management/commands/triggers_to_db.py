@@ -9,6 +9,8 @@ class Command(BaseCommand):
 
     @staticmethod
     def apply(*_):
+        return
+        ################## only one time change ###################
         with connection.cursor() as cursor:
             cursor.execute(
                 """
