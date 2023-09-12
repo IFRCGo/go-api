@@ -988,7 +988,7 @@ class GoHistoricalViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = GoHistoricalFilter
 
     def get_queryset(self):
-        return Event.objects.filter(appeals__isnull=False)
+        return Event.objects.filter(appeals__isnull=False).distinct()
 
 
 class CountryOfFieldReportToReviewViewset(viewsets.ReadOnlyModelViewSet):

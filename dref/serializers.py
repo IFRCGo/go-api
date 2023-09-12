@@ -946,6 +946,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["ifrc_emergency_title"] = dref_operational_update.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref_operational_update.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref_operational_update.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref_operational_update.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref_operational_update.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref_operational_update.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref_operational_update.regional_focal_point_phone_number
             validated_data["ifrc"] = dref_operational_update.ifrc
             validated_data["icrc"] = dref_operational_update.icrc
             validated_data["partner_national_society"] = dref_operational_update.partner_national_society
@@ -1039,6 +1043,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["ifrc_emergency_title"] = dref.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref.regional_focal_point_phone_number
             validated_data["ifrc"] = dref.ifrc
             validated_data["icrc"] = dref.icrc
             validated_data["partner_national_society"] = dref.partner_national_society

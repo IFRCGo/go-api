@@ -1121,6 +1121,18 @@ class DrefFinalReport(models.Model):
     media_contact_phone_number = models.CharField(
         verbose_name=_("media_contact phone number"), max_length=100, null=True, blank=True
     )
+    regional_focal_point_name = models.CharField(
+        verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_email = models.CharField(
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_title = models.CharField(
+        verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("regional focal point phone number"), max_length=100, null=True, blank=True
+    )
     event_map = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
