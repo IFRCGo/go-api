@@ -608,6 +608,7 @@ class CountryRelationSerializer(ModelSerializer):
     has_country_plan = serializers.BooleanField(read_only=True)
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
+    regions_details = RegionSerializer(source='region', read_only=True)
 
     class Meta:
         model = Country
@@ -650,6 +651,7 @@ class CountryRelationSerializer(ModelSerializer):
             "bbox",
             "centroid",
             "fdrs",
+            "regions_details"
         )
 
     @staticmethod
