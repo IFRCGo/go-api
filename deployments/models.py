@@ -506,7 +506,7 @@ class Project(models.Model):
         RegionalProject, verbose_name=_("regional project"), null=True, blank=True, on_delete=models.SET_NULL
     )
     visibility = models.CharField(
-        max_length=32,
+        max_length=64,
         verbose_name=_("visibility"),
         choices=VisibilityCharChoices.choices,
         default=VisibilityCharChoices.PUBLIC,
@@ -566,9 +566,9 @@ class Project(models.Model):
             .union(Profile.objects.filter(user=user).values("country"))
         )
         return queryset.exclude(
-            Q(visibility=VisibilityCharChoices.IFRC_NS)
-            & ~Q(project_country__in=countries_qs)
-            & ~Q(reporting_ns__in=countries_qs)
+            Q(visibility=VisibilityCharChoices.IFRC_NS) &
+            ~Q(project_country__in=countries_qs) &
+            ~Q(reporting_ns__in=countries_qs)
         )
 
 
