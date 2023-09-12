@@ -257,7 +257,9 @@ class ProjectImportForm(forms.Form):
                         all_ok = False
                         row_errors['project_sectortags'] = [f'Given tag: "{t}" is not all available.']
                 if all_ok:
-                    # Cheaper than: list(SectorTag.objects.filter(reduce(lambda acc, item: acc | item, [Q(title=title) for title in tag_names],)).all())
+                    # Cheaper than: list(
+                    # SectorTag.objects.filter(
+                    # reduce(lambda acc, item: acc | item, [Q(title=title) for title in tag_names],)).all())
                     project_sectortag_ids = {title: sector_tags[title.lower()] for title in tag_names}.values()
 
             if reporting_ns is None:

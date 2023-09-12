@@ -1,32 +1,24 @@
-from datetime import datetime
-from pytz import utc
-from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
-from rest_framework.generics import GenericAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, mixins
 from rest_framework.decorators import action
+
 from django.http import Http404
-from django_filters import rest_framework as filters
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Count, Q, OuterRef
 from django.utils import timezone
-from django.utils.translation import get_language as django_get_language
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from main.utils import is_tableau
 from main.enums import GlobalEnumSerializer, get_enum_values
-from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from deployments.models import Personnel
 from databank.serializers import CountryOverviewSerializer
 
 from .utils import is_user_ifrc
-from .event_sources import SOURCES
 from .exceptions import BadRequest
-from .view_filters import ListFilter
 from .visibility_class import ReadOnlyVisibilityViewset
 
 from .models import (
@@ -50,14 +42,8 @@ from .models import (
     AppealDocument,
     Profile,
     FieldReport,
-    FieldReportContact,
     Action,
-    ActionsTaken,
-    Source,
-    SourceType,
     VisibilityChoices,
-    RequestChoices,
-    EPISourceChoices,
     MainContact,
     UserCountry,
     CountryOfFieldReportToReview,
@@ -100,9 +86,7 @@ from .serializers import (
     UserSerializer,
     UserMeSerializer,
     ProfileSerializer,
-    ListFieldReportSerializer,
     ListFieldReportCsvSerializer,
-    DetailFieldReportSerializer,
     FieldReportSerializer,
     MainContactSerializer,
     NsSerializer,
@@ -135,14 +119,12 @@ from api.filter_set import (
     EventFilter,
     EventSnippetFilter,
     SituationReportFilter,
-    AppealFilter,
     AppealHistoryFilter,
     AppealDocumentFilter,
     FieldReportFilter,
     GoHistoricalFilter
 )
 
-from .logger import logger
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 

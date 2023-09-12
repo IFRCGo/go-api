@@ -14,76 +14,50 @@ class Command(BaseCommand):
     missing_args_message = "Filename is missing."
 
     def add_arguments(self, parser):
-        parser.add_argument('filename', nargs='+', type=str)
-        parser.add_argument(
-            '-t',
-            '--table',
-            type=str,
-            help='Database table name of the translated strings'
-        )
-        parser.add_argument(
-            '-f',
-            '--field',
-            type=str,
-            help='Database field name of the translated strings'
-        )
+        parser.add_argument("filename", nargs="+", type=str)
+        parser.add_argument("-t", "--table", type=str, help="Database table name of the translated strings")
+        parser.add_argument("-f", "--field", type=str, help="Database field name of the translated strings")
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
-        ''' Example CSV header: name; name_fr; name_es; name_ar '''
+        """Example CSV header: name; name_fr; name_es; name_ar"""
 
-        filename = kwargs['filename'][0]
+        filename = kwargs["filename"][0]
         # os.path.split() [0] is the folder [1] is the filename
-        tablename = kwargs['table'] or os.path.split(filename)[1].split('__')[0]
+        tablename = kwargs["table"] or os.path.split(filename)[1].split("__")[0]
         # [:4] is to remove '.csv' from the end
-        fieldname = kwargs['field'] or os.path.split(filename)[1].split('__')[1][:4]
+        fieldname = kwargs["field"] or os.path.split(filename)[1].split("__")[1][:4]
 
-        with open(filename, 'r') as f:
-            reader = csv.reader(f, delimiter=';')
+        with open(filename, "r") as f:
+            reader = csv.reader(f, delimiter=";")
             fieldnames = next(reader)
             translations = list(reader)
 
             for tr in translations:
-                if tablename == 'api_country':
+                if tablename == "api_country":
                     # fieldname = 'name'
                     # **{fieldname: tr[0]} = name=tr[0]
                     country = Country.objects.filter(**{fieldname: tr[0]})
                     if country:
-                        country.update(**{
-                            fieldnames[1]: tr[1],
-                            fieldnames[2]: tr[2],
-                            fieldnames[3]: tr[3]
-                        })
+                        country.update(**{fieldnames[1]: tr[1], fieldnames[2]: tr[2], fieldnames[3]: tr[3]})
                     else:
-                        logger.info(f'No Country in GO DB with the string: {tr[0]}')
-                elif tablename == 'api_action':
+                        logger.info(f"No Country in GO DB with the string: {tr[0]}")
+                elif tablename == "api_action":
                     action = Action.objects.filter(**{fieldname: tr[0]})
                     if action:
-                        action.update(**{
-                            fieldnames[1]: tr[1],
-                            fieldnames[2]: tr[2],
-                            fieldnames[3]: tr[3]
-                        })
+                        action.update(**{fieldnames[1]: tr[1], fieldnames[2]: tr[2], fieldnames[3]: tr[3]})
                     else:
-                        logger.info(f'No Action in GO DB with the string: {tr[0]}')
-                elif tablename == 'api_disastertype':
+                        logger.info(f"No Action in GO DB with the string: {tr[0]}")
+                elif tablename == "api_disastertype":
                     distype = DisasterType.objects.filter(**{fieldname: tr[0]})
                     if distype:
-                        distype.update(**{
-                            fieldnames[1]: tr[1],
-                            fieldnames[2]: tr[2],
-                            fieldnames[3]: tr[3]
-                        })
+                        distype.update(**{fieldnames[1]: tr[1], fieldnames[2]: tr[2], fieldnames[3]: tr[3]})
                     else:
-                        logger.info(f'No DisasterType in GO DB with the string: {tr[0]}')
-                elif tablename == 'api_situationreporttype':
+                        logger.info(f"No DisasterType in GO DB with the string: {tr[0]}")
+                elif tablename == "api_situationreporttype":
                     sitreptype = SituationReportType.objects.filter(**{fieldname: tr[0]})
                     if sitreptype:
-                        sitreptype.update(**{
-                            fieldnames[1]: tr[1],
-                            fieldnames[2]: tr[2],
-                            fieldnames[3]: tr[3]
-                        })
+                        sitreptype.update(**{fieldnames[1]: tr[1], fieldnames[2]: tr[2], fieldnames[3]: tr[3]})
                     else:
-                        logger.info(f'No SituationReportType in GO DB with the string: {tr[0]}')
-        print('done!')
+                        logger.info(f"No SituationReportType in GO DB with the string: {tr[0]}")
+        print("done!")

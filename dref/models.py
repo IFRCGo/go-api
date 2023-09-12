@@ -618,10 +618,10 @@ class Dref(models.Model):
                 .values("c")[:1],
             ),
         ).filter(
-            models.Q(created_user_list=user_id)
-            | models.Q(users_list__contains=current_user_list)
-            | models.Q(op_users__contains=current_user_list)
-            | models.Q(fr_users__contains=current_user_list)
+            models.Q(created_user_list=user_id) |
+            models.Q(users_list__contains=current_user_list) |
+            models.Q(op_users__contains=current_user_list) |
+            models.Q(fr_users__contains=current_user_list)
         ).distinct()
 
 
