@@ -72,12 +72,12 @@ class ERUSetSerializer(ModelSerializer):
 
 
 class ERUOwnerSerializer(ModelSerializer):
-    eru_set = ERUSetSerializer(many=True)
+    eru = ERUSetSerializer(many=True, source='eru_set')
     national_society_country = MiniCountrySerializer()
 
     class Meta:
         model = ERUOwner
-        fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
+        fields = ('created_at', 'updated_at', 'national_society_country', 'eru', 'id',)
 
 
 class ERUSerializer(ModelSerializer):
