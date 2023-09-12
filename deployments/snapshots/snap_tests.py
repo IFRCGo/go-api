@@ -541,8 +541,8 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-                'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -562,13 +562,13 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-            'programme_type': 2,
-            'programme_type_display': 'Domestic',
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral',
             'project_admin2': [
             ],
             'project_admin2_detail': [
@@ -660,8 +660,8 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-                'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -681,13 +681,13 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-            'programme_type': 2,
-            'programme_type_display': 'Domestic',
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral',
             'project_admin2': [
             ],
             'project_admin2_detail': [
@@ -893,8 +893,8 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-        'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -914,13 +914,13 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'modified_at': '2008-01-01T00:00:00.123456Z',
     'modified_by': None,
     'modified_by_detail': None,
-    'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+    'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
     'operation_type': 0,
     'operation_type_display': 'Programme',
     'primary_sector': 1,
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
+    'programme_type': 0,
+    'programme_type_display': 'Bilateral',
     'project_admin2': [
     ],
     'project_admin2_detail': [
@@ -1005,8 +1005,8 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-        'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -1037,8 +1037,8 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'operation_type_display': 'Programme',
     'primary_sector': 1,
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
+    'programme_type': 0,
+    'programme_type_display': 'Bilateral',
     'project_admin2': [
     ],
     'project_admin2_detail': [
