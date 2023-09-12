@@ -43,7 +43,6 @@ from .models import (
     Sector,
     Statuses,
     EmergencyProject,
-    EmergencyProjectActivity,
     EmergencyProjectActivitySector,
     EmergencyProjectActivityAction,
 )
@@ -52,8 +51,6 @@ from .serializers import (
     ERUSerializer,
     PersonnelDeploymentSerializer,
     PersonnelSerializer,
-    PersonnelSerializerAnon,
-    PersonnelSerializerSuper,
     PersonnelCsvSerializer,
     PersonnelCsvSerializerAnon,
     PersonnelCsvSerializerSuper,
@@ -64,7 +61,6 @@ from .serializers import (
     ProjectCsvSerializer,
     EmergencyProjectSerializer,
     EmergencyProjectOptionsSerializer,
-    CharKeyValueSerializer,
     AggregateDeploymentsSerializer,
     GlobalProjectNSOngoingProjectsStatsSerializer,
     GlobalProjectOverviewSerializer,
@@ -291,7 +287,8 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
         context["labels"]["gender"] = "gender"
         context["labels"]["location"] = "location"
 
-        # https://github.com/mjumbewu/django-rest-framework-csv/blob/master/rest_framework_csv/renderers.py#L226-L229 uses bom when required:
+        # https://github.com/mjumbewu/django-rest-framework-csv/blob/master/rest_framework_csv/renderers.py
+        # #L226-L229 uses bom when required:
         context["bom"] = True
 
         return context

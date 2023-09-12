@@ -5,7 +5,7 @@ from api.logger import logger
 
 
 class Command(BaseCommand):
-    help = 'Set triggers for updating previous_updated fields in api_event, _appeal, _fieldreport tables'
+    help = "Set triggers for updating previous_updated fields in api_event, _appeal, _fieldreport tables"
 
     @staticmethod
     def apply(*_):
@@ -76,7 +76,8 @@ class Command(BaseCommand):
                 AND a.user_id                 = b.user_id
                 AND coalesce(a.event_id  , 0) = coalesce(b.event_id   , 0);
                 COMMIT;
-                """)
+                """
+            )
 
     @staticmethod
     def revert(*_):
@@ -91,7 +92,8 @@ class Command(BaseCommand):
                 DROP TRIGGER IF EXISTS update_api_event_change_previous on api_event;
                 DROP FUNCTION IF EXISTS update_previous_column;
                 COMMIT;
-                """)
+                """
+            )
 
     def handle(self, *args, **options):
         self.apply()
