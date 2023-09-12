@@ -30,6 +30,12 @@ class ProjectFilter(filters.FilterSet):
         widget=filters.widgets.CSVWidget,
         method='filter_countries'
     )
+    country_iso3 = filters.ModelMultipleChoiceFilter(
+        label='Country ISO3',
+        field_name='project_country__iso3',
+        # method='filter_countries_iso3',
+        queryset=Country.objects.values_list('iso3', flat=True),
+    )
     region = filters.ModelMultipleChoiceFilter(
         label='Region', queryset=Region.objects.all(),
         widget=filters.widgets.CSVWidget,
@@ -58,6 +64,27 @@ class ProjectFilter(filters.FilterSet):
         """
         if value:
             return queryset.exclude(reporting_ns=F('project_country'))
+        return queryset
+
+    def filter_countries_iso3(self, queryset, name, countries):
+        countries = countries.split(',')
+        if len(countries):
+            return queryset.filter(
+                reduce(
+                    lambda acc, item: acc | item,
+                    [
+                        (
+                            # ISO2
+                            Q(project_country__iso__iexact=country) |
+                            Q(project_districts__country__iso__iexact=country) |
+                            # ISO3
+                            Q(project_country__iso3__iexact=country) |
+                            Q(project_districts__country__iso3__iexact=country)
+                        )
+                        for country in countries
+                    ]
+                )
+            ).distinct()
         return queryset
 
     def filter_countries(self, queryset, name, country):
@@ -104,6 +131,12 @@ class EmergencyProjectFilter(filters.FilterSet):
         field_name='country',
         queryset=Country.objects.all()
     )
+    country_iso3 = filters.ModelMultipleChoiceFilter(
+        label='Country ISO3',
+        field_name='country__iso3',
+        # method='filter_countries_iso3',
+        queryset=Country.objects.values_list('iso3', flat=True),
+    )
     reporting_ns = filters.ModelMultipleChoiceFilter(
         field_name='reporting_ns',
         queryset=Country.objects.all()
@@ -128,6 +161,27 @@ class EmergencyProjectFilter(filters.FilterSet):
         fields = {
             'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
+
+    def filter_countries_iso3(self, queryset, name, countries):
+        countries = countries.split(',')
+        if len(countries):
+            return queryset.filter(
+                reduce(
+                    lambda acc, item: acc | item,
+                    [
+                        (
+                            # ISO2
+                            Q(country__iso__iexact=country) |
+                            Q(districts__country__iso__iexact=country) |
+                            # ISO3
+                            Q(country__iso3__iexact=country) |
+                            Q(districts__country__iso3__iexact=country)
+                        )
+                        for country in countries
+                    ]
+                )
+            ).distinct()
+        return queryset
 
 
 class ERUOwnerFilter(filters.FilterSet):
