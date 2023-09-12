@@ -418,7 +418,6 @@ class HayStackSearch(APIView):
                     "start_date": data.disaster_start_date,
                     "score": data.score,
                     "countries": Country.objects.filter(id__in=data.countries_id),
-                    # "iso3": data.iso3,
                     "severity_level_display": data.crisis_categorization,
                     "appeal_type": data.appeal_type,
                     "severity_level": data.severity_level,

@@ -29,17 +29,20 @@ class ProjectFilter(filters.FilterSet):
         label='Region', queryset=Region.objects.all(), widget=filters.widgets.CSVWidget, method='filter_regions')
     operation_type = filters.MultipleChoiceFilter(choices=OperationTypes.choices, widget=filters.widgets.CSVWidget)
     programme_type = filters.MultipleChoiceFilter(choices=ProgrammeTypes.choices, widget=filters.widgets.CSVWidget)
-    primary_sector = filters.ModelMultipleChoiceFilter(label='Sector', queryset=Sector.objects.all(), widget=filters.widgets.CSVWidget)
-    secondary_sectors = filters.ModelMultipleChoiceFilter(label='SectorTag', queryset=SectorTag.objects.all(), widget=filters.widgets.CSVWidget)
+    primary_sector = filters.ModelMultipleChoiceFilter(
+        label='Sector', queryset=Sector.objects.all(),
+        widget=filters.widgets.CSVWidget
+    )
+    secondary_sectors = filters.ModelMultipleChoiceFilter(
+        label='SectorTag', queryset=SectorTag.objects.all(),
+        widget=filters.widgets.CSVWidget)
     status = filters.MultipleChoiceFilter(choices=Statuses.choices, widget=filters.widgets.CSVWidget)
-    # project_country = filters.ModelMultipleChoiceFilter(
-    #     field_name='project_country',
-    #     queryset=Country.objects.all()
-    # )
     # Supporting/Receiving NS Filters (Multiselect)
     reporting_ns = filters.ModelMultipleChoiceFilter(queryset=Country.objects.all(), widget=filters.widgets.CSVWidget)
     exclude_within = filters.BooleanFilter(
-        label='Exclude projects with same country and Reporting NS', field_name='exclude_within', method='filter_exclude_within')
+        label='Exclude projects with same country and Reporting NS',
+        field_name='exclude_within', method='filter_exclude_within'
+    )
 
     def filter_exclude_within(self, queryset, name, value):
         """

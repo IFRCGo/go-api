@@ -240,7 +240,7 @@ class PlannedInterventionSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         # TODO: implement this
-        indicators = validated_data.pop("indicators", [])
+        # indicators = validated_data.pop("indicators", [])
         intervention = super().update(instance, validated_data)
         return intervention
 
@@ -570,14 +570,16 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
                 raise serializers.ValidationError(
                     gettext("Can't create Operational Update for not published %s dref." % dref.id)
                 )
-            # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
+            # get the latest dref_operation_update and
+            # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
                 DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
             )
             if dref_operational_update and not dref_operational_update.is_published:
                 raise serializers.ValidationError(
                     gettext(
-                        "Can't create Operational Update for not published Operational Update %s id and Operational Update Number %i."
+                        "Can't create Operational Update for not \
+                        published Operational Update %s id and Operational Update Number %i."
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )

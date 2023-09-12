@@ -1,5 +1,6 @@
 from dateutil.relativedelta import relativedelta
 
+
 def get_previous_months(date, no):
     '''Return a list of tuples with
         (month, year)
