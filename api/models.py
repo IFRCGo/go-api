@@ -984,8 +984,8 @@ def appeal_document_path(instance, filename):
 class AppealHistory(models.Model):
     """ AppealHistory results """
     num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
-    amount_requested = models.DecimalField(verbose_name=_('amount requested'), max_digits=12, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(verbose_name=_('amount funded'), max_digits=12, decimal_places=2, default=0.00)
+    amount_requested = models.FloatField(verbose_name=_('amount requested'), default=0.00)
+    amount_funded = models.FloatField(verbose_name=_('amount funded'), default=0.00)
     valid_from = models.DateTimeField(verbose_name=_('valid_from'), null=True)
     valid_to = models.DateTimeField(verbose_name=_('valid_to'), null=True)
     aid = models.CharField(verbose_name=_('appeal ID'), max_length=20)
