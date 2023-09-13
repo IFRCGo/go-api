@@ -490,7 +490,7 @@ class ProjectSerializer(
     modified_by_detail = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
-    def get_secondary_sectors_display(obj):
+    def get_secondary_sectors_display(obj) -> list:
         return [t.title for t in obj.secondary_sectors.all()]
 
     class Meta:
