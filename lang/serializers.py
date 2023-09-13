@@ -181,7 +181,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
 
         return {
             **fields,
-            'translation_module_original_language': serializers.CharField(read_only=True),
+            'translation_module_original_language': serializers.ChoiceField(choices=settings.LANGUAGES, read_only=True),
         }
 
     @property

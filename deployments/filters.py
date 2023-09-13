@@ -1,6 +1,7 @@
 from functools import reduce
 import django_filters as filters
 from django.db.models import Q, F
+from django.contrib.auth.models import User
 
 from api.models import (
     Region,
@@ -30,11 +31,17 @@ class ProjectFilter(filters.FilterSet):
         widget=filters.widgets.CSVWidget,
         method='filter_countries'
     )
+    user = filters.ModelChoiceFilter(
+        field_name="user",
+        queryset=User.objects.all(),
+    )
     country_iso3 = filters.ModelMultipleChoiceFilter(
         label='Country ISO3',
         field_name='project_country__iso3',
-        # method='filter_countries_iso3',
-        queryset=Country.objects.values_list('iso3', flat=True),
+        method='filter_countries_iso3',
+        to_field_name='iso3',
+        widget=filters.widgets.CSVWidget,
+        queryset=Country.objects.filter(iso3__isnull=False).all(),
     )
     region = filters.ModelMultipleChoiceFilter(
         label='Region', queryset=Region.objects.all(),
@@ -66,24 +73,11 @@ class ProjectFilter(filters.FilterSet):
             return queryset.exclude(reporting_ns=F('project_country'))
         return queryset
 
-    def filter_countries_iso3(self, queryset, name, countries):
-        countries = countries.split(',')
-        if len(countries):
+    def filter_countries_iso3(self, queryset, name, value):
+        if value:
             return queryset.filter(
-                reduce(
-                    lambda acc, item: acc | item,
-                    [
-                        (
-                            # ISO2
-                            Q(project_country__iso__iexact=country) |
-                            Q(project_districts__country__iso__iexact=country) |
-                            # ISO3
-                            Q(project_country__iso3__iexact=country) |
-                            Q(project_districts__country__iso3__iexact=country)
-                        )
-                        for country in countries
-                    ]
-                )
+                Q(project_country__in=value) |
+                Q(project_districts__country__in=value)
             ).distinct()
         return queryset
 
@@ -117,6 +111,8 @@ class ProjectFilter(filters.FilterSet):
             'primary_sector',
             'operation_type',
             'exclude_within',
+            'country_iso3',
+            'user'
         ]
 
 
@@ -134,8 +130,10 @@ class EmergencyProjectFilter(filters.FilterSet):
     country_iso3 = filters.ModelMultipleChoiceFilter(
         label='Country ISO3',
         field_name='country__iso3',
-        # method='filter_countries_iso3',
-        queryset=Country.objects.values_list('iso3', flat=True),
+        method='filter_countries_iso3',
+        widget=filters.widgets.CSVWidget,
+        to_field_name='iso3',
+        queryset=Country.objects.filter(iso3__isnull=False).all(),
     )
     reporting_ns = filters.ModelMultipleChoiceFilter(
         field_name='reporting_ns',
@@ -155,6 +153,10 @@ class EmergencyProjectFilter(filters.FilterSet):
         queryset=EmergencyProjectActivitySector.objects.all()
 
     )
+    user = filters.ModelChoiceFilter(
+        field_name="created_by",
+        queryset=User.objects.all(),
+    )
 
     class Meta:
         model = EmergencyProject
@@ -162,24 +164,11 @@ class EmergencyProjectFilter(filters.FilterSet):
             'start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
         }
 
-    def filter_countries_iso3(self, queryset, name, countries):
-        countries = countries.split(',')
-        if len(countries):
+    def filter_countries_iso3(self, queryset, name, value):
+        if value:
             return queryset.filter(
-                reduce(
-                    lambda acc, item: acc | item,
-                    [
-                        (
-                            # ISO2
-                            Q(country__iso__iexact=country) |
-                            Q(districts__country__iso__iexact=country) |
-                            # ISO3
-                            Q(country__iso3__iexact=country) |
-                            Q(districts__country__iso3__iexact=country)
-                        )
-                        for country in countries
-                    ]
-                )
+                Q(country__in=value) |
+                Q(districts__country__in=value)
             ).distinct()
         return queryset
 

@@ -51,7 +51,7 @@ class FlashGraphicMapFileInputSerializer(serializers.Serializer):
 
 class FlashGraphicMapSerializer(serializers.ModelSerializer):
     created_by_details = UserNameSerializer(source='created_by', read_only=True)
-    file = serializers.FileField(required=True)
+    file = serializers.FileField(required=False)
 
     class Meta:
         model = FlashGraphicMap
