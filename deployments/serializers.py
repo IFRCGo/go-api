@@ -680,7 +680,7 @@ class EmergencyProjectSerializer(
     created_by_details = DeploymentMiniUserSerializer(source='created_by', read_only=True)
     modified_by_details = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
     event_details = MiniEventSerializer(source='event', read_only=True)
-    reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True, allow_null=True, required=False)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
     admin2_details = MiniAdmin2Serializer(source='admin2', read_only=True, many=True)

@@ -1319,17 +1319,42 @@ class FieldReport(models.Model):
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_('visibility'), default=1)
 
     # information
-    bulletin = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('bulletin'), default=0)
-    dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('DREF'), default=0)
+    bulletin = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('bulletin'),
+        default=0,
+        null=True
+    )
+    dref = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('DREF'),
+        default=0,
+        null=True
+    )
     dref_amount = models.IntegerField(verbose_name=_('DREF amount'), null=True, blank=True)
-    appeal = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('appeal'), default=0)
+    appeal = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('appeal'),
+        default=0,
+        null=True
+    )
     appeal_amount = models.IntegerField(verbose_name=_('appeal amount'), null=True, blank=True)
-    imminent_dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('imminent dref'), default=0)  # only EW
-    imminent_dref_amount = models.IntegerField(null=True, verbose_name=_('imminent dref amount'), blank=True)  # only EW
+    imminent_dref = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('imminent dref'),
+        default=0,
+        null=True
+    )  # only EW
+    imminent_dref_amount = models.IntegerField(
+        null=True,
+        verbose_name=_('imminent dref amount'),
+        blank=True
+    )  # only EW
     forecast_based_action = models.IntegerField(
         choices=RequestChoices.choices,
         verbose_name=_('forecast based action'),
-        default=0
+        default=0,
+        null=True
     )  # only EW
     forecast_based_action_amount = models.IntegerField(
         verbose_name=_('forecast based action amount'), null=True, blank=True)  # only EW
@@ -1337,9 +1362,19 @@ class FieldReport(models.Model):
     # disaster response
     rdrt = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('RDRT'), default=0)
     num_rdrt = models.IntegerField(verbose_name=_('number of RDRT'), null=True, blank=True)
-    fact = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('fact'), default=0)
+    fact = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('fact'),
+        default=0,
+        null=True
+    )
     num_fact = models.IntegerField(verbose_name=_('number of fact'), null=True, blank=True)
-    ifrc_staff = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('IFRC staff'), default=0)
+    ifrc_staff = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('IFRC staff'),
+        default=0,
+        null=True
+    )
     num_ifrc_staff = models.IntegerField(verbose_name=_('number of IFRC staff'), null=True, blank=True)
 
     # ERU units
