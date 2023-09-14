@@ -1816,6 +1816,7 @@ class FieldReportSerializer(
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
     user_details = FieldReportMiniUserSerializer(source='user', read_only=True)
 
+
     class Meta:
         model = FieldReport
         fields = "__all__"
@@ -2055,6 +2056,7 @@ class AggregateByTimeSeriesInputSerializer(serializers.Serializer):
     mtype = serializers.CharField(required=False)
     country = serializers.IntegerField(required=False)
     region = serializers.IntegerField(required=False)
+
 
 class AggregateByTimeSeriesSerializer(serializers.Serializer):
     timespan = serializers.DateTimeField()
