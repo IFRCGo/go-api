@@ -71,6 +71,18 @@ def push_fr_data(data, retired=False):
         data.gov_num_potentially_affected,
         data.other_num_potentially_affected][index]
 
+    # index == 0 means undefined. So we estimate it:
+    MaxNumberOfPeopleAffected = max(
+        data.num_affected or 0,
+        data.gov_num_affected or 0,
+        data.other_num_affected or 0,
+        data.num_potentially_affected or 0,
+        data.gov_num_potentially_affected or 0,
+        data.other_num_potentially_affected or 0)
+
+    if index == 0 and 0 < MaxNumberOfPeopleAffected:
+        NumberOfPeopleAffected = MaxNumberOfPeopleAffected
+
     payload = {
         "Emergency": {
             "EmergencyId": 0 if data.event_id is None else data.event_id,  # Emergency ID, RequestId
