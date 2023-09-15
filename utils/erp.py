@@ -84,7 +84,7 @@ def push_fr_data(data, retired=False):
                 "ReportedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
-                "NumberOfPeopleAffected": NumberOfPeopleAffected,
+                "NumberOfPeopleAffected": NumberOfPeopleAffected or 0,
                 "InitialRequestType": InitialRequestType,
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},
