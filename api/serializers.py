@@ -2097,7 +2097,7 @@ class ExportSerializer(serializers.ModelSerializer):
         export_id = validated_data.get('export_id')
         export_type = validated_data.get('export_type')
         user = self.context['request'].user
-        validated_data['url'] = f'{settings.FRONTEND_URL}{export_type}/{export_id}/export/'
+        validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:

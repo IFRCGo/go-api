@@ -24,7 +24,7 @@ def build_storage_state(tmp_dir, user, token):
     state = {
         "origins": [
             {
-                "origin": settings.FRONTEND_URL,
+                "origin": 'https://' + settings.FRONTEND_URL + '/',
                 "localStorage": [
                     {
                         "name": "user",
@@ -40,6 +40,7 @@ def build_storage_state(tmp_dir, user, token):
             }
         ]
     }
+    print(state['origins'][0]['origin'])
     with open(temp_file, "w") as f:
         json.dump(state, f)
     return temp_file
