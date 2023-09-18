@@ -26,7 +26,9 @@ def push_fr_data(data, retired=False):
 
     try:
         countryNamesSet = set(
-            country.iso for country in chain(data.event.countries.all(), data.countries.all())
+            country.iso for country in chain(
+                data.event.countries.all() if data.event else [],
+                data.countries.all())
         )  # Country ISO2 codes in emergency
         countryNames = list(countryNamesSet)
     except AttributeError:
