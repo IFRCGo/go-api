@@ -1032,4 +1032,5 @@ class ExportViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Export.objects.all()
+        user = self.request.user
+        return Export.objects.filter(requested_by=user).distinct()

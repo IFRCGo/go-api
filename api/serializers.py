@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import gettext
 from django.conf import settings
 from django.db import transaction
+from django.contrib.auth.models import Permission
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
@@ -1541,10 +1542,16 @@ class UserMeSerializer(UserSerializer):
     is_admin_for_countries = serializers.SerializerMethodField()
     is_admin_for_regions = serializers.SerializerMethodField()
     lang_permissions = serializers.SerializerMethodField()
+    is_dref_coordinator_for_regions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = UserSerializer.Meta.fields + ("is_admin_for_countries", "is_admin_for_regions", "lang_permissions")
+        fields = UserSerializer.Meta.fields + (
+            "is_admin_for_countries",
+            "is_admin_for_regions",
+            "lang_permissions",
+            "is_dref_coordinator_for_regions"
+        )
 
     @staticmethod
     def get_is_admin_for_countries(user) -> List[int]:
@@ -1569,6 +1576,20 @@ class UserMeSerializer(UserSerializer):
     @staticmethod
     def get_lang_permissions(user) -> dict:
         return String.get_user_permissions_per_language(user)
+
+    @staticmethod
+    def get_is_dref_coordinator_for_regions(user) -> List[int]:
+        data = list(
+            Permission.objects.filter(
+                codename__startswith='dref_region_admin_',
+                group__user=user
+            ).values_list('codename', flat=True)
+        )
+        regions = []
+        for d in data:
+            splitted = d.split("_")[-1]
+            regions.append(int(splitted))
+        return set(regions)
 
 
 class ActionSerializer(ModelSerializer):
