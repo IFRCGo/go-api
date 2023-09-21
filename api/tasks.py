@@ -90,7 +90,9 @@ def generate_url(url, export_id, selector, user):
                             "left": "20px",
                             "right": "20px",
                         },
+                        display_header_footer=True,
                         print_background=True,
+                        footer_template="<div class=\"footer\" style=\"font-size: 8px;color: #fefefe; margin-left: 20px; position: relative; top: 10px;\">Page <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span></div>"
                     )
                 )
                 browser.close()

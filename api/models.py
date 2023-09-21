@@ -2186,7 +2186,7 @@ class Export(models.Model):
 
     class ExportType(models.TextChoices):
         DREF = 'dref-applications', _('Dref Applications')
-        OPS_UPDATE = 'dref-ops-updates', _('Dref Operational Updates')
+        OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
         FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
 
     export_id = models.IntegerField(verbose_name=_('Export Id'))

@@ -288,8 +288,8 @@ class Overview(models.Model):
         ACTION_AND_ACCOUNTABILITY = 5, _('Action And Accoutability')
 
     class AssessmentMethod(models.TextChoices):
-        PER = 'per', _('Per')
-        DRCE = 'drce', _('Drce')
+        PER = 'per', _('PER')
+        DRCE = 'drce', _('DRCE')
         WPNS = 'wpns', _('WPNS')
 
     country = models.ForeignKey(
