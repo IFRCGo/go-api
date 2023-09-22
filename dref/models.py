@@ -999,7 +999,7 @@ class DrefOperationalUpdate(models.Model):
         verbose_name_plural = _("Dref Operational Updates")
 
     def save(self, *args, **kwargs):
-        # self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         super().save(*args, **kwargs)
 
     @staticmethod
