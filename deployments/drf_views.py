@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 from datetime import date
 from django.utils import timezone
+from django.utils.translation import override as translation_override
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
@@ -555,19 +556,22 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
         region = self.get_region()
         country_projects = projects.filter(project_country=models.OuterRef("pk"))
         countries = Country.objects.filter(region=region)
-        country_annotate = {
-            f"{status_label.lower()}_projects_count": Coalesce(
-                models.Subquery(
-                    country_projects.filter(status=status)
-                    .values("project_country")
-                    .annotate(count=models.Count("id", distinct=True))
-                    .values("count")[:1],
-                    output_field=models.IntegerField(),
-                ),
-                0,
-            )
-            for status, status_label in Statuses.choices
-        }
+
+        # Using english label for now
+        with translation_override('en'):
+            country_annotate = {
+                f"{status_label.lower()}_projects_count": Coalesce(
+                    models.Subquery(
+                        country_projects.filter(status=status)
+                        .values("project_country")
+                        .annotate(count=models.Count("id", distinct=True))
+                        .values("count")[:1],
+                        output_field=models.IntegerField(),
+                    ),
+                    0,
+                )
+                for status, status_label in Statuses.choices
+            }
 
         data = {
             "total_projects": projects.count(),
