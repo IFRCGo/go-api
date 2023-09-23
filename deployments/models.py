@@ -357,6 +357,8 @@ class SectorTag(models.Model):
 
 
 class Statuses(models.IntegerChoices):
+    # NOTE: Make sure there are no spaces in label
+    # - They are used to generate column `country_annotate` for movement_activities
     PLANNED = 0, _("Planned")
     ONGOING = 1, _("Ongoing")
     COMPLETED = 2, _("Completed")
