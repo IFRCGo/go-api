@@ -181,9 +181,7 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
-        if self.request.GET.get("format", "json") != "csv":
-            qs = qs.filter(is_active=True)
-        qs = qs.select_related(
+        return qs.filter(is_active=True).select_related(
             "deployment__country_deployed_to",
             "deployment__event_deployed_to",
             "deployment__event_deployed_to__dtype",
@@ -194,7 +192,6 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "country_to",
             "molnix_tags",
         )
-        return qs
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get("format", "json")
