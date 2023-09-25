@@ -430,6 +430,7 @@ class UserCountryAdmin(CompareVersionAdmin):
     list_display = ('user', 'country')
     # search_fields = ('user','country')
     model = models.UserCountry
+    autocomplete_fields = ('user', 'country',)
 
 
 class UserRegionAdmin(CompareVersionAdmin):
