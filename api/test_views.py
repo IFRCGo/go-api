@@ -111,7 +111,6 @@ class FieldReportTest(APITestCase):
         response = self.client.post('/api/v2/field-report/', body, format='json').json()
         old_respone_id = response['id']
         created = models.FieldReport.objects.get(pk=old_respone_id)
-        print(created.id, "~~~~~~~~~~~~~~~~~~~~~~~~")
 
         self.assertEqual(created.countries.count(), 2)
         # one region attached automatically
