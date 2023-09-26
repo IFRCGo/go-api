@@ -106,7 +106,9 @@ router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset
 # PER apis
 router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
 router.register(r'per-assessment', per_views.FormAssessmentViewSet, basename='per-assessent')
+router.register(r'public-per-assessment', per_views.PublicFormAssessmentViewSet, basename='public-per-assessent')
 router.register(r'per-prioritization', per_views.FormPrioritizationViewSet, basename='per-priorirization')
+router.register(r'public-per-prioritization', per_views.PublicFormPrioritizationViewSet, basename='public-per-priorirization')
 router.register(r'per-work-plan', per_views.NewPerWorkPlanViewSet)
 router.register(r'per-formanswer', per_views.FormAnswerViewset, basename='per-formanswer')
 router.register(r'per-formarea', per_views.FormAreaViewset, basename='per-formarea')
@@ -115,6 +117,7 @@ router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='pe
 router.register(r'aggregated-per-process-status', per_views.PerAggregatedViewSet, basename='aggregated-per-process-status'),
 router.register(r'per-file', per_views.PerFileViewSet, basename='per-file')
 router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')
+router.register(r'public-per-process-status', per_views.PublicPerProcessStatusViewSet, basename='public-per-process-status')
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
 router.register(r'latest-per-overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
