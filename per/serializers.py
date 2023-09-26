@@ -556,6 +556,41 @@ class PerProcessSerializer(serializers.ModelSerializer):
         return None
 
 
+class PublicPerProcessSerializer(serializers.ModelSerializer):
+    assessment = serializers.SerializerMethodField()
+    prioritization = serializers.SerializerMethodField()
+    workplan = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Overview
+        fields = (
+            "id",
+            "assessment_number",
+            "date_of_assessment",
+            "assessment",
+            "prioritization",
+            "workplan",
+        )
+
+    def get_assessment(self, obj) -> typing.Optional[int]:
+        assessment = PerAssessment.objects.filter(overview=obj).last()
+        if assessment:
+            return assessment.id
+        return None
+
+    def get_prioritization(self, obj) -> typing.Optional[int]:
+        prioritization = FormPrioritization.objects.filter(overview=obj).last()
+        if prioritization:
+            return prioritization.id
+        return None
+
+    def get_workplan(self, obj) -> typing.Optional[int]:
+        workplan = PerWorkPlan.objects.filter(overview=obj).last()
+        if workplan:
+            return workplan.id
+        return None
+
+
 class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     class Meta:
         model = FormComponentQuestionAndAnswer
@@ -609,6 +644,21 @@ class AreaResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.M
             "id",
             "area_details",
             "area",
+            "component_responses",
+        )
+
+
+class PublicAreaResponseSerializer(serializers.ModelSerializer):
+    component_responses = FormComponentResponseSerializer(
+        many=True,
+        required=False,
+        source="component_response",
+    )
+
+    class Meta:
+        model = AreaResponse
+        fields = (
+            "id",
             "component_responses",
         )
 
@@ -701,3 +751,14 @@ class PerOptionsSerializer(serializers.Serializer):
     componentratings = OptionsPerComponentRatingSerializer(many=True)
     answers = OptionsFormAnswerSerializer(many=True)
     overviewassessmenttypes = OptionsAssessmentTypeSerializer(many=True)
+
+
+class PublicPerAssessmentSerializer(serializers.ModelSerializer):
+    area_responses = PublicAreaResponseSerializer(many=True, required=False)
+
+    class Meta:
+        model = PerAssessment
+        fields = (
+            "id",
+            "area_responses"
+        )
