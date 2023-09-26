@@ -53,12 +53,14 @@ from .models import (
     FieldReport,
     MainContact,
     CountryOfFieldReportToReview,
-    Export
+    Export,
+    UserCountry,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
+from drf_spectacular.utils import extend_schema_field
 
 
 class GeoSerializerMixin:
@@ -1538,11 +1540,41 @@ class UserNameSerializer(UserSerializer):
         fields = ("id", "username", "first_name", "last_name")
 
 
+class MiniRegionSerialzier(serializers.ModelSerializer):
+    name = serializers.CharField(source="get_name_display", read_only=True)
+
+    class Meta:
+        model = Region
+        fields = ("id", "name")
+
+
+class UserCountryCountrySerializer(serializers.ModelSerializer):
+    region_details = MiniRegionSerialzier(source='region', read_only=True)
+
+    class Meta:
+        model = Country
+        fields = (
+            "id",
+            "name",
+            "region",
+            "region_details"
+        )
+
+
+class UserCountrySerializer(serializers.ModelSerializer):
+    country_details = UserCountryCountrySerializer(source="country", read_only=True)
+
+    class Meta:
+        model = UserCountry
+        exclude = ('id', 'user', 'country')
+
+
 class UserMeSerializer(UserSerializer):
     is_admin_for_countries = serializers.SerializerMethodField()
     is_admin_for_regions = serializers.SerializerMethodField()
     lang_permissions = serializers.SerializerMethodField()
     is_dref_coordinator_for_regions = serializers.SerializerMethodField()
+    user_countries_regions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -1550,7 +1582,8 @@ class UserMeSerializer(UserSerializer):
             "is_admin_for_countries",
             "is_admin_for_regions",
             "lang_permissions",
-            "is_dref_coordinator_for_regions"
+            "is_dref_coordinator_for_regions",
+            "user_countries_regions"
         )
 
     @staticmethod
@@ -1590,6 +1623,12 @@ class UserMeSerializer(UserSerializer):
             splitted = d.split("_")[-1]
             regions.append(int(splitted))
         return set(regions)
+
+    @staticmethod
+    @extend_schema_field(UserCountrySerializer(many=True))
+    def get_user_countries_regions(user):
+        qs = UserCountry.objects.filter(user=user).distinct('country')
+        return UserCountrySerializer(qs, many=True).data
 
 
 class ActionSerializer(ModelSerializer):
