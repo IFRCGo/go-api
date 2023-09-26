@@ -65,7 +65,9 @@ from .serializers import (
     PerComponentRatingSerializer,
     PerOptionsSerializer,
     LatestCountryOverviewInputSerializer,
-    PerFileInputSerializer
+    PerFileInputSerializer,
+    PublicPerProcessSerializer,
+    PublicPerAssessmentSerializer
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -239,6 +241,12 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
+    permission_classes = (IsAuthenticated,)
+
+
+class PublicFormPrioritizationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = FormPrioritizationSerializer
+    queryset = FormPrioritization.objects.all()
 
 
 class PerOptionsView(views.APIView):
@@ -266,9 +274,23 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
         return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
 
 
+class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PublicPerProcessSerializer
+
+    def get_queryset(self):
+        return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
+
+
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PerAssessment.objects.select_related('overview')
+
+
+class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PublicPerAssessmentSerializer
 
     def get_queryset(self):
         return PerAssessment.objects.select_related('overview')
