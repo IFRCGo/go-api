@@ -1,19 +1,19 @@
 import json
 from typing import Union, List
-import os
 
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.utils.translation import gettext
 from django.conf import settings
 from django.db import transaction
 from django.contrib.auth.models import Permission
+from django.utils.translation import get_language as django_get_language
 
 from main.utils import get_merged_items_by_fields
 from lang.serializers import ModelSerializer
 from lang.models import String
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
+from main.translation import TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from .event_sources import SOURCES
 from .models import (
     DisasterType,
@@ -1837,7 +1837,6 @@ class FieldReportSerializer(
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
     user_details = FieldReportMiniUserSerializer(source='user', read_only=True)
 
-
     class Meta:
         model = FieldReport
         fields = "__all__"
@@ -1851,10 +1850,12 @@ class FieldReportSerializer(
             auto_generated=True,
             auto_generated_source=SOURCES["new_report"],
             visibility=report.visibility,
+            **{TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME: django_get_language()},
         )
         event.countries.add(*report.countries.all())
         event.districts.add(*report.districts.all())
         event.regions.add(*report.regions.all())
+        FieldReportSerializer.trigger_field_translation(event)
         report.event = event
         report.save(update_fields=['event'])
 
