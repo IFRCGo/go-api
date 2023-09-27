@@ -2162,6 +2162,7 @@ class ExportSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
+        language = self.context['request'].headers.get('Accept-Language')
         export = super().create(validated_data)
         if export.url:
             export.status = Export.ExportStatus.PENDING
@@ -2169,7 +2170,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.save(update_fields=['status', 'requested_at'])
 
             transaction.on_commit(
-                lambda: generate_url.delay(export.url, export.id, export.selector, user.id)
+                lambda: generate_url.delay(export.url, export.id, export.selector, user.id, language)
             )
         return export
 
