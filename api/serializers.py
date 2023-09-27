@@ -1562,11 +1562,13 @@ class UserCountryCountrySerializer(serializers.ModelSerializer):
 
 
 class UserCountrySerializer(serializers.ModelSerializer):
-    country_details = UserCountryCountrySerializer(source="country", read_only=True)
+    country_name = serializers.CharField(source="country.name", read_only=True)
+    region = serializers.IntegerField(source='country.region.name', read_only=True)
+    region_details = MiniRegionSerialzier(source='country.region', read_only=True)
 
     class Meta:
         model = UserCountry
-        exclude = ('id', 'user', 'country')
+        exclude = ('id', 'user')
 
 
 class UserMeSerializer(UserSerializer):
