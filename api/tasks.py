@@ -17,7 +17,7 @@ from .logger import logger
 from rest_framework.authtoken.models import Token
 
 
-def build_storage_state(tmp_dir, user, token):
+def build_storage_state(tmp_dir, user, token, language):
     temp_file = pathlib.Path(tmp_dir, "storage_state.json")
     temp_file.touch()
 
@@ -36,18 +36,21 @@ def build_storage_state(tmp_dir, user, token):
                             "token": token.key,
                         })
                     },
+                    {
+                        "name": "language",
+                        "value": json.dumps(language)
+                    },
                 ],
             }
         ]
     }
-    print(state['origins'][0]['origin'])
     with open(temp_file, "w") as f:
         json.dump(state, f)
     return temp_file
 
 
 @shared_task
-def generate_url(url, export_id, selector, user):
+def generate_url(url, export_id, selector, user, language):
     export = Export.objects.filter(id=export_id).first()
     user = User.objects.filter(id=user).first()
     token = Token.objects.filter(user=user).last()
@@ -68,7 +71,8 @@ def generate_url(url, export_id, selector, user):
                 storage_state = build_storage_state(
                     tmp_dir,
                     user,
-                    token
+                    token,
+                    language
                 )
                 context = browser.new_context(
                     storage_state=storage_state
@@ -92,7 +96,10 @@ def generate_url(url, export_id, selector, user):
                         },
                         display_header_footer=True,
                         print_background=True,
-                        footer_template="<div class=\"footer\" style=\"font-size: 8px;color: #fefefe; margin-left: 20px; position: relative; top: 10px;\">Page <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span></div>"
+                        footer_template="<div class=\"footer\" style=\"font-size: 8px;color: #fefefe; margin-left: 20px; position: relative; top: 10px;\">Page \
+                        <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span>\
+                        </div>\
+                        "
                     )
                 )
                 browser.close()
