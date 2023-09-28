@@ -38,7 +38,7 @@ def build_storage_state(tmp_dir, user, token, language):
                     },
                     {
                         "name": "language",
-                        "value": json.dumps(language)
+                        "value": json.dumps("en")  # enforce all export to English
                     },
                 ],
             }
@@ -50,7 +50,7 @@ def build_storage_state(tmp_dir, user, token, language):
 
 
 @shared_task
-def generate_url(url, export_id, selector, user, language):
+def generate_url(url, export_id, selector, user):
     export = Export.objects.filter(id=export_id).first()
     user = User.objects.filter(id=user).first()
     token = Token.objects.filter(user=user).last()
@@ -72,7 +72,6 @@ def generate_url(url, export_id, selector, user, language):
                     tmp_dir,
                     user,
                     token,
-                    language
                 )
                 context = browser.new_context(
                     storage_state=storage_state
