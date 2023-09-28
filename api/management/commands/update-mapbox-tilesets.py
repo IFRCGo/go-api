@@ -267,8 +267,8 @@ class Command(BaseCommand):
     except FileNotFoundError as e:
       pass
 
-    status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, adg.geom from api_country as c, api_district as d, api_admin2 as ad, api_admin2geoms as adg where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id and adg.admin2_id = ad.id'])
+    status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, adg.geom from api_country as c, api_district as d, api_admin2 as ad, api_admin2geoms as adg where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id and adg.admin2_id = ad.id'])
     if status:
-      status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}-centroids.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.centroid from api_country as c, api_district as d, api_admin2 as ad where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id'])
+      status = subprocess.run(['ogr2ogr', '-f', 'GeoJSON', f'/tmp/{iso}-centroids.geojson', self.connection_string, '-sql', f'select d.id as admin1_id, d.name as admin1_name, ad.name, ad.id, ad.code, ad.centroid from api_country as c, api_district as d, api_admin2 as ad where c.id=d.country_id and c.iso3=\'{iso}\' and ad.admin1_id=d.id'])
 
     return True if status.returncode == 0 else False
