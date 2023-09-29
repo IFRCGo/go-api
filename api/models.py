@@ -779,7 +779,7 @@ def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
 
-@reversion.register()
+@reversion.register(follow=('event',))
 class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)

@@ -81,7 +81,7 @@ class Command(BaseCommand):
 
             # for features that has a code and not NA
             if code and code != "N.A":
-                districts = District.objects.filter(code=code)
+                districts = District.objects.filter(code=code).filter(is_deprecated=False)
                 if len(districts) == 0:
                     if options["import_missing"]:
                         # if it doesn't exist, add it
