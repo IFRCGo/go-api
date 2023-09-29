@@ -357,6 +357,8 @@ class SectorTag(models.Model):
 
 
 class Statuses(models.IntegerChoices):
+    # NOTE: Make sure there are no spaces in label
+    # - They are used to generate column `country_annotate` for movement_activities
     PLANNED = 0, _("Planned")
     ONGOING = 1, _("Ongoing")
     COMPLETED = 2, _("Completed")
@@ -506,7 +508,7 @@ class Project(models.Model):
         RegionalProject, verbose_name=_("regional project"), null=True, blank=True, on_delete=models.SET_NULL
     )
     visibility = models.CharField(
-        max_length=32,
+        max_length=64,
         verbose_name=_("visibility"),
         choices=VisibilityCharChoices.choices,
         default=VisibilityCharChoices.PUBLIC,
@@ -527,7 +529,7 @@ class Project(models.Model):
         if hasattr(self, "annual_split_detail"):
             # NO NEED: and self.annual_split_detail – because we want to get here in case of [] also:
             if hasattr(self, "is_annual_report") and self.is_annual_report:
-                arrivingIds = [asd["id"] for asd in self.annual_split_detail]
+                arrivingIds = [asd["id"] for asd in self.annual_splits]
                 # Remove the records frontend has not sent, due to frontend-wise row removal:
                 AnnualSplit.objects.filter(project_id=self.id).exclude(id__in=arrivingIds).delete()
                 for split in self.annual_split_detail:
@@ -566,9 +568,9 @@ class Project(models.Model):
             .union(Profile.objects.filter(user=user).values("country"))
         )
         return queryset.exclude(
-            Q(visibility=VisibilityCharChoices.IFRC_NS)
-            & ~Q(project_country__in=countries_qs)
-            & ~Q(reporting_ns__in=countries_qs)
+            Q(visibility=VisibilityCharChoices.IFRC_NS) &
+            ~Q(project_country__in=countries_qs) &
+            ~Q(reporting_ns__in=countries_qs)
         )
 
 
@@ -704,19 +706,19 @@ class EmergencyProject(models.Model):
         null=True,
     )
     reporting_ns_contact_name = models.CharField(
-        verbose_name=_("NS Contanct Information: Name"),
+        verbose_name=_("NS Contact Information: Name"),
         max_length=255,
         blank=True,
         null=True,
     )
     reporting_ns_contact_role = models.CharField(
-        verbose_name=_("NS Contanct Information: Role"),
+        verbose_name=_("NS Contact Information: Role"),
         max_length=255,
         blank=True,
         null=True,
     )
     reporting_ns_contact_email = models.CharField(
-        verbose_name=_("NS Contanct Information: Email"),
+        verbose_name=_("NS Contact Information: Email"),
         max_length=255,
         blank=True,
         null=True,
@@ -817,10 +819,7 @@ class EmergencyProjectActivityLocation(models.Model):
 @reversion.register(follow=('project',))
 class EmergencyProjectActivity(models.Model):
     class PeopleHouseholds(models.TextChoices):
-        PEOPLE = (
-            "people",
-            _("People"),
-        )
+        PEOPLE = "people", _("People")
         HOUSEHOLDS = "households", _("Households")
 
     sector = models.ForeignKey(

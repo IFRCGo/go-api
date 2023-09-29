@@ -1,11 +1,11 @@
-Addresses xxxxxx 
+Addresses xxxxxx
 
 ## Changes
 
 * Detailed list or prose of changes
 * ...
 
-## Checklist 
+## Checklist
 Things that should succeed before merging.
 
 - [ ] Updated/ran unit tests

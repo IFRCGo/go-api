@@ -7,6 +7,7 @@ from reversion.views import RevisionMixin
 from django.contrib.auth.models import Permission
 from django.db import models
 
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from rest_framework import (
     views,
     viewsets,
@@ -19,9 +20,6 @@ from rest_framework import (
 from rest_framework.decorators import action
 from dref.models import (
     Dref,
-    NationalSocietyAction,
-    PlannedIntervention,
-    IdentifiedNeed,
     DrefFile,
     DrefOperationalUpdate,
     DrefFinalReport,
@@ -35,6 +33,7 @@ from dref.serializers import (
     MiniDrefSerializer,
     AddDrefUserSerializer,
     DrefShareUserSerializer,
+    DrefFileInputSerializer
 )
 from dref.filter_set import (
     DrefFilter,
@@ -78,7 +77,6 @@ class DrefViewSet(RevisionMixin, viewsets.ModelViewSet):
             .distinct()
         )
         return filter_dref_queryset_by_user_access(user, queryset)
-            
 
     @action(
         detail=True,
@@ -180,30 +178,6 @@ class DrefFinalReportViewSet(RevisionMixin, viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
 
-class DrefOptionsView(views.APIView):
-    """
-    Options for various attribute related to Dref
-    """
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, version=None):
-        options = {
-            "status": [{"key": status.value, "value": status.label} for status in Dref.Status],
-            "type_of_onset": [{"key": onset.value, "value": onset.label} for onset in Dref.OnsetType],
-            "disaster_category": [{"key": disaster.value, "value": disaster.label} for disaster in Dref.DisasterCategory],
-            "planned_interventions": [
-                {"key": intervention[0], "value": intervention[1]} for intervention in PlannedIntervention.Title.choices
-            ],
-            "needs_identified": [{"key": need[0], "value": need[1]} for need in IdentifiedNeed.Title.choices],
-            "national_society_actions": [
-                {"key": action[0], "value": action[1]} for action in NationalSocietyAction.Title.choices
-            ],
-            "type_of_dref": [{"key": dref_type.value, "value": dref_type.label} for dref_type in Dref.DrefType],
-        }
-        return response.Response(options)
-
-
 class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = DrefFileSerializer
@@ -213,6 +187,10 @@ class DrefFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.G
             return DrefFile.objects.none()
         return DrefFile.objects.filter(created_by=self.request.user)
 
+    @extend_schema(
+        request=DrefFileInputSerializer,
+        responses=DrefFileSerializer(many=True)
+    )
     @action(
         detail=False,
         url_path="multiple",
@@ -244,6 +222,7 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         return filter_dref_queryset_by_user_access(user, queryset)
 
 
+@extend_schema_view(request=None, responses=MiniDrefSerializer)
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -251,205 +230,46 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_superuser:
-            dref = (
-                Dref.objects.prefetch_related(
-                    "planned_interventions", "needs_identified", "national_society_actions", "users"
-                ).distinct()
-            )
-            dref_op_update = (
-                DrefOperationalUpdate.objects.select_related(
-                    "national_society",
-                    "national_society",
-                    "disaster_type",
-                    "event_map",
-                    "cover_image",
-                    "budget_file",
-                    "assessment_report",
-                )
-                .prefetch_related(
-                    "dref",
-                    "planned_interventions",
-                    "needs_identified",
-                    "national_society_actions",
-                    "users",
-                    "images",
-                    "photos",
-                ).order_by('-operational_update_number').distinct()
-            )
-            dref_final_report = (
-                DrefFinalReport.objects.prefetch_related(
-                    "dref__planned_interventions",
-                    "dref__needs_identified",
-                ).distinct()
-            )
-            result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
-            dref_list = []
-            for data in result_list:
-                if data.__class__.__name__ == "DrefFinalReport":
-                    final_report = DrefFinalReport.objects.get(id=data.id)
-                    dref_list.append(final_report)
-                elif data.__class__.__name__ == "DrefOperationalUpdate":
-                    operational_update = DrefOperationalUpdate.objects.get(id=data.id)
-                    dref_list.append(operational_update)
-                elif data.__class__.__name__ == "Dref":
-                    dref = Dref.objects.get(id=data.id)
-                    dref_list.append(dref)
-            # iterate over the list and get the dref from that
-            # check the dref in the new list if exists
-            # annotated dref here
-            annoatated_drefs = []
-            for dref in dref_list:
-                if dref.__class__.__name__ == "DrefOperationalUpdate":
-                    # annotate the dref and other operational update for that dref
-                    operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
-                    dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-                elif dref.__class__.__name__ == "Dref":
-                    dref_object = Dref.objects.get(id=dref.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-                elif dref.__class__.__name__ == "DrefFinalReport":
-                    final_report = DrefFinalReport.objects.get(id=dref.id)
-                    dref_object = Dref.objects.get(dreffinalreport=final_report.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-            dref_list = []
-            for dref in annoatated_drefs:
-                new_dref = Dref.objects.get(id=dref.id)
-                dref_list.append(new_dref.id)
-            return Dref.objects.filter((models.Q(id__in=dref_list) | models.Q(created_by=user) | models.Q(users=user)), is_active=True).distinct().order_by("-created_at")
-        elif not user.is_superuser:
-            # get current user dref regions
-            regions = [0, 1, 2, 3, 4]
-            final_report_list = []
-            for region in regions:
-                codename = f"dref_region_admin_{region}"
-                if Permission.objects.filter(group__user=user, codename=codename).exists():
-                    dref = (
-                        Dref.objects.prefetch_related(
-                            "planned_interventions", "needs_identified", "national_society_actions", "users"
-                        )
-                        .filter(country__region=region)
-                        .distinct()
-                    )
-                    dref_op_update = (
-                        DrefOperationalUpdate.objects.select_related(
-                            "national_society",
-                            "national_society",
-                            "disaster_type",
-                            "event_map",
-                            "cover_image",
-                            "budget_file",
-                            "assessment_report",
-                        )
-                        .prefetch_related(
-                            "dref",
-                            "planned_interventions",
-                            "needs_identified",
-                            "national_society_actions",
-                            "users",
-                            "images",
-                            "photos",
-                        )
-                        .filter(country__region=region)
-                        .order_by('-operational_update_number').distinct()
-                    )
-                    dref_final_report = (
-                        DrefFinalReport.objects.prefetch_related(
-                            "dref__planned_interventions",
-                            "dref__needs_identified",
-                        )
-                        .filter(country__region=region)
-                        .distinct()
-                    )
-                    result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
-                    final_report_list.append(result_list)
-            dref_list = []
-            for data in final_report_list:
-                for new in data:
-                    if new.__class__.__name__ == "DrefFinalReport":
-                        final_report = DrefFinalReport.objects.get(id=new.id)
-                        dref_list.append(final_report)
-                    elif new.__class__.__name__ == "DrefOperationalUpdate":
-                        operational_update = DrefOperationalUpdate.objects.get(id=new.id)
-                        dref_list.append(operational_update)
-                    elif new.__class__.__name__ == "Dref":
-                        dref = Dref.objects.get(id=new.id)
-                        dref_list.append(dref)
-            # iterate over the list and get the dref from that
-            # check the dref in the new list if exists
-            # annotated dref here
-            annoatated_drefs = []
-            for dref in dref_list:
-                if dref.__class__.__name__ == "DrefOperationalUpdate":
-                    # annotate the dref and other operational update for that dref
-                    operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
-                    dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-                elif dref.__class__.__name__ == "Dref":
-                    dref_object = Dref.objects.get(id=dref.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-                elif dref.__class__.__name__ == "DrefFinalReport":
-                    final_report = DrefFinalReport.objects.get(id=dref.id)
-                    dref_object = Dref.objects.get(dreffinalreport=final_report.id)
-                    if dref_object not in annoatated_drefs:
-                        annoatated_drefs.append(dref_object)
-            dref_list = []
-            for dref in annoatated_drefs:
-                new_dref = Dref.objects.get(id=dref.id)
-                dref_list.append(new_dref.id)
-            if len(dref_list):
-                return Dref.objects.filter((models.Q(id__in=dref_list) | models.Q(created_by=user) | models.Q(users=user)), is_active=True).distinct().order_by("-created_at")
-            else:
-                dref = Dref.get_for(user)
-                dref_op_update = DrefOperationalUpdate.get_for(user)
-                dref_final_report = DrefFinalReport.get_for(user)
-                result_list = sorted(chain(dref, dref_op_update, dref_final_report), key=attrgetter("created_at"), reverse=True)
-                dref_list = []
-                for data in result_list:
-                    if data.__class__.__name__ == "DrefFinalReport":
-                        final_report = DrefFinalReport.objects.get(id=data.id)
-                        dref_list.append(final_report)
-                    elif data.__class__.__name__ == "DrefOperationalUpdate":
-                        operational_update = DrefOperationalUpdate.objects.get(id=data.id)
-                        dref_list.append(operational_update)
-                    elif data.__class__.__name__ == "Dref":
-                        dref = Dref.objects.get(id=data.id)
-                        dref_list.append(dref)
-                # iterate over the list and get the dref from that
-                # check the dref in the new list if exists
-                # annotated dref here
-                annoatated_drefs = []
-                for dref in dref_list:
-                    if dref.__class__.__name__ == "DrefOperationalUpdate":
-                        # annotate the dref and other operational update for that dref
-                        operational_update = DrefOperationalUpdate.objects.get(id=dref.id)
-                        dref_object = Dref.objects.get(drefoperationalupdate=operational_update.id)
-                        if dref_object not in annoatated_drefs:
-                            annoatated_drefs.append(dref_object)
-                    elif dref.__class__.__name__ == "Dref":
-                        dref_object = Dref.objects.get(id=dref.id)
-                        if dref_object not in annoatated_drefs:
-                            annoatated_drefs.append(dref_object)
-                    elif dref.__class__.__name__ == "DrefFinalReport":
-                        final_report = DrefFinalReport.objects.get(id=dref.id)
-                        dref_object = Dref.objects.get(dreffinalreport=final_report.id)
-                        if dref_object not in annoatated_drefs:
-                            annoatated_drefs.append(dref_object)
-                dref_list = []
-                for dref in annoatated_drefs:
-                    new_dref = Dref.objects.get(id=dref.id)
-                    dref_list.append(new_dref.id)
-                return Dref.objects.filter(id__in=dref_list, is_active=True).order_by("-created_at")
+        queryset = (
+            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
+            .order_by("-created_at")
+            .distinct()
+        )
+        dref_list = filter_dref_queryset_by_user_access(user, queryset)
+
+        dref_op_update = DrefOperationalUpdate.objects.filter(
+            dref__in=dref_list,
+        ).select_related(
+            "national_society", "disaster_type", "event_map", "cover_image",
+            "budget_file", "assessment_report",
+        ).prefetch_related(
+            "planned_interventions", "needs_identified", "national_society_actions",
+            "users", "images", "photos", "dref",
+        ).order_by('-operational_update_number').distinct()
+
+        dref_final_report = DrefFinalReport.objects.filter(
+            dref__in=dref_list,
+        ).prefetch_related(
+            "dref__planned_interventions", "dref__needs_identified",
+        ).distinct()
+
+        result_list = sorted(
+            chain(dref_list, dref_op_update, dref_final_report),
+            key=attrgetter("created_at"),
+            reverse=True
+        )
+
+        dref_ids = [obj.id for obj in result_list]
+        return Dref.objects.filter(id__in=dref_ids, is_active=True).distinct().order_by("-created_at")
 
 
 class DrefShareView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        request=AddDrefUserSerializer,
+        responses=None
+    )
     def post(self, request):
         serializer = AddDrefUserSerializer(
             data=request.data,
@@ -466,7 +286,10 @@ class DrefShareUserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return (
-            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
-            .distinct()
+            Dref.objects.prefetch_related(
+                "planned_interventions",
+                "needs_identified",
+                "national_society_actions",
+                "users"
+            ).order_by("-created_at").distinct()
         )

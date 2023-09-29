@@ -1,13 +1,15 @@
 import os
 import datetime
+from typing import List
 
 from django.utils.translation import gettext
 from django.db import models, transaction
 from django.conf import settings
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 
 from lang.serializers import ModelSerializer
 from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixin
@@ -39,6 +41,12 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
     class Meta:
         model = PlannedInterventionIndicators
         fields = "__all__"
+
+
+class DrefFileInputSerializer(serializers.Serializer):
+    file = serializers.ListField(
+        child=serializers.FileField()
+    )
 
 
 class DrefFileSerializer(ModelSerializer):
@@ -90,10 +98,10 @@ class MiniOperationalUpdateActiveSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "OPS_UPDATE"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         op_number = obj.operational_update_number
         return f"Operational update #{op_number}"
 
@@ -125,10 +133,10 @@ class MiniDrefFinalReportActiveSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "FINAL_REPORT"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "Final report"
 
 
@@ -178,40 +186,42 @@ class MiniDrefSerializer(serializers.ModelSerializer):
             "date_of_approval"
         ]
 
+    @extend_schema_field(MiniOperationalUpdateActiveSerializer(many=True))
     def get_operational_update_details(self, obj):
         queryset = DrefOperationalUpdate.objects.filter(dref_id=obj.id).order_by('-created_at')
         return MiniOperationalUpdateActiveSerializer(queryset, many=True).data
 
+    @extend_schema_field(MiniDrefFinalReportActiveSerializer(many=True))
     def get_final_report_details(self, obj):
         queryset = DrefFinalReport.objects.filter(dref_id=obj.id)
         return MiniDrefFinalReportActiveSerializer(queryset, many=True).data
 
-    def get_has_ops_update(self, obj):
+    def get_has_ops_update(self, obj) -> bool:
         op_count_count = obj.drefoperationalupdate_set.count()
         if op_count_count > 0:
             return True
         return False
 
-    def get_has_final_report(self, obj):
+    def get_has_final_report(self, obj) -> bool:
         if hasattr(obj, 'dreffinalreport'):
             return True
         return False
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "DREF"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "DREF application"
 
-    def get_unpublished_op_update_count(self, obj):
+    def get_unpublished_op_update_count(self, obj) -> int:
         return DrefOperationalUpdate.objects.filter(dref_id=obj.id, is_published=False).count()
 
-    def get_unpublished_final_report_count(self, obj):
+    def get_unpublished_final_report_count(self, obj) -> int:
         return DrefFinalReport.objects.filter(dref_id=obj.id, is_published=False).count()
 
 
 class PlannedInterventionSerializer(ModelSerializer):
-    budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
+    # budget_file_details = DrefFileSerializer(source="budget_file", read_only=True)
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
     title_display = serializers.CharField(source="get_title_display", read_only=True)
@@ -230,11 +240,11 @@ class PlannedInterventionSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         # TODO: implement this
-        indicators = validated_data.pop("indicators", [])
+        # indicators = validated_data.pop("indicators", [])
         intervention = super().update(instance, validated_data)
         return intervention
 
-    def get_image_url(self, plannedintervention):
+    def get_image_url(self, plannedintervention) -> str:
         title = plannedintervention.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -256,7 +266,7 @@ class NationalSocietyActionSerializer(ModelSerializer):
             "title_display",
         )
 
-    def get_image_url(self, nationalsocietyactions):
+    def get_image_url(self, nationalsocietyactions) -> str:
         title = nationalsocietyactions.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -278,7 +288,7 @@ class IdentifiedNeedSerializer(ModelSerializer):
             "title_display",
         )
 
-    def get_image_url(self, identifiedneed):
+    def get_image_url(self, identifiedneed) -> str:
         title = identifiedneed.title
         if title and self.context and "request" in self.context:
             request = self.context["request"]
@@ -344,32 +354,32 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images")
+        exclude = ("cover_image", "event_map", "images", "users")
 
-    def get_dref_access_user_list(self, obj):
+    def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
         for dref in dref_users_list:
             if obj.id == dref["id"]:
                 return dref["users"]
         return
 
-    def to_representation(self, instance):
-        def _remove_digits_after_decimal(value):
-            # NOTE: We are doing this to remove decimal after 3 digits whole numbers
-            # eg: 100.00% be replaced with 100%
-            if value and len(value.split(".")[0]) == 3:
-                return value.split(".")[0]
-            return value
+    # def to_representation(self, instance):
+    #     def _remove_digits_after_decimal(value) -> float:
+    #         # NOTE: We are doing this to remove decimal after 3 digits whole numbers
+    #         # eg: 100.00% be replaced with 100%
+    #         if value and len(value) == 3:
+    #             return value.split(".")[0]
+    #         return value
 
-        data = super().to_representation(instance)
-        for key in [
-            "disability_people_per",
-            "people_per_urban",
-            "people_per_local",
-        ]:
-            value = data.get(key) or ""
-            data[key] = _remove_digits_after_decimal(value)
-        return data
+    #     data = super().to_representation(instance)
+    #     for key in [
+    #         "disability_people_per",
+    #         "people_per_urban",
+    #         "people_per_local",
+    #     ]:
+    #         value = data.get(key) or ""
+    #         data[key] = _remove_digits_after_decimal(value)
+    #     return data
 
     def validate(self, data):
         event_date = data.get("event_date")
@@ -518,7 +528,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             to = None
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(lambda: send_dref_email.delay(dref.id, list(to), "Updated"))
@@ -551,7 +561,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     class Meta:
         model = DrefOperationalUpdate
         read_only_fields = ("operational_update_number", "modified_by", "created_by")
-        exclude = ("images", "photos", "event_map", "cover_image")
+        exclude = ("images", "photos", "event_map", "cover_image", "users")
 
     def validate(self, data):
         dref = data.get("dref")
@@ -560,14 +570,16 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
                 raise serializers.ValidationError(
                     gettext("Can't create Operational Update for not published %s dref." % dref.id)
                 )
-            # get the latest dref_operation_update and check whether it is published or not, exclude no operational object created so far
+            # get the latest dref_operation_update and
+            # check whether it is published or not, exclude no operational object created so far
             dref_operational_update = (
                 DrefOperationalUpdate.objects.filter(dref=dref).order_by("-operational_update_number").first()
             )
             if dref_operational_update and not dref_operational_update.is_published:
                 raise serializers.ValidationError(
                     gettext(
-                        "Can't create Operational Update for not published Operational Update %s id and Operational Update Number %i."
+                        "Can't create Operational Update for not \
+                        published Operational Update %s id and Operational Update Number %i."
                         % (dref_operational_update.id, dref_operational_update.operational_update_number)
                     )
                 )
@@ -677,6 +689,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["ns_request_date"] = dref.ns_request_date
             validated_data["date_of_approval"] = dref.date_of_approval
             validated_data["identified_gaps"] = dref.identified_gaps
+            validated_data["is_man_made_event"] = dref.is_man_made_event
+            validated_data["event_text"] = dref.event_text
+            validated_data["did_national_society"] = dref.did_national_society
+
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -787,6 +803,9 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["ns_request_date"] = dref_operational_update.ns_request_date
             validated_data["date_of_approval"] = dref_operational_update.date_of_approval
             validated_data["identified_gaps"] = dref_operational_update.identified_gaps
+            validated_data["is_man_made_event"] = dref_operational_update.is_man_made_event
+            validated_data["event_text"] = dref_operational_update.event_text
+            validated_data["did_national_society"] = dref_operational_update.did_national_society
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
             nested_serialized_file_fields = [
@@ -816,7 +835,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         return super().update(instance, validated_data)
 
 
@@ -852,6 +871,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             "photos",
             "event_map",
             "cover_image",
+            "users",
         )
 
     def validate(self, data):
@@ -926,6 +946,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["ifrc_emergency_title"] = dref_operational_update.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref_operational_update.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref_operational_update.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref_operational_update.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref_operational_update.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref_operational_update.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref_operational_update.regional_focal_point_phone_number
             validated_data["ifrc"] = dref_operational_update.ifrc
             validated_data["icrc"] = dref_operational_update.icrc
             validated_data["partner_national_society"] = dref_operational_update.partner_national_society
@@ -1019,6 +1043,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             validated_data["ifrc_emergency_title"] = dref.ifrc_emergency_title
             validated_data["ifrc_emergency_phone_number"] = dref.ifrc_emergency_phone_number
             validated_data["ifrc_emergency_email"] = dref.ifrc_emergency_email
+            validated_data["regional_focal_point_email"] = dref.regional_focal_point_email
+            validated_data["regional_focal_point_name"] = dref.regional_focal_point_name
+            validated_data["regional_focal_point_title"] = dref.regional_focal_point_title
+            validated_data["regional_focal_point_phone_number"] = dref.regional_focal_point_phone_number
             validated_data["ifrc"] = dref.ifrc
             validated_data["icrc"] = dref.icrc
             validated_data["partner_national_society"] = dref.partner_national_society
@@ -1085,7 +1113,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         validated_data["modified_by"] = self.context["request"].user
         return super().update(instance, validated_data)
 
@@ -1115,10 +1143,10 @@ class CompletedDrefOperationsSerializer(serializers.ModelSerializer):
             "status_display",
         )
 
-    def get_application_type(self, obj):
+    def get_application_type(self, obj) -> str:
         return "FINAL_REPORT"
 
-    def get_application_type_display(self, obj):
+    def get_application_type_display(self, obj) -> str:
         return "Final report"
 
 

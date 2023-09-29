@@ -59,7 +59,7 @@ class FlashReferences(models.Model):
 @reversion.register()
 class FlashUpdate(models.Model):
     '''
-    This is a base model for Flas Update
+    This is a base model for Flash Update
     '''
 
     class FlashShareWith(models.TextChoices):

@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear
@@ -17,15 +16,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
-from rest_framework.pagination import LimitOffsetPagination
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from deployments.models import Heop, ERUType, Sector, SectorTag, ProgrammeTypes, OperationTypes, Statuses
+from deployments.models import Heop, ERUType, Sector, SectorTag, Statuses
 from notifications.models import Subscription, SurgeAlert
 from notifications.notification import send_notification
 from registrations.models import Recovery, Pending
 from deployments.models import Project, ERU, Personnel
 from flash_update.models import FlashUpdate
-from dref.models import Dref, DrefOperationalUpdate
 
 from .esconnection import ES_CLIENT
 from .models import Appeal, AppealHistory, AppealType, CronJob, Event, FieldReport, Snippet
@@ -33,9 +31,20 @@ from .indexes import ES_PAGE_NAME
 from .logger import logger
 from haystack.query import SearchQuerySet
 from api.models import Country, Region, District
-from haystack.inputs import AutoQuery, Raw
 from haystack.query import SQ
 from .utils import is_user_ifrc
+from api.serializers import (
+    AggregateHeaderFiguresSerializer,
+    SearchSerializer,
+    ProjectPrimarySectorsSerializer,
+    ProjectSecondarySectorsSerializer,
+    AggregateByTimeSeriesSerializer,
+    AreaAggregateSerializer,
+    AggregateByDtypeSerializer,
+    AggregateByTimeSeriesInputSerializer,
+    SearchInputSerializer,
+    AggregateHeaderFiguresInputSerializer
+)
 
 
 def bad_request(message):
@@ -113,14 +122,21 @@ class EsPageSearch(APIView):
         return JsonResponse(results["hits"])
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[SearchInputSerializer],
+        responses=SearchSerializer
+    )
+)
 class HayStackSearch(APIView):
+
     def get(self, request):
         phrase = request.GET.get("keyword", None)
-        phrase = phrase.lower()
         if phrase is None:
             return bad_request("Must include a `keyword`")
 
         if phrase:
+            phrase = phrase.lower()
             if self.request.user.is_authenticated:
                 if is_user_ifrc(self.request.user):
                     project_response = (
@@ -401,11 +417,10 @@ class HayStackSearch(APIView):
                     "funding_coverage": data.amount_funded,
                     "start_date": data.disaster_start_date,
                     "score": data.score,
-                    "countries": data.countries,
-                    "countries_id": data.countries_id,
-                    "iso3": data.iso3,
-                    "crisis_categorization": data.crisis_categorization,
+                    "countries": Country.objects.filter(id__in=data.countries_id),
+                    "severity_level_display": data.crisis_categorization,
                     "appeal_type": data.appeal_type,
+                    "severity_level": data.severity_level,
                 }
                 for data in emergency_response[:50]
             ],
@@ -482,7 +497,7 @@ class HayStackSearch(APIView):
                 for data in rapid_response_deployments[:50]
             ],
         }
-        return Response(result)
+        return Response(SearchSerializer(result).data)
 
 
 class Brief(APIView):
@@ -527,37 +542,35 @@ class RecentAffecteds(APIView):
         return JsonResponse(keys_labels, safe=False)
 
 
-class ProjectProgrammeTypes(APIView):
-    @classmethod
-    def get(cls, request):
-        keys_labels = [{"key": i, "label": v} for i, v in ProgrammeTypes.choices]
-        return JsonResponse(keys_labels, safe=False)
-
-
 class ProjectPrimarySectors(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=ProjectPrimarySectorsSerializer(many=True),
+    )
     def get(cls, request):
         keys_labels = [
             {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated} for s in Sector.objects.all()
         ]
-        return JsonResponse(keys_labels, safe=False)
+        return Response(
+            ProjectPrimarySectorsSerializer(keys_labels, many=True).data
+        )
 
 
 class ProjectSecondarySectors(APIView):
     @classmethod
+    @extend_schema(
+        request=None,
+        responses=ProjectSecondarySectorsSerializer(many=True),
+    )
     def get(cls, request):
         keys_labels = [
             {"key": s.id, "label": s.title, "color": s.color, "is_deprecated": s.is_deprecated}
             for s in SectorTag.objects.all()
         ]
-        return JsonResponse(keys_labels, safe=False)
-
-
-class ProjectOperationTypes(APIView):
-    @classmethod
-    def get(cls, request):
-        keys_labels = [{"key": i, "label": v} for i, v in OperationTypes.choices]
-        return JsonResponse(keys_labels, safe=False)
+        return Response(
+            ProjectSecondarySectorsSerializer(keys_labels, many=True).data
+        )
 
 
 class ProjectStatuses(APIView):
@@ -567,9 +580,16 @@ class ProjectStatuses(APIView):
         return JsonResponse(keys_labels, safe=False)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[AggregateHeaderFiguresInputSerializer],
+        responses=AggregateHeaderFiguresSerializer
+    )
+)
 class AggregateHeaderFigures(APIView):
-    """Used mainly for the key-figures header and by FDRS"""
-
+    """
+        Used mainly for the key-figures header and by FDRS
+    """
     def get(self, request):
         iso3 = request.GET.get("iso3", None)
         country = request.GET.get("country", None)
@@ -630,10 +650,18 @@ class AggregateHeaderFigures(APIView):
             amount_funded=Sum("amof"),
         )
 
-        return Response(dict(appeals_aggregated))
+        return Response(
+            AggregateHeaderFiguresSerializer(
+                appeals_aggregated
+            ).data
+        )
 
 
 class AreaAggregate(APIView):
+    @extend_schema(
+        request=None,
+        responses=AreaAggregateSerializer
+    )
     def get(self, request):
         region_type = request.GET.get("type", None)
         region_id = request.GET.get("id", None)
@@ -645,14 +673,26 @@ class AreaAggregate(APIView):
 
         aggregate = (
             Appeal.objects.filter(**{region_type: region_id})
-            .annotate(count=Count("id"))
-            .aggregate(Sum("num_beneficiaries"), Sum("amount_requested"), Sum("amount_funded"), Sum("count"))
+            .annotate(count_id=Count("id"))
+            .aggregate(
+                num_beneficiaries=Sum("num_beneficiaries"),
+                amount_requested=Sum("amount_requested"),
+                amount_funded=Sum("amount_funded"),
+                count=Sum("count_id")
+            )
         )
 
-        return JsonResponse(dict(aggregate))
+        return Response(
+            AreaAggregateSerializer(aggregate).data
+        )
 
 
 class AggregateByDtype(APIView):
+
+    @extend_schema(
+        request=None,
+        responses=AggregateByDtypeSerializer(many=True),
+    )
     def get(self, request):
         models = {
             "appeal": Appeal,
@@ -665,12 +705,27 @@ class AggregateByDtype(APIView):
             return bad_request("Must specify an `model_type` that is `heop`, `appeal`, `event`, or `fieldreport`")
 
         model = models[mtype]
-        aggregate = model.objects.values("dtype").annotate(count=Count("id")).order_by("count").values("dtype", "count")
+        aggregate = model.objects.values(
+            "dtype"
+        ).annotate(
+            count=Count("id")
+        ).order_by(
+            "count"
+        ).values("dtype", "count")
 
-        return JsonResponse(dict(aggregate=list(aggregate)))
+        return Response(
+            AggregateByDtypeSerializer(aggregate, many=True).data
+        )
 
 
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[AggregateByTimeSeriesInputSerializer],
+        responses=AggregateByTimeSeriesSerializer(many=True)
+    )
+)
 class AggregateByTime(APIView):
+
     def get(self, request):
         models = {
             "appeal": Appeal,
@@ -748,7 +803,9 @@ class AggregateByTime(APIView):
             .values(*output_values)
         )
 
-        return JsonResponse(dict(aggregate=list(aggregate)))
+        return Response(
+            AggregateByTimeSeriesSerializer(aggregate, many=True).data
+        )
 
 
 class GetAuthToken(APIView):
@@ -766,7 +823,7 @@ class GetAuthToken(APIView):
             return bad_request("Body must contain `email/username` and `password`")
 
         user = authenticate(username=username, password=password)
-        if user == None and User.objects.filter(email=username).count() > 1:
+        if user is None and User.objects.filter(email=username).count() > 1:
             users = User.objects.filter(email=username, is_active=True)
             if users:
                 # We get the first one if there are still multiple available is_active:
@@ -817,47 +874,6 @@ class GetAuthToken(APIView):
             )
         else:
             return bad_request("Invalid username or password")  # most probably password issue
-
-
-class ChangePassword(APIView):
-    permissions_classes = []
-
-    def post(self, request):
-        username = request.data.get("username", None)
-        password = request.data.get("password", None)
-        new_pass = request.data.get("new_password", None)
-        token = request.data.get("token", None)
-        # 'password' is checked for Change Password, 'token' is checked for Password Recovery
-        if username is None or (password is None and token is None):
-            return bad_request("Must include a `username` and either a `password` or `token`")
-
-        if new_pass is None:
-            return bad_request("Must include a `new_password` property")
-        try:
-            validate_password(new_pass)
-        except Exception as exc:
-            ers = " ".join(str(err) for err in exc)
-            return bad_request(ers)
-
-        user = User.objects.filter(username__iexact=username).first()
-        if user is None:
-            return bad_request("Could not authenticate")
-
-        if password and not user.check_password(password):
-            return bad_request("Could not authenticate")
-        elif token:
-            recovery = Recovery.objects.filter(user=user).first()
-            if recovery is None:
-                return bad_request("Could not authenticate")
-
-            if recovery.token != token:
-                return bad_request("Could not authenticate")
-            recovery.delete()
-
-        user.set_password(new_pass)
-        user.save()
-
-        return JsonResponse({"status": "ok"})
 
 
 class RecoverPassword(APIView):
