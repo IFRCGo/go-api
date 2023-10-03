@@ -5,7 +5,7 @@ from django.utils.translation import gettext
 from django.db import models, transaction
 from django.conf import settings
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 
 from rest_framework import serializers
 
@@ -518,7 +518,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             to = None
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         dref = super().update(instance, validated_data)
         if to:
             transaction.on_commit(lambda: send_dref_email.delay(dref.id, list(to), "Updated"))
@@ -816,7 +816,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
 
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         return super().update(instance, validated_data)
 
 
@@ -1085,7 +1085,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError({"modified_at": "Modified At is required!"})
         if modified_at and instance.modified_at and modified_at < instance.modified_at:
             raise serializers.ValidationError({"modified_at": settings.DREF_OP_UPDATE_FINAL_REPORT_UPDATE_ERROR_MESSAGE})
-        validated_data["modified_at"] = modified_at
+        validated_data["modified_at"] = timezone.now()
         validated_data["modified_by"] = self.context["request"].user
         return super().update(instance, validated_data)
 

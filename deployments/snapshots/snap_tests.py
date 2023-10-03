@@ -519,7 +519,7 @@ snapshots['TestProjectAPI::test_project_csv_api 1'] = '''actual_expenditure,budg
 0,6370000,,,15,15,disaster-type-GWvRMZcyEWnKAntRkSGSNGWEzbVuZOubQOtKiihSDdqPJBWSWe,IzRUCbAznldWezWkKRaEmZLLlXGNfRKIkFhJjASuXnXZoDfDVaIBtNqkzLskbnTSLIRQpfRXputROMSbhswXKNACbyMleNvICmaxqMHkroJGVXrQYpZdSjYSRVeDUIhAEGayOyPrQoRhvPHLWWdgyPqXLUQjPGfvamCXchEdMjAOtcCdnbGOIcHOeDkzjHkMAJlPXstHuWbQbDjHGQLvKlPPDOrfeAIaBLRhUMyhkZEzziaJcHibpNhDdOWZlAmRqrrnuZMyOPlPqvHRFaflaVVsZQQjtkQxnAMbLfjoDxpalJrKCzTdpNyPWCaiWspyuiWStcwwoSWBqGWfSICYxXrRbpzSrGIjhwTKCFpHxrTzAjmioBcyzZDMXNHAsLeixLtKFQliVdqlMHylkAKNiayAzeDKLAlmwyNLMQjLVMYUJpnuWJVEzJGDTFCNlxXBathpqHldHZqMpgumMHVmWMfjizabaestdPQSDzjNUVeYtVPQocsU,en,2008-01-01,10,13,,10,event-UKOkgCDKdxujJBBLnoYxfOQuVGIWbWUDVaXQumiRzbVVhhKpYL,9,fapiiketipuwhpubckdshuizggthcsuditntdnzevsyyhfnywz,en,5,2008-01-01T00:00:00.123456Z,,,project-KenthbnHZKFujOIEicLNIBPuQytkVYQSisavNTPjdHlovobKFB,0,Programme,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,1,Multilateral,11,,,11,,False,PQ,FCs,country-kQVicpmtDslqAnPgbtoQCTLAGVSRZQzYIbcJYPuTTjKryWLdjZ,1,Country,11,society-name-eDqmctnudjoIYYxdkkJNrBzvlCWvUWWkmmiHjNYoaibivzKgnn,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,5,2008-01-01T00:00:00.123456Z,5,2008-01-01T00:00:00.123456Z,regional-project-EQxpOaCNAAgHBKvEjWWPUPXsatpYtFqhTkuoeQmEQNuzgadFFF,en,False,10,,,,,,10,,False,EG,rSR,country-eItONgoPvNNlIwwWWpxRKvjcxyecdAFKKaPbzKBJdeIyTCEqcX,2,Cluster,10,society-name-iTnQmKstLSxobazFDyWkvuankOwaeFnyuqizlsgDIqlLdOlQKS,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,9,public,Public\r
 0,4720000,,,18,18,disaster-type-uynXdMpaXZEMzHQVvXNcPLBSQtxYLIDiOrUcJVNMlSgDEOXmvP,WfAzGeennNEmBCbESihEQoTsaTltiPkPkVrgSNHYUoZZdARplUpButagIgPYtsrksWJrjQQbkSrpZWxaSMtCAwSfhQVGBQevAraNZKsgtFwmNINTemDcutOitufRONdGlyeQXebPmuyuNrlVKLlcOlpEyTyBLQBMlXkKwooIyfKqfeOIYWmMRbNYoYYtirPOjsayBRlGVmrAmmZtRHIMopqnExgVHyBNqUcGBXZxZslspUJlyNiJvvbCrnvbKwkWJOHZNxMrEOapKBZMBsunuMgEzvcqDhZJHmacWLZLvriJGDnrsVUNPzQyHBBCLINLqDbASgDSPbBLdfqNCffbWnZHqYTCgvzEwABUuaPveIUGBbRgyFQsqKURlnsSnxNOBKHubruWbPvYAATKYoFvtciTVqlYJBeESILkvZChtcivdRpIuTFBVlWytGYeOAWWpHPsKpWVAJdQymuGwobUfbXfWjCJKyMvfZNPnaWsPGxjTFDwHyWE,en,2008-01-01,12,16,,12,event-hQjgoQNUTCqpUzMKauvJuwFYxLKtSXbIWrlKVaAMBKOdStwjHM,11,zibayeudyvadpocwrxccfzujcafoaqjetljdiwoobgrmeuznnk,en,6,2008-01-01T00:00:00.123456Z,,,project-dnyuAjdmVBnqtRsnOMqzGXMyVVTpogIeRjmoxCRAfETVdCohCt,1,Emergency Operation,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,1,Multilateral,13,,,13,,False,aZ,FCp,country-yTWMchdDLioEXjLJjyJMoorTGQBQtMDcpTucAFuDGNAHYUomvw,4,Country Office,13,society-name-VgXkZQnguvvOcRXuCRcwiPfHENMRVoHrTrqctxGIngetetEdPS,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,6,2008-01-01T00:00:00.123456Z,6,2008-01-01T00:00:00.123456Z,regional-project-ScGNJMFFqYFXxNrRsPpsGTviLwmCVDYqbWYpEyDAJEsbqjbEAD,en,False,12,,,,,,12,,False,ue,aSE,country-doAfWKWQlcjSvNVLMUeLmHEmnDcmtUlZstrCsJMaXrFBbCVIAi,2,Cluster,12,society-name-AueXWMeYEOcSJXwfESpQkILwfrwymqcMeJYwGawwIVfUVZguCq,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,10,public,Public\r
 0,6670000,,,21,21,disaster-type-XvlEjHDVybUpjaGECJorCfVaAlQIoorOOwWWOTxEpvBlmPiZCF,PTXcdqvnvHwTLEndiXDoVOQikJwZCbtTkYqcWUjvvvsAHMUYSRoLYCDPcsggAEJIexYLAOYszPDoHzYvyMatrGQqVQBFVonlTlNeSksIMvwIDSCbaQBkpRNquLLRrkArcFAbOJMundfiTdopKGbShpUGFfWyjIopwBJNduJXecIRbhxnnDrZmuzDbiOPCFkGXDeuyxMBQNxDSLQswFvKvNKxxbvuPpSOyiKTOfChtGxseJoNwkSuiVQxjZdDQXHPGkXWezPugeNOTlftxFsTsujdZncYZQiEOyWNqDmbGUXJjtdmUxRplUfYkVssaVSlLmXBosPYYbKqflZTfJcxTQkwEKuLKdTbsEMqfiZPpjutAafJMfYhnZtVUoqZGTxEemnMXRNBSlDBIAflFpsihXhjbXkNfSTnGfocfsLtJckNHMdJIPHTeLyRAtZxkmhKgRKLcGjeQnmuzJUSngCjoWBOzFdtTSeEfaPnSJKfNhGYWEscubhp,en,2008-01-01,14,19,,14,event-sMJnADfqyEqKcByHGUACxeJvWFgfBtwBcwQMYxzntpWfGdOPCn,13,ljbuciwhwbvwynpxeteeypbrmgyfsjeglykagxsjerjagjqqdi,en,7,2008-01-01T00:00:00.123456Z,,,project-UnYkbWprZqLxBbFeqHEXzwdTFDwWTjwTPDjoeyWVnhzbmQFPGU,0,Programme,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,0,Bilateral,15,,,15,,False,qQ,Hpm,country-ehHgZXSIQWSvfnyCmGbRvjdnJPPIgSLnCUBGtXgIXrFfqyQikb,1,Country,15,society-name-purdghlCkInyamaGEXzsDEcUKaAQQEBgIpXDyjVMxaEAPESeOA,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,7,2008-01-01T00:00:00.123456Z,7,2008-01-01T00:00:00.123456Z,regional-project-DbawMMrzMzzRMpTiXpnSDdbFgVRuHaYbLFerPdJAmplntnbZWz,en,False,14,,,,,,14,,False,Ri,ABc,country-mtfeuWEXnPXndNLdYcPTcKrVcYAxzwUGjpVsUqvpHZvPQBxpvl,2,Cluster,14,society-name-ORQWacqDbKVfedVptLWQxAefMSWMGKLVzuffJgRuGnVCYrzBet,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,11,public,Public\r
-0,9480000,,,24,24,disaster-type-QGfLROCZnxqYYsiwlrTSEFFEqsXrKyqYLpctBsZddBayKIGiyt,IBiVQDxZxZnFDLoYJwPsPZybLgihbqbDkxqZwUmMBcfWBdKNojOVqDbCKjzixQYgTEsmhRzXdnixdPoVRSXLtpROMGHqrjDJKwjRpBfYFLqKAUqvZtMSVwTNwDUGhlCUmUgFTsRUQZjCUgHoijRrbknMnzQiEygDArTbXQrcrUyvQxgfkJyoGfhbwaiTZiITMkcEXPsROvLwkYHTiCXAFEYrlnNnuSqnWoODmUYiTCHnMAXVLlfwhcaiyaFCWkeqmOOqSHyKQYyYvnFexwEphbwlaJKJmeJDobQZKxdENnoDCogiNEmrfVtHvdXkRSDQxMOSbHjAITbaMdEjlbJPOEfkWhHLWrwlpMPSuKAXcipneuZNXNHUDwhDxCYNbmkmaJHIdYBaMseDvakYUrhobdCGOIBFPwHSYFuvRIvaLvKWgtvcsNClpzANsRziClGBvgIhsXSictYoPJrWQucRSqzjgFyqQmsMmKsgBYTWyCqcCJRJRSAK,en,2008-01-01,16,22,,16,event-VjrTvORupHgxfIkFjRmWGiBriLwgGvlxxPDRAXHYHQUfvvLcpd,15,ghkbuunvtqvgdygrzvatwsgjslvhtuvbgkipqsatscpvbcamxw,en,8,2008-01-01T00:00:00.123456Z,,,project-GVSxIuCrNeWfdzPZBDPjBsfGCNpPLCINunDEdekrKnhBVrwRQM,0,Programme,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,2,Domestic,17,,,17,,False,Wd,nYB,country-mdluwLVGXFLUidBYjohYsQvMBJQSGSMgbLTyOgKWzJdswbwkfe,2,Cluster,17,society-name-aHhzYrXgSJXaqqVYZAcISeSNFgqcZXJprBKuqrKwbzaLRZVvGc,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,8,2008-01-01T00:00:00.123456Z,8,2008-01-01T00:00:00.123456Z,regional-project-OLmyweZGCxzYLlBSLiWdXXoQUkEnvXFhjxyElejpabJXvDQGKw,en,False,16,,,,,,16,,False,JT,Fmz,country-SHJmNPkpDvMUaKFljHuISjRxJvVrwuhnNXhKAYbntHkXWpBFIJ,2,Cluster,16,society-name-KOmjpIbcqSpAqCxHtAAZrHBVETrgzoFXficzogDvwkKCEzchqw,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,12,public,Public\r
+0,9480000,,,24,24,disaster-type-QGfLROCZnxqYYsiwlrTSEFFEqsXrKyqYLpctBsZddBayKIGiyt,IBiVQDxZxZnFDLoYJwPsPZybLgihbqbDkxqZwUmMBcfWBdKNojOVqDbCKjzixQYgTEsmhRzXdnixdPoVRSXLtpROMGHqrjDJKwjRpBfYFLqKAUqvZtMSVwTNwDUGhlCUmUgFTsRUQZjCUgHoijRrbknMnzQiEygDArTbXQrcrUyvQxgfkJyoGfhbwaiTZiITMkcEXPsROvLwkYHTiCXAFEYrlnNnuSqnWoODmUYiTCHnMAXVLlfwhcaiyaFCWkeqmOOqSHyKQYyYvnFexwEphbwlaJKJmeJDobQZKxdENnoDCogiNEmrfVtHvdXkRSDQxMOSbHjAITbaMdEjlbJPOEfkWhHLWrwlpMPSuKAXcipneuZNXNHUDwhDxCYNbmkmaJHIdYBaMseDvakYUrhobdCGOIBFPwHSYFuvRIvaLvKWgtvcsNClpzANsRziClGBvgIhsXSictYoPJrWQucRSqzjgFyqQmsMmKsgBYTWyCqcCJRJRSAK,en,2008-01-01,16,22,,16,event-VjrTvORupHgxfIkFjRmWGiBriLwgGvlxxPDRAXHYHQUfvvLcpd,15,ghkbuunvtqvgdygrzvatwsgjslvhtuvbgkipqsatscpvbcamxw,en,8,2008-01-01T00:00:00.123456Z,,,project-GVSxIuCrNeWfdzPZBDPjBsfGCNpPLCINunDEdekrKnhBVrwRQM,0,Programme,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,2,Domestic,17,,,17,,False,Wd,nYB,country-mdluwLVGXFLUidBYjohYsQvMBJQSGSMgbLTyOgKWzJdswbwkfe,2,Cluster,17,society-name-aHhzYrXgSJXaqqVYZAcISeSNFgqcZXJprBKuqrKwbzaLRZVvGc,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,8,2008-01-01T00:00:00.123456Z,8,2008-01-01T00:00:00.123456Z,regional-project-OLmyweZGCxzYLlBSLiWdXXoQUkEnvXFhjxyElejpabJXvDQGKw,en,False,16,,,,,,16,,False,Jn,JTF,country-SISHJmNPkpDvMUaKFljHuISjRxJvVrwuhnNXhKAYbntHkXWpBF,5,Representative Office,16,society-name-mzKOmjpIbcqSpAqCxHtAAZrHBVETrgzoFXficzogDvwkKCEzch,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,12,public,Public\r
 0,6480000,,,27,27,disaster-type-CUVyFnuUaEJWfVdQFlHSoPMtZDyrUAVRelRyfqNSOYMnQzQpgX,KzlCvzStqoLWcLueOMvzznbdPzmyjThYdwReyqdCGDVZTPdtGgfnVPxWWmSUEVOQOpMAxkEOkWZMuLVIzCDESdvxtHLLTXcEflSLMyMWMgusTJlEadQiKpnXSgnizGKmEqAbkepBWIIsexFEfSiVMeHrlSOPxeULwYAWfEBQxvJMkjoSxxiSIuJFQbBmaYQjXjJXTlMoZpwjICHNFgxUmwZMPAtFkAHQtVFrArRxucDRjHpgWahJwURdHIdIEuzVtwWbVRvIhPauHagaJPJRAFMFZqqFBfLnCIZXUJBymyYOsyWvpootCCrVKAomEKjjYSBkGhNewalnFsnJOFpsudukhMsauOaqEiWAbNEPKBkMerwLFCpAybKIWVuLhMJfCWtFUoyBxnNCPHHwHCZtGVMRRwPxChphZONIqqqYUMyeBpKulvEqEEErpCOkfjoGrGDCxyeYNfJWKHEvxFLQIoiUlMcOXbduLauswVhCoyuJxscuUKeK,en,2008-01-01,18,25,,18,event-dDYeiSXzvjsNsYIMeGwkZUMGpGGkaTeuhrLDCFArKfpzUfAwCA,17,wigkitzwygkpuqrtkqbiktjqlxsmqvqvudezazeupiibvovbxv,en,9,2008-01-01T00:00:00.123456Z,,,project-ortlsAiQVEgimNopdXWAvpmxYmTxNEuLQIbKzZkGlUThMzaHFJ,1,Emergency Operation,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,1,Multilateral,19,,,19,,False,Ot,IRf,country-NMcxbltczueeREOTrEZeUfDdQzrIwZCKBGJzmOQfkYYqdCVQMb,3,Region,19,society-name-pIQHhKdhgWrvSAFYSzDCAeLvirKzVbgEcKjYgCBtveEDWZcijQ,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,9,2008-01-01T00:00:00.123456Z,9,2008-01-01T00:00:00.123456Z,regional-project-DoLPGUpByAbKFQKFGZuvaYWdRPsrxQcCTiMzkNUXVbRfbCNoTl,en,False,18,,,,,,18,,False,VF,ZcB,country-TtlvXyybaLIYUavFZInAPMcSnbmrepOzvPmiLGuBUIrNRMCUZC,1,Country,18,society-name-cbFrygrYppCcdYrULfUQFtsmyJCfQUOypGSDBlfwETFZtaVuqx,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,13,public,Public\r
 0,5950000,,,30,30,disaster-type-diRngieFHhCYWbtlTpiFuHIJffIuNZkbAnbqhywiDkzfJKgaKw,ogcbeDMQlWueozOkjmIPbenQCclbKPJfMtaeWryNyfTpzcDFjFkcOVsxdSTKJaBVnSRwopnxbhzTlAiuectKryhFpcxQeZUvgnoQibLzCmdLYjsaEtfOmvKORAAvppKdoYyoQHxErmoMgLuGbSabYJtgzjRyFxcfTtBHpPhrzxaYboKqXOxxGTRUTsyVsPkdgGgWPMbinkagywgMHJMazVbMhFXwcDvhVLkyDEOwZbrzgzPkQjROGOsmUMRBwBIVOJWOFYkajaqJFfboyYRvosFyWsfqsYjUTVEhRLCsvnesxLxwaJddjONbBULwtEmuBqiZCSiLqnAOfcYNbKHkqudPHhqTBQtCcjmAaCshFdYBaklxkvumQQfmqVfCAllIbKwteFxrRcgypCNcwXJrJkJhCmNnnWNVzNOgbWWIkZLBPQwBgiZdYysyrUAEyqDJwykvdJqwdVRePtpYKLKjwDaLLkGBhajHwOvWgqpHRjuRvjaplRUI,en,2008-01-01,20,28,,20,event-dfuVpeThKuNOAdjEzMXmZSrYWFFMBAduqGvyjuEwarkltzqWdy,19,lqqvsgawhxuwfvqgvhkfxfgyhtjjygydxjbekfqyvwfcjkzfvj,en,10,2008-01-01T00:00:00.123456Z,,,project-WAvKhIWhKYHcXwlHnZMXcvmaBFoaUQIoZdoJHsbgVBOEDYzLjS,0,Programme,1,sect-uVAlmiYIxHGrkqEZsVvZhDejWoRURzZJxfYzaqIhDxRVRqLyOx,2,Domestic,21,,,21,,False,zG,dzn,country-SEZudqaYKnEbfVhHuNzJKSCrPbVNwkKbuUYQwcMwEKjGeHrCUj,4,Country Office,21,society-name-VMMOlseBOgfMwrcZSUUOYylVFGPNbGIVVPdzGZmfWhjQhDLvMi,en,"CefuMjeirN, QWBUdsMtwg","1, 2","False, True","False, True","district-hQbiawYYpLublqdiVAHhVeECXxGLgCGoNcUYQHtDPbdEzBRgFT, district-gYShPPXJUnBCoAvDzAUguBuQqxjREefffBgVVxZiJdLJJvQhAw",0,0,0,0,10,2008-01-01T00:00:00.123456Z,10,2008-01-01T00:00:00.123456Z,regional-project-FsWtwTrbBLhtpGDZBEnJPtphXSOuVZxAFBMuMDNkKylVAokTEn,en,False,20,,,,,,20,,False,SJ,Zax,country-kwsypbvNtQfVwBFheDCunLJXUYCkrZOuJfTLYJDQcGQGtaFvTu,2,Cluster,20,society-name-mVzvNOEjBHnNxcXDVSbwfZmcAMACleXiIguyJpJCYblEHvoCKJ,en,"1, 2","sect-tag-RoEbNJuNoPeODStPAhicctFhgpIiyDxQVSIALVUjAPgFNArcSx, sect-tag-CCpxgRxIPwdzrmhDfQnPOMbdYvpiYKneWJnLnovXjYMarjiIqZ",2008-01-01,1,Ongoing,0,0,0,0,en,False,14,public,Public\r
 '''
@@ -541,8 +541,8 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-                'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -562,13 +562,13 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-            'programme_type': 2,
-            'programme_type_display': 'Domestic',
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral',
             'project_admin2': [
             ],
             'project_admin2_detail': [
@@ -660,8 +660,8 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-                'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -681,13 +681,13 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
             'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-            'programme_type': 2,
-            'programme_type_display': 'Domestic',
+            'programme_type': 0,
+            'programme_type_display': 'Bilateral',
             'project_admin2': [
             ],
             'project_admin2_detail': [
@@ -893,8 +893,8 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-        'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -914,13 +914,13 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'modified_at': '2008-01-01T00:00:00.123456Z',
     'modified_by': None,
     'modified_by_detail': None,
-    'name': 'project-HzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLki',
+    'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
     'operation_type': 0,
     'operation_type_display': 'Programme',
     'primary_sector': 1,
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
+    'programme_type': 0,
+    'programme_type_display': 'Bilateral',
     'project_admin2': [
     ],
     'project_admin2_detail': [
@@ -1005,8 +1005,8 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-VGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgby',
-        'summary': 'jdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqyo',
+        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
+        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -1037,8 +1037,8 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'operation_type_display': 'Programme',
     'primary_sector': 1,
     'primary_sector_display': 'sect-OhbVrpoiVgRVIfLBcbfnoGMbJmTPSIAoCLrZaWZkSBvrjnWvgf',
-    'programme_type': 2,
-    'programme_type_display': 'Domestic',
+    'programme_type': 0,
+    'programme_type_display': 'Bilateral',
     'project_admin2': [
     ],
     'project_admin2_detail': [
