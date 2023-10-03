@@ -17,7 +17,7 @@ from .logger import logger
 from rest_framework.authtoken.models import Token
 
 
-def build_storage_state(tmp_dir, user, token, language):
+def build_storage_state(tmp_dir, user, token):
     temp_file = pathlib.Path(tmp_dir, "storage_state.json")
     temp_file.touch()
 
