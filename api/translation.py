@@ -25,7 +25,6 @@ from .models import (
     EventFeaturedDocument,
     EventLink,
     FieldReport,
-    FieldReportContact,
     Source,
 )
 
@@ -148,17 +147,6 @@ class EventFeaturedDocumentTO(TranslationOptions):
 @register(EventLink)
 class EventLinkTO(TranslationOptions):
     fields = ('title', 'description')
-
-
-@register(FieldReportContact)
-class FieldReportContactTO(TranslationOptions):
-    fields = (
-        'name',
-        'title',
-        'email',
-        'phone',
-        'ctype'
-    )
 
 
 @register(Source)
