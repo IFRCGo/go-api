@@ -287,7 +287,7 @@ class OverviewSerializer(serializers.ModelSerializer):
 
 
 class AssessmentRatingSerializer(serializers.Serializer):
-    average_rating = serializers.IntegerField()
+    average_rating = serializers.FloatField()
     date_of_assessment = serializers.DateField()
     assessment_number = serializers.IntegerField()
 
@@ -321,11 +321,17 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         country_id = overview.country_id
         if country_id:
             qs = PerAssessment.objects.filter(
-                overview__country_id=country_id
+                overview__country_id=country_id,
             ).values(
                 'overview__assessment_number'
             ).annotate(
-                average_rating=models.Avg('area_responses__component_response__rating'),
+                average_rating=models.Avg(
+                    'area_responses__component_response__rating',
+                    filters=models.Q(
+                        area_responses__component_response__rating__isnull=False,
+                        area_responses__component_response__rating_id=1
+                    )
+                ),
                 date_of_assessment=models.F('overview__date_of_assessment'),
                 assessment_number=models.F('overview__assessment_number')
             )
