@@ -1,0 +1,11 @@
+{
+    "version": 1,
+    "layers": {
+      "go-admin2-RWA-staging": {
+        "source": "mapbox://tileset-source/go-ifrc/go-admin2-RWA-src-staging",
+        "minzoom": 5,
+        "maxzoom": 10
+      }
+    }
+  }
+  
