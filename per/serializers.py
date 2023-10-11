@@ -539,6 +539,8 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "assessment",
             "prioritization",
             "workplan",
+            "created_at",
+            "updated_at",
             "phase",
             "phase_display",
         )

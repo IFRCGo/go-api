@@ -1898,6 +1898,24 @@ class FieldReportSerializer(
         report.event = event
         report.save(update_fields=['event'])
 
+    def validate(self, data):
+        # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
+        if "status" in data and data["status"] == FieldReport.Status.EW:  # Early Warning
+            if "num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.RCRC_POTENTIALLY
+            elif "gov_num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT_POTENTIALLY
+            elif "other_num_potentially_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.OTHER_POTENTIALLY
+        else:  # Event related
+            if "num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.RCRC
+            elif "gov_num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.GOVERNMENT
+            elif "other_num_affected" in data:
+                data["recent_affected"] = FieldReport.RecentAffected.OTHER
+        return data
+
     def create(self, validated_data):
         validated_data['user'] = self.context["request"].user
         countries = validated_data["countries"]

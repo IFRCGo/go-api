@@ -1179,8 +1179,8 @@ class FieldReport(models.Model):
         TWO = 2, _('Two')  # legacy usage
         THREE = 3, _('Three')  # legacy usage
         EW = 8, _('Early Warning / Early Action')
-        EVT = 9, _('Event-related')
-        TEN = 10, _('Event')  # legacy usage. Covid?
+        EVT = 9, _('Event')
+        TEN = 10, _('Ten')  # legacy usage. Covid?
 
     class RecentAffected(models.IntegerChoices):
         UNKNOWN = 0, _('Unknown')
