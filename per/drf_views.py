@@ -215,7 +215,7 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
                 .filter(country_id=country_id)
                 .order_by("-created_at")[:1]  # first() gives error for len() and count()
             )
-        return {}
+        return Overview.objects.none()
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
