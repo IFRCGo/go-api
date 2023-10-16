@@ -30,23 +30,12 @@ from .models import (
     AssessmentType,
     PerWorkPlan,
     FormPrioritization,
-    WorkPlanStatus,
     PerAssessment,
     PerFile,
     PerComponentRating
 )
 from .serializers import (
-    FormStatSerializer,
-    ListFormSerializer,
-    ListFormDataSerializer,
-    ShortFormSerializer,
-    EngagedNSPercentageSerializer,
-    GlobalPreparednessSerializer,
-    NSPhaseSerializer,
-    WorkPlanSerializer,
-    OverviewSerializer,
     LatestCountryOverviewSerializer,
-    AssessmentTypeSerializer,
     ListNiceDocSerializer,
     FormAreaSerializer,
     FormComponentSerializer,
@@ -57,12 +46,10 @@ from .serializers import (
     PerFormDataSerializer,
     FormPrioritizationSerializer,
     PerProcessSerializer,
-    FormAsessmentSerializer,
     PerAssessmentSerializer,
     PerFileSerializer,
     PublicPerCountrySerializer,
     UserPerCountrySerializer,
-    PerComponentRatingSerializer,
     PerOptionsSerializer,
     LatestCountryOverviewInputSerializer,
     PerFileInputSerializer,
@@ -353,7 +340,7 @@ class PerCountryViewSet(
             ).filter(
                 country_id=country_id
             ).order_by("-created_at")[:1]
-        return {}
+        return Overview.objects.none()
 
 
 class PerAggregatedViewSet(

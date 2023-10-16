@@ -30,6 +30,7 @@ from api.models import Country
 
 logger = logging.getLogger(__name__)
 
+
 def get_now_str():
     return datetime.now(timezone.utc)
 
