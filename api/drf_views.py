@@ -453,6 +453,7 @@ class EventSnippetViewset(ReadOnlyVisibilityViewset):
     serializer_class = SnippetSerializer
     filterset_class = EventSnippetFilter
     visibility_model_class = Snippet
+    ordering_fields = '__all__'
 
 
 class SituationReportTypeViewset(viewsets.ReadOnlyModelViewSet):
