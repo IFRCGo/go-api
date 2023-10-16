@@ -12,7 +12,7 @@ class String(models.Model):
     page_name = models.CharField(max_length=255, verbose_name=_("Page name"), null=True, blank=True)
 
     class Meta:
-        unique_together = ("language", "key")
+        unique_together = ("language", "page_name", "key")
         verbose_name = _("String")
         verbose_name_plural = _("Strings")
 
