@@ -86,18 +86,12 @@ def generate_url(url, export_id, selector, user, title):
                 file = ContentFile(
                     page.pdf(
                         format="A4",
-                        margin={
-                            "top": "32px",
-                            "bottom": "32px",
-                            "left": "32px",
-                            "right": "32px",
-                        },
                         display_header_footer=True,
                         print_background=True,
                         footer_template="<div class=\"footer\" style=\"font-size: 8px;color: #fefefe; margin-left: 20px; position: relative; top: 10px;\">Page \
                         <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span>\
                         </div>\
-                        "
+                        ",
                     )
                 )
                 browser.close()
