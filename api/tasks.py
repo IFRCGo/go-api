@@ -77,13 +77,12 @@ def generate_url(url, export_id, selector, user, title):
                     storage_state=storage_state
                 )
                 page = context.new_page()
-                page.on("console", lambda msg: print(msg.text))
                 timeout = 300000
                 page.goto(url, timeout=timeout)
                 if selector:
                     time.sleep(5)
                     page.wait_for_selector(selector, state="attached", timeout=timeout)
-                file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}).pdf'
+                file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 file = ContentFile(
                     page.pdf(
                         format="A4",
