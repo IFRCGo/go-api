@@ -212,3 +212,7 @@ class AzureStorage(Storage):
             )
         except AzureMissingResourceHttpError:
             pass
+
+    def get_valid_name(self, name):
+        # Allow spaces in file names
+        return name
