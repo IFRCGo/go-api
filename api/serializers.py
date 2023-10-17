@@ -61,6 +61,11 @@ from deployments.models import EmergencyProject, Personnel
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
 from drf_spectacular.utils import extend_schema_field
+from dref.models import(
+    Dref,
+    DrefOperationalUpdate,
+    DrefFinalReport
+)
 
 
 class GeoSerializerMixin:
@@ -2175,6 +2180,21 @@ class ExportSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         export_id = validated_data.get('export_id')
         export_type = validated_data.get('export_type')
+        if export_type == Export.ExportType.DREF:
+            title = Dref.objects.filter(
+                id=export_id
+            ).first().title
+            print(title, "**********")
+        elif export_type == Export.ExportType.OPS_UPDATE:
+            title = DrefOperationalUpdate.objects.filter(
+                id=export_id
+            ).first().title
+        elif export_type == Export.ExportType.FINAL_REPORT:
+            title = DrefFinalReport.objects.filter(
+                id=export_id
+            ).first().title
+        else:
+            title = "Export"
         user = self.context['request'].user
         validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
@@ -2185,7 +2205,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.save(update_fields=['status', 'requested_at'])
 
             transaction.on_commit(
-                lambda: generate_url.delay(export.url, export.id, export.selector, user.id)
+                lambda: generate_url.delay(export.url, export.id, export.selector, user.id, title)
             )
         return export
 
