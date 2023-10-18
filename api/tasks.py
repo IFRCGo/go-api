@@ -85,8 +85,8 @@ def generate_url(url, export_id, selector, user, title):
                 file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 file = ContentFile(
                     page.pdf(
-                        format="A4",
                         display_header_footer=True,
+                        prefer_css_page_size=True,
                         print_background=True,
                         footer_template="<div class=\"footer\" style=\"font-size: 8px;color: #fefefe; margin-left: 20px; position: relative; top: 10px;\">Page \
                         <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span>\
