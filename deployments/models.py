@@ -44,6 +44,8 @@ class ERUType(models.IntegerChoices):
     BASECAMP_S = 14, _("Base Camp – S")
     BASECAMP_M = 15, _("Base Camp – M")
     BASECAMP_L = 16, _("Base Camp – L")
+    OPD = 17, _("Outpatient Department (OPD) Module")
+    MHPSS = 18, _("MHPSS")
 
 
 @reversion.register()
