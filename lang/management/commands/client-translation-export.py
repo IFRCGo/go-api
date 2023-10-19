@@ -52,11 +52,12 @@ class Command(BaseCommand):
         self.stdout.write(f'Total String: {string_qs.count()}')
         csv_writer.writeheader()
         for string in string_qs:
+            code = f'{string.page_name}-{string.key}'
             if string.language == 'en':
-                string_data[string.key]['key'] = string.key
-                string_data[string.key]['page_name'] = string.page_name
-                string_data[string.key]['value'] = string.value
+                string_data[code]['key'] = string.key
+                string_data[code]['page_name'] = string.page_name
+                string_data[code]['value'] = string.value
             else:
-                string_data[string.key][string.language] = string.value
+                string_data[code][string.language] = string.value
         for string_datum in string_data.values():
             csv_writer.writerow(string_datum)

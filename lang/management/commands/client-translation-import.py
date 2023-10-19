@@ -36,20 +36,20 @@ class Command(BaseCommand):
             string_key = row['key']
             if string_key is None:
                 continue
-            page_name = row['namespace']
+            page_name = row['page_name']
             string_value_en = row['value']
             string_value_hash = get_md5_hash(string_value_en)
             self.stdout.write(f'Saving {string_key}')
             for lang, _ in String.language.field.choices:
                 client_string, _ = String.objects.get_or_create(
                     key=string_key,
+                    page_name=page_name,
                     language=lang,
                 )
                 if lang == 'en':
                     client_string.value = string_value_en
                 else:
                     client_string.value = row[lang]
-                client_string.page_name = page_name
                 client_string.hash = string_value_hash
                 client_string.save()
             updated += 1
