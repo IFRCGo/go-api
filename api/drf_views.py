@@ -495,19 +495,7 @@ class AppealViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     )
     # serializer_class = AppealSerializer
     serializer_class = AppealHistorySerializer
-    ordering_fields = (
-        "start_date",
-        "end_date",
-        "appeal__name",
-        "aid",
-        "dtype",
-        "num_beneficiaries",
-        "amount_requested",
-        "amount_funded",
-        "status",
-        "atype",
-        "event",
-    )
+    ordering_fields = '__all__'
     # filterset_class = AppealFilter
     filterset_class = AppealHistoryFilter
     search_fields = (
