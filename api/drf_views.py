@@ -191,6 +191,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         has_country_plan=models.Exists(CountryPlan.objects.filter(country=OuterRef("pk"), is_publish=True))
     )
     filterset_class = CountryFilter
+    ordering_fields = '__all__'
     search_fields = ("name",)  # for /docs
 
     def get_object(self):
