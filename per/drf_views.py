@@ -168,6 +168,7 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormQuestionSerializer
     filterset_class = FormQuestionFilter
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return FormQuestion.objects.all()\
@@ -181,6 +182,7 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormAnswerSerializer
     queryset = FormAnswer.objects.all()
+    ordering_fields = '__all__'
 
 
 @extend_schema_view(
@@ -210,6 +212,7 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
     serializer_class = PerOverviewSerializer
     permission_classes = [IsAuthenticated, PerPermission]
     filterset_class = PerOverviewFilter
+    ordering_fields = '__all__'
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
@@ -217,11 +220,13 @@ class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
     filterset_class = PerWorkPlanFilter
+    ordering_fields = '__all__'
 
 
 class PerFormDataViewSet(viewsets.ModelViewSet):
     serializer_class = PerFormDataSerializer
     queryset = FormData.objects.all()
+    ordering_fields = '__all__'
 
 
 class FormPrioritizationViewSet(viewsets.ModelViewSet):
@@ -229,15 +234,18 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
     permission_classes = (IsAuthenticated,)
+    ordering_fields = '__all__'
 
 
 class PublicFormPrioritizationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
+    ordering_fields = '__all__'
 
 
 class PerOptionsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
+    ordering_fields = '__all__'
 
     @extend_schema(request=None, responses=PerOptionsSerializer)
     def get(self, request, version=None):
@@ -256,6 +264,7 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
@@ -263,6 +272,7 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublicPerProcessSerializer
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
@@ -271,6 +281,7 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return PerAssessment.objects.select_related('overview')
@@ -278,6 +289,7 @@ class FormAssessmentViewSet(viewsets.ModelViewSet):
 
 class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublicPerAssessmentSerializer
+    ordering_fields = '__all__'
 
     def get_queryset(self):
         return PerAssessment.objects.select_related('overview')
