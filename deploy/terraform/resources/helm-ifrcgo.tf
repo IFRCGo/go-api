@@ -8,8 +8,8 @@ resource "helm_release" "ifrcgo" {
   ]
 
   values = [
-    file("../helm/ifrcgo-helm/values.yaml"),
-    file("../helm/ifrcgo-helm/values-${var.environment}.yaml"),
+    file("${path.root}/../helm/ifrcgo-helm/values.yaml"),
+    file("${path.root}/../helm/ifrcgo-helm/values-${var.environment}.yaml"),
   ]
 
   set {
