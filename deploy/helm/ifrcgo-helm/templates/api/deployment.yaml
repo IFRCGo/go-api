@@ -25,6 +25,12 @@ spec:
         run: {{ .Release.Name }}-api
 
     spec:
+      initContainers:
+        - name: {{ .Chart.Name }}-wait-for-migrations
+          image: 'groundnuty/k8s-wait-for:v1.7'
+          args:
+            - job
+            - {{ template "ifrcgo-helm.fullname" . }}-migrations-job
       containers:
         - name: {{ .Chart.Name }}-api
           image: "{{ .Values.api.image.name }}:{{ .Values.api.image.tag }}"
