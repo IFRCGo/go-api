@@ -1,0 +1,44 @@
+{{- if .Values.api.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "ifrcgo-helm.fullname" . }}-migrations-job
+  labels:
+    component: api-migrations-job
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  backoffLimit: 0
+  selector:
+    matchLabels:
+      app: {{ template "ifrcgo-helm.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-migrations-job
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ template "ifrcgo-helm.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-migrations-job
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-migrations
+          image: "{{ .Values.api.image.name }}:{{ .Values.api.image.tag }}"
+          command: ["sh", "-c", "python manage.py migrate"]
+          envFrom:
+            - secretRef:
+                name: {{ template "ifrcgo-helm.fullname" . }}-api-secret
+            - configMapRef:
+                name: {{ template "ifrcgo-helm.fullname" . }}-api-configmap
+          resources:
+            requests:
+              cpu: {{ .Values.api.resources.requests.cpu }}
+              memory: {{ .Values.api.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.api.resources.limits.cpu }}
+              memory: {{ .Values.api.resources.limits.memory }}
+      restartPolicy: Never
+{{- end }}
