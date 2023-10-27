@@ -9,11 +9,6 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   backoffLimit: 0
-  selector:
-    matchLabels:
-      app: {{ template "ifrcgo-helm.name" . }}
-      release: {{ .Release.Name }}
-      run: {{ .Release.Name }}-migrations-job
   template:
     metadata:
       annotations:
