@@ -155,6 +155,29 @@ class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
     pass
 
 
+class OpsLearningAdmin(admin.ModelAdmin):
+    search_fields = ("learning", "learning_validated")
+    list_filter = ("learning", "learning_validated")
+    list_display = ("learning", "learning_validated")
+
+    def get_fields(self, request, obj=None):
+        if obj and obj.is_validated:
+            return (
+                'learning_validated',
+                'appeal_code',
+                'type_validated',
+                'sector_validated',
+                'per_component_validated',
+                'is_validated')
+        return (
+            'learning',
+            'appeal_code',
+            'type',
+            'sector',
+            'per_component',
+            'is_validated')
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -174,3 +197,4 @@ admin.site.register(models.PerAssessment, FormAssessmentAdmin)
 admin.site.register(models.AreaResponse, FormAreaResponseAdmin)
 admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
 admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
+admin.site.register(models.OpsLearning, OpsLearningAdmin)
