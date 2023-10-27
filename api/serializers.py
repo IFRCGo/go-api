@@ -1581,6 +1581,8 @@ class UserMeSerializer(UserSerializer):
     is_admin_for_regions = serializers.SerializerMethodField()
     lang_permissions = serializers.SerializerMethodField()
     is_dref_coordinator_for_regions = serializers.SerializerMethodField()
+    is_per_admin_for_regions = serializers.SerializerMethodField()
+    is_per_admin_for_countries = serializers.SerializerMethodField()
     user_countries_regions = serializers.SerializerMethodField()
 
     class Meta:
@@ -1590,6 +1592,8 @@ class UserMeSerializer(UserSerializer):
             "is_admin_for_regions",
             "lang_permissions",
             "is_dref_coordinator_for_regions",
+            "is_per_admin_for_regions",
+            "is_per_admin_for_countries",
             "user_countries_regions"
         )
 
@@ -1630,6 +1634,26 @@ class UserMeSerializer(UserSerializer):
             splitted = d.split("_")[-1]
             regions.append(int(splitted))
         return set(regions)
+
+    @staticmethod
+    def get_is_per_admin_for_regions(user) -> List[int]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith='per_region_admin',
+            group__user=user
+        ).values_list('codename', flat=True)
+
+        regions = {int(code.split('_')[-1]) for code in permission_codenames}
+        return list(regions)
+
+    @staticmethod
+    def get_is_per_admin_for_countries(user) -> List[int]:
+        permission_codenames = Permission.objects.filter(
+            codename__startswith='per_country_admin',
+            group__user=user
+        ).values_list('codename', flat=True)
+
+        countries = {int(code.split('_')[-1]) for code in permission_codenames}
+        return list(countries)
 
     @staticmethod
     @extend_schema_field(UserCountrySerializer(many=True))
