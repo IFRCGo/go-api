@@ -92,6 +92,7 @@ def generate_url(url, export_id, selector, user, title):
                         <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span>\
                         </div>\
                         ",
+                        header_template="<p></p>",
                     )
                 )
                 browser.close()
