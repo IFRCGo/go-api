@@ -32,7 +32,7 @@ from .models import (
     FormPrioritization,
     PerAssessment,
     PerFile,
-    PerComponentRating
+    PerComponentRating,
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -54,7 +54,7 @@ from .serializers import (
     LatestCountryOverviewInputSerializer,
     PerFileInputSerializer,
     PublicPerProcessSerializer,
-    PublicPerAssessmentSerializer
+    PublicPerAssessmentSerializer,
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -148,11 +148,11 @@ class FormComponentViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = FormComponentFilter
 
     def get_queryset(self):
-        return FormComponent.objects.all().order_by(
-            "area__area_num",
-            "component_num",
-            "component_letter"
-        ).select_related("area")
+        return (
+            FormComponent.objects.all()
+            .order_by("area__area_num", "component_num", "component_letter")
+            .select_related("area")
+        )
 
 
 class FormQuestionFilter(filters.FilterSet):
@@ -168,13 +168,15 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormQuestionSerializer
     filterset_class = FormQuestionFilter
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     def get_queryset(self):
-        return FormQuestion.objects.all()\
-            .order_by("component__component_num", "question_num", "question")\
-            .select_related("component")\
+        return (
+            FormQuestion.objects.all()
+            .order_by("component__component_num", "question_num", "question")
+            .select_related("component")
             .prefetch_related("answers")
+        )
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
@@ -182,14 +184,11 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = FormAnswerSerializer
     queryset = FormAnswer.objects.all()
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 @extend_schema_view(
-    list=extend_schema(
-        parameters=[LatestCountryOverviewInputSerializer],
-        responses=LatestCountryOverviewSerializer
-    )
+    list=extend_schema(parameters=[LatestCountryOverviewInputSerializer], responses=LatestCountryOverviewSerializer)
 )
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
     # authentication_classes = (TokenAuthentication,)
@@ -208,11 +207,11 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
-    queryset = Overview.objects.select_related('country', 'user')
+    queryset = Overview.objects.select_related("country", "user")
     serializer_class = PerOverviewSerializer
     permission_classes = [IsAuthenticated, PerPermission]
     filterset_class = PerOverviewFilter
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
@@ -220,13 +219,13 @@ class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
     filterset_class = PerWorkPlanFilter
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 class PerFormDataViewSet(viewsets.ModelViewSet):
     serializer_class = PerFormDataSerializer
     queryset = FormData.objects.all()
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 class FormPrioritizationViewSet(viewsets.ModelViewSet):
@@ -234,18 +233,18 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
     permission_classes = (IsAuthenticated,)
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 class PublicFormPrioritizationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
 
 class PerOptionsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     @extend_schema(request=None, responses=PerOptionsSerializer)
     def get(self, request, version=None):
@@ -254,7 +253,7 @@ class PerOptionsView(views.APIView):
                 dict(
                     componentratings=PerComponentRating.objects.all(),
                     answers=FormAnswer.objects.all(),
-                    overviewassessmenttypes=AssessmentType.objects.all()
+                    overviewassessmenttypes=AssessmentType.objects.all(),
                 )
             ).data
         )
@@ -264,42 +263,38 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     def get_queryset(self):
-        return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
+        return Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
 
 
 class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublicPerProcessSerializer
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     def get_queryset(self):
-        return Overview.objects.order_by('country', '-assessment_number', '-date_of_assessment')
+        return Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
 
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     def get_queryset(self):
-        return PerAssessment.objects.select_related('overview')
+        return PerAssessment.objects.select_related("overview")
 
 
 class PublicFormAssessmentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublicPerAssessmentSerializer
-    ordering_fields = '__all__'
+    ordering_fields = "__all__"
 
     def get_queryset(self):
-        return PerAssessment.objects.select_related('overview')
+        return PerAssessment.objects.select_related("overview")
 
 
-class PerFileViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
-):
+class PerFileViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     permission_class = [permissions.IsAuthenticated]
     serializer_class = PerFileSerializer
 
@@ -308,10 +303,7 @@ class PerFileViewSet(
             return PerFile.objects.none()
         return PerFile.objects.filter(created_by=self.request.user)
 
-    @extend_schema(
-        request=PerFileInputSerializer,
-        responses=PerFileSerializer(many=True)
-    )
+    @extend_schema(request=PerFileInputSerializer, responses=PerFileSerializer(many=True))
     @action(
         detail=False,
         url_path="multiple",
@@ -320,10 +312,7 @@ class PerFileViewSet(
     )
     def multiple_file(self, request, pk=None, version=None):
         # converts querydict to original dict
-        files = [
-            files[0]
-            for files in dict((request.data).lists()).values()
-        ]
+        files = [files[0] for files in dict((request.data).lists()).values()]
         data = [{"file": file} for file in files]
         file_serializer = PerFileSerializer(data=data, context={"request": request}, many=True)
         if file_serializer.is_valid():
@@ -332,10 +321,7 @@ class PerFileViewSet(
         return response.Response(file_serializer.errors, status=drf_status.HTTP_400_BAD_REQUEST)
 
 
-class PerCountryViewSet(
-    viewsets.ReadOnlyModelViewSet
-):
-
+class PerCountryViewSet(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         user = self.request.user
         if not user.is_authenticated:
@@ -346,26 +332,21 @@ class PerCountryViewSet(
     def get_queryset(self):
         country_id = self.request.GET.get("country_id", None)
         if country_id:
-            return Overview.objects.select_related(
-                "country",
-                "type_of_assessment"
-            ).filter(
-                country_id=country_id
-            ).order_by("-created_at")[:1]
+            return (
+                Overview.objects.select_related("country", "type_of_assessment")
+                .filter(country_id=country_id)
+                .order_by("-created_at")[:1]
+            )
         return Overview.objects.none()
 
 
-class PerAggregatedViewSet(
-    viewsets.ReadOnlyModelViewSet
-):
+class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PerProcessSerializer
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = ['assessment_number', 'phase', 'date_of_assessment']
+    ordering_fields = ["assessment_number", "phase", "date_of_assessment"]
 
     def get_queryset(self):
         return Overview.objects.filter(
-            id__in=Overview.objects.order_by(
-                'country_id',
-                '-assessment_number'
-            ).distinct('country_id').values('id'))
+            id__in=Overview.objects.order_by("country_id", "-assessment_number").distinct("country_id").values("id")
+        )

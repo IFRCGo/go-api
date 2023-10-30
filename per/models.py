@@ -73,19 +73,10 @@ class FormArea(models.Model):
 @reversion.register()
 class FormComponentQuestionAndAnswer(models.Model):
     question = models.ForeignKey(
-        "FormQuestion", verbose_name=_("question"),
-        null=True, blank=True,
-        on_delete=models.SET_NULL
+        "FormQuestion", verbose_name=_("question"), null=True, blank=True, on_delete=models.SET_NULL
     )
-    answer = models.ForeignKey(
-        "FormAnswer", verbose_name=_("answer"),
-        null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
-    notes = models.TextField(
-        verbose_name=_("notes"),
-        null=True, blank=True
-    )
+    answer = models.ForeignKey("FormAnswer", verbose_name=_("answer"), null=True, blank=True, on_delete=models.SET_NULL)
+    notes = models.TextField(verbose_name=_("notes"), null=True, blank=True)
 
 
 @reversion.register()
@@ -105,13 +96,10 @@ class FormComponent(models.Model):
     component_letter = models.CharField(verbose_name=_("component letter"), max_length=3, null=True, blank=True)
     description = models.TextField(verbose_name=_("description"), null=True, blank=True)
     status = models.CharField(
-        verbose_name=_("status"), max_length=100,
-        choices=FormComponentStatus.choices, null=True, blank=True
+        verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
     )
     question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer,
-        verbose_name=_("Question responses"),
-        blank=True
+        FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True
     )
 
     def __str__(self):
@@ -125,7 +113,6 @@ class PerComponentRating(models.Model):
 
 @reversion.register()
 class FormComponentResponse(models.Model):
-
     component = models.ForeignKey(
         FormComponent,
         verbose_name=_("Form Component"),
@@ -134,39 +121,24 @@ class FormComponentResponse(models.Model):
     rating = models.ForeignKey(
         PerComponentRating,
         on_delete=models.CASCADE,
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
     question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer,
-        verbose_name=_("Question responses"),
-        blank=True
+        FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True
     )
     # consideration_responses fields
-    urban_considerations = models.TextField(
-        verbose_name=_("Urban Considerations"),
-        null=True, blank=True
-    )
-    epi_considerations = models.TextField(
-        verbose_name=_("Epi Considerations"),
-        null=True, blank=True
-    )
+    urban_considerations = models.TextField(verbose_name=_("Urban Considerations"), null=True, blank=True)
+    epi_considerations = models.TextField(verbose_name=_("Epi Considerations"), null=True, blank=True)
     climate_environmental_considerations = models.TextField(
-        verbose_name=_("Climate Environmental Considerations"),
-        null=True, blank=True
+        verbose_name=_("Climate Environmental Considerations"), null=True, blank=True
     )
-    notes = models.TextField(
-        verbose_name=_("Notes"),
-        null=True, blank=True
-    )
+    notes = models.TextField(verbose_name=_("Notes"), null=True, blank=True)
 
 
 @reversion.register()
 class AreaResponse(models.Model):
-    area = models.ForeignKey(
-        FormArea,
-        verbose_name=_("Area"),
-        on_delete=models.CASCADE
-    )
+    area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.CASCADE)
     component_response = models.ManyToManyField(
         FormComponentResponse,
         verbose_name=_("Component Response"),
@@ -180,12 +152,11 @@ class PerAssessment(models.Model):
         "Overview",
         verbose_name="Overview",
         on_delete=models.PROTECT,
-        blank=True, null=True,
+        blank=True,
+        null=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"),
-        null=True, blank=True,
-        on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
     )
     area_responses = models.ManyToManyField(
         AreaResponse,
@@ -198,7 +169,7 @@ class PerAssessment(models.Model):
     )
 
     def __str__(self):
-        return f'{self.overview.country.name} - {self.overview.assessment_number}'
+        return f"{self.overview.country.name} - {self.overview.assessment_number}"
 
 
 @reversion.register()
@@ -208,7 +179,7 @@ class FormAnswer(models.Model):
     text = models.CharField(verbose_name=_("text"), max_length=40)
 
     class Meta:
-        ordering = ('id',)
+        ordering = ("id",)
 
     def __str__(self):
         return self.text
@@ -230,10 +201,7 @@ class FormQuestion(models.Model):
 
 @reversion.register()
 class FormPrioritizationComponent(models.Model):
-    component = models.ForeignKey(
-        FormComponent, verbose_name=_("component"),
-        on_delete=models.CASCADE
-    )
+    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.CASCADE)
     is_prioritized = models.BooleanField(verbose_name=_("Is prioritized"), null=True, blank=True)
     justification_text = models.TextField(verbose_name=_("Justification Text"), null=True, blank=True)
 
@@ -281,22 +249,19 @@ class AssessmentType(models.Model):
 @reversion.register()
 class Overview(models.Model):
     class Phase(models.IntegerChoices):
-        ORIENTATION = 1, _('Orientation')
-        ASSESSMENT = 2, _('Assessment')
-        PRIORITIZATION = 3, _('Prioritisation')
-        WORKPLAN = 4, _('WorkPlan')
-        ACTION_AND_ACCOUNTABILITY = 5, _('Action And Accoutability')
+        ORIENTATION = 1, _("Orientation")
+        ASSESSMENT = 2, _("Assessment")
+        PRIORITIZATION = 3, _("Prioritisation")
+        WORKPLAN = 4, _("WorkPlan")
+        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accoutability")
 
     class AssessmentMethod(models.TextChoices):
-        PER = 'per', _('PER')
-        DRCE = 'drce', _('DRCE')
-        WPNS = 'wpns', _('WPNS')
+        PER = "per", _("PER")
+        DRCE = "drce", _("DRCE")
+        WPNS = "wpns", _("WPNS")
 
     country = models.ForeignKey(
-        Country, verbose_name=_("country"),
-        related_name="per_overviews",
-        null=True, blank=True,
-        on_delete=models.SET_NULL
+        Country, verbose_name=_("country"), related_name="per_overviews", null=True, blank=True, on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
@@ -326,8 +291,9 @@ class Overview(models.Model):
     assessment_method = models.CharField(
         verbose_name=_("what method has this assessment used"),
         max_length=90,
-        null=True, blank=True,
-        choices=AssessmentMethod.choices
+        null=True,
+        blank=True,
+        choices=AssessmentMethod.choices,
     )
     assess_preparedness_of_country = models.BooleanField(
         verbose_name=_("Do you want to assess the preparedness of your National Society for epidemics and pandemics?"),
@@ -353,14 +319,8 @@ class Overview(models.Model):
     )
 
     # Workplan reviews planned
-    workplan_development_date = models.DateField(
-        verbose_name=_("Workplan Development Date"),
-        null=True, blank=True
-    )
-    workplan_revision_date = models.DateField(
-        verbose_name=_("Workplan Revision Date"),
-        null=True, blank=True
-    )
+    workplan_development_date = models.DateField(verbose_name=_("Workplan Development Date"), null=True, blank=True)
+    workplan_revision_date = models.DateField(verbose_name=_("Workplan Revision Date"), null=True, blank=True)
 
     # Contact Information
     facilitator_name = models.CharField(verbose_name=_("facilitator name"), max_length=90, null=True, blank=True)
@@ -385,24 +345,18 @@ class Overview(models.Model):
         verbose_name=_("partner focal point organization name"), max_length=90, null=True, blank=True
     )
     ns_second_focal_point_name = models.CharField(
-        verbose_name=_("ns second focal point name"),
-        max_length=90, null=True, blank=True
+        verbose_name=_("ns second focal point name"), max_length=90, null=True, blank=True
     )
     ns_second_focal_point_email = models.CharField(
-        verbose_name=_("ns second focal point email"),
-        max_length=90, null=True, blank=True
+        verbose_name=_("ns second focal point email"), max_length=90, null=True, blank=True
     )
     ns_second_focal_point_phone = models.CharField(
-        verbose_name=_("ns second focal point phone"),
-        max_length=90, null=True, blank=True
+        verbose_name=_("ns second focal point phone"), max_length=90, null=True, blank=True
     )
 
     # phase calculation
     phase = models.IntegerField(
-        verbose_name=_("phase"),
-        choices=Phase.choices,
-        null=True, blank=True,
-        default=Phase.ORIENTATION
+        verbose_name=_("phase"), choices=Phase.choices, null=True, blank=True, default=Phase.ORIENTATION
     )
 
     # Added to track the draft overview
@@ -424,7 +378,7 @@ class Overview(models.Model):
         if self.phase != new_phase:
             self.phase = new_phase
             if save_phase:
-                self.save(update_fields=('phase',))
+                self.save(update_fields=("phase",))
 
     def __str__(self):
         if self.country is None:
@@ -437,7 +391,7 @@ class Overview(models.Model):
     def save(self, *args, **kwargs):
         # get the latest
         if self.pk is None:
-            overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
+            overview = Overview.objects.filter(country=self.country).order_by("-assessment_number")
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
                 self.date_of_previous_assessment = overview[0].date_of_assessment or None
@@ -612,34 +566,25 @@ class PerWorkPlanStaus(models.IntegerChoices):
 
 class PerWorkPlanComponent(models.Model):
     component = models.ForeignKey(
-        FormComponent, verbose_name=_("Component"), on_delete=models.CASCADE,
+        FormComponent,
+        verbose_name=_("Component"),
+        on_delete=models.CASCADE,
     )
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStaus.choices, default=0, verbose_name=_("status"))
-    supported_by = models.ForeignKey(
-        Country, on_delete=models.CASCADE,
-        null=True, blank=True
-    )
+    supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class CustomPerWorkPlanComponent(models.Model):
     actions = models.TextField(verbose_name=_("Actions"), max_length=900, null=True, blank=True)
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStaus.choices, default=0, verbose_name=_("status"))
-    supported_by = models.ForeignKey(
-        Country, on_delete=models.CASCADE,
-        null=True, blank=True
-    )
+    supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class PerWorkPlan(models.Model):
-    overview = models.ForeignKey(
-        Overview,
-        verbose_name=_("Overview"),
-        null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
+    overview = models.ForeignKey(Overview, verbose_name=_("Overview"), null=True, blank=True, on_delete=models.SET_NULL)
     prioritized_action_responses = models.ManyToManyField(
         PerWorkPlanComponent,
         verbose_name=_("WorkPlan Component"),

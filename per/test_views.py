@@ -9,7 +9,7 @@ from per.factories import (
     FormAreaFactory,
     FormComponentFactory,
     FormPrioritizationFactory,
-    PerWorkPlanFactory
+    PerWorkPlanFactory,
 )
 
 
@@ -40,7 +40,6 @@ class PerTestCase(APITestCase):
             "partner_focal_point_phone": "981818181",
             "partner_focal_point_contact": "Nepal",
             "date_of_assessment": "2021-03-11",
-
         }
         url = "/api/v2/per-overview/"
         self.authenticate(self.user)
@@ -52,7 +51,7 @@ class PerTestCase(APITestCase):
         self.authenticate(self.ifrc_user)
         response = self.client.post(url, data, format="json")
         response_data = json.loads(response.content)
-        form_id = response_data['id']
+        form_id = response_data["id"]
         self.assert_201(response)
         patch_url = f"/api/v2/per-overview/{form_id}/"
         patch_data = {
@@ -134,11 +133,7 @@ class PerTestCase(APITestCase):
         data = {
             "overview": overview.id,
             "component_responses": [
-                {
-                    "is_prioritized": True,
-                    "justification_text": "yeysysysyayas",
-                    "component": component.id
-                },
+                {"is_prioritized": True, "justification_text": "yeysysysyayas", "component": component.id},
                 {
                     "component": component2.id,
                     "is_prioritized": None,
@@ -188,7 +183,6 @@ class PerTestCase(APITestCase):
             "partner_focal_point_email": "test@test",
             "partner_focal_point_phone": "981818181",
             "partner_focal_point_contact": "Nepal",
-
         }
         url = "/api/v2/per-overview/"
         self.authenticate(self.user)
