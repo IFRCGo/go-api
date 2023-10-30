@@ -348,6 +348,7 @@ class Overview(models.Model):
         verbose_name=_("type of previous assessment"),
         related_name="type_of_previous_assessment",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
     )
 
