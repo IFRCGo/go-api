@@ -8,17 +8,9 @@ from per.models import WorkPlanStatus
 custom_component_schema = {
     "title": "Custom Component",
     "properties": {
-        "actions": {
-            "type": "string"
-        },
-        "due_date": {
-            "type": "string",
-            "format": "date"
-        },
-        "status": {
-            "type": "number",
-            "enum": [x.value for x in WorkPlanStatus]
-        }
+        "actions": {"type": "string"},
+        "due_date": {"type": "string", "format": "date"},
+        "status": {"type": "number", "enum": [x.value for x in WorkPlanStatus]},
     },
     "required": ["actions", "due_date"],
 }

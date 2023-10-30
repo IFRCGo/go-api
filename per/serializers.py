@@ -315,25 +315,27 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AssessmentRatingSerializer(many=True))
     def get_assessment_ratings(self, overview):
-        user = self.context['request'].user
+        user = self.context["request"].user
         if not user.is_authenticated:
             return None
         country_id = overview.country_id
         if country_id:
-            qs = PerAssessment.objects.filter(
-                overview__country_id=country_id,
-            ).values(
-                'overview__assessment_number'
-            ).annotate(
-                average_rating=models.Avg(
-                    'area_responses__component_response__rating',
-                    filters=models.Q(
-                        area_responses__component_response__rating__isnull=False,
-                        area_responses__component_response__rating_id=1
-                    )
-                ),
-                date_of_assessment=models.F('overview__date_of_assessment'),
-                assessment_number=models.F('overview__assessment_number')
+            qs = (
+                PerAssessment.objects.filter(
+                    overview__country_id=country_id,
+                )
+                .values("overview__assessment_number")
+                .annotate(
+                    average_rating=models.Avg(
+                        "area_responses__component_response__rating",
+                        filters=models.Q(
+                            area_responses__component_response__rating__isnull=False,
+                            area_responses__component_response__rating_id=1,
+                        ),
+                    ),
+                    date_of_assessment=models.F("overview__date_of_assessment"),
+                    assessment_number=models.F("overview__assessment_number"),
+                )
             )
             return AssessmentRatingSerializer(qs, many=True).data
         return None
@@ -472,9 +474,7 @@ class MiniAssessmentSerializer(serializers.ModelSerializer):
 
 
 class PerFileInputSerializer(serializers.Serializer):
-    file = serializers.ListField(
-        child=serializers.FileField()
-    )
+    file = serializers.ListField(child=serializers.FileField())
 
 
 class PerFileSerializer(serializers.ModelSerializer):
@@ -766,7 +766,4 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PerAssessment
-        fields = (
-            "id",
-            "area_responses"
-        )
+        fields = ("id", "area_responses")

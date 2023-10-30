@@ -28,7 +28,7 @@ class PerPermission(permissions.BasePermission):
         if user.is_superuser or user.has_perm("api.per_core_admin"):
             return True
 
-        if view.action in ['create', 'update']:
+        if view.action in ["create", "update"]:
             country_id = self.get_country_id_from_request_data(request.data)
             region_id = self.get_region_id_from_request_data(request.data)
             if country_id or region_id:
@@ -37,18 +37,18 @@ class PerPermission(permissions.BasePermission):
         return True
 
     def has_country_permission(self, user, country_id):
-        country_permission_codename = f'api.per_country_admin_{country_id}'
+        country_permission_codename = f"api.per_country_admin_{country_id}"
         return user.has_perm(country_permission_codename)
 
     def has_region_permission(self, user, region_id):
-        region_permission_codename = f'api.per_region_admin_{region_id}'
+        region_permission_codename = f"api.per_region_admin_{region_id}"
         return user.has_perm(region_permission_codename)
 
     def get_country_id_from_request_data(self, request_data):
-        country_id = request_data.get('country')
+        country_id = request_data.get("country")
         return country_id
 
     def get_region_id_from_request_data(self, request_data):
-        country_id = request_data.get('country')
+        country_id = request_data.get("country")
         region = Region.objects.filter(country=country_id).first()
         return region.id

@@ -4,7 +4,7 @@ from per.models import FormQuestion, FormAnswer
 
 
 class Command(BaseCommand):
-    help = 'Update Patially also as choice in assessment answer'
+    help = "Update Patially also as choice in assessment answer"
 
     def handle(self, *args, **options):
         form_questions = FormQuestion.objects.all()
