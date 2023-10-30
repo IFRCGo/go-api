@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from api.models import Region
+
 
 class CustomObjectPermissions(permissions.DjangoObjectPermissions):
     """
@@ -19,9 +21,34 @@ class CustomObjectPermissions(permissions.DjangoObjectPermissions):
 
 
 class PerPermission(permissions.BasePermission):
-    message = "You don't have permission to create an Per Overview"
+    message = "You don't have permission to Create/Update Per Overview"
 
     def has_permission(self, request, view):
-        if request.user.is_superuser and request.user.has_perm("api.per_core_admin"):
+        user = request.user
+        if user.is_superuser or user.has_perm("api.per_core_admin"):
             return True
-        return False
+
+        if view.action in ['create', 'update']:
+            country_id = self.get_country_id_from_request_data(request.data)
+            region_id = self.get_region_id_from_request_data(request.data)
+            if country_id or region_id:
+                return self.has_country_permission(user, country_id) or self.has_region_permission(user, region_id)
+
+        return True
+
+    def has_country_permission(self, user, country_id):
+        country_permission_codename = f'api.per_country_admin_{country_id}'
+        return user.has_perm(country_permission_codename)
+
+    def has_region_permission(self, user, region_id):
+        region_permission_codename = f'api.per_region_admin_{region_id}'
+        return user.has_perm(region_permission_codename)
+
+    def get_country_id_from_request_data(self, request_data):
+        country_id = request_data.get('country')
+        return country_id
+
+    def get_region_id_from_request_data(self, request_data):
+        country_id = request_data.get('country')
+        region = Region.objects.filter(country=country_id).first()
+        return region.id
