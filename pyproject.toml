@@ -76,7 +76,7 @@ typing = "==3.6.2"
 # urllib3 = "==1.26.12"
 xmltodict = "==0.11.0"
 xhtml2pdf = "==0.2.5"
-reportlab = "==3.6.6"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
+reportlab = "==3.6.13"  # XXX: Used by xhtml2pdf reportlab==3.6.7 breaks for now
 celery = { version = "==5.1.2", extras = ["redis"] }
 django-redis = "==5.0.0"
 sentry-sdk = "*"
