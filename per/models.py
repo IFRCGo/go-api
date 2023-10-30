@@ -439,8 +439,8 @@ class Overview(models.Model):
             overview = Overview.objects.filter(country=self.country).order_by('-assessment_number')
             if overview.exists():
                 self.assessment_number = overview[0].assessment_number + 1
-                self.date_of_previous_assessment = overview[0].date_of_assessment
-                self.type_of_previous_assessment = overview[0].type_of_assessment
+                self.date_of_previous_assessment = overview[0].date_of_assessment or None
+                self.type_of_previous_assessment = overview[0].type_of_assessment or None
             else:
                 self.assessment_number = 1
         super().save()
