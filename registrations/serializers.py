@@ -30,7 +30,8 @@ class ChangePasswordSerializer(serializers.Serializer):
     token = serializers.CharField()
 
     def validate_password(self, password):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
         if not user.check_password(password):
             raise serializers.ValidationError('Invalid Old Password')
         return password
@@ -40,7 +41,8 @@ class ChangePasswordSerializer(serializers.Serializer):
         return new_password
 
     def validate_token(self, token):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
         recovery = Recovery.objects.filter(user=user).first()
         if recovery is None:
             raise serializers.ValidationError("Could not authenticate")
@@ -50,7 +52,8 @@ class ChangePasswordSerializer(serializers.Serializer):
         recovery.delete()
 
     def save(self):
-        user = self.context['request'].user
+        request = self.context.get('request')
+        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
         user.set_password(self.validated_data['new_password'])
         user.save()
 
