@@ -9,13 +9,25 @@ from .models import DomainWhitelist
 from .serializers import (
     DomainWhitelistSerializer,
     ChangePasswordSerializer,
-    RegistrationSerializer
+    RegistrationSerializer,
+    ChangeRecoverPasswordSerializer
 )
 
 
 class DomainWhitelistViewset(viewsets.ReadOnlyModelViewSet):
     queryset = DomainWhitelist.objects.filter(is_active=True)
     serializer_class = DomainWhitelistSerializer
+
+
+class ChangeRecoverPasswordView(views.APIView):
+    @extend_schema(request=ChangeRecoverPasswordSerializer, responses=None)
+    def post(self, request, version=None):
+        serializer = ChangeRecoverPasswordSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(
+            serializer.data, status=status.HTTP_200_OK
+        )
 
 
 class ChangePasswordView(views.APIView):
@@ -27,7 +39,6 @@ class ChangePasswordView(views.APIView):
         return response.Response(
             serializer.data, status=status.HTTP_200_OK
         )
-
 
 class RegistrationView(views.APIView):
 
