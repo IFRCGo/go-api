@@ -1,3 +1,6 @@
+from functools import reduce
+from operator import or_
+
 from django.contrib import admin
 from django.db.models import Q
 
@@ -33,36 +36,42 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
         if not len(countries) and not len(regions):
             return queryset.none()
 
-        if dispatch == 0:
-            # Admin classes
-            country_in = getattr(self, "country_in", None)
-            region_in = getattr(self, "region_in", None)
-        elif dispatch == 1:
-            # Form
-            country_in = "overview__country_id__in"
-            region_in = "overview__country__region_id__in"
-        elif dispatch == 2:
-            # FormData
-            country_in = "form__overview__country_id__in"
-            region_in = "form__overview__country__region_id__in"
-        elif dispatch == 3:
-            # Country
-            country_in = "pk__in"
-            region_in = "region_id__in"
-        elif dispatch == 4:
-            # NiceDocuments, PERDocsViewset
-            country_in = "country_id__in"
-            region_in = "country__region__in"
+        # if dispatch == 0:
+        #     # Admin classes
+        #     country_in = getattr(self, "country", None)
+        #     region_in = getattr(self, "region", None)
+        # elif dispatch == 1:
+        #     # Form
+        #     country_in = "overview__country_id__in"
+        #     region_in = "overview__country__region_id__in"
+        # elif dispatch == 2:
+        #     # FormData
+        #     country_in = "form__overview__country_id__in"
+        #     region_in = "form__overview__country__region_id__in"
+        # elif dispatch == 3:
+        #     # Country
+        #     country_in = "pk__in"
+        #     region_in = "region_id__in"
+        # elif dispatch == 4:
+        #     # NiceDocuments, PERDocsViewset
+        #     country_in = "country_id__in"
+        #     region_in = "country__region__in"
 
-        query = Q()
-        has_valid_query = False
-        if len(countries) and country_in is not None:
-            query.add(Q(**{country_in: countries}), Q.OR)
-            has_valid_query = True
-        if len(regions) and region_in is not None:
-            query.add(Q(**{region_in: regions}), Q.OR)
-            has_valid_query = True
-        return queryset.filter(query) if has_valid_query else queryset.none()
+        # Create a list to store Q objects
+        queries = []
+
+        # Check for conditions and add them to the list
+        if countries:
+            queries.append(Q(country__in=countries))
+        if regions:
+            queries.append(Q(country__region__in=regions))
+
+        # Use reduce and the or_ operator to combine the Q objects
+        if queries:
+            combined_query = reduce(or_, queries)
+            return queryset.filter(combined_query).distinct()
+        else:
+            return queryset.none()
 
     # Gets called by default from the Admin classes
     def get_queryset(self, request):
