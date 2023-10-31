@@ -51,4 +51,4 @@ class PerPermission(permissions.BasePermission):
     def get_region_id_from_request_data(self, request_data):
         country_id = request_data.get("country")
         region = Region.objects.filter(country=country_id).first()
-        return region.id
+        return region and region.id

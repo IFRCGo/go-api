@@ -191,8 +191,7 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     list=extend_schema(parameters=[LatestCountryOverviewInputSerializer], responses=LatestCountryOverviewSerializer)
 )
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
-    # authentication_classes = (TokenAuthentication,)
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
 
     def get_queryset(self):
@@ -207,11 +206,16 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
-    queryset = Overview.objects.select_related("country", "user")
     serializer_class = PerOverviewSerializer
     permission_classes = [IsAuthenticated, PerPermission]
     filterset_class = PerOverviewFilter
     ordering_fields = "__all__"
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+
+    def get_queryset(self):
+        queryset = Overview.objects.select_related("country", "user")
+        return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
