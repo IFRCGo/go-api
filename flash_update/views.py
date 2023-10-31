@@ -12,6 +12,7 @@ from rest_framework import (
     response,
 )
 from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema
 
 from api.serializers import ActionSerializer
 from .models import (
@@ -28,6 +29,8 @@ from .serializers import (
     DonorGroupSerializer,
     DonorsSerializer,
     ShareFlashUpdateSerializer,
+    ExportFlashUpdateViewSerializer,
+    FlashGraphicMapFileInputSerializer
 )
 from .filter_set import FlashUpdateFilter
 from .tasks import export_to_pdf
@@ -69,6 +72,10 @@ class FlashUpdateFileViewSet(
     def get_queryset(self):
         return FlashGraphicMap.objects.all().select_related('created_by')
 
+    @extend_schema(
+        request=FlashGraphicMapFileInputSerializer,
+        responses=FlashGraphicMapSerializer(many=True)
+    )
     @action(
         detail=False,
         url_path='multiple',
@@ -76,9 +83,11 @@ class FlashUpdateFileViewSet(
         permission_classes=[permissions.IsAuthenticated],
     )
     def multiple_file(self, request, pk=None, version=None):
-        # converts querydict to original dict
-        files = dict((request.data).lists())['file']
-        data = [{'file': file} for file in files]
+        files = [
+            files[0]
+            for files in dict((request.data).lists()).values()
+        ]
+        data = [{"file": file} for file in files]
         if len(data) > 3:
             raise serializers.ValidationError("Number of files selected should not be greater than 3")
         file_serializer = FlashGraphicMapSerializer(data=data, context={'request': request}, many=True)
@@ -92,19 +101,6 @@ class FlashUpdateFileViewSet(
 class FlashActionViewset(viewsets.ReadOnlyModelViewSet):
     queryset = FlashAction.objects.exclude(is_disabled=True)
     serializer_class = ActionSerializer
-
-
-class FlashUpdateOptions(views.APIView):
-    def get(self, request, format=None):
-        options = {
-            'share_with_options': [
-                {
-                    'value': value,
-                    'label': label,
-                } for value, label in FlashUpdate.FlashShareWith.choices
-            ]
-        }
-        return Response(options)
 
 
 class DonorGroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -130,15 +126,26 @@ class ShareFlashUpdateViewSet(
 class ExportFlashUpdateView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        request=None,
+        responses=ExportFlashUpdateViewSerializer
+    )
     def get(self, request, pk, format=None):
         flash_update = get_object_or_404(FlashUpdate, pk=pk)
         if flash_update.extracted_file and flash_update.modified_at < flash_update.extracted_at:
-            return Response({
-                'status': 'ready',
-                'url': request.build_absolute_uri(flash_update.extracted_file.url)
-            })
+            return Response(ExportFlashUpdateViewSerializer(
+                dict(
+                    status='ready',
+                    url=request.build_absolute_uri(flash_update.extracted_file.url)
+                )
+            ).data)
         else:
             transaction.on_commit(
                 lambda: export_to_pdf.delay(flash_update.id)
             )
-            return Response({'status': 'pending', 'url': None})
+            return Response(ExportFlashUpdateViewSerializer(
+                dict(
+                    status='pending',
+                    url=None
+                )
+            ).data)

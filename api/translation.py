@@ -24,6 +24,8 @@ from .models import (
     SupportedActivity,
     EventFeaturedDocument,
     EventLink,
+    FieldReport,
+    Source,
 )
 
 
@@ -146,3 +148,9 @@ class EventFeaturedDocumentTO(TranslationOptions):
 class EventLinkTO(TranslationOptions):
     fields = ('title', 'description')
 
+
+@register(Source)
+class SourceTO(TranslationOptions):
+    fields = (
+        'spec',
+    )

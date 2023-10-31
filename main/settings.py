@@ -428,7 +428,8 @@ if not TESTING and APPLICATION_INSIGHTS_INSTRUMENTATION_KEY:
         'TRACE': {
             'SAMPLER': 'opencensus.trace.samplers.ProbabilitySampler(rate=1)',
             'EXPORTER': '''opencensus.ext.azure.trace_exporter.AzureExporter(
-                connection_string="InstrumentationKey={}"
+                connection_string="InstrumentationKey={}",
+                enable_local_storage=False,
             )'''.format(APPLICATION_INSIGHTS_INSTRUMENTATION_KEY)
         }
     }

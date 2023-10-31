@@ -1,4 +1,4 @@
-FROM python:3.8.12-buster
+FROM python:3.8.12-bullseye
 
 ENV PYTHONUNBUFFERED 1
 EXPOSE 80
@@ -25,8 +25,13 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     # Configure to use system instead of virtualenvs
     && poetry config virtualenvs.create false \
     && poetry install --no-root \
+    && poetry add playwright \
     # Clean-up
     && pip uninstall -y poetry virtualenv-clone virtualenv
+
+RUN playwright install \
+    && playwright install-deps
+
 
 # TODO: Refactor the whole Azure storage part. (Upgrade is not enough, was tested.)
 # Until then avoid some SyntaxWarnings ("is" with a literal):

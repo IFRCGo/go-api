@@ -29,13 +29,10 @@ from .models import (
     ERU,
     PersonnelDeployment,
     MolnixTag,
-    MolnixTagGroup,
     Personnel,
     PartnerSocietyActivities,
     PartnerSocietyDeployment,
     RegionalProject,
-    Sector,
-    SectorTag,
     Project,
     EmergencyProject,
     EmergencyProjectActivitySector,
@@ -45,6 +42,11 @@ from .models import (
     EmergencyProjectActivityLocation,
     OperationTypes,
     ProgrammeTypes,
+    Country,
+    District,
+    Region,
+    Admin2,
+    Event,
 )
 
 
@@ -70,23 +72,33 @@ class ERUSetSerializer(ModelSerializer):
 
 
 class ERUOwnerSerializer(ModelSerializer):
-    eru_set = ERUSetSerializer(many=True)
+    eru = ERUSetSerializer(many=True, source='eru_set')
     national_society_country = MiniCountrySerializer()
 
     class Meta:
         model = ERUOwner
-        fields = ('created_at', 'updated_at', 'national_society_country', 'eru_set', 'id',)
+        fields = ('created_at', 'updated_at', 'national_society_country', 'eru', 'id',)
 
 
 class ERUSerializer(ModelSerializer):
     deployed_to = MiniCountrySerializer()
-    event = ListEventSerializer()
+    event = ListEventSerializer(allow_null=True, required=False)
     eru_owner = ERUOwnerSerializer()
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = ERU
-        fields = ('type', 'type_display', 'units', 'equipment_units', 'deployed_to', 'event', 'eru_owner', 'available', 'id',)
+        fields = (
+            'type',
+            'type_display',
+            'units',
+            'equipment_units',
+            'deployed_to',
+            'event',
+            'eru_owner',
+            'available',
+            'id',
+        )
 
 
 class ERUOwnerMiniSerializer(ModelSerializer):
@@ -109,7 +121,7 @@ class ERUMiniSerializer(ModelSerializer):
 
 
 class PersonnelDeploymentSerializer(ModelSerializer):
-    country_deployed_to = MiniCountrySerializer()
+    country_deployed_to = MiniCountrySerializer(allow_null=True)
     event_deployed_to = SurgeEventSerializer()
 
     class Meta:
@@ -142,10 +154,12 @@ class PersonnelDeploymentCsvSerializer(ModelSerializer):
 # 3 versions: a "regular", an Anon(yme) and a Super(user) class:
 class PersonnelSerializer(ModelSerializer):
     # For regular logged in users | no molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
+    name = serializers.SerializerMethodField()
+    molnix_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Personnel
@@ -153,14 +167,26 @@ class PersonnelSerializer(ModelSerializer):
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
             'surge_alert_id', 'appraisal_received', 'gender', 'location',
-            'name',  # plus
+            'name', 'molnix_status',
         )
+
+    def get_name(self, personnel) -> str:
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return personnel.name
+        return None
+
+    def get_molnix_status(self, personnel) -> str:
+        user = self.context['request'].user
+        if user.is_authenticated and user.is_superuser:
+            return personnel.molnix_status
+        return None
 
 
 class PersonnelSerializerAnon(ModelSerializer):
     # Not logged in users | no name and molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
@@ -169,14 +195,14 @@ class PersonnelSerializerAnon(ModelSerializer):
         fields = (
             'start_date', 'end_date', 'role', 'type', 'country_from', 'country_to',
             'deployment', 'molnix_id', 'molnix_tags', 'is_active', 'id',
-            'surge_alert_id', 'appraisal_received', 'gender', 'location',
+            'surge_alert_id', 'appraisal_received', 'gender', 'location', "name",
         )
 
 
 class PersonnelSerializerSuper(ModelSerializer):
     # Superusers can see molnix_status
-    country_from = MiniCountrySerializer()
-    country_to = MiniCountrySerializer()
+    country_from = MiniCountrySerializer(allow_null=True)
+    country_to = MiniCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentSerializer()
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
@@ -192,8 +218,8 @@ class PersonnelSerializerSuper(ModelSerializer):
 
 # Don't forget to adapt drf_views::get_renderer_context if you change this:
 class PersonnelCsvSerializerBase(ModelSerializer):
-    country_from = NanoCountrySerializer()
-    country_to = NanoCountrySerializer()
+    country_from = NanoCountrySerializer(allow_null=True)
+    country_to = NanoCountrySerializer(allow_null=True)
     deployment = PersonnelDeploymentCsvSerializer()
     molnix_sector = serializers.SerializerMethodField()
     molnix_role_profile = serializers.SerializerMethodField()
@@ -385,11 +411,69 @@ class AnnualSplitSerializer(ModelSerializer):
         )
 
 
-class ProjectSerializer(ModelSerializer):
-    project_country_detail = MiniCountrySerializer(source='project_country', read_only=True)
-    project_districts_detail = MiniDistrictSerializer(source='project_districts', read_only=True, many=True)
-    project_admin2_detail = MiniAdmin2Serializer(source='project_admin2', read_only=True, many=True)
-    reporting_ns_detail = MiniCountrySerializer(source='reporting_ns', read_only=True)
+class DeployemntCountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = (
+            'id',
+            'name',
+            "iso",
+            "iso3",
+            "society_name",
+        )
+
+
+class DeploymentDistrictSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = District
+        fields = (
+            "id",
+            "name"
+        )
+
+
+class DeploymentRegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Region
+        fields = (
+            "id",
+            "name"
+        )
+
+
+class DeploymentAdmin2Serializer(serializers.ModelSerializer):
+    district_id = serializers.IntegerField(source="admin1.id", read_only=True)
+
+    class Meta:
+        model = Admin2
+        fields = (
+            "id",
+            "name",
+            "district_id",
+        )
+
+
+class DeploymentEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = (
+            "name",
+            "dtype",
+            "id",
+            "slug",
+            "parent_event",
+        )
+
+
+class ProjectSerializer(
+    NestedUpdateMixin,
+    NestedCreateMixin,
+    ModelSerializer
+):
+    project_country_detail = DeployemntCountrySerializer(source='project_country', read_only=True)
+    project_districts_detail = DeploymentDistrictSerializer(source='project_districts', read_only=True, many=True)
+    project_admin2_detail = DeploymentAdmin2Serializer(source='project_admin2', read_only=True, many=True)
+    reporting_ns_detail = DeployemntCountrySerializer(source='reporting_ns', read_only=True)
     dtype_detail = DisasterTypeSerializer(source='dtype', read_only=True)
     regional_project_detail = RegionalProjectSerializer(source='regional_project', read_only=True)
     event_detail = MiniEventSerializer(source='event', read_only=True)
@@ -399,11 +483,14 @@ class ProjectSerializer(ModelSerializer):
     operation_type_display = serializers.CharField(source='get_operation_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
-    annual_split_detail = AnnualSplitSerializer(source='annual_splits', many=True, read_only=True)
+    annual_splits = AnnualSplitSerializer(
+        many=True,
+        required=False
+    )
     modified_by_detail = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
 
     @staticmethod
-    def get_secondary_sectors_display(obj):
+    def get_secondary_sectors_display(obj) -> list:
         return [t.title for t in obj.secondary_sectors.all()]
 
     class Meta:
@@ -414,7 +501,12 @@ class ProjectSerializer(ModelSerializer):
             field: {
                 'allow_null': False, 'required': True,
             } for field in (
-                'reporting_ns', 'name', 'project_country', 'programme_type', 'primary_sector', 'project_districts',
+                'reporting_ns',
+                'name',
+                'project_country',
+                'programme_type',
+                'primary_sector',
+                'project_districts',
             )
         }
 
@@ -442,8 +534,8 @@ class ProjectSerializer(ModelSerializer):
         if self.context and 'request' in self.context:
             if 'is_annual_report' in self.context['request'].data:
                 project.is_annual_report = self.context['request'].data['is_annual_report']
-            if 'annual_split_detail' in self.context['request'].data:
-                project.annual_split_detail = self.context['request'].data['annual_split_detail']
+            # if 'annual_split_detail' in self.context['request'].data:
+            #     project.annual_split_detail = self.context['request'].data['annual_split_detail']
         project.user = self.context['request'].user
         project.save()
         return project
@@ -453,8 +545,8 @@ class ProjectSerializer(ModelSerializer):
         if self.context and 'request' in self.context:  # code đuplication
             if 'is_annual_report' in self.context['request'].data:
                 validated_data['is_annual_report'] = self.context['request'].data['is_annual_report']
-            if 'annual_split_detail' in self.context['request'].data:
-                validated_data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
+            # if 'annual_split_detail' in self.context['request'].data:
+            #     validated_data['annual_split_detail'] = self.context['request'].data['annual_split_detail']
         return super().update(instance, validated_data)
 
 
@@ -541,9 +633,6 @@ class EmergencyProjectActivityLocationSerializer(ModelSerializer):
 class EmergencyProjectOptionsSerializer(serializers.Serializer):
     sectors = EmergencyProjectActivitySectorSerializer(read_only=True, many=True)
     actions = EmergencyProjectActivityActionSerializer(read_only=True, many=True)
-    activity_leads = CharKeyValueSerializer(read_only=True, many=True)
-    activity_status = CharKeyValueSerializer(read_only=True, many=True)
-    activity_people_households = CharKeyValueSerializer(read_only=True, many=True)
 
 
 class EmergencyProjectActivitySerializer(
@@ -591,7 +680,7 @@ class EmergencyProjectSerializer(
     created_by_details = DeploymentMiniUserSerializer(source='created_by', read_only=True)
     modified_by_details = DeploymentMiniUserSerializer(source='modified_by', read_only=True)
     event_details = MiniEventSerializer(source='event', read_only=True)
-    reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True)
+    reporting_ns_details = MiniCountrySerializer(source='reporting_ns', read_only=True, allow_null=True, required=False)
     deployed_eru_details = ERUMiniSerializer(source='deployed_eru', read_only=True)
     districts_details = MiniDistrictSerializer(source='districts', read_only=True, many=True)
     admin2_details = MiniAdmin2Serializer(source='admin2', read_only=True, many=True)
@@ -604,12 +693,15 @@ class EmergencyProjectSerializer(
 
     class Meta:
         model = EmergencyProject
-        fields = ('id', 'created_by_details', 'modified_by_details', 'reporting_ns_details',
-                  'deployed_eru_details', 'districts_details', 'activities', 'event_details',
-                  'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
-                  'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts', 'status',
-                  'created_at', 'modified_at', 'start_date', 'end_date', 'admin2', 'admin2_details',
-                  )  # '__all__' | Both X_details + X fields are needed: outgoing + incoming data.
+        fields = (
+            'id', 'created_by_details', 'modified_by_details', 'reporting_ns_details',
+            'deployed_eru_details', 'districts_details', 'activities', 'event_details',
+            'activity_lead_display', 'status_display', 'country_details', 'visibility_display',
+            'title', 'activity_lead', 'reporting_ns', 'event', 'country', 'districts', 'status',
+            'created_at', 'modified_at', 'start_date', 'end_date', 'admin2', 'admin2_details',
+            'reporting_ns_contact_name', 'reporting_ns_contact_role',
+            'reporting_ns_contact_email', 'deployed_eru',
+        )  # '__all__' | Both X_details + X fields are needed: outgoing + incoming data.
         read_only_fields = (
             'created_by',
             'created_at',
@@ -647,3 +739,126 @@ class EmergencyProjectSerializer(
         return super().update(instance, validated_data)
 
 # ------ Emergency Project -- [End]
+
+
+class AggregateDeploymentsSerializer(serializers.Serializer):
+    active_deployments = serializers.IntegerField(required=False)
+    active_erus = serializers.IntegerField(required=False)
+    deployment_this_year = serializers.IntegerField(required=False)
+
+
+class ProjectPerSector(serializers.Serializer):
+    primary_sector = serializers.IntegerField()
+    primary_sector_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class GlobalProjectNSOngoingProjectsStatsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    iso3 = serializers.CharField()
+    society_name = serializers.CharField()
+    ongoing_projects = serializers.IntegerField(allow_null=True, required=False)
+    target_total = serializers.IntegerField(allow_null=True, required=False)
+    budget_amount_total = serializers.IntegerField(allow_null=True, required=False)
+    operation_types = serializers.ListField(
+        child=serializers.IntegerField(), required=False, allow_null=True
+    )
+    projects_per_sector = ProjectPerSector(many=True, required=False)
+    operation_types_display = serializers.ListField(
+        child=serializers.CharField(), required=False, allow_null=True
+    )
+
+
+class OverviewProjectsPerSector(serializers.Serializer):
+    primary_sector = serializers.IntegerField()
+    primary_sector_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class OverviewProjectsPerProgrammeType(serializers.Serializer):
+    programme_type = serializers.IntegerField()
+    programme_type_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class OverviewProjectsPerSecondarySectors(serializers.Serializer):
+    secondary_sectors = serializers.IntegerField()
+    secondary_sectors_display = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class GlobalProjectOverviewSerializer(serializers.Serializer):
+    total_ongoing_projects = serializers.IntegerField(allow_null=True, required=False)
+    ns_with_ongoing_activities = serializers.IntegerField(allow_null=True, required=False)
+    target_total = serializers.IntegerField(allow_null=True, required=False)
+    projects_per_sector = OverviewProjectsPerSector(many=True, allow_null=True)
+    projects_per_programme_type = OverviewProjectsPerProgrammeType(many=True, allow_null=True)
+    projects_per_secondary_sectors = OverviewProjectsPerSecondarySectors(many=True, allow_null=True)
+
+
+class DeploymentByNSSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    society_name = serializers.CharField()
+    deployments_count = serializers.IntegerField(allow_null=True, required=False)
+
+
+class DeploymentsByMonthSerializer(serializers.Serializer):
+    date = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class ProjectRegionOverviewStatusSerializer(serializers.Serializer):
+    status = serializers.IntegerField()
+    count = serializers.IntegerField()
+
+
+class ProjectRegionOverviewSerializer(serializers.Serializer):
+    total_projects = serializers.IntegerField(allow_null=True)
+    ns_with_ongoing_activities = serializers.IntegerField(allow_null=True)
+    total_budget = serializers.IntegerField(allow_null=True)
+    target_total = serializers.IntegerField(allow_null=True)
+    reached_total = serializers.IntegerField(allow_null=True)
+    projects_by_status = ProjectRegionOverviewStatusSerializer(allow_null=True, many=True)
+
+
+class ProjectRegionMovementActivitiesCountrySerializer(serializers.Serializer):
+    iso3 = serializers.CharField()
+    iso = serializers.CharField()
+    id = serializers.IntegerField()
+    projects_count = serializers.IntegerField()
+    planned_projects_count = serializers.IntegerField()
+    ongoing_projects_count = serializers.IntegerField()
+    completed_projects_count = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class ProjectRegionMovementActivitiesReportingNSSector(serializers.Serializer):
+    id = serializers.IntegerField()
+    sector = serializers.CharField()
+    count = serializers.IntegerField(allow_null=True)
+
+
+class ProjectRegionMovementActivitiesReportingNS(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    sectors = ProjectRegionMovementActivitiesReportingNSSector(many=True)
+
+
+class ProjectRegionMovementActivitiesCountrySectorSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    reporting_national_societies = ProjectRegionMovementActivitiesReportingNS(many=True)
+
+
+class ProjectRegionMovementActivitiesSupportingNSSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class ProjectRegionMovementActivitiesSerializer(serializers.Serializer):
+    total_projects = serializers.IntegerField(allow_null=True)
+    countries_count = ProjectRegionMovementActivitiesCountrySerializer(many=True)
+    country_ns_sector_count = ProjectRegionMovementActivitiesCountrySectorSerializer(many=True)
+    supporting_ns = ProjectRegionMovementActivitiesSupportingNSSerializer(many=True)

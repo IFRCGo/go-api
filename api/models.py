@@ -1,4 +1,6 @@
 import reversion
+import uuid
+
 from django.utils.translation import gettext_lazy as _
 # from django.db import models
 from django.contrib.gis.db import models
@@ -7,6 +9,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 # from django.db.models import Prefetch
 from django.dispatch import receiver
 from django.utils import timezone
+from django.db.models import Q
 from tinymce import HTMLField
 from django.core.validators import FileExtensionValidator, validate_slug, RegexValidator
 from django.contrib.postgres.fields import ArrayField
@@ -304,18 +307,18 @@ class Admin2Geoms(models.Model):
 
 
 class VisibilityChoices(models.IntegerChoices):
-    MEMBERSHIP = 1, _('Membership')
-    IFRC = 2, _('IFRC Only')
+    MEMBERSHIP = 1, _('RCRC Movement')
+    IFRC = 2, _('IFRC Secretariat')
     PUBLIC = 3, _('Public')
-    IFRC_NS = 4, _('IFRC_NS')
+    IFRC_NS = 4, _('IFRC and NS')
 
 
 class VisibilityCharChoices(models.TextChoices):
     """Same as VisibilityChoices but using char instead of Enum"""
-    MEMBERSHIP = 'logged_in_user', _('Membership')
-    IFRC = 'ifrc_only', _('IFRC Only')
+    MEMBERSHIP = 'logged_in_user', _('RCRC Movement')
+    IFRC = 'ifrc_only', _('IFRC Secretariat')
     PUBLIC = 'public', _('Public')
-    IFRC_NS = 'ifrc_ns', _('IFRC_NS')
+    IFRC_NS = 'ifrc_ns', _('IFRC and NS')
 
 
 # Common parent class for key figures.
@@ -776,7 +779,7 @@ def sitrep_document_path(instance, filename):
     return 'sitreps/%s/%s' % (instance.event.id, filename)
 
 
-@reversion.register()
+@reversion.register(follow=('event',))
 class SituationReport(models.Model):
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
     name = models.CharField(verbose_name=_('name'), max_length=100)
@@ -874,8 +877,8 @@ class Appeal(models.Model):
     sector = models.CharField(verbose_name=_('sector'), max_length=100, blank=True)
 
     num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
-    amount_requested = models.DecimalField(verbose_name=_('amount requested'), max_digits=12, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(verbose_name=_('amount funded'), max_digits=12, decimal_places=2, default=0.00)
+    amount_requested = models.FloatField(verbose_name=_('amount requested'), default=0.00)
+    amount_funded = models.FloatField(verbose_name=_('amount funded'), default=0.00)
 
     start_date = models.DateTimeField(verbose_name=_('start date'), null=True)
     end_date = models.DateTimeField(verbose_name=_('end date'), null=True)
@@ -981,8 +984,8 @@ def appeal_document_path(instance, filename):
 class AppealHistory(models.Model):
     """ AppealHistory results """
     num_beneficiaries = models.IntegerField(verbose_name=_('number of beneficiaries'), default=0)
-    amount_requested = models.DecimalField(verbose_name=_('amount requested'), max_digits=12, decimal_places=2, default=0.00)
-    amount_funded = models.DecimalField(verbose_name=_('amount funded'), max_digits=12, decimal_places=2, default=0.00)
+    amount_requested = models.FloatField(verbose_name=_('amount requested'), default=0.00)
+    amount_funded = models.FloatField(verbose_name=_('amount funded'), default=0.00)
     valid_from = models.DateTimeField(verbose_name=_('valid_from'), null=True)
     valid_to = models.DateTimeField(verbose_name=_('valid_to'), null=True)
     aid = models.CharField(verbose_name=_('appeal ID'), max_length=20)
@@ -1089,7 +1092,7 @@ class RequestChoices(models.IntegerChoices):
     NO = 0, _('No')
     REQUESTED = 1, _('Requested')
     PLANNED = 2, _('Planned')
-    COMPLETE = 3, _('Complete')
+    COMPLETE = 3, _('Completed')
 
 
 class EPISourceChoices(models.IntegerChoices):
@@ -1175,8 +1178,8 @@ class FieldReport(models.Model):
         UNKNOWN = 0, _('Unknown')
         TWO = 2, _('Two')  # legacy usage
         THREE = 3, _('Three')  # legacy usage
-        EW = 8, _('Early Warning')
-        EVT = 9, _('Event-related')
+        EW = 8, _('Early Warning / Early Action')
+        EVT = 9, _('Event')
         TEN = 10, _('Ten')  # legacy usage. Covid?
 
     class RecentAffected(models.IntegerChoices):
@@ -1206,14 +1209,19 @@ class FieldReport(models.Model):
     description = HTMLField(verbose_name=_('description'), blank=True, default='')
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), on_delete=models.PROTECT)
     event = models.ForeignKey(
-        Event, verbose_name=_('event'), related_name='field_reports', null=True, blank=True, on_delete=models.SET_NULL
+        Event, verbose_name=_('event'),
+        related_name='field_reports',
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     districts = models.ManyToManyField(District, verbose_name=_('districts'), blank=True)
     countries = models.ManyToManyField(Country, verbose_name=_('countries'))
     regions = models.ManyToManyField(Region, verbose_name=_('regions'), blank=True)
     # This entity is more a type than a status, so let's label it this way on admin page:
-    status = models.IntegerField(choices=Status.choices, verbose_name=_('type'), default=0,
-        help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>')
+    status = models.IntegerField(
+        choices=Status.choices, verbose_name=_('type'), default=0,
+        help_text='<a target="_blank" href="/api/v2/fieldreportstatus">Key/value pairs</a>'
+    )
     request_assistance = models.BooleanField(verbose_name=_('request assistance'), default=None, null=True, blank=True)
     ns_request_assistance = models.BooleanField(verbose_name=_('NS request assistance'), default=None, null=True, blank=True)
 
@@ -1256,14 +1264,30 @@ class FieldReport(models.Model):
     )
     epi_notes_since_last_fr = models.TextField(verbose_name=_('notes'), null=True, blank=True)
 
-    who_num_assisted = models.IntegerField(verbose_name=_('number of assisted (who)'), null=True, blank=True, help_text=_('not used any more'))
-    health_min_num_assisted = models.IntegerField(verbose_name=_('number of assisted (ministry of health)'), null=True, blank=True, help_text=_('not used any more'))
+    who_num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted (who)'),
+        null=True, blank=True,
+        help_text=_('not used any more')
+    )
+    health_min_num_assisted = models.IntegerField(
+        verbose_name=_('number of assisted (ministry of health)'),
+        null=True, blank=True,
+        help_text=_('not used any more')
+    )
 
     # Early Warning fields
-    gov_num_potentially_affected = models.IntegerField(verbose_name=_('potentially affected (goverment)'), null=True, blank=True)
-    gov_num_highest_risk = models.IntegerField(verbose_name=_('people at highest risk (goverment)'), null=True, blank=True)
+    gov_num_potentially_affected = models.IntegerField(
+        verbose_name=_('potentially affected (goverment)'),
+        null=True, blank=True
+    )
+    gov_num_highest_risk = models.IntegerField(
+        verbose_name=_('people at highest risk (goverment)'),
+        null=True, blank=True
+    )
     gov_affected_pop_centres = models.CharField(
-        verbose_name=_('affected population centres (goverment)'), max_length=512, blank=True, null=True)
+        verbose_name=_('affected population centres (goverment)'),
+        max_length=512, blank=True, null=True
+    )
 
     other_num_injured = models.IntegerField(verbose_name=_('number of injured (other)'), null=True, blank=True)
     other_num_dead = models.IntegerField(verbose_name=_('number of dead (other)'), null=True, blank=True)
@@ -1277,7 +1301,10 @@ class FieldReport(models.Model):
         verbose_name=_('number of potentially affected (other)'), null=True, blank=True)
     other_num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk (other)'), null=True, blank=True)
     other_affected_pop_centres = models.CharField(
-        verbose_name=_('number of affected population centres (other)'), max_length=512, blank=True, null=True)
+        verbose_name=_('number of affected population centres (other)'),
+        max_length=512,
+        blank=True, null=True
+    )
 
     # Date of data for situation fields
     sit_fields_date = models.DateTimeField(verbose_name=_('situation fields date'), blank=True, null=True)
@@ -1292,23 +1319,62 @@ class FieldReport(models.Model):
     visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_('visibility'), default=1)
 
     # information
-    bulletin = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('bulletin'), default=0)
-    dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('DREF'), default=0)
+    bulletin = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('bulletin'),
+        default=0,
+        null=True
+    )
+    dref = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('DREF'),
+        default=0,
+        null=True
+    )
     dref_amount = models.IntegerField(verbose_name=_('DREF amount'), null=True, blank=True)
-    appeal = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('appeal'), default=0)
+    appeal = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('appeal'),
+        default=0,
+        null=True
+    )
     appeal_amount = models.IntegerField(verbose_name=_('appeal amount'), null=True, blank=True)
-    imminent_dref = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('imminent dref'), default=0)  # only EW
-    imminent_dref_amount = models.IntegerField(null=True, verbose_name=_('imminent dref amount'), blank=True)  # only EW
-    forecast_based_action = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('forecast based action'), default=0)  # only EW
+    imminent_dref = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('imminent dref'),
+        default=0,
+        null=True
+    )  # only EW
+    imminent_dref_amount = models.IntegerField(
+        null=True,
+        verbose_name=_('imminent dref amount'),
+        blank=True
+    )  # only EW
+    forecast_based_action = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('forecast based action'),
+        default=0,
+        null=True
+    )  # only EW
     forecast_based_action_amount = models.IntegerField(
         verbose_name=_('forecast based action amount'), null=True, blank=True)  # only EW
 
     # disaster response
     rdrt = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('RDRT'), default=0)
     num_rdrt = models.IntegerField(verbose_name=_('number of RDRT'), null=True, blank=True)
-    fact = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('fact'), default=0)
+    fact = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('fact'),
+        default=0,
+        null=True
+    )
     num_fact = models.IntegerField(verbose_name=_('number of fact'), null=True, blank=True)
-    ifrc_staff = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('IFRC staff'), default=0)
+    ifrc_staff = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('IFRC staff'),
+        default=0,
+        null=True
+    )
     num_ifrc_staff = models.IntegerField(verbose_name=_('number of IFRC staff'), null=True, blank=True)
 
     # ERU units
@@ -1353,8 +1419,12 @@ class FieldReport(models.Model):
     supported_activities = models.ManyToManyField(
         SupportedActivity, verbose_name=_('supported activities'), blank=True
     )
-    recent_affected = models.IntegerField(choices=RecentAffected.choices, verbose_name=_('recent source of affected people'), default=0,
-        help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>')
+    recent_affected = models.IntegerField(
+        choices=RecentAffected.choices,
+        verbose_name=_('recent source of affected people'),
+        default=0,
+        help_text='<a target="_blank" href="/api/v2/recentaffected">Key/value pairs</a>'
+    )
 
     # start_date is now what the user explicitly sets while filling the Field Report form.
     start_date = models.DateTimeField(verbose_name=_('start date'), blank=True, null=True)
@@ -1391,7 +1461,7 @@ class FieldReport(models.Model):
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
-        ns =        [c.id   for c in self.countries.all()]
+        ns = [c.id for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.event_id,
@@ -1422,6 +1492,18 @@ class FieldReport(models.Model):
     #         _queryset = cls.objects
     #     import pdb; pdb.set_trace();
     #     return _queryset.filter(user=user)
+
+    @staticmethod
+    def get_for(user, queryset=None):
+        countries_qs = (
+            UserCountry.objects.filter(user=user)
+            .values("country")
+            .union(Profile.objects.filter(user=user).values("country"))
+        )
+        return queryset.exclude(
+            Q(visibility=VisibilityChoices.IFRC_NS) &
+            ~Q(countries__in=countries_qs)
+        )
 
     def __str__(self):
         summary = self.summary if self.summary is not None else 'Summary not available'
@@ -1551,11 +1633,11 @@ class Source(models.Model):
 class Profile(models.Model):
     """ Holds location and identifying information about users """
     class OrgTypes(models.TextChoices):
-         NTLS = 'NTLS', _('National Society')
-         DLGN = 'DLGN', _('Delegation')
-         SCRT = 'SCRT', _('Secretariat')
-         ICRC = 'ICRC', _('ICRC')
-         OTHR = 'OTHR', _('Other')
+        NTLS = 'NTLS', _('National Society')
+        DLGN = 'DLGN', _('Delegation')
+        SCRT = 'SCRT', _('Secretariat')
+        ICRC = 'ICRC', _('ICRC')
+        OTHR = 'OTHR', _('Other')
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -1603,7 +1685,10 @@ class EmergencyOperationsBase(models.Model):
     raw_glide_number = models.TextField(verbose_name=_('glide number (raw)'), null=True, blank=True)
     raw_num_of_people_to_be_assisted = models.TextField(
         verbose_name=_('number of people to be assisted (raw)'), null=True, blank=True)
-    raw_num_of_people_affected = models.TextField(verbose_name=_('number of people affected (raw)'), null=True, blank=True)
+    raw_num_of_people_affected = models.TextField(
+        verbose_name=_('number of people affected (raw)'),
+        null=True, blank=True
+    )
     raw_operation_start_date = models.TextField(null=True, blank=True)
     raw_dref_allocated = models.TextField(null=True, blank=True)
 
@@ -1651,7 +1736,10 @@ class EmergencyOperationsBase(models.Model):
         verbose_name=_('number of protection gender and inclusion requirements (raw)'), null=True, blank=True)
     raw_shelter_female = models.TextField(verbose_name=_('number of shelter female (raw)'), null=True, blank=True)
     raw_shelter_male = models.TextField(verbose_name=_('number of shelter male (raw)'), null=True, blank=True)
-    raw_shelter_people_reached = models.TextField(verbose_name=_('number of shelter people reached (raw)'), null=True, blank=True)
+    raw_shelter_people_reached = models.TextField(
+        verbose_name=_('number of shelter people reached (raw)'),
+        null=True, blank=True
+    )
     raw_shelter_people_targeted = models.TextField(
         verbose_name=_('number of shelter people targeted (raw)'), null=True, blank=True)
     raw_shelter_requirements = models.TextField(verbose_name=_('number of shelter requirements (raw)'), null=True, blank=True)
@@ -1672,7 +1760,10 @@ class EmergencyOperationsBase(models.Model):
     date_of_issue = models.DateField(verbose_name=_('date of issue'), null=True, blank=True)
     glide_number = models.CharField(verbose_name=_('glide number'), max_length=18, null=True, blank=True)
     num_of_people_affected = models.IntegerField(verbose_name=_('number of people affected'), null=True, blank=True)
-    num_of_people_to_be_assisted = models.IntegerField(verbose_name=_('number of people to be assisted'), null=True, blank=True)
+    num_of_people_to_be_assisted = models.IntegerField(
+        verbose_name=_('number of people to be assisted'),
+        null=True, blank=True
+    )
     operation_start_date = models.DateField(verbose_name=_('operation start date'), null=True, blank=True)
 
     dref_allocated = models.IntegerField(verbose_name=_('DREF allocated'), null=True, blank=True)
@@ -1718,8 +1809,12 @@ class EmergencyOperationsBase(models.Model):
         verbose_name=_('number of protection gender and inclusion requirements'), null=True, blank=True)
     shelter_female = models.IntegerField(verbose_name=_('number of shelter female'), null=True, blank=True)
     shelter_male = models.IntegerField(verbose_name=_('number of shelter male'), null=True, blank=True)
-    shelter_people_reached = models.IntegerField(verbose_name=_('number of shelter people reached'), null=True, blank=True)
-    shelter_people_targeted = models.IntegerField(verbose_name=_('number of shelter people targeted'), null=True, blank=True)
+    shelter_people_reached = models.IntegerField(
+        verbose_name=_('number of shelter people reached'), null=True, blank=True
+    )
+    shelter_people_targeted = models.IntegerField(
+        verbose_name=_('number of shelter people targeted'), null=True, blank=True
+    )
     shelter_requirements = models.IntegerField(verbose_name=_('number of shelter people requirements'), null=True, blank=True)
     water_sanitation_and_hygiene_female = models.IntegerField(
         verbose_name=_('water sanitation and hygiene female'), null=True, blank=True)
@@ -2074,9 +2169,67 @@ class ERPGUID(models.Model):
     )
     field_report = models.ForeignKey(FieldReport, verbose_name=_('field report'), on_delete=models.CASCADE)
 
+
 class CountryOfFieldReportToReview(models.Model):
     country = models.OneToOneField(Country, verbose_name=_('country'), on_delete=models.DO_NOTHING, primary_key=True)
 
     class Meta:
         verbose_name = "Country of Field Report to review"
         verbose_name_plural = "Countries of Field Report to review"
+
+
+class Export(models.Model):
+    class ExportStatus(models.IntegerChoices):
+        PENDING = 0, _('Pending')
+        COMPLETED = 1, _('Completed')
+        ERRORED = 2, _('Errored')
+
+    class ExportType(models.TextChoices):
+        DREF = 'dref-applications', _('Dref Applications')
+        OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
+        FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
+
+    export_id = models.IntegerField(verbose_name=_('Export Id'))
+    export_type = models.CharField(
+        verbose_name=_('Export Type'),
+        max_length=255,
+        choices=ExportType.choices
+    )
+    url = models.URLField(verbose_name=_("Url"), max_length=255, null=True, blank=True)
+    token = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True
+    )
+    requested_at = models.DateTimeField(
+        verbose_name=_('Requested At'),
+        null=True, blank=True
+    )
+    completed_at = models.DateTimeField(
+        verbose_name=_('Completed At'),
+        null=True, blank=True
+    )
+    status = models.IntegerField(
+        verbose_name=_('Status'),
+        choices=ExportStatus.choices,
+        default=ExportStatus.PENDING
+    )
+    pdf_file = models.FileField(
+        verbose_name=_('Pdf File'),
+        max_length=255,
+        null=True, blank=True,
+        upload_to="pdf-export/",
+    )
+    selector = models.CharField(
+        verbose_name=_('Selector'),
+        max_length=255,
+        null=True, blank=True
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('user'),
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    def __str__(self):
+        return f'{self.url} - {self.token}'

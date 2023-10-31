@@ -26,7 +26,9 @@ def push_fr_data(data, retired=False):
 
     try:
         countryNamesSet = set(
-            country.iso for country in chain(data.event.countries.all(), data.countries.all())
+            country.iso for country in chain(
+                data.event.countries.all() if data.event else [],
+                data.countries.all())
         )  # Country ISO2 codes in emergency
         countryNames = list(countryNamesSet)
     except AttributeError:
@@ -71,6 +73,18 @@ def push_fr_data(data, retired=False):
         data.gov_num_potentially_affected,
         data.other_num_potentially_affected][index]
 
+    # index == 0 means undefined. So we estimate it:
+    MaxNumberOfPeopleAffected = max(
+        data.num_affected or 0,
+        data.gov_num_affected or 0,
+        data.other_num_affected or 0,
+        data.num_potentially_affected or 0,
+        data.gov_num_potentially_affected or 0,
+        data.other_num_potentially_affected or 0)
+
+    if index == 0 and 0 < MaxNumberOfPeopleAffected:
+        NumberOfPeopleAffected = MaxNumberOfPeopleAffected
+
     payload = {
         "Emergency": {
             "EmergencyId": 0 if data.event_id is None else data.event_id,  # Emergency ID, RequestId
@@ -84,7 +98,7 @@ def push_fr_data(data, retired=False):
                 "ReportedDateTime": data.updated_at.strftime("%Y-%m-%d, %H:%M:%S"),  # Field Report Updated at !!!FIXME!!!
                 "RequestCreationDate": data.created_at.strftime("%Y-%m-%d, %H:%M:%S"),
                 "AffectedCountries": countryNames,  # CountryNames – Country ISO2 codes,
-                "NumberOfPeopleAffected": NumberOfPeopleAffected,
+                "NumberOfPeopleAffected": NumberOfPeopleAffected or 0,
                 "InitialRequestType": InitialRequestType,
                 "IFRCFocalPoint": {"Name": c_ifrc_names},
                 "NSFocalPoint": {"Name": c_ns_names},

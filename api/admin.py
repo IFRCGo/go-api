@@ -430,6 +430,7 @@ class UserCountryAdmin(CompareVersionAdmin):
     list_display = ('user', 'country')
     # search_fields = ('user','country')
     model = models.UserCountry
+    autocomplete_fields = ('user', 'country',)
 
 
 class UserRegionAdmin(CompareVersionAdmin):
@@ -786,6 +787,11 @@ class CountryOfFieldReportToReviewAdmin(admin.ModelAdmin):
     @classmethod
     def has_add_permission(cls, request, obj=None):
         return request.user.is_superuser
+
+
+@admin.register(models.Export)
+class ExportTokenAdmin(admin.ModelAdmin):
+    pass
 
 
 admin.site.register(models.DisasterType, DisasterTypeAdmin)

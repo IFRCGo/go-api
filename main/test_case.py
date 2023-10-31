@@ -16,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import override_settings
 
-from api.models import Country
+from api.models import Country, Region
 from deployments.factories.user import UserFactory
 
 from lang.translation import BaseTranslator
@@ -77,6 +77,8 @@ class GoAPITestMixin():
             last_name='GO',
             password='test123',
             email='jon@@ifrc.org',
+            is_superuser=True,
+            is_staff=True,
         )
         self.aws_translator = BaseTranslator()
 
@@ -85,7 +87,26 @@ class GoAPITestMixin():
             content_type=ContentType.objects.get_for_model(Country),
             name='IFRC Admin',
         )
+        self.per_country_permission = Permission.objects.create(
+            codename='per_country_admin',
+            content_type=ContentType.objects.get_for_model(Country),
+            name='PER Admin for',
+        )
+
+        self.per_region_permission = Permission.objects.create(
+            codename='per_region_admin',
+            content_type=ContentType.objects.get_for_model(Region),
+            name='PER Admin for',
+        )
+        self.per_core_permission = Permission.objects.create(
+            codename='per_core_admin',
+            content_type=ContentType.objects.get_for_model(Country),
+            name='PER Core Admin',
+        )
         self.ifrc_user.user_permissions.add(self.ifrc_permission)
+        self.ifrc_user.user_permissions.add(self.per_country_permission)
+        self.ifrc_user.user_permissions.add(self.per_region_permission)
+        self.ifrc_user.user_permissions.add(self.per_core_permission)
 
     def authenticate(self, user=None):
         if user is None:
