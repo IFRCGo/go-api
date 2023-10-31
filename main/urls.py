@@ -198,6 +198,7 @@ urlpatterns = [
     url(r"^verify_email", VerifyEmail.as_view()),
     url(r"^validate_user", ValidateUser.as_view()),
     url(r"^change_password", registration_views.ChangePasswordView.as_view()),
+    url(r"^change_recover_password", registration_views.ChangeRecoverPasswordView.as_view()),
     url(r"^recover_password", RecoverPassword.as_view()),
     url(r"^show_username", ShowUsername.as_view()),
     url(r"^resend_validation", ResendValidation.as_view()),

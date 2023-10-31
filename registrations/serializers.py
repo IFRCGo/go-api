@@ -23,26 +23,20 @@ class DomainWhitelistSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ChangePasswordSerializer(serializers.Serializer):
+class ChangeRecoverPasswordSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
-    new_password = serializers.CharField()
     token = serializers.CharField()
-
-    def validate_password(self, password):
-        request = self.context.get('request')
-        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
-        if not user.check_password(password):
-            raise serializers.ValidationError('Invalid Old Password')
-        return password
+    new_password = serializers.CharField()
 
     def validate_new_password(self, new_password):
         validate_password(new_password)
         return new_password
 
-    def validate_token(self, token):
-        request = self.context.get('request')
-        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
+    def validate(self, data):
+        username = data['username']
+        token = data['token']
+        data['user'] = user = User.objects.filter(username__iexact=username).first()
+
         recovery = Recovery.objects.filter(user=user).first()
         if recovery is None:
             raise serializers.ValidationError("Could not authenticate")
@@ -50,10 +44,32 @@ class ChangePasswordSerializer(serializers.Serializer):
         if recovery.token != token:
             return serializers.ValidationError("Could not authenticate")
         recovery.delete()
+        return data
 
     def save(self):
-        request = self.context.get('request')
-        user = request.user if (request and hasattr(request, 'user')) else User.objects.filter(username__iexact=self.username).first()
+        self.is_valid(raise_exception=True)
+        user = self.validated_data['user']
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate_old_password(self, password):
+        user = self.context['request'].user
+        if not user.check_password(password):
+            raise serializers.ValidationError('Invalid Old Password')
+        return password
+
+    def validate_new_password(self, password):
+        validate_password(password)
+        return password
+
+    def save(self):
+        self.is_valid(raise_exception=True)
+        user = self.context['request'].user
         user.set_password(self.validated_data['new_password'])
         user.save()
 
