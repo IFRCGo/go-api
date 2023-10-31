@@ -1,6 +1,7 @@
 import requests
 import json
 
+
 class MolnixApi:
 
     access_token = None
@@ -22,7 +23,7 @@ class MolnixApi:
         if method == 'POST':
             res = requests.post(url, json=params, headers=headers)
         if res.status_code > 300:
-            raise Exception('call to %s failed' % url) #FIXME: print msg from API
+            raise Exception('call to %s failed' % url)  # FIXME: print msg from API
         return res.json()
 
     def call_api_paginated(self, path, response_key=None, params={}):
@@ -47,7 +48,7 @@ class MolnixApi:
             'password': self.password
         }
         response = self.call_api('login', 'POST', params)
-        if not 'access_token' in response.keys():
+        if 'access_token' not in response.keys():
             raise Exception('unexpected response to login')
         self.access_token = response['access_token']
         return True
@@ -59,31 +60,19 @@ class MolnixApi:
         return self.call_api(path='tags/edit/%d' % id)['tag']['groups']
 
     def get_open_positions(self):
-        positions_filter = {
-            "positionoperator": "",
-            "orderBy": "start",
-            "orderType": "DESC",
-            "status": [
-                "active",
-                "archived",
-                "unfilled"
-            ]
-        }
-        params = {
-            "filter": json.dumps(positions_filter)
-        }
-        return self.call_api_paginated(path='positions', response_key='positions', params=params)
+        # return self.call_api_paginated(path='positions', response_key='positions')
+        return self.call_api(path='positions/open')
 
     def get_deployments(self):
         deployments_filter = {
-            "persontags":[],
-            "personoperator":"",
-            "deploymenttags":[],
-            "deploymentoperator":"",
-            "orderBy":"ID",
-            "orderType":"DESC",
-            "userroles":[],
-            "criterias":"[]"
+            "persontags": [],
+            "personoperator": "",
+            "deploymenttags": [],
+            "deploymentoperator": "",
+            "orderBy": "ID",
+            "orderType": "DESC",
+            "userroles": [],
+            "criterias": "[]"
         }
         params = {
             'filter': json.dumps(deployments_filter)

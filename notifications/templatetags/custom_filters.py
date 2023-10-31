@@ -2,6 +2,7 @@ from django.template import Library, Node
 
 register = Library()
 
+
 @register.tag
 def lineless(parser, token):
     nodelist = parser.parse(('endlineless',))
@@ -20,6 +21,7 @@ class LinelessNode(Node):
             if line.strip():
                 output_str = '\n'.join((output_str, line))
         return output_str
+
 
 @register.filter
 def to_bold(value):

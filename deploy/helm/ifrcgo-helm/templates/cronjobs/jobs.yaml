@@ -28,10 +28,10 @@ spec:
               # We may eventually want these resources to be configurable per job
               resources:
                 requests:
-                  cpu: 2
-                  memory: 4Gi 
+                  cpu: 1
+                  memory: 2Gi 
                 limits:
-                  cpu: 3
-                  memory: 6Gi
+                  cpu: 1
+                  memory: 2Gi
               #FIXME: Add onFailure policy, retries, etc.
 {{- end }}

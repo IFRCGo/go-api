@@ -6,12 +6,11 @@ from deployments.factories.user import UserFactory
 from deployments.factories.project import SectorFactory, SectorTagFactory, ProjectFactory
 from api.factories import country, district
 import api.models as models
-from deployments.models import Project, VisibilityCharChoices, SectorTag
+from deployments.models import Project, VisibilityCharChoices
 
 from .factories.personnel import PersonnelFactory
 from deployments.factories.emergency_project import (
     EmergencyProjectActivityFactory,
-    EmergencyProjectFactory,
     EmergencyProjectActivityActionFactory,
     EmergencyProjectActivitySectorFactory,
     EruFactory,

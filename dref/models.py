@@ -357,29 +357,23 @@ class Dref(models.Model):
         blank=True,
         null=True,
     )
-    disability_people_per = models.DecimalField(
+    disability_people_per = models.FloatField(
         verbose_name=_("disability people per"),
         help_text=_("Estimated % people disability"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
-    people_per_urban = models.DecimalField(
+    people_per_urban = models.FloatField(
         verbose_name=_("people per urban"),
         help_text=_("Estimated % people Urban"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
-    people_per_local = models.DecimalField(
+    people_per_local = models.FloatField(
         verbose_name=_("people per local"),
         help_text=_("Estimated % people Rural"),
         blank=True,
         null=True,
-        max_digits=5,
-        decimal_places=2,
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"),
@@ -624,10 +618,10 @@ class Dref(models.Model):
                 .values("c")[:1],
             ),
         ).filter(
-            models.Q(created_user_list=user_id)
-            | models.Q(users_list__contains=current_user_list)
-            | models.Q(op_users__contains=current_user_list)
-            | models.Q(fr_users__contains=current_user_list)
+            models.Q(created_user_list=user_id) |
+            models.Q(users_list__contains=current_user_list) |
+            models.Q(op_users__contains=current_user_list) |
+            models.Q(fr_users__contains=current_user_list)
         ).distinct()
 
 
@@ -876,14 +870,23 @@ class DrefOperationalUpdate(models.Model):
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
     boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.DecimalField(
-        verbose_name=_("disability people per"), blank=True, null=True, max_digits=5, decimal_places=2
+    disability_people_per = models.FloatField(
+        verbose_name=_("disability people per"),
+        help_text=_("Estimated % people disability"),
+        blank=True,
+        null=True,
     )
-    people_per_urban = models.DecimalField(
-        verbose_name=_("people per urban"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_urban = models.FloatField(
+        verbose_name=_("people per urban"),
+        help_text=_("Estimated % people Urban"),
+        blank=True,
+        null=True,
     )
-    people_per_local = models.DecimalField(
-        verbose_name=_("people per local"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_local = models.FloatField(
+        verbose_name=_("people per local"),
+        help_text=_("Estimated % people Rural"),
+        blank=True,
+        null=True,
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"), blank=True, null=True
@@ -987,13 +990,16 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         help_text=_("Any identified gaps/limitations in the assessment"),
     )
+    is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
+    event_text = models.TextField(verbose_name=_("event text"), blank=True, null=True)
+    did_national_society = models.BooleanField(verbose_name=_("Did National Society"), null=True, blank=True)
 
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
 
     def save(self, *args, **kwargs):
-        # self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
+        self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -1115,6 +1121,18 @@ class DrefFinalReport(models.Model):
     media_contact_phone_number = models.CharField(
         verbose_name=_("media_contact phone number"), max_length=100, null=True, blank=True
     )
+    regional_focal_point_name = models.CharField(
+        verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_email = models.CharField(
+        verbose_name=_("regional focal point email"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_title = models.CharField(
+        verbose_name=_("regional focal point title"), max_length=255, null=True, blank=True
+    )
+    regional_focal_point_phone_number = models.CharField(
+        verbose_name=_("regional focal point phone number"), max_length=100, null=True, blank=True
+    )
     event_map = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
@@ -1178,14 +1196,17 @@ class DrefFinalReport(models.Model):
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
     boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
-    disability_people_per = models.DecimalField(
-        verbose_name=_("disability people per"), blank=True, null=True, max_digits=5, decimal_places=2
+    disability_people_per = models.FloatField(
+        verbose_name=_("disability people per"),
+        blank=True, null=True
     )
-    people_per_urban = models.DecimalField(
-        verbose_name=_("people per urban"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_urban = models.FloatField(
+        verbose_name=_("people per urban"),
+        blank=True, null=True
     )
-    people_per_local = models.DecimalField(
-        verbose_name=_("people per local"), blank=True, null=True, max_digits=5, decimal_places=2
+    people_per_local = models.FloatField(
+        verbose_name=_("people per local"),
+        blank=True, null=True
     )
     people_targeted_with_early_actions = models.IntegerField(
         verbose_name=_("people targeted with early actions"), blank=True, null=True
@@ -1284,6 +1305,11 @@ class DrefFinalReport(models.Model):
         null=True,
         blank=True
     )
+    operation_end_date = models.DateField(
+        verbose_name=_("Operation End Date"),
+        null=True, blank=True
+    )
+
     __financial_report_id = None
 
     class Meta:

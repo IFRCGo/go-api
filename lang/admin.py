@@ -10,11 +10,11 @@ from modeltranslation.manager import (
     append_fallback,
 )
 
-from django.utils.translation import gettext
+from django.utils.translation import gettext, gettext_lazy as _
 from django.contrib import admin
-from django.urls import reverse
+from django.db import models
+from django.urls import reverse, path
 from django.shortcuts import redirect
-from django.urls import path
 from django.utils.translation import get_language
 
 # from middlewares.middlewares import get_signal_request
@@ -155,8 +155,79 @@ MultilingualQuerySet._values = multilingual_queryset__values
 MultilingualQuerySet.values = multilingual_queryset_values
 
 
+class StringStaleFilter(admin.SimpleListFilter):
+    title = _('Stale strings')
+    parameter_name = 'is_stale'
+
+    def lookups(self, *_):
+        return [
+            (True, 'True'),
+        ]
+
+    def queryset(self, _, queryset):
+        value = self.value()
+        if value is None:
+            return queryset
+        queryset = queryset.exclude(language='en').annotate(
+            en_value_hash=models.Subquery(
+                String.objects.filter(
+                    page_name=models.OuterRef('page_name'),
+                    key=models.OuterRef('key'),
+                    language='en',
+                ).values('hash')[:1],
+                output_field=models.CharField(),
+            ),
+        )
+        return queryset.exclude(
+            hash=models.F('en_value_hash')
+        )
+
+
 @admin.register(String)
 class StringAdmin(admin.ModelAdmin):
-    search_fields = ('language', 'value',)
-    list_display = ('key', 'language', 'value')
-    list_filter = ('language',)
+    search_fields = (
+        'key',
+        'page_name',
+        'value',
+        'hash',
+    )
+    list_display = (
+        'page_name',
+        'key',
+        'language',
+        'value',
+        'hash',
+    )
+    list_filter = (
+        'language',
+        StringStaleFilter,
+    )
+    readonly_fields = (
+        'language',
+        'page_name',
+        'key',
+        'hash',
+    )
+
+    def has_add_permission(self, *_):
+        return False
+
+    def has_change_permission(self, _, obj=None):
+        if obj and obj.language == 'en':
+            return False
+        return True
+
+    def has_delete_permission(self, *_):
+        return False
+
+    def save_model(self, request, obj, form, change):
+        """
+        Update hash to use main language value
+        NOTE: Save will be treated as stale fixed
+        """
+        obj.hash = String.objects.get(
+            page_name=obj.page_name,
+            key=obj.key,
+            language='en',
+        ).hash
+        super().save_model(request, obj, form, change)

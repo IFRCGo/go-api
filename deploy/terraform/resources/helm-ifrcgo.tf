@@ -6,6 +6,12 @@ resource "helm_release" "ifrcgo" {
     helm_release.ifrcgo-ingress-nginx,
     helm_release.ifrcgo-cert-manager
   ]
+
+  values = [
+    file("${path.root}/../helm/ifrcgo-helm/values.yaml"),
+    file("${path.root}/../helm/ifrcgo-helm/values-${var.environment}.yaml"),
+  ]
+
   set {
     name  = "environment"
     value = var.environment

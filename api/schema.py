@@ -1,6 +1,14 @@
 import graphene
 from graphene_django.types import DjangoObjectType
-from .models import Country, DisasterType, Country, ActionsTaken, Event, Appeal, FieldReport
+from .models import (
+    Country,
+    DisasterType,
+    ActionsTaken,
+    Event,
+    Appeal,
+    FieldReport,
+)
+
 
 # GraphQL Schemas
 class CountryObjectType(DjangoObjectType):

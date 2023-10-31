@@ -105,7 +105,6 @@ services:
     depends_on:
       - elasticsearch
 
-
   serve:
     <<: *base_server_setup
     ports:

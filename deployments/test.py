@@ -3,11 +3,10 @@ import deployments.models as models
 
 
 class ERUOwnerTest(TestCase):
-
     def setUp(self):
         country = models.Country.objects.create(name='country')
         eru_owner = models.ERUOwner.objects.create(pk=1, national_society_country=country)
-        eru = models.ERU.objects.create(type=2, units=6, eru_owner=eru_owner)
+        models.ERU.objects.create(type=2, units=6, eru_owner=eru_owner)
 
     def test_eru_owner_create(self):
         eru_owner = models.ERUOwner.objects.get(pk=1)

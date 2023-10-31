@@ -40,8 +40,8 @@ class ReadOnlyVisibilityViewset(viewsets.ReadOnlyModelViewSet):
             else:
                 if self.visibility_model_class.__name__ == "FieldReport" or self.visibility_model_class.__name__ == "Event":
                     return self.visibility_model_class.objects.exclude(visibility=VisibilityChoices.IFRC).exclude(
-                        Q(visibility=VisibilityChoices.IFRC_NS)
-                        & ~Q(
+                        Q(visibility=VisibilityChoices.IFRC_NS) &
+                        ~Q(
                             countries__id__in=UserCountry.objects.filter(user=self.request.user.id)
                             .values_list("country", flat=True)
                             .union(Profile.objects.filter(user=self.request.user.id).values_list("country", flat=True))

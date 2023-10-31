@@ -7,7 +7,9 @@ from .serializers import CountryOverviewSerializer
 
 
 class CountryOverviewViewSet(
-        mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = CountryOverview.objects.all()
     # TODO: Use global authentication class
     authentication_classes = (BasicAuthentication, TokenAuthentication)

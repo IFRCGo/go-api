@@ -5,6 +5,7 @@ from django.utils import timezone
 from api.models import Country, Region, Event, DisasterType
 from deployments.models import MolnixTag
 
+
 class SurgeAlertType(models.IntegerChoices):
     FACT = 0, _('fact')
     SIMS = 1, _('SIMS')
@@ -85,9 +86,9 @@ class SubscriptionType(models.IntegerChoices):
 
 class RecordType(models.IntegerChoices):
     """ Types of notifications a user can subscribe to """
-    EVENT = 0, _('event')               # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
-    APPEAL = 1, _('appeal')             # not to use in rtype_of_subscr, migrated to                 NEW_OPERATIONS
-    FIELD_REPORT = 2, _('field report') # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
+    EVENT = 0, _('event')  # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
+    APPEAL = 1, _('appeal')  # not to use in rtype_of_subscr, migrated to                 NEW_OPERATIONS
+    FIELD_REPORT = 2, _('field report')  # not to use in rtype_of_subscr, migrated to NEW_EMERGENCIES
     SURGE_ALERT = 3, _('surge alert')
     COUNTRY = 4, _('country')
     REGION = 5, _('region')
