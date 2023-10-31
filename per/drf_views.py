@@ -268,9 +268,12 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
     ordering_fields = "__all__"
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
 
     def get_queryset(self):
-        return Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+        queryset = Overview.objects.order_by("country", "-assessment_number", "-date_of_assessment")
+        return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
 
 class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
@@ -349,8 +352,13 @@ class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = PerOverviewFilter
     permission_classes = [permissions.IsAuthenticated]
     ordering_fields = ["assessment_number", "phase", "date_of_assessment"]
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
 
     def get_queryset(self):
-        return Overview.objects.filter(
-            id__in=Overview.objects.order_by("country_id", "-assessment_number").distinct("country_id").values("id")
+        queryset = Overview.objects.filter(
+            id__in=Overview.objects.order_by(
+                "country_id",
+                "-assessment_number").distinct("country_id").values("id")
         )
+        return self.get_filtered_queryset(self.request, queryset, dispatch=0)
