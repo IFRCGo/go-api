@@ -111,7 +111,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             exit 0
         fi
 
-        terraform force-unlock 75b6ff98-f92e-5953-a899-f046a556e938
+        terraform force-unlock -force 75b6ff98-f92e-5953-a899-f046a556e938
         terraform apply -auto-approve
     fi
 
