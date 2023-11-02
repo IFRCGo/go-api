@@ -191,7 +191,7 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     list=extend_schema(parameters=[LatestCountryOverviewInputSerializer], responses=LatestCountryOverviewSerializer)
 )
 class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
 
     def get_queryset(self):
