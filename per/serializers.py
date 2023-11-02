@@ -320,19 +320,19 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
             return None
         country_id = overview.country_id
         if country_id:
+            # NOTE: rating_id=1 means Not Reviewed as defined in per/fixtures/componentratings.json
+            filters = ~models.Q(
+                models.Q(area_responses__component_response__rating__isnull=True) |
+                models.Q(area_responses__component_response__rating_id=1),
+            )
             qs = (
                 PerAssessment.objects.filter(
                     overview__country_id=country_id,
-                )
-                .values("overview__assessment_number")
-                .annotate(
-                    average_rating=models.Avg(
-                        "area_responses__component_response__rating",
-                        filters=models.Q(
-                            area_responses__component_response__rating__isnull=False,
-                            area_responses__component_response__rating_id=1,
-                        ),
-                    ),
+                ).annotate(
+                average_rating=models.Avg(
+                    "area_responses__component_response__rating__value",
+                    filter=filters,
+                ),
                     date_of_assessment=models.F("overview__date_of_assessment"),
                     assessment_number=models.F("overview__assessment_number"),
                 )
