@@ -295,7 +295,7 @@ class HayStackSearch(APIView):
             country_response = (
                 SearchQuerySet()
                 .models(Country)
-                .filter(SQ(name__contains=phrase, independent="true", is_depercent="false") | SQ(iso3__contains=phrase))
+                .filter(SQ(name__contains=phrase, independent="true", is_deprecated="false") | SQ(iso3__contains=phrase))
                 .order_by("-_score")
             )
             # appeal_response = SearchQuerySet().models(Appeal).filter(
