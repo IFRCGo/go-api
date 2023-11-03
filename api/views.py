@@ -484,7 +484,7 @@ class HayStackSearch(APIView):
                     "name": data.name if self.request.user.is_authenticated else None,
                     "start_date": data.start_date,
                     "end_date": data.end_date,
-                    "postion": data.postion,
+                    "position": data.position,
                     "type": data.type,
                     "deploying_country_name": data.deploying_country_name,
                     "deploying_country_id": data.deploying_country_id,

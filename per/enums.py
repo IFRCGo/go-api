@@ -1,7 +1,7 @@
 from . import models
 
 enum_register = {
-    "workplanstatus": models.PerWorkPlanStaus,
+    "workplanstatus": models.PerWorkPlanStatus,
     "perphases": models.Overview.Phase,
     "overviewassessmentmethods": models.Overview.AssessmentMethod,
     "component_status": models.FormComponent.FormComponentStatus,

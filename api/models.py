@@ -848,7 +848,7 @@ class AppealDocumentType(models.Model):
 
 
 class AppealType(models.IntegerChoices):
-    """ summarys of appeals """
+    """ summary of appeals """
     DREF = 0, _('DREF')
     APPEAL = 1, _('Emergency Appeal')
     INTL = 2, _('International Appeal')
@@ -866,7 +866,7 @@ class AppealStatus(models.IntegerChoices):
 class Appeal(models.Model):
     """ An appeal for a disaster and country, containing documents """
 
-    # appeal ID, assinged by creator
+    # appeal ID, assigned by creator
     aid = models.CharField(verbose_name=_('appeal ID'), max_length=20)
     name = models.CharField(verbose_name=_('name'), max_length=100)
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
@@ -1240,12 +1240,12 @@ class FieldReport(models.Model):
     num_highest_risk = models.IntegerField(verbose_name=_('number of highest risk'), null=True, blank=True)
     affected_pop_centres = models.CharField(verbose_name=_('affected population centres'), max_length=512, blank=True, null=True)
 
-    gov_num_injured = models.IntegerField(verbose_name=_('number of injured (goverment)'), null=True, blank=True)
-    gov_num_dead = models.IntegerField(verbose_name=_('number of dead (goverment)'), null=True, blank=True)
-    gov_num_missing = models.IntegerField(verbose_name=_('number of missing (goverment)'), null=True, blank=True)
-    gov_num_affected = models.IntegerField(verbose_name=_('number of affected (goverment)'), null=True, blank=True)
-    gov_num_displaced = models.IntegerField(verbose_name=_('number of displaced (goverment)'), null=True, blank=True)
-    gov_num_assisted = models.IntegerField(verbose_name=_('number of assisted (goverment)'), null=True, blank=True)
+    gov_num_injured = models.IntegerField(verbose_name=_('number of injured (government)'), null=True, blank=True)
+    gov_num_dead = models.IntegerField(verbose_name=_('number of dead (government)'), null=True, blank=True)
+    gov_num_missing = models.IntegerField(verbose_name=_('number of missing (government)'), null=True, blank=True)
+    gov_num_affected = models.IntegerField(verbose_name=_('number of affected (government)'), null=True, blank=True)
+    gov_num_displaced = models.IntegerField(verbose_name=_('number of displaced (government)'), null=True, blank=True)
+    gov_num_assisted = models.IntegerField(verbose_name=_('number of assisted (government)'), null=True, blank=True)
 
     # Epidemic fields
     epi_cases = models.IntegerField(verbose_name=_('number of cases (epidemic)'), null=True, blank=True)
@@ -1277,15 +1277,15 @@ class FieldReport(models.Model):
 
     # Early Warning fields
     gov_num_potentially_affected = models.IntegerField(
-        verbose_name=_('potentially affected (goverment)'),
+        verbose_name=_('potentially affected (government)'),
         null=True, blank=True
     )
     gov_num_highest_risk = models.IntegerField(
-        verbose_name=_('people at highest risk (goverment)'),
+        verbose_name=_('people at highest risk (government)'),
         null=True, blank=True
     )
     gov_affected_pop_centres = models.CharField(
-        verbose_name=_('affected population centres (goverment)'),
+        verbose_name=_('affected population centres (government)'),
         max_length=512, blank=True, null=True
     )
 
@@ -1399,14 +1399,14 @@ class FieldReport(models.Model):
     eru_relief = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU relief'), default=0)
     eru_relief_units = models.IntegerField(null=True, verbose_name=_('ERU relief units'), blank=True)
 
-    eru_water_sanitation_15 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitaion M15'), default=0)
-    eru_water_sanitation_15_units = models.IntegerField(verbose_name=_('ERU water sanitaion M15 units'), null=True, blank=True)
+    eru_water_sanitation_15 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation M15'), default=0)
+    eru_water_sanitation_15_units = models.IntegerField(verbose_name=_('ERU water sanitation M15 units'), null=True, blank=True)
 
-    eru_water_sanitation_40 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitaion M40'), default=0)
-    eru_water_sanitation_40_units = models.IntegerField(verbose_name=_('ERU water sanitaion M40 units'), null=True, blank=True)
+    eru_water_sanitation_40 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation M40'), default=0)
+    eru_water_sanitation_40_units = models.IntegerField(verbose_name=_('ERU water sanitation M40 units'), null=True, blank=True)
 
-    eru_water_sanitation_20 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitaion MSM20'), default=0)
-    eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitaion MSM20 units'), null=True, blank=True)
+    eru_water_sanitation_20 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation MSM20'), default=0)
+    eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitation MSM20 units'), null=True, blank=True)
 
     # Ugly solution to a design problem with handling Actions
     notes_health = models.TextField(verbose_name=_('Description (Health)'), null=True, blank=True)
@@ -1708,15 +1708,15 @@ class EmergencyOperationsBase(models.Model):
     raw_health_people_targeted = models.TextField(verbose_name=_('health people targeted (raw)'), null=True, blank=True)
     raw_health_requirements = models.TextField(verbose_name=_('health requirements (raw)'), null=True, blank=True)
     raw_livelihoods_and_basic_needs_female = models.TextField(
-        verbose_name=_('number of livelihhods and basic needs female (raw)'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs female (raw)'), null=True, blank=True)
     raw_livelihoods_and_basic_needs_male = models.TextField(
-        verbose_name=_('number of livelihhods and basic needs male (raw)'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs male (raw)'), null=True, blank=True)
     raw_livelihoods_and_basic_needs_people_reached = models.TextField(
-        verbose_name=_('number of livelihhods and basic needs people reached (raw)'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs people reached (raw)'), null=True, blank=True)
     raw_livelihoods_and_basic_needs_people_targeted = models.TextField(
-        verbose_name=_('number of livelihhods and basic needs people targeted (raw)'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs people targeted (raw)'), null=True, blank=True)
     raw_livelihoods_and_basic_needs_requirements = models.TextField(
-        verbose_name=_('number of livelihhods and basic needs requirements (raw)'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs requirements (raw)'), null=True, blank=True)
     raw_migration_female = models.TextField(verbose_name=_('number of migration female (raw)'), null=True, blank=True)
     raw_migration_male = models.TextField(verbose_name=_('number of migration male (raw)'), null=True, blank=True)
     raw_migration_people_reached = models.TextField(
@@ -1783,15 +1783,15 @@ class EmergencyOperationsBase(models.Model):
     health_people_targeted = models.IntegerField(verbose_name=_('number of health people targeted'), null=True, blank=True)
     health_requirements = models.IntegerField(verbose_name=_('number of health requirements'), null=True, blank=True)
     livelihoods_and_basic_needs_female = models.IntegerField(
-        verbose_name=_('number of livelihhods and basic needs female'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs female'), null=True, blank=True)
     livelihoods_and_basic_needs_male = models.IntegerField(
-        verbose_name=_('number of livelihhods and basic needs male'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs male'), null=True, blank=True)
     livelihoods_and_basic_needs_people_reached = models.IntegerField(
-        verbose_name=_('number of livelihhods and basic people reached'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic people reached'), null=True, blank=True)
     livelihoods_and_basic_needs_people_targeted = models.IntegerField(
-        verbose_name=_('number of livelihhods and basic people targeted'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic people targeted'), null=True, blank=True)
     livelihoods_and_basic_needs_requirements = models.IntegerField(
-        verbose_name=_('number of livelihhods and basic needs requirements'), null=True, blank=True)
+        verbose_name=_('number of livelihoods and basic needs requirements'), null=True, blank=True)
     migration_female = models.IntegerField(verbose_name=_('number of migration female'), null=True, blank=True)
     migration_male = models.IntegerField(verbose_name=_('number of migration male'), null=True, blank=True)
     migration_people_reached = models.IntegerField(verbose_name=_('number of migration people reached'), null=True, blank=True)
@@ -2008,7 +2008,7 @@ class MainContact(models.Model):
 class CronJobStatus(models.IntegerChoices):
     ACKNOWLEDGED = -2, _('Acknowledged')
     NEVER_RUN = -1, _('Never run')
-    SUCCESSFUL = 0, _('Successfull')
+    SUCCESSFUL = 0, _('Successful')
     WARNED = 1, _('Warned')
     ERRONEOUS = 2, _('Erroneous')
 
