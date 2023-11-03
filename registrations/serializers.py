@@ -83,13 +83,13 @@ class RegistrationSerializer(serializers.Serializer):
     country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), write_only=True)
     organization_type = serializers.CharField(max_length=255, write_only=True)
     organization = serializers.CharField(max_length=255, write_only=True)
-    justification = serializers.CharField(max_length=255, write_only=True)
     city = serializers.CharField(max_length=255, write_only=True)
 
     # optional fields
     department = serializers.CharField(required=False, max_length=255, write_only=True)
     position = serializers.CharField(required=False, max_length=255, write_only=True)
     phone_number = serializers.CharField(required=False, max_length=255, write_only=True)
+    justification = serializers.CharField(max_length=255, write_only=True, required=False)
 
     def validate_email(self, email) -> str:
         if User.objects.filter(username__iexact=email).exists():
@@ -107,8 +107,8 @@ class RegistrationSerializer(serializers.Serializer):
         organization = self.validated_data['organization']
         organization_type = self.validated_data['organization_type']
         city = self.validated_data['city']
-        justification = self.validated_data['justification']
 
+        justification = self.validated_data.get('justification')
         department = self.validated_data.get('department')
         position = self.validated_data.get('position')
         phone_number = self.validated_data.get('phone_number')
