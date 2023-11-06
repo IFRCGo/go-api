@@ -744,7 +744,7 @@ class EmergencyProjectSerializer(
 class AggregateDeploymentsSerializer(serializers.Serializer):
     active_deployments = serializers.IntegerField(required=False)
     active_erus = serializers.IntegerField(required=False)
-    deployment_this_year = serializers.IntegerField(required=False)
+    deployments_this_year = serializers.IntegerField(required=False)
 
 
 class ProjectPerSector(serializers.Serializer):
