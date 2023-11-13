@@ -13,11 +13,11 @@ spec:
   tls:
     - hosts:
       - {{ .Values.api.domain }}
-      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api
+      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-cert
     {{- if .Values.api.additionalDomain }}
     - hosts:
       - {{ .Values.api.additionalDomain }}
-      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain
+      secretName: {{ template "ifrcgo-helm.fullname" . }}-secret-api-additional-domain-cert
     {{- end }}
 
   rules:
