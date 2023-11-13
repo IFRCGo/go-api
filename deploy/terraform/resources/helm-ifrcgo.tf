@@ -293,4 +293,24 @@ resource "helm_release" "ifrcgo" {
     name  = "elasticsearch.disk.uri"
     value = azurerm_managed_disk.ifrcgo.id
   }
+
+  set {
+    name = "secrets.API_TLS_CRT"
+    value = var.API_TLS_CRT
+  }
+
+  set {
+    name = "secrets.API_TLS_KEY"
+    value = var.API_TLS_KEY
+  }
+
+  set {
+    name = "secrets.API_ADDITIONAL_DOMAIN_TLS_CRT"
+    value = var.API_ADDITIONAL_DOMAIN_TLS_CRT
+  }
+
+  set {
+    name = "secrets.API_ADDITIONAL_DOMAIN_TLS_KEY"
+    value = var.API_ADDITIONAL_DOMAIN_TLS_KEY
+  }
 }

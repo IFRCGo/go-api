@@ -103,6 +103,11 @@ jobs:
       DOCKER_HOST_IP: ''
       DJANGO_DEBUG: ''
       DJANGO_ADDITIONAL_ALLOWED_HOSTS: ''
+      # TLS cert and key should be base64 encoded
+      API_TLS_CRT: $(STAGING_API_TLS_CRT)
+      API_TLS_KEY: $(STAGING_API_TLS_KEY)
+      API_ADDITIONAL_DOMAIN_TLS_CRT: ''
+      API_ADDITIONAL_DOMAIN_TLS_KEY: ''
 
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --production
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
@@ -168,3 +173,8 @@ jobs:
       DOCKER_HOST_IP: ''
       DJANGO_DEBUG: ''
       DJANGO_ADDITIONAL_ALLOWED_HOSTS: $(PRODUCTION_ADDITIONAL_URL)
+      # TLS cert and key should be base64 encoded
+      API_TLS_CRT: $(PRODUCTION_API_TLS_CRT)
+      API_TLS_KEY: $(PRODUCTION_API_TLS_KEY)
+      API_ADDITIONAL_DOMAIN_TLS_CRT: $(PRODUCTION_API_ADDITIONAL_DOMAIN_TLS_CRT)
+      API_ADDITIONAL_DOMAIN_TLS_KEY: $(PRODUCTION_API_ADDITIONAL_DOMAIN_TLS_KEY)

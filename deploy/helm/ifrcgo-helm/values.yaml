@@ -51,6 +51,12 @@ env:
   IFRC_TRANSLATION_GET_API_KEY: ''
   IFRC_TRANSLATION_HEADER_API_KEY: ''
 
+secrets:
+  API_TLS_CRT: ''
+  API_TLS_KEY: ''
+  API_ADDITIONAL_DOMAIN_TLS_CRT: ''
+  API_ADDITIONAL_DOMAIN_TLS_KEY: ''
+
 api:
   domain: "go-staging.ifrc.org"
   additionalDomain: ""
