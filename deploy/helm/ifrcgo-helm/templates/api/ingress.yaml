@@ -9,7 +9,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "360s"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "360s"
-    cert-manager.io/cluster-issuer: letsencrypt-prod-issuer
 spec:
   tls:
     - hosts:

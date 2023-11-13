@@ -240,6 +240,26 @@ variable "IFRC_TRANSLATION_HEADER_API_KEY" {
   default = ""
 }
 
+variable "API_TLS_CRT" {
+  type = string
+  default = ""
+}
+
+variable "API_TLS_KEY" {
+  type = string
+  default = ""
+}
+
+variable "API_ADDITIONAL_DOMAIN_TLS_CRT" {
+  type = string
+  default = ""
+}
+
+variable "API_ADDITIONAL_DOMAIN_TLS_KEY" {
+  type = string
+  default = ""
+}
+
 
 # -----------------
 # Attach ACR
