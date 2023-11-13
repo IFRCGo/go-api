@@ -565,7 +565,9 @@ CACHES = {
         }
     }
 }
-CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+
+if env('CACHE_MIDDLEWARE_SECONDS'):
+    CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'IFRC-GO API',

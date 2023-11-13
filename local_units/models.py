@@ -112,4 +112,3 @@ class LocalUnit(models.Model):
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
         return f'{branch_name} ({self.country.name})'
-    

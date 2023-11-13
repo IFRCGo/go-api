@@ -58,7 +58,9 @@ def filter_dref_queryset_by_user_access(user, queryset):
     ]
     if len(dref_admin_regions_id):
         return queryset.filter(
-            models.Q(created_by=user) | models.Q(country__region__in=dref_admin_regions_id) | models.Q(users=user)
+            models.Q(created_by=user) |
+            models.Q(country__region__in=dref_admin_regions_id) |
+            models.Q(users=user)
         ).distinct()
     # Normal access
     return queryset.model.get_for(user)
@@ -233,34 +235,10 @@ class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = (
             Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
             .order_by("-created_at")
+            .filter(is_active=True)
             .distinct()
         )
-        dref_list = filter_dref_queryset_by_user_access(user, queryset)
-
-        dref_op_update = DrefOperationalUpdate.objects.filter(
-            dref__in=dref_list,
-        ).select_related(
-            "national_society", "disaster_type", "event_map", "cover_image",
-            "budget_file", "assessment_report",
-        ).prefetch_related(
-            "planned_interventions", "needs_identified", "national_society_actions",
-            "users", "images", "photos", "dref",
-        ).order_by('-operational_update_number').distinct()
-
-        dref_final_report = DrefFinalReport.objects.filter(
-            dref__in=dref_list,
-        ).prefetch_related(
-            "dref__planned_interventions", "dref__needs_identified",
-        ).distinct()
-
-        result_list = sorted(
-            chain(dref_list, dref_op_update, dref_final_report),
-            key=attrgetter("created_at"),
-            reverse=True
-        )
-
-        dref_ids = [obj.id for obj in result_list]
-        return Dref.objects.filter(id__in=dref_ids, is_active=True).distinct().order_by("-created_at")
+        return filter_dref_queryset_by_user_access(user, queryset).order_by('-created_at')
 
 
 class DrefShareView(views.APIView):

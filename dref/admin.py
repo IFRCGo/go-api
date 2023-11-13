@@ -10,6 +10,7 @@ from .models import (
     NationalSocietyAction,
     IdentifiedNeed,
     PlannedIntervention,
+    RiskSecurity,
 )
 
 
@@ -30,6 +31,14 @@ class NationalSocietyActionAdmin(
     admin.ModelAdmin
 ):
     search_fields = ['title']
+
+
+@admin.register(RiskSecurity)
+class RiskSecurityAdmin(
+    ReadOnlyMixin,
+    admin.ModelAdmin
+):
+    search_fields = ['risk', 'mitigation']
 
 
 @admin.register(IdentifiedNeed)
@@ -85,6 +94,7 @@ class DrefAdmin(
         "national_society_actions",
         "needs_identified",
         "planned_interventions",
+        "risk_security",
     )
 
     def get_queryset(self, request):
@@ -134,6 +144,7 @@ class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.Mo
         "planned_interventions",
         "country",
         "district",
+        "risk_security",
     )
     list_filter = ["dref"]
 
@@ -189,6 +200,7 @@ class DrefFinalReportAdmin(
         "images",
         "cover_image",
         "financial_report",
+        "risk_security",
     )
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name"]
