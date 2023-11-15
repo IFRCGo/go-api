@@ -96,7 +96,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
     pushd ${TERRAFORM_DIR}
 
-
     if [[ "${SKIP_TF}" != 1 ]]; then
         echo "Deploying infrastructure with Terraform..."
         terraform init
@@ -111,6 +110,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             exit 0
         fi
 
+        terraform force-unlock 026cbbbf-1329-1c9f-3acb-98eecf2d7d8d
         terraform apply -auto-approve
     fi
 
