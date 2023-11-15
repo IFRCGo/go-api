@@ -4,6 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from tinymce import HTMLField
+from deployments.models import SectorTag
 
 
 class ProcessPhase(models.IntegerChoices):
@@ -602,3 +603,48 @@ class PerWorkPlan(models.Model):
 
     def __str__(self):
         return f"{self.overview.id}"
+
+
+class LearningType(models.IntegerChoices):
+    LESSON_LEARNED = 1, _('Lesson learned')
+    CHALLENGE = 2, _('Challenge')
+
+
+@reversion.register()
+class OpsLearning(models.Model):
+    learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
+    learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
+    appeal_code = models.CharField(verbose_name=_("appeal (MDR) code"), max_length=20, null=True, blank=True)
+    type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
+    type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
+    sector = models.ManyToManyField(SectorTag, related_name="sectors", verbose_name=_("Sectors"), blank=True)
+    sector_validated = models.ManyToManyField(SectorTag, related_name="validated_sectors", verbose_name=_("Sectors (validated)"), blank=True)
+    per_component = models.ManyToManyField(FormComponent, related_name="components", verbose_name=_("PER Components"), blank=True)
+    per_component_validated = models.ManyToManyField(FormComponent, related_name="validated_components", verbose_name=_("PER Components (validated)"), blank=True)
+    is_validated = models.BooleanField(verbose_name=_("is validated?"), default=False)
+    modified_at = models.DateTimeField(verbose_name=_('modified_at'), auto_now=True)
+    created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
+
+    class Meta:
+        ordering = ("learning",)
+        verbose_name = _("Operational Learning")
+        verbose_name_plural = _("Operational Learnings")
+
+    def __str__(self):
+        name = self.learning_validated if self.learning_validated else self.learning
+        return "%s - %s" % (name, self.appeal_code) if self.appeal_code else name
+
+    def save(self, *args, **kwargs):
+
+        if self.is_validated and self.id:
+            if self.learning_validated is None \
+                and self.type_validated == LearningType.LESSON_LEARNED.value \
+                and self.sector_validated.count() == 0 \
+                and self.per_component_validated.count() == 0:
+
+                self.learning_validated = self.learning
+                self.type_validated = self.type
+                self.sector_validated.add(*[x[0] for x in self.sector.values_list()])
+                self.per_component_validated.add(*[x[0] for x in self.per_component.values_list()])
+
+        return super(OpsLearning, self).save(*args, **kwargs)

@@ -155,6 +155,44 @@ class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
     pass
 
 
+class OpsLearningAdmin(admin.ModelAdmin):
+    search_fields = ("learning", "learning_validated")
+    list_filter = ("sector", "sector_validated", "per_component", "per_component_validated",)
+    list_display = ("learning", "appeal_code")
+
+    def get_fields(self, request, obj=None):
+        if obj and obj.is_validated:
+            if obj.learning_validated is None \
+                and obj.type_validated == models.LearningType.LESSON_LEARNED.value \
+                and obj.sector_validated.count() == 0 \
+                and obj.per_component_validated.count() == 0:
+
+                obj.learning_validated = obj.learning
+                obj.type_validated = obj.type
+                obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
+                obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
+            return (
+                'learning_validated',
+                'appeal_code',
+                'type_validated',
+                'sector_validated',
+                'per_component_validated')
+        elif obj:
+            return (
+                'learning',
+                'appeal_code',
+                'type',
+                'sector',
+                'per_component',
+                'is_validated')
+        return (
+            'learning',
+            'appeal_code',
+            'type',
+            'sector',
+            'per_component')
+
+
 admin.site.register(models.Form, FormAdmin)
 admin.site.register(models.FormArea, FormAreaAdmin)
 admin.site.register(models.FormComponent, FormComponentAdmin)
@@ -174,3 +212,4 @@ admin.site.register(models.PerAssessment, FormAssessmentAdmin)
 admin.site.register(models.AreaResponse, FormAreaResponseAdmin)
 admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
 admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
+admin.site.register(models.OpsLearning, OpsLearningAdmin)
