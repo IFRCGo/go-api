@@ -39,9 +39,22 @@ jobs:
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
     displayName: "Build and Push"
 
+  - task: PublishBuildArtifacts@1
+    displayName: "Save the build"
+    inputs:
+      pathtoPublish: '$(Pipeline.Workspace)/go-api'
+      artifactName: GoAPIBuild
+
 - job: 'Deploy'
   dependsOn: Build
+  condition: succeeded()
   steps:
+  - checkout: none #skip checking out the default repository resource
+  - task: DownloadBuildArtifacts@0
+    displayName: "Load the build"
+    inputs:
+      artifactName: GoAPIBuild
+      downloadPath: $(Pipeline.Workspace)
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
     displayName: "Deploy Staging"
