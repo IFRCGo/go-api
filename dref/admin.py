@@ -68,7 +68,7 @@ class DrefAdmin(
     TranslationAdmin,
     admin.ModelAdmin
 ):
-    search_fields = ("title",)
+    search_fields = ("title", "appeal_code")
     list_display = (
         "title",
         "national_society",
@@ -125,6 +125,7 @@ class DrefAdmin(
 @admin.register(DrefOperationalUpdate)
 class DrefOperationalUpdateAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin):
     list_display = ("title", "national_society", "disaster_type")
+    search_fields = ("title", "national_society__name", "appeal_code")
     autocomplete_fields = (
         "national_society",
         "disaster_type",
@@ -203,7 +204,7 @@ class DrefFinalReportAdmin(
         "risk_security",
     )
     list_filter = ["dref"]
-    search_fields = ["title", "national_society__name"]
+    search_fields = ["title", "national_society__name", "appeal_code"]
 
     def get_queryset(self, request):
         return (

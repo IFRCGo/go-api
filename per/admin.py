@@ -161,6 +161,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     list_filter = ("sector", "sector_validated", "per_component", "per_component_validated")
     list_display = ("learning", "appeal_code", "is_validated")
     autocomplete_fields = ("sector", "sector_validated", "per_component", "per_component_validated")
+    change_form_template = "admin/opslearning_change_form.html"
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
