@@ -43,7 +43,7 @@ jobs:
     displayName: "Save the build"
     inputs:
       pathtoPublish: '$(Pipeline.Workspace)/go-api'
-      artifactName: GoAPIBuild
+      artifactName: go-api
 
 - job: 'Deploy'
   dependsOn: Build
@@ -53,7 +53,7 @@ jobs:
   - task: DownloadBuildArtifacts@0
     displayName: "Load the build"
     inputs:
-      artifactName: GoAPIBuild
+      artifactName: go-api
       downloadPath: $(Pipeline.Workspace)
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
