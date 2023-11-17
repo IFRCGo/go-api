@@ -1,7 +1,7 @@
 from django.contrib import admin
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 import per.models as models
-from per.admin_classes import RegionRestrictedAdmin
+from per.admin_classes import RegionRestrictedAdmin, GotoNextModelAdmin
 from reversion_compare.admin import CompareVersionAdmin
 
 
@@ -155,10 +155,12 @@ class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
     pass
 
 
-class OpsLearningAdmin(admin.ModelAdmin):
+class OpsLearningAdmin(GotoNextModelAdmin):
+
     search_fields = ("learning", "learning_validated")
-    list_filter = ("sector", "sector_validated", "per_component", "per_component_validated",)
-    list_display = ("learning", "appeal_code")
+    list_filter = ("sector", "sector_validated", "per_component", "per_component_validated")
+    list_display = ("learning", "appeal_code", "is_validated")
+    autocomplete_fields = ("sector", "sector_validated", "per_component", "per_component_validated")
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
