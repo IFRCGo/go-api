@@ -18,14 +18,9 @@ from api.models import Country, DisasterType, District, FieldReport
 @reversion.register()
 class NationalSocietyAction(models.Model):
     class Title(models.TextChoices):
-        NATIONAL_SOCIETY_READINESS = "national_society_readiness", _("National Society Readiness")
-        ASSESSMENT = "assessment", _("Assessment")
-        COORDINATION = "coordination", _("Coordination")
-        RESOURCE_MOBILIZATION = "resource_mobilization", _("Resource Mobilization")
-        ACTIVATION_OF_CONTINGENCY_PLANS = "activation_of_contingency_plans", _("Activation Of Contingency Plans")
-        NATIONAL_SOCIETY_EOC = "national_society_eoc", _("National Society EOC")
         SHELTER_HOUSING_AND_SETTLEMENTS = "shelter_housing_and_settlements", _("Shelter, Housing And Settlements")
         LIVELIHOODS_AND_BASIC_NEEDS = "livelihoods_and_basic_needs", _("Livelihoods And Basic Needs")
+        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
         HEALTH = "health", _("Health")
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
@@ -38,7 +33,12 @@ class NationalSocietyAction(models.Model):
             "Community Engagement And Accountability"
         )
         ENVIRONMENT_SUSTAINABILITY = "environment_sustainability ", _("Environment Sustainability")
-        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
+        COORDINATION = "coordination", _("Coordination")
+        NATIONAL_SOCIETY_READINESS = "national_society_readiness", _("National Society Readiness")
+        ASSESSMENT = "assessment", _("Assessment")
+        RESOURCE_MOBILIZATION = "resource_mobilization", _("Resource Mobilization")
+        ACTIVATION_OF_CONTINGENCY_PLANS = "activation_of_contingency_plans", _("Activation Of Contingency Plans")
+        NATIONAL_SOCIETY_EOC = "national_society_eoc", _("National Society EOC")
         OTHER = "other", _("Other")
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
@@ -78,12 +78,12 @@ class IdentifiedNeed(models.Model):
     class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = "shelter_housing_and_settlements", _("Shelter Housing And Settlements")
         LIVELIHOODS_AND_BASIC_NEEDS = "livelihoods_and_basic_needs", _("Livelihoods And Basic Needs")
+        MULTI_PURPOSE_CASH_GRANTS = "multi_purpose_cash_grants", _("Multi purpose cash grants")
         HEALTH = "health", _("Health")
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
         MIGRATION = "migration", _("Migration")
-        MULTI_PURPOSE_CASH_GRANTS = "multi_purpose_cash_grants", _("Multi purpose cash grants")
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
@@ -137,6 +137,7 @@ class PlannedIntervention(models.Model):
     class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = "shelter_housing_and_settlements", _("Shelter Housing And Settlements")
         LIVELIHOODS_AND_BASIC_NEEDS = "livelihoods_and_basic_needs", _("Livelihoods And Basic Needs")
+        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
         HEALTH = "health", _("Health")
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
@@ -145,13 +146,13 @@ class PlannedIntervention(models.Model):
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery_", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
-        SECRETARIAT_SERVICES = "secretariat_services", _("Secretariat Services")
-        NATIONAL_SOCIETY_STRENGTHENING = "national_society_strengthening", _("National Society Strengthening")
-        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
-        ENVIRONMENTAL_SUSTAINABILITY = "environmental_sustainability", _("Environmental Sustainability")
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and_accountability", _(
             "Community Engagement And Accountability"
         )
+        ENVIRONMENTAL_SUSTAINABILITY = "environmental_sustainability", _("Environmental Sustainability")
+        COORDINATION_AND_PARTNERSHIPS = "coordination_and_partnerships", _("Coordination And Partnerships")
+        SECRETARIAT_SERVICES = "secretariat_services", _("Secretariat Services")
+        NATIONAL_SOCIETY_STRENGTHENING = "national_society_strengthening", _("National Society Strengthening")
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
@@ -192,6 +193,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.MULTI_PURPOSE_CASH: "cash.png",
             PlannedIntervention.Title.ENVIRONMENTAL_SUSTAINABILITY: "environment.png",
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
+            PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS: "coordination.png"
         }
         return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
 
@@ -201,6 +203,13 @@ class RiskSecurity(models.Model):
     client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_("client_id"))
     risk = models.TextField(verbose_name=_("Risk"), null=True, blank=True)
     mitigation = models.TextField(verbose_name=_("Mitigation"), null=True, blank=True)
+
+
+@reversion.register()
+class SourceInformation(models.Model):
+    client_id = models.CharField(max_length=50, null=True, blank=True, verbose_name=_("client_id"))
+    source_name = models.CharField(verbose_name=_("Source Name"), null=True, blank=True, max_length=255)
+    source_link = models.CharField(verbose_name=_("Source Link"), null=True, blank=True, max_length=255)
 
 
 @reversion.register()
@@ -263,6 +272,14 @@ class Dref(models.Model):
     type_of_onset = models.IntegerField(choices=OnsetType.choices, verbose_name=_("onset type"), null=True, blank=True)
     disaster_category = models.IntegerField(
         choices=DisasterCategory.choices, verbose_name=_("disaster category"), null=True, blank=True
+    )
+    disaster_category_analysis = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("If available please upload Diaster categorization Analysis"),
+        related_name="dref_disaster_category_file"
     )
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
@@ -566,10 +583,15 @@ class Dref(models.Model):
     )
     district = models.ManyToManyField(District, blank=True, verbose_name=_("district"))
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
+    has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
+        null=True, blank=True
+    )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
     __budget_file_id = None
     is_active = models.BooleanField(verbose_name=_("Is Active"), null=True, blank=True)
+    source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
 
     class Meta:
         verbose_name = _("dref")
@@ -727,6 +749,9 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         verbose_name=_("budget file"),
         related_name="budget_file_dref_operational_update",
+    )
+    budget_file_preview = models.FileField(
+        verbose_name=_("budget file preview"), null=True, blank=True, upload_to="dref-op-update/images/"
     )
     assessment_report = models.ForeignKey(
         "DrefFile",
@@ -922,6 +947,11 @@ class DrefOperationalUpdate(models.Model):
     )
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
+    has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
+        null=True, blank=True
+    )
+
     has_forecasted_event_materialize = models.BooleanField(
         verbose_name=_("Has Forecasted Event Materialize"), null=True, blank=True
     )
@@ -993,12 +1023,28 @@ class DrefOperationalUpdate(models.Model):
     is_man_made_event = models.BooleanField(verbose_name=_("Is Man-made Event"), null=True, blank=True)
     event_text = models.TextField(verbose_name=_("event text"), blank=True, null=True)
     did_national_society = models.BooleanField(verbose_name=_("Did National Society"), null=True, blank=True)
+    reporting_start_date = models.DateField(verbose_name=_("Reporting Start Date"), null=True, blank=True)
+    reporting_end_date = models.DateField(verbose_name=_("Reporting End Date"), null=True, blank=True)
+    __budget_file_id = None
 
     class Meta:
         verbose_name = _("Dref Operational Update")
         verbose_name_plural = _("Dref Operational Updates")
 
     def save(self, *args, **kwargs):
+        if self.budget_file and self.budget_file_id != self.__budget_file_id:
+            pages = convert_from_bytes(self.budget_file.file.read())
+            if len(pages) > 0:
+                budget_file_preview = pages[0]  # get first page
+                filename = f'preview_{self.budget_file.file.name.split("/")[0]}.png'
+                temp_image = open(os.path.join("/tmp", filename), "wb")
+                budget_file_preview.save(temp_image, "PNG")
+                thumb_data = open(os.path.join("/tmp", filename), "rb")
+                self.budget_file_preview.save(filename, thumb_data, save=False)
+            else:
+                raise ValidationError({"budget_file": "Sorry cannot generate preview for empty pdf"})
+
+        self.__budget_file_id = self.budget_file_id
         self.status = Dref.Status.COMPLETED if self.is_published else Dref.Status.IN_PROGRESS
         super().save(*args, **kwargs)
 
@@ -1263,6 +1309,10 @@ class DrefFinalReport(models.Model):
     )
     total_targeted_population = models.IntegerField(verbose_name=_("total targeted population"), blank=True, null=True)
     risk_security = models.ManyToManyField(RiskSecurity, blank=True, verbose_name=_("Risk Security"))
+    has_child_safeguarding_risk_analysis_assessment = models.BooleanField(
+        verbose_name=_("Has the child safeguarding risk analysis assessment been completed?"),
+        null=True, blank=True
+    )
     risk_security_concern = models.TextField(blank=True, null=True, verbose_name=_("Risk Security Concern"))
     event_date = models.DateField(
         verbose_name=_("event date"), null=True, blank=True, help_text=_("Date of event/Approximate date of impact")
