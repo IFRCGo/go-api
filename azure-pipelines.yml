@@ -36,10 +36,12 @@ jobs:
       addSpnToEnvironment: true
       useGlobalConfig: true
 
-  - job: BuildAndPush
-    bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
+  - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cipublish
     displayName: "Build and Push"
 
+- job: 'Deploy'
+  dependsOn: Build
+  steps:
   - bash: $(Pipeline.Workspace)/go-api/deploy/scripts/cideploy --staging
     condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
     dependsOn: BuildAndPush
