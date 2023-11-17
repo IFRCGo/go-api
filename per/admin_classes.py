@@ -3,6 +3,7 @@ from operator import or_
 
 from django.contrib import admin
 from django.db.models import Q
+from django.http import QueryDict
 
 
 class RegionRestrictedAdmin(admin.ModelAdmin):
@@ -77,3 +78,48 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super(admin.ModelAdmin, self).get_queryset(request)
         return self.get_filtered_queryset(request, queryset, 0)
+
+
+class GotoNextAdminMixin(object):
+
+    def get_next_instance_pk(self, request, current):
+        """
+        Returns the primary key of the next object in the query (considering filters and ordering).
+        Returns None if the object is not in the queryset.
+        """
+        querystring = request.GET.get('_changelist_filters')
+        if querystring:
+            # Alters the HttpRequest object to make it function as a list request
+            original_get = request.GET
+            try:
+                request.GET = QueryDict(querystring)
+                # from django.contrib.admin.options: ModelAdmin.changelist_view
+                ChangeList = self.get_changelist(request)
+                list_display = self.get_list_display(request)
+                changelist = ChangeList(
+                    request, self.model, list_display,
+                    self.get_list_display_links(request, list_display),
+                    self.get_list_filter(request),
+                    self.date_hierarchy,
+                    self.get_search_fields(request),
+                    self.get_list_select_related(request),
+                    self.list_per_page,
+                    self.list_max_show_all,
+                    self.list_editable,
+                    self,
+                    self.sortable_by)  # New in Django 2.0
+                queryset = changelist.get_queryset(request)
+            finally:
+                request.GET = original_get
+        else:
+            queryset = self.get_queryset(request)
+
+        # Try to find pk in this list:
+        iterator = queryset.values_list('pk', flat=True).iterator()
+        try:
+            while next(iterator) != current.pk:
+                continue
+            return next(iterator)
+        except StopIteration:
+            pass  # Not found or it was the last item
+# stackoverflow.com/questions/58014139/how-to-go-to-next-object-in-django-admin
