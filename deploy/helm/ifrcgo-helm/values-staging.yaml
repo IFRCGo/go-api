@@ -18,6 +18,7 @@ redis:
       memory: 2Gi
 
 celery:
+  replicaCount: 1
   resources:
     requests:
       cpu: "0.5"
