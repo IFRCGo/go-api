@@ -4,6 +4,7 @@ from operator import or_
 from django.contrib import admin
 from django.db.models import Q
 from django.http import QueryDict
+from django.shortcuts import redirect
 
 
 class RegionRestrictedAdmin(admin.ModelAdmin):
@@ -80,10 +81,11 @@ class RegionRestrictedAdmin(admin.ModelAdmin):
         return self.get_filtered_queryset(request, queryset, 0)
 
 
-class GotoNextAdminMixin(object):
+class GotoNextModelAdmin(admin.ModelAdmin):
 
     def get_next_instance_pk(self, request, current):
         """
+        Source: stackoverflow.com/questions/58014139/how-to-go-to-next-object-in-django-admin
         Returns the primary key of the next object in the query (considering filters and ordering).
         Returns None if the object is not in the queryset.
         """
@@ -122,4 +124,26 @@ class GotoNextAdminMixin(object):
             return next(iterator)
         except StopIteration:
             pass  # Not found or it was the last item
-# stackoverflow.com/questions/58014139/how-to-go-to-next-object-in-django-admin
+
+    def response_change(self, request, obj):
+        """Determines the HttpResponse for the change_view stage."""
+        app_label = obj._meta.app_label
+        model_name = obj._meta.model_name
+        if '_save_next' in request.POST:
+            next_pk = self.get_next_instance_pk(request, obj)
+            if next_pk:
+                response = redirect(f'admin:{app_label}_{model_name}_change', next_pk)
+                qs = request.GET.urlencode()  # keeps _changelist_filters
+            else:
+                # Last item (or no longer in list) - go back to list in the same position
+                response = redirect(f'admin:{app_label}_{model_name}_changelist')
+                qs = request.GET.get('_changelist_filters')
+            if qs:
+                response['Location'] += '?' + qs
+            return response
+        return super().response_change(request, obj)
+
+    # stackoverflow.com/questions/49560378/cannot-hide-save-and-add-another-button-in-django-admin
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        context.update({'show_save_and_next': True})
+        return super().render_change_form(request, context, add, change, form_url, obj)
