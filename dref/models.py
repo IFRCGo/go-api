@@ -91,7 +91,6 @@ class IdentifiedNeed(models.Model):
             "Community Engagement And Accountability"
         )
         ENVIRONMENT_SUSTAINABILITY = "environment_sustainability ", _("Environment Sustainability")
-        SHELTER_CLUSTER_COORDINATION = "shelter_cluster_coordination", _("Shelter Cluster Coordination")
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
@@ -114,7 +113,6 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: "risk.png",
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: "environment.png",
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
-            IdentifiedNeed.Title.SHELTER_CLUSTER_COORDINATION: "migration.png",
         }
         return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
 
@@ -158,6 +156,7 @@ class PlannedIntervention(models.Model):
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_("person targeted"), null=True, blank=True)
     person_assisted = models.IntegerField(verbose_name=_("person assisted"), null=True, blank=True)
+    person_reached = models.IntegerField(verbose_name=_("person reached"), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True)
     male = models.IntegerField(verbose_name=_("male"), blank=True, null=True)
     female = models.IntegerField(verbose_name=_("female"), blank=True, null=True)
