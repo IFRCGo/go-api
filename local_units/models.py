@@ -6,6 +6,23 @@ from api.models import Country
 
 
 class LocalUnitType(models.Model):
+    code = models.IntegerField(
+        verbose_name=_('Type Code'),
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(0)
+        ]
+    )
+    name = models.CharField(
+        max_length=100,
+        verbose_name=_('Name')
+    )
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class LocalUnitLevel(models.Model):
     level = models.IntegerField(
         verbose_name=_('Level'),
         validators=[
@@ -31,6 +48,16 @@ class LocalUnit(models.Model):
         LocalUnitType, on_delete=models.SET_NULL, verbose_name=_('Type'),
         related_name='local_unit_type', null=True
     )
+    subtype = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name=_('Subtype')
+    )
+    level = models.ForeignKey(
+        LocalUnitLevel, on_delete=models.SET_NULL, verbose_name=_('Level'),
+        related_name='local_unit_level', null=True
+    )
     local_branch_name = models.CharField(
         max_length=255,
         verbose_name=_('Branch name in local language')
@@ -39,17 +66,23 @@ class LocalUnit(models.Model):
         max_length=255,
         verbose_name=_('Branch name in English')
     )
-    
     created_at = models.DateTimeField(
         verbose_name=_('Created at'),
         auto_now=True
     )
     modified_at = models.DateTimeField(
-        verbose_name=_('Updated at'),
+        verbose_name=_('Modified at'),
         auto_now=True
+    )
+    date_of_data = models.DateField(
+        verbose_name=_('Date of data collection'),
+        auto_now=False,
+        blank=True,
+        null=True,
     )
     draft = models.BooleanField(default=False, verbose_name=_('Draft'))
     validated = models.BooleanField(default=False, verbose_name=_('Validated'))
+    is_public = models.BooleanField(default=False, verbose_name=_('Is public?'))
     source_en = models.CharField(
         max_length=500,
         blank=True,

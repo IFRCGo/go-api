@@ -14,7 +14,7 @@ class LocalUnitFilters(filters.FilterSet):
             'country__name',
             'country__iso3',
             'country__iso',
-            'type__level',
+            'type__code',
             'draft',
             'validated',
         )
