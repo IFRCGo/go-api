@@ -1,12 +1,13 @@
 resource "azurerm_kubernetes_cluster" "ifrcgo" {
-  # lifecycle {
-  #   ignore_changes = all
-  # }
+  lifecycle {
+    ignore_changes = all
+  }
+  
   name                = "${local.prefix}-cluster"
   location            = data.azurerm_resource_group.ifrcgo.location
   resource_group_name = data.azurerm_resource_group.ifrcgo.name
   dns_prefix          = "${local.prefix}-cluster"
-  kubernetes_version  = "1.25.5"
+  kubernetes_version  = "1.25.15"
 
   default_node_pool {
     name           = "nodepool1"
