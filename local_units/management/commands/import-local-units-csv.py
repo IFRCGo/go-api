@@ -37,7 +37,7 @@ class Command(BaseCommand):
                 elif row['TYPECODE'] == 'NS3': row['TYPECODE'] = 4
                 else: row['TYPECODE'] = int(row['TYPECODE'])
                 unit.type, created = LocalUnitType.objects.all().get_or_create(
-                    level=row['TYPECODE'],
+                    code=row['TYPECODE'],
                     # name=row['TYPENAME'] -- we must create it in advance, not this way.
                 )
                 if created:
