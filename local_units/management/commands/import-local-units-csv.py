@@ -1,10 +1,13 @@
 from django.db import transaction
 import csv
+import pytz
+from dateutil import parser as date_parser
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import Point
 
+
 from api.models import Country
-from ...models import LocalUnit, LocalUnitType
+from ...models import LocalUnit, LocalUnitType, LocalUnitLevel
 
 
 class Command(BaseCommand):
@@ -27,6 +30,7 @@ class Command(BaseCommand):
                     row['POSTCODE'] = ''  # better then inserting wrong textual data
                 unit = LocalUnit()
                 unit.country = Country.objects.get(iso3=row['ISO3'])
+                # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
                 if   row['TYPECODE'] == 'NS0': row['TYPECODE'] = 1
                 elif row['TYPECODE'] == 'NS1': row['TYPECODE'] = 2
                 elif row['TYPECODE'] == 'NS2': row['TYPECODE'] = 3
@@ -34,11 +38,22 @@ class Command(BaseCommand):
                 else: row['TYPECODE'] = int(row['TYPECODE'])
                 unit.type, created = LocalUnitType.objects.all().get_or_create(
                     level=row['TYPECODE'],
-                    # name=row['TYPENAME'] -- we should create it in advance, not this way.
+                    # name=row['TYPENAME'] -- we must create it in advance, not this way.
                 )
                 if created:
                     print(f'New LocalUnitType created: {unit.type.name}')
 
+                if row['LEVELCODE']:
+                    unit.level, created = LocalUnitLevel.objects.all().get_or_create(
+                        level=row['LEVELCODE'],
+                        # name=row['LEVELNAME'] -- we must create it in advance, not this way.
+                    )
+                    if created:
+                        print(f'New LocalUnitLevel created: {unit.level.name}')
+
+                unit.subtype = row['SUBTYPE']
+                unit.is_public = row['PUBLICVIEW'].lower() == 'yes'
+                unit.validated = row['VALIDATED'].lower() == 'yes'
                 unit.local_branch_name = row['NAME_LOC']
                 unit.english_branch_name = row['NAME_EN']
                 unit.postcode = row['POSTCODE'].strip()[:10]
@@ -54,6 +69,8 @@ class Command(BaseCommand):
                 unit.source_en = row['SOURCE_EN']
                 unit.source_loc = row['SOURCE_LOC']
                 unit.location = Point(float(row['LONGITUDE']), float(row['LATITUDE']))
+                if row['DATEOFUPDATE']:
+                    unit.date_of_data = date_parser.parse(row['DATEOFUPDATE']).replace(tzinfo=pytz.utc)
                 unit.save()
                 name = unit.local_branch_name if unit.local_branch_name else unit.english_branch_name
                 city = unit.city_loc if unit.city_loc else unit.city_en

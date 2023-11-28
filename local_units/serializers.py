@@ -1,7 +1,7 @@
 import json
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from .models import LocalUnit, LocalUnitType
+from .models import LocalUnit, LocalUnitType, LocalUnitLevel
 from api.models import Country
 
 
@@ -13,13 +13,24 @@ class LocalUnitCountrySerializer(ModelSerializer):
             'name', 'iso3'
         )
 
+
 class LocalUnitTypeSerializer(ModelSerializer):
 
     class Meta:
         model = LocalUnitType
         fields = (
+            'name', 'code'
+        )
+
+
+class LocalUnitLevelSerializer(ModelSerializer):
+
+    class Meta:
+        model = LocalUnitLevel
+        fields = (
             'name', 'level'
         )
+
 
 class LocalUnitSerializer(ModelSerializer):
     location = SerializerMethodField()
@@ -32,13 +43,13 @@ class LocalUnitSerializer(ModelSerializer):
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
-            'source_loc', 'source_en'
+            'source_loc', 'source_en', 'subtype', 'level', 'date_of_data'
             # 'email', 'phone',
             ]
 
     def get_location(self, unit):
         return json.loads(unit.location.geojson)
-    
+
     def get_country(self, unit):
         return {'country'}
 
