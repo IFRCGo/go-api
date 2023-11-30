@@ -529,6 +529,7 @@ SENTRY_CONFIG = {
     'dsn': SENTRY_DSN,
     'send_default_pii': True,
     'traces_sample_rate': SENTRY_SAMPLE_RATE,
+    'enable_tracing': True,
     'release': sentry.fetch_git_sha(BASE_DIR),
     'environment': GO_ENVIRONMENT,
     'debug': DEBUG,

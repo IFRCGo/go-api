@@ -814,7 +814,9 @@ class GDACSEvent(models.Model):
     year = models.IntegerField(verbose_name=_('year'))
     lat = models.FloatField(verbose_name=_('latitude'))
     lon = models.FloatField(verbose_name=_('longitude'))
+    # TODO: Remove `event_type`
     event_type = models.CharField(verbose_name=_('event type'), max_length=16)
+    disaster_type = models.ForeignKey(DisasterType, verbose_name=('disaster type'), on_delete=models.PROTECT, null=True)
     alert_level = models.IntegerField(choices=AlertLevel.choices, verbose_name=_('alert level'), default=0)
     alert_score = models.CharField(verbose_name=_('alert score'), max_length=16, null=True)
     severity = models.TextField(verbose_name=_('severity'))

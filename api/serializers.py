@@ -55,6 +55,7 @@ from .models import (
     CountryOfFieldReportToReview,
     Export,
     UserCountry,
+    GDACSEvent,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -2208,7 +2209,6 @@ class ExportSerializer(serializers.ModelSerializer):
             title = Dref.objects.filter(
                 id=export_id
             ).first().title
-            print(title, "**********")
         elif export_type == Export.ExportType.OPS_UPDATE:
             title = DrefOperationalUpdate.objects.filter(
                 id=export_id
@@ -2235,3 +2235,21 @@ class ExportSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
+
+
+class GDACSEventSerializer(serializers.ModelSerializer):
+    population_value = serializers.IntegerField()
+    countries = MiniCountrySerializer(many=True)
+    disaster_type = DisasterTypeSerializer()
+    class Meta:
+        model = GDACSEvent
+        fields = (
+            "id",
+            "eventid",
+            "title",
+            "countries",
+            "population_unit",
+            "population_value",
+            "disaster_type",
+            "publication_date"
+        )

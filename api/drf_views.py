@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
@@ -47,7 +49,8 @@ from .models import (
     MainContact,
     UserCountry,
     CountryOfFieldReportToReview,
-    Export
+    Export,
+    GDACSEvent,
 )
 
 from country_plan.models import CountryPlan
@@ -103,7 +106,8 @@ from .serializers import (
     # Go Historical
     GoHistoricalSerializer,
     CountryOfFieldReportToReviewSerializer,
-    ExportSerializer
+    ExportSerializer,
+    GDACSEventSerializer,
 )
 from api.filter_set import (
     UserFilterSet,
@@ -122,7 +126,8 @@ from api.filter_set import (
     AppealHistoryFilter,
     AppealDocumentFilter,
     FieldReportFilter,
-    GoHistoricalFilter
+    GoHistoricalFilter,
+    GDACSEventFileterSet
 )
 
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
@@ -1024,3 +1029,14 @@ class ExportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Export.objects.filter(requested_by=user).distinct()
+
+
+class GDACSEventViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GDACSEventSerializer
+    filterset_class = GDACSEventFileterSet
+
+    def get_queryset(self):
+        today = timezone.now()
+        thirty_days_before = today + timedelta(days=-30)
+        return GDACSEvent.objects.filter(publication_date__gte=thirty_days_before)
+

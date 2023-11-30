@@ -3,13 +3,23 @@ import datetime as dt
 import xmltodict
 from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from api.models import Country, Event, GDACSEvent, CronJob, CronJobStatus
+from api.models import Country, Event, GDACSEvent, CronJob, CronJobStatus, DisasterType
 from api.event_sources import SOURCES
 from api.logger import logger
 
 
 class Command(BaseCommand):
     help = "Add new entries from Access database file"
+
+    def get_disaster_type(self, event_type):
+        event_type_map = {
+            "EQ": DisasterType.objects.get(name="Earthquake"),
+            "TC": DisasterType.objects.get(name="Cyclone"),
+            "FL": DisasterType.objects.get(name="Flood"),
+            "DR": DisasterType.objects.get(name="Drought"),
+            "WF": DisasterType.objects.get(name="Fire")
+        }
+        return event_type_map.get(event_type)
 
     def handle(self, *args, **options):
         logger.info("Starting GDACs ingest")
@@ -49,7 +59,7 @@ class Command(BaseCommand):
                     "year": alert.pop(nspace + "year"),
                     "lat": latlon[0],
                     "lon": latlon[1],
-                    "event_type": alert.pop(nspace + "eventtype"),
+                    "event_type": alert[nspace + "eventtype"],
                     "alert_level": levels[alert_level],
                     "alert_score": alert_score,
                     "severity": alert[nspace + "severity"]["#text"],
@@ -59,6 +69,7 @@ class Command(BaseCommand):
                     "population_value": alert[nspace + "population"]["@value"],
                     "vulnerability": alert[nspace + "vulnerability"]["@value"],
                     "country_text": alert.pop(nspace + "country"),
+                    "disaster_type": self.get_disaster_type(alert.pop(nspace + "eventtype"))
                 }
 
                 # do some length checking
@@ -77,7 +88,7 @@ class Command(BaseCommand):
                 if created:
                     added += 1
                     for c in data["country_text"].split(","):
-                        country = Country.objects.filter(name=c.strip())
+                        country = Country.objects.filter(name__icontains=c.strip())
                         if country.count() == 1:
                             gdacsevent.countries.add(country[0])
 

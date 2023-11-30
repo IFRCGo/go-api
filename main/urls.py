@@ -105,6 +105,7 @@ router.register(r'language', lang_views.LanguageViewSet, basename='language')
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
+router.register(r'gdacs-event', api_views.GDACSEventViewSet, basename="gdacs_events")
 
 # PER apis
 router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
