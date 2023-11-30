@@ -209,7 +209,7 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
             return (
                 Overview.objects.select_related("country", "type_of_assessment")
                 .filter(country_id=country_id)
-                .order_by("-created_at")[:1]  # first() gives error for len() and count()
+                .order_by("-created_at")
             )
         return Overview.objects.none()
 
