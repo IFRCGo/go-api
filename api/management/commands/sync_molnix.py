@@ -18,6 +18,9 @@ CRON_NAME = "sync_molnix"
     in the GO db via this mapping below, as the NS names do not line up.
 """
 NS_MATCHING_OVERRIDES = {  # NS -> country
+    "Belgian Red Cross (RKV)": "Belgium",
+    "Belgian Red Cross (CRB)": "Belgium",
+    "Belgian Red Cross": "Belgium",
     "Red Cross Society of China-Hong Kong Branch": "China",
     "Red Cross Society Of China-Hong Kong Branch": "China",
     "Macau Red Cross": "China",
