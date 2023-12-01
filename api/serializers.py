@@ -2185,6 +2185,23 @@ class AggregateByDtypeSerializer(serializers.Serializer):
     dtype = serializers.IntegerField()
     count = serializers.IntegerField()
 
+class CountryAggregatedInputSerializer(serializers.Serializer):
+    iso3 = serializers.IntegerField(required=False)
+    country = serializers.IntegerField(required=False)
+    start_date = serializers.DateField(required=False)
+    end_date = serializers.DateField(required=False)
+
+
+class CountryAggregatedSerializer(serializers.Serializer):
+    active_drefs = serializers.IntegerField()
+    active_appeals = serializers.IntegerField()
+    total_appeals = serializers.IntegerField()
+    target_population = serializers.IntegerField()
+    amount_requested = serializers.IntegerField()
+    amount_requested_dref_included = serializers.IntegerField()
+    amount_funded = serializers.IntegerField()
+    emergencies = serializers.IntegerField()
+
 
 class ExportSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)

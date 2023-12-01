@@ -43,7 +43,9 @@ from api.serializers import (
     AggregateByDtypeSerializer,
     AggregateByTimeSeriesInputSerializer,
     SearchInputSerializer,
-    AggregateHeaderFiguresInputSerializer
+    AggregateHeaderFiguresInputSerializer,
+    CountryAggregatedInputSerializer,
+    CountryAggregatedSerializer
 )
 
 
@@ -1009,3 +1011,74 @@ class DummyHttpStatusError(View):
 class DummyExceptionError(View):
     def get(self, request, *args, **kwargs):
         raise Exception("Dev raised exception!")
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[CountryAggregatedInputSerializer],
+        responses=CountryAggregatedSerializer,
+    )
+)
+class CountryAggregatedView(APIView):
+    """
+        Provides country general stats for general overview
+    """
+    def get(self, request):
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        iso3 = request.GET.get("iso3", None)
+        country = request.GET.get("country", None)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        appeal_conditions = (
+            (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__lte=end_date) & Q(start_date__gte=start_date)
+        )
+
+        all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
+        if start_date and end_date:
+            all_appealhistory =all_appealhistory.filter(
+                start_date__lte=end_date, end_date__gte=start_date
+            )
+
+        if iso3:
+            all_appealhistory = all_appealhistory.filter(country__iso3__iexact=iso3)
+        if country:
+            all_appealhistory = all_appealhistory.filter(country__id=country)
+        appeals_aggregated = all_appealhistory.annotate(
+            appeal_with_dref=Count(
+                Case(
+                    When(Q(atype=AppealType.DREF) & Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=1),
+                    output_field=IntegerField(),
+                )
+            ),
+            appeal_without_dref=Count(Case(When(appeal_conditions, then=1), output_field=IntegerField())),
+            total_appeals_without_dref=Count(
+                Case(When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1), output_field=IntegerField())
+            ),
+            total_population=Sum(
+                Case(
+                    When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("num_beneficiaries")),
+                    output_field=IntegerField(),
+                )
+            ),
+            amount_requested_without_dref=Case(When(appeal_conditions, then=F("amount_requested")), output_field=IntegerField()),
+            amount_requested_dref=Case(
+                When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("amount_requested")), output_field=IntegerField()
+            ),
+            amount_funded_without_dref=Case(When(appeal_conditions, then=F("amount_funded")), output_field=IntegerField()),
+            emergencies_count=Count(F("appeal__event"), distinct=True)
+        ).aggregate(
+            active_drefs=Sum("appeal_with_dref"),
+            active_appeals=Sum("appeal_without_dref"),
+            total_appeals=Sum("total_appeals_without_dref"),
+            target_population=Sum("total_population"),
+            amount_requested=Sum("amount_requested_without_dref"),
+            amount_requested_dref_included=Sum("amount_requested_dref"),
+            amount_funded=Sum("amount_funded_without_dref"),
+            emergencies=Sum("emergencies_count"),
+        )
+        return Response(
+            CountryAggregatedSerializer(
+                appeals_aggregated
+            ).data
+        )
