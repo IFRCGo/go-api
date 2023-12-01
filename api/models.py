@@ -262,7 +262,8 @@ class District(models.Model):
 
     def __str__(self):
         country_name = self.country.name if self.country else ''
-        return f'{country_name} - {self.name}'
+        suffix = ' ⚡' if self.is_deprecated else ''
+        return f'{country_name} - {self.name}{suffix}'
 
 
 class Admin2(models.Model):

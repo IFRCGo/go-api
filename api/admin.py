@@ -515,6 +515,8 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
     country_in = 'country__pk__in'
     region_in = 'country__region__in'
     search_fields = ('name', 'country__name',)
+    list_display = ('__str__', 'code')
+    list_filter = ('is_deprecated', 'country')
     modifiable = True
 
 
