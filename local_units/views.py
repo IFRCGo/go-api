@@ -2,10 +2,10 @@ from rest_framework import (
     viewsets,
     permissions,
 )
-from local_units.filterset import LocalUnitFilters
 
 from .models import LocalUnit, DelegationOffice
 from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
+from local_units.filterset import LocalUnitFilters
 from local_units.models import LocalUnit
 from local_units.serializers import LocalUnitSerializer
 
