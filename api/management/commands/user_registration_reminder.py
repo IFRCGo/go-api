@@ -20,6 +20,7 @@ class Command(BaseCommand):
             region_admin_emails = list(UserRegion.objects.filter(region_id=region_id).values_list("user__email", flat=True))
             pending3days = (
                 Pending.objects.filter(user__profile__country__region_id=region_id)
+                .filter(email_verified=True)
                 .filter(reminder_sent_to_admin=False)
                 .filter(created_at__lte=time_diff_3_day)
             )
