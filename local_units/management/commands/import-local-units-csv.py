@@ -36,21 +36,14 @@ class Command(BaseCommand):
                 elif row['TYPECODE'] == 'NS2': row['TYPECODE'] = 3
                 elif row['TYPECODE'] == 'NS3': row['TYPECODE'] = 4
                 else: row['TYPECODE'] = int(row['TYPECODE'])
-                unit.type, created = LocalUnitType.objects.all().get_or_create(
+                unit.type = LocalUnitType.objects.get(
                     code=row['TYPECODE'],
-                    # name=row['TYPENAME'] -- we must create it in advance, not this way.
                 )
-                if created:
-                    print(f'New LocalUnitType created: {unit.type.name}')
 
                 if row['LEVELCODE']:
-                    unit.level, created = LocalUnitLevel.objects.all().get_or_create(
+                    unit.level = LocalUnitLevel.objects.get(
                         level=row['LEVELCODE'],
-                        # name=row['LEVELNAME'] -- we must create it in advance, not this way.
                     )
-                    if created:
-                        print(f'New LocalUnitLevel created: {unit.level.name}')
-
                 unit.subtype = row['SUBTYPE']
                 unit.is_public = row['PUBLICVIEW'].lower() == 'yes'
                 unit.validated = row['VALIDATED'].lower() == 'yes'

@@ -50,6 +50,7 @@ from api.views import (
     DummyExceptionError,
     ResendValidation,
     HayStackSearch,
+    # CountryAggregatedView,
 )
 from registrations.views import (
     VerifyEmail,
@@ -58,8 +59,10 @@ from registrations.views import (
 from registrations.drf_views import RegistrationView
 from databank.views import CountryOverviewViewSet
 from local_units.views import (
-    LocalUnitListAPIView, LocalUnitDetailAPIView,
-    DelegationOfficeListAPIView, DelegationOfficeDetailAPIView)
+    DelegationOfficeListAPIView,
+    DelegationOfficeDetailAPIView
+)
+
 
 # DRF routes
 from rest_framework import routers
@@ -74,6 +77,7 @@ from registrations import drf_views as registration_views
 from country_plan import drf_views as country_plan_views
 from lang import views as lang_views
 from dref import views as dref_views
+from local_units import views as local_units_views
 
 
 router = routers.DefaultRouter()
@@ -166,6 +170,9 @@ router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
 
+# local units apis
+router.register(r"local-units", local_units_views.LocalUnitViewSet, basename="local_units")
+
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
 
@@ -183,6 +190,7 @@ urlpatterns = [
     url(r"^api/v2/deployment/aggregated$", deployment_views.AggregateDeployments.as_view()),
     url(r"^api/v2/deployment/aggregated_by_month", deployment_views.DeploymentsByMonth.as_view()),
     url(r"^api/v2/deployment/aggregated_by_ns", deployment_views.DeploymentsByNS.as_view()),
+    # url(r"^api/v2/country/aggregated/", CountryAggregatedView.as_view()),
     url(r"^api/v2/brief", Brief.as_view()),
     url(r"^api/v2/erutype", ERUTypes.as_view()),
     url(r"^api/v2/recentaffected", RecentAffecteds.as_view()),

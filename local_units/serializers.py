@@ -36,6 +36,8 @@ class LocalUnitSerializer(ModelSerializer):
     location = SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
+    level = LocalUnitLevelSerializer()
+
     class Meta:
         model = LocalUnit
         fields = [
@@ -43,8 +45,8 @@ class LocalUnitSerializer(ModelSerializer):
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
-            'source_loc', 'source_en', 'subtype', 'level', 'date_of_data'
-            # 'email', 'phone',
+            'source_loc', 'source_en', 'subtype', 'date_of_data',
+            'email', 'phone', 'level'
             ]
 
     def get_location(self, unit):
