@@ -25,6 +25,7 @@ from .models import (
     FormComponent,
     FormQuestion,
     FormAnswer,
+    OpsLearning,
     Overview,
     NiceDocument,
     AssessmentType,
@@ -55,6 +56,7 @@ from .serializers import (
     PerFileInputSerializer,
     PublicPerProcessSerializer,
     PublicPerAssessmentSerializer,
+    OpsLearningSerializer,
 )
 from per.permissions import PerPermission
 from per.filter_set import (
@@ -362,3 +364,12 @@ class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
                 "-assessment_number").distinct("country_id").values("id")
         )
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
+
+
+class OpsLearningViewset(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing OpsLearning records.
+    """
+    queryset = OpsLearning.objects.all()
+    serializer_class = OpsLearningSerializer
+    permission_classes = [permissions.IsAuthenticated]
