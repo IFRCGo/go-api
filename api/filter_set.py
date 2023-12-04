@@ -230,7 +230,7 @@ class AppealHistoryFilter(filters.FilterSet):
         queryset=Country.objects.all()
     )
     region = filters.ModelMultipleChoiceFilter(
-        field_name='country',
+        field_name='region',
         queryset=Region.objects.all()
     )
     code = filters.CharFilter(field_name="code", lookup_expr="exact")
