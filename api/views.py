@@ -8,7 +8,18 @@ from django.conf import settings
 from django.views import View
 from django.db.models.functions import TruncMonth, TruncYear, Coalesce
 from django.db.models.fields import IntegerField
-from django.db.models import Count, Sum, Q, F, Case, When, Subquery, OuterRef
+from django.db import models
+from django.db.models import (
+    Count,
+    Sum,
+    Q,
+    F,
+    Case,
+    When,
+    Subquery,
+    OuterRef,
+    Avg
+)
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
@@ -1092,7 +1103,7 @@ class CountryKeyFigureView(APIView):
 @extend_schema_view(
     get=extend_schema(
         parameters=[CountryKeyFigureSerializer],
-        responses=CountryDisasterTypeCountSerializer,
+        responses=CountryDisasterTypeCountSerializer(many=True),
     )
 )
 class CountryDisasterTypeCountView(APIView):
@@ -1109,7 +1120,9 @@ class CountryDisasterTypeCountView(APIView):
         if not iso3:
             return bad_request("Must include a `iso3`")
 
-        queryset = Event.objects.values('dtype').annotate(
+        queryset = Event.objects.filter(
+            countries__iso3__icontains=iso3
+        ).values('dtype').annotate(
             count=Count('dtype'),
             disaster_name=F('dtype__name')
         ).distinct()
@@ -1120,7 +1133,7 @@ class CountryDisasterTypeCountView(APIView):
             )
         return Response(
             CountryDisasterTypeCountSerializer(
-                queryset
+                queryset, many=True
             ).data
         )
 
@@ -1128,7 +1141,7 @@ class CountryDisasterTypeCountView(APIView):
 @extend_schema_view(
     get=extend_schema(
         parameters=[CountryKeyFigureSerializer],
-        responses=CountryDisasterTypeMonthlySerializer,
+        responses=CountryDisasterTypeMonthlySerializer(many=True),
     )
 )
 class CountryDisasterTypeMonthlyView(APIView):
@@ -1144,7 +1157,7 @@ class CountryDisasterTypeMonthlyView(APIView):
         end_date = request.GET.get("end_date", end_date)
         if not iso3:
             return bad_request("Must include a `iso3`")
-        queryset =  Event.objects.annotate(
+        queryset =  Event.objects.filter(countries__iso3__icontains=iso3).annotate(
             date=TruncMonth('created_at')
         ).values('date').annotate(
             targeted_population=Avg('appeals__num_beneficiaries', filter=models.Q(appeals__num_beneficiaries__isnull=False)),
@@ -1159,7 +1172,7 @@ class CountryDisasterTypeMonthlyView(APIView):
 
         return Response(
             CountryDisasterTypeMonthlySerializer(
-                queryset
+                queryset, many=True
             ).data
         )
 
@@ -1167,7 +1180,7 @@ class CountryDisasterTypeMonthlyView(APIView):
 @extend_schema_view(
     get=extend_schema(
         parameters=[CountryKeyFigureSerializer],
-        responses=CountryDisasterTypeMonthlySerializer,
+        responses=CountryDisasterTypeMonthlySerializer(many=True),
     )
 )
 class CountryDisasterCountView(APIView):
@@ -1185,19 +1198,7 @@ class CountryDisasterCountView(APIView):
 
         if not iso3:
             return bad_request("Must include a `iso3`")
-
-        if start_date and end_date:
-            queryset = queryset.filter(
-                disaster_start_date__gte=start_date,
-                disaster_start_date__lte=end_date
-            )
-
-        if dtype:
-            queryset = queryset.filter(
-                dtype=dtype
-            )
-
-        queryset = Event.objects.annotate(
+        queryset = Event.objects.filter(countries__iso3__icontains=iso3).annotate(
             date=TruncMonth('created_at')
         ).values('date', 'dtype').annotate(
             latest_field_report_affected=Coalesce(Subquery(
@@ -1210,4 +1211,21 @@ class CountryDisasterCountView(APIView):
             disaster_name=F('dtype__name'),
         ).annotate(
             targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
-        ).order_by('date',)
+        ).order_by('date')
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+
+        if dtype:
+            queryset = queryset.filter(
+                dtype=dtype
+            )
+
+        return Response(
+            CountryDisasterTypeMonthlySerializer(
+                queryset, many=True
+            ).data
+        )

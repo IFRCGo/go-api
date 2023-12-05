@@ -2210,7 +2210,7 @@ class CountryDisasterTypeCountSerializer(serializers.Serializer):
 
 
 class CountryDisasterTypeMonthlySerializer(serializers.Serializer):
-    date = serializers.DateField()
+    date = serializers.DateTimeField()
     targeted_population = serializers.IntegerField()
     disaster_name = serializers.CharField()
 
