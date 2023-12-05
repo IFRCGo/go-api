@@ -2185,14 +2185,15 @@ class AggregateByDtypeSerializer(serializers.Serializer):
     dtype = serializers.IntegerField()
     count = serializers.IntegerField()
 
-class CountryAggregatedInputSerializer(serializers.Serializer):
-    iso3 = serializers.IntegerField(required=False)
+class CountryKeyFigureInputSerializer(serializers.Serializer):
+    iso3 = serializers.IntegerField(required=True)
     country = serializers.IntegerField(required=False)
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
+    dtype = serializers.IntegerField(required=False)
 
 
-class CountryAggregatedSerializer(serializers.Serializer):
+class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
     active_appeals = serializers.IntegerField()
     total_appeals = serializers.IntegerField()
@@ -2201,6 +2202,17 @@ class CountryAggregatedSerializer(serializers.Serializer):
     amount_requested_dref_included = serializers.IntegerField()
     amount_funded = serializers.IntegerField()
     emergencies = serializers.IntegerField()
+
+
+class CountryDisasterTypeCountSerializer(serializers.Serializer):
+    disaster_name = serializers.CharField()
+    count = serializers.IntegerField()
+
+
+class CountryDisasterTypeMonthlySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    targeted_population = serializers.IntegerField()
+    disaster_name = serializers.CharField()
 
 
 class ExportSerializer(serializers.ModelSerializer):

@@ -226,9 +226,9 @@ MIDDLEWARE = [
     'django.middleware.locale.LocaleMiddleware',
     # 'middlewares.middlewares.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'middlewares.cache.UpdateCacheForUserMiddleware',
+    #'middlewares.cache.UpdateCacheForUserMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'middlewares.cache.FetchFromCacheForUserMiddleware',
+    #'middlewares.cache.FetchFromCacheForUserMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -578,6 +578,8 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+     'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
+    # 'POSTPROCESSING_HOOKS': []
 }
 
 # A character which is rarely used in strings – for separator:

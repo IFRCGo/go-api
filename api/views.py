@@ -6,9 +6,9 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views import View
-from django.db.models.functions import TruncMonth, TruncYear
+from django.db.models.functions import TruncMonth, TruncYear, Coalesce
 from django.db.models.fields import IntegerField
-from django.db.models import Count, Sum, Q, F, Case, When
+from django.db.models import Count, Sum, Q, F, Case, When, Subquery, OuterRef
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
@@ -44,8 +44,10 @@ from api.serializers import (
     AggregateByTimeSeriesInputSerializer,
     SearchInputSerializer,
     AggregateHeaderFiguresInputSerializer,
-    CountryAggregatedInputSerializer,
-    CountryAggregatedSerializer
+    CountryKeyFigureInputSerializer,
+    CountryKeyFigureSerializer,
+    CountryDisasterTypeCountSerializer,
+    CountryDisasterTypeMonthlySerializer,
 )
 
 
@@ -1015,21 +1017,23 @@ class DummyExceptionError(View):
 
 @extend_schema_view(
     get=extend_schema(
-        parameters=[CountryAggregatedInputSerializer],
-        responses=CountryAggregatedSerializer,
+        parameters=[CountryKeyFigureInputSerializer],
+        responses=CountryKeyFigureSerializer,
     )
 )
-class CountryAggregatedView(APIView):
+class CountryKeyFigureView(APIView):
     """
         Provides country general stats for general overview
     """
     def get(self, request):
         end_date = timezone.now()
         start_date = end_date + timedelta(days=-2*365)
-        iso3 = request.GET.get("iso3", None)
+        iso3 = request.GET.get("iso3")
         country = request.GET.get("country", None)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
+        if not iso3:
+            return bad_request("Must include a `iso3`")
         appeal_conditions = (
             (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__lte=end_date) & Q(start_date__gte=start_date)
         )
@@ -1078,7 +1082,132 @@ class CountryAggregatedView(APIView):
             emergencies=Sum("emergencies_count"),
         )
         return Response(
-            CountryAggregatedSerializer(
+            CountryKeyFigureSerializer(
                 appeals_aggregated
             ).data
         )
+
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[CountryKeyFigureSerializer],
+        responses=CountryDisasterTypeCountSerializer,
+    )
+)
+class CountryDisasterTypeCountView(APIView):
+    """
+        Provides country general stats for emergencies
+    """
+    def get(self, request):
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        iso3 = request.GET.get("iso3")
+        country = request.GET.get("country", None)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        if not iso3:
+            return bad_request("Must include a `iso3`")
+
+        queryset = Event.objects.values('dtype').annotate(
+            count=Count('dtype'),
+            disaster_name=F('dtype__name')
+        ).distinct()
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+        return Response(
+            CountryDisasterTypeCountSerializer(
+                queryset
+            ).data
+        )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[CountryKeyFigureSerializer],
+        responses=CountryDisasterTypeMonthlySerializer,
+    )
+)
+class CountryDisasterTypeMonthlyView(APIView):
+    """
+        Provides country general stats for emergencies by month
+    """
+    def get(self, request):
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        iso3 = request.GET.get("iso3")
+        country = request.GET.get("country", None)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        if not iso3:
+            return bad_request("Must include a `iso3`")
+        queryset =  Event.objects.annotate(
+            date=TruncMonth('created_at')
+        ).values('date').annotate(
+            targeted_population=Avg('appeals__num_beneficiaries', filter=models.Q(appeals__num_beneficiaries__isnull=False)),
+            disaster_name=F('dtype__name'),
+        ).order_by('date',)
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+
+        return Response(
+            CountryDisasterTypeMonthlySerializer(
+                queryset
+            ).data
+        )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        parameters=[CountryKeyFigureSerializer],
+        responses=CountryDisasterTypeMonthlySerializer,
+    )
+)
+class CountryDisasterCountView(APIView):
+    """
+        Provides country disaster count group by disater type
+    """
+    def get(self, request):
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        iso3 = request.GET.get("iso3")
+        country = request.GET.get("country", None)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        dtype = request.GET.get("dtype", None)
+
+        if not iso3:
+            return bad_request("Must include a `iso3`")
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+
+        if dtype:
+            queryset = queryset.filter(
+                dtype=dtype
+            )
+
+        queryset = Event.objects.annotate(
+            date=TruncMonth('created_at')
+        ).values('date', 'dtype').annotate(
+            latest_field_report_affected=Coalesce(Subquery(
+                FieldReport.objects.filter(
+                    event=OuterRef("pk")
+                ).order_by().values('event')
+                .annotate(c=models.F('num_affected')).values('c')[:1],
+                output_field=models.IntegerField(),
+            ), 0),
+            disaster_name=F('dtype__name'),
+        ).annotate(
+            targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
+        ).order_by('date',)

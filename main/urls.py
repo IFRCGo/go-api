@@ -50,7 +50,10 @@ from api.views import (
     DummyExceptionError,
     ResendValidation,
     HayStackSearch,
-    CountryAggregatedView,
+    CountryKeyFigureView,
+    CountryDisasterTypeCountView,
+    CountryDisasterTypeMonthlyView,
+    CountryDisasterCountView,
 )
 from registrations.views import (
     VerifyEmail,
@@ -190,7 +193,10 @@ urlpatterns = [
     url(r"^api/v2/deployment/aggregated$", deployment_views.AggregateDeployments.as_view()),
     url(r"^api/v2/deployment/aggregated_by_month", deployment_views.DeploymentsByMonth.as_view()),
     url(r"^api/v2/deployment/aggregated_by_ns", deployment_views.DeploymentsByNS.as_view()),
-    url(r"^api/v2/country/aggregated/", CountryAggregatedView.as_view()),
+    url(r"^api/v2/country-figure/", CountryKeyFigureView.as_view()),
+    url(r"^api/v2/country-disaster-count/", CountryDisasterTypeCountView.as_view()),
+    url(r"^api/v2/country-disaster-monthly-count/", CountryDisasterTypeMonthlyView.as_view()),
+    url(r"^api/v2/country-historical-disaster/", CountryDisasterCountView.as_view()),
     url(r"^api/v2/brief", Brief.as_view()),
     url(r"^api/v2/erutype", ERUTypes.as_view()),
     url(r"^api/v2/recentaffected", RecentAffecteds.as_view()),
