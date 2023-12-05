@@ -773,4 +773,10 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
 class OpsLearningSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpsLearning
-        fields = "__all__"
+        exclude = ("created_at", "modified_at")
+
+
+class PublicOpsLearningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearning
+        exclude = ("created_at", "modified_at", "learning", "type", "sector", "per_component")

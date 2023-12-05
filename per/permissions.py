@@ -52,3 +52,14 @@ class PerPermission(permissions.BasePermission):
         country_id = request_data.get("country")
         region = Region.objects.filter(country=country_id).first()
         return region and region.id
+
+
+class OpsLearningPermission(permissions.BasePermission):
+    message = "You don't have permission for Ops Learning records"
+
+    def has_permission(self, request, view):
+        user = request.user
+        if user.is_superuser \
+        or user.groups.filter(name="OpsLearning Admin").exists() \
+        or request.method in permissions.SAFE_METHODS:
+            return True

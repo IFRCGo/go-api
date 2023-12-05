@@ -57,8 +57,9 @@ from .serializers import (
     PublicPerProcessSerializer,
     PublicPerAssessmentSerializer,
     OpsLearningSerializer,
+    PublicOpsLearningSerializer,
 )
-from per.permissions import PerPermission
+from per.permissions import PerPermission, OpsLearningPermission
 from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,
@@ -372,4 +373,11 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     """
     queryset = OpsLearning.objects.all()
     serializer_class = OpsLearningSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [OpsLearningPermission]
+
+    def get_serializer_class(self):
+        user = self.request.user
+        if user.is_superuser or user.groups.filter(name="OpsLearning Admin").exists():
+            return OpsLearningSerializer
+        else:
+            return PublicOpsLearningSerializer
