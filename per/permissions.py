@@ -1,6 +1,7 @@
 from rest_framework import permissions
 
 from api.models import Region
+from per.models import OpsLearning
 
 
 class CustomObjectPermissions(permissions.DjangoObjectPermissions):
@@ -58,8 +59,9 @@ class OpsLearningPermission(permissions.BasePermission):
     message = "You don't have permission for Ops Learning records"
 
     def has_permission(self, request, view):
-        user = request.user
-        if user.is_superuser \
-        or user.groups.filter(name="OpsLearning Admin").exists() \
-        or request.method in permissions.SAFE_METHODS:
+        if (
+            request.method in permissions.SAFE_METHODS or
+            OpsLearning.is_user_admin(request.user)
+        ):
             return True
+        return False

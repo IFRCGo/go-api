@@ -14,6 +14,9 @@ def check_if_user_is_anonymous(request):
 
 
 def get_cache_key_prefix(request):
+    if settings.DISABLE_API_CACHE:
+        return None
+
     cache_prefix = settings.CACHE_MIDDLEWARE_KEY_PREFIX
     drf_request = APIView().initialize_request(request)
 

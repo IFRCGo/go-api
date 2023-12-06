@@ -372,12 +372,15 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     A simple ViewSet for viewing and editing OpsLearning records.
     """
     queryset = OpsLearning.objects.all()
-    serializer_class = OpsLearningSerializer
     permission_classes = [OpsLearningPermission]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if OpsLearning.is_user_admin(self.request.user):
+            return qs
+        return qs.filter(is_validated=True)
+
     def get_serializer_class(self):
-        user = self.request.user
-        if user.is_superuser or user.groups.filter(name="OpsLearning Admin").exists():
+        if OpsLearning.is_user_admin(self.request.user):
             return OpsLearningSerializer
-        else:
-            return PublicOpsLearningSerializer
+        return PublicOpsLearningSerializer

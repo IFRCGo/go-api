@@ -634,6 +634,17 @@ class OpsLearning(models.Model):
         name = self.learning_validated if self.learning_validated else self.learning
         return "%s - %s" % (name, self.appeal_code) if self.appeal_code else name
 
+    @staticmethod
+    def is_user_admin(user):
+        return (
+            user is not None and
+            not user.is_anonymous and
+            (
+                user.is_superuser or
+                user.groups.filter(name="OpsLearning Admin").exists()
+            )
+        )
+
     def save(self, *args, **kwargs):
 
         if self.is_validated and self.id:
