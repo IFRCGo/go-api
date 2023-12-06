@@ -29,7 +29,7 @@ class EmailBackend(ModelBackend):
             # difference between an existing and a nonexistent user (#20760).
             UserModel().set_password(password)
         except MultipleObjectsReturned:
-            user = User.objects.filter(Q(username__iexact=username) | Q(email__iexact=username)).order_by('id').first()
+            user = User.objects.filter(Q(username__iexact=username) | Q(email__iexact=username)).order_by('-is_active').first()
 
         if shouldcheck and \
                 user and \
