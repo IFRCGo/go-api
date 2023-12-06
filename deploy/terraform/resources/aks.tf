@@ -7,7 +7,7 @@ resource "azurerm_kubernetes_cluster" "ifrcgo" {
   location            = data.azurerm_resource_group.ifrcgo.location
   resource_group_name = data.azurerm_resource_group.ifrcgo.name
   dns_prefix          = "${local.prefix}-cluster"
-  kubernetes_version  = "1.25.15"
+  kubernetes_version  = "1.28.3"
 
   default_node_pool {
     name           = "nodepool1"
