@@ -15,6 +15,7 @@ from .models import (
     FormData,
     NSPhase,
     WorkPlan,
+    OpsLearning,
     Overview,
     NiceDocument,
     AssessmentType,
@@ -767,3 +768,17 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerAssessment
         fields = ("id", "area_responses")
+
+
+class OpsLearningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearning
+        fields = '__all__'
+        read_only_fields = ("created_at", "modified_at")
+
+
+class PublicOpsLearningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpsLearning
+        read_only_fields = ("created_at", "modified_at")
+        exclude = ("learning", "type", "sector", "per_component")

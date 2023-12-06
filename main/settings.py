@@ -94,6 +94,8 @@ env = environ.Env(
     SENTRY_SAMPLE_RATE=(float, 0.2),
     # Maintenance mode
     DJANGO_READ_ONLY=(bool, False),
+    # Misc
+    DISABLE_API_CACHE=(bool, False),
 )
 
 
@@ -568,6 +570,7 @@ CACHES = {
 
 if env('CACHE_MIDDLEWARE_SECONDS'):
     CACHE_MIDDLEWARE_SECONDS = env('CACHE_MIDDLEWARE_SECONDS')  # Planned: 600 for staging, 60 from prod
+DISABLE_API_CACHE = env('DISABLE_API_CACHE')
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'IFRC-GO API',
