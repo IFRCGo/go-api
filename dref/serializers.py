@@ -339,7 +339,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
     event_map_file = DrefFileSerializer(source="event_map", required=False, allow_null=True)
-    disaster_category_analysis_details = DrefFileSerializer(source="disaster_category_analysis", read_only=True)
+    disaster_category_analysis_details = DrefFileSerializer(
+        source="disaster_category_analysis", read_only=True, required=False, allow_null=True)
+    targeting_strategy_support_file_details = DrefFileSerializer(
+        source="targeting_strategy_support_file", read_only=True, required=False, allow_null=True)
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="images")
     # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)

@@ -280,6 +280,14 @@ class Dref(models.Model):
         verbose_name=_("If available please upload Diaster categorization Analysis"),
         related_name="dref_disaster_category_file"
     )
+    targeting_strategy_support_file = models.ForeignKey(
+        "DrefFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("If available please upload additional support documentation for targeting strategy"),
+        related_name="dref_targeting_strategy_support_file"
+    )
     status = models.IntegerField(choices=Status.choices, verbose_name=_("status"), null=True, blank=True)
     num_assisted = models.IntegerField(verbose_name=_("number of assisted"), blank=True, null=True)
     num_affected = models.IntegerField(verbose_name=_("number of affected"), blank=True, null=True)
