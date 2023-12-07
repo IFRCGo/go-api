@@ -1,3 +1,35 @@
+env:
+  API_FQDN: goadmin.ifrc.org
+  AUTO_TRANSLATION_TRANSLATOR: lang.translation.IfrcTranslator
+  AWS_TRANSLATE_ACCESS_KEY:
+  AWS_TRANSLATE_REGION:
+  AZURE_STORAGE_ACCOUNT:
+  CACHE_MIDDLEWARE_SECONDS: "0"
+  CELERY_REDIS_URL: redis://ifrcgo-helm-redis:6379/1
+  DEBUG_EMAIL: ""
+  DJANGO_DB_HOST:
+  DJANGO_DB_NAME: postgres
+  DJANGO_DB_USER:
+  DJANGO_DB_PORT:
+  DJANGO_DEBUG: ""
+  DOCKER_HOST_IP: ""
+  DJANGO_READ_ONLY: "false"
+  DJANGO_ADDITIONAL_ALLOWED_HOSTS: ""
+  ELASTIC_SEARCH_HOST: elasticsearch://ifrcgo-helm-elasticsearch:9200
+  EMAIL_HOST:
+  EMAIL_PORT:
+  EMAIL_USER:
+  ERP_API_ENDPOINT:
+  FRONTEND_URL: go.ifrc.org
+  GO_ENVIRONMENT: production
+  GO_FTPHOST:
+  IFRC_TRANSLATION_DOMAIN: https://microservices-staging.ifrc.org
+  MOLNIX_API_BASE:
+  MOLNIX_USERNAME:
+  SENTRY_DSN: https://342632f67ea942c9bde214c0bb7e91be@sentry.northeurope.cloudapp.azure.com/2
+  SENTRY_SAMPLE_RATE: "0.2"
+  TEST_EMAILS:
+
 api:
   replicaCount: 2
   resources:
