@@ -29,10 +29,10 @@ class NationalSocietyAction(models.Model):
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
-        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and _accountability", _(
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and_accountability", _(
             "Community Engagement And Accountability"
         )
-        ENVIRONMENT_SUSTAINABILITY = "environment_sustainability ", _("Environment Sustainability")
+        ENVIRONMENT_SUSTAINABILITY = "environment_sustainability", _("Environment Sustainability")
         COORDINATION = "coordination", _("Coordination")
         NATIONAL_SOCIETY_READINESS = "national_society_readiness", _("National Society Readiness")
         ASSESSMENT = "assessment", _("Assessment")
@@ -87,10 +87,10 @@ class IdentifiedNeed(models.Model):
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
-        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and _accountability", _(
+        COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and_accountability", _(
             "Community Engagement And Accountability"
         )
-        ENVIRONMENT_SUSTAINABILITY = "environment_sustainability ", _("Environment Sustainability")
+        ENVIRONMENT_SUSTAINABILITY = "environment_sustainability", _("Environment Sustainability")
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
@@ -141,7 +141,7 @@ class PlannedIntervention(models.Model):
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
         MIGRATION_AND_DISPALCEMENT = "migration_and_displacement", _("Migration And Displacement")
-        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery_", _(
+        RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
         COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY = "community_engagement_and_accountability", _(
