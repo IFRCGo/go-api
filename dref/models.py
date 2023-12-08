@@ -25,7 +25,7 @@ class NationalSocietyAction(models.Model):
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
-        MIGRATION = "migration", _("Migration")
+        MIGRATION_AND_DISPALCEMENT = "migration_and_displacement", _("Migration And Displacement")
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
@@ -57,7 +57,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.WATER_SANITATION_AND_HYGIENE: "water.png",
             NationalSocietyAction.Title.PROTECTION_GENDER_AND_INCLUSION: "protection.png",
             NationalSocietyAction.Title.EDUCATION: "education.png",
-            NationalSocietyAction.Title.MIGRATION: "migration.png",
+            NationalSocietyAction.Title.MIGRATION_AND_DISPALCEMENT: "migration.png",
             NationalSocietyAction.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: "risk.png",
             NationalSocietyAction.Title.ENVIRONMENT_SUSTAINABILITY: "environment.png",
             NationalSocietyAction.Title.NATIONAL_SOCIETY_READINESS: "favicon.png",
@@ -83,7 +83,7 @@ class IdentifiedNeed(models.Model):
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
-        MIGRATION = "migration", _("Migration")
+        MIGRATION_AND_DISPALCEMENT = "migration_and_displacement", _("Migration And Displacement")
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
@@ -109,7 +109,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.PROTECTION_GENDER_AND_INCLUSION: "protection.png",
             IdentifiedNeed.Title.MULTI_PURPOSE_CASH_GRANTS: "cash.png",
             IdentifiedNeed.Title.EDUCATION: "education.png",
-            IdentifiedNeed.Title.MIGRATION: "migration.png",
+            IdentifiedNeed.Title.MIGRATION_AND_DISPALCEMENT: "migration.png",
             IdentifiedNeed.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: "risk.png",
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: "environment.png",
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
@@ -140,7 +140,7 @@ class PlannedIntervention(models.Model):
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
-        MIGRATION = "migration", _("Migration")
+        MIGRATION_AND_DISPALCEMENT = "migration_and_displacement", _("Migration And Displacement")
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery_", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
@@ -185,7 +185,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE: "water.png",
             PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION: "protection.png",
             PlannedIntervention.Title.EDUCATION: "education.png",
-            PlannedIntervention.Title.MIGRATION: "migration.png",
+            PlannedIntervention.Title.MIGRATION_AND_DISPALCEMENT: "migration.png",
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: "risk.png",
             PlannedIntervention.Title.SECRETARIAT_SERVICES: "work.png",
             PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: "independence.png",
