@@ -1,13 +1,23 @@
 from rest_framework import (
     viewsets,
     permissions,
+    response
 )
+from rest_framework.decorators import action
+
 
 from .models import LocalUnit, DelegationOffice
 from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
 from local_units.filterset import LocalUnitFilters
-from local_units.models import LocalUnit
-from local_units.serializers import LocalUnitSerializer
+from local_units.models import (
+    LocalUnit,
+    LocalUnitLevel,
+    LocalUnitType,
+)
+from local_units.serializers import (
+    LocalUnitSerializer,
+    LocalUnitOptionsSerializer
+)
 
 
 class LocalUnitViewSet(viewsets.ModelViewSet):
@@ -44,3 +54,19 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     queryset = DelegationOffice.objects.all()
     serializer_class = DelegationOfficeSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    @action(
+        detail=False,
+        url_path="options",
+        methods=("get",),
+        serializer_class=LocalUnitOptionsSerializer,
+    )
+    def get_options(self, request, pk=None):
+        return response.Response(
+            LocalUnitOptionsSerializer(
+                instance=dict(
+                    type=LocalUnitType.objects.all(),
+                    level=LocalUnitLevel.objects.all(),
+                )
+            ).data
+        )

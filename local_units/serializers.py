@@ -1,11 +1,11 @@
 import json
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework import serializers
 
 from .models import LocalUnit, LocalUnitType, LocalUnitLevel, DelegationOffice, DelegationOfficeType
 from api.models import Country
 
 
-class LocalUnitCountrySerializer(ModelSerializer):
+class LocalUnitCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -14,26 +14,26 @@ class LocalUnitCountrySerializer(ModelSerializer):
         )
 
 
-class LocalUnitTypeSerializer(ModelSerializer):
+class LocalUnitTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitType
         fields = (
-            'name', 'code'
+            'name', 'code', 'id'
         )
 
 
-class LocalUnitLevelSerializer(ModelSerializer):
+class LocalUnitLevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitLevel
         fields = (
-            'name', 'level'
+            'name', 'level', 'id'
         )
 
 
-class LocalUnitSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class LocalUnitSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
     level = LocalUnitLevelSerializer()
@@ -57,6 +57,7 @@ class LocalUnitSerializer(ModelSerializer):
 
     def get_type(self, unit):
         return {'type'}
+
 
 class DelegationOfficeCountrySerializer(ModelSerializer):
 
@@ -114,3 +115,7 @@ class DelegationOfficeSerializer(ModelSerializer):
 
     def get_type(self, office):
         return {'type'}
+
+class LocalUnitOptionsSerializer(serializers.Serializer):
+    type = LocalUnitTypeSerializer(many=True)
+    level = LocalUnitLevelSerializer(many=True)
