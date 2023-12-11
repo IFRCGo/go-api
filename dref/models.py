@@ -20,7 +20,7 @@ class NationalSocietyAction(models.Model):
     class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = "shelter_housing_and_settlements", _("Shelter, Housing And Settlements")
         LIVELIHOODS_AND_BASIC_NEEDS = "livelihoods_and_basic_needs", _("Livelihoods And Basic Needs")
-        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
+        MULTI_PURPOSE_CASH = "multi_purpose_cash", _("Multi Purpose Cash")
         HEALTH = "health", _("Health")
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
@@ -135,7 +135,7 @@ class PlannedIntervention(models.Model):
     class Title(models.TextChoices):
         SHELTER_HOUSING_AND_SETTLEMENTS = "shelter_housing_and_settlements", _("Shelter Housing And Settlements")
         LIVELIHOODS_AND_BASIC_NEEDS = "livelihoods_and_basic_needs", _("Livelihoods And Basic Needs")
-        MULTI_PURPOSE_CASH = "multi-purpose_cash", _("Multi-purpose Cash")
+        MULTI_PURPOSE_CASH = "multi_purpose_cash", _("Multi Purpose Cash")
         HEALTH = "health", _("Health")
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
@@ -156,7 +156,6 @@ class PlannedIntervention(models.Model):
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
     person_targeted = models.IntegerField(verbose_name=_("person targeted"), null=True, blank=True)
     person_assisted = models.IntegerField(verbose_name=_("person assisted"), null=True, blank=True)
-    person_reached = models.IntegerField(verbose_name=_("person reached"), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True)
     male = models.IntegerField(verbose_name=_("male"), blank=True, null=True)
     female = models.IntegerField(verbose_name=_("female"), blank=True, null=True)
