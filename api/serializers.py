@@ -132,6 +132,16 @@ class RegionGeoSerializer(ModelSerializer):
         )
 
 
+class CountryLinkSerializer(ModelSerializer):
+    class Meta:
+        model = CountryLink
+        fields = (
+            "title",
+            "url",
+            "id",
+        )
+
+
 class CountryTableauSerializer(ModelSerializer):
     region = RegionSerializer()
     record_type_display = serializers.CharField(source="get_record_type_display", read_only=True)
@@ -185,6 +195,7 @@ class CountryGeoSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     record_type_display = serializers.CharField(source="get_record_type_display", read_only=True)
+    links = CountryLinkSerializer(many=True, read_only=True)
 
     @staticmethod
     def get_bbox(country) -> dict:
@@ -215,6 +226,7 @@ class CountryGeoSerializer(ModelSerializer):
             "independent",
             "is_deprecated",
             "fdrs",
+            "links"
         )
 
 
@@ -528,16 +540,6 @@ class RegionLinkSerializer(ModelSerializer):
             "url",
             "id",
             "show_in_go",
-        )
-
-
-class CountryLinkSerializer(ModelSerializer):
-    class Meta:
-        model = CountryLink
-        fields = (
-            "title",
-            "url",
-            "id",
         )
 
 
