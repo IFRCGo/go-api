@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta, timezone
-from django.db.models import Q
+# from datetime import datetime, timedelta, timezone
+# from django.db.models import Q
 from django_filters import rest_framework as filters
 from django_filters.widgets import CSVWidget
+from main.filters import CharInFilter
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
@@ -9,13 +10,9 @@ from .models import SurgeAlert, Subscription
 from deployments.models import MolnixTag
 from .serializers import (
     SurgeAlertSerializer,
-#   UnauthenticatedSurgeAlertSerializer,
+    # UnauthenticatedSurgeAlertSerializer,
     SubscriptionSerializer,
 )
-
-
-class CharInFilter(filters.BaseInFilter, filters.CharFilter):
-    pass
 
 
 class SurgeAlertFilter(filters.FilterSet):
@@ -24,28 +21,18 @@ class SurgeAlertFilter(filters.FilterSet):
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
     molnix_tags = filters.ModelMultipleChoiceFilter(
         label='tag-ids',
-        method='molnix_tags_filter',
+        field_name='molnix_tags',
         help_text='Molnix_tag GO identifiers, comma separated',
         widget=CSVWidget,
         queryset=MolnixTag.objects.all(),
     )
     molnix_tag_names = CharInFilter(
         label='tag-names',
-        method='molnix_tag_names_filter',
+        field_name='molnix_tags__name',
+        lookup_expr='in',
         help_text='Molnix_tag names, comma separated',
         widget=CSVWidget,
-        # How can it work without queryset??? And if that can work, why that one ^ not?
     )
-
-    def molnix_tags_filter(self, qs, name, value):
-        if value:
-            return qs.filter(molnix_tags__in=value).order_by('id').distinct()
-        return qs
-
-    def molnix_tag_names_filter(self, qs, name, value):
-        if value:
-            return qs.filter(molnix_tags__name__in=value).order_by('id').distinct()
-        return qs
 
     class Meta:
         model = SurgeAlert
@@ -63,6 +50,10 @@ class SurgeAlertFilter(filters.FilterSet):
             'country__iso': ('exact', 'in'),
             'country__iso3': ('exact', 'in'),
         }
+
+    @property
+    def qs(self):
+        return super().qs.distinct()
 
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
