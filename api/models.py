@@ -204,6 +204,36 @@ class Country(models.Model):
         null=True, blank=True,
         max_digits=5, decimal_places=2
     )
+    address_1 = models.CharField(
+        verbose_name=_('Address 1'),
+        null=True, blank=True,
+        max_length=255
+    )
+    address_2 = models.CharField(
+        verbose_name=_('Address 2'),
+        null=True, blank=True,
+        max_length=255
+    )
+    city_code = models.CharField(
+        verbose_name=_('City Code'),
+        null=True, blank=True,
+        max_length=255
+    )
+    phone = models.CharField(
+        verbose_name=_('Phone'),
+        null=True, blank=True,
+        max_length=255
+    )
+    website = models.CharField(
+        verbose_name=_('Website'),
+        null=True, blank=True,
+        max_length=255
+    )
+    email = models.CharField(
+        verbose_name=_('Email'),
+        null=True, blank=True,
+        max_length=255
+    )
 
     def indexing(self):
         return {

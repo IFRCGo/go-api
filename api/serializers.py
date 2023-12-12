@@ -226,7 +226,13 @@ class CountryGeoSerializer(ModelSerializer):
             "independent",
             "is_deprecated",
             "fdrs",
-            "links"
+            "links",
+            "address_1",
+            "address_2",
+            "city_code",
+            "phone",
+            "website",
+            "email"
         )
 
 
@@ -662,7 +668,13 @@ class CountryRelationSerializer(ModelSerializer):
             "bbox",
             "centroid",
             "fdrs",
-            "regions_details"
+            "regions_details",
+            "address_1",
+            "address_2",
+            "city_code",
+            "phone",
+            "website",
+            "email",
         )
 
     @staticmethod
