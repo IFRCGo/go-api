@@ -40,7 +40,7 @@ class SurgeAlertFilter(filters.FilterSet):
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'start': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'end': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'is_stood_down': ('exact', 'in'),
+            'is_stood_down': ('exact',),
             'is_active': ('exact',),
             'molnix_id': ('exact', 'in'),
             'molnix_status': ('exact', 'in'),

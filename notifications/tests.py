@@ -9,7 +9,7 @@ from main.test_case import APITestCase
 
 from api.factories.region import RegionFactory
 from api.factories.country import CountryFactory
-from deployments.factories.molninx_tag import MolnixTagFactory
+from deployments.factories.molnix_tag import MolnixTagFactory
 
 from notifications.models import SurgeAlert, SurgeAlertType
 from notifications.factories import SurgeAlertFactory
