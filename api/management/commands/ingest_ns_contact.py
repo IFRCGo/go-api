@@ -5,7 +5,11 @@ import json
 
 from django.core.management.base import BaseCommand
 from api.logger import logger
-from api.models import Country
+from api.models import (
+    Country,
+    CronJob,
+    CronJobStatus
+)
 
 
 class Command(BaseCommand):
@@ -30,8 +34,9 @@ class Command(BaseCommand):
                 "status": CronJobStatus.ERRONEOUS,
             }
             CronJob.sync_cron(body)
-            raise Exception("Error querying GDACS")
+            raise Exception("Error querying NationalSocieties")
 
+        added = 0
         dict_data = xmltodict.parse(response.content)
         for data in dict_data['ArrayOfNationalSocietiesMain']['NationalSocietiesMain']:
             address_1 = data['ADD_address1'] if type(data['ADD_address1']) == str else None
@@ -43,19 +48,25 @@ class Command(BaseCommand):
             iso = data['ADD_country_code']
             # # get the country and try to update the data for those country
             country = Country.objects.filter(iso=iso.upper()).first()
-            country.address_1 = address_1
-            country.address_2 = address_2
-            country.city_code = city_code
-            country.phone = phone
-            country.website = website
-            country.email = email
-            country.save(
-                update_fields=[
-                    'address_1',
-                    'address_2',
-                    'city_code',
-                    'phone',
-                    'website',
-                    'email'
-                ]
-            )
+            if country:
+                added += 1
+                country.address_1 = address_1
+                country.address_2 = address_2
+                country.city_code = city_code
+                country.phone = phone
+                country.website = website
+                country.email = email
+                country.save(
+                    update_fields=[
+                        'address_1',
+                        'address_2',
+                        'city_code',
+                        'phone',
+                        'website',
+                        'email'
+                    ]
+                )
+        text_to_log = "%s Ns contact added" % added
+        logger.info(text_to_log)
+        body = {"name": "ingest_ns_contact", "message": text_to_log, "num_result": added, "status": CronJobStatus.SUCCESSFUL}
+        CronJob.sync_cron(body)

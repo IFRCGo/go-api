@@ -296,6 +296,32 @@ class District(models.Model):
         return f'{country_name} - {self.name}{suffix}'
 
 
+class CountryDirectory(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    first_name = models.CharField(
+        verbose_name=_('First Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    last_name = models.CharField(
+        verbose_name=_('Last Name'),
+        max_length=255,
+        null=True, blank=True
+    )
+    position = models.CharField(
+        verbose_name=_('Position'),
+        max_length=255,
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.first_name}'
+
+
 class Admin2(models.Model):
     """ Used for admin2, District refers to admin1 """
     admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)

@@ -56,6 +56,7 @@ from .models import (
     Export,
     UserCountry,
     GDACSEvent,
+    CountryDirectory,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -618,6 +619,16 @@ class RegionRelationSerializer(ModelSerializer):
     def get_bbox(region) -> dict:
         return region.bbox and json.loads(region.bbox.geojson)
 
+class CountryDirectorySerializer(ModelSerializer):
+    class Meta:
+        model = CountryDirectory
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "position"
+        )
+
 
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
@@ -626,7 +637,7 @@ class CountryRelationSerializer(ModelSerializer):
     bbox = serializers.SerializerMethodField()
     centroid = serializers.SerializerMethodField()
     regions_details = RegionSerializer(source='region', read_only=True)
-
+    directory = CountryDirectorySerializer(source='countrydirectory_set', read_only=True, many=True)
     class Meta:
         model = Country
         fields = (
@@ -675,6 +686,7 @@ class CountryRelationSerializer(ModelSerializer):
             "phone",
             "website",
             "email",
+            "directory"
         )
 
     @staticmethod
