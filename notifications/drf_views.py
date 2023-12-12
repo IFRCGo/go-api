@@ -1,13 +1,16 @@
-from datetime import datetime, timedelta, timezone
-from django.db.models import Q
+# from datetime import datetime, timedelta, timezone
+# from django.db.models import Q
 from django_filters import rest_framework as filters
+from django_filters.widgets import CSVWidget
+from main.filters import CharInFilter
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from .models import SurgeAlert, Subscription
+from deployments.models import MolnixTag
 from .serializers import (
     SurgeAlertSerializer,
-#   UnauthenticatedSurgeAlertSerializer,
+    # UnauthenticatedSurgeAlertSerializer,
     SubscriptionSerializer,
 )
 
@@ -16,15 +19,41 @@ class SurgeAlertFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name='atype', lookup_expr='exact')
     category = filters.NumberFilter(field_name='category', lookup_expr='exact')
     event = filters.NumberFilter(field_name='event', lookup_expr='exact')
+    molnix_tags = filters.ModelMultipleChoiceFilter(
+        label='tag-ids',
+        field_name='molnix_tags',
+        help_text='Molnix_tag GO identifiers, comma separated',
+        widget=CSVWidget,
+        queryset=MolnixTag.objects.all(),
+    )
+    molnix_tag_names = CharInFilter(
+        label='tag-names',
+        field_name='molnix_tags__name',
+        lookup_expr='in',
+        help_text='Molnix_tag names, comma separated',
+        widget=CSVWidget,
+    )
 
     class Meta:
         model = SurgeAlert
         fields = {
             'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'start': ('exact', 'gt', 'gte', 'lt', 'lte'),
             'end': ('exact', 'gt', 'gte', 'lt', 'lte'),
-            'is_stood_down': ('exact',),
-            'is_active': ('exact',)
+            'is_stood_down': ('exact', 'in'),
+            'is_active': ('exact',),
+            'molnix_id': ('exact', 'in'),
+            'molnix_status': ('exact', 'in'),
+            'message': ('exact', 'in'),
+            'country': ('exact', 'in'),
+            'country__name': ('exact', 'in'),
+            'country__iso': ('exact', 'in'),
+            'country__iso3': ('exact', 'in'),
         }
+
+    @property
+    def qs(self):
+        return super().qs.distinct()
 
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
