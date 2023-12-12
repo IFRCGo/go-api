@@ -322,6 +322,36 @@ class CountryDirectory(models.Model):
         return f'{self.country.name} - {self.first_name}'
 
 
+class CountryKeyDocument(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(
+        verbose_name=_('Name'),
+        max_length=255,
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        max_length=255
+    )
+    thumbnail= models.CharField(
+        verbose_name=_('Thumbnail'),
+        max_length=255
+    )
+    document_type = models.CharField(
+        verbose_name=_('Document Type'),
+        max_length=255
+    )
+    year = models.DateField(
+        verbose_name=_('Year')
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.name}'
+
+
 class Admin2(models.Model):
     """ Used for admin2, District refers to admin1 """
     admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)
