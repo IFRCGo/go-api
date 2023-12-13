@@ -182,7 +182,7 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
-            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
+            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -295,7 +295,7 @@ class DrefTestCase(APITestCase):
             "ifrc_emergency_email": "test@gmail.com",
             "originator_name": "Test Name",
             "originator_email": "test@gmail.com",
-            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
+            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -311,6 +311,7 @@ class DrefTestCase(APITestCase):
         url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data, format="json")
+        print(response.content)
         self.assertEqual(response.status_code, 201)
 
     def test_update_dref_image(self):
