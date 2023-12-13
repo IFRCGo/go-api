@@ -621,7 +621,7 @@ class PerComponentRatingSerializer(serializers.ModelSerializer):
 
 class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    rating_details = PerComponentRatingSerializer(source="rating", read_only=True)
+    rating_details = PerComponentRatingSerializer(source="rating", read_only=True, allow_null=True, required=False)
     component_details = FormComponentSerializer(source="component", read_only=True)
 
     class Meta:
