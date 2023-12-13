@@ -58,6 +58,7 @@ from .models import (
     GDACSEvent,
     CountryDirectory,
     CountryKeyDocument,
+    NSDInitiatives
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -631,6 +632,12 @@ class CountryDirectorySerializer(ModelSerializer):
         )
 
 
+class NSDInitiativesSerialzier(ModelSerializer):
+    class Meta:
+        model = NSDInitiatives
+        fields = "__all__"
+
+
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
@@ -639,6 +646,8 @@ class CountryRelationSerializer(ModelSerializer):
     centroid = serializers.SerializerMethodField()
     regions_details = RegionSerializer(source='region', read_only=True)
     directory = CountryDirectorySerializer(source='countrydirectory_set', read_only=True, many=True)
+    initiatives = NSDInitiativesSerialzier(source='nsdinitiatives_set', read_only=True, many=True)
+
     class Meta:
         model = Country
         fields = (
@@ -687,7 +696,8 @@ class CountryRelationSerializer(ModelSerializer):
             "phone",
             "website",
             "email",
-            "directory"
+            "directory",
+            "initiatives",
         )
 
     @staticmethod

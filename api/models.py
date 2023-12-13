@@ -352,6 +352,40 @@ class CountryKeyDocument(models.Model):
         return f'{self.country.name} - {self.name}'
 
 
+class NSDInitiatives(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(
+        verbose_name=_('Title'),
+        max_length=255
+    )
+    fund_type = models.CharField(
+        verbose_name=_('Fund Type'),
+        max_length=255
+    )
+    allocation = models.IntegerField(
+        verbose_name=_('Allocation in CHF')
+    )
+    year = models.CharField(
+        verbose_name=_('Year'),
+        max_length=20
+    )
+    funding_period = models.IntegerField(
+        verbose_name=_('Funding Period in Month')
+    )
+    categories = ArrayField(
+        models.CharField(max_length=255),
+        verbose_name=_('Funding categories'), default=list,
+        null=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.title}'
+
+
 class Admin2(models.Model):
     """ Used for admin2, District refers to admin1 """
     admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)
