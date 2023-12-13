@@ -90,6 +90,7 @@ router.register(r'flash-update-action', flash_views.FlashActionViewset, basename
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
+router.register(r'country-document', api_views.CountryKeyDocumentViewSet, basename='country_document')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country_rmd')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')

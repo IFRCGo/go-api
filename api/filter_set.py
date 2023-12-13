@@ -19,7 +19,8 @@ from api.models import (
     AppealHistory,
     AppealDocument,
     FieldReport,
-    GDACSEvent
+    GDACSEvent,
+    CountryKeyDocument
 
 )
 from api.view_filters import ListFilter
@@ -85,6 +86,16 @@ class CountryFilterRMD(filters.FilterSet):
             "region": ("exact", "in"),
             "record_type": ("exact", "in"),
         }
+
+
+class CountryKeyDocumentFilter(filters.FilterSet):
+    year__lte = filters.DateFilter(field_name="year", lookup_expr="lte", input_formats=["%Y-%m-%d"])
+    year__gte = filters.DateFilter(field_name="year", lookup_expr="gte", input_formats=["%Y-%m-%d"])
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+
+    class Meta:
+        model = CountryKeyDocument
+        fields= ()
 
 
 class DistrictRMDFilter(filters.FilterSet):

@@ -57,6 +57,7 @@ from .models import (
     UserCountry,
     GDACSEvent,
     CountryDirectory,
+    CountryKeyDocument,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -696,6 +697,13 @@ class CountryRelationSerializer(ModelSerializer):
     @staticmethod
     def get_centroid(country) -> dict:
         return country.centroid and json.loads(country.centroid.geojson)
+
+
+class CountryKeyDocumentSerializer(ModelSerializer):
+    country_details = MiniCountrySerializer(source='country', read_only=True)
+    class Meta:
+        model = CountryKeyDocument
+        fields = "__all__"
 
 
 class RelatedAppealSerializer(ModelSerializer):

@@ -51,6 +51,7 @@ from .models import (
     CountryOfFieldReportToReview,
     Export,
     GDACSEvent,
+    CountryKeyDocument,
 )
 
 from country_plan.models import CountryPlan
@@ -108,6 +109,7 @@ from .serializers import (
     CountryOfFieldReportToReviewSerializer,
     ExportSerializer,
     GDACSEventSerializer,
+    CountryKeyDocumentSerializer
 )
 from api.filter_set import (
     UserFilterSet,
@@ -127,7 +129,8 @@ from api.filter_set import (
     AppealDocumentFilter,
     FieldReportFilter,
     GoHistoricalFilter,
-    GDACSEventFileterSet
+    GDACSEventFileterSet,
+    CountryKeyDocumentFilter
 )
 
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
@@ -238,6 +241,14 @@ class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     filterset_class = CountryFilterRMD
     search_fields = ("name",)
     serializer_class = CountrySerializerRMD
+
+
+class CountryKeyDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CountryKeyDocument.objects.select_related('country')
+    serializer_class = CountryKeyDocumentSerializer
+    search_fields = ("name",)
+    permission_classes = (IsAuthenticated,)
+    filterset_class = CountryKeyDocumentFilter
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
