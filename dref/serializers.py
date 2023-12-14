@@ -357,7 +357,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
-    supporting_document_details = DrefFileSerializer(source="supporting_document", read_only=True)
+    supporting_document_details = DrefFileSerializer(
+        source="supporting_document",
+        read_only=True,
+        required=False,
+        allow_null=True
+    )
     risk_security = RiskSecuritySerializer(many=True, required=False)
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()

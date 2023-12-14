@@ -311,7 +311,6 @@ class DrefTestCase(APITestCase):
         url = "/api/v2/dref/"
         self.client.force_authenticate(self.user)
         response = self.client.post(url, data, format="json")
-        print(response.content)
         self.assertEqual(response.status_code, 201)
 
     def test_update_dref_image(self):
@@ -429,7 +428,7 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assert_403(response)
 
-        # add permision to request user
+        # add permission to request user
         self.dref_permission = Permission.objects.create(
             codename='dref_region_admin_0',
             content_type=ContentType.objects.get_for_model(Region),
@@ -672,7 +671,7 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(user1)
         response = self.client.post(url, data)
         self.assert_403(response)
-        # add permision to request user
+        # add permission to request user
         self.dref_permission = Permission.objects.create(
             codename='dref_region_admin_0',
             content_type=ContentType.objects.get_for_model(Region),
@@ -982,7 +981,7 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
 
-    def test_superuser_permisssion_operational_update(self):
+    def test_superuser_permission_operational_update(self):
         super_user = UserFactory.create(
             username="user1@test.com",
             first_name="Test",

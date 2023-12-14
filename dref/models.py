@@ -140,7 +140,7 @@ class PlannedIntervention(models.Model):
         WATER_SANITATION_AND_HYGIENE = "water_sanitation_and_hygiene", _("Water, Sanitation And Hygiene")
         PROTECTION_GENDER_AND_INCLUSION = "protection_gender_and_inclusion", _("Protection, Gender And Inclusion")
         EDUCATION = "education", _("Education")
-        MIGRATION_AND_DISPALCEMENT = "migration_and_displacement", _("Migration And Displacement")
+        MIGRATION_AND_DISPLACEMENT = "migration_and_displacement", _("Migration And Displacement")
         RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY = "risk_reduction_climate_adaptation_and_recovery", _(
             "Risk Reduction, Climate Adaptation And Recovery"
         )
@@ -184,7 +184,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.WATER_SANITATION_AND_HYGIENE: "water.png",
             PlannedIntervention.Title.PROTECTION_GENDER_AND_INCLUSION: "protection.png",
             PlannedIntervention.Title.EDUCATION: "education.png",
-            PlannedIntervention.Title.MIGRATION_AND_DISPALCEMENT: "migration.png",
+            PlannedIntervention.Title.MIGRATION_AND_DISPLACEMENT: "migration.png",
             PlannedIntervention.Title.RISK_REDUCTION_CLIMATE_ADAPTATION_AND_RECOVERY: "risk.png",
             PlannedIntervention.Title.SECRETARIAT_SERVICES: "work.png",
             PlannedIntervention.Title.NATIONAL_SOCIETY_STRENGTHENING: "independence.png",
@@ -276,7 +276,7 @@ class Dref(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name=_("If available please upload Diaster categorization Analysis"),
+        verbose_name=_("If available please upload Disaster categorization Analysis"),
         related_name="dref_disaster_category_file"
     )
     targeting_strategy_support_file = models.ForeignKey(

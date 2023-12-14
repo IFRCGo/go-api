@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dref',
             name='disaster_category_analysis',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='dref_disaster_category_file', to='dref.dreffile', verbose_name='If available please upload Diaster categorization Analysis'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='dref_disaster_category_file', to='dref.dreffile', verbose_name='If available please upload Disaster categorization Analysis'),
         ),
         migrations.AddField(
             model_name='dref',
