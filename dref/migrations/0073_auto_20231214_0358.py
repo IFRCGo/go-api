@@ -30,6 +30,8 @@ class Migration(migrations.Migration):
         ]:
             PlannedIntervention.objects.filter(title=old_value).update(title=new_value)
 
+        # Removing IdentifiedNeed.SHELTER_CLUSTER_COORDINATION
+        print(IdentifiedNeed.objects.filter(title='shelter_cluster_coordination').delete())
 
     dependencies = [
         ('dref', '0072_auto_20231117_0602_squashed_0077_auto_20231211_0426'),
