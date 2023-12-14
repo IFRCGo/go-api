@@ -1,4 +1,4 @@
-FROM hashicorp/terraform:latest
+FROM hashicorp/terraform:1.6.5
 
 RUN apk update
 RUN apk add wget unzip curl \
