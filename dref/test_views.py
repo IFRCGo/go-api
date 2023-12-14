@@ -182,7 +182,7 @@ class DrefTestCase(APITestCase):
             "originator_email": "test@gmail.com",
             "national_society": national_society.id,
             "disaster_type": disaster_type.id,
-            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
+            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -295,7 +295,7 @@ class DrefTestCase(APITestCase):
             "ifrc_emergency_email": "test@gmail.com",
             "originator_name": "Test Name",
             "originator_email": "test@gmail.com",
-            "needs_identified": [{"title": "environment_sustainability ", "description": "hey"}],
+            "needs_identified": [{"title": "shelter_housing_and_settlements", "description": "hey"}],
             "planned_interventions": [
                 {
                     "title": "shelter_housing_and_settlements",
@@ -428,7 +428,7 @@ class DrefTestCase(APITestCase):
         response = self.client.post(url, data)
         self.assert_403(response)
 
-        # add permision to request user
+        # add permission to request user
         self.dref_permission = Permission.objects.create(
             codename='dref_region_admin_0',
             content_type=ContentType.objects.get_for_model(Region),
@@ -671,7 +671,7 @@ class DrefTestCase(APITestCase):
         self.client.force_authenticate(user1)
         response = self.client.post(url, data)
         self.assert_403(response)
-        # add permision to request user
+        # add permission to request user
         self.dref_permission = Permission.objects.create(
             codename='dref_region_admin_0',
             content_type=ContentType.objects.get_for_model(Region),
@@ -981,7 +981,7 @@ class DrefTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
 
-    def test_superuser_permisssion_operational_update(self):
+    def test_superuser_permission_operational_update(self):
         super_user = UserFactory.create(
             username="user1@test.com",
             first_name="Test",
