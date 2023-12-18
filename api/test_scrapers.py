@@ -208,8 +208,23 @@ class AppealNotificationTest(TestCase):
 class FilterJustCreatedTest(TestCase):
     def setUp(self):
         # create two appeals, modify one 2 seconds later.
-        appeal1 = Appeal.objects.create(aid='test1', name='appeal', atype=2, code='1')
-        appeal2 = Appeal.objects.create(aid='test2', name='appeal', atype=2, code='2')
+        region = Region.objects.create(name='1')
+        country1 = Country.objects.create(name='1', region=region)
+        country2 = Country.objects.create(name='2', region=region)
+        appeal1 = Appeal.objects.create(
+            aid='test1',
+            name='appeal',
+            atype=2,
+            code='1',
+            country=country1
+        )
+        appeal2 = Appeal.objects.create(
+            aid='test2',
+            name='appeal',
+            atype=2,
+            code='2',
+            country=country2
+        )
         time.sleep(1)
         appeal1.name = 'something new'
         appeal1.save()
