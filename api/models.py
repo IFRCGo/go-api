@@ -352,6 +352,46 @@ class CountryKeyDocument(models.Model):
         return f'{self.country.name} - {self.name}'
 
 
+class CountryCapacityStrengthening(models.Model):
+    class AssessmentType(models.IntegerChoices):
+        OCAC = 0, _('Ocac')
+        BOCA = 1, _('Boca')
+
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    assessment_code = models.CharField(
+        verbose_name=_('Assessment Code'),
+        max_length=255
+    )
+    year = models.CharField(
+        verbose_name=_('Year of Assessment'),
+        max_length=25
+    )
+    submission_date = models.DateTimeField(
+        verbose_name=_('Submission Date')
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        max_length=255,
+    )
+    assessment_type = models.IntegerField(
+        verbose_name=_('Country Assessment Type'),
+        choices=AssessmentType.choices
+    )
+    branch_name = models.CharField(
+        verbose_name=_('Branch Name'),
+        max_length=255,
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.assessment_code} - {self.year}'
+
+
 class NSDInitiatives(models.Model):
     country = models.ForeignKey(
         Country,
