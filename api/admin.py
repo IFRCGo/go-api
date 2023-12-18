@@ -535,6 +535,10 @@ class CountryCapacityStrengtheningAdmin(admin.TabularInline):
     model = models.CountryCapacityStrengthening
 
 
+class CountryOrganizationalCapacityAdmin(admin.TabularInline):
+    model = models.CountryOrganizationalCapacity
+
+
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'pk__in'
     list_filter = ('record_type', 'in_search', 'independent', 'disputed')
@@ -551,7 +555,8 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryDirectoryInline,
         CountryKeyDocumentInline,
         NSDInitiativesAdmin,
-        CountryCapacityStrengtheningAdmin
+        CountryCapacityStrengtheningAdmin,
+        CountryOrganizationalCapacityAdmin,
     ]
     exclude = ('key_priorities',)
 

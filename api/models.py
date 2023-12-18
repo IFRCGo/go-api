@@ -392,6 +392,31 @@ class CountryCapacityStrengthening(models.Model):
         return f'{self.country.name} - {self.assessment_code} - {self.year}'
 
 
+class CountryOrganizationalCapacity(models.Model):
+
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    leadership_capacity = models.TextField(
+        verbose_name=_('Leadership Capacity'),
+        null=True, blank=True
+    )
+    youth_capacity = models.TextField(
+        verbose_name=_('Youth Capacity'),
+        null=True, blank=True
+    )
+    volunteer_capacity = models.TextField(
+        verbose_name=_('Volunteer Capacity'),
+        null=True, blank=True
+    )
+    financial_capacity = models.TextField(
+        verbose_name=_('Financial Capacity'),
+        null=True, blank=True
+    )
+
+
 class NSDInitiatives(models.Model):
     country = models.ForeignKey(
         Country,

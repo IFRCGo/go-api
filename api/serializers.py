@@ -59,7 +59,8 @@ from .models import (
     CountryDirectory,
     CountryKeyDocument,
     NSDInitiatives,
-    CountryCapacityStrengthening
+    CountryCapacityStrengthening,
+    CountryOrganizationalCapacity
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -650,6 +651,12 @@ class CountryCapacityStrengtheningSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class CountryOrganizationalCapacitySerializer(ModelSerializer):
+    class Meta:
+        model = CountryOrganizationalCapacity
+        fields = '__all__'
+
+
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
@@ -661,6 +668,11 @@ class CountryRelationSerializer(ModelSerializer):
     initiatives = NSDInitiativesSerialzier(source='nsdinitiatives_set', read_only=True, many=True)
     capacity = CountryCapacityStrengtheningSerializer(
         source='countrycapacitystrengthening_set',
+        read_only=True,
+        many=True
+    )
+    organizational_capacity = CountryOrganizationalCapacitySerializer(
+        source='countryorganizationalcapacity_set',
         read_only=True,
         many=True
     )
@@ -714,7 +726,8 @@ class CountryRelationSerializer(ModelSerializer):
             "email",
             "directory",
             "initiatives",
-            "capacity"
+            "capacity",
+            "organizational_capacity"
         )
 
     @staticmethod
