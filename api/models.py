@@ -892,7 +892,7 @@ class Appeal(models.Model):
         Event, verbose_name=_('event'), related_name='appeals', null=True, blank=True, on_delete=models.SET_NULL
     )
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.CASCADE)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
 
     # NOTE: This field doesn't exists (No translation added)
@@ -995,7 +995,7 @@ class AppealHistory(models.Model):
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), null=True, on_delete=models.SET_NULL)
     atype = models.IntegerField(choices=AppealType.choices, verbose_name=_('appeal type'), default=0)
     # name = models.CharField(verbose_name=_('name'), max_length=100)
-    country = models.ForeignKey(Country, verbose_name=_('country'), null=True, on_delete=models.SET_NULL)
+    country = models.ForeignKey(Country, verbose_name=_('country'), on_delete=models.CASCADE)
     region = models.ForeignKey(Region, verbose_name=_('region'), null=True, on_delete=models.SET_NULL)
     dtype = models.ForeignKey(DisasterType, verbose_name=_('disaster type'), null=True, on_delete=models.SET_NULL)
     needs_confirmation = models.BooleanField(verbose_name=_('needs confirmation?'), default=False)
