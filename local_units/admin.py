@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from .models import LocalUnit, LocalUnitType
+from .models import LocalUnit, LocalUnitType, LocalUnitLevel
 
 admin.site.register(LocalUnit, admin.OSMGeoAdmin, search_fields=(
     'english_branch_name',
@@ -8,4 +8,5 @@ admin.site.register(LocalUnit, admin.OSMGeoAdmin, search_fields=(
     'city_loc',
     'city_en',
     'country__name'))
-admin.site.register(LocalUnitType, admin.ModelAdmin, ordering=('level',))
+admin.site.register(LocalUnitType, admin.ModelAdmin, ordering=('code',))
+admin.site.register(LocalUnitLevel, admin.ModelAdmin, ordering=('level',))

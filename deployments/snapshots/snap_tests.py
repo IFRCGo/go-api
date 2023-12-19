@@ -514,14 +514,14 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'actual_expenditure': 0,
             'annual_splits': [
             ],
-            'budget_amount': 9120000,
+            'budget_amount': 6440000,
             'description': '',
             'document': None,
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
-                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
+                'name': 'disaster-type-MSVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHg',
+                'summary': 'byjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHq',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -542,7 +542,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
+            'name': 'project-yoHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKL',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
@@ -574,7 +574,7 @@ snapshots['TestProjectAPI::test_project_list_one 1'] = {
                 'created_at': '2008-01-01T00:00:00.123456Z',
                 'id': 1,
                 'modified_at': '2008-01-01T00:00:00.123456Z',
-                'name': 'regional-project-CMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhf',
+                'name': 'regional-project-fnCMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGW',
                 'translation_module_original_language': 'en',
                 'translation_module_skip_auto_translation': False
             },
@@ -618,14 +618,14 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'actual_expenditure': 0,
             'annual_splits': [
             ],
-            'budget_amount': 9120000,
+            'budget_amount': 6440000,
             'description': '',
             'document': None,
             'dtype': 3,
             'dtype_detail': {
                 'id': 3,
-                'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
-                'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
+                'name': 'disaster-type-MSVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHg',
+                'summary': 'byjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHq',
                 'translation_module_original_language': 'en'
             },
             'end_date': '2008-01-01',
@@ -646,7 +646,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'modified_at': '2008-01-01T00:00:00.123456Z',
             'modified_by': None,
             'modified_by_detail': None,
-            'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
+            'name': 'project-yoHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKL',
             'operation_type': 0,
             'operation_type_display': 'Programme',
             'primary_sector': 1,
@@ -678,7 +678,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'created_at': '2008-01-01T00:00:00.123456Z',
                 'id': 1,
                 'modified_at': '2008-01-01T00:00:00.123456Z',
-                'name': 'regional-project-CMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhf',
+                'name': 'regional-project-fnCMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGW',
                 'translation_module_original_language': 'en',
                 'translation_module_skip_auto_translation': False
             },
@@ -786,7 +786,7 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
                 'id': 3,
                 'iso': 'SZ',
                 'iso3': 'uAx',
-                'name': 'country-XRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHayP',
+                'name': 'country-aXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHay',
                 'society_name': 'society-name-gjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnGzYv'
             },
             'secondary_sectors': [
@@ -821,14 +821,14 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'actual_expenditure': 0,
     'annual_splits': [
     ],
-    'budget_amount': 9120000,
+    'budget_amount': 6440000,
     'description': '',
     'document': None,
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
-        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
+        'name': 'disaster-type-MSVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHg',
+        'summary': 'byjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHq',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -849,7 +849,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
     'modified_at': '2008-01-01T00:00:00.123456Z',
     'modified_by': None,
     'modified_by_detail': None,
-    'name': 'project-oHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKLk',
+    'name': 'project-yoHzwwFYEMaGiCkoeGPrnjlkxMThQoAZvUhEREEnLkPAbpciKL',
     'operation_type': 0,
     'operation_type_display': 'Programme',
     'primary_sector': 1,
@@ -881,7 +881,7 @@ snapshots['TestProjectAPI::test_project_read 1'] = {
         'created_at': '2008-01-01T00:00:00.123456Z',
         'id': 1,
         'modified_at': '2008-01-01T00:00:00.123456Z',
-        'name': 'regional-project-CMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhf',
+        'name': 'regional-project-fnCMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGW',
         'translation_module_original_language': 'en',
         'translation_module_skip_auto_translation': False
     },
@@ -918,14 +918,14 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'actual_expenditure': 0,
     'annual_splits': [
     ],
-    'budget_amount': 9120000,
+    'budget_amount': 6440000,
     'description': '',
     'document': None,
     'dtype': 3,
     'dtype_detail': {
         'id': 3,
-        'name': 'disaster-type-SVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHgb',
-        'summary': 'yjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHqy',
+        'name': 'disaster-type-MSVGtSJuTVJOnmnNTsRwRiTPlGISOuThWwJELKQTARVIsBZaHg',
+        'summary': 'byjdQdmrWYksRqjdSYsnWIcwCgNRVJoVPJypGYYZSsSQdyyAYRuJdaVqmNXCoOTTPxWLIVMmXUmsClRellVGhycBrJqikLqavDTjcjuMdXONQtFYKJweYTuHolHeYGkAIIzfwonQvvxsnWNHEJWPahQwCpPNNpcRuyYhyqIUsbHXxGZGCFcsPmuGfgkXIIaOenQOXnRBgnISVXBPeVRjbDTvcfedlYqJeKoqAyCOzBubyRhIaPUNeWVLcSewGgsYRtMfsWCyzQbEkIoiVzYZIsOjtRYUPxaJJjhcaKMzIJftnVVUwnAPGjkloNqmhlQZKdWJDPJesQeqgmULFvwiQPpgsNemuFCvNQtSLjKKxZuBkaupYoTVPBrxiRUvEDCwXtFJglPMfriImqUOeUebGObLLzXLncJqIIEPXjxzoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYxyEDccPugTHOrVqLIKlyPyxLPeHq',
         'translation_module_original_language': 'en'
     },
     'end_date': '2008-01-01',
@@ -966,10 +966,10 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'project_country': 3,
     'project_country_detail': {
         'id': 3,
-        'iso': 'SZ',
-        'iso3': 'uAx',
-        'name': 'country-aXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHay',
-        'society_name': 'society-name-gjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnGzYv'
+        'iso': 'ay',
+        'iso3': 'PnS',
+        'name': 'country-iMIaXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHh',
+        'society_name': 'society-name-ZuAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgn'
     },
     'project_districts': [
         1
@@ -977,7 +977,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'project_districts_detail': [
         {
             'id': 1,
-            'name': 'district-XkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDACfMMap'
+            'name': 'district-kyJycXkvKQjkjlXTdAttUXCsOlhimaNWqaDFFIZaMFpnLQEDAC'
         }
     ],
     'reached_female': 0,
@@ -989,7 +989,7 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
         'created_at': '2008-01-01T00:00:00.123456Z',
         'id': 1,
         'modified_at': '2008-01-01T00:00:00.123456Z',
-        'name': 'regional-project-CMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGWhf',
+        'name': 'regional-project-fnCMEEkoAMjYLXlNQGqkURvDMLeoyyigbmHGRAjMglENMcYIGW',
         'translation_module_original_language': 'en',
         'translation_module_skip_auto_translation': False
     },
@@ -999,10 +999,10 @@ snapshots['TestProjectAPI::test_project_update 1'] = {
     'reporting_ns_contact_role': None,
     'reporting_ns_detail': {
         'id': 3,
-        'iso': 'SZ',
-        'iso3': 'uAx',
-        'name': 'country-aXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHay',
-        'society_name': 'society-name-gjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnGzYv'
+        'iso': 'ay',
+        'iso3': 'PnS',
+        'name': 'country-iMIaXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHh',
+        'society_name': 'society-name-ZuAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgn'
     },
     'secondary_sectors': [
     ],

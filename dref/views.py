@@ -217,28 +217,30 @@ class CompletedDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CompletedDrefOperationsSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = CompletedDrefOperationsFilterSet
+    queryset =  DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
 
     def get_queryset(self):
         user = self.request.user
-        queryset = DrefFinalReport.objects.filter(is_published=True).order_by("-created_at").distinct()
-        return filter_dref_queryset_by_user_access(user, queryset)
+        return filter_dref_queryset_by_user_access(user, super().get_queryset())
 
 
-@extend_schema_view(request=None, responses=MiniDrefSerializer)
+
 class ActiveDrefOperationsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MiniDrefSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_class = ActiveDrefFilterSet
+    queryset = (
+        Dref.objects.prefetch_related(
+            "planned_interventions",
+            "needs_identified",
+            "national_society_actions",
+            "users"
+        ).order_by("-created_at").filter(is_active=True).distinct()
+    )
 
     def get_queryset(self):
         user = self.request.user
-        queryset = (
-            Dref.objects.prefetch_related("planned_interventions", "needs_identified", "national_society_actions", "users")
-            .order_by("-created_at")
-            .filter(is_active=True)
-            .distinct()
-        )
-        return filter_dref_queryset_by_user_access(user, queryset).order_by('-created_at')
+        return filter_dref_queryset_by_user_access(self.request.user, super().get_queryset()).order_by('-created_at')
 
 
 class DrefShareView(views.APIView):

@@ -1302,9 +1302,9 @@ class AppealTableauSerializer(serializers.ModelSerializer):
 
 
 class AppealHistoryTableauSerializer(serializers.ModelSerializer):
-    country = MiniCountrySerializer()
-    dtype = DisasterTypeSerializer()
-    region = RegionSerializer()
+    country = MiniCountrySerializer(read_only=True)
+    dtype = DisasterTypeSerializer(read_only=True)
+    region = RegionSerializer(read_only=True)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     code = serializers.CharField(source="appeal.code", read_only=True)
@@ -1351,9 +1351,9 @@ class MiniAppealSerializer(serializers.ModelSerializer):
 
 
 class AppealSerializer(ModelSerializer):
-    country = MiniCountrySerializer()
-    dtype = DisasterTypeSerializer()
-    region = RegionSerializer()
+    country = MiniCountrySerializer(read_only=True)
+    dtype = DisasterTypeSerializer(read_only=True)
+    region = RegionSerializer(read_only=True)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
 
@@ -1386,9 +1386,9 @@ class AppealSerializer(ModelSerializer):
 
 
 class AppealHistorySerializer(ModelSerializer):
-    country = MiniCountrySerializer()
-    dtype = DisasterTypeSerializer()
-    region = RegionSerializer()
+    country = MiniCountrySerializer(read_only=True)
+    dtype = DisasterTypeSerializer(read_only=True)
+    region = RegionSerializer(read_only=True)
     atype_display = serializers.CharField(source="get_atype_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     code = serializers.CharField(source="appeal.code", read_only=True)

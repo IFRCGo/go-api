@@ -12,6 +12,7 @@ from ..models import (
     Appeal,
 )
 from .disaster_type import DisasterTypeFactory
+from api.factories.country import CountryFactory
 
 
 class EventFactory(factory.django.DjangoModelFactory):
@@ -113,6 +114,6 @@ class AppealFactory(factory.django.DjangoModelFactory):
     amount_requested = fuzzy.FuzzyInteger(0)
     amount_funded = fuzzy.FuzzyInteger(0)
     event = factory.SubFactory(EventFactory)
-
+    country = factory.SubFactory(CountryFactory)
     class Meta:
         model = Appeal
