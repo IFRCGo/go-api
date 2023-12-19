@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import JSONField
+from django.contrib.postgres.fields import ArrayField
 
 from django.db import models
 
@@ -292,6 +293,37 @@ class SeasonalCalender(models.Model):
 
     def __str__(self):
         return f'{self.overview.country} - {self.title} - {self.sector}'
+
+
+class AcapsSeasonalCalender(models.Model):
+    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_('country overview'))
+    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('modified at'))
+    month = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name=_('month'), default=list,
+    )
+    event = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name=_('event'), default=list,
+    )
+    event_type = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name=_('event type'), default=list,
+    )
+    label = ArrayField(
+        models.CharField(max_length=100),
+        verbose_name=_('label'), default=list,
+    )
+    source = models.CharField(
+        verbose_name=_('Source'),
+        max_length=255
+    )
+    source_date = models.DateField(
+        verbose_name=_('Source Date')
+    )
+
+    def __str__(self):
+        return f'{self.overview.country.name} - {self.month}'
 
 
 class KeyDocumentGroup(models.Model):
