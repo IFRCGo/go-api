@@ -339,10 +339,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
     event_map_file = DrefFileSerializer(source="event_map", required=False, allow_null=True)
-    disaster_category_analysis_details = DrefFileSerializer(
-        source="disaster_category_analysis", read_only=True, required=False, allow_null=True)
-    targeting_strategy_support_file_details = DrefFileSerializer(
-        source="targeting_strategy_support_file", read_only=True, required=False, allow_null=True)
+    disaster_category_analysis_file = DrefFileSerializer(
+        source="disaster_category_analysis", required=False, allow_null=True)
+    targeting_strategy_support_file_file = DrefFileSerializer(
+        source="targeting_strategy_support_file", required=False, allow_null=True)
     images_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="images")
     # field_report_details = MiniFieldReportSerializer(source='field_report', read_only=True)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
@@ -357,9 +357,8 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     country_details = MiniCountrySerializer(source="country", read_only=True)
     district_details = MiniDistrictSerializer(source="district", read_only=True, many=True)
     assessment_report_details = DrefFileSerializer(source="assessment_report", read_only=True)
-    supporting_document_details = DrefFileSerializer(
+    supporting_document_file = DrefFileSerializer(
         source="supporting_document",
-        read_only=True,
         required=False,
         allow_null=True
     )
@@ -371,7 +370,16 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images", "users",)
+        exclude = (
+            "cover_image",
+            "event_map",
+            "images",
+            "users",
+            "supporting_document",
+            "targeting_strategy_support_file",
+            "disaster_category_analysis"
+        )
+
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
