@@ -2260,8 +2260,6 @@ class AggregateByDtypeSerializer(serializers.Serializer):
     count = serializers.IntegerField()
 
 class CountryKeyFigureInputSerializer(serializers.Serializer):
-    iso3 = serializers.IntegerField(required=True)
-    country = serializers.IntegerField(required=False)
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
     dtype = serializers.IntegerField(required=False)
