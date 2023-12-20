@@ -577,6 +577,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'IFRC-GO API Documenation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
 }
 
 # Need to load this to overwrite modeltranslation module
