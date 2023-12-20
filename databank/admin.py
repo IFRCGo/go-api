@@ -13,6 +13,7 @@ from .models import (
     KeyDocumentGroup,
     KeyDocument,
     ExternalSource,
+    AcapsSeasonalCalender
 )
 
 
@@ -41,13 +42,22 @@ class ExternalSourceInine(admin.TabularInline):
     model = ExternalSource
 
 
+class AcapsSeasonalCalenderInline(admin.TabularInline):
+    model = AcapsSeasonalCalender
+
+
 @admin.register(CountryOverview)
 class CountryOverviewAdmin(admin.ModelAdmin):
     autocomplete_fields = ('country',)
     search_fields = ('country__name',)
     list_display = ('country',)
     inlines = [
-        SocialEventInline, KeyClimateEventByInline, SeasonalCalenderInine, KeyDocumentInine, ExternalSourceInine
+        SocialEventInline,
+        KeyClimateEventByInline,
+        SeasonalCalenderInine,
+        KeyDocumentInine,
+        ExternalSourceInine,
+        AcapsSeasonalCalenderInline
     ]
     form = CountryOverviewForm
     fieldsets = (

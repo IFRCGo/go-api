@@ -296,8 +296,15 @@ class SeasonalCalender(models.Model):
 
 
 class AcapsSeasonalCalender(models.Model):
-    overview = models.ForeignKey(CountryOverview, on_delete=models.CASCADE, verbose_name=_('country overview'))
-    modified_at = models.DateTimeField(auto_now=True, verbose_name=_('modified at'))
+    overview = models.ForeignKey(
+        CountryOverview,
+        on_delete=models.CASCADE,
+        verbose_name=_('country overview')
+    )
+    modified_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('modified at')
+    )
     month = ArrayField(
         models.CharField(max_length=100),
         verbose_name=_('month'), default=list,
@@ -316,10 +323,12 @@ class AcapsSeasonalCalender(models.Model):
     )
     source = models.CharField(
         verbose_name=_('Source'),
-        max_length=255
+        max_length=255,
+        null=True, blank=True
     )
     source_date = models.DateField(
-        verbose_name=_('Source Date')
+        verbose_name=_('Source Date'),
+        null=True, blank=True
     )
 
     def __str__(self):
