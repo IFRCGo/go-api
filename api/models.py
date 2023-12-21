@@ -1004,7 +1004,7 @@ class GDACSEvent(models.Model):
     disaster_type = models.ForeignKey(DisasterType, verbose_name=('disaster type'), on_delete=models.PROTECT, null=True)
     alert_level = models.IntegerField(choices=AlertLevel.choices, verbose_name=_('alert level'), default=0)
     alert_score = models.CharField(verbose_name=_('alert score'), max_length=16, null=True)
-    severity = models.TextField(verbose_name=_('severity'))
+    severity = models.TextField(verbose_name=_('severity'), null=True, blank=True)
     severity_unit = models.CharField(verbose_name=_('severity unit'), max_length=16)
     severity_value = models.CharField(verbose_name=_('severity value'), max_length=16)
     population_unit = models.CharField(verbose_name=_('population unit'), max_length=16)
