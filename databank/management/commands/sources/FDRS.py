@@ -24,6 +24,10 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_expenditureLC_CHF', CO.expenditures),
     ('KPI_PeopleVol_Tot', CO.volunteers),
     ('KPI_TrainFA_Tot', CO.trained_in_first_aid),
+    ('KPI_PeopleVol_Tot_age_6_12', CO.people_age_6_12),
+    ('KPI_PeopleVol_Tot_age_13_17', CO.people_age_13_17),
+    ('KPI_PeopleVol_Tot_age_18_29', CO.people_age_18_29),
+    # ('KPI_noLocalUnits', CO.branches),
 )
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
 

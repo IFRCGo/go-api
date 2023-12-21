@@ -69,7 +69,16 @@ class CountryOverviewAdmin(admin.ModelAdmin):
             )
         }),
         (_('NATIONAL SOCIETY INDICATORS (SOURCE: FDRS)'), {
-            'fields': ('income', 'expenditures', 'volunteers', 'trained_in_first_aid'),
+            'fields': (
+                'income',
+                'expenditures',
+                'volunteers',
+                'trained_in_first_aid',
+                'people_age_6_12',
+                'people_age_13_17',
+                'people_age_18_29',
+                'branches'
+            ),
         }),
         (_('KEY CLIMATE EVENT'), {'fields': ('avg_temperature', 'avg_rainfall_precipitation', 'rainy_season')}),
     )

@@ -215,7 +215,26 @@ class CountryOverview(models.Model):
     expenditures = models.FloatField(verbose_name=_('expenditures (CHF)'), null=True, blank=True)
     volunteers = models.IntegerField(verbose_name=_('volunteers'), null=True, blank=True)
     trained_in_first_aid = models.IntegerField(verbose_name=_('trained in first aid'), null=True, blank=True)
-
+    people_age_6_12 = models.IntegerField(
+        verbose_name=_('People age 6 to 12'),
+        null=True,
+        blank=True
+    )
+    people_age_13_17 = models.IntegerField(
+        verbose_name=_('People age 13 to 17'),
+        null=True,
+        blank=True
+    )
+    people_age_18_29 = models.IntegerField(
+        verbose_name=_('People age 18 to 29'),
+        null=True,
+        blank=True
+    )
+    branches = models.IntegerField(
+        verbose_name=_('Branches'),
+        null=True,
+        blank=True
+    )
     # Key Climate Event (Manual Entry)
     avg_temperature = models.FloatField(verbose_name=_('average temperature'), null=True, blank=True)
     avg_rainfall_precipitation = models.FloatField(verbose_name=_('average rainfall precipitation'), null=True, blank=True)
