@@ -337,13 +337,15 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         end_date = request.GET.get("end_date", end_date)
 
         queryset = Event.objects.filter(
-            countries__in=[country.id]
+            countries__in=[country.id],
+            dtype__isnull=False,
         ).values(
             'countries',
             'dtype__name'
         ).annotate(
             count=Count('id'),
-            disaster_name=F('dtype__name')
+            disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
         ).order_by('countries', 'dtype__name')
 
         if start_date and end_date:
@@ -373,7 +375,10 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         start_date = end_date + timedelta(days=-2*365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
-        queryset =  Event.objects.filter(countries__in=[country.id]).annotate(
+        queryset =  Event.objects.filter(
+            countries__in=[country.id],
+            dtype__isnull=False,
+        ).annotate(
             date=TruncMonth('created_at')
         ).values('date', 'countries').annotate(
             targeted_population=Avg(
@@ -381,6 +386,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 filter=models.Q(appeals__num_beneficiaries__isnull=False)
             ),
             disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
         ).order_by('date', 'countries', 'dtype__name')
 
         if start_date and end_date:
@@ -413,7 +419,10 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
         end_date = request.GET.get("end_date", end_date)
         dtype = request.GET.get("dtype", None)
 
-        queryset = Event.objects.filter(countries__in=[country.id]).annotate(
+        queryset = Event.objects.filter(
+            countries__in=[country.id],
+            dtype__isnull=False,
+        ).annotate(
             date=TruncMonth('created_at')
         ).values('date', 'dtype', 'countries').annotate(
             latest_field_report_affected=Coalesce(Subquery(
@@ -424,6 +433,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 output_field=models.IntegerField(),
             ), 0),
             disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
         ).annotate(
             targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
         ).order_by('date', 'countries', 'dtype__name')

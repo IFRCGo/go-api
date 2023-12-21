@@ -2279,12 +2279,14 @@ class CountryKeyFigureSerializer(serializers.Serializer):
 class CountryDisasterTypeCountSerializer(serializers.Serializer):
     disaster_name = serializers.CharField()
     count = serializers.IntegerField()
+    disaster_id = serializers.IntegerField()
 
 
 class CountryDisasterTypeMonthlySerializer(serializers.Serializer):
     date = serializers.DateTimeField()
     targeted_population = serializers.IntegerField()
     disaster_name = serializers.CharField()
+    disaster_id = serializers.IntegerField()
 
 
 class ExportSerializer(serializers.ModelSerializer):
