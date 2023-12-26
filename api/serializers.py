@@ -336,6 +336,8 @@ class DistrictSerializer(ModelSerializer):
             "is_deprecated",
             "bbox",
             "centroid",
+            "wb_population",
+            "wb_year"
         )
 
     @staticmethod
@@ -419,6 +421,8 @@ class MiniDistrictGeoSerializer(GeoSerializerMixin, ModelSerializer):
             "bbox",
             "centroid",
             "is_deprecated",
+            "wb_population",
+            "wb_year"
         )
 
 
