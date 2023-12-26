@@ -230,6 +230,21 @@ class CountryOverview(models.Model):
         null=True,
         blank=True
     )
+    people_age_60_69 = models.IntegerField(
+        verbose_name=_('People age 60 to 69'),
+        null=True,
+        blank=True
+    )
+    people_age_70_79 = models.IntegerField(
+        verbose_name=_('People age 70 to 79'),
+        null=True,
+        blank=True
+    )
+    people_age_80 = models.IntegerField(
+        verbose_name=_('People age 80'),
+        null=True,
+        blank=True
+    )
     branches = models.IntegerField(
         verbose_name=_('Branches'),
         null=True,

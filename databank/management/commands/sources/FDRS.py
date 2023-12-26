@@ -29,7 +29,7 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PeopleVol_Tot_age_18_29', CO.people_age_18_29),
     ('KPI_noLocalUnits', CO.branches),
     ('KPI_PeopleVol_Tot_age_60_69', CO.people_age_60_69),
-    ('KPI_PeopleVol_Tot_age_70_79', CO.people_age_70_79)
+    ('KPI_PeopleVol_Tot_age_70_79', CO.people_age_70_79),
     ('KPI_PeopleVol_Tot_age_80', CO.people_age_80),
 )
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
