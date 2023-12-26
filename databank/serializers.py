@@ -106,7 +106,12 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
     key_documents = KeyDocumentSerializer(source='keydocument_set', many=True, read_only=True)
     external_sources = ExternalSourceSerializer(source='externalsource_set', many=True, read_only=True)
     acaps = AcapsSeasonalCalenderSerializer(source="acapsseasonalcalender_set", many=True, read_only=True)
-
+    founded_date = serializers.SerializerMethodField(source="get_founded_date")
     class Meta:
         model = CountryOverview
         fields = '__all__'
+
+    def get_founded_date(self, object):
+        return Country.objects.filter(
+            countryoverview=object
+        ).values_list('founded_date', flat=True).first()

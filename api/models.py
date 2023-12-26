@@ -234,6 +234,10 @@ class Country(models.Model):
         null=True, blank=True,
         max_length=255
     )
+    founded_date = models.DateField(
+        verbose_name=_('Found date'),
+        null=True, blank=True
+    )
 
     def indexing(self):
         return {
