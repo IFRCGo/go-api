@@ -37,6 +37,8 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PeopleVol_M_age_60_69', CO.male_volunteer_age_60_69),
     ('KPI_PeopleVol_M_age_70_79', CO.male_volunteer_age_70_79),
     ('KPI_PeopleVol_M_age_80', CO.male_volunteer_age_80),
+    ('KPI_PeopleVol_M_age_Other', CO.male_volunteer_age_other),
+    ('KPI_PeopleVol_Tot_M', CO.male_volunteer_total),
     ('KPI_PeopleVol_F_age_13_17', CO.female_volunteer_age_13_17),
     ('KPI_PeopleVol_F_age_18_29', CO.female_volunteer_age_18_29),
     ('KPI_PeopleVol_F_age_18_49', CO.female_volunteer_age_18_49),
@@ -47,6 +49,8 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PeopleVol_F_age_60_69', CO.female_volunteer_age_60_69),
     ('KPI_PeopleVol_F_age_70_79', CO.female_volunteer_age_70_79),
     ('KPI_PeopleVol_F_age_80', CO.female_volunteer_age_80),
+    ('KPI_PeopleVol_F_age_Other', CO.female_volunteer_age_other),
+    ('KPI_PeopleVol_Tot_F', CO.female_volunteer_total),
 
     # Staff
     ('KPI_PStaff_M_age_18_29', CO.male_staff_age_18_29),
@@ -57,6 +61,8 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PStaff_M_age_60_69', CO.male_staff_age_60_69),
     ('KPI_PStaff_M_age_70_79', CO.male_staff_age_70_79),
     ('KPI_PStaff_M_age_80', CO.male_staff_age_80),
+    ('KPI_PStaff_M_age_Other', CO.male_staff_age_other),
+    ('KPI_PStaff_Tot_M', CO.male_staff_total),
     ('KPI_PStaff_F_age_18_29', CO.female_staff_age_18_29),
     ('KPI_PStaff_F_age_18_49', CO.female_staff_age_18_49),
     ('KPI_PStaff_F_age_30_39', CO.female_staff_age_30_39),
@@ -65,6 +71,8 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PStaff_F_age_60_69', CO.female_staff_age_60_69),
     ('KPI_PStaff_F_age_70_79', CO.female_staff_age_70_79),
     ('KPI_PStaff_F_age_80', CO.female_staff_age_80),
+    ('KPI_PStaff_F_age_Other', CO.female_staff_age_other),
+    ('KPI_PStaff_Tot_F', CO.female_staff_total)
 )
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
 

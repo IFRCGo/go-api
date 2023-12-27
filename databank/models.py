@@ -273,6 +273,16 @@ class CountryOverview(models.Model):
         null=True,
         blank=True
     )
+    male_volunteer_age_other = models.IntegerField(
+        verbose_name=_('male volunteer other'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_total = models.IntegerField(
+        verbose_name=_('male volunteer total'),
+        null=True,
+        blank=True
+    )
     female_volunteer_age_6_12 = models.IntegerField(
         verbose_name=_('female volunteer age 6 to 12'),
         null=True,
@@ -324,6 +334,16 @@ class CountryOverview(models.Model):
         blank=True
     )
 
+    female_volunteer_age_other = models.IntegerField(
+        verbose_name=_('female volunteer other'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_total = models.IntegerField(
+        verbose_name=_('female volunteer total'),
+        null=True,
+        blank=True
+    )
     # Staff
     female_staff_age_18_29 = models.IntegerField(
         verbose_name=_('female staff age 18 to 29'),
@@ -365,6 +385,16 @@ class CountryOverview(models.Model):
         null=True,
         blank=True
     )
+    female_staff_age_other = models.IntegerField(
+        verbose_name=_('female staff other'),
+        null=True,
+        blank=True
+    )
+    female_staff_total = models.IntegerField(
+        verbose_name=_('female staff total'),
+        null=True,
+        blank=True
+    )
     male_staff_age_18_29 = models.IntegerField(
         verbose_name=_('male staff age 18 to 29'),
         null=True,
@@ -402,6 +432,16 @@ class CountryOverview(models.Model):
     )
     male_staff_age_80 = models.IntegerField(
         verbose_name=_('male staff age 80'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_other = models.IntegerField(
+        verbose_name=_('male staff other'),
+        null=True,
+        blank=True
+    )
+    male_staff_total = models.IntegerField(
+        verbose_name=_('male staff total'),
         null=True,
         blank=True
     )
