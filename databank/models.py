@@ -215,38 +215,193 @@ class CountryOverview(models.Model):
     expenditures = models.FloatField(verbose_name=_('expenditures (CHF)'), null=True, blank=True)
     volunteers = models.IntegerField(verbose_name=_('volunteers'), null=True, blank=True)
     trained_in_first_aid = models.IntegerField(verbose_name=_('trained in first aid'), null=True, blank=True)
-    people_age_6_12 = models.IntegerField(
-        verbose_name=_('People age 6 to 12'),
-        null=True,
-        blank=True
-    )
-    people_age_13_17 = models.IntegerField(
-        verbose_name=_('People age 13 to 17'),
-        null=True,
-        blank=True
-    )
-    people_age_18_29 = models.IntegerField(
-        verbose_name=_('People age 18 to 29'),
-        null=True,
-        blank=True
-    )
-    people_age_60_69 = models.IntegerField(
-        verbose_name=_('People age 60 to 69'),
-        null=True,
-        blank=True
-    )
-    people_age_70_79 = models.IntegerField(
-        verbose_name=_('People age 70 to 79'),
-        null=True,
-        blank=True
-    )
-    people_age_80 = models.IntegerField(
-        verbose_name=_('People age 80'),
-        null=True,
-        blank=True
-    )
     branches = models.IntegerField(
         verbose_name=_('Branches'),
+        null=True,
+        blank=True
+    )
+
+    # Population data
+    # Voluntering
+    male_volunteer_age_6_12 = models.IntegerField(
+        verbose_name=_('male volunteer age 6 to 12'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_13_17 = models.IntegerField(
+        verbose_name=_('male volunteer age 13 to 17'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_18_29 = models.IntegerField(
+        verbose_name=_('male volunteer age 18 to 29'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_18_49 = models.IntegerField(
+        verbose_name=_('male volunteer age 18 to 49'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_30_39 = models.IntegerField(
+        verbose_name=_('male volunteer age 30 to 39'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_40_49 = models.IntegerField(
+        verbose_name=_('male volunteer age 40 to 49'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_50_59 = models.IntegerField(
+        verbose_name=_('male volunteer age 50 to 59'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_60_69 = models.IntegerField(
+        verbose_name=_('male volunteer age 60 to 69'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_70_79 = models.IntegerField(
+        verbose_name=_('male volunteer age 70 to 79'),
+        null=True,
+        blank=True
+    )
+    male_volunteer_age_80 = models.IntegerField(
+        verbose_name=_('male volunteer age 80'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_6_12 = models.IntegerField(
+        verbose_name=_('female volunteer age 6 to 12'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_13_17 = models.IntegerField(
+        verbose_name=_('female volunteer age 13 to 17'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_18_29 = models.IntegerField(
+        verbose_name=_('female volunteer age 18 to 29'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_18_49 = models.IntegerField(
+        verbose_name=_('female volunteer age 18 to 49'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_30_39 = models.IntegerField(
+        verbose_name=_('female volunteer age 30 to 39'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_40_49 = models.IntegerField(
+        verbose_name=_('female volunteer age 40 to 49'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_50_59 = models.IntegerField(
+        verbose_name=_('female volunteer age 50 to 59'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_60_69 = models.IntegerField(
+        verbose_name=_('female volunteer age 60 to 69'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_70_79 = models.IntegerField(
+        verbose_name=_('female volunteer age 70 to 79'),
+        null=True,
+        blank=True
+    )
+    female_volunteer_age_80 = models.IntegerField(
+        verbose_name=_('female volunteer age 80'),
+        null=True,
+        blank=True
+    )
+
+    # Staff
+    female_staff_age_18_29 = models.IntegerField(
+        verbose_name=_('female staff age 18 to 29'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_18_49 = models.IntegerField(
+        verbose_name=_('female staff age 18 to 49'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_30_39 = models.IntegerField(
+        verbose_name=_('female staff age 30 to 39'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_40_49 = models.IntegerField(
+        verbose_name=_('female staff age 40 to 49'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_50_59 = models.IntegerField(
+        verbose_name=_('female staff age 50 to 59'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_60_69 = models.IntegerField(
+        verbose_name=_('female staff age 60 to 69'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_70_79 = models.IntegerField(
+        verbose_name=_('female staff age 70 to 79'),
+        null=True,
+        blank=True
+    )
+    female_staff_age_80 = models.IntegerField(
+        verbose_name=_('female staff age 80'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_18_29 = models.IntegerField(
+        verbose_name=_('male staff age 18 to 29'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_18_49 = models.IntegerField(
+        verbose_name=_('male staff age 18 to 49'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_30_39 = models.IntegerField(
+        verbose_name=_('male staff age 30 to 39'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_40_49 = models.IntegerField(
+        verbose_name=_('male staff age 40 to 49'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_50_59 = models.IntegerField(
+        verbose_name=_('male staff age 50 to 59'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_60_69 = models.IntegerField(
+        verbose_name=_('male staff age 60 to 69'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_70_79 = models.IntegerField(
+        verbose_name=_('male staff age 70 to 79'),
+        null=True,
+        blank=True
+    )
+    male_staff_age_80 = models.IntegerField(
+        verbose_name=_('male staff age 80'),
         null=True,
         blank=True
     )

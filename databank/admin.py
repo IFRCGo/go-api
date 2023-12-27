@@ -74,9 +74,6 @@ class CountryOverviewAdmin(admin.ModelAdmin):
                 'expenditures',
                 'volunteers',
                 'trained_in_first_aid',
-                'people_age_6_12',
-                'people_age_13_17',
-                'people_age_18_29',
                 'branches'
             ),
         }),
