@@ -91,6 +91,7 @@ router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset
 router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country_rmd')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
+router.register(r'country-supporting-partner', api_views.CountrySupportingPartnerViewSet, basename="country_supporting_partner")
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'disaster_type', api_views.DisasterTypeViewset, basename='disaster_type')
 router.register(r'admin2', api_views.Admin2Viewset, basename='admin2')

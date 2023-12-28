@@ -60,7 +60,8 @@ from .models import (
     CountryKeyDocument,
     NSDInitiatives,
     CountryCapacityStrengthening,
-    CountryOrganizationalCapacity
+    CountryOrganizationalCapacity,
+    CountrySupportingPartner,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -2360,3 +2361,14 @@ class GDACSEventSerializer(serializers.ModelSerializer):
             "disaster_type",
             "publication_date"
         )
+
+
+class CountrySupportingPartnerSerializer(serializers.ModelSerializer):
+    supporting_type_display = serializers.CharField(
+        source="get_supporting_type_display",
+        read_only=True
+    )
+
+    class Meta:
+        model = CountrySupportingPartner
+        fields = "__all__"

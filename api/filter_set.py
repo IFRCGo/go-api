@@ -20,7 +20,8 @@ from api.models import (
     AppealDocument,
     FieldReport,
     GDACSEvent,
-    CountryKeyDocument
+    CountryKeyDocument,
+    CountrySupportingPartner
 
 )
 from api.view_filters import ListFilter
@@ -350,3 +351,11 @@ class GDACSEventFileterSet(filters.FilterSet):
         if len(country):
             return queryset.filter(countries__in=country).distinct()
         return queryset
+
+
+class CountrySupportingPartnerFilter(filters.FilterSet):
+    country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
+
+    class Meta:
+        model = CountrySupportingPartner
+        fields = ()

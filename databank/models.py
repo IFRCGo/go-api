@@ -348,6 +348,18 @@ class CountryOverview(models.Model):
         verbose_name=_('volunteer total'),
         null=True, blank=True
     )
+    volunteer_age_6_12 = models.IntegerField(
+        verbose_name=_('volunteer age 6 to 12'),
+        null=True, blank=True
+    )
+    volunteer_age_13_17 = models.IntegerField(
+        verbose_name=_('volunteer age 13 to 17'),
+        null=True, blank=True
+    )
+    volunteer_age_18_29 = models.IntegerField(
+        verbose_name=_('volunteer age 18 to 29'),
+        null=True, blank=True
+    )
     # Staff
     female_staff_age_18_29 = models.IntegerField(
         verbose_name=_('female staff age 18 to 29'),
@@ -451,6 +463,10 @@ class CountryOverview(models.Model):
     )
     staff_total = models.IntegerField(
         verbose_name=_('staff total'),
+        null=True, blank=True
+    )
+    staff_age_18_29 = models.IntegerField(
+        verbose_name=_('staff age 18 to 29'),
         null=True, blank=True
     )
     # Key Climate Event (Manual Entry)

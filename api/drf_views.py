@@ -66,6 +66,7 @@ from .models import (
     GDACSEvent,
     CountryKeyDocument,
     AppealType,
+    CountrySupportingPartner
 )
 
 from country_plan.models import CountryPlan
@@ -126,7 +127,8 @@ from .serializers import (
     CountryKeyDocumentSerializer,
     CountryKeyFigureInputSerializer,
     CountryDisasterTypeCountSerializer,
-    CountryDisasterTypeMonthlySerializer
+    CountryDisasterTypeMonthlySerializer,
+    CountrySupportingPartnerSerializer
 )
 from api.filter_set import (
     UserFilterSet,
@@ -147,7 +149,8 @@ from api.filter_set import (
     FieldReportFilter,
     GoHistoricalFilter,
     GDACSEventFileterSet,
-    CountryKeyDocumentFilter
+    CountryKeyDocumentFilter,
+    CountrySupportingPartnerFilter
 )
 from api.utils import bad_request
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
@@ -1270,3 +1273,10 @@ class GDACSEventViewSet(viewsets.ReadOnlyModelViewSet):
         thirty_days_before = today + timedelta(days=-30)
         return GDACSEvent.objects.filter(publication_date__gte=thirty_days_before)
 
+
+class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
+    serializer_class = CountrySupportingPartnerSerializer
+    filterset_class = CountrySupportingPartnerFilter
+
+    def get_queryset(self):
+        return CountrySupportingPartner.objects.select_related('country')
