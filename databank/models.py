@@ -344,6 +344,10 @@ class CountryOverview(models.Model):
         null=True,
         blank=True
     )
+    volunteer_total = models.IntegerField(
+        verbose_name=_('volunteer total'),
+        null=True, blank=True
+    )
     # Staff
     female_staff_age_18_29 = models.IntegerField(
         verbose_name=_('female staff age 18 to 29'),
@@ -444,6 +448,10 @@ class CountryOverview(models.Model):
         verbose_name=_('male staff total'),
         null=True,
         blank=True
+    )
+    staff_total = models.IntegerField(
+        verbose_name=_('staff total'),
+        null=True, blank=True
     )
     # Key Climate Event (Manual Entry)
     avg_temperature = models.FloatField(verbose_name=_('average temperature'), null=True, blank=True)

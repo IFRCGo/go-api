@@ -51,6 +51,7 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PeopleVol_F_age_80', CO.female_volunteer_age_80),
     ('KPI_PeopleVol_F_age_Other', CO.female_volunteer_age_other),
     ('KPI_PeopleVol_Tot_F', CO.female_volunteer_total),
+    ('KPI_PeopleVol_Tot', CO.volunteer_total),
 
     # Staff
     ('KPI_PStaff_M_age_18_29', CO.male_staff_age_18_29),
@@ -72,7 +73,8 @@ FDRS_INDICATORS_FIELD_MAP = (
     ('KPI_PStaff_F_age_70_79', CO.female_staff_age_70_79),
     ('KPI_PStaff_F_age_80', CO.female_staff_age_80),
     ('KPI_PStaff_F_age_Other', CO.female_staff_age_other),
-    ('KPI_PStaff_Tot_F', CO.female_staff_total)
+    ('KPI_PStaff_Tot_F', CO.female_staff_total),
+    ('KPI_PStaff_Tot', CO.staff_total)
 )
 FDRS_INDICATORS = [indicator for indicator, _ in FDRS_INDICATORS_FIELD_MAP]
 
