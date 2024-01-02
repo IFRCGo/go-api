@@ -482,6 +482,44 @@ class CountryOverview(models.Model):
     past_epidemics = JSONField(verbose_name=_('past epidemics data'), default=list)
     inform_indicators = JSONField(verbose_name=_('inform indicators data'), default=list)
 
+    # World bank data
+    world_bank_population = models.IntegerField(
+        verbose_name=_('world bank population'),
+        null=True, blank=True
+    )
+    world_bank_population_above_age_65 = models.IntegerField(
+        verbose_name=_('world bank population above age 65'),
+        null=True, blank=True
+    )
+    world_bank_population_age_14 = models.IntegerField(
+        verbose_name=_('world bank population age 14'),
+        null=True, blank=True
+    )
+    world_bank_urban_population_percentage = models.IntegerField(
+        verbose_name=_('world bank urban population percentage'),
+        null=True, blank=True
+    )
+    world_bank_gdp = models.IntegerField(
+        verbose_name=_('world bank gdp'),
+        null=True, blank=True
+    )
+    world_bank_gni = models.IntegerField(
+        verbose_name=_('world bank gni'),
+        null=True, blank=True
+    )
+    world_bank_gender_inequality_index = models.IntegerField(
+        verbose_name=_('world bank gender inequality index'),
+        null=True, blank=True
+    )
+    world_bank_life_expectancy = models.IntegerField(
+        verbose_name=_('world bank life expectancy'),
+        null=True, blank=True
+    )
+    world_bank_literacy_rate = models.IntegerField(
+        verbose_name=_('world bank life expectancy'),
+        null=True, blank=True
+    )
+
     class Meta:
         verbose_name = _('country overview')
         verbose_name_plural = _('countries overview')

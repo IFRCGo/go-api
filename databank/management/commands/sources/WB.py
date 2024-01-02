@@ -23,13 +23,13 @@ def prefetch():
         # TODO: lastupdated
         rs = requests.get(f'{url}?date={daterange}', params={
             'format': 'json',
-            'source': 50,
+            'source': 2,
             'per_page': 5000 - 1,  # WD throws error on 5000
             'page': page,
         })
         rs.raise_for_status()
         rs = rs.json()
-
+        print(rs)
         for pop_data in rs[1]:
             geo_code = pop_data['country']['id']
             pop = pop_data['value']
