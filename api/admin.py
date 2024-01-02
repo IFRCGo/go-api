@@ -514,6 +514,10 @@ class CountryKeyDocumentInline(admin.TabularInline):
     model = models.CountryKeyDocument
 
 
+class CountryICRCPresenceInline(admin.TabularInline):
+    model = models.CountryICRCPresence
+
+
 class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
 
@@ -562,6 +566,7 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
         CountryCapacityStrengtheningAdmin,
         CountryOrganizationalCapacityAdmin,
         CountrySupportingPartnerAdmin,
+        CountryICRCPresenceInline,
     ]
     exclude = ('key_priorities',)
 

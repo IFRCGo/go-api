@@ -494,6 +494,34 @@ class NSDInitiatives(models.Model):
         return f'{self.country.name} - {self.title}'
 
 
+class CountryICRCPresence(models.Model):
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('Country'),
+        on_delete=models.CASCADE
+    )
+    icrc_presence = models.BooleanField(
+        verbose_name=_('ICRC Presence'),
+        null=True, blank=True
+    )
+    url = models.CharField(
+        verbose_name=_('Url'),
+        null=True, blank=True,
+        max_length=255
+    )
+    key_operation = models.BooleanField(
+        verbose_name=_('Key Operations'),
+        null=True, blank=True
+    )
+    description = models.TextField(
+        verbose_name=_('Description'),
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.url}'
+
+
 class Admin2(models.Model):
     """ Used for admin2, District refers to admin1 """
     admin1 = models.ForeignKey(District, verbose_name=_('Admin 1'), on_delete=models.PROTECT)

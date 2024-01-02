@@ -62,6 +62,7 @@ from .models import (
     CountryCapacityStrengthening,
     CountryOrganizationalCapacity,
     CountrySupportingPartner,
+    CountryICRCPresence,
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
@@ -662,6 +663,12 @@ class CountryOrganizationalCapacitySerializer(ModelSerializer):
         fields = '__all__'
 
 
+class CountryICRCPresenceSerializer(ModelSerializer):
+    class Meta:
+        model = CountryICRCPresence
+        fields = "__all__"
+
+
 class CountryRelationSerializer(ModelSerializer):
     links = CountryLinkSerializer(many=True, read_only=True)
     contacts = CountryContactSerializer(many=True, read_only=True)
@@ -681,6 +688,12 @@ class CountryRelationSerializer(ModelSerializer):
         read_only=True,
         many=True
     )
+    icrc_presence = CountryICRCPresenceSerializer(
+        source="countryicrcpresence_set",
+        read_only=True,
+        many=True
+    )
+
     class Meta:
         model = Country
         fields = (
@@ -732,7 +745,8 @@ class CountryRelationSerializer(ModelSerializer):
             "directory",
             "initiatives",
             "capacity",
-            "organizational_capacity"
+            "organizational_capacity",
+            "icrc_presence"
         )
 
     @staticmethod
