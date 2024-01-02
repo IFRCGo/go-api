@@ -239,6 +239,13 @@ class Country(models.Model):
         null=True, blank=True
     )
 
+    # disaster law url
+    disaster_law_url = models.CharField(
+        verbose_name=_('Disaster law url'),
+        null=True, blank=True,
+        max_length=255
+    )
+
     def indexing(self):
         return {
             'id': self.id,
