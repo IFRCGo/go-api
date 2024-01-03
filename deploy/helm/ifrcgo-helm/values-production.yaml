@@ -19,8 +19,8 @@ env:
   SENTRY_SAMPLE_RATE: "0.2"
 
 api:
-  domain:
-  additionalDomain:
+  domain: goadmin.ifrc.org
+  additionalDomain: api.go.ifrc.org
   replicaCount: 2
   resources:
     requests:
