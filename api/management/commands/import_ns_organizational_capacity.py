@@ -12,73 +12,37 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("filename", nargs="+", type=str)
 
-    #@transaction.atomic
+    def update_or_create_capacity(self, sheet_name, field_mapping, filename):
+        df_CAP = pd.read_excel(filename, sheet_name=sheet_name, usecols=["Country"] + list(field_mapping.keys()))
+        CAP = df_CAP.dropna()
+
+        for data in CAP.itertuples(index=False):
+            country_name = data.Country.strip()
+            country = CountryOrganizationalCapacity.objects.filter(
+                country__name__icontains=country_name
+            ).first()
+
+            if country:
+                for excel_field, model_field in field_mapping.items():
+                    setattr(country, model_field, data._asdict()[excel_field])
+                country.save(update_fields=list(field_mapping.values()))
+            else:
+                country_id = Country.objects.filter(name__icontains=country_name).first()
+                if country_id:
+                    fields_to_create = {model_field: data._asdict()[excel_field] for excel_field, model_field in field_mapping.items()}
+                    CountryOrganizationalCapacity.objects.create(
+                        country=country_id,
+                        **fields_to_create
+                    )
+
     def handle(self, *args, **options):
-        filename = options["filename"][0]
-        df_LD_CAP = pd.read_excel(filename, sheet_name="Leadership_CAP", usecols=["Country", "LD_CAP"])
-        LD_CAP = df_LD_CAP.dropna()
-        for data in LD_CAP.values.tolist():
-            country = CountryOrganizationalCapacity.objects.filter(
-                country__name__icontains=data[0].strip()
-            )
-            if country.exists():
-                country.first().leadership_capacity=[1]
-                country.first().save(update_fields=['leadership_capacity'])
-            else:
-                country_id =Country.objects.filter(name__icontains=data[0].strip()).first()
-                if country_id:
-                    CountryOrganizationalCapacity.objects.create(
-                        country=country_id,
-                        leadership_capacity=data[1]
-                    )
+        leadership_mapping = {"LD_CAP": "leadership_capacity"}
+        youth_mapping = {"Youth_CAP": "youth_capacity"}
+        fd_mapping = {"FD_CAP": "financial_capacity"}
+        volunteer_mapping = {"VD_CAP": "volunteer_capacity"}
 
-        df_Youth_CAP = pd.read_excel(filename, sheet_name="Youth_CAP", usecols=["Country", "Youth_CAP"])
-        Youth_CAP = df_Youth_CAP.dropna()
-        for data in Youth_CAP.values.tolist():
-            country = CountryOrganizationalCapacity.objects.filter(
-                country__name__icontains=data[0].strip()
-            )
-            if country.exists():
-                country.first().youth_capacity=[1]
-                country.first().save(update_fields=['youth_capacity'])
-            else:
-                country_id =Country.objects.filter(name__icontains=data[0].strip()).first()
-                if country_id:
-                    CountryOrganizationalCapacity.objects.create(
-                        country=country_id,
-                        youth_capacity=data[1]
-                    )
+        self.update_or_create_capacity("Leadership_CAP", leadership_mapping, options["filename"][0])
+        self.update_or_create_capacity("Youth_CAP", youth_mapping, options["filename"][0])
+        self.update_or_create_capacity("FD_CAP", fd_mapping, options["filename"][0])
+        self.update_or_create_capacity("Volunteer_CAP", volunteer_mapping, options["filename"][0])
 
-        df_FD_CAP = pd.read_excel(filename, sheet_name="FD_CAP", usecols=["Country", "FD_CAP"])
-        FD_CAP = df_FD_CAP.dropna()
-        for data in FD_CAP.values.tolist():
-            country = CountryOrganizationalCapacity.objects.filter(
-                country__name__icontains=data[0].strip()
-            )
-            if country.exists():
-                country.first().financial_capacity=[1]
-                country.first().save(update_fields=['financial_capacity'])
-            else:
-                country_id =Country.objects.filter(name__icontains=data[0].strip()).first()
-                if country_id:
-                    CountryOrganizationalCapacity.objects.create(
-                        country=country_id,
-                        financial_capacity=data[1]
-                    )
-
-        df_Volunteer_Cap = pd.read_excel(filename, sheet_name="Volunteer_CAP", usecols=["Country", "VD_CAP"])
-        Volunteer_Cap = df_Volunteer_Cap.dropna()
-        for data in Volunteer_Cap.values.tolist():
-            country = CountryOrganizationalCapacity.objects.filter(
-                country__name__icontains=data[0].strip()
-            )
-            if country.exists():
-                country.first().volunteer_capacity=[1]
-                country.first().save(update_fields=['volunteer_capacity'])
-            else:
-                country_id = Country.objects.filter(name__icontains=data[0].strip()).first()
-                if country_id:
-                    CountryOrganizationalCapacity.objects.create(
-                        country=country_id,
-                        volunteer_capacity=data[1]
-                    )
