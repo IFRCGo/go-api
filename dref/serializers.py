@@ -152,7 +152,7 @@ class MiniDrefSerializer(serializers.ModelSerializer):
     disaster_category_display = serializers.CharField(source="get_disaster_category_display", read_only=True)
     type_of_dref_display = serializers.CharField(source="get_type_of_dref_display", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
-    country_details = MiniCountrySerializer(source="country", read_only=True)
+    country_details = MiniCountrySerializer(source="country", read_only=True, allow_null=True)
     has_ops_update = serializers.SerializerMethodField()
     has_final_report = serializers.SerializerMethodField()
     application_type = serializers.SerializerMethodField()
