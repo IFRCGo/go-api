@@ -51,9 +51,13 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.ifrcgo.kube_config.0.cluster_ca_certificate)
 }
 
-resource "kubernetes_config_map" "ifrcgo_elasticsearch_disk_config" {
+# This ConfigMap stores configurations for resources created by Terraform which 
+# are later referenced in the go-api Helm chart. Values from this ConfigMap
+# are either directly utilized in Kubernetes resource definitions or provided
+# as parameters to the Helm chart.
+resource "kubernetes_config_map" "ifrcgo_terraform_managed_resources" {
   metadata {
-    name = "ifrcgo-elasticsearch-disk-config"
+    name = "ifrcgo-terraform-managed-resources"
   }
 
   depends_on = [
@@ -61,7 +65,7 @@ resource "kubernetes_config_map" "ifrcgo_elasticsearch_disk_config" {
   ]
 
   data = {
-    "name" = "${local.prefix}-disk"
-    "uri"  = azurerm_managed_disk.ifrcgo.id
+    "elasticsearch_disk_name" = "${local.prefix}-disk"
+    "elasticsearch_disk_uri"  = azurerm_managed_disk.ifrcgo.id
   }
 }
