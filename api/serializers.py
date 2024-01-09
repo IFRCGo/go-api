@@ -684,9 +684,8 @@ class CountryRelationSerializer(ModelSerializer):
         many=True
     )
     organizational_capacity = CountryOrganizationalCapacitySerializer(
-        source='countryorganizationalcapacity_set',
+        source='countryorganizationalcapacity',
         read_only=True,
-        many=True
     )
     icrc_presence = CountryICRCPresenceSerializer(
         source="countryicrcpresence_set",

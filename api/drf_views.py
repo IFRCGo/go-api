@@ -243,11 +243,16 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             return CountryGeoSerializer
         return CountryRelationSerializer
 
+    @extend_schema(
+        request=None,
+        responses=CountryOverviewSerializer,
+    )
     @action(
         detail=True,
         url_path="databank",
         # Only for Documentation
         serializer_class=CountryOverviewSerializer,
+        pagination_class=None
     )
     def get_databank(self, request, pk):
         country = self.get_object()

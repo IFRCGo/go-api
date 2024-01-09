@@ -444,7 +444,7 @@ class CountryCapacityStrengthening(models.Model):
 
 class CountryOrganizationalCapacity(models.Model):
 
-    country = models.ForeignKey(
+    country = models.OneToOneField(
         Country,
         verbose_name=_('Country'),
         on_delete=models.CASCADE
