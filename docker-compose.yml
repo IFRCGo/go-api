@@ -46,7 +46,8 @@ x-server: &base_server_setup
     IFRC_TRANSLATION_DOMAIN: ${IFRC_TRANSLATION_DOMAIN:-}
     IFRC_TRANSLATION_GET_API_KEY: ${IFRC_TRANSLATION_GET_API_KEY:-}
     IFRC_TRANSLATION_HEADER_API_KEY: ${IFRC_TRANSLATION_HEADER_API_KEY:-}
-
+  extra_hosts:
+      - "host.docker.internal:host-gateway"
   env_file:
     - .env
   volumes:
@@ -67,6 +68,8 @@ services:
       POSTGRES_DB: test
     volumes:
       - './.db/pg:/var/lib/postgresql/data'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   redis:
     image: redis:latest
