@@ -781,4 +781,4 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
     class Meta:
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")
-        exclude = ("learning", "type", "sector", "per_component")
+        exclude = ("learning", "type", "organization", "sector", "per_component")
