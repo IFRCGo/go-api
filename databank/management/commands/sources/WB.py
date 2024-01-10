@@ -29,7 +29,6 @@ def prefetch():
         })
         rs.raise_for_status()
         rs = rs.json()
-        print(rs)
         for pop_data in rs[1]:
             geo_code = pop_data['country']['id']
             pop = pop_data['value']
