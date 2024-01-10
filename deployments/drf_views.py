@@ -512,6 +512,7 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                 "project_country__name",
                 "reporting_ns__name",
                 "primary_sector__title",
+                "project_country__society_name"
             )
             qs = (
                 projects.order_by()
@@ -522,11 +523,11 @@ class RegionProjectViewset(ReadOnlyVisibilityViewsetMixin, viewsets.ViewSet):
                     "count",
                 )
             )
-            for country, ns, sector, country_name, ns_name, title, count in qs:
+            for country, ns, sector, country_name, ns_name, title, society_name, count in qs:
                 sectortitle[sector] = title
                 agg[country][ns][sector] = count
                 agg[country]["name"] = country_name
-                agg[country][ns]["name"] = ns_name
+                agg[country][ns]["name"] = society_name
             return [
                 {
                     "id": cid,
