@@ -13,28 +13,8 @@ resource "helm_release" "ifrcgo" {
   ]
 
   set {
-    name  = "environment"
-    value = var.environment
-  }
-
-  set {
-    name  = "api.domain"
-    value = var.domain
-  }
-
-  set {
-    name  = "api.additionalDomain"
-    value = var.additionalDomain
-  }
-
-  set {
     name = "env.DJANGO_SECRET_KEY"
     value = var.DJANGO_SECRET_KEY
-  }
-
-  set {
-    name = "env.DJANGO_DB_NAME"
-    value = var.DJANGO_DB_NAME
   }
 
   set {
@@ -123,16 +103,6 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.CELERY_REDIS_URL"
-    value = var.CELERY_REDIS_URL
-  }
-
-  set {
-    name = "env.CACHE_MIDDLEWARE_SECONDS"
-    value = var.CACHE_MIDDLEWARE_SECONDS
-  }
-
-  set {
     name = "env.MOLNIX_API_BASE"
     value = var.MOLNIX_API_BASE
   }
@@ -178,11 +148,6 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.ELASTIC_SEARCH_HOST"
-    value = var.ELASTIC_SEARCH_HOST
-  }
-
-  set {
     name = "env.GO_FTPHOST"
     value = var.GO_FTPHOST
   }
@@ -211,68 +176,6 @@ resource "helm_release" "ifrcgo" {
     name = "env.APPEALS_PASS"
     value = var.APPEALS_PASS
   }
-
-  set {
-    name = "env.DJANGO_DEBUG"
-    value = var.DJANGO_DEBUG
-  }
-
-  set {
-    name = "env.DOCKER_HOST_IP"
-    value = var.DOCKER_HOST_IP
-  }
-
-  set {
-    name = "env.DJANGO_ADDITIONAL_ALLOWED_HOSTS"
-    value = var.DJANGO_ADDITIONAL_ALLOWED_HOSTS
-  }
-
-  set {
-    name = "env.GO_ENVIRONMENT"
-    value = var.GO_ENVIRONMENT
-  }
-
-  set {
-    name = "env.API_FQDN"
-    value = var.API_FQDN
-  }
-
-  set {
-    name = "env.FRONTEND_URL"
-    value = var.FRONTEND_URL
-  }
-
-  set {
-    name = "env.DEBUG_EMAIL"
-    value = var.DEBUG_EMAIL
-  }
-
-  set {
-    name = "env.SENTRY_DSN"
-    value = var.SENTRY_DSN
-  }
-
-  set {
-    name = "env.SENTRY_SAMPLE_RATE"
-    value = var.SENTRY_SAMPLE_RATE
-  }
-
-  set {
-    name = "env.DJANGO_READ_ONLY"
-    value = var.DJANGO_READ_ONLY
-  }
-
-  set {
-    name = "env.AUTO_TRANSLATION_TRANSLATOR"
-    value = var.AUTO_TRANSLATION_TRANSLATOR
-  }
-
-
-  set {
-    name = "env.IFRC_TRANSLATION_DOMAIN"
-    value = var.IFRC_TRANSLATION_DOMAIN
-  }
-
 
   set {
     name = "env.IFRC_TRANSLATION_GET_API_KEY"

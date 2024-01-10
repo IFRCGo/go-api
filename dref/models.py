@@ -70,7 +70,7 @@ class NationalSocietyAction(models.Model):
             NationalSocietyAction.Title.MULTI_PURPOSE_CASH: "cash.png",
             NationalSocietyAction.Title.OTHER: "favicon.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map.get(title, "favicon.png"))))
 
 
 @reversion.register()
@@ -114,7 +114,7 @@ class IdentifiedNeed(models.Model):
             IdentifiedNeed.Title.ENVIRONMENT_SUSTAINABILITY: "environment.png",
             IdentifiedNeed.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map.get(title, "favicon.png"))))
 
 
 @reversion.register()
@@ -193,7 +193,7 @@ class PlannedIntervention(models.Model):
             PlannedIntervention.Title.COMMUNITY_ENGAGEMENT_AND_ACCOUNTABILITY: "participation_team.png",
             PlannedIntervention.Title.COORDINATION_AND_PARTNERSHIPS: "coordination.png"
         }
-        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map[title])))
+        return request.build_absolute_uri(static(os.path.join("images/dref", title_static_map.get(title, "favicon.png"))))
 
 
 @reversion.register()
