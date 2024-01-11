@@ -66,13 +66,6 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
         label = gettext('hide all language') if self._go__show_all_language_in_form() else gettext('show all language')
         return [{'url': url, 'label': label}]
 
-    # NOTE: Experimental change
-    # def get_readonly_fields(self, request, obj=None):
-    #     return [
-    #         *super().get_readonly_fields(request, obj=obj),
-    #         TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
-    #     ]
-
     def get_list_filter(self, request):
         return [
             *super().get_list_filter(request),
@@ -83,13 +76,11 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
-        # extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     def add_view(self, request, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['additional_addlinks'] = extra_context.get('additional_addlinks') or []
-        # extra_context['additional_addlinks'].extend(self.get_additional_addlinks(request))
         return super().add_view(request, form_url, extra_context=extra_context)
 
     def get_urls(self):
@@ -147,12 +138,6 @@ class TranslationAdmin(TranslationAdminMixin, O_TranslationAdmin):
 
 
 class TranslationInlineModelAdmin(TranslationAdminMixin, O_TranslationInlineModelAdmin):
-    # NOTE: Experimental change
-    # def get_readonly_fields(self, request, obj=None):
-    #     return [
-    #         *super().get_readonly_fields(request, obj=obj),
-    #         TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME,
-    #     ]
     ...
 
 

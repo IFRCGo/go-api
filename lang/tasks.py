@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.conf import settings
 from functools import reduce
 
-from main.translation import TRANSLATOR_SKIP_FIELD_NAME, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
+from main.translation import skip_auto_translation, TRANSLATOR_SKIP_FIELD_NAME, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from main.celery import Queues
 from .translation import AVAILABLE_LANGUAGES, get_translator_class
 
@@ -92,7 +92,7 @@ class ModelTranslator():
         return list(translator.get_options_for_model(model).fields.keys())
 
     def translate_model_fields(self, obj, translatable_fields=None):
-        if getattr(obj, TRANSLATOR_SKIP_FIELD_NAME):
+        if skip_auto_translation(obj):
             return
         translatable_fields = translatable_fields or self.get_translatable_fields(type(obj))
         update_fields = []
@@ -168,7 +168,7 @@ class ModelTranslator():
 
             for obj in qs.iterator():
                 # Skip if it is flagged as skip by user # TODO: Remove this later
-                assert getattr(obj, TRANSLATOR_SKIP_FIELD_NAME) is False
+                assert skip_auto_translation(obj) is False
                 logger.info(f'\t\t ({index}/{qs_count}) - {obj}')
                 self.translate_model_fields(obj, translatable_fields)
                 index += 1

@@ -9,7 +9,7 @@ from modeltranslation.manager import (
     get_translatable_fields_for_model,
 )
 
-from main.translation import TRANSLATOR_SKIP_FIELD_NAME, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
+from main.translation import skip_auto_translation, TRANSLATOR_ORIGINAL_LANGUAGE_FIELD_NAME
 from api.utils import get_model_name
 
 from .tasks import translate_model_fields, translate_model_fields_in_bulk
@@ -117,7 +117,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
 
     @classmethod
     def trigger_field_translation(cls, instance):
-        if getattr(instance, TRANSLATOR_SKIP_FIELD_NAME):
+        if skip_auto_translation(instance):
             # Skip translation
             return
         transaction.on_commit(
@@ -128,7 +128,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     def trigger_field_translation_in_bulk(cls, model, instances):
         pks = [
             instance.pk for instance in instances
-            if not getattr(instance, TRANSLATOR_SKIP_FIELD_NAME)
+            if not skip_auto_translation(instance)
         ]
         if pks:
             transaction.on_commit(
@@ -138,12 +138,14 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     @classmethod
     def reset_and_trigger_translation_fields(cls, instance, created=False):
         """
-        NOTE: Not used right now
         To be used directly for a Model instance to reset (if value is changed) and trigger translation.
         """
+        if skip_auto_translation(instance):
+            # Skip translation
+            return
         if created:
             cls.trigger_field_translation(instance)
-        # For exisiting check if translation trigger is required
+        # For existing check if translation trigger is required
         current_instance = type(instance).objects.get(pk=instance.pk)
         if cls._get_language_clear_validated_data(
             current_instance,
