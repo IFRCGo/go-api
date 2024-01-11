@@ -688,9 +688,8 @@ class CountryRelationSerializer(ModelSerializer):
         read_only=True,
     )
     icrc_presence = CountryICRCPresenceSerializer(
-        source="countryicrcpresence_set",
+        source="countryicrcpresence",
         read_only=True,
-        many=True
     )
 
     class Meta:
