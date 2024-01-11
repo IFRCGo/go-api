@@ -495,19 +495,19 @@ class CountryOverview(models.Model):
         verbose_name=_('world bank population age 14'),
         null=True, blank=True
     )
-    world_bank_urban_population_percentage = models.IntegerField(
+    world_bank_urban_population_percentage = models.FloatField(
         verbose_name=_('world bank urban population percentage'),
         null=True, blank=True
     )
-    world_bank_gdp = models.IntegerField(
+    world_bank_gdp = models.FloatField(
         verbose_name=_('world bank gdp'),
         null=True, blank=True
     )
-    world_bank_gni = models.IntegerField(
+    world_bank_gni = models.FloatField(
         verbose_name=_('world bank gni'),
         null=True, blank=True
     )
-    world_bank_gender_inequality_index = models.IntegerField(
+    world_bank_gender_inequality_index = models.FloatField(
         verbose_name=_('world bank gender inequality index'),
         null=True, blank=True
     )
@@ -515,7 +515,7 @@ class CountryOverview(models.Model):
         verbose_name=_('world bank life expectancy'),
         null=True, blank=True
     )
-    world_bank_literacy_rate = models.IntegerField(
+    world_bank_literacy_rate = models.FloatField(
         verbose_name=_('world bank life expectancy'),
         null=True, blank=True
     )
