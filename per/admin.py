@@ -158,8 +158,8 @@ class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
 class OpsLearningAdmin(GotoNextModelAdmin):
 
     search_fields = ("learning", "learning_validated")
-    list_filter = ("sector", "sector_validated", "per_component", "per_component_validated")
-    list_display = ("learning", "appeal_code", "is_validated")
+    list_filter = ("organization", "organization_validated", "sector", "sector_validated", "per_component", "per_component_validated")
+    list_display = ("learning", "appeal_code", "organization", "is_validated")
     autocomplete_fields = ("sector", "sector_validated", "per_component", "per_component_validated")
     change_form_template = "admin/opslearning_change_form.html"
 
@@ -167,17 +167,20 @@ class OpsLearningAdmin(GotoNextModelAdmin):
         if obj and obj.is_validated:
             if obj.learning_validated is None \
                 and obj.type_validated == models.LearningType.LESSON_LEARNED.value \
+                and obj.organization_validated == models.OrganizationType.IFRC.value \
                 and obj.sector_validated.count() == 0 \
                 and obj.per_component_validated.count() == 0:
 
                 obj.learning_validated = obj.learning
                 obj.type_validated = obj.type
+                obj.organization_validated = obj.type
                 obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
                 obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
             return (
                 'learning_validated',
                 'appeal_code',
                 'type_validated',
+                'organization_validated',
                 'sector_validated',
                 'per_component_validated')
         elif obj:
@@ -185,6 +188,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 'learning',
                 'appeal_code',
                 'type',
+                'organization',
                 'sector',
                 'per_component',
                 'is_validated')
@@ -192,6 +196,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             'learning',
             'appeal_code',
             'type',
+            'organization',
             'sector',
             'per_component')
 
