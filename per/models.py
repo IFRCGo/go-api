@@ -262,12 +262,21 @@ class Overview(models.Model):
         WPNS = "wpns", _("WPNS")
 
     country = models.ForeignKey(
-        Country, verbose_name=_("country"), related_name="per_overviews", null=True, blank=True, on_delete=models.SET_NULL
+        Country,
+        verbose_name=_("country"),
+        related_name="per_overviews",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name=_("updated at"), auto_now=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
     )
 
     # Orientation
