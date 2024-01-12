@@ -1,5 +1,12 @@
 from modeltranslation.translator import register, TranslationOptions
-from .models import FormArea, FormComponent, FormAnswer, FormQuestion, FormData, AssessmentType
+from .models import (
+    FormArea,
+    FormComponent,
+    FormAnswer,
+    FormQuestion,
+    FormData,
+    AssessmentType,
+)
 
 
 @register(FormArea)

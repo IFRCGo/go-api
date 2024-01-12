@@ -566,6 +566,12 @@ class PerWorkPlanStatus(models.IntegerChoices):
 
 
 class PerWorkPlanComponent(models.Model):
+    class SupportedByOrganizationType(models.IntegerChoices):
+        UN_ORGANIZATION = 0, _('UN Organization')
+        PRIVATE_SECTOR = 1, _('Private Sector')
+        GOVERNMENT = 2, _('Government')
+        NATIONAL_SOCIETY = 3, _('National Society')
+
     component = models.ForeignKey(
         FormComponent,
         verbose_name=_("Component"),
@@ -575,6 +581,12 @@ class PerWorkPlanComponent(models.Model):
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStatus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    supported_by_organization_type = models.IntegerField(
+        choices=SupportedByOrganizationType.choices,
+        verbose_name=_("Supported By Organization Type"),
+        null=True,
+        blank=True,
+    )
 
 
 class CustomPerWorkPlanComponent(models.Model):
