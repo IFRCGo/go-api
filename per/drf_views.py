@@ -70,6 +70,7 @@ from per.permissions import (
     OpsLearningPermission,
     PerDocumentUploadPermission
 )
+
 from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,

@@ -2216,6 +2216,11 @@ class ExportSerializer(serializers.ModelSerializer):
             title = DrefFinalReport.objects.filter(
                 id=export_id
             ).first().title
+        elif export_type == Export.ExportType.PER:
+            overview = Overview.objects.filter(
+                id=export_id
+            ).first()
+            title = f'{overview.country.name}_per'
         else:
             title = "Export"
         user = self.context['request'].user
