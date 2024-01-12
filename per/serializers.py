@@ -348,6 +348,10 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     supported_by_details = MiniCountrySerializer(source="supported_by", read_only=True)
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
 
     class Meta:
         model = PerWorkPlanComponent
@@ -361,6 +365,8 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
             "status_display",
             "component_details",
             "supported_by_details",
+            "supported_by_organization_type",
+            "supported_by_organization_type_details"
         )
 
 

@@ -2208,7 +2208,6 @@ class ExportSerializer(serializers.ModelSerializer):
             title = Dref.objects.filter(
                 id=export_id
             ).first().title
-            print(title, "**********")
         elif export_type == Export.ExportType.OPS_UPDATE:
             title = DrefOperationalUpdate.objects.filter(
                 id=export_id
