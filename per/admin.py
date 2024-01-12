@@ -166,6 +166,14 @@ class OrganizationTypesAdmin(admin.ModelAdmin):
     ordering = ("order",)
 
 
+class PerDocumentUploadAdmin(admin.ModelAdmin):
+    pass
+
+
+class OpsLearningAdmin(GotoNextModelAdmin):
+    pass
+
+
 class OpsLearningAdmin(GotoNextModelAdmin):
     ordering = ("-created_at",)
     ls = ("organization", "organization_validated",
@@ -305,3 +313,4 @@ admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
 admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
 admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)
+admin.site.register(models.PerDocumentUpload, PerDocumentUploadAdmin)

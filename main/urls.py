@@ -131,6 +131,7 @@ router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
 router.register(r'latest-per-overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
 router.register(r'ops-learning', per_views.OpsLearningViewset, basename='ops_learning')
+router.register(r'per-document-upload', per_views.PerDocumentUploadViewSet, basename='per_document_upload')
 
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
 router.register(r'personnel', deployment_views.PersonnelViewset, basename='personnel')
