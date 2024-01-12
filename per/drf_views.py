@@ -36,6 +36,7 @@ from .models import (
     PerAssessment,
     PerFile,
     PerComponentRating,
+    PerDocumentUpload,
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -62,8 +63,13 @@ from .serializers import (
     OpsLearningInSerializer,
     OpsLearningCSVSerializer,
     PublicOpsLearningSerializer,
+    PerDocumentUploadSerializer,
 )
-from per.permissions import PerPermission, OpsLearningPermission
+from per.permissions import (
+    PerPermission,
+    OpsLearningPermission,
+    PerDocumentUploadPermission
+)
 from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,
@@ -477,3 +483,19 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
+        if OpsLearning.is_user_admin(self.request.user):
+            return OpsLearningSerializer
+        return PublicOpsLearningSerializer
+
+
+class PerDocumentUploadViewSet(viewsets.ModelViewSet):
+    serializer_class = PerDocumentUploadSerializer
+    #filterset_class = PerDocumentUploadSerializer
+    permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
+    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
+    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+
+    def get_queryset(self):
+        queryset = PerDocumentUpload.objects.filter(created_by=self.request.user)
+        return queryset
+        #return self.get_filtered_queryset(self.request, queryset, dispatch=0)

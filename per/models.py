@@ -690,3 +690,28 @@ class OpsLearning(models.Model):
                 self.per_component_validated.add(*[x[0] for x in self.per_component.values_list()])
 
         return super(OpsLearning, self).save(*args, **kwargs)
+
+
+class PerDocumentUpload(models.Model):
+    file = models.FileField(
+        verbose_name=_("file"),
+        upload_to="per/documents/",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("created_by"),
+        on_delete=models.SET_NULL,
+        null=True,
+    )
+    country = models.ForeignKey(
+        Country,
+        verbose_name=_('country'),
+        on_delete=models.CASCADE
+    )
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f'{self.country.name} - {self.created_by}'

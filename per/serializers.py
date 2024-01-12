@@ -31,6 +31,7 @@ from .models import (
     CustomPerWorkPlanComponent,
     PerFile,
     PerComponentRating,
+    PerDocumentUpload,
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -915,3 +916,33 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")
         exclude = ("learning", "type", "organization", "sector", "per_component")
+
+
+class PerDocumentUploadSerializer(serializers.ModelSerializer):
+    MAX_NUMBER_OF_DOCUMENTS = 10
+
+    class Meta:
+        model = PerDocumentUpload
+        fields = "__all__"
+
+    def validate(self, data):
+        country = data['country']
+        user_document_count = PerDocumentUpload.objects.filter(
+            country=country,
+            created_by=self.context["request"].user
+        ).count()
+        if user_document_count > self.MAX_NUMBER_OF_DOCUMENTS:
+            raise serializers.ValidationError(
+                {
+                    "file": gettext("Can add utmost %s documents" % self.MAX_NUMBER_OF_DOCUMENTS)
+                }
+            )
+        return data
+
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+         raise serializers.ValidationError("Update is not allowed")
