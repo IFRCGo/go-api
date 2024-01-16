@@ -46,4 +46,8 @@ def custom_translation_register(self, model_or_iterable, opts_class=None, **opti
         model.add_to_class(TRANSLATOR_SKIP_FIELD_NAME, skip_auto_translation_field)
 
 
+def skip_auto_translation(instance):
+    return getattr(instance, TRANSLATOR_SKIP_FIELD_NAME)
+
+
 Translator.register = custom_translation_register
