@@ -85,12 +85,13 @@ class IfrcTranslator(BaseTranslator):
             apiKey=settings.IFRC_TRANSLATION_GET_API_KEY
         )
 
-    def translate_text(self, text, dest_language, source_language=None):
+    def translate_text(self, text, dest_language, source_language=None, text_type='html'):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
         payload = {
             "text": text,
+            "textType": text_type,
             "from": source_language,
             "to": dest_language,
         }
