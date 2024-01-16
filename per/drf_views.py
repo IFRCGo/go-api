@@ -16,6 +16,8 @@ from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
@@ -70,7 +72,6 @@ from per.permissions import (
     OpsLearningPermission,
     PerDocumentUploadPermission
 )
-
 from per.filter_set import (
     PerOverviewFilter,
     PerPrioritizationFilter,
@@ -78,7 +79,13 @@ from per.filter_set import (
 )
 from django_filters.widgets import CSVWidget
 from .custom_renderers import NarrowCSVRenderer
+#from per.tasks import export_to_excel
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
+from django.utils import timezone
+from datetime import datetime
+from django.http import HttpResponse
 
 class PERDocsFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -233,6 +240,208 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
         queryset = Overview.objects.select_related("country", "user")
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
+
+class ExportPerView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk, format=None):
+        per = get_object_or_404(Overview, pk=pk)
+        per_queryset = Overview.objects.filter(id=per.id)
+        # if per.extracted_at is None or per.updated_at > per.extracted_at:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Overview"
+        # Overview Columns
+        ws.row_dimensions[1].height = 70
+        overview_columns = [
+            'National Society',
+            'Date of creation (register)',
+            'Date of last update (of the whole process)',
+            'Date of Orientation',
+            'Orientation document uploaded? (Yes/No)',
+            'Date of Current PER Assessment',
+            'Type of Assessment',
+            'Branches involved',
+            #'Method',
+            'EPI Considerations',
+            'Urban Considerations',
+            'Climate and env considerations',
+            'PER process cycle',
+            'Work-plan development date planned',
+            'Work-plan revision date planned',
+            'NS FP name',
+            'NS FP email',
+            'NS FP phone number',
+            'NS Second FP name',
+            'NS Second FP email',
+            'NS Second FP phone number',
+            'Partner FP name',
+            'Partner FP email',
+            'Partner FP phone number',
+            'Partner FP organization',
+            'PER facilitator name',
+            'PER facilitator email',
+            'PER facilitator phone number',
+            'PER facilitator other contact'
+        ]
+        row_num = 1
+
+        # Assign the titles for each cell of the header
+        for col_num, column_title in enumerate(overview_columns, 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.value = column_title
+        for per in per_queryset:
+            row_num += 1
+
+            overview_rows = [
+                per.country.name,
+                per.created_at.date(),
+                per.updated_at.date(),
+                per.date_of_orientation,
+                "Yes" if len(per.orientation_documents.all()) else "No",
+                per.date_of_assessment,
+                per.type_of_assessment.name,
+                per.branches_involved,
+                #per.assessment_method_display(),
+                per.assess_preparedness_of_country,
+                per.assess_urban_aspect_of_country,
+                per.assess_climate_environment_of_country,
+                per.assessment_number,
+                per.workplan_development_date,
+                per.workplan_revision_date,
+                per.ns_focal_point_name,
+                per.ns_focal_point_email,
+                per.ns_focal_point_phone,
+                per.ns_second_focal_point_name,
+                per.ns_second_focal_point_email,
+                per.ns_second_focal_point_phone,
+                per.partner_focal_point_name,
+                per.partner_focal_point_email,
+                per.partner_focal_point_phone,
+                per.partner_focal_point_organization,
+                per.facilitator_name,
+                per.facilitator_email,
+                per.facilitator_phone,
+                per.facilitator_contact
+            ]
+
+            for col_num, cell_value in enumerate(overview_rows, 1):
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Assessment
+        ws_assessment = wb.create_sheet('Assessment')
+        assessment_columns = [
+            'Component number',
+            'Component description',
+            'Benchmark number',
+            'Benchmark descprition',
+            'Benchmark answer (Yes/No/Partially)',
+            'Benchmark notes',
+            'Consideration type (epi, urban, climate)',
+            'Consideration notes',
+            'Component rating',
+            'Component notes'
+        ]
+        row_num = 1
+        for col_num, column_title in enumerate(assessment_columns, 1):
+            cell = ws_assessment.cell(row=row_num, column=col_num)
+            cell.value = column_title
+
+        assessment_rows = []
+        assessment_queryset = PerAssessment.objects.filter(overview=overview)
+        if assessment_queryset.exists():
+            for assessent in assessment_queryset.first().area_responses.all():
+                for co in assessent.component_response.all():
+                    question_answer = co.question_responses.all()
+                    for question in question_answer:
+                        assessment_inner = [
+                            co.component.component_num,
+                            co.component.description,
+                            question.question.question_num,
+                            question.question.description,
+                            question.answer.text,
+                            co.urban_considerations,
+                            co.epi_considerations,
+                            co.climate_environmental_considerations,
+                            co.rating.title if co.rating else None,
+                            co.notes
+                        ]
+                        assessment_rows.append(assessment_inner)
+
+        for row_num, row_data in enumerate(assessment_rows, 1):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_assessment.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Prioritization
+        ws_prioritization = wb.create_sheet('Prioritization')
+        prioritization_columns = [
+            'Prioritized component number',
+            'Prioritized component description',
+            'Justification'
+        ]
+        row_num = 1
+        for col_num, column_title in enumerate(prioritization_columns, 1):
+            cell = ws_prioritization.cell(row=row_num, column=col_num)
+            cell.value = column_title
+
+        prioritization_rows = []
+        prioritization_queryset = FormPrioritization.objects.filter(overview=overview)
+        if prioritization_queryset.exists():
+            for priorirization in prioritization_queryset.first().prioritized_action_responses.all():
+                if prioritization.is_prioritized:
+                    prioritization_inner = [
+                        proritization.component.component_num,
+                        priorirization.component.descprition,
+                        prioritization.justification_text
+                    ]
+                    prioritization_rows.appennd(prioritization_rows)
+
+        for row_num, row_data in enumerate(prioritization_rows, 1):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_prioritization.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Workplan
+        ws_workplan = wb.create_sheet('Workplan')
+        workplan_columns = [
+            'Actions',
+            'Number of component related',
+            'Description of component related'
+            'Due date',
+            'Suported by',
+            'Status'
+        ]
+        workplan_rows = []
+        row_num = 1
+        for col_num, column_title in enumerate(workplan_columns, 1):
+            cell = ws_workplan.cell(row=row_num, column=col_num)
+            cell.value = column_title
+
+        workplan_queryset = PerWorkPlan.objects.filter(overview=overview)
+        if workplan_queryset.exists():
+            for workplan in workplan_queryset.first().prioritized_action_responses.all():
+                workplan_inner = [
+                    workplan.actions,
+                    workplan.component.component_num,
+                    workplan.component.descprition,
+                    workplan.due_date.date(),
+                    workplan.supported_by.name,
+                    workplan.status_display()
+                ]
+                workplan_rows.appennd(workplan_inner)
+        for row_num, row_data in enumerate(workplan_rows, 1):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_workplan.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = "attachment; filename=export.xlsx"
+        wb.save(response)
+        return response
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
