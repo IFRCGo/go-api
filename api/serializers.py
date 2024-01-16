@@ -2220,7 +2220,7 @@ class ExportSerializer(serializers.ModelSerializer):
             overview = Overview.objects.filter(
                 id=export_id
             ).first()
-            title = f'{overview.country.name}_per'
+            title = f'{overview.country.name}-preparedness-{overview.get_phase_display()}'
         else:
             title = "Export"
         user = self.context['request'].user

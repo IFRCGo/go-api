@@ -139,7 +139,11 @@ class FormComponentResponse(models.Model):
 
 @reversion.register()
 class AreaResponse(models.Model):
-    area = models.ForeignKey(FormArea, verbose_name=_("Area"), on_delete=models.CASCADE)
+    area = models.ForeignKey(
+        FormArea,
+        verbose_name=_("Area"),
+        on_delete=models.CASCADE
+    )
     component_response = models.ManyToManyField(
         FormComponentResponse,
         verbose_name=_("Component Response"),
@@ -157,7 +161,10 @@ class PerAssessment(models.Model):
         null=True,
     )
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_("user"), null=True, blank=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_("user"),
+        null=True, blank=True,
+        on_delete=models.SET_NULL
     )
     area_responses = models.ManyToManyField(
         AreaResponse,
@@ -374,6 +381,19 @@ class Overview(models.Model):
         verbose_name=_("is draft"),
         default=True,
     )
+
+    # Used to keep track of per export
+    # exported_file = models.FileField(
+    #     verbose_name=_('exported file'),
+    #     upload_to='per/excel-export/',
+    #     blank=True,
+    #     null=True
+    # )
+    # exported_at = models.DateTimeField(
+    #     verbose_name=_('exported at'),
+    #     blank=True,
+    #     null=True
+    # )
 
     class Meta:
         ordering = ("country",)

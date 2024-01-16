@@ -946,3 +946,8 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
          raise serializers.ValidationError("Update is not allowed")
+
+
+class ExportPerViewSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    url = serializers.CharField(allow_null=True)
