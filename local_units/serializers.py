@@ -1,7 +1,7 @@
 import json
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from .models import LocalUnit, LocalUnitType, LocalUnitLevel
+from .models import LocalUnit, LocalUnitType, LocalUnitLevel, DelegationOffice, DelegationOfficeType
 from api.models import Country
 
 
@@ -54,4 +54,61 @@ class LocalUnitSerializer(ModelSerializer):
         return {'country'}
 
     def get_type(self, unit):
+        return {'type'}
+
+class DelegationOfficeCountrySerializer(ModelSerializer):
+
+    class Meta:
+        model = Country
+        fields = (
+            'name', 'iso3', 'region', 'region'
+        )
+
+
+class DelegationOfficeTypeSerializer(ModelSerializer):
+
+    class Meta:
+        model = DelegationOfficeType
+        fields = (
+            'name', 'code'
+        )
+
+
+class DelegationOfficeSerializer(ModelSerializer):
+    location = SerializerMethodField()
+    country = DelegationOfficeCountrySerializer()
+    dotype = DelegationOfficeTypeSerializer()
+
+    class Meta:
+        model = DelegationOffice
+        fields = [
+            'name',
+            'city',
+            'address',
+            'postcode',
+            'location',
+            'society_url',
+            'url_ifrc',
+            'hod_first_name',
+            'hod_last_name',
+            'hod_mobile_number',
+            'hod_email',
+            'assistant_name',
+            'assistant_email',
+            'is_ns_same_location',
+            'is_multiple_ifrc_offices',
+            'is_public',
+            'created_at',
+            'modified_at',
+            'date_of_data',
+            'country',
+            'dotype']
+
+    def get_location(self, office):
+        return json.loads(office.location.geojson)
+
+    def get_country(self, office):
+        return {'country'}
+
+    def get_type(self, office):
         return {'type'}

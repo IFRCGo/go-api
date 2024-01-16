@@ -3,8 +3,8 @@ from rest_framework.generics import (
 )
 from django_filters import rest_framework as filters
 
-from .models import LocalUnit
-from .serializers import LocalUnitSerializer
+from .models import LocalUnit, DelegationOffice
+from .serializers import LocalUnitSerializer, DelegationOfficeSerializer
 
 
 class LocalUnitFilters(filters.FilterSet):
@@ -30,3 +30,26 @@ class LocalUnitListAPIView(ListAPIView):
 class LocalUnitDetailAPIView(RetrieveAPIView):
     queryset = LocalUnit.objects.all()
     serializer_class = LocalUnitSerializer
+
+
+class DelegationOfficeFilters(filters.FilterSet):
+    class Meta:
+        model = DelegationOffice
+        fields = (
+            'country__name',
+            'country__iso3',
+            'country__iso',
+            'dotype__code',
+        )
+
+
+class DelegationOfficeListAPIView(ListAPIView):
+    queryset = DelegationOffice.objects.all()
+    serializer_class = DelegationOfficeSerializer
+    filterset_class = DelegationOfficeFilters
+    search_fields = ('name', 'country__name')
+
+
+class DelegationOfficeDetailAPIView(RetrieveAPIView):
+    queryset = DelegationOffice.objects.all()
+    serializer_class = DelegationOfficeSerializer
