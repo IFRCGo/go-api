@@ -605,6 +605,20 @@ class PerWorkPlan(models.Model):
         return f"{self.overview.id}"
 
 
+@reversion.register()
+class OrganizationTypes(models.Model):
+    title = models.CharField(max_length=255, verbose_name=_("title"))
+    is_deprecated = models.BooleanField(default=False, help_text=_("Is this a deprecated Organization type?"))
+    order = models.SmallIntegerField(default=0)
+
+    class Meta:
+        verbose_name = _("Organization type")
+        verbose_name_plural = _("Organization types")
+
+    def __str__(self):
+        return self.title
+
+
 class LearningType(models.IntegerChoices):
     LESSON_LEARNED = 1, _('Lesson learned')
     CHALLENGE = 2, _('Challenge')
@@ -622,8 +636,8 @@ class OpsLearning(models.Model):
     appeal_code = models.CharField(verbose_name=_("appeal (MDR) code"), max_length=20, null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
     type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
-    organization = models.IntegerField(verbose_name=_("organization"), choices=OrganizationType.choices, default=OrganizationType.IFRC)
-    organization_validated = models.IntegerField(verbose_name=_("organization (validated)"), choices=OrganizationType.choices, default=OrganizationType.IFRC)
+    organization = models.ManyToManyField(OrganizationTypes, related_name="organizations", verbose_name=_("Organizations"), blank=True)
+    organization_validated = models.ManyToManyField(OrganizationTypes, related_name="validated_organizations", verbose_name=_("Organizations (validated)"), blank=True)
     sector = models.ManyToManyField(SectorTag, related_name="sectors", verbose_name=_("Sectors"), blank=True)
     sector_validated = models.ManyToManyField(SectorTag, related_name="validated_sectors", verbose_name=_("Sectors (validated)"), blank=True)
     per_component = models.ManyToManyField(FormComponent, related_name="components", verbose_name=_("PER Components"), blank=True)
@@ -657,13 +671,13 @@ class OpsLearning(models.Model):
         if self.is_validated and self.id:
             if self.learning_validated is None \
                 and self.type_validated == LearningType.LESSON_LEARNED.value \
-                and self.organization_validated == OrganizationType.IFRC.value \
+                and self.organization_validated.count() == 0 \
                 and self.sector_validated.count() == 0 \
                 and self.per_component_validated.count() == 0:
 
                 self.learning_validated = self.learning
                 self.type_validated = self.type
-                self.organization_validated = self.organization
+                self.organization_validated.add(*[x[0] for x in self.organization.values_list()])
                 self.sector_validated.add(*[x[0] for x in self.sector.values_list()])
                 self.per_component_validated.add(*[x[0] for x in self.per_component.values_list()])
 

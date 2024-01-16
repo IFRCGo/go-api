@@ -1,0 +1,4 @@
+[
+    {"model": "per.organizationtypes", "pk": 1, "fields": {"title": "Secretariat", "order": 1}},
+    {"model": "per.organizationtypes", "pk": 2, "fields": {"title": "National Society", "order": 2}}
+]
