@@ -629,11 +629,12 @@ class OrganizationType(models.IntegerChoices):
     NS = 2, _('National Society')
 
 
-@reversion.register()
+@reversion.register(follow=('organization', 'sector', 'per_component', 'organization_validated', 'sector_validated', 'per_component_validated'))
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal (MDR) code"), max_length=20, null=True, blank=True)
+    appeal_document_id = models.IntegerField(verbose_name=_("Appeal document ID"), null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
     type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
     organization = models.ManyToManyField(OrganizationTypes, related_name="organizations", verbose_name=_("Organizations"), blank=True)

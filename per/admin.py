@@ -188,6 +188,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             return (
                 'learning_validated',
                 'appeal_code',
+                'appeal_document_id',
                 'type_validated',
                 'organization_validated',
                 'sector_validated',
@@ -196,6 +197,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             return (
                 'learning',
                 'appeal_code',
+                'appeal_document_id',
                 'type',
                 'organization',
                 'sector',
@@ -204,6 +206,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
         return (
             'learning',
             'appeal_code',
+            'appeal_document_id',
             'type',
             'organization',
             'sector',
