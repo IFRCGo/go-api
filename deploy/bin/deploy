@@ -124,8 +124,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         az aks get-credentials --resource-group ifrctgo002rg --name ifrctgo-cluster
     fi
 
-    
-
     helm upgrade --install --wait \
         -f ../helm/ifrcgo-helm/values.yaml \
         -f ../helm/ifrcgo-helm/values-${ENVIRONMENT}.yaml \
