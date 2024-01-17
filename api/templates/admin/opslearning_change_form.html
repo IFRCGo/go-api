@@ -1,6 +1,9 @@
 {% extends "admin/change_form.html" %}
 {% block object-tools-items %}
 <li>
+    <a href="/admin/api/appealdocument/?q={{ original.appeal_code }}" target="_blank" class="historylink">Related Appeal document</a>
+</li>
+<li>
     <a href="/admin/dref/dreffinalreport/?q={{ original.appeal_code }}" target="_blank" class="historylink">Related DREF Final Report</a>
 </li>
 {{ block.super }}

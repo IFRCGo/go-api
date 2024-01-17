@@ -349,7 +349,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
         'target_total': 0
     },
     {
-        'budget_amount_total': 3720000,
+        'budget_amount_total': 1940000,
         'id': 33,
         'iso3': 'qdv',
         'name': 'country-gEjLhkzKGguporwomItnbNOiAMDGGPmnhdTlXdGvSjcPxzqvNH',
@@ -371,16 +371,16 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
         'target_total': 0
     },
     {
-        'budget_amount_total': 7040000,
+        'budget_amount_total': 3090000,
         'id': 35,
-        'iso3': 'rSa',
-        'name': 'country-vqBqljxxKiiFeNlOaEtrfQgsRHykMQTFGmiOGsumHhWkWKVhOB',
+        'iso3': 'BZd',
+        'name': 'country-ETrgvqBqljxxKiiFeNlOaEtrfQgsRHykMQTFGmiOGsumHhWkWK',
         'ongoing_projects': 1,
         'operation_types': [
-            1
+            0
         ],
         'operation_types_display': [
-            'Emergency Operation'
+            'Programme'
         ],
         'projects_per_sector': [
             {
@@ -389,7 +389,7 @@ snapshots['TestProjectAPI::test_global_project_api 2'] = [
                 'primary_sector_display': 'sect-zoXLUsiDGGfzxGaQpZNRkWGiCklKKQjVUEwcoWFoeqxocQnHYx'
             }
         ],
-        'society_name': 'society-name-SXZWbVLJLoVBIUCceEjexSfIqPYDWsqYcdduqRpPfQkikTAtLl',
+        'society_name': 'society-name-rSaSXZWbVLJLoVBIUCceEjexSfIqPYDWsqYcdduqRpPfQkikTA',
         'target_total': 0
     }
 ]
