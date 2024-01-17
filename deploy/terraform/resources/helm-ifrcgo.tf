@@ -1,4 +1,8 @@
 resource "helm_release" "ifrcgo" {
+  lifecycle {
+    ignore_changes = all
+  }
+
   name  = "ifrcgo-helm"
   chart = "../helm/ifrcgo-helm"
   wait = true

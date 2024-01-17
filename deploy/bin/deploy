@@ -113,4 +113,57 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         terraform apply -auto-approve
     fi
 
+    # if environment is production, then we get the credentials for the production cluster.
+    # else we get the credentials for the staging cluster
+    az login -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+    if [[ "${ENVIRONMENT}" == "production" ]]; then
+        echo "Getting credentials for production cluster..."
+        az aks get-credentials --resource-group ifrcpgo002rg --name ifrcpgo-cluster
+    else
+        echo "Getting credentials for staging cluster..."
+        az aks get-credentials --resource-group ifrctgo002rg --name ifrctgo-cluster
+    fi
+
+    helm upgrade --install --wait \
+        -f ../helm/ifrcgo-helm/values.yaml \
+        -f ../helm/ifrcgo-helm/values-${ENVIRONMENT}.yaml \
+        ifrcgo-helm \
+        ../helm/ifrcgo-helm \
+        --set env.DJANGO_SECRET_KEY=${TF_VAR_DJANGO_SECRET_KEY} \
+        --set env.DJANGO_DB_USER=${TF_VAR_DJANGO_DB_USER} \
+        --set env.DJANGO_DB_PASS=${TF_VAR_DJANGO_DB_PASS} \
+        --set env.DJANGO_DB_HOST=${TF_VAR_DJANGO_DB_HOST} \
+        --set env.DJANGO_DB_PORT=${TF_VAR_DJANGO_DB_PORT} \
+        --set env.AZURE_STORAGE_ACCOUNT=${TF_VAR_AZURE_STORAGE_ACCOUNT} \
+        --set env.AZURE_STORAGE_KEY=${TF_VAR_AZURE_STORAGE_KEY} \
+        --set env.EMAIL_API_ENDPOINT=${TF_VAR_EMAIL_API_ENDPOINT} \
+        --set env.EMAIL_HOST=${TF_VAR_EMAIL_HOST} \
+        --set env.EMAIL_PORT=${TF_VAR_EMAIL_PORT} \
+        --set env.EMAIL_USER=${TF_VAR_EMAIL_USER} \
+        --set env.EMAIL_PASS=${TF_VAR_EMAIL_PASS} \
+        --set env.TEST_EMAILS=${TF_VAR_TEST_EMAILS} \
+        --set env.AWS_TRANSLATE_ACCESS_KEY=${TF_VAR_AWS_TRANSLATE_ACCESS_KEY} \
+        --set env.AWS_TRANSLATE_SECRET_KEY=${TF_VAR_AWS_TRANSLATE_SECRET_KEY} \
+        --set env.AWS_TRANSLATE_REGION=${TF_VAR_AWS_TRANSLATE_REGION} \
+        --set env.MOLNIX_API_BASE=${TF_VAR_MOLNIX_API_BASE} \
+        --set env.MOLNIX_USERNAME=${TF_VAR_MOLNIX_USERNAME} \
+        --set env.MOLNIX_PASSWORD=${TF_VAR_MOLNIX_PASSWORD} \
+        --set env.ERP_API_ENDPOINT=${TF_VAR_ERP_API_ENDPOINT} \
+        --set env.ERP_API_SUBSCRIPTION_KEY=${TF_VAR_ERP_API_SUBSCRIPTION_KEY} \
+        --set env.FDRS_APIKEY=${TF_VAR_FDRS_APIKEY} \
+        --set env.FDRS_CREDENTIAL=${TF_VAR_FDRS_CREDENTIAL} \
+        --set env.HPC_CREDENTIAL=${TF_VAR_HPC_CREDENTIAL} \
+        --set env.APPLICATION_INSIGHTS_INSTRUMENTATION_KEY=${TF_VAR_APPLICATION_INSIGHTS_INSTRUMENTATION_KEY} \
+        --set env.GO_FTPHOST=${TF_VAR_GO_FTPHOST} \
+        --set env.GO_FTPUSER=${TF_VAR_GO_FTPUSER} \
+        --set env.GO_FTPPASS=${TF_VAR_GO_FTPPASS} \
+        --set env.GO_DBPASS=${TF_VAR_GO_DBPASS} \
+        --set env.APPEALS_USER=${TF_VAR_APPEALS_USER} \
+        --set env.APPEALS_PASS=${TF_VAR_APPEALS_PASS} \
+        --set env.IFRC_TRANSLATION_GET_API_KEY=${TF_VAR_IFRC_TRANSLATION_GET_API_KEY} \
+        --set env.IFRC_TRANSLATION_HEADER_API_KEY=${TF_VAR_IFRC_TRANSLATION_HEADER_API_KEY} \
+        --set secrets.API_TLS_CRT=${TF_VAR_API_TLS_CRT} \
+        --set secrets.API_TLS_KEY=${TF_VAR_API_TLS_KEY} \
+        --set secrets.API_ADDITIONAL_DOMAIN_TLS_CRT=${TF_VAR_API_ADDITIONAL_DOMAIN_TLS_CRT} \
+        --set secrets.API_ADDITIONAL_DOMAIN_TLS_KEY=${TF_VAR_API_ADDITIONAL_DOMAIN_TLS_KEY}
 fi
