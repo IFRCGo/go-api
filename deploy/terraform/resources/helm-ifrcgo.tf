@@ -8,7 +8,6 @@ resource "helm_release" "ifrcgo" {
   wait = true
   depends_on = [
     helm_release.ifrcgo-ingress-nginx,
-    helm_release.ifrcgo-cert-manager
   ]
 
   values = [
