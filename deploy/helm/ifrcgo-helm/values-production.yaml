@@ -50,6 +50,8 @@ celery:
       memory: 4Gi
 
 elasticsearch:
+  disk:
+    uri: 
   resources:
     requests:
       cpu: "2"
