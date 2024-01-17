@@ -416,7 +416,7 @@ class AppealDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translatio
 
 class AppealDocumentTypeAdmin(CompareVersionAdmin):
     model = models.AppealDocumentType
-    list_display = ('name', 'id')
+    list_display = ('name', 'id', 'public_site_or_fednet')
     readonly_fields = ('id',)
     search_fields = ('name', 'id')
 
