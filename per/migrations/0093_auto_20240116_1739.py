@@ -15,22 +15,6 @@ class Migration(migrations.Migration):
         model = apps.get_model('per', 'organizationtypes')
         model.objects.all().delete()
 
-    def migrate_data(apps, schema_editor):
-        OpsLearning = apps.get_model('per', 'OpsLearning')
-
-        learn = [0, 0, 0]
-        learn_v = [0, 0, 0]
-        for learnie in OpsLearning.objects.all():
-            org = learnie.organization
-            learn[org] = learn[org] + 1
-            learnie.organization2.set([org])
-            org = learnie.organization_validated
-            learn_v[org] = learn_v[org] + 1
-            learnie.organization2_validated.set([org])
-            learnie.save()
-
-        print(f"Migrated quantity: {learn[1]}, {learn[2]}, {learn_v[1]}, {learn_v[2]}")
-
     dependencies = [
         ('per', '0092_auto_20240109_1950'),
     ]
@@ -59,9 +43,5 @@ class Migration(migrations.Migration):
             model_name='opslearning',
             name='organization2_validated',
             field=models.ManyToManyField(blank=True, related_name='validated_organizations', to='per.OrganizationTypes', verbose_name='Organizations (validated)'),
-        ),
-        migrations.RunPython(
-            migrate_data,
-            reverse_code=migrations.RunPython.noop
         ),
     ]
