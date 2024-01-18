@@ -331,25 +331,26 @@ class ExportPerView(views.APIView):
 
         # Assessment
         ws_assessment = wb.create_sheet('Assessment')
+        ws_assessment.row_dimensions[1].height = 70
         assessment_columns = [
             'Component number',
             'Component description',
             'Benchmark number',
             'Benchmark descprition',
             'Benchmark answer (Yes/No/Partially)',
-            'Benchmark notes',
-            'Consideration type (epi, urban, climate)',
-            'Consideration notes',
+            'Consideration notes epi',
+            'Consideration notes urban',
+            'Consideration notes climate',
             'Component rating',
             'Component notes'
         ]
-        row_num = 1
+        assessment_num = 1
         for col_num, column_title in enumerate(assessment_columns, 1):
-            cell = ws_assessment.cell(row=row_num, column=col_num)
+            cell = ws_assessment.cell(row=assessment_num, column=col_num)
             cell.value = column_title
 
         assessment_rows = []
-        assessment_queryset = PerAssessment.objects.filter(overview=overview)
+        assessment_queryset = PerAssessment.objects.filter(overview=per.id)
         if assessment_queryset.exists():
             for assessent in assessment_queryset.first().area_responses.all():
                 for co in assessent.component_response.all():
@@ -361,50 +362,52 @@ class ExportPerView(views.APIView):
                             question.question.question_num,
                             question.question.description,
                             question.answer.text,
-                            co.urban_considerations,
                             co.epi_considerations,
+                            co.urban_considerations,
                             co.climate_environmental_considerations,
                             co.rating.title if co.rating else None,
                             co.notes
                         ]
                         assessment_rows.append(assessment_inner)
 
-        for row_num, row_data in enumerate(assessment_rows, 1):
+        for row_num, row_data in enumerate(assessment_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_assessment.cell(row=row_num, column=col_num)
                 cell.value = cell_value
 
         # Prioritization
         ws_prioritization = wb.create_sheet('Prioritization')
+        ws_prioritization.row_dimensions[1].height = 70
         prioritization_columns = [
             'Prioritized component number',
             'Prioritized component description',
             'Justification'
         ]
-        row_num = 1
+        prioritization_num = 1
         for col_num, column_title in enumerate(prioritization_columns, 1):
-            cell = ws_prioritization.cell(row=row_num, column=col_num)
+            cell = ws_prioritization.cell(row=prioritization_num, column=col_num)
             cell.value = column_title
 
         prioritization_rows = []
-        prioritization_queryset = FormPrioritization.objects.filter(overview=overview)
+        prioritization_queryset = FormPrioritization.objects.filter(overview=per.id)
         if prioritization_queryset.exists():
-            for priorirization in prioritization_queryset.first().prioritized_action_responses.all():
+            for prioritization in prioritization_queryset.first().prioritized_action_responses.all():
                 if prioritization.is_prioritized:
                     prioritization_inner = [
-                        proritization.component.component_num,
-                        priorirization.component.descprition,
+                        prioritization.component.component_num,
+                        prioritization.component.description,
                         prioritization.justification_text
                     ]
-                    prioritization_rows.appennd(prioritization_rows)
+                    prioritization_rows.append(prioritization_inner)
 
-        for row_num, row_data in enumerate(prioritization_rows, 1):
+        for row_num, row_data in enumerate(prioritization_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_prioritization.cell(row=row_num, column=col_num)
                 cell.value = cell_value
 
         # Workplan
         ws_workplan = wb.create_sheet('Workplan')
+        ws_workplan.row_dimensions[1].height = 70
         workplan_columns = [
             'Actions',
             'Number of component related',
@@ -414,12 +417,12 @@ class ExportPerView(views.APIView):
             'Status'
         ]
         workplan_rows = []
-        row_num = 1
+        workplan_num = 1
         for col_num, column_title in enumerate(workplan_columns, 1):
-            cell = ws_workplan.cell(row=row_num, column=col_num)
+            cell = ws_workplan.cell(row=workplan_num, column=col_num)
             cell.value = column_title
 
-        workplan_queryset = PerWorkPlan.objects.filter(overview=overview)
+        workplan_queryset = PerWorkPlan.objects.filter(overview=per.id)
         if workplan_queryset.exists():
             for workplan in workplan_queryset.first().prioritized_action_responses.all():
                 workplan_inner = [
@@ -430,8 +433,8 @@ class ExportPerView(views.APIView):
                     workplan.supported_by.name,
                     workplan.status_display()
                 ]
-                workplan_rows.appennd(workplan_inner)
-        for row_num, row_data in enumerate(workplan_rows, 1):
+                workplan_rows.append(workplan_inner)
+        for row_num, row_data in enumerate(workplan_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_workplan.cell(row=row_num, column=col_num)
                 cell.value = cell_value

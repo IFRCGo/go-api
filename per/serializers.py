@@ -87,6 +87,7 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
             "description",
             "area",
             "component_letter",
+            "is_parent"
         )
 
 

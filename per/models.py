@@ -94,13 +94,26 @@ class FormComponent(models.Model):
     area = models.ForeignKey(FormArea, verbose_name=_("area"), on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_("title"), max_length=250)
     component_num = models.IntegerField(verbose_name=_("component number"), default=1)
-    component_letter = models.CharField(verbose_name=_("component letter"), max_length=3, null=True, blank=True)
+    component_letter = models.CharField(
+        verbose_name=_("component letter"),
+        max_length=3,
+        null=True, blank=True
+    )
     description = models.TextField(verbose_name=_("description"), null=True, blank=True)
     status = models.CharField(
-        verbose_name=_("status"), max_length=100, choices=FormComponentStatus.choices, null=True, blank=True
+        verbose_name=_("status"),
+        max_length=100,
+        choices=FormComponentStatus.choices,
+        null=True, blank=True
     )
     question_responses = models.ManyToManyField(
-        FormComponentQuestionAndAnswer, verbose_name=_("Question responses"), blank=True
+        FormComponentQuestionAndAnswer,
+        verbose_name=_("Question responses"),
+        blank=True
+    )
+    is_parent = models.BooleanField(
+        verbose_name=_('Is parent'),
+        null=True, blank=True
     )
 
     def __str__(self):
