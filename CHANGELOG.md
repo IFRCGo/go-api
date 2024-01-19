@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
  - Fix pdf export icon size
  - Fix snapshot test morphing
- - clean up empty lines
  - Appeal document ID to OpsLearning
  - Add a column to appealdocumenttype listing
  - OpsLearning organization as multiselect list
@@ -20,20 +19,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Add institute to opsLearning table + serializers + admin
  - Fix migration issue
  - Translations in HTML
- - Fix snapshot test morphing
  - Add default image for dref static url
  - Fix filter parameter type in dref
  - Make country not null in appeals
  - Add old sector migration script
  - Squash migrations
- - Fix test case
  - Use factoryboy in SurgeAlert filter test
  - Small name/logic fixes
  - New filters on SurgeAlerts
  - Rename migration field in dref forms
  - Clean enum value for dref sectors
  - Update disaster_category_analysis field in DREF
- - DREF: Add targeting strategy additional support file
+ - Add targeting strategy additional support file to DREF
 
 ## 1.1.489
 
