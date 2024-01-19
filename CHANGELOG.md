@@ -6,6 +6,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.490
+
+### Added
+ - Fix pdf export icon size
+ - Fix snapshot test morphing
+ - clean up empty lines
+ - Appeal document ID to OpsLearning
+ - Add a column to appealdocumenttype listing
+ - OpsLearning organization as multiselect list
+ - IFRC Delegations Offices - separated from Local Units
+ - Skip reset and translate when skip_auto_translation
+ - Add institute to opsLearning table + serializers + admin
+ - Fix migration issue
+ - Translations in HTML
+ - Fix snapshot test morphing
+ - Add default image for dref static url
+ - Fix filter parameter type in dref
+ - Make country not null in appeals
+ - Add old sector migration script
+ - Squash migrations
+ - Fix test case
+ - Use factoryboy in SurgeAlert filter test
+ - Small name/logic fixes
+ - New filters on SurgeAlerts
+ - Rename migration field in dref forms
+ - Clean enum value for dref sectors
+ - Update disaster_category_analysis field in DREF
+ - DREF: Add targeting strategy additional support file
+
 ## 1.1.489
 
 ### Added
@@ -2288,7 +2317,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.489...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.490...HEAD
+[1.1.490]: https://github.com/IFRCGo/go-api/compare/1.1.489...1.1.490
 [1.1.489]: https://github.com/IFRCGo/go-api/compare/1.1.488...1.1.489
 [1.1.488]: https://github.com/IFRCGo/go-api/compare/1.1.487...1.1.488
 [1.1.487]: https://github.com/IFRCGo/go-api/compare/1.1.486...1.1.487
