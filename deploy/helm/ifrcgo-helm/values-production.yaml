@@ -50,6 +50,8 @@ celery:
       memory: 4Gi
 
 elasticsearch:
+  disk:
+    uri: /subscriptions/39308fb0-9929-4b29-aafa-b3c78a8b0658/resourceGroups/ifrcpgo002rg/providers/Microsoft.Compute/disks/ifrcpgo-disk001
   resources:
     requests:
       cpu: "2"

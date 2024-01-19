@@ -5,7 +5,8 @@ RUN apk add wget unzip curl \
     py3-pip \
     build-base python3-dev \
     linux-headers \
-    bash
+    bash \
+    helm
 
 # Upgrade pip
 RUN pip3 install -U pip

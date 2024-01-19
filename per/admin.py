@@ -155,43 +155,60 @@ class FormComponentQuestionAndAnswerAdmin(admin.ModelAdmin):
     pass
 
 
+class OrganizationTypesAdmin(admin.ModelAdmin):
+    list_display = ("title", "order")
+    search_fields = ("title",)
+    ordering = ("order",)
+
+
 class OpsLearningAdmin(GotoNextModelAdmin):
 
+    ls = ("organization", "organization_validated",
+          "sector", "sector_validated",
+          "per_component", "per_component_validated")
+    list_filter = ls
+    autocomplete_fields = ls
     search_fields = ("learning", "learning_validated")
-    list_filter = ("sector", "sector_validated", "per_component", "per_component_validated")
     list_display = ("learning", "appeal_code", "is_validated")
-    autocomplete_fields = ("sector", "sector_validated", "per_component", "per_component_validated")
     change_form_template = "admin/opslearning_change_form.html"
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
             if obj.learning_validated is None \
                 and obj.type_validated == models.LearningType.LESSON_LEARNED.value \
+                and obj.organization_validated.count() == 0 \
                 and obj.sector_validated.count() == 0 \
                 and obj.per_component_validated.count() == 0:
 
                 obj.learning_validated = obj.learning
                 obj.type_validated = obj.type
+                obj.organization_validated.add(*[x[0] for x in obj.organization.values_list()])
                 obj.sector_validated.add(*[x[0] for x in obj.sector.values_list()])
                 obj.per_component_validated.add(*[x[0] for x in obj.per_component.values_list()])
             return (
                 'learning_validated',
                 'appeal_code',
+                'appeal_document_id',
                 'type_validated',
+                'organization_validated',
                 'sector_validated',
                 'per_component_validated')
         elif obj:
             return (
                 'learning',
                 'appeal_code',
+                'appeal_document_id',
                 'type',
+                'organization',
                 'sector',
                 'per_component',
                 'is_validated')
         return (
             'learning',
             'appeal_code',
+            'appeal_document_id',
             'type',
+            'organization',
             'sector',
             'per_component')
 
@@ -215,4 +232,5 @@ admin.site.register(models.PerAssessment, FormAssessmentAdmin)
 admin.site.register(models.AreaResponse, FormAreaResponseAdmin)
 admin.site.register(models.FormComponentResponse, FormComponentResponseAdmin)
 admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestionAndAnswerAdmin)
+admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)

@@ -145,3 +145,122 @@ class LocalUnit(models.Model):
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
         return f'{branch_name} ({self.country.name})'
+
+
+class DelegationOfficeType(models.Model):
+    code = models.IntegerField(
+        verbose_name=_('Type Code'),
+        validators=[
+            MaxValueValidator(10),
+            MinValueValidator(0)
+        ]
+    )
+    name = models.CharField(
+        max_length=100,
+        verbose_name=_('Name')
+    )
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
+class DelegationOffice(models.Model):
+    name = models.CharField(
+        max_length=255,
+        verbose_name=_('Name')
+    )
+    dotype = models.ForeignKey(
+        DelegationOfficeType, on_delete=models.SET_NULL, verbose_name=_('Type'),
+        related_name='delegation_office_type', null=True
+    )
+    city = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name=_('City')
+    )
+    address = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name=_('Address')
+    )
+    postcode = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name=_('Postal code')
+    )
+    location = models.PointField()
+    country = models.ForeignKey(
+        Country, on_delete=models.SET_NULL, verbose_name=_('Country'),
+        related_name='delegation_office_country', null=True
+    )
+    society_url = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('URL of national society')
+    )
+    url_ifrc = models.URLField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('URL on IFRC webpage')
+    )
+    hod_first_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('HOD first name')
+    )
+    hod_last_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('HOD last name')
+    )
+    hod_mobile_number = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('HOD mobile number')
+    )
+    hod_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('HOD Email')
+    )
+    assistant_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('Assistant name')
+    )
+    assistant_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name=_('Assistant email')
+    )
+    is_ns_same_location = models.BooleanField(default=False, verbose_name=_('NS on same location?'))
+    is_multiple_ifrc_offices = models.BooleanField(default=False, verbose_name=_('Multiple IFRC offices?'))
+    is_public = models.BooleanField(default=False, verbose_name=_('Is public?'))
+    created_at = models.DateTimeField(
+        verbose_name=_('Created at'),
+        auto_now=True
+    )
+    modified_at = models.DateTimeField(
+        verbose_name=_('Modified at'),
+        auto_now=True
+    )
+    date_of_data = models.DateField(
+        verbose_name=_('Date of data collection'),
+        auto_now=False,
+        blank=True,
+        null=True,
+    )
+
+    def __str__(self):
+        return f'{self.name} ({self.country.name})'

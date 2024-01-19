@@ -265,3 +265,24 @@ class TranslatorMockTest(unittest.TestCase):
             # with settings.TESTING False
             with override_settings(TESTING=False):
                 assert ifrc_translator.translate_text('hello', 'es') == "Hola"
+
+    def test_ifrc_translator_detect_text_content_type(self):
+        valid_htmls = [
+            # Defined using the behaviour of aws.
+            # https://us-east-1.console.aws.amazon.com/translate/home?region=us-east-1#translation
+            "<html><head></head><body></body></html>",
+            """<html><head><title>I'm title</title></head></html>""",
+            """<p>This is a sample paragraph</p>""",
+            "Just a simple text <hi there>",
+            """In html you can use something like <a href="source"/>""",
+        ]
+        valid_texts = [
+            "Just a simple text",
+        ]
+        for text in valid_htmls:
+            assert IfrcTranslator.is_text_html(text) is True, \
+            f"<{text}> should be detected as html"
+
+        for text in valid_texts:
+            assert IfrcTranslator.is_text_html(text) is False, \
+            f"<{text}> should be detected as text"

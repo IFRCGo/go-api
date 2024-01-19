@@ -1,0 +1,9 @@
+[
+    {"model": "local_units.delegationofficetype", "pk": 1, "fields": {"code": 1, "name": "Field Office"}},
+    {"model": "local_units.delegationofficetype", "pk": 2, "fields": {"code": 2, "name": "Representative Office"}},
+    {"model": "local_units.delegationofficetype", "pk": 3, "fields": {"code": 3, "name": "Regional Office"}},
+    {"model": "local_units.delegationofficetype", "pk": 4, "fields": {"code": 4, "name": "Country Delegation"}},
+    {"model": "local_units.delegationofficetype", "pk": 5, "fields": {"code": 5, "name": "Country Cluster Delegation"}},
+    {"model": "local_units.delegationofficetype", "pk": 6, "fields": {"code": 6, "name": "Global"}},
+    {"model": "local_units.delegationofficetype", "pk": 7, "fields": {"code": 7, "name": "Not yet defined"}}
+]

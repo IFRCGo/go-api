@@ -61,7 +61,7 @@ class Command(BaseCommand):
         else:
             body = {
                 "name": "ingest_appeal_docs",
-                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.code}",
+                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.status} – {smoke.response.reason}",
                 "status": CronJobStatus.ERRONEOUS,
             }
             CronJob.sync_cron(body)

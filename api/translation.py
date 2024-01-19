@@ -71,7 +71,7 @@ class DisasterTypeTO(TranslationOptions):
 
 @register(Event)
 class EventTO(TranslationOptions):
-    fields = ('name', 'slug', 'summary')
+    fields = ('name', 'summary')
 
 
 @register(ExternalPartner)

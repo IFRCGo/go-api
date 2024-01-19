@@ -2,6 +2,7 @@ import logging
 import requests
 import boto3
 
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.utils.module_loading import import_string
 
@@ -42,7 +43,7 @@ class AmazonTranslator(BaseTranslator):
             raise Exception('Translation configuration missing')
 
         # NOTE: Service not used for testing
-        self.translate = client or boto3.client(
+        self._translator = client or boto3.client(
             'translate',
             aws_access_key_id=settings.AWS_TRANSLATE_ACCESS_KEY,
             aws_secret_access_key=settings.AWS_TRANSLATE_SECRET_KEY,
@@ -54,7 +55,7 @@ class AmazonTranslator(BaseTranslator):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
             return self._fake_translation(text, dest_language, source_language)
-        return self.translate.translate_text(
+        return self._translator.translate_text(
             Text=text,
             SourceLanguageCode=source_language,
             TargetLanguageCode=dest_language
@@ -85,6 +86,10 @@ class IfrcTranslator(BaseTranslator):
             apiKey=settings.IFRC_TRANSLATION_GET_API_KEY
         )
 
+    @classmethod
+    def is_text_html(cls, text):
+        return bool(BeautifulSoup(text, "html.parser").find())
+
     def translate_text(self, text, dest_language, source_language=None):
         if settings.TESTING:
             # NOTE: Mocking for test purpose
@@ -94,6 +99,10 @@ class IfrcTranslator(BaseTranslator):
             "from": source_language,
             "to": dest_language,
         }
+        if self.is_text_html(text):
+            # NOTE: Sending 'text' throws 500 from IFRC translation endpoint
+            # So only sending if html
+            payload['textType'] = 'html'
         response = requests.post(
             self.url,
             headers=self.headers,
