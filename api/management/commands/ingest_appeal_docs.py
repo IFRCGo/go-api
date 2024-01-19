@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from api.models import Appeal, AppealDocument, CronJob, CronJobStatus
 from api.logger import logger
 from collections import defaultdict
+import brotli
 
 
 class Command(BaseCommand):
@@ -54,14 +55,15 @@ class Command(BaseCommand):
         http = (
             PoolManager()
         )  # stackoverflow.com/questions/36516183/what-should-i-use-to-open-a-url-instead-of-urlopen-in-urllib3
-        smoke_response = http.request("GET", baseurl)
+        smoke_response = http.request("GET", baseurl,
+        headers={'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'})
         joy_to_the_world = False
         if smoke_response.status == 200:
             joy_to_the_world = True  # We log the success later, when we know the numeric results.
         else:
             body = {
                 "name": "ingest_appeal_docs",
-                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.status} – {smoke.response.reason}",
+                "message": f"Error ingesting appeals_docs on url: {baseurl}, error_code: {smoke_response.status} – {smoke_response.reason}",
                 "status": CronJobStatus.ERRONEOUS,
             }
             CronJob.sync_cron(body)
@@ -92,7 +94,8 @@ class Command(BaseCommand):
             docs_url = f"{baseurl}?appeal_code={code}"  # no more ac={code}&at=0&c=&co=&dt=1&f=&re=&t=&ti=&zo=
             try:
                 http = PoolManager()
-                response = http.request("GET", docs_url)
+                response = http.request("GET", docs_url,
+                headers={'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'})
             except Exception:  # if we get an error fetching page for an appeal, we ignore it
                 page_not_found.append(code)
                 continue
