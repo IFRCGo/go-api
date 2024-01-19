@@ -162,14 +162,14 @@ class OrganizationTypesAdmin(admin.ModelAdmin):
 
 
 class OpsLearningAdmin(GotoNextModelAdmin):
-
+    ordering = ("-created_at",)
     ls = ("organization", "organization_validated",
           "sector", "sector_validated",
           "per_component", "per_component_validated")
-    list_filter = ls
+    list_filter = ("is_validated",) + ls
     autocomplete_fields = ls
     search_fields = ("learning", "learning_validated")
-    list_display = ("learning", "appeal_code", "is_validated")
+    list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
 
     def get_fields(self, request, obj=None):
