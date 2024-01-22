@@ -33,7 +33,12 @@ class Command(BaseCommand):
         now = datetime.datetime.now()
         daterange = f'{now.year - 1}:{now.year}'
 
-        for country in Country.objects.filter(iso3__isnull=False, record_type=CountryType.COUNTRY, region__isnull=False, independent=True).exclude(iso3="COK"):
+        for country in Country.objects.filter(
+            iso3__isnull=False,
+            record_type=CountryType.COUNTRY,
+            region__isnull=False,
+            independent=True
+        ).exclude(iso3="COK"):
             country_iso3 = country.iso3
             for indicator in world_bank_indicators:
                 page = 1  # Reset the page for each indicator

@@ -524,6 +524,12 @@ class CountryOverview(models.Model):
         null=True, blank=True
     )
 
+    # fetched from unicef
+    unicef_population_under_18 = models.IntegerField(
+        verbose_name=_('Unicef population under 18'),
+        null=True, blank=True
+    )
+
     class Meta:
         verbose_name = _('country overview')
         verbose_name_plural = _('countries overview')
