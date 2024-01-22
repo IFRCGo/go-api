@@ -13,7 +13,8 @@ from .models import (
     KeyDocumentGroup,
     KeyDocument,
     ExternalSource,
-    AcapsSeasonalCalender
+    AcapsSeasonalCalender,
+    FDRSIncome,
 )
 
 
@@ -45,6 +46,9 @@ class ExternalSourceInine(admin.TabularInline):
 class AcapsSeasonalCalenderInline(admin.TabularInline):
     model = AcapsSeasonalCalender
 
+class FDRSIncomeInline(admin.TabularInline):
+    model = FDRSIncome
+
 
 @admin.register(CountryOverview)
 class CountryOverviewAdmin(admin.ModelAdmin):
@@ -57,7 +61,8 @@ class CountryOverviewAdmin(admin.ModelAdmin):
         SeasonalCalenderInine,
         KeyDocumentInine,
         ExternalSourceInine,
-        AcapsSeasonalCalenderInline
+        AcapsSeasonalCalenderInline,
+        FDRSIncomeInline
     ]
     form = CountryOverviewForm
     fieldsets = (
