@@ -519,6 +519,10 @@ class CountryOverview(models.Model):
         verbose_name=_('world bank life expectancy'),
         null=True, blank=True
     )
+    world_bank_poverty_rate = models.FloatField(
+        verbose_name=_('world bank poverty rate'),
+        null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _('country overview')
