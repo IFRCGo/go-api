@@ -530,6 +530,12 @@ class CountryOverview(models.Model):
         null=True, blank=True
     )
 
+    # hdr
+    hdr_gii = models.FloatField(
+        verbose_name=_('HDR GII'),
+        null=True, blank=True
+    )
+
     class Meta:
         verbose_name = _('country overview')
         verbose_name_plural = _('countries overview')
