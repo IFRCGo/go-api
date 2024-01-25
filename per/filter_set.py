@@ -3,6 +3,7 @@ import django_filters as filters
 from per.models import (
     Overview,
     FormPrioritization,
+    PerDocumentUpload,
     PerWorkPlan,
     Form,
 )
@@ -39,4 +40,12 @@ class FormAssessmentFilterSet(filters.FilterSet):
 
     class Meta:
         model = Form
+        fields = ()
+
+class PerDocumentFilter(filters.FilterSet):
+    country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
+    region = filters.NumberFilter(field_name="country__region")
+
+    class Meta:
+        model = PerDocumentUpload
         fields = ()
