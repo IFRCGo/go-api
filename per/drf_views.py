@@ -73,6 +73,7 @@ from per.permissions import (
     PerDocumentUploadPermission
 )
 from per.filter_set import (
+    PerDocumentFilter,
     PerOverviewFilter,
     PerPrioritizationFilter,
     PerWorkPlanFilter,
@@ -703,7 +704,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     serializer_class = PerDocumentUploadSerializer
-    #filterset_class = PerDocumentUploadSerializer
+    filterset_class = PerDocumentFilter
     permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
     get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
