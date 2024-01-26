@@ -236,8 +236,9 @@ class OpsLearningAdmin(GotoNextModelAdmin):
         writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
 
         writer.writerow(
-            ['appeal_code', 'learning', 'finding', 'sector', 'component', 'organization', 'country_name',
-            'region_name', 'dtype_name', 'year', 'appeal_num_beneficiaries'])
+            ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
+            'organization', 'country_name', 'region_name', 'dtype_name', 'year',
+            'appeal_num_beneficiaries', 'modified_at'])
 
         for opsl in queryset:
             v = opsl.is_validated
@@ -247,6 +248,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
                         lrng = opsl.learning_validated if opsl.is_validated else opsl.learning
                         find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
+                        modf = opsl.modified_at
                         code = opsl.appeal_code
                         appl = Appeal.objects.filter(code=code)
                         if appl:
@@ -259,7 +261,9 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                         else:
                             ctry = regn = dtyp = year = benf = None
 
-                        writer.writerow([code, lrng, find, sect, pcom, orgn, ctry, regn, dtyp, year, benf])
+                        writer.writerow([
+                            opsl.id, code, lrng, find, sect, pcom,
+                            orgn, ctry, regn, dtyp, year, benf, modf])
 
         return response
 
