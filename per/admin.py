@@ -242,24 +242,25 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
         for opsl in queryset:
             v = opsl.is_validated
+            lrng = opsl.learning_validated if opsl.is_validated else opsl.learning
+            find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
+            modf = opsl.modified_at
+            code = opsl.appeal_code
+            # TODO: cache the used appeals to make export faster
+            appl = Appeal.objects.filter(code=code)
+            if appl:
+                a = appl[0]
+                ctry = a.country.name_en
+                regn = a.country.region.label_en
+                dtyp = a.dtype.name_en
+                year = a.start_date.year
+                benf = a.num_beneficiaries
+            else:
+                ctry = regn = dtyp = year = benf = None
+
             for orgn in break_to_rows(opsl.organization, opsl.organization_validated, v, 1):
                 for sect in break_to_rows(opsl.sector, opsl.sector_validated, v, 1):
                     for pcom in break_to_rows(opsl.per_component, opsl.per_component_validated, v, 2):
-
-                        lrng = opsl.learning_validated if opsl.is_validated else opsl.learning
-                        find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
-                        modf = opsl.modified_at
-                        code = opsl.appeal_code
-                        appl = Appeal.objects.filter(code=code)
-                        if appl:
-                            a = appl[0]
-                            ctry = a.country.name_en
-                            regn = a.country.region.label_en
-                            dtyp = a.dtype.name_en
-                            year = a.start_date.year
-                            benf = a.num_beneficiaries
-                        else:
-                            ctry = regn = dtyp = year = benf = None
 
                         writer.writerow([
                             opsl.id, code, lrng, find, sect, pcom,

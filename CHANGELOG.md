@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.492
+
+### Added
+ - CSV export for OpsLearning
+
 ## 1.1.491
 
 ### Added
@@ -2321,7 +2326,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.491...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.492...HEAD
+[1.1.492]: https://github.com/IFRCGo/go-api/compare/1.1.491...1.1.492
 [1.1.491]: https://github.com/IFRCGo/go-api/compare/1.1.490...1.1.491
 [1.1.490]: https://github.com/IFRCGo/go-api/compare/1.1.489...1.1.490
 [1.1.489]: https://github.com/IFRCGo/go-api/compare/1.1.488...1.1.489
