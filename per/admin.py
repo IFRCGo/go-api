@@ -1,5 +1,6 @@
 import csv
 import time
+from functools import lru_cache
 from django.contrib import admin
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 import per.models as models
@@ -218,6 +219,10 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
     def export_selected_records(self, request, queryset):
 
+        @lru_cache(maxsize=5000)
+        def get_appeal(code):
+            return Appeal.objects.filter(code=code)
+
         def break_to_rows(many2many, many2many_validated, is_validated, idx):
             if is_validated and many2many_validated.values_list():
                 return [str(x[idx]) for x in many2many_validated.values_list()]
@@ -247,7 +252,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             modf = opsl.modified_at
             code = opsl.appeal_code
             # TODO: cache the used appeals to make export faster
-            appl = Appeal.objects.filter(code=code)
+            appl = get_appeal(code)
             if appl:
                 a = appl[0]
                 ctry = a.country.name_en
