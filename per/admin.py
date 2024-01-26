@@ -1,9 +1,12 @@
+import csv
+import time
 from django.contrib import admin
 from lang.admin import TranslationAdmin, TranslationInlineModelAdmin
 import per.models as models
+from api.models import Appeal
 from per.admin_classes import RegionRestrictedAdmin, GotoNextModelAdmin
 from reversion_compare.admin import CompareVersionAdmin
-
+from django.http import HttpResponse
 
 class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.FormData
@@ -171,6 +174,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
     search_fields = ("learning", "learning_validated")
     list_display = ("learning", "appeal_code", "is_validated", "modified_at")
     change_form_template = "admin/opslearning_change_form.html"
+    actions = ['export_selected_records']
 
     def get_fields(self, request, obj=None):
         if obj and obj.is_validated:
@@ -211,6 +215,55 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             'organization',
             'sector',
             'per_component')
+
+    def export_selected_records(self, request, queryset):
+
+        def break_to_rows(many2many, many2many_validated, is_validated, idx):
+            if is_validated and many2many_validated.values_list():
+                return [str(x[idx]) for x in many2many_validated.values_list()]
+            elif many2many.values_list():
+                return [str(x[idx]) for x in many2many.values_list()]
+            return ['']
+
+        meta = self.model._meta
+        field_names = [field.name for field in meta.fields]
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        finding = [''] + [t.label for t in models.LearningType]
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=OpsLearning_export_{}.csv'.format(
+            timestr)
+        writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
+
+        writer.writerow(
+            ['appeal_code', 'learning', 'finding', 'sector', 'component', 'organization', 'country_name',
+            'region_name', 'dtype_name', 'year', 'appeal_num_beneficiaries'])
+
+        for opsl in queryset:
+            v = opsl.is_validated
+            for orgn in break_to_rows(opsl.organization, opsl.organization_validated, v, 1):
+                for sect in break_to_rows(opsl.sector, opsl.sector_validated, v, 1):
+                    for pcom in break_to_rows(opsl.per_component, opsl.per_component_validated, v, 2):
+
+                        lrng = opsl.learning_validated if opsl.is_validated else opsl.learning
+                        find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
+                        code = opsl.appeal_code
+                        appl = Appeal.objects.filter(code=code)
+                        if appl:
+                            a = appl[0]
+                            ctry = a.country.name_en
+                            regn = a.country.region.label_en
+                            dtyp = a.dtype.name_en
+                            year = a.start_date.year
+                            benf = a.num_beneficiaries
+                        else:
+                            ctry = regn = dtyp = year = benf = None
+
+                        writer.writerow([code, lrng, find, sect, pcom, orgn, ctry, regn, dtyp, year, benf])
+
+        return response
+
+    export_selected_records.short_description = 'Export selected Ops Learning records to CSV'
 
 
 admin.site.register(models.Form, FormAdmin)
