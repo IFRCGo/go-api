@@ -703,6 +703,7 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
+    queryset= PerDocumentUpload.objects.all()
     serializer_class = PerDocumentUploadSerializer
     filterset_class = PerDocumentFilter
     permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
@@ -710,6 +711,4 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
 
     def get_queryset(self):
-        queryset = PerDocumentUpload.objects.filter(created_by=self.request.user)
-        return queryset
-        #return self.get_filtered_queryset(self.request, queryset, dispatch=0)
+        return self.get_queryset().filter(created_by=self.request.user)
