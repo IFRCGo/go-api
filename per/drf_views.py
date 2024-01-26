@@ -711,4 +711,4 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
 
     def get_queryset(self):
-        return self.get_queryset().filter(created_by=self.request.user)
+        return super().get_queryset().filter(created_by=self.request.user)
