@@ -43,7 +43,7 @@ class FormAssessmentFilterSet(filters.FilterSet):
         fields = ()
 
 class PerDocumentFilter(filters.FilterSet):
-    country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
+    country = filters.NumberFilter(field_name="country")
     region = filters.NumberFilter(field_name="country__region")
 
     class Meta:
