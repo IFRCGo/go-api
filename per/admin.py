@@ -219,9 +219,21 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
     def export_selected_records(self, request, queryset):
 
+# We cache the used appeals to make export faster:
+
         @lru_cache(maxsize=5000)
-        def get_appeal(code):
-            return Appeal.objects.filter(code=code)
+        def get_appeal_details(code):
+            appl = Appeal.objects.filter(code=code)
+            if appl:
+                a = appl[0]
+                ctry = a.country.name_en
+                regn = a.country.region.label_en
+                dtyp = a.dtype.name_en
+                year = a.start_date.year
+                benf = a.num_beneficiaries
+            else:
+                ctry = regn = dtyp = year = benf = None
+            return (ctry, regn, dtyp, year, benf)
 
         def break_to_rows(many2many, many2many_validated, is_validated, idx):
             if is_validated and many2many_validated.values_list():
@@ -251,17 +263,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
             modf = opsl.modified_at
             code = opsl.appeal_code
-            # TODO: cache the used appeals to make export faster
-            appl = get_appeal(code)
-            if appl:
-                a = appl[0]
-                ctry = a.country.name_en
-                regn = a.country.region.label_en
-                dtyp = a.dtype.name_en
-                year = a.start_date.year
-                benf = a.num_beneficiaries
-            else:
-                ctry = regn = dtyp = year = benf = None
+            (ctry, regn, dtyp, year, benf) = get_appeal_details(code)
 
             for orgn in break_to_rows(opsl.organization, opsl.organization_validated, v, 1):
                 for sect in break_to_rows(opsl.sector, opsl.sector_validated, v, 1):
@@ -271,6 +273,7 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                             opsl.id, code, lrng, find, sect, pcom,
                             orgn, ctry, regn, dtyp, year, benf, modf])
 
+        print("Cache information of Appeal queries:\n", get_appeal_details.cache_info())
         return response
 
     export_selected_records.short_description = 'Export selected Ops Learning records to CSV'
