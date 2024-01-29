@@ -96,6 +96,8 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+    # Pdf export
+    EXPORT_ALLOWED_HOSTS=(list, [])
 )
 
 
@@ -122,6 +124,7 @@ ALLOWED_HOSTS = [
     *env('DJANGO_ADDITIONAL_ALLOWED_HOSTS'),
 ]
 
+EXPORT_ALLOWED_DOMAIN = [ *env('EXPORT_ALLOWED_HOSTS') ]
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
 GO_ENVIRONMENT = env('GO_ENVIRONMENT')
