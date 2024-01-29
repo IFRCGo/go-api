@@ -83,6 +83,7 @@ django-redis = "==5.0.0"
 sentry-sdk = "*"
 django-haystack = { version = "*", extras = ["elasticsearch"] }
 drf-spectacular = "*"
+pyjwt = "*"
 
 mapbox-tilesets = "*"
 ipython = "*"

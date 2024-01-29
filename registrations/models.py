@@ -71,3 +71,24 @@ class DomainWhitelist(models.Model):
 
     def __str__(self):
         return self.domain_name
+
+class UserExternalToken(models.Model):
+    """ External token for user """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('user'),
+        on_delete=models.CASCADE,
+    )
+
+    created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
+    token = models.TextField(verbose_name=_('token'), editable=False)
+    expire_timestamp = models.DateTimeField(verbose_name=_('expire timestap'), null=True, blank=True)
+    is_disabled = models.BooleanField(verbose_name=_('is disabled?'), default=False)
+
+    class Meta:
+        verbose_name = _('User External Token')
+        verbose_name_plural = _('User External Tokens')
+
+    def __str__(self):
+        return f'{self.user.username} ({self.created_at.strftime("%Y-%m-%d")})'

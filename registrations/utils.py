@@ -1,3 +1,10 @@
+import os
+import json
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa
+import jwt
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models.functions import Lower
 
@@ -45,3 +52,35 @@ def getRegionalAdmins(userId):
 
     admins = UserRegion.objects.filter(region_id=regionId).values_list('user__email', flat=True)
     return admins
+
+
+def jwt_encode_handler(payload):
+    return jwt.encode(
+        payload,
+        settings.JWT_PRIVATE_KEY,
+        algorithm='RS256',
+    )
+
+def jwt_decode_handler(token):
+    return jwt.decode(
+        token,
+        settings.JWT_PUBLIC_KEY,
+        algorithms=['RS256'],
+    )
+
+
+def create_private_public_key():
+    """
+    Create a private and public key pair and store them in the settings
+    """
+    
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+
+    public_key = private_key.public_key()
+
+    settings.JWT_PRIVATE_KEY = private_key
+    settings.JWT_PUBLIC_KEY = public_key

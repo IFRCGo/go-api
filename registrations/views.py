@@ -6,13 +6,17 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from registrations.serializers import UserExternalTokenSerializer
 from rest_framework.views import APIView
+from rest_framework import viewsets, permissions
+from rest_framework.response import Response
+from rest_framework import status
 
 from api.views import (
     bad_http_request,
 )
 from notifications.notification import send_notification
-from .models import Pending
+from .models import Pending, UserExternalToken
 from .utils import (
     is_valid_domain,
     getRegionalAdmins
@@ -134,3 +138,19 @@ class ValidateUser(APIView):
             )
             pending_user.delete()
             return HttpResponse(render_to_string('registration/validation-success.html'))
+
+class UserExternalTokenViewset(viewsets.ModelViewSet):
+    queryset = UserExternalToken.objects.exclude(is_disabled=True)
+    serializer_class = UserExternalTokenSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_disabled = True
+        instance.save()
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )

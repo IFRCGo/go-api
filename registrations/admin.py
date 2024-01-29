@@ -163,3 +163,4 @@ class DomainWhitelistAdmin(CompareVersionAdmin):
 
 admin.site.register(models.Pending, PendingAdmin)
 admin.site.register(models.DomainWhitelist, DomainWhitelistAdmin)
+admin.site.register(models.UserExternalToken)

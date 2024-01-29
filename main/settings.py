@@ -593,13 +593,13 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    'ENUM_ADD_EXPLICIT_BLANK_NULL_CHOICE': False,
-    'ENUM_NAME_OVERRIDES': {},
-    # 'POSTPROCESSING_HOOKS': []
 }
 
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
+
+JWT_PRIVATE_KEY = None
+JWT_PUBLIC_KEY = None
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
