@@ -9,6 +9,7 @@ from per.admin_classes import RegionRestrictedAdmin, GotoNextModelAdmin
 from reversion_compare.admin import CompareVersionAdmin
 from django.http import HttpResponse
 
+
 class FormDataInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.FormData
     readonly_fields = ("question", "selected_answer", "notes")
@@ -254,14 +255,14 @@ class OpsLearningAdmin(GotoNextModelAdmin):
 
         writer.writerow(
             ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
-            'organization', 'country_name', 'region_name', 'dtype_name', 'year',
+            'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
             'appeal_num_beneficiaries', 'modified_at'])
 
         for opsl in queryset:
             v = opsl.is_validated
             lrng = opsl.learning_validated if opsl.is_validated else opsl.learning
             find = finding[opsl.type_validated] if opsl.is_validated else finding[opsl.type]
-            modf = opsl.modified_at
+            modf = opsl.modified_at.date()
             code = opsl.appeal_code
             (ctry, regn, dtyp, year, benf) = get_appeal_details(code)
 

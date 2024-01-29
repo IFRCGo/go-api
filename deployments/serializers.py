@@ -138,9 +138,9 @@ class MolnixTagSerializer(ModelSerializer):
 
     @staticmethod
     def get_groups(obj):
-        return [t.name for t in obj.groups.all() if not t.is_deprecated]
+        return [t.name for t in obj.groups.filter(is_deprecated=False)]
         # or a detailed response, if needed:
-        # return [{"molnix_id": t.molnix_id, "name": t.name} for t in obj.groups.all() if not t.is_deprecated]
+        # [{"molnix_id": t.molnix_id, "name": t.name} for t in obj.groups.filter(is_deprecated=False)]
 
 
 class PersonnelDeploymentCsvSerializer(ModelSerializer):
