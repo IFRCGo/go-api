@@ -579,5 +579,8 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+JWT_PRIVATE_KEY = None
+JWT_PUBLIC_KEY = None
+
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

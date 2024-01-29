@@ -1,8 +1,12 @@
+from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
+from api.serializers import UserNameSerializer
+from django.conf import settings
 
 from rest_framework import serializers
-from .models import DomainWhitelist, Recovery
+from .models import DomainWhitelist, Recovery, UserExternalToken
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.db import transaction
 
@@ -10,7 +14,9 @@ from rest_framework import serializers
 
 from .models import DomainWhitelist, Pending
 from .utils import (
-    is_valid_domain
+    create_private_public_key,
+    is_valid_domain,
+    jwt_encode_handler
 )
 from registrations.tasks import send_notification_create
 
@@ -158,3 +164,38 @@ class RegistrationSerializer(serializers.Serializer):
                 email
             )
         )
+
+class UserExternalTokenSerializer(serializers.ModelSerializer):
+    user_details = UserNameSerializer(source="user", read_only=True)
+    class Meta:
+        model = UserExternalToken
+        fields = 'user_details', 'token', 'expire_timestamp'
+
+    def validate_expire_timestamp(self, data):
+        if data < timezone.now():
+            raise serializers.ValidationError('Expire timestamp must be in the future.')
+        return data
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        validated_data['expire_timestamp'] = timezone.now() + timedelta(days=7)
+        
+        # Check if private and public key exists
+        if settings.JWT_PRIVATE_KEY is None and settings.JWT_PUBLIC_KEY is None:
+            try:
+                create_private_public_key()
+            except Exception:
+                raise serializers.ValidationError('Error while creating private and public key.')
+        
+        payload = {
+            'user': self.context['request'].user.id,
+            'exp': timezone.now() + timedelta(days=7)
+        }
+        validated_data['token'] = jwt_encode_handler(payload)
+        
+        return super().create(validated_data)
+    
+
+    def update(self, instance, validated_data):
+        raise serializers.ValidationError("Update is not allowed")
+    
