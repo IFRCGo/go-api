@@ -185,13 +185,14 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "deployment__country_deployed_to",
             "deployment__event_deployed_to",
             "deployment__event_deployed_to__dtype",
+            "country_from",
+            "country_to",
         ).prefetch_related(
             "deployment__event_deployed_to__countries",
             "deployment__event_deployed_to__appeals",
-            "country_from",
-            "country_to",
             "molnix_tags",
-        )
+            "molnix_tags__groups"
+        ).filter(molnix_tags__groups__is_deprecated=False)
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get("format", "json")
