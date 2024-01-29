@@ -62,7 +62,6 @@ from local_units.views import (
     DelegationOfficeDetailAPIView
 )
 
-
 # DRF routes
 from rest_framework import routers
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -222,8 +221,7 @@ urlpatterns = [
 
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
-    url(r"^api/v2/local-unit/(?P<pk>\d+)", LocalUnitDetailAPIView.as_view()),
-    url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
+    #url(r"^api/v2/local-unit/", LocalUnitViewSet.as_view()),
     url(r"^api/v2/delegation-office/(?P<pk>\d+)", DelegationOfficeDetailAPIView.as_view()),
     url(r"^api/v2/delegation-office/", DelegationOfficeListAPIView.as_view()),
     url(r"^tinymce/", include("tinymce.urls")),

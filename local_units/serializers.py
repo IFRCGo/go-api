@@ -1,7 +1,13 @@
 import json
 from rest_framework import serializers
 
-from .models import LocalUnit, LocalUnitType, LocalUnitLevel, DelegationOffice, DelegationOfficeType
+from .models import (
+    LocalUnit,
+    LocalUnitType,
+    LocalUnitLevel,
+    DelegationOffice,
+    DelegationOfficeType,
+)
 from api.models import Country
 
 
@@ -59,7 +65,7 @@ class LocalUnitSerializer(serializers.ModelSerializer):
         return {'type'}
 
 
-class DelegationOfficeCountrySerializer(ModelSerializer):
+class DelegationOfficeCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -68,7 +74,7 @@ class DelegationOfficeCountrySerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeTypeSerializer(ModelSerializer):
+class DelegationOfficeTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DelegationOfficeType
@@ -77,8 +83,8 @@ class DelegationOfficeTypeSerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class DelegationOfficeSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = DelegationOfficeCountrySerializer()
     dotype = DelegationOfficeTypeSerializer()
 

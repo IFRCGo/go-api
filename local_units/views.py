@@ -3,6 +3,11 @@ from rest_framework import (
     permissions,
     response
 )
+from django_filters import rest_framework as filters
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView
+)
 from rest_framework.decorators import action
 
 
@@ -27,9 +32,9 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
     search_fields = ('local_branch_name', 'english_branch_name',)
 
 
-class LocalUnitDetailAPIView(RetrieveAPIView):
-    queryset = LocalUnit.objects.all()
-    serializer_class = LocalUnitSerializer
+# class LocalUnitDetailAPIView(RetrieveAPIView):
+#     queryset = LocalUnit.objects.all()
+#     serializer_class = LocalUnitSerializer
 
 
 class DelegationOfficeFilters(filters.FilterSet):
