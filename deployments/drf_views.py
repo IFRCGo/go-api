@@ -192,7 +192,7 @@ class PersonnelViewset(viewsets.ReadOnlyModelViewSet):
             "deployment__event_deployed_to__appeals",
             "molnix_tags",
             "molnix_tags__groups"
-        ).filter(molnix_tags__groups__is_deprecated=False)
+        ).all()
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get("format", "json")

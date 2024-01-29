@@ -130,11 +130,17 @@ class PersonnelDeploymentSerializer(ModelSerializer):
 
 
 class MolnixTagSerializer(ModelSerializer):
+    groups = serializers.SerializerMethodField()
 
     class Meta:
-        # Do not put 'groups' to a separate get_groups method, it generates N+1 queries.
         fields = ('id', 'molnix_id', 'name', 'description', 'color', 'tag_type', 'groups')
         model = MolnixTag
+
+    @staticmethod
+    def get_groups(obj):
+        return [t.name for t in obj.groups.filter(is_deprecated=False)]
+        # or a detailed response, if needed:
+        # [{"molnix_id": t.molnix_id, "name": t.name} for t in obj.groups.filter(is_deprecated=False)]
 
 
 class PersonnelDeploymentCsvSerializer(ModelSerializer):
