@@ -74,6 +74,8 @@ from dref.models import(
     DrefOperationalUpdate,
     DrefFinalReport
 )
+from local_units.serializers import MiniDelegationOfficeSerializer
+from local_units.models import DelegationOffice
 
 
 class GeoSerializerMixin:
@@ -691,6 +693,7 @@ class CountryRelationSerializer(ModelSerializer):
         source="countryicrcpresence",
         read_only=True,
     )
+    country_delegation = serializers.SerializerMethodField()
 
     class Meta:
         model = Country
@@ -746,6 +749,7 @@ class CountryRelationSerializer(ModelSerializer):
             "organizational_capacity",
             "icrc_presence",
             "disaster_law_url",
+            "country_delegation",
         )
 
     @staticmethod
@@ -755,6 +759,20 @@ class CountryRelationSerializer(ModelSerializer):
     @staticmethod
     def get_centroid(country) -> dict:
         return country.centroid and json.loads(country.centroid.geojson)
+
+    @extend_schema_field(
+        MiniDelegationOfficeSerializer
+    )
+    def get_country_delegation(self, country):
+        return DelegationOffice.objects.filter(
+            dotype__name="Country Delegation",
+            country=country,
+        ).values(
+            'hod_first_name',
+            'hod_last_name',
+            'hod_mobile_number',
+            'hod_email',
+        ).first()
 
 
 class CountryKeyDocumentSerializer(ModelSerializer):

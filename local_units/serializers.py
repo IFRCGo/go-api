@@ -125,3 +125,14 @@ class DelegationOfficeSerializer(serializers.ModelSerializer):
 class LocalUnitOptionsSerializer(serializers.Serializer):
     type = LocalUnitTypeSerializer(many=True)
     level = LocalUnitLevelSerializer(many=True)
+
+
+class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DelegationOffice
+        fields = (
+            'hod_first_name',
+            'hod_last_name',
+            'hod_mobile_number',
+            'hod_email',
+        )

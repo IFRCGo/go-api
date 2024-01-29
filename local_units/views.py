@@ -31,6 +31,21 @@ class LocalUnitViewSet(viewsets.ModelViewSet):
     filterset_class = LocalUnitFilters
     search_fields = ('local_branch_name', 'english_branch_name',)
 
+    @action(
+        detail=False,
+        url_path="options",
+        methods=("get",),
+        serializer_class=LocalUnitOptionsSerializer,
+    )
+    def get_options(self, request, pk=None):
+        return response.Response(
+            LocalUnitOptionsSerializer(
+                instance=dict(
+                    type=LocalUnitType.objects.all(),
+                    level=LocalUnitLevel.objects.all(),
+                )
+            ).data
+        )
 
 # class LocalUnitDetailAPIView(RetrieveAPIView):
 #     queryset = LocalUnit.objects.all()
@@ -60,18 +75,3 @@ class DelegationOfficeDetailAPIView(RetrieveAPIView):
     serializer_class = DelegationOfficeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @action(
-        detail=False,
-        url_path="options",
-        methods=("get",),
-        serializer_class=LocalUnitOptionsSerializer,
-    )
-    def get_options(self, request, pk=None):
-        return response.Response(
-            LocalUnitOptionsSerializer(
-                instance=dict(
-                    type=LocalUnitType.objects.all(),
-                    level=LocalUnitLevel.objects.all(),
-                )
-            ).data
-        )

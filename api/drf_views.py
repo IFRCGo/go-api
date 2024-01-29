@@ -474,7 +474,7 @@ class CountryKeyDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CountryKeyDocument.objects.select_related('country')
     serializer_class = CountryKeyDocumentSerializer
     search_fields = ("name",)
-    permission_classes = (IsAuthenticated,)
+    # permission_classes = (IsAuthenticated,)
     filterset_class = CountryKeyDocumentFilter
 
 
