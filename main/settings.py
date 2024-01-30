@@ -96,6 +96,9 @@ env = environ.Env(
     DJANGO_READ_ONLY=(bool, False),
     # Misc
     DISABLE_API_CACHE=(bool, False),
+    #jwt private and public key
+    JWT_PRIVATE_KEY=(str, None),
+    JWT_PUBLIC_KEY=(str, None),
 
     # Country page
     NS_CONTACT_USERNAME=(str, None),
@@ -598,8 +601,8 @@ SPECTACULAR_SETTINGS = {
 # A character which is rarely used in strings – for separator:
 SEP = '¤'
 
-JWT_PRIVATE_KEY = None
-JWT_PUBLIC_KEY = None
+JWT_PRIVATE_KEY = env('JWT_PRIVATE_KEY')
+JWT_PUBLIC_KEY = env('JWT_PUBLIC_KEY')
 
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402

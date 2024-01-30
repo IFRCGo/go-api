@@ -9,7 +9,10 @@
 from unittest import mock
 
 from rest_framework.test import APITestCase
+from main.test_case import APITestCase as Apitestcase
+
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from .models import Pending
 from api.models import Country, Profile
@@ -164,3 +167,22 @@ class TwoGatekeepersTest(APITestCase):
 
         # check if the notification is called
         self.assertTrue(send_notification_create.is_called())
+
+
+class UserExternalTokenTest(Apitestcase):
+
+    def test_external_token(self):
+        self.client.force_authenticate(self.user)
+
+        response = self.client.post('/api/v2/external-token/')
+        self.assertEqual(response.status_code, 201)
+
+    def test_external_token_with_no_keys(self):
+        self.client.force_authenticate(self.user)
+
+        #set keys to None
+        settings.JWT_PRIVATE_KEY = None
+        settings.JWT_PUBLIC_KEY = None
+
+        response = self.client.post('/api/v2/external-token/')
+        self.assertEqual(response.status_code, 400)
