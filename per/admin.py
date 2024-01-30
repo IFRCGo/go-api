@@ -170,6 +170,10 @@ class PerDocumentUploadAdmin(admin.ModelAdmin):
     pass
 
 
+class FormQuestionGroupAdmin(admin.ModelAdmin):
+    pass
+
+
 class OpsLearningAdmin(GotoNextModelAdmin):
     pass
 
@@ -314,3 +318,4 @@ admin.site.register(models.FormComponentQuestionAndAnswer, FormComponentQuestion
 admin.site.register(models.OrganizationTypes, OrganizationTypesAdmin)
 admin.site.register(models.OpsLearning, OpsLearningAdmin)
 admin.site.register(models.PerDocumentUpload, PerDocumentUploadAdmin)
+admin.site.register(models.FormQuestionGroup, FormQuestionGroupAdmin)

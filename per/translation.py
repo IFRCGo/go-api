@@ -6,6 +6,7 @@ from .models import (
     FormQuestion,
     FormData,
     AssessmentType,
+    FormQuestionGroup,
 )
 
 
@@ -37,3 +38,8 @@ class FormDataTO(TranslationOptions):
 @register(AssessmentType)
 class AssessmentTypeTO(TranslationOptions):
     fields = ("name",)
+
+
+@register(FormQuestionGroup)
+class FormQuestionGroup(TranslationOptions):
+    fields = ("title", "description")
