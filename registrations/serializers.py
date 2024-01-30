@@ -187,10 +187,10 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
         
         payload = {
             'user': self.context['request'].user.id,
-            'exp': timezone.now() + timedelta(days=7)
+            'exp': validated_data['expire_timestamp']
         }
+
         validated_data['token'] = jwt_encode_handler(payload)
-        
         return super().create(validated_data)
     
 
