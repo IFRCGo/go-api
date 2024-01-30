@@ -32,6 +32,7 @@ from .models import (
     PerFile,
     PerComponentRating,
     PerDocumentUpload,
+    FormQuestionGroup
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -952,3 +953,9 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
 class ExportPerViewSerializer(serializers.Serializer):
     status = serializers.CharField()
     url = serializers.CharField(allow_null=True)
+
+
+class FormQuestionGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestionGroup
+        fields = "__all__"

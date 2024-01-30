@@ -39,6 +39,7 @@ from .models import (
     PerFile,
     PerComponentRating,
     PerDocumentUpload,
+    FormQuestionGroup,
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -66,6 +67,7 @@ from .serializers import (
     OpsLearningCSVSerializer,
     PublicOpsLearningSerializer,
     PerDocumentUploadSerializer,
+    FormQuestionGroupSerializer
 )
 from per.permissions import (
     PerPermission,
@@ -201,6 +203,15 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
             .select_related("component")
             .prefetch_related("answers")
         )
+
+
+class FormQuestionGroupViewset(viewsets.ReadOnlyModelViewSet):
+    """ PER From Question Group ViewSet"""
+
+    serializer_class = FormQuestionGroupSerializer
+
+    def get_queryset(self):
+        return FormQuestionGroup.objects.select_related('component')
 
 
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):

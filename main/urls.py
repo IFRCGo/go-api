@@ -117,6 +117,7 @@ router.register(r'per-formanswer', per_views.FormAnswerViewset, basename='per-fo
 router.register(r'per-formarea', per_views.FormAreaViewset, basename='per-formarea')
 router.register(r'per-formcomponent', per_views.FormComponentViewset, basename='per-formcomponent')
 router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='per-formquestion')
+router.register(r'per-formquestion-group', per_views.FormQuestionGroupViewset, basename='per-formquestion-group')
 router.register(r'aggregated-per-process-status', per_views.PerAggregatedViewSet, basename='aggregated-per-process-status'),
 router.register(r'per-file', per_views.PerFileViewSet, basename='per-file')
 router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')

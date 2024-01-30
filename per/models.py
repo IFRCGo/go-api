@@ -205,12 +205,26 @@ class FormAnswer(models.Model):
     def __str__(self):
         return self.text
 
+@reversion.register()
+class FormQuestionGroup(models.Model):
+    component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
+    title = models.CharField(verbose_name=_("title"), max_length=250)
+    description = models.TextField(verbose_name=_('description'), null=True, blank=True)
+
+    def __str__(self):
+        return self.title
+
 
 @reversion.register()
 class FormQuestion(models.Model):
     """PER Form individual questions inside Components"""
 
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
+    question_group = models.ForeignKey(
+        FormQuestionGroup,
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
     question = models.CharField(verbose_name=_("question"), max_length=500)
     description = HTMLField(verbose_name=_("description"), null=True, blank=True)
     question_num = models.IntegerField(verbose_name=_("question number"), null=True, blank=True)
