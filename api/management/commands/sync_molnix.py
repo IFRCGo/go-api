@@ -156,6 +156,16 @@ def add_tags(molnix_tags, api):
         tag.save()
 
 
+def skip_this(tags):
+    """
+    Skip the No GO tagged positions or deployments
+    """
+    for tag in tags:
+        if tag["name"] == 'No GO':
+            return True
+    return False
+
+
 def get_go_event(tags):
     """
     Returns a GO Event object, by looking for a tag like `OP-<event_id>` or
@@ -270,6 +280,11 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     # Create Personnel objects
     for md in molnix_deployments:
+        if skip_this(md["tags"]):
+            warning = "Deployment id %d skipped due to No-GO" % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
         try:
             personnel = Personnel.objects.get(molnix_id=md["id"])
             created = False
@@ -424,10 +439,15 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_updates = 0
 
     for position in molnix_positions:
+        if skip_this(position["tags"]):
+            warning = "Position id %d skipped due to No-GO" % position["id"]
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
         event = get_go_event(position["tags"])
         country = get_go_country(countries, position["country_id"])
         if not country:
-            warning = "Position id %d does not have a valid Country" % (position["id"])
+            warning = "Position id %d does not have a valid Country" % position["id"]
             logger.warning(warning)
             warnings.append(warning)
             continue
