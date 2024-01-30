@@ -91,7 +91,7 @@ pytest-profiling = "*"
 pytest-ordering = "*"
 pytest-django = "*"
 snapshottest = "==0.6.0"
-django-debug-toolbar = "==3.8.1"
+django-debug-toolbar = "==4.1.0"
 django-stubs = { version = "*", allow-prereleases = true }
 
 [tool.pyright]
