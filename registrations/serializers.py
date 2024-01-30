@@ -14,7 +14,6 @@ from rest_framework import serializers
 
 from .models import DomainWhitelist, Pending
 from .utils import (
-    create_private_public_key,
     is_valid_domain,
     jwt_encode_handler
 )
@@ -169,7 +168,7 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
     user_details = UserNameSerializer(source="user", read_only=True)
     class Meta:
         model = UserExternalToken
-        fields = 'user_details', 'token', 'expire_timestamp'
+        fields = 'id', 'user_details', 'token', 'expire_timestamp'
 
     def validate_expire_timestamp(self, data):
         if data < timezone.now():
@@ -178,14 +177,13 @@ class UserExternalTokenSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        validated_data['expire_timestamp'] = timezone.now() + timedelta(days=7)
+
+        if not validated_data.get('expire_timestamp'):
+            validated_data['expire_timestamp'] = timezone.now() + timedelta(days=7)
         
         # Check if private and public key exists
-        if settings.JWT_PRIVATE_KEY is None and settings.JWT_PUBLIC_KEY is None:
-            try:
-                create_private_public_key()
-            except Exception:
-                raise serializers.ValidationError('Error while creating private and public key.')
+        if not(settings.JWT_PRIVATE_KEY and settings.JWT_PUBLIC_KEY):
+            raise serializers.ValidationError('Please Provide private and public key.')
         
         payload = {
             'user': self.context['request'].user.id,

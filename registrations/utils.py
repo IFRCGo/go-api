@@ -67,20 +67,3 @@ def jwt_decode_handler(token):
         settings.JWT_PUBLIC_KEY,
         algorithms=['RS256'],
     )
-
-
-def create_private_public_key():
-    """
-    Create a private and public key pair and store them in the settings
-    """
-    
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-
-    public_key = private_key.public_key()
-
-    settings.JWT_PRIVATE_KEY = private_key
-    settings.JWT_PUBLIC_KEY = public_key
