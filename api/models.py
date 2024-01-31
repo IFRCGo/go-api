@@ -1957,6 +1957,7 @@ class Profile(models.Model):
     position = models.CharField(verbose_name=_('position'), blank=True, null=True, max_length=100)
     phone_number = models.CharField(verbose_name=_('phone number'), blank=True, null=True, max_length=100)
     last_frontend_login = models.DateTimeField(verbose_name=_('last frontend login'), null=True, blank=True)
+    accepted_montandon_license_terms = models.BooleanField(verbose_name=_('has accepted montandon license terms?'), default=False)
 
     class Meta:
         verbose_name = _('user profile')

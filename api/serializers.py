@@ -1623,7 +1623,7 @@ class ProfileSerializer(ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ("country", "org", "org_type", "city", "department", "position", "phone_number")
+        fields = ("country", "org", "org_type", "city", "department", "position", "phone_number", "accepted_montandon_license_terms")
 
 
 class MiniSubscriptionSerializer(ModelSerializer):
