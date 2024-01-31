@@ -1,5 +1,5 @@
 import reversion
-from api.models import Country
+from api.models import Country, Appeal
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -633,7 +633,7 @@ class OrganizationType(models.IntegerChoices):
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
-    appeal_code = models.CharField(verbose_name=_("appeal (MDR) code"), max_length=20, null=True, blank=True)
+    appeal_code = models.ForeignKey(Appeal, to_field="code", verbose_name=_('appeal (MDR) code'), null=True, blank=True, on_delete=models.SET_NULL)
     appeal_document_id = models.IntegerField(verbose_name=_("Appeal document ID"), null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
     type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
