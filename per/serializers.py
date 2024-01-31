@@ -106,7 +106,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = ("id", "component_num", "title", "area", "description", "component_letter")
+        fields = ("id", "component_num", "title", "area", "description", "component_letter", "is_parent")
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
