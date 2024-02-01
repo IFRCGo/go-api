@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.493
+
+### Added
+ - Add source_information to opsUpdate and finalReport
+
+## 1.1.492
+
+### Added
+ - CSV export for OpsLearning via Admin page
+
+## 1.1.491
+
+### Added
+ - Replace ingest_appeal*docs with sync_appealdocs (non-scraper)
+ - Better findability for OpsLearning records on Admin
+ - Temporary fix ingest_appeal_docs via brotli and a header
+
 ## 1.1.490
 
 ### Added
@@ -2314,7 +2331,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.490...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.493...HEAD
+[1.1.493]: https://github.com/IFRCGo/go-api/compare/1.1.492...1.1.493
+[1.1.492]: https://github.com/IFRCGo/go-api/compare/1.1.491...1.1.492
+[1.1.491]: https://github.com/IFRCGo/go-api/compare/1.1.490...1.1.491
 [1.1.490]: https://github.com/IFRCGo/go-api/compare/1.1.489...1.1.490
 [1.1.489]: https://github.com/IFRCGo/go-api/compare/1.1.488...1.1.489
 [1.1.488]: https://github.com/IFRCGo/go-api/compare/1.1.487...1.1.488

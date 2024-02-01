@@ -39,6 +39,30 @@ NS_MATCHING_OVERRIDES = {  # NS -> country
 }
 
 
+def prt(message_text, molnix_id, position_or_event_id=0, organization=''):
+    warning_type = 0
+    if message_text == "Position does not have a valid Emergency tag":
+        warning_type = 1
+    elif message_text == "Position does not have a valid Country To":
+        warning_type = 2
+    elif message_text == "No data for secondment incoming from Molnix API":
+        warning_type = 3
+    elif message_text == "Event without country":
+        warning_type = 4
+    elif message_text == "Deployment did not find SurgeAlert":
+        warning_type = 5
+    elif message_text == "NS Name not found for Deployment with secondment_incoming":
+        warning_type = 6
+    elif message_text == "Did not import Deployment. Invalid Event":
+        warning_type = 7
+    elif message_text == "Emergency not found":
+        warning_type = 8
+    # named tag has no description
+    # tag is not a valid OP- tag
+
+    logger.warning('*** ' + str(warning_type) + '|' + str(molnix_id) + '|' + str(position_or_event_id) + '|' + organization)
+
+
 def get_unique_tags(deployments, open_positions):
     tags = []
     tag_ids = []
@@ -132,6 +156,16 @@ def add_tags(molnix_tags, api):
         tag.save()
 
 
+def skip_this(tags):
+    """
+    Skip the No GO tagged positions or deployments
+    """
+    for tag in tags:
+        if tag["name"] == 'No GO':
+            return True
+    return False
+
+
 def get_go_event(tags):
     """
     Returns a GO Event object, by looking for a tag like `OP-<event_id>` or
@@ -150,6 +184,7 @@ def get_go_event(tags):
                 event = Event.objects.get(id=event_id_int)
             except:
                 logger.warning("Emergency with ID %d not found" % event_id_int)
+                prt("Emergency not found", 0, event_id_int)
                 continue
             return event
     return event
@@ -235,6 +270,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
                 p.region_deployed_to = p.event_deployed_to.countries.all()[0].region
             else:
                 warning = "Event id %d without country" % p.event_deployed_to.id
+                prt("Event without country", 0, p.event_deployed_to.id)
                 logger.warning(warning)
                 warnings.append(warning)
                 continue
@@ -244,6 +280,11 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
 
     # Create Personnel objects
     for md in molnix_deployments:
+        if skip_this(md["tags"]):
+            warning = "Deployment id %d skipped due to No-GO" % md["id"]
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
         try:
             personnel = Personnel.objects.get(molnix_id=md["id"])
             created = False
@@ -261,6 +302,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             deployment = PersonnelDeployment.objects.get(is_molnix=True, event_deployed_to=event)
         except:
             logger.warning("Did not import Deployment with Molnix ID %d. Invalid Event." % md["id"])
+            prt("Did not import Deployment. Invalid Event", md["id"])
             continue
 
         surge_alert = None
@@ -271,6 +313,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
             logger.warning(
                 "%d deployment did not find SurgeAlert with Molnix position_id %d." % (md["id"], md["position_id"])
             )
+            prt("Deployment did not find SurgeAlert", md["id"], md["position_id"])
             continue
 
         appraisal_received = "appraisals" in md and bool(len(md["appraisals"]))
@@ -315,6 +358,7 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
         country_to = get_go_country(countries, md["country_id"])
         if not country_to:
             warning = "Position (id %d) does not have a valid Country To (%s)" % (md["id"], md["country_id"])
+            prt("Position does not have a valid Country To", md["id"])
             logger.warning(warning)
             warnings.append(warning)
             country_to = None
@@ -349,10 +393,12 @@ def sync_deployments(molnix_deployments, molnix_api, countries):
                         md["id"],
                         md["incoming"]["name"],
                     )
+                    prt("NS Name not found for Deployment with secondment_incoming", md["id"], 0, md["incoming"]["name"])
                     logger.warning(warning)
                     warnings.append(warning)
         else:
             warning = "No data for secondment incoming from Molnix API - id %d" % md["id"]
+            prt("No data for secondment incoming from Molnix API", md["id"])
             logger.warning(warning)
             warnings.append(warning)
 
@@ -393,16 +439,22 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     successful_updates = 0
 
     for position in molnix_positions:
+        if skip_this(position["tags"]):
+            warning = "Position id %d skipped due to No-GO" % position["id"]
+            logger.warning(warning)
+            warnings.append(warning)
+            continue
         event = get_go_event(position["tags"])
         country = get_go_country(countries, position["country_id"])
         if not country:
-            warning = "Position id %d does not have a valid Country" % (position["id"])
+            warning = "Position id %d does not have a valid Country" % position["id"]
             logger.warning(warning)
             warnings.append(warning)
             continue
         # If no valid GO Emergency tag is found, skip Position
         if not event:
             warning = "Position id %d does not have a valid Emergency tag." % position["id"]
+            prt("Position does not have a valid Emergency tag", 0, position["id"])
             logger.warning(warning)
             warnings.append(warning)
             continue

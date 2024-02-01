@@ -6,7 +6,7 @@ from api.models import AppealDocumentType, AppealDocument, Appeal
 from api.logger import logger
 
 CRON_NAME = "ingest_appealdocs"
-APPEAL_DOCUMENT_TYPES = AppealDocumentType.objects.all()  # used only for read in appealdocument locations from api
+APPEAL_DOCUMENT_TYPES = AppealDocumentType.objects.all()  # used only for read in appealdocument locations from api. You can check them via go-api.ifrc.org/Api/PublicSiteTypes
 PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&AppealsTypeID="
 FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&AppealsTypeId="
 

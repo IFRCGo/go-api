@@ -58,7 +58,9 @@ class SurgeAlertFilter(filters.FilterSet):
 
 class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
     authentication_classes = (TokenAuthentication,)
-    queryset = SurgeAlert.objects.all()
+    queryset = SurgeAlert.objects.\
+        prefetch_related('molnix_tags', 'molnix_tags__groups').\
+        select_related('event', 'country').all()
     filterset_class = SurgeAlertFilter
     ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down',)
     search_fields = ('operation', 'message', 'event__name',)  # for /docs
@@ -69,13 +71,12 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         # return UnauthenticatedSurgeAlertSerializer
         return SurgeAlertSerializer
 
-    def get_queryset(self):
-        # limit = 14  # days
-        # cond1 = Q(is_stood_down=True)
-        # cond2 = Q(end__lt=datetime.utcnow().replace(tzinfo=timezone.utc)-timedelta(days=limit))
-        return super().get_queryset().\
-            select_related('country')
-        #    exclude(cond1 & cond2)  # 'event' inclusion ^ to _related needs frontend change, otherwise the Position column shows garbage in /alerts/all
+#   def get_queryset(self):
+#       # limit = 14  # days
+#       # cond1 = Q(is_stood_down=True)
+#       # cond2 = Q(end__lt=datetime.utcnow().replace(tzinfo=timezone.utc)-timedelta(days=limit))
+#       return super().get_queryset()
+#       #    exclude(cond1 & cond2)
 
 
 class SubscriptionViewset(viewsets.ModelViewSet):

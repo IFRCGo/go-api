@@ -1,4 +1,8 @@
 resource "helm_release" "ifrcgo-cert-manager" {
+  lifecycle {
+    ignore_changes = all
+  }
+
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
