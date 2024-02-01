@@ -574,6 +574,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
     modified_at = serializers.DateTimeField(required=False)
     created_by_details = UserNameSerializer(source="created_by", read_only=True)
     users_details = UserNameSerializer(source="users", many=True, read_only=True)
+    source_information = SourceInformationSerializer(many=True, required=False)
 
     class Meta:
         model = DrefOperationalUpdate
@@ -730,6 +731,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.district.add(*dref.district.all())
             operational_update.users.add(*dref.users.all())
             operational_update.risk_security.add(*dref.risk_security.all())
+            operational_update.source_information.add(*dref.source_information.all())
         else:
             # get the latest dref operational update
             validated_data["title"] = dref_operational_update.title
@@ -844,6 +846,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             operational_update.district.add(*dref_operational_update.district.all())
             operational_update.users.add(*dref_operational_update.users.all())
             operational_update.risk_security.add(*dref_operational_update.risk_security.all())
+            operational_update.source_information.add(*dref_operational_update.source_information.all())
         return operational_update
 
     def update(self, instance, validated_data):
@@ -881,6 +884,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
     users_details = UserNameSerializer(source="users", many=True, read_only=True)
     modified_by_details = UserNameSerializer(source="modified_by", read_only=True)
     disaster_type_details = DisasterTypeSerializer(source="disaster_type", read_only=True)
+    source_information = SourceInformationSerializer(many=True, required=False)
 
     class Meta:
         model = DrefFinalReport
@@ -1028,6 +1032,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.photos.add(*dref_operational_update.photos.all())
             dref_final_report.risk_security.add(*dref_operational_update.risk_security.all())
             dref_final_report.users.add(*dref_operational_update.users.all())
+            dref_final_report.source_information.add(*dref_operational_update.source_information.all())
         else:
             validated_data["title"] = dref.title
             validated_data["title_prefix"] = dref.title_prefix
@@ -1123,6 +1128,7 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             dref_final_report.risk_security.add(*dref.risk_security.all())
             dref_final_report.users.add(*dref.users.all())
             dref_final_report.national_society_actions.add(*dref.national_society_actions.all())
+            dref_final_report.source_information.add(*dref.source_information.all())
             # also update is_final_report_created for dref
             dref.is_final_report_created = True
             dref.save(update_fields=["is_final_report_created"])

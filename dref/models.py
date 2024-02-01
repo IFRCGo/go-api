@@ -1031,6 +1031,7 @@ class DrefOperationalUpdate(models.Model):
     did_national_society = models.BooleanField(verbose_name=_("Did National Society"), null=True, blank=True)
     reporting_start_date = models.DateField(verbose_name=_("Reporting Start Date"), null=True, blank=True)
     reporting_end_date = models.DateField(verbose_name=_("Reporting End Date"), null=True, blank=True)
+    source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __budget_file_id = None
 
     class Meta:
@@ -1365,7 +1366,7 @@ class DrefFinalReport(models.Model):
         verbose_name=_("Operation End Date"),
         null=True, blank=True
     )
-
+    source_information = models.ManyToManyField(SourceInformation, blank=True, verbose_name=_("Source Information"))
     __financial_report_id = None
 
     class Meta:
