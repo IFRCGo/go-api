@@ -710,3 +710,22 @@ class FDRSIncome(models.Model):
 
     def __str__(self):
         return f'{self.overview.country.name} - {self.date} - {self.indicator} - {self.value}'
+
+
+class FDRSAnnualIncome(models.Model):
+    """This is used to track the historical income data from fdrs"""
+    overview = models.ForeignKey(
+        CountryOverview,
+        verbose_name=_('country overview'),
+        on_delete=models.CASCADE
+    )
+    date = models.DateField(
+        verbose_name=_('date')
+    )
+    value = models.FloatField(
+        verbose_name=_('value'),
+        null=True, blank=True
+    )
+
+    def __str__(self):
+        return f'{self.overview.country.name} - {self.date} - {self.value}'

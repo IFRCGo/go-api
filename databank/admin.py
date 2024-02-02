@@ -15,6 +15,7 @@ from .models import (
     ExternalSource,
     AcapsSeasonalCalender,
     FDRSIncome,
+    FDRSAnnualIncome,
 )
 
 
@@ -50,6 +51,10 @@ class FDRSIncomeInline(admin.TabularInline):
     model = FDRSIncome
 
 
+class FDRSAnnualIncomeInline(admin.TabularInline):
+    model = FDRSAnnualIncome
+
+
 @admin.register(CountryOverview)
 class CountryOverviewAdmin(admin.ModelAdmin):
     autocomplete_fields = ('country',)
@@ -62,7 +67,8 @@ class CountryOverviewAdmin(admin.ModelAdmin):
         KeyDocumentInine,
         ExternalSourceInine,
         AcapsSeasonalCalenderInline,
-        FDRSIncomeInline
+        FDRSIncomeInline,
+        FDRSAnnualIncomeInline
     ]
     form = CountryOverviewForm
     fieldsets = (

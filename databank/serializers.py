@@ -16,6 +16,7 @@ from .models import (
     ExternalSource,
     AcapsSeasonalCalender,
     FDRSIncome,
+    FDRSAnnualIncome
 )
 
 
@@ -102,6 +103,12 @@ class FDRSIncomeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class FDRSAnnualIncomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FDRSAnnualIncome
+        fields = "__all__"
+
+
 class CountryOverviewSerializer(serializers.ModelSerializer):
     school_status_display = serializers.CharField(source='get_school_status_display', read_only=True)
     rainy_season_display = serializers.CharField(source='get_rainy_season_display', read_only=True)
@@ -116,7 +123,8 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
     external_sources = ExternalSourceSerializer(source='externalsource_set', many=True, read_only=True)
     acaps = AcapsSeasonalCalenderSerializer(source="acapsseasonalcalender_set", many=True, read_only=True)
     founded_date = serializers.SerializerMethodField(source="get_founded_date")
-    fdrs_income = FDRSIncomeSerializer(source='fdrsincome_set', many=True, read_only=True)
+    # fdrs_income = FDRSIncomeSerializer(source='fdrsincome_set', many=True, read_only=True)
+    fdrs_annual_income = FDRSAnnualIncomeSerializer(source='fdrsannualincome_set', many=True, read_only=True)
 
     class Meta:
         model = CountryOverview

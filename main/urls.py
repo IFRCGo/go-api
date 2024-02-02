@@ -76,6 +76,7 @@ from country_plan import drf_views as country_plan_views
 from lang import views as lang_views
 from dref import views as dref_views
 from local_units import views as local_units_views
+from databank import views as data_bank_views
 
 
 router = routers.DefaultRouter()
@@ -172,6 +173,9 @@ router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename
 
 # local units apis
 router.register(r"local-units", local_units_views.LocalUnitViewSet, basename="local_units")
+
+# databank
+router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
