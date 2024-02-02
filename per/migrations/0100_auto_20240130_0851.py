@@ -12,10 +12,14 @@ class Migration(migrations.Migration):
         FormQuestion = apps.get_model('per', 'FormQuestion')
         FormComponentResponse = apps.get_model('per', 'FormComponentResponse')
 
-        to_migrate_component = FormComponent.objects.filter(id__in=[53,52,51,50,49])
+        # Fetch components to migrate
+        to_migrate_component_ids = [53, 52, 51, 50, 49]
+        to_migrate_components = FormComponent.objects.filter(id__in=to_migrate_component_ids)
+
+        # Create question groups
         question_group_count = 0
-        for component in to_migrate_component:
-            FormQuestionGroup.objects.create(
+        for component in to_migrate_components:
+            question_group = FormQuestionGroup.objects.create(
                 title_en=component.title_en,
                 title_es=component.title_es,
                 title_ar=component.title_ar,
@@ -27,29 +31,34 @@ class Migration(migrations.Migration):
                 component_id=48
             )
             question_group_count += 1
+
         logger.info(f'Created QuestionGroup count {question_group_count}')
 
-        # now attach question to question group
-        form_questions_to_migrate = FormQuestion.objects.filter(component_id__in=[53,52,51,50,49])
+        # Attach questions to question groups
+        form_questions_to_migrate = FormQuestion.objects.filter(component_id__in=to_migrate_component_ids)
         question_count = 0
         for question in form_questions_to_migrate:
-            form_question = FormQuestionGroup.objects.filter(
-                title_en=question.question
+            form_question_group = FormQuestionGroup.objects.filter(
+                title=question.component.title_en
             )
-            if form_question.exists():
-                form_question_first = form_question.first()
-                question.form_question = form_question_first
-                question.save(update_fields=['form_question'])
+            if form_question_group.exists():
+                form_question_group_first = form_question_group.first()
+                question.question_group = form_question_group
+                question.save(update_fields=['question_group'])
                 question_count += 1
+
         logger.info(f'Attached Question count {question_count}')
 
-        FormComponentResponse.objects.filter(component_id__in=[53,52,51,50,49]).update(component_id=48)
+        # Update component responses
+        FormComponentResponse.objects.filter(component_id__in=to_migrate_component_ids).update(component_id=48)
 
-        # update the component to 48 for the old data
+        # Update component ID for old data
         form_questions_to_migrate.update(component_id=48)
 
-        # delete the form component now
-        print(to_migrate_component.delete())
+        #Delete old form components
+        deleted_count, _ = to_migrate_components.delete()
+        print(f'Deleted {deleted_count} FormComponent instances')
+
 
     dependencies = [
         ('per', '0099_auto_20240130_0850'),

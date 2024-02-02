@@ -122,6 +122,7 @@ class FormQuestionSerializer(serializers.ModelSerializer):
             "answers",
             "description",
             "id",
+            "question_group"
         )
 
 
