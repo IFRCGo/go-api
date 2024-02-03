@@ -4,7 +4,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.db import models
 
-from api.models import Region
+from api.models import Region, Appeal
 from api.serializers import RegoCountrySerializer, UserNameSerializer
 from .models import (
     Form,
@@ -15,6 +15,7 @@ from .models import (
     FormData,
     NSPhase,
     WorkPlan,
+    LearningType,
     OpsLearning,
     Overview,
     NiceDocument,
@@ -38,6 +39,7 @@ from api.serializers import (
 # from .admin_classes import RegionRestrictedAdmin
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 from drf_spectacular.utils import extend_schema_field
+from main.settings import SEP
 
 
 def check_draft_change(
@@ -770,7 +772,119 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
         fields = ("id", "area_responses")
 
 
+#class OrganizationField(serializers.Field):
+#    def to_representation(self, value):
+#        if value and instance.is_validated:
+#            return value
+#        return None
+
+
+class MiniAppealSerializer(serializers.ModelSerializer):
+    start_date = serializers.SerializerMethodField()
+    dtype = serializers.SerializerMethodField()
+    country = serializers.SerializerMethodField()
+    region = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_start_date(obj):
+        return obj.start_date and obj.start_date.year
+
+    @staticmethod
+    def get_dtype(obj):
+        return obj.dtype and obj.dtype.name
+
+    @staticmethod
+    def get_country(obj):
+        return obj.country and obj.country.name_en
+
+    @staticmethod
+    def get_region(obj):
+        return obj.region and obj.region.label
+
+    class Meta:
+        model = Appeal
+        fields = ('code', 'country', 'region', 'dtype', 'start_date', 'num_beneficiaries')
+
+
+class AppealSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Appeal
+        fields = '__all__'
+
+
+class OpsLearningCSVSerializer(serializers.ModelSerializer):
+    type = serializers.SerializerMethodField(read_only=True)
+    finding = [''] + [t.label for t in LearningType]
+    appeal_code = MiniAppealSerializer(allow_null=True, read_only=True)
+    learning = serializers.SerializerMethodField(read_only=True)
+    organization = serializers.SerializerMethodField(read_only=True)
+    sector = serializers.SerializerMethodField(read_only=True)
+    per_component = serializers.SerializerMethodField(read_only=True)
+    modified_at = serializers.SerializerMethodField(read_only=True)
+
+    def get_type(self, obj):
+        return self.finding[obj.type_validated] if obj.is_validated else self.finding[obj.type]
+
+    @staticmethod
+    def get_learning(obj):
+        return obj.learning_validated if obj.is_validated else obj.learning
+
+    @staticmethod
+    def get_organization(obj):
+        if obj.is_validated:
+            ret = [x[1] for x in obj.organization_validated.values_list()]
+        else:
+            ret = [x[1] for x in obj.organization.values_list()]
+        return SEP.join(ret)
+
+    @staticmethod
+    def get_sector(obj):
+        if obj.is_validated:
+            ret = [x[1] for x in obj.sector_validated.values_list()]
+        else:
+            ret = [x[1] for x in obj.sector.values_list()]
+        return SEP.join(ret)
+
+    @staticmethod
+    def get_per_component(obj):
+        if obj.is_validated:
+            ret = [x[2] for x in obj.per_component_validated.values_list()]
+        else:
+            ret = [x[2] for x in obj.per_component.values_list()]
+        return SEP.join(ret)
+
+    @staticmethod
+    def get_modified_at(obj):
+        return obj.modified_at and obj.modified_at.date()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['finding'] = data.pop('type')
+        del(data['learning_validated'])
+        del(data['type_validated'])
+        del(data['organization_validated'])
+        del(data['sector_validated'])
+        del(data['per_component_validated'])
+        del(data['appeal_document_id'])
+        del(data['created_at'])
+        del(data['is_validated'])
+        return data
+
+    class Meta:
+        model = OpsLearning
+        fields = '__all__'
+        read_only_fields = ("modified_at",)
+
+
 class OpsLearningSerializer(serializers.ModelSerializer):
+    appeal_code = AppealSerializer(allow_null=True, read_only=True)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['appeal'] = data.pop('appeal_code')
+        return data
+
     class Meta:
         model = OpsLearning
         fields = '__all__'
@@ -778,6 +892,7 @@ class OpsLearningSerializer(serializers.ModelSerializer):
 
 
 class PublicOpsLearningSerializer(serializers.ModelSerializer):
+    # For public csv output we also use this, not the ^...CSVSerializer | FIXME!
     class Meta:
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")

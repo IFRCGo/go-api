@@ -227,10 +227,10 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             appl = Appeal.objects.filter(code=code)
             if appl:
                 a = appl[0]
-                ctry = a.country.name_en
-                regn = a.country.region.label_en
-                dtyp = a.dtype.name_en
-                year = a.start_date.year
+                ctry = a.country and a.country.name_en
+                regn = a.region and a.region.label_en
+                dtyp = a.dtype and a.dtype.name_en
+                year = a.start_date and a.start_date.year
                 benf = a.num_beneficiaries
             else:
                 ctry = regn = dtyp = year = benf = None
@@ -243,8 +243,6 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 return [str(x[idx]) for x in many2many.values_list()]
             return ['']
 
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
         timestr = time.strftime("%Y%m%d-%H%M%S")
         finding = [''] + [t.label for t in models.LearningType]
 
