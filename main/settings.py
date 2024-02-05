@@ -579,5 +579,8 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+# A character which is rarely used in strings – for separator:
+SEP = '¤'
+
 # Need to load this to overwrite modeltranslation module
 import main.translation  # noqa: F401 E402
