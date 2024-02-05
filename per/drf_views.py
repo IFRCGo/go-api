@@ -1,7 +1,6 @@
 from rest_framework.settings import api_settings
 from datetime import datetime
 import pytz
-from functools import lru_cache
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import (
@@ -19,7 +18,7 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .admin_classes import RegionRestrictedAdmin
-from api.models import Country, Appeal
+from api.models import Country
 from .models import (
     FormData,
     FormArea,
@@ -389,15 +388,16 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return qs.select_related('appeal_code',).prefetch_related(
                 'sector', 'organization', 'per_component', 'sector_validated',
                 'organization_validated', 'per_component_validated')
+        print('we are in 00')
         return qs.filter(is_validated=True).select_related('appeal_code',).prefetch_related(
             'sector', 'organization', 'per_component', 'sector_validated',
             'organization_validated', 'per_component_validated')
 
     def get_serializer_class(self):
         request_format_type = self.request.GET.get("format", "json")
-        if OpsLearning.is_user_admin(self.request.user):
-            if request_format_type == "csv":
-                return OpsLearningCSVSerializer
+        if request_format_type == "csv":
+            return OpsLearningCSVSerializer
+        elif OpsLearning.is_user_admin(self.request.user):
             return OpsLearningSerializer
         return PublicOpsLearningSerializer
 

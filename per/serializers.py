@@ -814,6 +814,9 @@ class AppealSerializer(serializers.ModelSerializer):
 
 
 class OpsLearningCSVSerializer(serializers.ModelSerializer):
+    # Also the anonyme requests use this, but from
+    # get_queryset() only validated records come here in that case.
+
     type = serializers.SerializerMethodField(read_only=True)
     finding = [''] + [t.label for t in LearningType]
     appeal_code = MiniAppealSerializer(allow_null=True, read_only=True)
@@ -892,7 +895,9 @@ class OpsLearningSerializer(serializers.ModelSerializer):
 
 
 class PublicOpsLearningSerializer(serializers.ModelSerializer):
-    # For public csv output we also use this, not the ^...CSVSerializer | FIXME!
+    # We do not extract appeal details here.
+    # Only the validated items are shown, arriving from get_queryset().
+
     class Meta:
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")
