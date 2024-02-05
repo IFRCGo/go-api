@@ -894,6 +894,13 @@ class OpsLearningSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "modified_at")
 
 
+class OpsLearningInSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OpsLearning
+        fields = '__all__'
+
+
 class PublicOpsLearningSerializer(serializers.ModelSerializer):
     # We do not extract appeal details here.
     # Only the validated items are shown, arriving from get_queryset().

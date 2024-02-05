@@ -57,6 +57,7 @@ from .serializers import (
     PublicPerProcessSerializer,
     PublicPerAssessmentSerializer,
     OpsLearningSerializer,
+    OpsLearningInSerializer,
     OpsLearningCSVSerializer,
     PublicOpsLearningSerializer,
 )
@@ -394,12 +395,14 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             'organization_validated', 'per_component_validated')
 
     def get_serializer_class(self):
-        request_format_type = self.request.GET.get("format", "json")
-        if request_format_type == "csv":
-            return OpsLearningCSVSerializer
-        elif OpsLearning.is_user_admin(self.request.user):
-            return OpsLearningSerializer
-        return PublicOpsLearningSerializer
+        if self.request.method == 'GET':
+            request_format = self.request.GET.get("format", "json")
+            if request_format == "csv":
+                return OpsLearningCSVSerializer
+            elif OpsLearning.is_user_admin(self.request.user):
+                return OpsLearningSerializer
+            return PublicOpsLearningSerializer
+        return OpsLearningInSerializer
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
