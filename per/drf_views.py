@@ -1,7 +1,7 @@
+from rest_framework.settings import api_settings
 from datetime import datetime
 import pytz
 from rest_framework.authentication import TokenAuthentication
-
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import (
     viewsets,
@@ -57,6 +57,8 @@ from .serializers import (
     PublicPerProcessSerializer,
     PublicPerAssessmentSerializer,
     OpsLearningSerializer,
+    OpsLearningInSerializer,
+    OpsLearningCSVSerializer,
     PublicOpsLearningSerializer,
 )
 from per.permissions import PerPermission, OpsLearningPermission
@@ -65,6 +67,7 @@ from per.filter_set import (
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
+from .custom_renderers import NarrowCSVRenderer
 
 
 class PERDocsFilter(filters.FilterSet):
@@ -374,13 +377,49 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     queryset = OpsLearning.objects.all()
     permission_classes = [OpsLearningPermission]
 
+    def get_renderers(self):
+        serializer = self.get_serializer()
+        if isinstance(serializer, OpsLearningCSVSerializer):
+            return [NarrowCSVRenderer()]
+        return [renderer() for renderer in tuple(api_settings.DEFAULT_RENDERER_CLASSES)]
+
     def get_queryset(self):
         qs = super().get_queryset()
         if OpsLearning.is_user_admin(self.request.user):
-            return qs
-        return qs.filter(is_validated=True)
+            return qs.select_related('appeal_code',).prefetch_related(
+                'sector', 'organization', 'per_component', 'sector_validated',
+                'organization_validated', 'per_component_validated')
+        print('we are in 00')
+        return qs.filter(is_validated=True).select_related('appeal_code',).prefetch_related(
+            'sector', 'organization', 'per_component', 'sector_validated',
+            'organization_validated', 'per_component_validated')
 
     def get_serializer_class(self):
-        if OpsLearning.is_user_admin(self.request.user):
-            return OpsLearningSerializer
-        return PublicOpsLearningSerializer
+        if self.request.method == 'GET':
+            request_format = self.request.GET.get("format", "json")
+            if request_format == "csv":
+                return OpsLearningCSVSerializer
+            elif OpsLearning.is_user_admin(self.request.user):
+                return OpsLearningSerializer
+            return PublicOpsLearningSerializer
+        return OpsLearningInSerializer
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        # Force the order from the serializer. Otherwise redundant literal list
+
+        original = ["id", "appeal_code.code", "learning", "finding", 'sector', 'per_component', 'organization',
+            "appeal_code.country", "appeal_code.region", "appeal_code.dtype", "appeal_code.start_date",
+            "appeal_code.num_beneficiaries", "modified_at"]
+        displayed = ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component', 'organization',
+            'country_name', 'region_name', 'dtype_name', 'appeal_year',
+            'appeal_num_beneficiaries', 'modified_at']
+
+        context["header"] = original
+        context["labels"] = {i: i for i in context["header"]}
+        # We can change the column titles (called "labels"):
+        for i, label in enumerate(displayed):
+            context["labels"][original[i]] = label
+        context["bom"] = True
+
+        return context

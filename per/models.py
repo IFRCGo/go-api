@@ -624,12 +624,7 @@ class LearningType(models.IntegerChoices):
     CHALLENGE = 2, _('Challenge')
 
 
-class OrganizationType(models.IntegerChoices):
-    IFRC = 1, _('Secretariat')
-    NS = 2, _('National Society')
-
-
-@reversion.register(follow=('organization', 'sector', 'per_component', 'organization_validated', 'sector_validated', 'per_component_validated'))
+reversion.register(follow=('appeal_code', 'organization', 'sector', 'per_component', 'organization_validated', 'sector_validated', 'per_component_validated'))
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)

@@ -784,10 +784,10 @@ snapshots['TestProjectAPI::test_project_list_two 1'] = {
             'reporting_ns_contact_role': None,
             'reporting_ns_detail': {
                 'id': 3,
-                'iso': 'SZ',
-                'iso3': 'uAx',
-                'name': 'country-aXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhHay',
-                'society_name': 'society-name-gjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnGzYv'
+                'iso': 'yP',
+                'iso3': 'nSZ',
+                'name': 'country-MIaXRPBHAxcSHBoZEYXywLZVWSKgBiqEXofsMIAqmaTVYaKHhH',
+                'society_name': 'society-name-uAxgjBPLqqIBKxNrRzWnAJYJElxJJEqtKwXTzViQhVoCYSkgnG'
             },
             'secondary_sectors': [
             ],

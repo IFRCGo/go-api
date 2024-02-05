@@ -219,18 +219,24 @@ class OpsLearningAdmin(GotoNextModelAdmin):
             'per_component')
 
     def export_selected_records(self, request, queryset):
+        """
+        The aim of this algorythm: to avoid flattening of multiple values.
+        (Flattening means: displaying lists as value.0, value.1, value.2)
+        Instead of this we would like to show these in different rows.
+        Maybe there is an easier way also to achieve this.
+        See also: custom_renderers.py::NarrowCSVRenderer()
+        """
 
-# We cache the used appeals to make export faster:
-
+        # We cache the used appeals to make export faster
         @lru_cache(maxsize=5000)
         def get_appeal_details(code):
             appl = Appeal.objects.filter(code=code)
             if appl:
                 a = appl[0]
-                ctry = a.country.name_en
-                regn = a.country.region.label_en
-                dtyp = a.dtype.name_en
-                year = a.start_date.year
+                ctry = a.country and a.country.name_en
+                regn = a.region and a.region.label_en
+                dtyp = a.dtype and a.dtype.name_en
+                year = a.start_date and a.start_date.year
                 benf = a.num_beneficiaries
             else:
                 ctry = regn = dtyp = year = benf = None
@@ -243,8 +249,6 @@ class OpsLearningAdmin(GotoNextModelAdmin):
                 return [str(x[idx]) for x in many2many.values_list()]
             return ['']
 
-        meta = self.model._meta
-        field_names = [field.name for field in meta.fields]
         timestr = time.strftime("%Y%m%d-%H%M%S")
         finding = [''] + [t.label for t in models.LearningType]
 
