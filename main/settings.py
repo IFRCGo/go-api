@@ -574,7 +574,7 @@ DISABLE_API_CACHE = env('DISABLE_API_CACHE')
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'IFRC-GO API',
-    'DESCRIPTION': 'IFRC-GO API Documenation',
+    'DESCRIPTION': 'Please see the <a href="https://go-wiki.ifrc.org/en/go-api/api-overview" target="_blank">GO Wiki</a> for an overview of API usage, or the interactive <a href="/api-docs/swagger-ui/" target="_blank">Swagger page</a>.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
