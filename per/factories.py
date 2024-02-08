@@ -1,5 +1,6 @@
 import factory
 import datetime
+from factory import fuzzy
 
 from per.models import (
     Overview,
@@ -22,7 +23,7 @@ class AssessmentTypeFactory(factory.django.DjangoModelFactory):
 
 
 class OverviewFactory(factory.django.DjangoModelFactory):
-    date_of_assessment = factory.fuzzy.FuzzyNaiveDateTime(datetime.datetime(2023, 1, 1))
+    date_of_assessment = fuzzy.FuzzyNaiveDateTime(datetime.datetime(2023, 1, 1))
     type_of_assessment = factory.SubFactory(AssessmentTypeFactory)
 
     class Meta:

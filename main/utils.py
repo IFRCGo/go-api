@@ -1,7 +1,16 @@
 import requests
+import typing
+import json
+import datetime
 
 from tempfile import NamedTemporaryFile, _TemporaryFileWrapper
 from collections import defaultdict
+
+from reversion.models import Version
+from reversion.revisions import _get_options
+from django.utils.dateparse import parse_datetime, parse_date
+from django.db import models, router
+from django.contrib.contenttypes.models import ContentType
 
 
 def is_tableau(request):
@@ -60,3 +69,94 @@ class DownloadFileManager():
     def __exit__(self, *_):
         if self.downloaded_file:
             self.downloaded_file.close()
+
+
+class DjangoReversionDataFixHelper:
+    @staticmethod
+    def _get_content_type(
+        content_type_model: typing.Type[ContentType],
+        model: typing.Type[models.Model],
+        using
+    ):
+        version_options = _get_options(model)
+        return content_type_model.objects.db_manager(using).get_for_model(
+            model,
+            for_concrete_model=version_options.for_concrete_model,
+        )
+
+    @classmethod
+    def get_for_model(
+        cls,
+        content_type_model: typing.Type[ContentType],
+        version_model: typing.Type[Version],
+        model: typing.Type[models.Model],
+    ):
+        model_db = router.db_for_write(model)
+        content_type = cls._get_content_type(content_type_model, model, version_model.objects.db)
+        return version_model.objects.filter(
+            content_type=content_type,
+            db=model_db,
+        )
+
+    @classmethod
+    def _date_field_adjust(
+        cls,
+        content_type_model: typing.Type[ContentType],
+        version_model: typing.Type[Version],
+        model: typing.Type[models.Model],
+        fields: typing.List[str],
+        parser: typing.Callable,
+        renderer: typing.Callable,
+    ):
+        updated_versions = []
+        for version in cls.get_for_model(content_type_model, version_model, model):
+            updated_serialized_data = json.loads(version.serialized_data)
+            has_changed = False
+            for field in fields:
+                if field not in updated_serialized_data[0]['fields']:
+                    continue
+                updated_value = parser(updated_serialized_data[0]['fields'][field])
+                if updated_value is None:
+                    # For other format, parser should return None
+                    continue
+                updated_serialized_data[0]['fields'][field] = renderer(updated_value)
+                has_changed = True
+            if has_changed:
+                version.serialized_data = json.dumps(updated_serialized_data)
+                updated_versions.append(version)
+
+        version_model.objects.bulk_update(updated_versions, fields=('serialized_data',))
+
+    @classmethod
+    def date_fields_to_datetime(
+        cls,
+        content_type_model: typing.Type[ContentType],
+        version_model: typing.Type[Version],
+        model: typing.Type[models.Model],
+        fields: typing.List[str],
+    ):
+        return cls._date_field_adjust(
+            content_type_model,
+            version_model,
+            model,
+            fields,
+            parse_date,
+            lambda x: datetime.datetime.combine(x, datetime.datetime.min.time()).isoformat(),
+        )
+
+    @classmethod
+    def datetime_fields_to_date(
+        cls,
+        content_type_model: typing.Type[ContentType],
+        version_model: typing.Type[Version],
+        model: typing.Type[models.Model],
+        fields: typing.List[str],
+    ):
+        return cls._date_field_adjust(
+            content_type_model,
+            version_model,
+            model,
+            fields,
+            parse_datetime,
+            lambda x: x.date().isoformat(),
+        )
