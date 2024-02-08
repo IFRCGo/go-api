@@ -113,9 +113,10 @@ class DjangoReversionDataFixHelper:
             updated_serialized_data = json.loads(version.serialized_data)
             has_changed = False
             for field in fields:
-                if field not in updated_serialized_data[0]['fields']:
+                _value = updated_serialized_data[0]['fields'].get(field)
+                if _value is None:
                     continue
-                updated_value = parser(updated_serialized_data[0]['fields'][field])
+                updated_value = parser(_value)
                 if updated_value is None:
                     # For other format, parser should return None
                     continue
