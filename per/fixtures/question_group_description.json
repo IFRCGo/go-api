@@ -1,0 +1,48 @@
+[
+    {
+        "model": "per.FormQuestionGroup",
+        "pk": "1",
+        "fields": {
+            "description": "A clear, transparent, accountable and timely procurement procedure ensures the NS meets emergency needs while achieving global auditable standards.",
+            "component": 48,
+            "title": "PROCUREMENT"
+        }
+
+    },
+    {
+        "model": "per.FormQuestionGroup",
+        "pk": "2",
+        "fields": {
+            "description": "A clear Logistics function with documented emergency procedures allowing for coordinated support to the response. Planning also needs to have been done with preferred domestic suppliers to facilitate rapid local procurement when necessary and also to identify alternative logistics andtransport routes and access in case a disaster/crisis event affects the normal choices.",
+            "component": 48,
+            "title": "LOGISTICS MANAGEMENT"
+        }
+    },
+    {
+        "model": "per.FormQuestionGroup",
+        "pk": "3",
+        "fields": {
+            "description": "Used to efficiently integrate suppliers, warehouses, and distributors so that services or products are produced and distributed at the right quantities, to the right locations, at the right time.",
+            "component": 48,
+            "title": "SUPPLY CHAIN MANAGEMENT"
+        }
+    },
+    {
+        "model": "per.FormQuestionGroup",
+        "pk": "4",
+        "fields": {
+            "description": "Refers to the internal system and procedures to ensure the NS transportation assets (vehicles, boats, etc.) are managed appropriately.",
+            "component": 48,
+            "title": "FLEET AND TRANSPORTATION MANAGEMENT"
+        }
+    },
+    {
+        "model": "per.FormQuestionGroup",
+        "pk": "5",
+        "fields": {
+            "description": "Prepositioned stock should meet Sphere standards. Pre-positioning should consider the national hazards, capacities, etc. It should ensure gender and diversity needs are taken into account when stocking supplies. Family size and makeup should also be considered in determining 'package' needs.",
+            "component": 48,
+            "title": "WAREHOUSE AND STOCK MANAGEMENT"
+        }
+    }
+]
