@@ -105,35 +105,36 @@ class DjangoReversionDataFixHelperTest(TestCase):
             new_value = '2022-01-01'
             if (index % 2) == 0:
                 new_value = '2022-01-01T00:00:00'
+            elif index == 1:
+                new_value = None
             version.serialized_data = self.update_serialized_data(
                 version.serialized_data,
                 new_value,
             )
-            version.save()
         Version.objects.bulk_update(versions, fields=('serialized_data',))
         # Version data snapshot excluding self.field_name
         self.version_data_snapshot = self.get_version_data_snapshot(self.field_name)
-        self.assert_values({'2022-01-01': 47, '2022-01-01T00:00:00': 48})
+        self.assert_values({'2022-01-01': 46, '2022-01-01T00:00:00': 48, None: 1})
 
     def test_date_fields_to_datetime(self):
-        self.assert_values({'2022-01-01': 47, '2022-01-01T00:00:00': 48})
+        self.assert_values({'2022-01-01': 46, '2022-01-01T00:00:00': 48, None: 1})
         DjangoReversionDataFixHelper.date_fields_to_datetime(
             ContentType,
             Version,
             PerOverview,
             [self.field_name]
         )
-        self.assert_values({'2022-01-01T00:00:00': 95})
+        self.assert_values({'2022-01-01T00:00:00': 94, None: 1})
 
     def test_datetime_fields_to_date(self):
         with self.assertRaises(RevertError):
             self.confirm_version_data_serialization()
-        self.assert_values({'2022-01-01': 47, '2022-01-01T00:00:00': 48})
+        self.assert_values({'2022-01-01': 46, '2022-01-01T00:00:00': 48, None: 1})
         DjangoReversionDataFixHelper.datetime_fields_to_date(
             ContentType,
             Version,
             PerOverview,
             [self.field_name]
         )
-        self.assert_values({'2022-01-01': 95})
+        self.assert_values({'2022-01-01': 94, None: 1})
         self.confirm_version_data_serialization()
