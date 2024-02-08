@@ -1,4 +1,3 @@
-import typing
 from datetime import datetime, timezone
 from django.conf import settings
 from modeltranslation.utils import build_localized_fieldname
