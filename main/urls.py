@@ -59,8 +59,7 @@ from registrations.drf_views import RegistrationView
 from databank.views import CountryOverviewViewSet
 from local_units.views import (
     LocalUnitListAPIView, LocalUnitDetailAPIView,
-    DelegationOfficeListAPIView, DelegationOfficeDetailAPIView
-    )
+    DelegationOfficeListAPIView, DelegationOfficeDetailAPIView)
 
 # DRF routes
 from rest_framework import routers
@@ -68,6 +67,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from api import drf_views as api_views
 from flash_update import views as flash_views
 from per import drf_views as per_views
+from per.views import LearningTypes
 from deployments import drf_views as deployment_views
 from notifications import drf_views as notification_views
 from registrations import drf_views as registration_views
@@ -189,6 +189,7 @@ urlpatterns = [
     url(r"^api/v2/primarysector", ProjectPrimarySectors.as_view()),
     url(r"^api/v2/secondarysector", ProjectSecondarySectors.as_view()),
     url(r"^api/v2/projectstatus", ProjectStatuses.as_view()),
+    url(r"^api/v2/learningtype", LearningTypes.as_view()),
     # url(r"^api/v2/create_field_report/", api_views.CreateFieldReport.as_view()),
     # url(r"^api/v2/update_field_report/(?P<pk>\d+)/", api_views.UpdateFieldReport.as_view()),
     url(r"^get_auth_token", GetAuthToken.as_view()),
