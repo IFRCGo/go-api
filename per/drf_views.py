@@ -19,12 +19,14 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
+from deployments.models import SectorTag
 from .models import (
     FormData,
     FormArea,
     FormComponent,
     FormQuestion,
     FormAnswer,
+    OrganizationTypes,
     OpsLearning,
     Overview,
     NiceDocument,
@@ -67,6 +69,7 @@ from per.filter_set import (
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
+from django_filters.widgets import CSVWidget
 from .custom_renderers import NarrowCSVRenderer
 
 
@@ -370,12 +373,64 @@ class PerAggregatedViewSet(viewsets.ReadOnlyModelViewSet):
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
 
 
+class OpsLearningFilter(filters.FilterSet):
+    type_validated = filters.NumberFilter(field_name='type_validated', lookup_expr='exact')
+    appeal_document_id = filters.NumberFilter(field_name='appeal_document_id', lookup_expr='exact')
+    organization_validated__in = filters.ModelMultipleChoiceFilter(
+        label='validated_organizations',
+        field_name='organization_validated',
+        help_text='Organization GO identifiers, comma separated',
+        widget=CSVWidget,
+        queryset=OrganizationTypes.objects.all(),
+    )
+    sector_validated__in = filters.ModelMultipleChoiceFilter(
+        label='validated_sectors',
+        field_name='sector_validated',
+        help_text='Sector identifiers, comma separated',
+        widget=CSVWidget,
+        queryset=SectorTag.objects.all(),
+    )
+    per_component_validated__in = filters.ModelMultipleChoiceFilter(
+        label='validated_per_components',
+        field_name='per_component_validated',
+        help_text='PER Component identifiers, comma separated',
+        widget=CSVWidget,
+        queryset=FormComponent.objects.all(),
+    )
+
+    class Meta:
+        model = OpsLearning
+        fields = {
+            'id': ('exact', 'in'),
+            'created_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'modified_at': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'is_validated': ('exact',),
+            'learning': ('exact', 'icontains'),
+            'learning_validated': ('exact', 'icontains'),
+            'organization_validated': ('exact',),
+            'sector_validated': ('exact',),
+            'per_component_validated': ('exact',),
+            'appeal_code': ('exact', 'in'),
+            'appeal_code__code': ('exact', 'icontains', 'in'),
+            'appeal_code__num_beneficiaries': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'appeal_code__start_date': ('exact', 'gt', 'gte', 'lt', 'lte'),
+            'appeal_code__dtype': ('exact', 'in'),
+            'appeal_code__country': ('exact', 'in'),
+            'appeal_code__country__name': ('exact', 'in'),
+            'appeal_code__country__iso': ('exact', 'in'),
+            'appeal_code__country__iso3': ('exact', 'in'),
+            'appeal_code__region': ('exact', 'in'),
+        }
+
+
 class OpsLearningViewset(viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing OpsLearning records.
     """
     queryset = OpsLearning.objects.all()
     permission_classes = [OpsLearningPermission]
+    filterset_class = OpsLearningFilter
+    search_fields = ('learning', 'learning_validated', 'appeal_code__code', 'appeal_code__name', 'appeal_code__name_en', 'appeal_code__name_es', 'appeal_code__name_fr', 'appeal_code__name_ar')
 
     def get_renderers(self):
         serializer = self.get_serializer()
@@ -389,7 +444,6 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return qs.select_related('appeal_code',).prefetch_related(
                 'sector', 'organization', 'per_component', 'sector_validated',
                 'organization_validated', 'per_component_validated')
-        print('we are in 00')
         return qs.filter(is_validated=True).select_related('appeal_code',).prefetch_related(
             'sector', 'organization', 'per_component', 'sector_validated',
             'organization_validated', 'per_component_validated')

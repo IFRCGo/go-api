@@ -806,7 +806,7 @@ class MiniAppealSerializer(serializers.ModelSerializer):
         fields = ('code', 'country', 'region', 'dtype', 'start_date', 'num_beneficiaries')
 
 
-class AppealSerializer(serializers.ModelSerializer):
+class FullAppealSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appeal
@@ -881,7 +881,7 @@ class OpsLearningCSVSerializer(serializers.ModelSerializer):
 
 
 class OpsLearningSerializer(serializers.ModelSerializer):
-    appeal_code = AppealSerializer(allow_null=True, read_only=True)
+    appeal_code = FullAppealSerializer(allow_null=True, read_only=True)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

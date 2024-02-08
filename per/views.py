@@ -6,16 +6,6 @@ from django.http import JsonResponse
 
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
-from rest_framework import (
-    views,
-    viewsets,
-    response,
-    permissions,
-    status,
-    mixins,
-    serializers,
-)
-
 from .models import (
     Form,
     FormData,
@@ -23,6 +13,7 @@ from .models import (
     Overview,
     FormArea,
     FormQuestion,
+    LearningType
 )
 from .admin_classes import RegionRestrictedAdmin
 from api.views import bad_request
@@ -38,48 +29,6 @@ def get_now_str():
 def parse_date(date_string):
     dateformat = "%Y-%m-%d"
     return datetime.strptime(date_string[:10], dateformat).replace(tzinfo=timezone.utc)
-
-
-# class CreatePerForm(APIView):
-#     authentication_classes = (authentication.TokenAuthentication,)
-#     permissions_classes = (permissions.IsAuthenticated,)
-
-#     def post(self, request):
-#         area_id = request.data.get('area_id', None)
-#         comment = request.data.get('comment', None)
-#         overview_id = request.data.get('overview_id', None)
-#         questions = request.data.get('questions', None)
-#         user_id = request.data.get('user_id', None)
-
-#         if questions is None:
-#             return bad_request('Questions are missing from the request.')
-
-#         try:
-#             form = Form.objects.create(
-#                 area_id=area_id,
-#                 user_id=user_id,
-#                 comment=comment,
-#                 overview_id=overview_id
-#             )
-#         except Exception:
-#             logger.error('Could not insert PER form record.', exc_info=True)
-#             return bad_request('Could not insert PER form record.')
-
-#         # Create FormData of the Form
-#         try:
-#             with transaction.atomic():  # all or nothing
-#                 for qid in questions:
-#                     FormData.objects.create(
-#                         form=form,
-#                         question_id=qid,
-#                         selected_answer_id=questions[qid]['selected_answer'],
-#                         notes=questions[qid]['notes']
-#                     )
-#         except Exception:
-#             logger.error('Could not insert PER formdata record.', exc_info=True)
-#             return bad_request('Could not insert PER formdata record.')
-
-#         return JsonResponse({'status': 'ok'})
 
 
 class UpdatePerForm(APIView):
@@ -232,27 +181,6 @@ class UpdatePerForms(APIView):
             return bad_request("Could not update PER FormsData.")
 
         return JsonResponse({"status": "ok"})
-
-
-# # For now, a Form can only be deleted if it's parent Overview is deleted
-# class DeletePerForm(APIView):
-#     authentication_classes = (authentication.TokenAuthentication,)
-#     permissions_classes = (permissions.IsAuthenticated,)
-
-#     def post(self, request):
-#         user = request.user
-#         form_id = request.data.get('id', None)
-#         if form_id is None:
-#             return bad_request('Need to provide Form ID.')
-
-#         try:
-#             # Also deletes FormData since CASCADE fk
-#             # TODO: check for is_finalized of Overview maybe?
-#             Form.objects.filter(id=form_id, user=user).delete()
-#         except Exception:
-#             return bad_request('Could not delete PER Form.')
-
-#         return JsonResponse({'status': 'ok'})
 
 
 class WorkPlanSent(APIView):
@@ -536,3 +464,10 @@ class DelWorkPlan(APIView):
             return bad_request("Could not delete PER WorkPlan.")
 
         return JsonResponse({"status": "ok"})
+
+
+class LearningTypes(APIView):
+    @classmethod
+    def get(cls, request):
+        keys_labels = [{"key": i, "label": v} for i, v in LearningType.choices]
+        return JsonResponse(keys_labels, safe=False)
