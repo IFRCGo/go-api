@@ -444,7 +444,6 @@ class OpsLearningViewset(viewsets.ModelViewSet):
             return qs.select_related('appeal_code',).prefetch_related(
                 'sector', 'organization', 'per_component', 'sector_validated',
                 'organization_validated', 'per_component_validated')
-        print('we are in 00')
         return qs.filter(is_validated=True).select_related('appeal_code',).prefetch_related(
             'sector', 'organization', 'per_component', 'sector_validated',
             'organization_validated', 'per_component_validated')

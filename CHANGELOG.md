@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.495
+
+### Added
+ - Migrate legacy data from django reversion
+ - Filters for OpsLearning
+ - Bump Django from 3.2.23 to 3.2.24
+
 ## 1.1.494
 
 ### Added
@@ -2337,7 +2344,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.494...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.495...HEAD
+[1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495
 [1.1.494]: https://github.com/IFRCGo/go-api/compare/1.1.493...1.1.494
 [1.1.493]: https://github.com/IFRCGo/go-api/compare/1.1.492...1.1.493
 [1.1.492]: https://github.com/IFRCGo/go-api/compare/1.1.491...1.1.492
