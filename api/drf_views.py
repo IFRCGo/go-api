@@ -442,6 +442,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             ), 0),
             disaster_name=F('dtype__name'),
             disaster_id=F('dtype__id'),
+            amount_funded=F('appeals__amount_funded'),
+            amount_requested=F('appeals__amount_requested'),
         ).annotate(
             targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
         ).order_by('date', 'countries', 'dtype__name')

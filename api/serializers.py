@@ -2323,6 +2323,8 @@ class CountryDisasterTypeMonthlySerializer(serializers.Serializer):
     targeted_population = serializers.IntegerField()
     disaster_name = serializers.CharField()
     disaster_id = serializers.IntegerField()
+    amount_funded = serializers.FloatField()
+    amount_requested = serializers.FloatField()
 
 
 class ExportSerializer(serializers.ModelSerializer):
