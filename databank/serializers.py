@@ -7,6 +7,7 @@ from api.models import (
 )
 from api.serializers import DisasterTypeSerializer
 from .models import (
+    CountryKeyClimate,
     CountryOverview,
 
     SocialEvent,
@@ -108,6 +109,12 @@ class FDRSAnnualIncomeSerializer(serializers.ModelSerializer):
         model = FDRSAnnualIncome
         fields = "__all__"
 
+class CountryKeyClimateSerializer(serializers.ModelSerializer):
+    month_display = serializers.CharField(source='get_month_display', read_only=True)
+
+    class Meta:
+        model = CountryKeyClimate
+        exclude = ('overview',)
 
 class CountryOverviewSerializer(serializers.ModelSerializer):
     school_status_display = serializers.CharField(source='get_school_status_display', read_only=True)
@@ -124,6 +131,7 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
     acaps = AcapsSeasonalCalenderSerializer(source="acapsseasonalcalender_set", many=True, read_only=True)
     founded_date = serializers.SerializerMethodField(source="get_founded_date")
     # fdrs_income = FDRSIncomeSerializer(source='fdrsincome_set', many=True, read_only=True)
+    key_climate = CountryKeyClimateSerializer(source='countrykeyclimate_set', many=True, read_only=True)
     fdrs_annual_income = FDRSAnnualIncomeSerializer(source='fdrsannualincome_set', many=True, read_only=True)
 
     class Meta:

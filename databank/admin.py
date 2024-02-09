@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from .forms import CountryOverviewForm, SeasonalCalenderForm
 from .models import (
+    CountryKeyClimate,
     Month,
     CountryOverview,
 
@@ -19,7 +20,10 @@ from .models import (
 )
 
 
-admin.site.register(KeyDocumentGroup)
+admin.site.register([
+    CountryKeyClimate,
+    KeyDocumentGroup
+])
 
 
 class SocialEventInline(admin.TabularInline):

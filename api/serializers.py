@@ -2300,6 +2300,9 @@ class CountryKeyFigureInputSerializer(serializers.Serializer):
     end_date = serializers.DateField(required=False)
     dtype = serializers.IntegerField(required=False)
 
+class CountryKeyClimateInputSerializer(serializers.Serializer):
+    year = serializers.IntegerField(required=False)
+    
 
 class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()

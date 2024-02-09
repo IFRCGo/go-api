@@ -729,3 +729,27 @@ class FDRSAnnualIncome(models.Model):
 
     def __str__(self):
         return f'{self.overview.country.name} - {self.date} - {self.value}'
+
+
+class CountryKeyClimate(models.Model):
+    overview = models.ForeignKey(
+        CountryOverview,
+        on_delete=models.CASCADE,
+        verbose_name=_('country overview')
+    )
+
+    year = models.PositiveIntegerField(verbose_name=_('year'))
+    month = models.PositiveSmallIntegerField(choices=Month.CHOICES, verbose_name=_('month'))
+
+    min_temp = models.FloatField(verbose_name=_('min temperature'))
+    max_temp = models.FloatField(verbose_name=_('max temperature'))
+    avg_temp = models.FloatField(verbose_name=_('average temperature'))
+    precipitation = models.FloatField(verbose_name=_('precipitation'))
+
+    class Meta:
+        unique_together = ('overview', 'month', 'year')
+        verbose_name = _('Country Climate')
+        verbose_name_plural = _('Country Climate')
+
+    def __str__(self):
+        return f'{self.overview.country.name} - { self.year} - {self.get_month_display()}'
