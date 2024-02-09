@@ -23,6 +23,10 @@ class SurgeAlertCategory(models.IntegerChoices):
     SHELTER = 3, _('shelter')
     STAND_DOWN = 4, _('stand down')
 
+class SurgeAlertStatus(models.IntegerChoices):
+    OPEN = 0, _('open')
+    STOOD_DOWN = 1, _('stood down')
+    CLOSED = 2, _('closed')
 
 class SurgeAlert(models.Model):
 
@@ -54,6 +58,7 @@ class SurgeAlert(models.Model):
 
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
+    status = models.IntegerField(choices=SurgeAlertStatus.choices, verbose_name=_('alert status'), default=0)
 
     class Meta:
         ordering = ['-created_at']
@@ -65,6 +70,13 @@ class SurgeAlert(models.Model):
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
         self.is_stood_down = self.molnix_status == 'unfilled'
+        
+        if self.is_stood_down:
+            self.status = SurgeAlertStatus.STOOD_DOWN
+        elif self.closes and self.closes < timezone.now():
+            self.status = SurgeAlertStatus.CLOSED
+        else:
+            self.status = SurgeAlertStatus.OPEN
         return super(SurgeAlert, self).save(*args, **kwargs)
 
     def __str__(self):

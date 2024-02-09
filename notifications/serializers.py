@@ -11,6 +11,7 @@ class SurgeAlertSerializer(ModelSerializer):
     event = SurgeEventSerializer()
     country = MiniCountrySerializer()
     atype_display = serializers.CharField(source='get_atype_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     molnix_tags = MolnixTagSerializer(many=True, read_only=True)
 
@@ -19,7 +20,7 @@ class SurgeAlertSerializer(ModelSerializer):
         fields = (
             'operation', 'country', 'message', 'deployment_needed', 'is_private', 'event', 'created_at', 'id',
             'atype', 'atype_display', 'category', 'category_display', 'molnix_id', 'molnix_tags',
-            'molnix_status', 'opens', 'closes', 'start', 'end', 'is_active', 'is_stood_down'
+            'molnix_status', 'opens', 'closes', 'start', 'end', 'is_active', 'is_stood_down','status_display'
         )
 
 

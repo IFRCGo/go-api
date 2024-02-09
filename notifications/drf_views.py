@@ -62,7 +62,7 @@ class SurgeAlertViewset(viewsets.ReadOnlyModelViewSet):
         prefetch_related('molnix_tags', 'molnix_tags__groups').\
         select_related('event', 'country').all()
     filterset_class = SurgeAlertFilter
-    ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down',)
+    ordering_fields = ('created_at', 'atype', 'category', 'event', 'is_stood_down', 'status', 'opens')
     search_fields = ('operation', 'message', 'event__name',)  # for /docs
 
     def get_serializer_class(self):
