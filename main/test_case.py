@@ -229,7 +229,7 @@ class CaptureOnCommitCallbacksContext:
 
     def __exit__(self, exc_type, exc_valuei, exc_traceback):
         run_on_commit = connections[self.using].run_on_commit[self.start_count:]
-        self.callbacks[:] = [func for sids, func in run_on_commit]
+        self.callbacks[:] = [func for sids, func, forgetme in run_on_commit]
         if exc_type is None and self.execute:
             for callback in self.callbacks:
                 callback()
