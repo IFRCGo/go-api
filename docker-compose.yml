@@ -61,7 +61,7 @@ x-server: &base_server_setup
 
 services:
   db:
-    image: postgis/postgis:11-3.1-alpine
+    image: postgis/postgis:12-3.4-alpine
     environment:
       POSTGRES_PASSWORD: test
       POSTGRES_USER: test

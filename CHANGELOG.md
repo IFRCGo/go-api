@@ -2404,11 +2404,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
+<<<<<<< HEAD
 [Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.499...HEAD
 [1.1.499]: https://github.com/IFRCGo/go-api/compare/1.1.498...1.1.499
 [1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
 [1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
 [1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
+||||||| parent of 1678dae8 (Upgrade to Django 4.2)
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.494...HEAD
+=======
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.495...HEAD
+>>>>>>> 1678dae8 (Upgrade to Django 4.2)
 [1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495
 [1.1.494]: https://github.com/IFRCGo/go-api/compare/1.1.493...1.1.494
 [1.1.493]: https://github.com/IFRCGo/go-api/compare/1.1.492...1.1.493
