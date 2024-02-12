@@ -20,9 +20,9 @@ class Command(BaseCommand):
         try:
             SurgeAlert.objects.update(
                 status=models.Case(
-                    models.When(closes__gte=now, then=models.Value(SurgeAlertStatus.OPEN)),
-                    models.When(closes__lt=now, then=models.Value(SurgeAlertStatus.CLOSED)),
                     models.When(is_stood_down=True, then=models.Value(SurgeAlertStatus.STOOD_DOWN)),
+                    models.When(closes__lt=now, then=models.Value(SurgeAlertStatus.CLOSED)),
+                    models.When(closes__gte=now, then=models.Value(SurgeAlertStatus.OPEN)),
                     default=models.F('status'),
                     output_field=models.IntegerField()
                 )

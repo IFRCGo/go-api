@@ -1,4 +1,6 @@
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timedelta
+from django.utils import timezone
 from django.conf import settings
 from modeltranslation.utils import build_localized_fieldname
 
@@ -10,8 +12,9 @@ from api.factories.region import RegionFactory
 from api.factories.country import CountryFactory
 from deployments.factories.molnix_tag import MolnixTagFactory
 
-from notifications.models import SurgeAlert, SurgeAlertType
+from notifications.models import SurgeAlert, SurgeAlertStatus, SurgeAlertType
 from notifications.factories import SurgeAlertFactory
+from django.core.management import call_command
 
 
 class NotificationTestCase(APITestCase):
@@ -136,3 +139,40 @@ class SurgeAlertFilteringTest(APITestCase):
             molnix_tag_names=_to_csv('OP-6700', 'L-FRA', 'AMER'),
         ))
         self.assertEqual(response['count'], 2)
+
+class SurgeAlertTestCase(APITestCase):
+    def test_update_alert_status_command(self):
+        region_1, region_2 = RegionFactory.create_batch(2)
+        country_1 = CountryFactory.create(iso3='NPP', region=region_1)
+        country_2 = CountryFactory.create(iso3='CTT', region=region_2)
+
+        molnix_tag_1 = MolnixTagFactory.create(name='OP-6700')
+        molnix_tag_2 = MolnixTagFactory.create(name='L-FRA')
+        molnix_tag_3 = MolnixTagFactory.create(name='AMER')
+
+        alert1 = SurgeAlertFactory.create(
+            message='CEA Coordinator, Floods, Atlantis',
+            country=country_1,
+            molnix_tags=[molnix_tag_1, molnix_tag_2],
+            opens = timezone.now() - timedelta(days=2),
+            closes = timezone.now() + timedelta(seconds=5)
+        )
+        alert2 = SurgeAlertFactory.create(
+            message='WASH Coordinator, Earthquake, Neptunus',
+            country=country_2,
+            molnix_tags=[molnix_tag_1, molnix_tag_3],
+            opens = timezone.now() - timedelta(days=2),
+            closes = timezone.now() - timedelta(days=1)
+
+        )
+        self.assertEqual(alert1.status, SurgeAlertStatus.OPEN)
+        self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
+
+        time.sleep(10)
+        call_command('update_alert_status')
+
+        alert1.refresh_from_db()
+        alert2.refresh_from_db()
+
+        self.assertEqual(alert1.status, SurgeAlertStatus.CLOSED)
+        self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
