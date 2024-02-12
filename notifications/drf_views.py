@@ -33,6 +33,7 @@ class SurgeAlertFilter(filters.FilterSet):
         help_text='Molnix_tag names, comma separated',
         widget=CSVWidget,
     )
+    status = filters.NumberFilter(field_name='status', lookup_expr='exact')
 
     class Meta:
         model = SurgeAlert
