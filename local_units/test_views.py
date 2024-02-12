@@ -120,7 +120,7 @@ class DelegationOfficeFactory(factory.django.DjangoModelFactory):
         model = DelegationOffice
 
 
-class TestDelegationOfficesListView(TestCase):
+class TestDelegationOfficesListView(APITestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
         country = Country.objects.create(name='Nepal', iso3='NLP', iso='NP', region=region)
@@ -181,7 +181,7 @@ class TestDelegationOfficesListView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
-class TestDelegationOfficesDetailView(TestCase):
+class TestDelegationOfficesDetailView(APITestCase):
     def setUp(self):
         region = Region.objects.create(name=2)
         country = Country.objects.create(name='Nepal', iso3='NLP', region=region)
@@ -190,6 +190,7 @@ class TestDelegationOfficesDetailView(TestCase):
 
     def test_detail(self):
         local_unit = DelegationOffice.objects.all().first()
+        self.authenticate()
         response = self.client.get(f'/api/v2/delegation-office/{local_unit.id}/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['location']['coordinates'], [2.2, 3.3])

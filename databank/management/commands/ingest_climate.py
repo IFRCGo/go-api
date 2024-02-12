@@ -33,7 +33,6 @@ class Command(BaseCommand):
 
                 lat = centroid.get("coordinates", [])[1]
                 lon = centroid.get("coordinates", [])[0]
-                
                 if options['start_date'] and options['end_date']:
                     response = requests.get(f'https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date={options["start_date"]}&end_date={options["end_date"]}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_hours')
                 else:
@@ -41,7 +40,6 @@ class Command(BaseCommand):
                 if response.status_code != 200:
                     continue
                 response.raise_for_status()
-                
                 try:
                     data = response.json()
                     daily_data = data.get('daily', {})
@@ -56,7 +54,6 @@ class Command(BaseCommand):
                                 date = datetime.strptime(date_str, '%Y-%m-%d')
                                 month_key = (date.year, date.month)
                                 monthly_temperatures[month_key].append((max_temp, min_temp, precipitation))
-                        
                         # Calculate min, max, and avg temperatures for each month
                         for month_key, temps in monthly_temperatures.items():
                             year, month = month_key
@@ -81,4 +78,3 @@ class Command(BaseCommand):
                     logger.error(f'Error in ingesting climate data: {ex}')
                     print(f'Error in ingesting climate data: {ex}')
                     continue
-            

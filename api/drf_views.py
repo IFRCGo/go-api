@@ -1,5 +1,4 @@
 from datetime import timedelta
-from databank.models import CountryKeyClimate
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -31,7 +30,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from main.utils import is_tableau
 from main.enums import GlobalEnumSerializer, get_enum_values
 from deployments.models import Personnel
-from databank.serializers import CountryKeyClimateSerializer, CountryOverviewSerializer
+from databank.serializers import CountryOverviewSerializer
 
 from .utils import is_user_ifrc
 from .exceptions import BadRequest
@@ -74,7 +73,6 @@ from country_plan.models import CountryPlan
 
 from .serializers import (
     ActionSerializer,
-    CountryKeyClimateInputSerializer,
     DisasterTypeSerializer,
     ExternalPartnerSerializer,
     SupportedActivitySerializer,
@@ -467,27 +465,6 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 queryset, many=True
             ).data
         )
-
-    @extend_schema(
-        request=None,
-        parameters=[CountryKeyClimateInputSerializer],
-        responses=CountryKeyClimateSerializer,
-    )
-    @action(
-        detail=True,
-        url_path="key-climate",
-        pagination_class=None
-    )
-    def get_country_climate(self, request, pk):
-        country = self.get_object()
-        year = request.GET.get("year", '2023')
-
-        queryset = CountryKeyClimate.objects.filter(
-            overview__country=country,
-            year=year
-        ).select_related('overview')
-        
-        return Response(CountryKeyClimateSerializer(queryset, many=True).data)
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
