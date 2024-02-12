@@ -13,7 +13,6 @@ class Command(BaseCommand):
         If the alert status is marked as stood_down, then the status is Stood Down.
         If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed. Otherwise, it is displayed as Open.
     '''
-    
     help = 'Update alert status'
 
     def handle(self, *args, **options):
