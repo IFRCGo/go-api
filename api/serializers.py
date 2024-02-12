@@ -2302,7 +2302,7 @@ class CountryKeyFigureInputSerializer(serializers.Serializer):
 
 class CountryKeyClimateInputSerializer(serializers.Serializer):
     year = serializers.IntegerField(required=False)
-    
+
 
 class CountryKeyFigureSerializer(serializers.Serializer):
     active_drefs = serializers.IntegerField()
@@ -2322,6 +2322,13 @@ class CountryDisasterTypeCountSerializer(serializers.Serializer):
 
 
 class CountryDisasterTypeMonthlySerializer(serializers.Serializer):
+    date = serializers.DateTimeField()
+    targeted_population = serializers.IntegerField()
+    disaster_name = serializers.CharField()
+    disaster_id = serializers.IntegerField()
+
+
+class HistoricalDisasterSerializer(serializers.Serializer):
     date = serializers.DateTimeField()
     targeted_population = serializers.IntegerField()
     disaster_name = serializers.CharField()

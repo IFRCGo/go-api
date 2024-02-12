@@ -130,7 +130,8 @@ from .serializers import (
     CountryKeyFigureInputSerializer,
     CountryDisasterTypeCountSerializer,
     CountryDisasterTypeMonthlySerializer,
-    CountrySupportingPartnerSerializer
+    CountrySupportingPartnerSerializer,
+    HistoricalDisasterSerializer
 )
 from api.filter_set import (
     UserFilterSet,
@@ -414,7 +415,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         request=None,
         parameters=[CountryKeyFigureInputSerializer],
-        responses=CountryDisasterTypeMonthlySerializer(many=True),
+        responses=HistoricalDisasterSerializer(many=True),
     )
     @action(
         detail=True,
@@ -462,11 +463,11 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             )
 
         return Response(
-            CountryDisasterTypeMonthlySerializer(
+            HistoricalDisasterSerializer(
                 queryset, many=True
             ).data
         )
-    
+
     @extend_schema(
         request=None,
         parameters=[CountryKeyClimateInputSerializer],
