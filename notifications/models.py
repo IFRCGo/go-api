@@ -24,9 +24,9 @@ class SurgeAlertCategory(models.IntegerChoices):
     STAND_DOWN = 4, _('stand down')
 
 class SurgeAlertStatus(models.IntegerChoices):
-    OPEN = 0, _('open')
-    STOOD_DOWN = 1, _('stood down')
-    CLOSED = 2, _('closed')
+    OPEN = 0, _('Open')
+    STOOD_DOWN = 1, _('Stood Down')
+    CLOSED = 2, _('Closed')
 
 class SurgeAlert(models.Model):
 
