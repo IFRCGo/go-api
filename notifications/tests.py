@@ -1,6 +1,6 @@
-import time
 from datetime import datetime, timedelta
 from django.utils import timezone
+from unittest.mock import patch
 from django.conf import settings
 from modeltranslation.utils import build_localized_fieldname
 
@@ -140,6 +140,63 @@ class SurgeAlertFilteringTest(APITestCase):
         ))
         self.assertEqual(response['count'], 2)
 
+    def test_surge_alert_status(self):
+        region_1, region_2 = RegionFactory.create_batch(2)
+        country_1 = CountryFactory.create(iso3='ATL', region=region_1)
+        country_2 = CountryFactory.create(iso3='NPT', region=region_2)
+
+        molnix_tag_1 = MolnixTagFactory.create(name='OP-6700')
+        molnix_tag_2 = MolnixTagFactory.create(name='L-FRA')
+        molnix_tag_3 = MolnixTagFactory.create(name='AMER')
+
+        alert1 = SurgeAlertFactory.create(
+            message='CEA Coordinator, Floods, Atlantis',
+            country=country_1,
+            molnix_tags=[molnix_tag_1, molnix_tag_2],
+            opens=timezone.now() - timedelta(days=2),
+            closes=timezone.now() + timedelta(days=5)
+        )
+        alert2 = SurgeAlertFactory.create(
+            message='WASH Coordinator, Earthquake, Neptunus',
+            country=country_2,
+            molnix_tags=[molnix_tag_1, molnix_tag_3],
+            opens=timezone.now() - timedelta(days=2),
+            closes=timezone.now() - timedelta(days=1)
+        )
+        alert3 = SurgeAlertFactory.create(
+            message='New One',
+            country=country_2,
+            molnix_tags=[molnix_tag_1, molnix_tag_3],
+            molnix_status='unfilled',
+        )
+
+        self.assertEqual(alert1.status, SurgeAlertStatus.OPEN)
+        self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
+        self.assertEqual(alert3.status, SurgeAlertStatus.STOOD_DOWN)
+
+        def _fetch(filters):
+            return self.client.get('/api/v2/surge_alert/', filters).json()
+
+        response = _fetch(dict({
+            'status': SurgeAlertStatus.OPEN
+        }))
+
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['status'], SurgeAlertStatus.OPEN)
+
+        response = _fetch(dict({
+            'status': SurgeAlertStatus.CLOSED
+        }))
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['status'], SurgeAlertStatus.CLOSED)
+
+        response = _fetch(dict({
+            'status': SurgeAlertStatus.STOOD_DOWN
+        }))
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['status'], SurgeAlertStatus.STOOD_DOWN)
+
+
 class SurgeAlertTestCase(APITestCase):
     def test_update_alert_status_command(self):
         region_1, region_2 = RegionFactory.create_batch(2)
@@ -154,22 +211,22 @@ class SurgeAlertTestCase(APITestCase):
             message='CEA Coordinator, Floods, Atlantis',
             country=country_1,
             molnix_tags=[molnix_tag_1, molnix_tag_2],
-            opens = timezone.now() - timedelta(days=2),
-            closes = timezone.now() + timedelta(seconds=5)
+            opens=timezone.now() - timedelta(days=2),
+            closes=timezone.now() + timedelta(seconds=5)
         )
         alert2 = SurgeAlertFactory.create(
             message='WASH Coordinator, Earthquake, Neptunus',
             country=country_2,
             molnix_tags=[molnix_tag_1, molnix_tag_3],
-            opens = timezone.now() - timedelta(days=2),
-            closes = timezone.now() - timedelta(days=1)
-
+            opens=timezone.now() - timedelta(days=2),
+            closes=timezone.now() - timedelta(days=1)
         )
         self.assertEqual(alert1.status, SurgeAlertStatus.OPEN)
         self.assertEqual(alert2.status, SurgeAlertStatus.CLOSED)
 
-        time.sleep(10)
-        call_command('update_alert_status')
+        with patch('django.utils.timezone.now') as mock_now:
+            mock_now.return_value = datetime.now() + timedelta(days=1)
+            call_command('update_surge_alert_status')
 
         alert1.refresh_from_db()
         alert2.refresh_from_db()

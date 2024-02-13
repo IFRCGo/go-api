@@ -23,10 +23,15 @@ class SurgeAlertCategory(models.IntegerChoices):
     SHELTER = 3, _('shelter')
     STAND_DOWN = 4, _('stand down')
 
+
 class SurgeAlertStatus(models.IntegerChoices):
+    '''
+    Note: Ordering value should be in order of Open, Stood Down, Closed to supported custom defined ordering logic
+    '''
     OPEN = 0, _('Open')
     STOOD_DOWN = 1, _('Stood Down')
     CLOSED = 2, _('Closed')
+
 
 class SurgeAlert(models.Model):
 
@@ -58,7 +63,7 @@ class SurgeAlert(models.Model):
 
     # Don't set `auto_now_add` so we can modify it on save
     created_at = models.DateTimeField(verbose_name=_('created at'))
-    status = models.IntegerField(choices=SurgeAlertStatus.choices, verbose_name=_('alert status'), default=0)
+    status = models.IntegerField(choices=SurgeAlertStatus.choices, verbose_name=_('alert status'), default=SurgeAlertStatus.OPEN)
 
     class Meta:
         ordering = ['-created_at']
@@ -66,11 +71,15 @@ class SurgeAlert(models.Model):
         verbose_name_plural = _('Surge Alerts')
 
     def save(self, *args, **kwargs):
+        """
+        If the alert status is marked as stood_down, then the status is Stood Down.
+        If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed.
+        Otherwise, it is displayed as Open.
+        """
         # On save, if `created` is not set, make it the current time
         if (not self.id and not self.created_at) or (self.created_at > timezone.now()):
             self.created_at = timezone.now()
         self.is_stood_down = self.molnix_status == 'unfilled'
-        
         if self.is_stood_down:
             self.status = SurgeAlertStatus.STOOD_DOWN
         elif self.closes and self.closes < timezone.now():

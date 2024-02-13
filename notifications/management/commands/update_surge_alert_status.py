@@ -28,4 +28,4 @@ class Command(BaseCommand):
                 )
             )
         except Exception as e:
-            logger.error('Error while updating alerts status: %s' % str(e))
+            logger.error('Error while updating alerts status', exc_info=True)
