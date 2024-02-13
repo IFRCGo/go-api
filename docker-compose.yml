@@ -67,7 +67,7 @@ services:
       POSTGRES_USER: test
       POSTGRES_DB: test
     volumes:
-      - './.db/pg:/var/lib/postgresql/data'
+      - './.db/pg-12:/var/lib/postgresql/data'
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
