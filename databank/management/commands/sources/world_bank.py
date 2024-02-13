@@ -71,13 +71,12 @@ def prefetch():
 
 @catch_error()
 def load(country, overview, wd_data):
-    pass
-    # if not country.iso or wd_data is None:
-    #     return
+    if not country.iso or wd_data is None:
+        return
 
-    # pop, year = wd_data.get(country.iso.upper()) or (None, None)
-    # if pop is None:
-    #     return
-    # country.wb_population = pop
-    # country.wb_year = year
-    # country.save(update_fields=['wb_population', 'wb_year'])
+    pop, year = wd_data.get(country.iso.upper()) or (None, None)
+    if pop is None:
+        return
+    country.wb_population = pop
+    country.wb_year = year
+    country.save(update_fields=['wb_population', 'wb_year'])

@@ -45,7 +45,7 @@ class Command(BaseCommand):
             city_code = data['ADD_city_code'] if type(data['ADD_city_code']) == str else None
             phone = data['ADD_phone'] if type(data['ADD_phone']) == str else None
             website = data['ADD_webSite'] if type(data['ADD_webSite']) == str else None
-            email = data['ADD_email'] if type(data['ADD_address2']) == str else None
+            email = data['ADD_email'] if type(data['ADD_email']) == str and data['ADD_email'] != None else None
             founded_date = data['ADD_orgCreation'] if type(data['ADD_orgCreation']) == str else None
             iso = data['ADD_country_code']
             # # get the country and try to update the data for those country
@@ -62,7 +62,6 @@ class Command(BaseCommand):
                     try:
                         country.founded_date = datetime.strptime(founded_date, "%d.%m.%Y").date()
                     except ValueError:
-                        print(founded_date)
                         date = founded_date.split(' ')[0]
                         try:
                             country.founded_date = datetime.strptime(date, "%d.%m.%Y").date()

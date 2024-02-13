@@ -36,5 +36,4 @@ class Command(BaseCommand):
                             'indicator': indicator,
                             'overview': overview
                         }
-                        print("*****")
                         FDRSIncome.objects.create(**data)

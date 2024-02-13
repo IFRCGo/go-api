@@ -46,8 +46,8 @@ class Command(BaseCommand):
                 if country:
                     added += 1
                     data = {
-                        'first_name': data['CON_firstName'],
-                        'last_name': data['CON_lastName'],
+                        'first_name': data['CON_firstName'] if type(data['CON_firstName']) == str and data['CON_firstName'] != None else None,
+                        'last_name': data['CON_lastName'] if type(data['CON_lastName']) == str and data['CON_lastName'] != None else None,
                         'position': data['CON_title'],
                         'country': country,
                     }
