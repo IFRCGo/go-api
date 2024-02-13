@@ -5,6 +5,7 @@ from api import enums as api_enums
 from flash_update import enums as flash_update_enums
 from deployments import enums as deployments_enums
 from per import enums as per_enums
+from notifications import enums as notifications_enums
 
 
 apps_enum_register = [
@@ -13,6 +14,7 @@ apps_enum_register = [
     ('flash_update', flash_update_enums.enum_register),
     ('deployments', deployments_enums.enum_register),
     ('per', per_enums.enum_register),
+    ('notifications', notifications_enums.enum_register),
 ]
 
 
