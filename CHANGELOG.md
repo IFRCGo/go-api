@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.496
+
+### Added
+ - Surge Alert Status and Ordering based on status and opens fields
+ - Fix label naming for SurgeAlertStatus
+ - Add status filter for SurgeAlert
+
 ## 1.1.495
 
 ### Added
@@ -2344,7 +2351,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.495...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.496...HEAD
+[1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
 [1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495
 [1.1.494]: https://github.com/IFRCGo/go-api/compare/1.1.493...1.1.494
 [1.1.493]: https://github.com/IFRCGo/go-api/compare/1.1.492...1.1.493
