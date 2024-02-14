@@ -132,11 +132,6 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "env.FDRS_APIKEY"
-    value = var.FDRS_APIKEY
-  }
-
-  set {
     name = "env.FDRS_CREDENTIAL"
     value = var.FDRS_CREDENTIAL
   }
@@ -217,7 +212,32 @@ resource "helm_release" "ifrcgo" {
   }
 
   set {
-    name = "secrets.API_ADDITIONAL_DOMAIN_TLS_KEY"
-    value = var.API_ADDITIONAL_DOMAIN_TLS_KEY
+    name = "env.FDRS_APIKEY"
+    value = var.FDRS_APIKEY
+  }
+
+  set {
+    name = "env.NS_CONTACT_USERNAME"
+    value = var.NS_CONTACT_USERNAME
+  }
+
+  set {
+    name = "env.NS_CONTACT_PASSWORD"
+    value = var.NS_CONTACT_PASSWORD
+  }
+
+  set {
+    name = "env.ACAPS_API_TOKEN"
+    value = var.ACAPS_API_TOKEN
+  }
+
+  set {
+    name = "env.NS_DOCUMENT_API_KEY"
+    value = var.NS_DOCUMENT_API_KEY
+  }
+
+  set {
+    name = "env.NS_INITIATIVES_API_KEY"
+    value = var.NS_INITIATIVES_API_KEY
   }
 }
