@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
+
 from api.logger import logger
 from api.models import Country, CountryDirectory, CronJob, CronJobStatus, CountryKeyDocument
 
@@ -24,7 +26,7 @@ class Command(BaseCommand):
         country_table = self.extract_country_data(country_code_response.json())
 
         # Fetch documents for each country
-        api_key = "21e401ae-6b35-404b-a72a-b74cce66dee3"
+        api_key = settings.NS_DOCUMENT_API_KEY
         result = self.fetch_all_country_documents(api_key, country_table)
 
         # Save documents to the database

@@ -13,10 +13,9 @@ class Command(BaseCommand):
     help = 'Import FDRS income data'
 
     def handle(self, *args, **kwargs):
-        FDRS_APIKEY = "21e401ae-6b35-404b-a72a-b74cce66dee3"
         for overview in CountryOverview.objects.all():
             country_fdrs_code = overview.country.fdrs
-            fdrs_api = f'https://data-api.ifrc.org/api/data?indicator=KPI_IncomeLC_CHF&KPI_Don_Code={country_fdrs_code}&apiKey={FDRS_APIKEY}'
+            fdrs_api = f'https://data-api.ifrc.org/api/data?indicator=KPI_IncomeLC_CHF&KPI_Don_Code={country_fdrs_code}&apiKey={settings.FDRS_APIKEY}'
             fdrs_entities = requests.get(fdrs_api)
             if fdrs_entities.status_code != 200:
                 return

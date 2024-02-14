@@ -4,6 +4,8 @@ import xmltodict
 import json
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
+
 from api.logger import logger
 from api.models import (
     Country,
@@ -18,10 +20,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         logger.info('Starting NS Contacts')
-        FDRS_API_KEY = "21e401ae-6b35-404b-a72a-b74cce66dee3"
 
         # OCAC Assessment
-        OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={FDRS_API_KEY}"
+        OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={settings.FDRS_API_KEY}"
         resp_ocac = requests.get(OCAC_DATA_API)
         if resp_ocac.status_code != 200:
             text_to_log = "Error querying OCAC at " + url
@@ -61,7 +62,7 @@ class Command(BaseCommand):
         CronJob.sync_cron(body)
 
         # BOCA Assessment
-        BOCA_DATA_API = f"https://data-api.ifrc.org/api/bocapublic?apiKey={FDRS_API_KEY}"
+        BOCA_DATA_API = f"https://data-api.ifrc.org/api/bocapublic?apiKey={settings.FDRS_API_KEY}"
         resp_boca = requests.get(BOCA_DATA_API)
         resp_boca_data = resp_boca.json()
         for item in resp_boca_data:

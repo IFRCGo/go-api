@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from api.logger import logger
 from api.models import (
     Country,
@@ -22,7 +23,7 @@ class Command(BaseCommand):
         headers = {'accept': 'application/xml;q=0.9, */*;q=0.8'}
         response = requests.get(
             "https://go-api.ifrc.org/api/NationalSocieties",
-            auth=HTTPBasicAuth("gotestuser", "123456"),
+            auth=HTTPBasicAuth(settings.NS_CONTACT_USERNAME, settings.NS_CONTACT_PASSWORD),
             headers=headers
         )
         if response.status_code != 200:

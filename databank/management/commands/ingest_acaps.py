@@ -5,6 +5,7 @@ import pandas as pd
 from dateutil.parser import parse
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from api.models import Country, CountryType, CronJob, CronJobStatus, DisasterType
 from api.logger import logger
@@ -16,14 +17,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         logger.info('Importing Acaps Data')
-        API_TOKEN = "5800bad4b70fe84dd70a2a760c48cd59b1b0f43d"
         country_name = CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY).values_list('country__name', flat=True)
         for name in country_name:
             SEASONAL_EVENTS_API = f"https://api.acaps.org/api/v1/seasonal-events-calendar/seasonal-calendar/?country={name}"
             response = requests.get(
                 SEASONAL_EVENTS_API,
                 headers={
-                    "Authorization": "Token %s" % API_TOKEN
+                    "Authorization": "Token %s" % settings.ACAPS_API_TOKEN
                 }
             )
             response_data = response.json()

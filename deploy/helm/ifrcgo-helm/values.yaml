@@ -50,6 +50,12 @@ env:
   IFRC_TRANSLATION_DOMAIN: ''
   IFRC_TRANSLATION_GET_API_KEY: ''
   IFRC_TRANSLATION_HEADER_API_KEY: ''
+  FDRS_APIKEY: ''
+  NS_CONTACT_USERNAME: ''
+  NS_CONTACT_PASSWORD: ''
+  ACAPS_API_TOKEN: ''
+  NS_DOCUMENT_API_KEY: ''
+  NS_INITIATIVES_API_KEY: ''
 
 secrets:
   API_TLS_CRT: ''
@@ -113,6 +119,8 @@ cronjobs:
     schedule: '1 0 * * *'
   - command: 'update_surge_alert_status'
     schedule: '1 */12 * * *'
+  - command: 'ingest_gdacs'
+    schedule: '1 */12 * * *'
 
 elasticsearch:
   enabled: true
@@ -120,7 +128,7 @@ elasticsearch:
   transportPort: 9300
   elasticsearchVersion: 7.16.2
   storageSize: 20Gi
-  storageClassName: managed-premium #FIXME: populate and use
+  storageClassName: managed-premium # FIXME: populate and use
   disk:
     name: my-disk-name
     uri: https://mydisk.blob.core.windows.net/mycontainer/mydisk.vhd

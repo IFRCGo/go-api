@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
+
 from api.logger import logger
 from api.models import (
     Country,
@@ -18,7 +20,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         logger.info('Starting NS Inititatives')
-        api_key = "b08bc654-15fc-4ac9-bfdb-516f3cd7e3c6"
+        api_key = settings.NS_INITIATIVES_API_KEY
         esf_url = requests.get(f'https://data-api.ifrc.org/api/esf?apikey={api_key}')
         nsia_url = requests.get(f'https://data-api.ifrc.org/api/nsia?apikey={api_key}')
         cbf_url = requests.get(f'https://data-api.ifrc.org/api/cbf?apikey={api_key}')
