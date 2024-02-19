@@ -172,11 +172,11 @@ class EventContactInline(admin.TabularInline):
     model = models.EventContact
 
 
-class SituationReportInline(admin.TabularInline, TranslationInlineModelAdmin):
+class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
 
-class EventFeaturedDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
+class EventFeaturedDocumentInline(admin.TabularInline):
     model = models.EventFeaturedDocument
 
 
@@ -599,7 +599,7 @@ class UserProfileAdmin(CompareVersionAdmin):
         return actions
 
 
-class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('name', 'event__name',)
     list_display = ('name', 'link_to_event', 'type', 'visibility',)
     country_in = 'event__countries__in'
