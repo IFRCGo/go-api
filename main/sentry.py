@@ -1,4 +1,5 @@
 import os
+import enum
 
 import sentry_sdk
 from django.core.exceptions import PermissionDenied
@@ -94,3 +95,24 @@ def init_sentry(app_type, tags={}, **config):
         scope.set_tag('app_type', app_type)
         for tag, value in tags.items():
             scope.set_tag(tag, value)
+
+class SentryMonitor(enum.Enum):
+    INDEX_AND_NOTIFY = 'index_and_notify',
+    SYNC_MOLNIX= 'sync_molnix',
+    INGEST_APPEALS = 'ingest_appeals',
+    SYNC_APPEAL_DOCS = 'sync_appealdocs',
+    REVOKE_STAFF_STATUS = 'revoke_staff_status',
+    UPDATE_PROJECT_STATUS = 'update_project_status',
+    USER_REGISTRATION_REMAINDER = 'user_registration_reminder',
+    UPDATE_SURGE_ALERT_STATUS = 'update_surge_alert_status',
+
+    _schedule = {
+        INDEX_AND_NOTIFY: '*/5 * * * *',
+        SYNC_MOLNIX: '*/10 * * * *',
+        INGEST_APPEALS: '45 */2 * * *',
+        SYNC_APPEAL_DOCS: '15 * * * *',
+        REVOKE_STAFF_STATUS: '51 * * * *',
+        UPDATE_PROJECT_STATUS: '1 3 * * *',
+        USER_REGISTRATION_REMAINDER: '0 9 * * *',
+        UPDATE_SURGE_ALERT_STATUS: '1 */12 * * *',
+    }
