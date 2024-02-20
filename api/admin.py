@@ -160,7 +160,7 @@ class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin)
     search_fields = ('name',)
 
 
-class KeyFigureInline(admin.TabularInline):
+class KeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.KeyFigure
 
 
@@ -459,11 +459,11 @@ class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translati
     search_fields = ('name', 'document')
 
 
-class CountryKeyFigureInline(admin.TabularInline):
+class CountryKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.CountryKeyFigure
 
 
-class RegionKeyFigureInline(admin.TabularInline):
+class RegionKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.RegionKeyFigure
 
 

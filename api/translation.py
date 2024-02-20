@@ -24,6 +24,10 @@ from .models import (
     EventLink,
     FieldReport,
     Source,
+    CountryKeyFigure,
+    RegionKeyFigure,
+    KeyFigure,
+    AdminKeyFigure
 )
 
 
@@ -142,3 +146,27 @@ class SourceTO(TranslationOptions):
     fields = (
         'spec',
     )
+
+
+@register(KeyFigure)
+class KeyFigureTo(TranslationOptions):
+    fields = (
+        'deck',
+    )
+
+
+@register(AdminKeyFigure)
+class AdminKeyFigureTo(TranslationOptions):
+    fields = (
+        'deck',
+    )
+
+
+@register(CountryKeyFigure)
+class CountryKeyFigureTo(TranslationOptions):
+    pass
+
+
+@register(RegionKeyFigure)
+class RegionKeyFigureTo(TranslationOptions):
+    pass
