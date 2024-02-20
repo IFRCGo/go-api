@@ -923,6 +923,11 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
         return photos
 
+    def validate_type_of_dref(self, type_of_dref):
+        if self.instance and self.instance.type_of_dref == Dref.DrefType.LOAN:
+            raise serializers.ValidationError("Can't change dref type for %s in Final Report" % Dref.DrefType.LOAN)
+        return type_of_dref
+
     def create(self, validated_data):
         # here check if there is operational update for corresponding dref
         # if yes copy from the latest operational update
