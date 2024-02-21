@@ -1,11 +1,13 @@
 from datetime import datetime, timezone, timedelta
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
+from sentry_sdk.crons import monitor
 from api.models import UserRegion, Region
+from main.sentry import USER_REGISTRATION_REMINDER
 from registrations.models import Pending
 from notifications.notification import send_notification
 
-
+@monitor(monitor_slug=USER_REGISTRATION_REMINDER)
 class Command(BaseCommand):
     help = "Send reminder about the pending registrations"
 

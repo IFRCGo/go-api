@@ -1,18 +1,25 @@
 import logging
-from django.db import models
+from sentry_sdk.crons import monitor
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.db import models
+
 from notifications.models import SurgeAlert, SurgeAlertStatus
 from api.models import CronJob, CronJobStatus
+from main.sentry import UPDATE_SURGE_ALERT_STATUS
+
 
 logger = logging.getLogger(__name__)
 
+
+@monitor(monitor_slug=UPDATE_SURGE_ALERT_STATUS)
 class Command(BaseCommand):
     '''
         Updating the Surge Alert Status according:
         If the alert status is marked as stood_down, then the status is Stood Down.
-        If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed. Otherwise, it is displayed as Open.
+        If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed.
+        Otherwise, it is displayed as Open.
     '''
     help = 'Update surge alert status'
 
@@ -31,7 +38,7 @@ class Command(BaseCommand):
             )
             CronJob.sync_cron({
                 'name': 'update_surge_alert_status',
-                'message': f'Updated Surge alerts status',
+                'message': 'Updated Surge alerts status',
                 'status': CronJobStatus.SUCCESSFUL,
             })
             logger.info('Updated Surge alerts status')

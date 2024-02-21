@@ -1,11 +1,13 @@
 import requests
+from sentry_sdk.crons import monitor
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group
 from api.logger import logger
+from main.sentry import REVOKE_STAFF_STATUS
 
 # from registrations.views import is_valid_domain
 
-
+@monitor(monitor_slug=REVOKE_STAFF_STATUS)
 class Command(BaseCommand):
     help = 'Update staff status in auth_user table according to "Read only" group'
 

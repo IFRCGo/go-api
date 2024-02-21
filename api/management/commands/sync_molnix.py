@@ -1,11 +1,13 @@
 from dateutil import parser as date_parser
 import json
+from sentry_sdk.crons import monitor
 from django.db import transaction
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from api.molnix_utils import MolnixApi
 from api.logger import logger
 from deployments.models import MolnixTag, MolnixTagGroup, PersonnelDeployment, Personnel
+from main.sentry import SYNC_MOLNIX
 from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
 from api.models import Event, Country, CronJobStatus
 from api.create_cron import create_cron_record
@@ -514,7 +516,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     ]
     return messages, warnings, successful_creates
 
-
+@monitor(monitor_slug=SYNC_MOLNIX)
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
 
