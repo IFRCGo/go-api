@@ -1,12 +1,14 @@
 import logging
 from django.db import models
 
+from sentry_sdk.crons import monitor
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from notifications.models import SurgeAlert, SurgeAlertStatus
+from main.sentry import UPDATE_SURGE_ALERT_STATUS
 
 logger = logging.getLogger(__name__)
-
+@monitor(monitor_slug=UPDATE_SURGE_ALERT_STATUS)
 class Command(BaseCommand):
     '''
         Updating the Alert Status according:
