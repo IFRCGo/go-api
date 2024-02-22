@@ -7,7 +7,7 @@ from django.conf import settings
 from api.molnix_utils import MolnixApi
 from api.logger import logger
 from deployments.models import MolnixTag, MolnixTagGroup, PersonnelDeployment, Personnel
-from main.sentry import SYNC_MOLNIX
+from main.sentry import SentryMonitor
 from notifications.models import SurgeAlert, SurgeAlertType, SurgeAlertCategory
 from api.models import Event, Country, CronJobStatus
 from api.create_cron import create_cron_record
@@ -516,7 +516,7 @@ def sync_open_positions(molnix_positions, molnix_api, countries):
     ]
     return messages, warnings, successful_creates
 
-@monitor(monitor_slug=SYNC_MOLNIX)
+@monitor(monitor_slug=SentryMonitor.SYNC_MOLNIX)
 class Command(BaseCommand):
     help = "Sync data from Molnix API to GO db"
 

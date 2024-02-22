@@ -9,7 +9,7 @@ from django.db.models import Q
 from sentry_sdk.crons import monitor
 
 from main.frontend import get_project_url
-from main.sentry import UPDATE_PROJECT_STATUS
+from main.sentry import SentryMonitor
 from notifications.notification import send_notification
 from deployments.models import Project, Statuses
 
@@ -21,7 +21,7 @@ PROJECT_STATUS_WILL_COMPLETE_MESSAGE = _(
     ' You can update the end date to further keep the project in <i>Ongoing</i> status.'
 )
 
-@monitor(monitor_slug=UPDATE_PROJECT_STATUS)
+@monitor(monitor_slug=SentryMonitor.UPDATE_PROJECT_STATUS)
 class Command(BaseCommand):
 
     help = 'Update project status using start/end date'

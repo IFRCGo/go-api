@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
-from main.sentry import SYNC_APPEALDOCS
+from main.sentry import SentryMonitor
 from sentry_sdk.crons import monitor
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,7 +14,7 @@ CRON_NAME = "sync_appealdocs"
 PUBLIC_SOURCE = "https://go-api.ifrc.org/api/publicsiteappeals?Hidden=false&Appealnumber="
 FEDNET_SOURCE = "https://go-api.ifrc.org/Api/FedNetAppeals?Hidden=false&Appealnumber="
 
-@monitor(monitor_slug=SYNC_APPEALDOCS)
+@monitor(monitor_slug=SentryMonitor.SYNC_APPEALDOCS)
 class Command(BaseCommand):
     help = "Ingest existing appeal documents"
 

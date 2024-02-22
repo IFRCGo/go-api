@@ -7,13 +7,13 @@ from django.db import models
 
 from notifications.models import SurgeAlert, SurgeAlertStatus
 from api.models import CronJob, CronJobStatus
-from main.sentry import UPDATE_SURGE_ALERT_STATUS
+from main.sentry import SentryMonitor
 
 
 logger = logging.getLogger(__name__)
 
 
-@monitor(monitor_slug=UPDATE_SURGE_ALERT_STATUS)
+@monitor(monitor_slug=SentryMonitor.UPDATE_SURGE_ALERT_STATUS)
 class Command(BaseCommand):
     '''
         Updating the Surge Alert Status according:
