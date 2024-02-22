@@ -3,7 +3,7 @@ import logging
 
 from urllib.parse import urlparse
 from django.core.management.base import BaseCommand
-from main.sentry import CRON_JOBS_MONITOR_SCHEDULE
+from main.sentry import SentryMonitor
 
 from main.settings import SENTRY_DSN
 
@@ -23,14 +23,15 @@ class Command(BaseCommand):
 
         SENTRY_INGEST = f"https://{parsed_url.hostname}"
 
-        for job, schedule in CRON_JOBS_MONITOR_SCHEDULE:
+        for cronjob in SentryMonitor.choices:
+            job, schedule = cronjob
             SENTRY_CRONS = f"{SENTRY_INGEST}/api/{project_id}/cron/{job}/{api_key}/"
 
             payload = {
                 "monitor_config": {
                     "schedule": {
                         "type": "crontab",
-                        "value": schedule
+                        "value": str(schedule)
                     }
                 },
                 'environment':'development',
