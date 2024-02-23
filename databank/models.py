@@ -686,8 +686,8 @@ class FDRSIncome(models.Model):
         SERVICE_INCOME = 'si_CHF', _('Service Income')
         INCOME_GENERATING_ACTIVITY = 'iga_CHF', _('Income Generating Activity')
         OTHER_NATIONAL_SOCIETY = 'KPI_incomeFromNSsLC_CHF', _('Other National Society')
-        IFRC = 'ifrc_CHF', _('Ifrc')
-        ICRC = 'icrc_CHF', _('Icrc')
+        IFRC = 'ifrc_CHF', _('IFRC')
+        ICRC = 'icrc_CHF', _('ICRC')
         OTHER_SOURCE = 'other_CHF', _('Other Source')
 
     overview = models.ForeignKey(
