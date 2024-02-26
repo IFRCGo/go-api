@@ -2,38 +2,42 @@
 from django.db import migrations
 from django.db import models
 
-from api.logger import logger
 
+def migrate_formdata_notes(apps, schema_editor):
+    FormComponentResponse = apps.get_model("per", "FormComponentResponse")
+    FormData = apps.get_model("per", "FormData")
 
-class Migration(migrations.Migration):
-    def migrate_formdata_notes(apps, schema_editor):
-        # NOTE: No any exact match for relationships
-        FormComponentResponse = apps.get_model("per", "FormComponentResponse")
-        FormData = apps.get_model("per", "FormData")
-        qs = FormComponentResponse.objects.annotate(
-            new_notes=models.Subquery(
-                FormData.objects.filter(
-                    question__component=models.OuterRef("component"),
-                    question=74,
-                )
-                .order_by(
-                    "-form__area",
-                    "-form__created_at",
-                    "form",
-                    "question__question_num",
-                )
-                .filter(notes__isnull=False)
-                .values("notes_en")[:1],
-                output_field=models.CharField(),
-            ),
-        ).filter(new_notes__isnull=False)
+    qs = FormComponentResponse.objects.annotate(
+        new_notes=models.Subquery(
+            # Copy notes from FormData using overview
+            FormData.objects.filter(
+                form__overview=models.OuterRef('arearesponse__perassessment__overview'),
+                question__component=models.OuterRef('component'),
+                question=74,
+            ).values('notes_en'),
+            output_field=models.CharField(),
+        ),
+    ).filter(new_notes__isnull=False)
 
-        print(
-            qs.update(
-                notes=models.F("new_notes"),
+    form_component_responses = []
+    for form_component_response_id, assessment_id, new_notes in qs.values_list(
+        'id',
+        models.F('arearesponse__perassessment'),
+        'new_notes',
+    ):
+        print(f'- Copying data for {assessment_id=} {form_component_response_id=}')
+        form_component_responses.append(
+            FormComponentResponse(
+                id=form_component_response_id,
+                notes=new_notes,
             )
         )
 
+    print(f'Total form_component_responses notes copied: {len(form_component_responses)}')
+    FormComponentResponse.objects.bulk_update(form_component_responses, fields=('notes',))
+
+
+class Migration(migrations.Migration):
     dependencies = [
         ("per", "0098_fix_reversion_data_20240208_0502"),
     ]
