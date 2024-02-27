@@ -24,7 +24,7 @@ def build_storage_state(tmp_dir, user, token):
     state = {
         "origins": [
             {
-                "origin": "https://" + settings.EXPORT_ALLOWED_DOMAIN + "/",
+                "origin": "https://" + settings.FRONTEND_URL + "/",
                 "localStorage": [
                     {
                         "name": "user",

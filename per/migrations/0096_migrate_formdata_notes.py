@@ -6,27 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     def migrate_formdata_notes(apps, schema_editor):
-        Form = apps.get_model('per', 'Form')
-        FormData = apps.get_model('per', 'FormData')
-        FormComponentResponse = apps.get_model('per', 'FormComponentResponse')
-        count = 0
-        for form in Form.objects.all():
-            area = form.area
-            for component_response in area.formcomponent_set.all():
-                form_component_response = FormComponentResponse.objects.filter(
-                    component=component_response,
-                )
-                for response in form_component_response:
-                    form_data_entries = FormData.objects.filter(
-                        form=form,
-                        question__component=response.component
-                    )
-                    if form_data_entries.exists():
-                        form_data_entry = form_data_entries.first()
-                    response.notes = form_data_entry.notes
-                    response.save(update_fields=['notes'])
-                    count += 1
-        print(f'Total {count} notes updated')
+        pass
 
     dependencies = [
         ('per', '0095_perdocumentupload'),

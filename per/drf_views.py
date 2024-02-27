@@ -15,10 +15,12 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.views import View
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from main.utils import SpreadSheetContentNegotiation
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
 from deployments.models import SectorTag
@@ -256,6 +258,8 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
 class ExportPerView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    content_negotiation_class = SpreadSheetContentNegotiation
+
     def get(self, request, pk, format=None):
         per = get_object_or_404(Overview, pk=pk)
         per_queryset = Overview.objects.filter(id=per.id)
@@ -457,6 +461,7 @@ class ExportPerView(views.APIView):
         response["Content-Disposition"] = "attachment; filename=export.xlsx"
         wb.save(response)
         return response
+
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)

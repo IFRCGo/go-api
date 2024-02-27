@@ -2378,7 +2378,7 @@ class ExportSerializer(serializers.ModelSerializer):
         else:
             title = "Export"
         user = self.context['request'].user
-        validated_data['url'] = f'https://{settings.EXPORT_ALLOWED_DOMAIN}/{export_type}/{export_id}/export/'
+        validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:
