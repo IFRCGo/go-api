@@ -818,7 +818,7 @@ class MiniFieldReportSerializer(ModelSerializer):
         )
 
 
-class EventFeaturedDocumentSerializer(ModelSerializer):
+class EventFeaturedDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventFeaturedDocument
         fields = (
@@ -1245,7 +1245,7 @@ class SituationReportTableauSerializer(ModelSerializer):
         )
 
 
-class SituationReportSerializer(ModelSerializer):
+class SituationReportSerializer(serializers.ModelSerializer):
     type = SituationReportTypeSerializer()
     visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
 

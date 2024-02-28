@@ -18,14 +18,16 @@ from .models import (
     RegionEmergencySnippet,
     RegionProfileSnippet,
     RegionPreparednessSnippet,
-    SituationReport,
     SituationReportType,
     Snippet,
     SupportedActivity,
-    EventFeaturedDocument,
     EventLink,
     FieldReport,
     Source,
+    CountryKeyFigure,
+    RegionKeyFigure,
+    KeyFigure,
+    AdminKeyFigure
 )
 
 
@@ -119,11 +121,6 @@ class RegionPreparednessSnippetTO(TranslationOptions):
     fields = ('title', 'snippet',)
 
 
-@register(SituationReport)
-class SituationReportTO(TranslationOptions):
-    fields = ('name',)
-
-
 @register(SituationReportType)
 class SituationReportTypeTO(TranslationOptions):
     fields = ('type',)
@@ -139,11 +136,6 @@ class SupportedActivityTO(TranslationOptions):
     fields = ('name',)
 
 
-@register(EventFeaturedDocument)
-class EventFeaturedDocumentTO(TranslationOptions):
-    fields = ('title', 'description')
-
-
 @register(EventLink)
 class EventLinkTO(TranslationOptions):
     fields = ('title', 'description')
@@ -154,3 +146,27 @@ class SourceTO(TranslationOptions):
     fields = (
         'spec',
     )
+
+
+@register(KeyFigure)
+class KeyFigureTo(TranslationOptions):
+    fields = (
+        'deck',
+    )
+
+
+@register(AdminKeyFigure)
+class AdminKeyFigureTo(TranslationOptions):
+    fields = (
+        'deck',
+    )
+
+
+@register(CountryKeyFigure)
+class CountryKeyFigureTo(TranslationOptions):
+    pass
+
+
+@register(RegionKeyFigure)
+class RegionKeyFigureTo(TranslationOptions):
+    pass

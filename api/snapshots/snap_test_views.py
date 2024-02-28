@@ -30,40 +30,35 @@ snapshots['EventSnaphostTest::test_event_featured_document_api 1'] = {
             'file': None,
             'id': 1,
             'thumbnail': None,
-            'title': 'event-featured-document-title-ZEHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUd',
-            'translation_module_original_language': 'en'
+            'title': 'event-featured-document-title-ZEHDjMGiuNukzNVtLvGGIFTKtEbxvRhALtYUSObMEqPYXLKoUd'
         },
         {
             'description': 'event-featured-document-description-PKoIVUclAlczYFlVscatKMgvsDPIHFiGDrmZhvkUDPqTlaVvYsKRWmlNOzBGufzQgliEupaqypCWrvtLUKaqPxSpdQhDtkzRGTXt',
             'file': None,
             'id': 2,
             'thumbnail': None,
-            'title': 'event-featured-document-title-qVEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXf',
-            'translation_module_original_language': 'en'
+            'title': 'event-featured-document-title-qVEnmIrJSrigNVLppdQHoOodgAvTEgRXiaJkAPEEPmWsusPdXf'
         },
         {
             'description': 'event-featured-document-description-hRnTLFfGCZdDiGADKdJDRZtUbzqaVnLecBwSeIdeEcsAlXiXPUPAxyCyyfRQIiPwhlIzHiUoaWbtDRUIBIyopDwjrmUWhcZQANXb',
             'file': None,
             'id': 3,
             'thumbnail': None,
-            'title': 'event-featured-document-title-ShOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHC',
-            'translation_module_original_language': 'en'
+            'title': 'event-featured-document-title-ShOsxNooiEjDVMxASJEWIZQnWpRWMYfHCHTxeKhdJGmKIjkuHC'
         },
         {
             'description': 'event-featured-document-description-BJFdwPQyYHuSAAjtylWIEpotTjZDdJAAJHiypqnvPfCxfIUmdryRMMcemZWLUQJnEnvtanmVhVWEpSMTnzpJuXsyDIPwtqxGFDgZ',
             'file': None,
             'id': 4,
             'thumbnail': None,
-            'title': 'event-featured-document-title-pnegMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlOR',
-            'translation_module_original_language': 'en'
+            'title': 'event-featured-document-title-pnegMcCMRTdpVczCoInWXdiGsoUKuKMXRuptjQHoAtrdJLVlOR'
         },
         {
             'description': 'event-featured-document-description-lIPdHceQdWaAiOoeTjanGDxdNOQNEQFbaIJAabHUrIsbGSRBZlggHjpmNHqwrYzfxzDKpSotRfPPWcfzyyJEdOaSkfFBPYvKgHco',
             'file': None,
             'id': 5,
             'thumbnail': None,
-            'title': 'event-featured-document-title-UEWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIF',
-            'translation_module_original_language': 'en'
+            'title': 'event-featured-document-title-UEWunxuAcKoVjbqJLLUAsjmvoyKpFJPRvqWFUPVFDkUYwkiUIF'
         }
     ],
     'field_reports': [

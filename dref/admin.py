@@ -11,6 +11,7 @@ from .models import (
     IdentifiedNeed,
     PlannedIntervention,
     RiskSecurity,
+    SourceInformation,
 )
 
 
@@ -60,6 +61,11 @@ class PlannedInterventionAdmin(
 @admin.register(DrefFile)
 class DrefFileAdmin(admin.ModelAdmin):
     search_fields = ("file",)
+
+
+@admin.register(SourceInformation)
+class SourceInformationAdmin(admin.ModelAdmin):
+    search_fields = ("source_name",)
 
 
 @admin.register(Dref)
@@ -202,6 +208,11 @@ class DrefFinalReportAdmin(
         "cover_image",
         "financial_report",
         "risk_security",
+        "needs_identified",
+        "planned_interventions",
+        "users",
+        "national_society_actions",
+        "source_information",
     )
     list_filter = ["dref"]
     search_fields = ["title", "national_society__name", "appeal_code"]
