@@ -951,7 +951,6 @@ class MiniFieldReportSerializer(ModelSerializer):
 
 
 class EventFeaturedDocumentSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = EventFeaturedDocument
         fields = (
