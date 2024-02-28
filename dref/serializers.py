@@ -367,6 +367,7 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
+    other_actor_file_details = DrefFileSerializer(many=True, required=False, allow_null=True, source="other_actor_file")
 
     class Meta:
         model = Dref

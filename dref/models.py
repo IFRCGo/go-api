@@ -154,6 +154,16 @@ class PlannedIntervention(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
+    people_targeted_by_early_action = models.IntegerField(
+        verbose_name=_("people targeted by early action"),
+        null=True,
+        blank=True
+    )
+    people_targeted_by_immediate_response = models.IntegerField(
+        verbose_name=_("people targeted by immediate response"),
+        null=True,
+        blank=True
+    )
     person_targeted = models.IntegerField(verbose_name=_("person targeted"), null=True, blank=True)
     person_assisted = models.IntegerField(verbose_name=_("person assisted"), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True)
@@ -418,6 +428,16 @@ class Dref(models.Model):
         blank=True,
         null=True,
     )
+    threshold_for_early_action = models.TextField(
+        verbose_name=_("threshold for early action"),
+        blank=True,
+        null=True,
+    )
+    lead_time_for_early_action = models.TextField(
+        verbose_name=_("lead time for early action"),
+        blank=True,
+        null=True,
+    )
     planned_interventions = models.ManyToManyField(PlannedIntervention, verbose_name=_("planned intervention"), blank=True)
     did_national_society = models.BooleanField(verbose_name=_("Did National Society"), null=True, blank=True)
     ns_request_date = models.DateField(verbose_name=_("ns request date"), null=True, blank=True)
@@ -428,6 +448,36 @@ class Dref(models.Model):
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    ns_mandate = models.TextField(
+        verbose_name=_("Does the NS have the mandate?"),
+        help_text=_("Does the National Society have the mandate to act before the impact of the hazard?"),
+        blank=True,
+        null=True
+    )
+    ns_eaps = models.TextField(
+        verbose_name=_("Does the NS have EAPS?"),
+        help_text=_("Does the National Society have EAPs or simplified EAPs active, triggered or under development?"),
+        blank=True,
+        null=True
+    )
+    ns_mitigating_measures = models.TextField(
+        verbose_name=_("Does the NS have mitigating measures?"),
+        help_text=_("Is the National Society implementing other mitigating measures through other sources of funds"),
+        blank=True,
+        null=True
+    )
+    ns_disaster_risk_reduction = models.TextField(
+        verbose_name=_("Has the National Society implemented disaster Risk Reduction activities?"),
+        help_text=_("Has the National Society implemented relevant Disaster Risk Reduction activities in the same geographical area that this plan builds upon?"),
+        blank=True,
+        null=True
+    )
+    any_other_actor = models.TextField(
+        verbose_name=_("Actor in country activated early action protocol?"),
+        help_text=_("Has any other actor in the country activated an early action protocol?"),
+        blank=True,
+        null=True
+    )
     ifrc_appeal_manager_name = models.CharField(
         verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
     )
@@ -475,6 +525,17 @@ class Dref(models.Model):
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
+    )
+    ifrc_anticipatory_name = models.CharField(verbose_name=_("ifrc focal point for anticipatory name"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_email = models.CharField(verbose_name=_("ifrc focal point for anticipatory email"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_title = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory title"),
+        max_length=255, null=True, blank=True)
+    ifrc_anticipatory_phone_number = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory phone number"),
+        max_length=100,
+        null=True,
+        blank=True
     )
     originator_name = models.CharField(verbose_name=_("originator name"), max_length=255, null=True, blank=True)
     originator_email = models.CharField(verbose_name=_("originator email"), max_length=255, null=True, blank=True)
@@ -561,6 +622,12 @@ class Dref(models.Model):
         blank=True,
         verbose_name=_("Supporting Document"),
         related_name="dref_supporting_document",
+    )
+    other_actor_file = models.ManyToManyField(
+        "DrefFile",
+        blank=True,
+        verbose_name=_("Other Actor file"),
+        related_name="dref_other_actor_file",
     )
     cover_image = models.ForeignKey(
         "DrefFile",
