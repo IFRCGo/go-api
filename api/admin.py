@@ -160,7 +160,7 @@ class DisasterTypeAdmin(CompareVersionAdmin, TranslationAdmin, admin.ModelAdmin)
     search_fields = ('name',)
 
 
-class KeyFigureInline(admin.TabularInline):
+class KeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.KeyFigure
 
 
@@ -172,11 +172,11 @@ class EventContactInline(admin.TabularInline):
     model = models.EventContact
 
 
-class SituationReportInline(admin.TabularInline, TranslationInlineModelAdmin):
+class SituationReportInline(admin.TabularInline):
     model = models.SituationReport
 
 
-class EventFeaturedDocumentInline(admin.TabularInline, TranslationInlineModelAdmin):
+class EventFeaturedDocumentInline(admin.TabularInline):
     model = models.EventFeaturedDocument
 
 
@@ -459,11 +459,11 @@ class GeneralDocumentAdmin(CompareVersionAdmin, RegionRestrictedAdmin, Translati
     search_fields = ('name', 'document')
 
 
-class CountryKeyFigureInline(admin.TabularInline):
+class CountryKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.CountryKeyFigure
 
 
-class RegionKeyFigureInline(admin.TabularInline):
+class RegionKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.RegionKeyFigure
 
 
@@ -599,7 +599,7 @@ class UserProfileAdmin(CompareVersionAdmin):
         return actions
 
 
-class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+class SituationReportAdmin(CompareVersionAdmin, RegionRestrictedAdmin):
     search_fields = ('name', 'event__name',)
     list_display = ('name', 'link_to_event', 'type', 'visibility',)
     country_in = 'event__countries__in'
