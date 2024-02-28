@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.497
+
+### Added
+ - Migrate all notes from existing PER to new
+ - Using overview to match legacy data
+ - Add migration script for per notes
+ - Add fix for search page
+ - Add missing DREF report autocomplete fields
+ - Add keyfigure translation in country,region and emergency
+ - Remove unwanted fields from translation
+
 ## 1.1.496
 
 ### Added
@@ -2351,7 +2362,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.496...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.497...HEAD
+[1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
 [1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
 [1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495
 [1.1.494]: https://github.com/IFRCGo/go-api/compare/1.1.493...1.1.494
