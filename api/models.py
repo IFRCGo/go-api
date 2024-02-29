@@ -2454,7 +2454,7 @@ class Export(models.Model):
         DREF = 'dref-applications', _('Dref Applications')
         OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
         FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
-        PER = 'per', _('Per')
+        PER = 'per-process', _('Per Process')
 
     export_id = models.IntegerField(verbose_name=_('Export Id'))
     export_type = models.CharField(
