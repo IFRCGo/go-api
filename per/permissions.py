@@ -55,6 +55,10 @@ class PerPermission(permissions.BasePermission):
         return region and region.id
 
 
+class PerDocumentUploadPermission(PerPermission):
+    message = "You don't have permission to Upload Document"
+
+
 class OpsLearningPermission(permissions.BasePermission):
     message = "You don't have permission for Ops Learning records"
 

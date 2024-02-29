@@ -2189,6 +2189,7 @@ class Export(models.Model):
         DREF = 'dref-applications', _('Dref Applications')
         OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
         FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
+        PER = 'per', _('Per')
 
     export_id = models.IntegerField(verbose_name=_('Export Id'))
     export_type = models.CharField(
@@ -2220,11 +2221,6 @@ class Export(models.Model):
         max_length=255,
         null=True, blank=True,
         upload_to="pdf-export/",
-    )
-    selector = models.CharField(
-        verbose_name=_('Selector'),
-        max_length=255,
-        null=True, blank=True
     )
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('user'),

@@ -58,6 +58,8 @@ from .models import (
 )
 from notifications.models import Subscription
 from deployments.models import EmergencyProject, Personnel
+from per.models import Overview
+
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
 from drf_spectacular.utils import extend_schema_field
@@ -2208,7 +2210,6 @@ class ExportSerializer(serializers.ModelSerializer):
             title = Dref.objects.filter(
                 id=export_id
             ).first().title
-            print(title, "**********")
         elif export_type == Export.ExportType.OPS_UPDATE:
             title = DrefOperationalUpdate.objects.filter(
                 id=export_id
@@ -2217,10 +2218,15 @@ class ExportSerializer(serializers.ModelSerializer):
             title = DrefFinalReport.objects.filter(
                 id=export_id
             ).first().title
+        elif export_type == Export.ExportType.PER:
+            overview = Overview.objects.filter(
+                id=export_id
+            ).first()
+            title = f'{overview.country.name}-preparedness-{overview.get_phase_display()}'
         else:
             title = "Export"
         user = self.context['request'].user
-        validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
+        validated_data['url'] = f'https://{settings.EXPORT_ALLOWED_DOMAIN}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:
@@ -2229,7 +2235,7 @@ class ExportSerializer(serializers.ModelSerializer):
             export.save(update_fields=['status', 'requested_at'])
 
             transaction.on_commit(
-                lambda: generate_url.delay(export.url, export.id, export.selector, user.id, title)
+                lambda: generate_url.delay(export.url, export.id, user.id, title)
             )
         return export
 
