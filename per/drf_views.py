@@ -19,6 +19,8 @@ from django.views import View
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.contrib.auth.models import Permission
+
 
 from main.utils import SpreadSheetContentNegotiation
 from .admin_classes import RegionRestrictedAdmin
@@ -723,8 +725,35 @@ class PerDocumentUploadViewSet(viewsets.ModelViewSet):
     serializer_class = PerDocumentUploadSerializer
     filterset_class = PerDocumentFilter
     permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
-    get_request_user_regions = RegionRestrictedAdmin.get_request_user_regions
-    get_filtered_queryset = RegionRestrictedAdmin.get_filtered_queryset
+
+    def filter_per_queryset_by_user_access(self, user, queryset):
+        if user.is_superuser or user.has_perm("api.per_core_admin"):
+            return queryset
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        if len(per_admin_country_id) or len(per_admin_region_id):
+            return queryset.filter(
+                Q(created_by=user)|
+                Q(country__in=per_admin_country_id) |
+                Q(country__region__in=per_admin_region_id)
+            ).distinct()
+        # Normal access
+        return queryset.filter(created_by=user)
 
     def get_queryset(self):
-        return super().get_queryset().filter(created_by=self.request.user)
+        queryset = super().get_queryset()
+        user = self.request.user
+        return self.filter_per_queryset_by_user_access(user, queryset)

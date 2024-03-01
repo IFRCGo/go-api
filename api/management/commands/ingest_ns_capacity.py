@@ -22,7 +22,7 @@ class Command(BaseCommand):
         logger.info('Starting NS Contacts')
 
         # OCAC Assessment
-        OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={settings.FDRS_API_KEY}"
+        OCAC_DATA_API = f"https://data-api.ifrc.org/api/ocacpublic?apiKey={settings.FDRS_APIKEY}"
         resp_ocac = requests.get(OCAC_DATA_API)
         if resp_ocac.status_code != 200:
             text_to_log = "Error querying OCAC at " + url
@@ -62,7 +62,7 @@ class Command(BaseCommand):
         CronJob.sync_cron(body)
 
         # BOCA Assessment
-        BOCA_DATA_API = f"https://data-api.ifrc.org/api/bocapublic?apiKey={settings.FDRS_API_KEY}"
+        BOCA_DATA_API = f"https://data-api.ifrc.org/api/bocapublic?apiKey={settings.FDRS_APIKEY}"
         resp_boca = requests.get(BOCA_DATA_API)
         resp_boca_data = resp_boca.json()
         for item in resp_boca_data:
