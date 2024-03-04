@@ -72,9 +72,7 @@ class Command(BaseCommand):
                                 precipitation=precipitation_monthly
                             )
                         logger.info('Minimum, maximum and Average temperature of country temperature data added successfully')
-                        print('Minimum, maximum and Average temperature of country temperature data added successfully')
 
                 except Exception as ex:
                     logger.error(f'Error in ingesting climate data: {ex}')
-                    print(f'Error in ingesting climate data: {ex}')
                     continue

@@ -73,7 +73,6 @@ class Command(BaseCommand):
                                     existing_data = next((data for data in country_dict[geo_id] if data[2] == indicator), None)
                                     if existing_data is None or existing_data[1] < year:
                                         country_dict[geo_id].append((pop, year, indicator))
-                                        print(country_dict)
                                         logger.info(json.dumps(country_dict))
                         if 'pages' in response.json()[0]:
                             if page >= response.json()[0]['pages']:
