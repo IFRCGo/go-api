@@ -68,7 +68,7 @@ services:
         # Sentry
         - TF_VAR_SENTRY_DSN=${SENTRY_DSN}
         - TF_VAR_SENTRY_SAMPLE_RATE=${SENTRY_SAMPLE_RATE}
-        # Counrty Page
+        # Country Page
         - TF_VAR_FDRS_APIKEY=${FDRS_APIKEY}
         - TF_VAR_NS_CONTACT_USERNAME=${NS_CONTACT_USERNAME}
         - TF_VAR_NS_CONTACT_PASSWORD=${NS_CONTACT_PASSWORD}
