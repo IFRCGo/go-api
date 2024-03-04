@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
         # Fetch country codes
         country_code_url = "https://go-api.ifrc.org/api/NationalSocietiesContacts/"
-        headers = {'Authorization': 'Basic Z290ZXN0dXNlcjoxMjM0NTY='}
+        headers = {'Authorization': f'Basic {settings.NS_DOCUMENT_API_TOKEN}'}
         country_code_response = requests.get(url=country_code_url, headers=headers)
 
         if country_code_response.status_code != 200:

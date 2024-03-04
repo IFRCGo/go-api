@@ -285,3 +285,8 @@ variable "NS_INITIATIVES_API_KEY" {
   type = string
   default = ""
 }
+
+variable "NS_INITIATIVES_API_TOKEN" {
+  type = string
+  default = ""
+}

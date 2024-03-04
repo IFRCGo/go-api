@@ -240,4 +240,9 @@ resource "helm_release" "ifrcgo" {
     name = "env.NS_INITIATIVES_API_KEY"
     value = var.NS_INITIATIVES_API_KEY
   }
+
+  set {
+    name = "env.NS_INITIATIVES_API_TOKEN"
+    value = var.NS_INITIATIVES_API_TOKEN
+  }
 }

@@ -281,6 +281,11 @@ variable "NS_INITIATIVES_API_KEY" {
   default = ""
 }
 
+variable "NS_DOCUMENT_API_TOKEN" {
+  type = string
+  default = ""
+}
+
 # -----------------
 # Attach ACR
 # Defaults to common resources

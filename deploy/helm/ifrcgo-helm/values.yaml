@@ -55,6 +55,7 @@ env:
   ACAPS_API_TOKEN: ''
   NS_DOCUMENT_API_KEY: ''
   NS_INITIATIVES_API_KEY: ''
+  NS_DOCUMENT_API_TOKEN: ''
 
 secrets:
   API_TLS_CRT: ''
