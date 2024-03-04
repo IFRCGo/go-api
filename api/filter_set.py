@@ -6,6 +6,7 @@ from django.db import models
 from api.models import (
     Country,
     District,
+    Region,
     RegionKeyFigure,
     CountryKeyFigure,
     RegionSnippet,
@@ -18,6 +19,9 @@ from api.models import (
     AppealHistory,
     AppealDocument,
     FieldReport,
+    GDACSEvent,
+    CountryKeyDocument,
+    CountrySupportingPartner
 
 )
 from api.view_filters import ListFilter
@@ -83,6 +87,16 @@ class CountryFilterRMD(filters.FilterSet):
             "region": ("exact", "in"),
             "record_type": ("exact", "in"),
         }
+
+
+class CountryKeyDocumentFilter(filters.FilterSet):
+    year__lte = filters.DateFilter(field_name="year", lookup_expr="lte", input_formats=["%Y-%m-%d"])
+    year__gte = filters.DateFilter(field_name="year", lookup_expr="gte", input_formats=["%Y-%m-%d"])
+    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
+
+    class Meta:
+        model = CountryKeyDocument
+        fields= ()
 
 
 class DistrictRMDFilter(filters.FilterSet):
@@ -223,13 +237,31 @@ class AppealFilter(filters.FilterSet):
 class AppealHistoryFilter(filters.FilterSet):
     atype = filters.NumberFilter(field_name="atype", lookup_expr="exact")
     dtype = filters.NumberFilter(field_name="dtype", lookup_expr="exact")
-    country = filters.NumberFilter(field_name="country", lookup_expr="exact")
-    region = filters.NumberFilter(field_name="region", lookup_expr="exact")
+    country = filters.ModelMultipleChoiceFilter(
+        field_name='country',
+        queryset=Country.objects.all()
+    )
+    region = filters.ModelMultipleChoiceFilter(
+        field_name='region',
+        queryset=Region.objects.all()
+    )
     code = filters.CharFilter(field_name="code", lookup_expr="exact")
     status = filters.NumberFilter(field_name="status", lookup_expr="exact")
     # Do not use, misleading: id = filters.NumberFilter(field_name='id', lookup_expr='exact')
     appeal_id = filters.NumberFilter(
         field_name="appeal_id", lookup_expr="exact", help_text="Use this (or code) for appeal identification."
+    )
+    district = filters.ModelMultipleChoiceFilter (
+        field_name="country__district",
+        queryset=District.objects.all(),
+        label="district",
+        method="get_country_district"
+    )
+    admin2 =  filters.ModelMultipleChoiceFilter(
+        field_name="country__district__admin2",
+        queryset=Admin2.objects.all(),
+        label="admin2",
+        method="get_country_admin2",
     )
 
     class Meta:
@@ -243,6 +275,15 @@ class AppealHistoryFilter(filters.FilterSet):
             "country__iso3": ("exact",),
         }
 
+    def get_country_district(self, qs, name, value):
+        if value:
+            return qs.filter(country__district=value).distinct()
+        return qs
+
+    def get_country_admin2(self, qs, name, value):
+        if value:
+            return qs.filter(country__district__admin2=value).distinct()
+        return qs
 
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.ModelMultipleChoiceFilter(
@@ -288,4 +329,33 @@ class GoHistoricalFilter(filters.FilterSet):
 
     class Meta:
         model = Event
+        fields = ()
+
+
+class GDACSEventFileterSet(filters.FilterSet):
+    countries = filters.ModelMultipleChoiceFilter(
+        field_name="countries",
+        queryset=Country.objects.all(),
+        widget=filters.widgets.CSVWidget,
+        method='filter_countries'
+    )
+    disaster_type = filters.NumberFilter(field_name="disaster_type", lookup_expr="exact")
+    publication_date__lte = filters.DateFilter(field_name="publication_date", lookup_expr="lte", input_formats=["%Y-%m-%d"])
+    publication_date__gte = filters.DateFilter(field_name="publication_date", lookup_expr="gte", input_formats=["%Y-%m-%d"])
+
+    class Meta:
+        model = GDACSEvent
+        fields = ()
+
+    def filter_countries(self, queryset, name, country):
+        if len(country):
+            return queryset.filter(countries__in=country).distinct()
+        return queryset
+
+
+class CountrySupportingPartnerFilter(filters.FilterSet):
+    country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
+
+    class Meta:
+        model = CountrySupportingPartner
         fields = ()

@@ -15,8 +15,14 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
+from django.views import View
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from django.contrib.auth.models import Permission
 
+
+from main.utils import SpreadSheetContentNegotiation
 from .admin_classes import RegionRestrictedAdmin
 from api.models import Country
 from deployments.models import SectorTag
@@ -36,6 +42,8 @@ from .models import (
     PerAssessment,
     PerFile,
     PerComponentRating,
+    PerDocumentUpload,
+    FormQuestionGroup,
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -62,16 +70,29 @@ from .serializers import (
     OpsLearningInSerializer,
     OpsLearningCSVSerializer,
     PublicOpsLearningSerializer,
+    PerDocumentUploadSerializer,
+    FormQuestionGroupSerializer
 )
-from per.permissions import PerPermission, OpsLearningPermission
+from per.permissions import (
+    PerPermission,
+    OpsLearningPermission,
+    PerDocumentUploadPermission
+)
 from per.filter_set import (
+    PerDocumentFilter,
     PerOverviewFilter,
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
 from django_filters.widgets import CSVWidget
 from .custom_renderers import NarrowCSVRenderer
+#from per.tasks import export_to_excel
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
+from django.utils import timezone
+from datetime import datetime
+from django.http import HttpResponse
 
 class PERDocsFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -188,6 +209,15 @@ class FormQuestionViewset(viewsets.ReadOnlyModelViewSet):
         )
 
 
+class FormQuestionGroupViewset(viewsets.ReadOnlyModelViewSet):
+    """ PER From Question Group ViewSet"""
+
+    serializer_class = FormQuestionGroupSerializer
+
+    def get_queryset(self):
+        return FormQuestionGroup.objects.select_related('component')
+
+
 class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     """PER Form Answers Viewset"""
 
@@ -209,7 +239,7 @@ class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
             return (
                 Overview.objects.select_related("country", "type_of_assessment")
                 .filter(country_id=country_id)
-                .order_by("-created_at")[:1]  # first() gives error for len() and count()
+                .order_by("-created_at")
             )
         return Overview.objects.none()
 
@@ -225,6 +255,214 @@ class PerOverviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Overview.objects.select_related("country", "user")
         return self.get_filtered_queryset(self.request, queryset, dispatch=0)
+
+
+class ExportPerView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    content_negotiation_class = SpreadSheetContentNegotiation
+
+    def get(self, request, pk, format=None):
+        per = get_object_or_404(Overview, pk=pk)
+        per_queryset = Overview.objects.filter(id=per.id)
+        # if per.extracted_at is None or per.updated_at > per.extracted_at:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Overview"
+        # Overview Columns
+        ws.row_dimensions[1].height = 70
+        overview_columns = [
+            'National Society',
+            'Date of creation (register)',
+            'Date of last update (of the whole process)',
+            'Date of Orientation',
+            'Orientation document uploaded? (Yes/No)',
+            'Date of Current PER Assessment',
+            'Type of Assessment',
+            'Branches involved',
+            #'Method',
+            'EPI Considerations',
+            'Urban Considerations',
+            'Climate and env considerations',
+            'PER process cycle',
+            'Work-plan development date planned',
+            'Work-plan revision date planned',
+            'NS FP name',
+            'NS FP email',
+            'NS FP phone number',
+            'NS Second FP name',
+            'NS Second FP email',
+            'NS Second FP phone number',
+            'Partner FP name',
+            'Partner FP email',
+            'Partner FP phone number',
+            'Partner FP organization',
+            'PER facilitator name',
+            'PER facilitator email',
+            'PER facilitator phone number',
+            'PER facilitator other contact'
+        ]
+        row_num = 1
+
+        # Assign the titles for each cell of the header
+        for col_num, column_title in enumerate(overview_columns, 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.value = column_title
+        for per in per_queryset:
+            row_num += 1
+
+            overview_rows = [
+                per.country.name,
+                per.created_at.date(),
+                per.updated_at.date(),
+                per.date_of_orientation,
+                "Yes" if len(per.orientation_documents.all()) else "No",
+                per.date_of_assessment,
+                per.type_of_assessment.name,
+                per.branches_involved,
+                #per.assessment_method_display(),
+                per.assess_preparedness_of_country,
+                per.assess_urban_aspect_of_country,
+                per.assess_climate_environment_of_country,
+                per.assessment_number,
+                per.workplan_development_date,
+                per.workplan_revision_date,
+                per.ns_focal_point_name,
+                per.ns_focal_point_email,
+                per.ns_focal_point_phone,
+                per.ns_second_focal_point_name,
+                per.ns_second_focal_point_email,
+                per.ns_second_focal_point_phone,
+                per.partner_focal_point_name,
+                per.partner_focal_point_email,
+                per.partner_focal_point_phone,
+                per.partner_focal_point_organization,
+                per.facilitator_name,
+                per.facilitator_email,
+                per.facilitator_phone,
+                per.facilitator_contact
+            ]
+
+            for col_num, cell_value in enumerate(overview_rows, 1):
+                cell = ws.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Assessment
+        ws_assessment = wb.create_sheet('Assessment')
+        ws_assessment.row_dimensions[1].height = 70
+        assessment_columns = [
+            'Component number',
+            'Component description',
+            'Benchmark number',
+            'Benchmark descprition',
+            'Benchmark answer (Yes/No/Partially)',
+            'Consideration notes epi',
+            'Consideration notes urban',
+            'Consideration notes climate',
+            'Component rating',
+            'Component notes'
+        ]
+        assessment_num = 1
+        for col_num, column_title in enumerate(assessment_columns, 1):
+            cell = ws_assessment.cell(row=assessment_num, column=col_num)
+            cell.value = column_title
+
+        assessment_rows = []
+        assessment_queryset = PerAssessment.objects.filter(overview=per.id)
+        if assessment_queryset.exists():
+            for assessent in assessment_queryset.first().area_responses.all():
+                for co in assessent.component_response.all():
+                    question_answer = co.question_responses.all()
+                    for question in question_answer:
+                        assessment_inner = [
+                            co.component.component_num,
+                            co.component.description,
+                            question.question.question_num,
+                            question.question.description,
+                            question.answer.text,
+                            co.epi_considerations,
+                            co.urban_considerations,
+                            co.climate_environmental_considerations,
+                            co.rating.title if co.rating else None,
+                            co.notes
+                        ]
+                        assessment_rows.append(assessment_inner)
+
+        for row_num, row_data in enumerate(assessment_rows, 2):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_assessment.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Prioritization
+        ws_prioritization = wb.create_sheet('Prioritization')
+        ws_prioritization.row_dimensions[1].height = 70
+        prioritization_columns = [
+            'Prioritized component number',
+            'Prioritized component description',
+            'Justification'
+        ]
+        prioritization_num = 1
+        for col_num, column_title in enumerate(prioritization_columns, 1):
+            cell = ws_prioritization.cell(row=prioritization_num, column=col_num)
+            cell.value = column_title
+
+        prioritization_rows = []
+        prioritization_queryset = FormPrioritization.objects.filter(overview=per.id)
+        if prioritization_queryset.exists():
+            for prioritization in prioritization_queryset.first().prioritized_action_responses.all():
+                if prioritization.is_prioritized:
+                    prioritization_inner = [
+                        prioritization.component.component_num,
+                        prioritization.component.description,
+                        prioritization.justification_text
+                    ]
+                    prioritization_rows.append(prioritization_inner)
+
+        for row_num, row_data in enumerate(prioritization_rows, 2):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_prioritization.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        # Workplan
+        ws_workplan = wb.create_sheet('Workplan')
+        ws_workplan.row_dimensions[1].height = 70
+        workplan_columns = [
+            'Actions',
+            'Number of component related',
+            'Description of component related'
+            'Due date',
+            'Suported by',
+            'Status'
+        ]
+        workplan_rows = []
+        workplan_num = 1
+        for col_num, column_title in enumerate(workplan_columns, 1):
+            cell = ws_workplan.cell(row=workplan_num, column=col_num)
+            cell.value = column_title
+
+        workplan_queryset = PerWorkPlan.objects.filter(overview=per.id)
+        if workplan_queryset.exists():
+            for workplan in workplan_queryset.first().prioritized_action_responses.all():
+                workplan_inner = [
+                    workplan.actions,
+                    workplan.component.component_num,
+                    workplan.component.descprition,
+                    workplan.due_date.date(),
+                    workplan.supported_by.name,
+                    workplan.status_display()
+                ]
+                workplan_rows.append(workplan_inner)
+        for row_num, row_data in enumerate(workplan_rows, 2):
+            for col_num, cell_value in enumerate(row_data, 1):
+                cell = ws_workplan.cell(row=row_num, column=col_num)
+                cell.value = cell_value
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = "attachment; filename=export.xlsx"
+        wb.save(response)
+        return response
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
@@ -477,3 +715,45 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context["bom"] = True
 
         return context
+        if OpsLearning.is_user_admin(self.request.user):
+            return OpsLearningSerializer
+        return PublicOpsLearningSerializer
+
+
+class PerDocumentUploadViewSet(viewsets.ModelViewSet):
+    queryset= PerDocumentUpload.objects.all()
+    serializer_class = PerDocumentUploadSerializer
+    filterset_class = PerDocumentFilter
+    permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
+
+    def filter_per_queryset_by_user_access(self, user, queryset):
+        if user.is_superuser or user.has_perm("api.per_core_admin"):
+            return queryset
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        if len(per_admin_country_id) or len(per_admin_region_id):
+            return queryset.filter(
+                Q(created_by=user)|
+                Q(country__in=per_admin_country_id) |
+                Q(country__region__in=per_admin_region_id)
+            ).distinct()
+        # Normal access
+        return queryset.filter(created_by=user)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        return self.filter_per_queryset_by_user_access(user, queryset)

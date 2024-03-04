@@ -2,6 +2,7 @@ import base64
 
 from django.utils.translation import gettext
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 
 
 def pretty_request(request):
@@ -65,3 +66,7 @@ class Echo:
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
+
+
+def bad_request(message):
+    return JsonResponse({"statusCode": 400, "error_message": message}, status=400)

@@ -5,4 +5,5 @@ enum_register = {
     "perphases": models.Overview.Phase,
     "overviewassessmentmethods": models.Overview.AssessmentMethod,
     "component_status": models.FormComponent.FormComponentStatus,
+    "supported_by_organization_type": models.PerWorkPlanComponent.SupportedByOrganizationType,
 }

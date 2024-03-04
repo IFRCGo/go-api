@@ -58,8 +58,9 @@ from registrations.views import (
 from registrations.drf_views import RegistrationView
 from databank.views import CountryOverviewViewSet
 from local_units.views import (
-    LocalUnitListAPIView, LocalUnitDetailAPIView,
-    DelegationOfficeListAPIView, DelegationOfficeDetailAPIView)
+    DelegationOfficeListAPIView,
+    DelegationOfficeDetailAPIView
+)
 
 # DRF routes
 from rest_framework import routers
@@ -74,6 +75,8 @@ from registrations import drf_views as registration_views
 from country_plan import drf_views as country_plan_views
 from lang import views as lang_views
 from dref import views as dref_views
+from local_units import views as local_units_views
+from databank import views as data_bank_views
 
 
 router = routers.DefaultRouter()
@@ -83,10 +86,12 @@ router.register(r'flash-update-action', flash_views.FlashActionViewset, basename
 router.register(r'appeal', api_views.AppealViewset, basename='appeal')
 router.register(r'appeal_document', api_views.AppealDocumentViewset, basename='appeal_document')
 router.register(r'country', api_views.CountryViewset, basename='country')
+router.register(r'country-document', api_views.CountryKeyDocumentViewSet, basename='country_document')
 router.register(r'review-country', api_views.CountryOfFieldReportToReviewViewset, basename='review_country')
 router.register(r'country_rmd', api_views.CountryRMDViewset, basename='country_rmd')
 router.register(r'country_key_figure', api_views.CountryKeyFigureViewset, basename='country_key_figure')
 router.register(r'country_snippet', api_views.CountrySnippetViewset, basename='country_snippet')
+router.register(r'country-supporting-partner', api_views.CountrySupportingPartnerViewSet, basename="country_supporting_partner")
 router.register(r'data-bank/country-overview', CountryOverviewViewSet)
 router.register(r'disaster_type', api_views.DisasterTypeViewset, basename='disaster_type')
 router.register(r'admin2', api_views.Admin2Viewset, basename='admin2')
@@ -105,6 +110,7 @@ router.register(r'language', lang_views.LanguageViewSet, basename='language')
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
+router.register(r'gdacs-event', api_views.GDACSEventViewSet, basename="gdacs_events")
 
 # PER apis
 router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
@@ -117,6 +123,7 @@ router.register(r'per-formanswer', per_views.FormAnswerViewset, basename='per-fo
 router.register(r'per-formarea', per_views.FormAreaViewset, basename='per-formarea')
 router.register(r'per-formcomponent', per_views.FormComponentViewset, basename='per-formcomponent')
 router.register(r'per-formquestion', per_views.FormQuestionViewset, basename='per-formquestion')
+router.register(r'per-formquestion-group', per_views.FormQuestionGroupViewset, basename='per-formquestion-group')
 router.register(r'aggregated-per-process-status', per_views.PerAggregatedViewSet, basename='aggregated-per-process-status'),
 router.register(r'per-file', per_views.PerFileViewSet, basename='per-file')
 router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basename='per-process-status')
@@ -125,6 +132,7 @@ router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
 router.register(r'latest-per-overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
 router.register(r'ops-learning', per_views.OpsLearningViewset, basename='ops_learning')
+router.register(r'per-document-upload', per_views.PerDocumentUploadViewSet, basename='per_document_upload')
 
 router.register(r'personnel_deployment', deployment_views.PersonnelDeploymentViewset, basename='personnel_deployment')
 router.register(r'personnel', deployment_views.PersonnelViewset, basename='personnel')
@@ -164,6 +172,12 @@ router.register(r"pdf-export", api_views.ExportViewSet, basename="export")
 
 # Country Plan apis
 router.register(r"country-plan", country_plan_views.CountryPlanViewset, basename="country_plan")
+
+# local units apis
+router.register(r"local-units", local_units_views.LocalUnitViewSet, basename="local_units")
+
+# databank
+router.register(r"country-income", data_bank_views.FDRSIncomeViewSet, basename="country_income")
 
 admin.site.site_header = "IFRC Go administration"
 admin.site.site_title = "IFRC Go admin"
@@ -210,11 +224,10 @@ urlpatterns = [
     url(r"^api/v2/", include(router.urls)),
     # PER options
     url(r"^api/v2/per-options/", per_views.PerOptionsView.as_view()),
+    url(r"^api/v2/export-per/(?P<pk>\d+)/", per_views.ExportPerView.as_view()),
 
     url(r"^api/v2/event/(?P<pk>\d+)", api_views.EventViewset.as_view({"get": "retrieve"})),
     url(r"^api/v2/event/(?P<slug>[-\w]+)", api_views.EventViewset.as_view({"get": "retrieve"}, lookup_field="slug")),
-    url(r"^api/v2/local-unit/(?P<pk>\d+)", LocalUnitDetailAPIView.as_view()),
-    url(r"^api/v2/local-unit/", LocalUnitListAPIView.as_view()),
     url(r"^api/v2/delegation-office/(?P<pk>\d+)", DelegationOfficeDetailAPIView.as_view()),
     url(r"^api/v2/delegation-office/", DelegationOfficeListAPIView.as_view()),
     url(r"^tinymce/", include("tinymce.urls")),

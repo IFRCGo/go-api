@@ -19,4 +19,5 @@ enum_register = {
     'action_type': models.ActionType,
     'action_category': models.ActionCategory,
     'profile_org_types': models.Profile.OrgTypes,
+    'supporting_type': models.CountrySupportingPartner.SupportingPartnerType,
 }

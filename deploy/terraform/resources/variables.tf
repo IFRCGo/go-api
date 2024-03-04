@@ -116,10 +116,6 @@ variable "ERP_API_SUBSCRIPTION_KEY" {
   type = string
 }
 
-variable "FDRS_APIKEY" {
-  type = string
-}
-
 variable "FDRS_CREDENTIAL" {
   type = string
 }
@@ -255,11 +251,40 @@ variable "API_ADDITIONAL_DOMAIN_TLS_CRT" {
   default = ""
 }
 
-variable "API_ADDITIONAL_DOMAIN_TLS_KEY" {
+variable "FDRS_APIKEY" {
   type = string
   default = ""
 }
 
+variable "NS_CONTACT_USERNAME" {
+  type = string
+  default = ""
+}
+
+variable "NS_CONTACT_PASSWORD" {
+  type = string
+  default = ""
+}
+
+variable "ACAPS_API_TOKEN" {
+  type = string
+  default = ""
+}
+
+variable "NS_DOCUMENT_API_KEY" {
+  type = string
+  default = ""
+}
+
+variable "NS_INITIATIVES_API_KEY" {
+  type = string
+  default = ""
+}
+
+variable "NS_DOCUMENT_API_TOKEN" {
+  type = string
+  default = ""
+}
 
 # -----------------
 # Attach ACR
