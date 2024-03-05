@@ -367,12 +367,12 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
     modified_at = serializers.DateTimeField(required=False)
     dref_access_user_list = serializers.SerializerMethodField()
     source_information = SourceInformationSerializer(many=True, required=False)
-    other_actor_file_details = DrefFileSerializer(many=True, required=False, allow_null=True, source="other_actor_file")
+    other_actor_file_file = DrefFileSerializer(many=True, required=False, allow_null=True, source="other_actor_file")
 
     class Meta:
         model = Dref
         read_only_fields = ("modified_by", "created_by", "budget_file_preview")
-        exclude = ("cover_image", "event_map", "images", "users",)
+        exclude = ("cover_image", "event_map", "images", "users", "other_actor_file")
 
     def get_dref_access_user_list(self, obj) -> List[int]:
         dref_users_list = get_dref_users()
