@@ -40,16 +40,20 @@ class Command(BaseCommand):
             independent=True
         ).exclude(iso3="COK"):
             country_iso3 = country.iso3
+            logger.info(f'Importing country {country_iso3}')
             for indicator in world_bank_indicators:
                 page = 1  # Reset the page for each indicator
                 while True:
-                    response = requests.get(f'https://api.worldbank.org/v2/country/{country_iso3}/indicator/{indicator}?date={daterange}', params={
+                    try:
+                        response = requests.get(f'https://api.worldbank.org/v2/country/{country_iso3}/indicator/{indicator}?date={daterange}', params={
                         'format': 'json',
                         'source': 2,
                         'per_page': 5000 - 1,  # World Bank throws error on 5000
                         'page': page,
-                    })
-                    response.raise_for_status()
+                        })
+                    except requests.exceptions.HTTPError as err:
+                        print(err.response.text)
+                        continue
                     try:
                         data_list = response.json()[1]
                         if data_list is not None and len(data_list) > 0:
@@ -73,7 +77,6 @@ class Command(BaseCommand):
                                     existing_data = next((data for data in country_dict[geo_id] if data[2] == indicator), None)
                                     if existing_data is None or existing_data[1] < year:
                                         country_dict[geo_id].append((pop, year, indicator))
-                                        print(country_dict)
                                         logger.info(json.dumps(country_dict))
                         if 'pages' in response.json()[0]:
                             if page >= response.json()[0]['pages']:

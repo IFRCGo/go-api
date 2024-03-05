@@ -33,5 +33,4 @@ class Command(BaseCommand):
                         }
                         fdrs_data_count += 1
                         FDRSAnnualIncome.objects.get_or_create(**data)
-                        print(f'create count {fdrs_data_count}')
         logger.info(f"Successfully created {fdrs_data_count} country data")

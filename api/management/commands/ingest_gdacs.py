@@ -60,7 +60,7 @@ class Command(BaseCommand):
                 "event_type": alert[nspace + "eventtype"],
                 "alert_level": levels[alert_level],
                 "alert_score": alert_score,
-                "severity": alert[nspace + "severity"]["#text"],
+                "severity": alert[nspace + "severity"].get("#text"),
                 "severity_unit": alert[nspace + "severity"]["@unit"],
                 "severity_value": alert[nspace + "severity"]["@value"],
                 "population_unit": alert[nspace + "population"]["@unit"],
