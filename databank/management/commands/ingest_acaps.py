@@ -2,6 +2,7 @@ import requests
 import datetime as dt
 import xmltodict
 import pandas as pd
+import time
 from dateutil.parser import parse
 
 from django.core.management.base import BaseCommand
@@ -26,6 +27,7 @@ class Command(BaseCommand):
                     "Authorization": "Token %s" % settings.ACAPS_API_TOKEN
                 }
             )
+            logger.info(f'Importing for country {name}')
             response_data = response.json()
             if 'results' in response_data and len(response_data['results']):
                 df = pd.DataFrame.from_records(response_data["results"])
@@ -42,3 +44,4 @@ class Command(BaseCommand):
                             'source_date': df_data[12]
                         }
                         AcapsSeasonalCalender.objects.create(**dict_data)
+            time.sleep(5)
