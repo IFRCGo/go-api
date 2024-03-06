@@ -1,11 +1,17 @@
 import json
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework import serializers
 
-from .models import LocalUnit, LocalUnitType, LocalUnitLevel, DelegationOffice, DelegationOfficeType
+from .models import (
+    LocalUnit,
+    LocalUnitType,
+    LocalUnitLevel,
+    DelegationOffice,
+    DelegationOfficeType,
+)
 from api.models import Country
 
 
-class LocalUnitCountrySerializer(ModelSerializer):
+class LocalUnitCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -14,28 +20,30 @@ class LocalUnitCountrySerializer(ModelSerializer):
         )
 
 
-class LocalUnitTypeSerializer(ModelSerializer):
+class LocalUnitTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitType
         fields = (
-            'name', 'code'
+            'name', 'code', 'id'
         )
 
 
-class LocalUnitLevelSerializer(ModelSerializer):
+class LocalUnitLevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LocalUnitLevel
         fields = (
-            'name', 'level'
+            'name', 'level', 'id'
         )
 
 
-class LocalUnitSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class LocalUnitSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = LocalUnitCountrySerializer()
     type = LocalUnitTypeSerializer()
+    level = LocalUnitLevelSerializer()
+
     class Meta:
         model = LocalUnit
         fields = [
@@ -43,8 +51,8 @@ class LocalUnitSerializer(ModelSerializer):
             'created_at', 'modified_at', 'draft', 'validated', 'postcode',
             'address_loc', 'address_en', 'city_loc', 'city_en', 'link',
             'location', 'focal_person_loc', 'focal_person_en',
-            'source_loc', 'source_en', 'subtype', 'level', 'date_of_data'
-            # 'email', 'phone',
+            'source_loc', 'source_en', 'subtype', 'date_of_data',
+            'email', 'phone', 'level'
             ]
 
     def get_location(self, unit):
@@ -56,7 +64,8 @@ class LocalUnitSerializer(ModelSerializer):
     def get_type(self, unit):
         return {'type'}
 
-class DelegationOfficeCountrySerializer(ModelSerializer):
+
+class DelegationOfficeCountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
@@ -65,7 +74,7 @@ class DelegationOfficeCountrySerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeTypeSerializer(ModelSerializer):
+class DelegationOfficeTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DelegationOfficeType
@@ -74,8 +83,8 @@ class DelegationOfficeTypeSerializer(ModelSerializer):
         )
 
 
-class DelegationOfficeSerializer(ModelSerializer):
-    location = SerializerMethodField()
+class DelegationOfficeSerializer(serializers.ModelSerializer):
+    location = serializers.SerializerMethodField()
     country = DelegationOfficeCountrySerializer()
     dotype = DelegationOfficeTypeSerializer()
 
@@ -112,3 +121,18 @@ class DelegationOfficeSerializer(ModelSerializer):
 
     def get_type(self, office):
         return {'type'}
+
+class LocalUnitOptionsSerializer(serializers.Serializer):
+    type = LocalUnitTypeSerializer(many=True)
+    level = LocalUnitLevelSerializer(many=True)
+
+
+class MiniDelegationOfficeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DelegationOffice
+        fields = (
+            'hod_first_name',
+            'hod_last_name',
+            'hod_mobile_number',
+            'hod_email',
+        )

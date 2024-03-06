@@ -463,7 +463,11 @@ class CountryKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
     model = models.CountryKeyFigure
 
 
-class RegionKeyFigureInline(admin.TabularInline, TranslationInlineModelAdmin):
+class CountryDirectoryInline(admin.TabularInline):
+    model = models.CountryDirectory
+
+
+class RegionKeyFigureInline(admin.TabularInline):
     model = models.RegionKeyFigure
 
 
@@ -506,6 +510,13 @@ class RegionLinkInline(admin.TabularInline):
 class CountryContactInline(admin.TabularInline):
     model = models.CountryContact
 
+class CountryKeyDocumentInline(admin.TabularInline):
+    model = models.CountryKeyDocument
+
+
+class CountryICRCPresenceInline(admin.TabularInline):
+    model = models.CountryICRCPresence
+
 
 class RegionContactInline(admin.TabularInline):
     model = models.RegionContact
@@ -520,6 +531,22 @@ class DistrictAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedA
     modifiable = True
 
 
+class NSDInitiativesAdmin(admin.TabularInline):
+    model = models.NSDInitiatives
+
+
+class CountryCapacityStrengtheningAdmin(admin.TabularInline):
+    model = models.CountryCapacityStrengthening
+
+
+class CountryOrganizationalCapacityAdmin(admin.TabularInline):
+    model = models.CountryOrganizationalCapacity
+
+
+class CountrySupportingPartnerAdmin(admin.TabularInline):
+    model = models.CountrySupportingPartner
+
+
 class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
     country_in = 'pk__in'
     list_filter = ('record_type', 'in_search', 'independent', 'disputed')
@@ -528,7 +555,19 @@ class CountryAdmin(geoadmin.OSMGeoAdmin, CompareVersionAdmin, RegionRestrictedAd
     list_editable = ('record_type',)
     search_fields = ('name',)
     modifiable = True
-    inlines = [CountryKeyFigureInline, CountrySnippetInline, CountryLinkInline, CountryContactInline]
+    inlines = [
+        CountryKeyFigureInline,
+        CountrySnippetInline,
+        CountryLinkInline,
+        CountryContactInline,
+        CountryDirectoryInline,
+        CountryKeyDocumentInline,
+        NSDInitiativesAdmin,
+        CountryCapacityStrengtheningAdmin,
+        CountryOrganizationalCapacityAdmin,
+        CountrySupportingPartnerAdmin,
+        CountryICRCPresenceInline,
+    ]
     exclude = ('key_priorities',)
 
 

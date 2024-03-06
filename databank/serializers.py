@@ -7,6 +7,7 @@ from api.models import (
 )
 from api.serializers import DisasterTypeSerializer
 from .models import (
+    CountryKeyClimate,
     CountryOverview,
 
     SocialEvent,
@@ -14,6 +15,9 @@ from .models import (
     SeasonalCalender,
     KeyDocument,
     ExternalSource,
+    AcapsSeasonalCalender,
+    FDRSIncome,
+    FDRSAnnualIncome
 )
 
 
@@ -86,6 +90,32 @@ class ExternalSourceSerializer(serializers.ModelSerializer):
         exclude = ('overview',)
 
 
+class AcapsSeasonalCalenderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AcapsSeasonalCalender
+        fields = "__all__"
+
+
+class FDRSIncomeSerializer(serializers.ModelSerializer):
+    indicator_display = serializers.CharField(source='get_indicator_display', read_only=True)
+
+    class Meta:
+        model = FDRSIncome
+        fields = "__all__"
+
+
+class FDRSAnnualIncomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FDRSAnnualIncome
+        fields = "__all__"
+
+class CountryKeyClimateSerializer(serializers.ModelSerializer):
+    month_display = serializers.CharField(source='get_month_display', read_only=True)
+
+    class Meta:
+        model = CountryKeyClimate
+        exclude = ('overview',)
+
 class CountryOverviewSerializer(serializers.ModelSerializer):
     school_status_display = serializers.CharField(source='get_school_status_display', read_only=True)
     rainy_season_display = serializers.CharField(source='get_rainy_season_display', read_only=True)
@@ -98,7 +128,17 @@ class CountryOverviewSerializer(serializers.ModelSerializer):
     appeals = AppealSerializer(many=True, read_only=True)
     key_documents = KeyDocumentSerializer(source='keydocument_set', many=True, read_only=True)
     external_sources = ExternalSourceSerializer(source='externalsource_set', many=True, read_only=True)
+    acaps = AcapsSeasonalCalenderSerializer(source="acapsseasonalcalender_set", many=True, read_only=True)
+    founded_date = serializers.SerializerMethodField(source="get_founded_date")
+    # fdrs_income = FDRSIncomeSerializer(source='fdrsincome_set', many=True, read_only=True)
+    key_climate = CountryKeyClimateSerializer(source='countrykeyclimate_set', many=True, read_only=True)
+    fdrs_annual_income = FDRSAnnualIncomeSerializer(source='fdrsannualincome_set', many=True, read_only=True)
 
     class Meta:
         model = CountryOverview
         fields = '__all__'
+
+    def get_founded_date(self, object):
+        return Country.objects.filter(
+            countryoverview=object
+        ).values_list('founded_date', flat=True).first()

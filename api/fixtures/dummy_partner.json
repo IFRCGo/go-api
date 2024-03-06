@@ -1,0 +1,38 @@
+[
+    {
+        "model": "api.countrysupportingpartner",
+        "pk": 1,
+        "fields": {
+            "country": 14,
+            "first_name": "John",
+            "last_name": "Doe",
+            "position": "Marketing Manager",
+            "email": "john.doe@example.com",
+            "supporting_type": 0
+        }
+    },
+    {
+        "model": "api.countrysupportingpartner",
+        "pk": 2,
+        "fields": {
+            "country": 14,
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "position": "Sales Director",
+            "email": "jane.smith@example.com",
+            "supporting_type": 0
+        }
+    },
+    {
+        "model": "api.countrysupportingpartner",
+        "pk": 3,
+        "fields":{
+            "country": 14,
+            "first_name": "Bob",
+            "last_name": "Johnson",
+            "position": "Finance Analyst",
+            "email": "bob.johnson@example.com",
+            "supporting_type": 1
+        }
+    }
+]

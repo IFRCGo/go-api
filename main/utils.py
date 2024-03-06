@@ -11,6 +11,8 @@ from reversion.revisions import _get_options
 from django.utils.dateparse import parse_datetime, parse_date
 from django.db import models, router
 from django.contrib.contenttypes.models import ContentType
+from rest_framework.negotiation import DefaultContentNegotiation
+from rest_framework import exceptions
 
 
 def is_tableau(request):
@@ -161,3 +163,16 @@ class DjangoReversionDataFixHelper:
             parse_datetime,
             lambda x: x.date().isoformat(),
         )
+
+
+class SpreadSheetContentNegotiation(DefaultContentNegotiation):
+    MEDIA_TYPES = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/html',  # To allow download from browser
+    ]
+
+    def select_renderer(self, request, renderers, format_suffix):
+        accepts = self.get_accept_list(request)
+        if not set(self.MEDIA_TYPES).intersection(set(accepts)):
+            raise exceptions.NotAcceptable(available_renderers=renderers)
+        return (None, self.MEDIA_TYPES[0])

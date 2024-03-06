@@ -6,9 +6,20 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views import View
-from django.db.models.functions import TruncMonth, TruncYear
+from django.db.models.functions import TruncMonth, TruncYear, Coalesce
 from django.db.models.fields import IntegerField
-from django.db.models import Count, Sum, Q, F, Case, When
+from django.db import models
+from django.db.models import (
+    Count,
+    Sum,
+    Q,
+    F,
+    Case,
+    When,
+    Subquery,
+    OuterRef,
+    Avg
+)
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.template.loader import render_to_string
@@ -43,7 +54,11 @@ from api.serializers import (
     AggregateByDtypeSerializer,
     AggregateByTimeSeriesInputSerializer,
     SearchInputSerializer,
-    AggregateHeaderFiguresInputSerializer
+    AggregateHeaderFiguresInputSerializer,
+    CountryKeyFigureInputSerializer,
+    CountryKeyFigureSerializer,
+    CountryDisasterTypeCountSerializer,
+    CountryDisasterTypeMonthlySerializer,
 )
 
 

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
@@ -8,7 +10,20 @@ from rest_framework.decorators import action
 from django.http import Http404
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Count, Q, OuterRef
+from django.db.models import (
+    Prefetch,
+    Count,
+    Q,
+    OuterRef,
+    Case,
+    Sum,
+    F,
+    When,
+    Subquery,
+    Avg
+)
+from django.db.models.functions import TruncMonth, TruncYear, Coalesce
+from django.db.models.fields import IntegerField
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
@@ -47,7 +62,11 @@ from .models import (
     MainContact,
     UserCountry,
     CountryOfFieldReportToReview,
-    Export
+    Export,
+    GDACSEvent,
+    CountryKeyDocument,
+    AppealType,
+    CountrySupportingPartner
 )
 
 from country_plan.models import CountryPlan
@@ -103,7 +122,14 @@ from .serializers import (
     # Go Historical
     GoHistoricalSerializer,
     CountryOfFieldReportToReviewSerializer,
-    ExportSerializer
+    ExportSerializer,
+    GDACSEventSerializer,
+    CountryKeyDocumentSerializer,
+    CountryKeyFigureInputSerializer,
+    CountryDisasterTypeCountSerializer,
+    CountryDisasterTypeMonthlySerializer,
+    CountrySupportingPartnerSerializer,
+    HistoricalDisasterSerializer
 )
 from api.filter_set import (
     UserFilterSet,
@@ -122,9 +148,12 @@ from api.filter_set import (
     AppealHistoryFilter,
     AppealDocumentFilter,
     FieldReportFilter,
-    GoHistoricalFilter
+    GoHistoricalFilter,
+    GDACSEventFileterSet,
+    CountryKeyDocumentFilter,
+    CountrySupportingPartnerFilter
 )
-
+from api.utils import bad_request
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 
@@ -215,11 +244,16 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             return CountryGeoSerializer
         return CountryRelationSerializer
 
+    @extend_schema(
+        request=None,
+        responses=CountryOverviewSerializer,
+    )
     @action(
         detail=True,
         url_path="databank",
         # Only for Documentation
         serializer_class=CountryOverviewSerializer,
+        pagination_class=None
     )
     def get_databank(self, request, pk):
         country = self.get_object()
@@ -227,12 +261,224 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             return Response(CountryOverviewSerializer(country.countryoverview).data)
         raise Http404
 
+    # Country property
+    @extend_schema(
+        request=None,
+        parameters=[CountryKeyFigureInputSerializer],
+        responses=CountryKeyFigureSerializer,
+    )
+    @action(
+        detail=True,
+        url_path="figure",
+    )
+    def get_country_figure(self, request, pk):
+        country = self.get_object()
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        appeal_conditions = (
+            (Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL)) & Q(end_date__lte=end_date) & Q(start_date__gte=start_date)
+        )
+
+        all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
+        if start_date and end_date:
+            all_appealhistory =all_appealhistory.filter(
+                start_date__lte=end_date, end_date__gte=start_date
+            )
+
+        all_appealhistory = all_appealhistory.filter(country__id=country.id)
+        appeals_aggregated = all_appealhistory.annotate(
+            appeal_with_dref=Count(
+                Case(
+                    When(Q(atype=AppealType.DREF) & Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=1),
+                    output_field=IntegerField(),
+                )
+            ),
+            appeal_without_dref=Count(Case(When(appeal_conditions, then=1), output_field=IntegerField())),
+            total_appeals_without_dref=Count(
+                Case(When(Q(atype=AppealType.APPEAL) | Q(atype=AppealType.INTL), then=1), output_field=IntegerField())
+            ),
+            total_population=Sum(
+                Case(
+                    When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("num_beneficiaries")),
+                    output_field=IntegerField(),
+                )
+            ),
+            amount_requested_without_dref=Case(When(appeal_conditions, then=F("amount_requested")), output_field=IntegerField()),
+            amount_requested_dref=Case(
+                When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("amount_requested")), output_field=IntegerField()
+            ),
+            amount_funded_without_dref=Case(When(appeal_conditions, then=F("amount_funded")), output_field=IntegerField()),
+            emergencies_count=Count(F("appeal__event"), distinct=True)
+        ).aggregate(
+            active_drefs=Sum("appeal_with_dref"),
+            active_appeals=Sum("appeal_without_dref"),
+            total_appeals=Sum("total_appeals_without_dref"),
+            target_population=Sum("total_population"),
+            amount_requested=Sum("amount_requested_without_dref"),
+            amount_requested_dref_included=Sum("amount_requested_dref"),
+            amount_funded=Sum("amount_funded_without_dref"),
+            emergencies=Sum("emergencies_count"),
+        )
+        return Response(
+            CountryKeyFigureSerializer(
+                appeals_aggregated
+            ).data
+        )
+
+    @extend_schema(
+        request=None,
+        parameters=[CountryKeyFigureInputSerializer],
+        methods=["GET"],
+        responses=CountryDisasterTypeCountSerializer(many=True),
+    )
+    @action(
+        detail=True,
+        url_path="disaster-count",
+        pagination_class=None
+    )
+    def get_country_disaster_count(self, request, pk):
+        country = self.get_object()
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+
+        queryset = Event.objects.filter(
+            countries__in=[country.id],
+            dtype__isnull=False,
+        ).values(
+            'countries',
+            'dtype__name'
+        ).annotate(
+            count=Count('id'),
+            disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
+        ).order_by('countries', 'dtype__name')
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+        return Response(
+            CountryDisasterTypeCountSerializer(
+                queryset, many=True
+            ).data
+        )
+
+    @extend_schema(
+        request=None,
+        parameters=[CountryKeyFigureInputSerializer],
+        responses=CountryDisasterTypeMonthlySerializer(many=True),
+    )
+    @action(
+        detail=True,
+        url_path="disaster-monthly-count",
+        pagination_class=None
+    )
+    def get_country_disaster_monthly_count(self, request, pk):
+        country = self.get_object()
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        queryset =  Event.objects.filter(
+            countries__in=[country.id],
+            dtype__isnull=False,
+        ).annotate(
+            date=TruncMonth('created_at')
+        ).values('date', 'countries').annotate(
+            targeted_population=Avg(
+                'appeals__num_beneficiaries',
+                filter=models.Q(appeals__num_beneficiaries__isnull=False)
+            ),
+            disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
+        ).order_by('date', 'countries', 'dtype__name')
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+
+        return Response(
+            CountryDisasterTypeMonthlySerializer(
+                queryset, many=True
+            ).data
+        )
+
+    @extend_schema(
+        request=None,
+        parameters=[CountryKeyFigureInputSerializer],
+        responses=HistoricalDisasterSerializer(many=True),
+    )
+    @action(
+        detail=True,
+        url_path="historical-disaster",
+        pagination_class=None
+    )
+    def get_country_historical_disaster(self, request, pk):
+        country = self.get_object()
+        end_date = timezone.now()
+        start_date = end_date + timedelta(days=-2*365)
+        start_date = request.GET.get("start_date", start_date)
+        end_date = request.GET.get("end_date", end_date)
+        dtype = request.GET.get("dtype", None)
+
+        queryset = Event.objects.filter(
+            countries__in=[country.id],
+            dtype__isnull=False,
+        ).annotate(
+            date=TruncMonth('created_at')
+        ).values('date', 'dtype', 'countries').annotate(
+            latest_field_report_affected=Coalesce(Subquery(
+                FieldReport.objects.filter(
+                    event=OuterRef("pk")
+                ).order_by().values('event')
+                .annotate(c=models.F('num_affected')).values('c')[:1],
+                output_field=models.IntegerField(),
+            ), 0),
+            disaster_name=F('dtype__name'),
+            disaster_id=F('dtype__id'),
+            amount_funded=F('appeals__amount_funded'),
+            amount_requested=F('appeals__amount_requested'),
+        ).annotate(
+            targeted_population=Coalesce(F('num_affected'), 0) + F("latest_field_report_affected"),
+        ).order_by('date', 'countries', 'dtype__name')
+
+        if start_date and end_date:
+            queryset = queryset.filter(
+                disaster_start_date__gte=start_date,
+                disaster_start_date__lte=end_date
+            )
+
+        if dtype:
+            queryset = queryset.filter(
+                dtype=dtype
+            )
+
+        return Response(
+            HistoricalDisasterSerializer(
+                queryset, many=True
+            ).data
+        )
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
     filterset_class = CountryFilterRMD
     search_fields = ("name",)
     serializer_class = CountrySerializerRMD
+
+
+class CountryKeyDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CountryKeyDocument.objects.select_related('country')
+    serializer_class = CountryKeyDocumentSerializer
+    search_fields = ("name",)
+    # permission_classes = (IsAuthenticated,)
+    filterset_class = CountryKeyDocumentFilter
 
 
 class DistrictRMDViewset(viewsets.ReadOnlyModelViewSet):
@@ -1024,3 +1270,21 @@ class ExportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Export.objects.filter(requested_by=user).distinct()
+
+
+class GDACSEventViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = GDACSEventSerializer
+    filterset_class = GDACSEventFileterSet
+
+    def get_queryset(self):
+        today = timezone.now()
+        thirty_days_before = today + timedelta(days=-30)
+        return GDACSEvent.objects.filter(publication_date__gte=thirty_days_before)
+
+
+class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
+    serializer_class = CountrySupportingPartnerSerializer
+    filterset_class = CountrySupportingPartnerFilter
+
+    def get_queryset(self):
+        return CountrySupportingPartner.objects.select_related('country')

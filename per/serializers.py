@@ -31,6 +31,8 @@ from .models import (
     CustomPerWorkPlanComponent,
     PerFile,
     PerComponentRating,
+    PerDocumentUpload,
+    FormQuestionGroup
 )
 from api.serializers import (
     MiniCountrySerializer,
@@ -86,6 +88,7 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
             "description",
             "area",
             "component_letter",
+            "is_parent"
         )
 
 
@@ -103,7 +106,7 @@ class MiniFormComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormComponent
-        fields = ("id", "component_num", "title", "area", "description", "component_letter")
+        fields = ("id", "component_num", "title", "area", "description", "component_letter", "is_parent")
 
 
 class FormQuestionSerializer(serializers.ModelSerializer):
@@ -119,6 +122,7 @@ class FormQuestionSerializer(serializers.ModelSerializer):
             "answers",
             "description",
             "id",
+            "question_group"
         )
 
 
@@ -348,6 +352,10 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
     component_details = FormComponentSerializer(source="component", read_only=True)
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     supported_by_details = MiniCountrySerializer(source="supported_by", read_only=True)
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
 
     class Meta:
         model = PerWorkPlanComponent
@@ -361,6 +369,8 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
             "status_display",
             "component_details",
             "supported_by_details",
+            "supported_by_organization_type",
+            "supported_by_organization_type_details"
         )
 
 
@@ -621,7 +631,7 @@ class PerComponentRatingSerializer(serializers.ModelSerializer):
 
 class FormComponentResponseSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
     question_responses = QuestionResponsesSerializer(required=False, many=True)
-    rating_details = PerComponentRatingSerializer(source="rating", read_only=True)
+    rating_details = PerComponentRatingSerializer(source="rating", read_only=True, allow_null=True, required=False)
     component_details = FormComponentSerializer(source="component", read_only=True)
 
     class Meta:
@@ -909,3 +919,44 @@ class PublicOpsLearningSerializer(serializers.ModelSerializer):
         model = OpsLearning
         read_only_fields = ("created_at", "modified_at")
         exclude = ("learning", "type", "organization", "sector", "per_component")
+
+
+class PerDocumentUploadSerializer(serializers.ModelSerializer):
+    MAX_NUMBER_OF_DOCUMENTS = 10
+
+    class Meta:
+        model = PerDocumentUpload
+        fields = "__all__"
+
+    def validate(self, data):
+        country = data['country']
+        user_document_count = PerDocumentUpload.objects.filter(
+            country=country,
+            created_by=self.context["request"].user
+        ).count()
+        if user_document_count > self.MAX_NUMBER_OF_DOCUMENTS:
+            raise serializers.ValidationError(
+                {
+                    "file": gettext("Can add utmost %s documents" % self.MAX_NUMBER_OF_DOCUMENTS)
+                }
+            )
+        return data
+
+
+    def create(self, validated_data):
+        validated_data["created_by"] = self.context["request"].user
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+         raise serializers.ValidationError("Update is not allowed")
+
+
+class ExportPerViewSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    url = serializers.CharField(allow_null=True)
+
+
+class FormQuestionGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestionGroup
+        fields = "__all__"

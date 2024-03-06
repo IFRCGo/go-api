@@ -49,7 +49,7 @@ def build_storage_state(tmp_dir, user, token):
 
 
 @shared_task
-def generate_url(url, export_id, selector, user, title):
+def generate_url(url, export_id, user, title):
     export = Export.objects.filter(id=export_id).first()
     user = User.objects.filter(id=user).first()
     token = Token.objects.filter(user=user).last()
@@ -102,10 +102,12 @@ def generate_url(url, export_id, selector, user, title):
                 page = context.new_page()
                 timeout = 300000
                 page.goto(url, timeout=timeout)
-                if selector:
-                    time.sleep(5)
-                    page.wait_for_selector(selector, state="attached", timeout=timeout)
-                file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
+                time.sleep(5)
+                page.wait_for_selector("#pdf-preview-ready", state="attached", timeout=timeout)
+                if export.export_type == Export.ExportType.PER:
+                    file_name = f'PER {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
+                else:
+                    file_name = f'DREF {title} ({datetime.now().strftime("%Y-%m-%d %H-%M-%S")}).pdf'
                 file = ContentFile(
                     page.pdf(
                         display_header_footer=True,

@@ -3,20 +3,21 @@
 from django.db import migrations
 from django.core.management import call_command
 
+def update_question_answer(apps, schema_editor):
+    FormQuestion = apps.get_model("per", "FormQuestion")
+    FormAnswer = apps.get_model("per", "FormAnswer")
+    form_questions = FormQuestion.objects.all()
+    for form_question in form_questions:
+        form_question.answers.add(FormAnswer.objects.get(id=5))  # Hardcoded for now
 
 class Migration(migrations.Migration):
-
-    def forwards_func(apps, schema_editor):
-        print('forwards')
-        call_command('add_partially_answers')
-
-    def reverse_func(apps, schema_editor):
-        print('reverse')
 
     dependencies = [
         ('per', '0089_alter_overview_type_of_previous_assessment'),
     ]
 
     operations = [
-        migrations.RunPython(forwards_func, reverse_func, elidable=False)
+        migrations.RunPython(
+            update_question_answer, reverse_code=migrations.RunPython.noop
+        )
     ]
