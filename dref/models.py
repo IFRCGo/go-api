@@ -94,7 +94,7 @@ class IdentifiedNeed(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
-    current_need = models.TextField(verbose_name=_("current need"), blank=True, null=True)
+    #description is used for "current need" and new field `expected_need` is added for expected need
     expected_need = models.TextField(verbose_name=_("expected need"), blank=True, null=True)
 
     class Meta:
@@ -370,11 +370,7 @@ class Dref(models.Model):
         help_text=_("Any identified gaps/limitations in the assessment"),
     )
     people_assisted = models.TextField(verbose_name=_("people assisted"), blank=True, null=True)
-    targeting_population_early_action = models.TextField(
-        verbose_name=_("Targeting of population at risk for the early actions"),
-        blank=True,
-        null=True,
-    )
+    #`people_assisted` field is used for targeting population for early action and new field `targeting_expected_impacted_population` is added for expected impacted population
     targeting_expected_impacted_population = models.TextField(
         verbose_name=_("targeting expected impacted population"),
         blank=True,
@@ -384,12 +380,7 @@ class Dref(models.Model):
     selection_criteria = models.TextField(
         verbose_name=_("selection criteria"), blank=True, null=True, help_text=_("Selection criteria for affected people")
     )
-    selection_criteria_early_action = models.TextField(
-        verbose_name=_("selection criteria for early action"),
-        blank=True,
-        null=True,
-        help_text=_("For population at risk for the early actions")
-    )
+    #`selection_criteria` is used for early action and new field `selection_criteria_expected_impacted_population` is added for expected impacted population
     selection_criteria_expected_impacted_population = models.TextField(
         verbose_name=_("selection criteria for expected impacted population"),
         blank=True,
