@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from dref import enums as dref_enums
@@ -44,6 +45,8 @@ global_enum_registers = generate_global_enum_register()
 
 def generate_enum_global_serializer(name):
     def _get_enum_key_value_serializer(enum, enum_name):
+        _enum_name = enum_name.replace('EnumSerializer', 'EnumKey')
+        settings.SPECTACULAR_SETTINGS['ENUM_NAME_OVERRIDES'][_enum_name] = enum
         return type(
             enum_name,
             (serializers.Serializer,),
