@@ -288,7 +288,7 @@ class Overview(models.Model):
         ASSESSMENT = 2, _("Assessment")
         PRIORITIZATION = 3, _("Prioritisation")
         WORKPLAN = 4, _("WorkPlan")
-        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accoutability")
+        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accountability")
 
     class AssessmentMethod(models.TextChoices):
         PER = "per", _("PER")

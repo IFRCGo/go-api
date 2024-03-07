@@ -446,10 +446,10 @@ class ExportPerView(views.APIView):
                 workplan_inner = [
                     workplan.actions,
                     workplan.component.component_num,
-                    workplan.component.descprition,
-                    workplan.due_date.date(),
-                    workplan.supported_by.name,
-                    workplan.status_display()
+                    workplan.component.description,
+                    workplan.due_date,
+                    workplan.supported_by.name if workplan.supported_by else None,
+                    #workplan.status_display()
                 ]
                 workplan_rows.append(workplan_inner)
         for row_num, row_data in enumerate(workplan_rows, 2):

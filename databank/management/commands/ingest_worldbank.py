@@ -78,6 +78,7 @@ class Command(BaseCommand):
                                     if existing_data is None or existing_data[1] < year:
                                         country_dict[geo_id].append((pop, year, indicator))
                                         logger.info(json.dumps(country_dict))
+                                        print(country_dict)
                         if 'pages' in response.json()[0]:
                             if page >= response.json()[0]['pages']:
                                 break
@@ -94,8 +95,8 @@ class Command(BaseCommand):
                 overview.world_bank_gni = indicators[5][0]
                 overview.world_bank_gender_inequality_index = indicators[6][0]
                 overview.world_bank_life_expectancy = indicators[7][0]
-                overview.world_bank_literacy_rate = indicators[0][0]
-                overview.world_bank_poverty_rate = indicators[1][0]
+                overview.world_bank_literacy_rate = indicators[8][0]
+                overview.world_bank_poverty_rate = indicators[9][0]
                 overview.save(
                     update_fields=[
                         'world_bank_population',
