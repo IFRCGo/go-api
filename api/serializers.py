@@ -2358,6 +2358,7 @@ class ExportSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         export_id = validated_data.get('export_id')
         export_type = validated_data.get('export_type')
+        country_id = validated_data.get('per_country')
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(
                 id=export_id
@@ -2378,7 +2379,10 @@ class ExportSerializer(serializers.ModelSerializer):
         else:
             title = "Export"
         user = self.context['request'].user
-        validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
+        if export_type == Export.ExportType.PER:
+            validated_data['url'] = f'https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/'
+        else:
+            validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:

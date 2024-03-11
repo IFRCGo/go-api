@@ -433,7 +433,8 @@ class ExportPerView(views.APIView):
             'Number of component related',
             'Description of component related',
             'Due date',
-            'Suported by',
+            'Supported by',
+            'Supporting National Society'
             'Status',
         ]
         workplan_rows = []
@@ -451,6 +452,19 @@ class ExportPerView(views.APIView):
                     workplan.component.description_en,
                     workplan.due_date,
                     workplan.supported_by.name if workplan.supported_by else None,
+                    workplan.get_supported_by_organization_type_display(),
+                    workplan.get_status_display()
+                ]
+                workplan_rows.append(workplan_inner)
+        if workplan_queryset.exists:
+            for workplan in workplan_queryset.first().additional_action_responses.all():
+                workplan_inner = [
+                    workplan.actions,
+                    None,
+                    None,
+                    workplan.due_date,
+                    workplan.supported_by.name if workplan.supported_by else None,
+                    None,
                     workplan.get_status_display()
                 ]
                 workplan_rows.append(workplan_inner)
