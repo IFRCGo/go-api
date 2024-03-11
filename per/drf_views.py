@@ -44,6 +44,7 @@ from .models import (
     PerComponentRating,
     PerDocumentUpload,
     FormQuestionGroup,
+    FormPrioritizationComponent
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -280,7 +281,7 @@ class ExportPerView(views.APIView):
             'Date of Current PER Assessment',
             'Type of Assessment',
             'Branches involved',
-            #'Method',
+            'Method',
             'EPI Considerations',
             'Urban Considerations',
             'Climate and env considerations',
@@ -320,7 +321,7 @@ class ExportPerView(views.APIView):
                 per.date_of_assessment,
                 per.type_of_assessment.name,
                 per.branches_involved,
-                #per.assessment_method_display(),
+                per.get_assessment_method_display(),
                 per.assess_preparedness_of_country,
                 per.assess_urban_aspect_of_country,
                 per.assess_climate_environment_of_country,
@@ -376,9 +377,9 @@ class ExportPerView(views.APIView):
                     for question in question_answer:
                         assessment_inner = [
                             co.component.component_num,
-                            co.component.description,
+                            co.component.description_en,
                             question.question.question_num,
-                            question.question.description,
+                            question.question.description_en,
                             question.answer.text,
                             co.epi_considerations,
                             co.urban_considerations,
@@ -401,23 +402,24 @@ class ExportPerView(views.APIView):
             'Prioritized component description',
             'Justification'
         ]
+        prioritization_rows = []
         prioritization_num = 1
         for col_num, column_title in enumerate(prioritization_columns, 1):
             cell = ws_prioritization.cell(row=prioritization_num, column=col_num)
             cell.value = column_title
 
-        prioritization_rows = []
-        prioritization_queryset = FormPrioritization.objects.filter(overview=per.id)
-        if prioritization_queryset.exists():
-            for prioritization in prioritization_queryset.first().prioritized_action_responses.all():
-                if prioritization.is_prioritized:
-                    prioritization_inner = [
-                        prioritization.component.component_num,
-                        prioritization.component.description,
-                        prioritization.justification_text
-                    ]
-                    prioritization_rows.append(prioritization_inner)
-
+        prioritization_queryset = FormPrioritizationComponent.objects.filter(
+            formprioritization__overview=per.id,
+        )
+        for prioritization in prioritization_queryset:
+            prioritization_inner = [
+                prioritization.component.component_num,
+                prioritization.component.description,
+                prioritization.justification_text
+            ]
+            prioritization_rows.append(
+                prioritization_inner
+            )
         for row_num, row_data in enumerate(prioritization_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_prioritization.cell(row=row_num, column=col_num)
@@ -429,10 +431,10 @@ class ExportPerView(views.APIView):
         workplan_columns = [
             'Actions',
             'Number of component related',
-            'Description of component related'
+            'Description of component related',
             'Due date',
             'Suported by',
-            'Status'
+            'Status',
         ]
         workplan_rows = []
         workplan_num = 1
@@ -446,10 +448,10 @@ class ExportPerView(views.APIView):
                 workplan_inner = [
                     workplan.actions,
                     workplan.component.component_num,
-                    workplan.component.description,
+                    workplan.component.description_en,
                     workplan.due_date,
                     workplan.supported_by.name if workplan.supported_by else None,
-                    #workplan.status_display()
+                    workplan.get_status_display()
                 ]
                 workplan_rows.append(workplan_inner)
         for row_num, row_data in enumerate(workplan_rows, 2):
