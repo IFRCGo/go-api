@@ -126,6 +126,17 @@ class FormQuestionSerializer(serializers.ModelSerializer):
         )
 
 
+class MiniFormQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestion
+        fields = (
+            "component",
+            "question",
+            "id",
+            "question_group"
+        )
+
+
 class MiniQuestionSerailizer(serializers.ModelSerializer):
     class Meta:
         model = FormQuestion
@@ -454,7 +465,7 @@ class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin
 
     class Meta:
         model = FormPrioritizationComponent
-        fields = ("id", "component", "is_prioritized", "justification_text", "component_details")
+        fields = ("id", "component", "justification_text", "component_details")
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
@@ -613,6 +624,8 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
 
 
 class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    question_details = MiniFormQuestionSerializer(source='question', read_only=True)
+
     class Meta:
         model = FormComponentQuestionAndAnswer
         fields = (
@@ -620,6 +633,7 @@ class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializ
             "question",
             "answer",
             "notes",
+            "question_details",
         )
 
 
