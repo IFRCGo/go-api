@@ -9,8 +9,10 @@ from rest_framework.decorators import action as djaction
 from rest_framework import (
     viewsets,
     response,
+    views,
+    permissions,
+    status
 )
-
 from django.conf import settings
 from .permissions import LangStringPermission
 from .serializers import (
@@ -19,7 +21,8 @@ from .serializers import (
     LanguageBulkActionsSerializer,
     LanguageListSerializer,
     LanguageRetriveSerializer,
-    LanguageBulkActionResponseSerializer
+    LanguageBulkActionResponseSerializer,
+    TransLatteSerializer,
 )
 from .models import String
 
@@ -140,3 +143,57 @@ class LanguageViewSet(viewsets.ViewSet):
                 "deleted_strings_keys": deleted_string_keys,
             }
         )
+
+
+class TransLatteView(views.APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, format=None):
+        actions = request.data['actions']
+        lang = settings.LANGUAGES[0][0]
+        for data in actions:
+            action = data['action']
+            key = data['key']
+            page_name = data['page_name']
+            value = data['value']
+
+            if action == 'add':
+                serializer = TransLatteSerializer(
+                    data={
+                        'page_name': page_name,
+                        'key': key,
+                        'value': value,
+                        'language': lang,
+                    }
+                )
+                if serializer.is_valid():
+                    serializer.save()
+                    return response.Response(
+                        serializer.data,
+                        status=status.HTTP_201_CREATED
+                    )
+                else:
+                    return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif action == 'delete':
+                String.objects.filter(page_name=page_name, key=key).delete()
+            elif action == 'update':
+                try:
+                    data_to_update = String.objects.get(page_name=page_name, key=key)
+                except String.DoesNotExist:
+                    return response.Response(
+                        {'error': 'Data not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                serializer = TransLatteSerializer(
+                    data_to_update,
+                    data={'value': value},
+                    partial=True
+                )
+                if serializer.is_valid():
+                    serializer.save()
+                    return response.Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return response.Response({'error': 'Invalid action type'}, status=status.HTTP_400_BAD_REQUEST)
