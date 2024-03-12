@@ -1309,3 +1309,27 @@ class DrefTestCase(APITestCase):
             set(response.data['results'][0]['users']),
             set([user2.id, user3.id, user4.id])
         )
+
+    def test_dref_final_report_change_for_loan_type(self):
+        country_1 = Country.objects.create(name="country1")
+        dref = DrefFactory.create(
+            is_published=True,
+            type_of_dref=Dref.DrefType.LOAN,
+            country=country_1,
+            created_by=self.root_user
+        )
+        final_report = DrefFinalReportFactory.create(
+            is_published=False,
+            country=country_1,
+            type_of_dref=Dref.DrefType.LOAN,
+            dref=dref,
+            created_by=self.root_user
+        )
+        url = f"/api/v2/dref-final-report/{final_report.id}/"
+        data = {
+            "type_of_dref": Dref.DrefType.ASSESSMENT,
+            "modified_at": datetime.now() + timedelta(days=1)
+        }
+        self.authenticate(self.root_user)
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, 400)
