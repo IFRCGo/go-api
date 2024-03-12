@@ -247,3 +247,9 @@ class LanguageBulkActionResponseSerializer(serializers.Serializer):
     new_strings = StringSerializer(many=True, required=False, allow_null=True)
     updated_strings = StringSerializer(many=True, required=False, allow_null=True)
     deleted_strings_keys = serializers.ListField(allow_null=True, required=False)
+
+
+class TransLatteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = String
+        fields = "__all__"
