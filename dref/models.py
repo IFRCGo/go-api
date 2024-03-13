@@ -470,6 +470,12 @@ class Dref(models.Model):
     immediate_displaced_people = models.IntegerField(
         verbose_name=_("displaced people for immediate response"), help_text=_("Estimated number of displaced people for immediate response"), blank=True, null=True
     )
+    immediate_people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_("people targeted with early actions for immediate response"),
+        help_text=_("Number of persons targeted with early actions for immediate response"),
+        blank=True,
+        null=True,
+    )
     #Immediate response activities ends here
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
@@ -1138,6 +1144,12 @@ class DrefOperationalUpdate(models.Model):
     )
     immediate_displaced_people = models.IntegerField(
         verbose_name=_("displaced people for immediate response"), help_text=_("Estimated number of displaced people for immediate response"), blank=True, null=True
+    )
+    immediate_people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_("people targeted with early actions for immediate response"),
+        help_text=_("Number of persons targeted with early actions for immediate response"),
+        blank=True,
+        null=True,
     )
     #Immediate response activities ends here
     operation_objective = models.TextField(

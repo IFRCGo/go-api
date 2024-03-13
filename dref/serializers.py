@@ -734,6 +734,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["immediate_people_per_urban"] = dref.immediate_people_per_urban
             validated_data["immediate_people_per_local"] = dref.immediate_people_per_local
             validated_data["immediate_displaced_people"] = dref.immediate_displaced_people
+            validated_data["immediate_people_targeted_with_early_actions"] = dref.immediate_people_targeted_with_early_actions
 
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
@@ -871,6 +872,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["immediate_people_per_urban"] = dref_operational_update.immediate_people_per_urban
             validated_data["immediate_people_per_local"] = dref_operational_update.immediate_people_per_local
             validated_data["immediate_displaced_people"] = dref_operational_update.immediate_displaced_people
+            validated_data["immediate_people_targeted_with_early_actions"] = dref_operational_update.immediate_people_targeted_with_early_actions
 
             operational_update = super().create(validated_data)
             # XXX: Copy files from DREF (Only nested serialized fields)
