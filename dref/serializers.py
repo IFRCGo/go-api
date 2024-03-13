@@ -293,6 +293,7 @@ class IdentifiedNeedSerializer(ModelSerializer):
             "description",
             "image_url",
             "title_display",
+            "expected_need",
         )
 
     def get_image_url(self, identifiedneed) -> str:
@@ -714,7 +715,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["event_text"] = dref.event_text
             validated_data["did_national_society"] = dref.did_national_society
             validated_data["threshold_for_early_action"] = dref.threshold_for_early_action
-            validated_data["early_action_text"] = dref.early_action_text
+            validated_data["lead_time_for_early_action"] = dref.lead_time_for_early_action
             validated_data["ns_mandate"] = dref.ns_mandate
             validated_data["ns_eaps"] = dref.ns_eaps
             validated_data["ns_mitigating_measures"] = dref.ns_mitigating_measures
@@ -851,7 +852,7 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             validated_data["event_text"] = dref_operational_update.event_text
             validated_data["did_national_society"] = dref_operational_update.did_national_society
             validated_data["threshold_for_early_action"] = dref_operational_update.threshold_for_early_action
-            validated_data["early_action_text"] = dref_operational_update.early_action_text
+            validated_data["lead_time_for_early_action"] = dref_operational_update.lead_time_for_early_action
             validated_data["ns_mandate"] = dref_operational_update.ns_mandate
             validated_data["ns_eaps"] = dref_operational_update.ns_eaps
             validated_data["ns_mitigating_measures"] = dref_operational_update.ns_mitigating_measures
