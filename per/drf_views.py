@@ -399,6 +399,7 @@ class ExportPerView(views.APIView):
         ws_prioritization.row_dimensions[1].height = 70
         prioritization_columns = [
             'Prioritized component number',
+            'Prioritized component letter',
             'Prioritized component description',
             'Justification'
         ]
@@ -414,6 +415,7 @@ class ExportPerView(views.APIView):
         for prioritization in prioritization_queryset:
             prioritization_inner = [
                 prioritization.component.component_num,
+                prioritization.component.component_letter,
                 prioritization.component.description,
                 prioritization.justification_text
             ]
