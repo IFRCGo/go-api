@@ -589,9 +589,11 @@ class PerProcessSerializer(serializers.ModelSerializer):
 
 
 class PublicPerProcessSerializer(serializers.ModelSerializer):
+    country_details = MiniCountrySerializer(source="country", read_only=True)
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
@@ -599,9 +601,15 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "id",
             "assessment_number",
             "date_of_assessment",
+            "country",
+            "country_details",
             "assessment",
             "prioritization",
             "workplan",
+            "created_at",
+            "updated_at",
+            "phase",
+            "phase_display",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
