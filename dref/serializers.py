@@ -16,6 +16,7 @@ from main.writable_nested_serializers import NestedCreateMixin, NestedUpdateMixi
 from api.serializers import UserNameSerializer, DisasterTypeSerializer, MiniDistrictSerializer, MiniCountrySerializer
 
 from dref.models import (
+    ActivityTimeFrame,
     Dref,
     PlannedIntervention,
     PlannedInterventionIndicators,
@@ -49,6 +50,10 @@ class PlannedInterventionIndicatorsSerializer(ModelSerializer):
         model = PlannedInterventionIndicators
         fields = "__all__"
 
+class ActivityTimeFrameSerializer(ModelSerializer):
+    class Meta:
+        model = ActivityTimeFrame
+        fields = "__all__"
 
 class DrefFileInputSerializer(serializers.Serializer):
     file = serializers.ListField(
@@ -232,6 +237,9 @@ class PlannedInterventionSerializer(ModelSerializer):
     image_url = serializers.SerializerMethodField()
     indicators = PlannedInterventionIndicatorsSerializer(many=True, required=False)
     title_display = serializers.CharField(source="get_title_display", read_only=True)
+    readiness_block = ActivityTimeFrameSerializer(many=True, required=False)
+    early_action_block = ActivityTimeFrameSerializer(many=True, required=False)
+    early_response_block = ActivityTimeFrameSerializer(many=True, required=False)
 
     class Meta:
         model = PlannedIntervention
@@ -239,10 +247,22 @@ class PlannedInterventionSerializer(ModelSerializer):
 
     def create(self, validated_data):
         indicators = validated_data.pop("indicators", [])
+        readiness_block = validated_data.pop("readiness_block", [])
+        early_action_block = validated_data.pop("early_action_block", [])
+        early_response_block = validated_data.pop("early_response_block", [])
         intervention = super().create(validated_data)
         for indicator in indicators:
             ind_object = PlannedInterventionIndicators.objects.create(**indicator)
             intervention.indicators.add(ind_object)
+        for readiness in readiness_block:
+            readiness_object = ActivityTimeFrame.objects.create(**readiness)
+            intervention.readiness_block.add(readiness_object)
+        for early_action in early_action_block:
+            early_action_object = ActivityTimeFrame.objects.create(**early_action)
+            intervention.early_action_block.add(early_action_object)
+        for early_response in early_response_block:
+            early_response_object = ActivityTimeFrame.objects.create(**early_response)
+            intervention.early_response_block.add(early_response_object)
         return intervention
 
     def update(self, instance, validated_data):

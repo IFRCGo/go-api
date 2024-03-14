@@ -131,6 +131,17 @@ class PlannedInterventionIndicators(models.Model):
 
     def __str__(self):
         return self.title
+@reversion.register()
+class ActivityTimeFrame(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Title")
+    timeframe = models.IntegerField(verbose_name=_("Timeframe"), help_text=_("Timeframe in weeks"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("activity timeframe")
+        verbose_name_plural = _("activity timeframes")
+
+    def __str__(self):
+        return self.title
 
 
 class PlannedIntervention(models.Model):
@@ -156,9 +167,24 @@ class PlannedIntervention(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
-    readiness_block = models.TextField(verbose_name=_("readiness block"), blank=True, null=True)
-    early_action_block = models.TextField(verbose_name=_("early action block"), blank=True, null=True)
-    early_response_block = models.TextField(verbose_name=_("early response block"), blank=True, null=True)
+    readiness_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Readiness Block"),
+        related_name="planned_intervention_readiness_block",
+        blank=True
+    )
+    early_action_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Early Action Block"),
+        blank=True,
+        related_name="planned_intervention_early_action_block"
+    )
+    early_response_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Early Response Block"),
+        blank=True,
+        related_name="planned_intervention_early_response_block"
+    )
     people_targeted_by_early_action = models.IntegerField(
         verbose_name=_("people targeted by early action"),
         null=True,
