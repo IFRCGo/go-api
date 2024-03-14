@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import Permission
 
 from api.models import Region, Appeal
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -317,6 +318,7 @@ class LatestCountryOverviewInputSerializer(serializers.Serializer):
 class LatestCountryOverviewSerializer(serializers.ModelSerializer):
     type_of_assessment = AssessmentTypeSerializer()
     assessment_ratings = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
@@ -329,6 +331,8 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
             "ns_focal_point_name",
             "ns_focal_point_email",
             "assessment_ratings",
+            "phase",
+            "phase_display",
         )
 
     @extend_schema_field(AssessmentRatingSerializer(many=True))
@@ -337,7 +341,26 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         if not user.is_authenticated:
             return None
         country_id = overview.country_id
-        if country_id:
+        # also get region from the country
+        region_id = overview.country.region_id
+
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+
+        if country_id  in per_admin_country_id or region_id in per_admin_region_id or user.is_superuser or user.has_perm("api.per_core_admin"):
             # NOTE: rating_id=1 means Not Reviewed as defined in per/fixtures/componentratings.json
             filters = ~models.Q(
                 models.Q(area_responses__component_response__rating__isnull=True) |

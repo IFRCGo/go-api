@@ -227,13 +227,24 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
 
-class LatestCountryOverviewViewset(
+class CountryPublicPerStatsViewset(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
-    # permission_classes = (IsAuthenticated,)
     serializer_class = LatestCountryOverviewSerializer
     filterset_class = PerOverviewFilter
+
+    def get_queryset(self):
+        return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
+
+
+class CountryPerStatsViewset(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = LatestCountryOverviewSerializer
+    filterset_class = PerOverviewFilter
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
