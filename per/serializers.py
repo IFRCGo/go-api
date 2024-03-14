@@ -352,6 +352,7 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
                 codename__startswith='per_country_admin_',
             ).values_list('codename', flat=True)
         ]
+        per_admin_country_id = list(map(int, per_admin_country_id))
         per_admin_region_id = [
             codename.replace('per_region_admin_', '')
             for codename in Permission.objects.filter(
@@ -359,6 +360,7 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
                 codename__startswith='per_region_admin_',
             ).values_list('codename', flat=True)
         ]
+        per_admin_region_id = list(map(int, per_admin_region_id))
 
         if country_id  in per_admin_country_id or region_id in per_admin_region_id or user.is_superuser or user.has_perm("api.per_core_admin"):
             # NOTE: rating_id=1 means Not Reviewed as defined in per/fixtures/componentratings.json

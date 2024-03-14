@@ -77,7 +77,8 @@ from .serializers import (
 from per.permissions import (
     PerPermission,
     OpsLearningPermission,
-    PerDocumentUploadPermission
+    PerDocumentUploadPermission,
+    PerGeneralPermission,
 )
 from per.filter_set import (
     PerDocumentFilter,
@@ -496,7 +497,7 @@ class ExportPerView(views.APIView):
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, PerGeneralPermission)
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
     filterset_class = PerWorkPlanFilter
@@ -513,7 +514,7 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, PerGeneralPermission)
     ordering_fields = "__all__"
 
 
@@ -564,7 +565,7 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, PerGeneralPermission]
     ordering_fields = "__all__"
 
     def get_queryset(self):
