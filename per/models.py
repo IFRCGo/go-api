@@ -115,6 +115,10 @@ class FormComponent(models.Model):
         verbose_name=_('Is parent'),
         null=True, blank=True
     )
+    has_question_group = models.BooleanField(
+        verbose_name=_('Has Question Group'),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
