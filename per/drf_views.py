@@ -483,7 +483,6 @@ class ExportPerView(views.APIView):
                     workplan.due_date,
                     workplan.get_supported_by_organization_type_display(),
                     workplan.supported_by.name if workplan.supported_by else None,
-                    None,
                     workplan.get_status_display()
                 ]
                 workplan_rows.append(workplan_inner)

@@ -412,6 +412,11 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
 
 
 class CustomPerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
+
     class Meta:
         model = CustomPerWorkPlanComponent
         fields = "__all__"

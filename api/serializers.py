@@ -55,7 +55,6 @@ from .models import (
     CountryOfFieldReportToReview,
     Export,
     UserCountry,
-    GDACSEvent,
     CountryDirectory,
     CountryKeyDocument,
     NSDInitiatives,
@@ -2397,24 +2396,6 @@ class ExportSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
-
-
-class GDACSEventSerializer(serializers.ModelSerializer):
-    population_value = serializers.IntegerField()
-    countries = MiniCountrySerializer(many=True)
-    disaster_type = DisasterTypeSerializer()
-    class Meta:
-        model = GDACSEvent
-        fields = (
-            "id",
-            "eventid",
-            "title",
-            "countries",
-            "population_unit",
-            "population_value",
-            "disaster_type",
-            "publication_date"
-        )
 
 
 class CountrySupportingPartnerSerializer(serializers.ModelSerializer):

@@ -63,7 +63,6 @@ from .models import (
     UserCountry,
     CountryOfFieldReportToReview,
     Export,
-    GDACSEvent,
     CountryKeyDocument,
     AppealType,
     CountrySupportingPartner
@@ -123,7 +122,6 @@ from .serializers import (
     GoHistoricalSerializer,
     CountryOfFieldReportToReviewSerializer,
     ExportSerializer,
-    GDACSEventSerializer,
     CountryKeyDocumentSerializer,
     CountryKeyFigureInputSerializer,
     CountryDisasterTypeCountSerializer,
@@ -149,7 +147,6 @@ from api.filter_set import (
     AppealDocumentFilter,
     FieldReportFilter,
     GoHistoricalFilter,
-    GDACSEventFileterSet,
     CountryKeyDocumentFilter,
     CountrySupportingPartnerFilter
 )
@@ -1270,16 +1267,6 @@ class ExportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Export.objects.filter(requested_by=user).distinct()
-
-
-class GDACSEventViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = GDACSEventSerializer
-    filterset_class = GDACSEventFileterSet
-
-    def get_queryset(self):
-        today = timezone.now()
-        thirty_days_before = today + timedelta(days=-30)
-        return GDACSEvent.objects.filter(publication_date__gte=thirty_days_before)
 
 
 class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):
