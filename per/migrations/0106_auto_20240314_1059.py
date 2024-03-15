@@ -5,7 +5,7 @@ from django.db import migrations
 
 def update_component_question_group(apps, schema_editor):
     FormComponent = apps.get_model("per", "FormComponent")
-    FormComponent.objects.filter(id=48, formcomponentresponse__rating__isnull=False).update(has_question_group=True)
+    FormComponent.objects.filter(id=48, formcomponentresponse__rating__isnull=True).update(has_question_group=True)
 
 
 class Migration(migrations.Migration):

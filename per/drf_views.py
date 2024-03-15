@@ -364,6 +364,7 @@ class ExportPerView(views.APIView):
             'Benchmark number',
             'Benchmark descprition',
             'Benchmark answer (Yes/No/Partially)',
+            'Benchmark notes',
             'Consideration notes epi',
             'Consideration notes urban',
             'Consideration notes climate',
@@ -391,8 +392,9 @@ class ExportPerView(views.APIView):
                             co.component.component_letter,
                             co.component.description_en,
                             question.question.question_num,
-                            question.question.description_en,
+                            question.question.question,
                             question.answer.text,
+                            question.notes,
                             co.epi_considerations,
                             co.urban_considerations,
                             co.climate_environmental_considerations,
@@ -471,13 +473,15 @@ class ExportPerView(views.APIView):
                     workplan.get_status_display()
                 ]
                 workplan_rows.append(workplan_inner)
-        if workplan_queryset.exists:
+        if workplan_queryset.exists():
             for workplan in workplan_queryset.first().additional_action_responses.all():
                 workplan_inner = [
                     workplan.actions,
                     None,
                     None,
+                    None,
                     workplan.due_date,
+                    workplan.get_supported_by_organization_type_display(),
                     workplan.supported_by.name if workplan.supported_by else None,
                     None,
                     workplan.get_status_display()
