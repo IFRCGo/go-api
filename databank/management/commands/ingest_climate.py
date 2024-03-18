@@ -13,66 +13,42 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = 'Add minimum, maximum and Average temperature of country temperature data from source api'
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '--start_date',
-            action='store',
-            help='Start date to fetch temperature data in the format YYYY-MM-DD'
-        )
-        parser.add_argument(
-            '--end_date',
-            action='store',
-            help='End date to fetch temperature data in the format YYYY-MM-DD'
-        )
 
     def handle(self, *args, **options):
-        for co in CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY).all():
-            centroid = getattr(co.country, 'centroid', None)
-            if centroid:
-                centroid = json.loads(centroid.geojson)
-
-                lat = centroid.get("coordinates", [])[1]
-                lon = centroid.get("coordinates", [])[0]
-                if options['start_date'] and options['end_date']:
-                    response = requests.get(f'https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date={options["start_date"]}&end_date={options["end_date"]}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_hours')
-                else:
-                    response = requests.get(f'https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,precipitation_hours')
-                if response.status_code != 200:
-                    continue
+        for co in CountryOverview.objects.filter(country__record_type=CountryType.COUNTRY, country__iso3__isnull=False).all():
+            country_iso3 = co.country.iso3
+            if country_iso3:
+                response = requests.get(f'https://climateknowledgeportal.worldbank.org/api/v1/cru-x0.5_climatology_tasmin,tas,tasmax,pr_climatology_monthly_1991-2020_mean_historical_cru_ts4.07_mean/{country_iso3}?_format=json')
                 response.raise_for_status()
-                try:
-                    data = response.json()
-                    daily_data = data.get('daily', {})
-                    if daily_data:
-                        monthly_temperatures = defaultdict(list)
-
-                        for i, date_str in enumerate(daily_data.get('time', [])):
-                            max_temp = daily_data.get('temperature_2m_max')[i]
-                            min_temp = daily_data.get('temperature_2m_min')[i]
-                            precipitation = daily_data.get('precipitation_sum')[i]
-                            if date_str and max_temp is not None and min_temp is not None:
-                                date = datetime.strptime(date_str, '%Y-%m-%d')
-                                month_key = (date.year, date.month)
-                                monthly_temperatures[month_key].append((max_temp, min_temp, precipitation))
-                        # Calculate min, max, and avg temperatures for each month
-                        for month_key, temps in monthly_temperatures.items():
-                            year, month = month_key
-                            max_temp_monthly = max(temps, key=lambda x: x[0])[0]
-                            min_temp_monthly = min(temps, key=lambda x: x[1])[1]
-                            avg_temp_monthly = (max_temp_monthly + min_temp_monthly) / 2
-                            precipitation_monthly = sum([x[2] for x in temps])
-
+            try:
+                response_data = response.json()
+                data = response_data.get('data', {})
+                if data:
+                    precipation = data.get('pr', {})
+                    average_temp = data.get('tas', {})
+                    min_temp = data.get('tasmin', {})
+                    max_temp = data.get('tasmax', {})
+                    merged_data = {
+                        country: {
+                            date: (precipation[country][date], average_temp[country][date], min_temp[country][date], max_temp[country][date])
+                            for date in precipation[country]
+                        } for country in precipation
+                    }
+                    for key , value in merged_data.items():
+                        for k, v in value.items():
+                            year_month = k.split('-')
+                            data = {
+                                'year': year_month[0],
+                                'month': year_month[1],
+                                'max_temp' : v[3],
+                                'min_temp' : v[2],
+                                'avg_temp': v[1],
+                                'precipitation' :v[0]
+                            }
                             CountryKeyClimate.objects.create(
                                 overview=co,
-                                year=year,
-                                month=month,
-                                max_temp=max_temp_monthly,
-                                min_temp=min_temp_monthly,
-                                avg_temp=avg_temp_monthly,
-                                precipitation=precipitation_monthly
+                                **data
                             )
-                        logger.info('Minimum, maximum and Average temperature of country temperature data added successfully')
-
-                except Exception as ex:
-                    logger.error(f'Error in ingesting climate data: {ex}')
-                    continue
+            except Exception as ex:
+                logger.error(f'Error in ingesting climate data: {ex}')
+                continue
