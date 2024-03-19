@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import Permission
 
 from api.models import Region, Appeal
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -88,7 +89,8 @@ class FormComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.
             "description",
             "area",
             "component_letter",
-            "is_parent"
+            "is_parent",
+            "has_question_group"
         )
 
 
@@ -121,6 +123,17 @@ class FormQuestionSerializer(serializers.ModelSerializer):
             "question_num",
             "answers",
             "description",
+            "id",
+            "question_group"
+        )
+
+
+class MiniFormQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormQuestion
+        fields = (
+            "component",
+            "question",
             "id",
             "question_group"
         )
@@ -306,6 +319,7 @@ class LatestCountryOverviewInputSerializer(serializers.Serializer):
 class LatestCountryOverviewSerializer(serializers.ModelSerializer):
     type_of_assessment = AssessmentTypeSerializer()
     assessment_ratings = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
@@ -318,6 +332,8 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
             "ns_focal_point_name",
             "ns_focal_point_email",
             "assessment_ratings",
+            "phase",
+            "phase_display",
         )
 
     @extend_schema_field(AssessmentRatingSerializer(many=True))
@@ -326,7 +342,28 @@ class LatestCountryOverviewSerializer(serializers.ModelSerializer):
         if not user.is_authenticated:
             return None
         country_id = overview.country_id
-        if country_id:
+        # also get region from the country
+        region_id = overview.country.region_id
+
+        # Check if country admin
+        per_admin_country_id = [
+            codename.replace('per_country_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_country_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_country_id = list(map(int, per_admin_country_id))
+        per_admin_region_id = [
+            codename.replace('per_region_admin_', '')
+            for codename in Permission.objects.filter(
+                group__user=user,
+                codename__startswith='per_region_admin_',
+            ).values_list('codename', flat=True)
+        ]
+        per_admin_region_id = list(map(int, per_admin_region_id))
+
+        if country_id  in per_admin_country_id or region_id in per_admin_region_id or user.is_superuser or user.has_perm("api.per_core_admin"):
             # NOTE: rating_id=1 means Not Reviewed as defined in per/fixtures/componentratings.json
             filters = ~models.Q(
                 models.Q(area_responses__component_response__rating__isnull=True) |
@@ -375,6 +412,11 @@ class PerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, seria
 
 
 class CustomPerWorkPlanComponentSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    supported_by_organization_type_details = serializers.CharField(
+        source="get_supported_by_organization_type_display",
+        read_only=True
+    )
+
     class Meta:
         model = CustomPerWorkPlanComponent
         fields = "__all__"
@@ -454,7 +496,7 @@ class FormPrioritizationComponentSerializer(NestedCreateMixin, NestedUpdateMixin
 
     class Meta:
         model = FormPrioritizationComponent
-        fields = ("id", "component", "is_prioritized", "justification_text", "component_details")
+        fields = ("id", "component", "justification_text", "component_details")
 
 
 class FormPrioritizationSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
@@ -578,9 +620,11 @@ class PerProcessSerializer(serializers.ModelSerializer):
 
 
 class PublicPerProcessSerializer(serializers.ModelSerializer):
+    country_details = MiniCountrySerializer(source="country", read_only=True)
     assessment = serializers.SerializerMethodField()
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
+    phase_display = serializers.CharField(source="get_phase_display", read_only=True)
 
     class Meta:
         model = Overview
@@ -588,9 +632,15 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "id",
             "assessment_number",
             "date_of_assessment",
+            "country",
+            "country_details",
             "assessment",
             "prioritization",
             "workplan",
+            "created_at",
+            "updated_at",
+            "phase",
+            "phase_display",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -613,6 +663,8 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
 
 
 class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializers.ModelSerializer):
+    question_details = MiniFormQuestionSerializer(source='question', read_only=True)
+
     class Meta:
         model = FormComponentQuestionAndAnswer
         fields = (
@@ -620,6 +672,7 @@ class QuestionResponsesSerializer(NestedCreateMixin, NestedUpdateMixin, serializ
             "question",
             "answer",
             "notes",
+            "question_details",
         )
 
 

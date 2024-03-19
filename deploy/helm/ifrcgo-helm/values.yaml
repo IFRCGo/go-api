@@ -119,8 +119,7 @@ cronjobs:
     schedule: '1 0 * * *'
   - command: 'update_surge_alert_status'
     schedule: '1 */12 * * *'
-  - command: 'ingest_gdacs'
-    schedule: '1 */12 * * *'
+
 
 elasticsearch:
   enabled: true

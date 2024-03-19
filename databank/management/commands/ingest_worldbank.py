@@ -52,7 +52,6 @@ class Command(BaseCommand):
                         'page': page,
                         })
                     except requests.exceptions.HTTPError as err:
-                        print(err.response.text)
                         continue
                     try:
                         data_list = response.json()[1]
@@ -94,8 +93,8 @@ class Command(BaseCommand):
                 overview.world_bank_gni = indicators[5][0]
                 overview.world_bank_gender_inequality_index = indicators[6][0]
                 overview.world_bank_life_expectancy = indicators[7][0]
-                overview.world_bank_literacy_rate = indicators[0][0]
-                overview.world_bank_poverty_rate = indicators[1][0]
+                overview.world_bank_literacy_rate = indicators[8][0]
+                overview.world_bank_poverty_rate = indicators[9][0]
                 overview.save(
                     update_fields=[
                         'world_bank_population',

@@ -110,7 +110,6 @@ router.register(r'language', lang_views.LanguageViewSet, basename='language')
 router.register(r'main_contact', api_views.MainContactViewset, basename='main_contact')
 router.register(r'nslinks', api_views.NSLinksViewset, basename='ns_links')
 router.register(r'partner_deployment', deployment_views.PartnerDeploymentViewset, basename='partner_deployment')
-router.register(r'gdacs-event', api_views.GDACSEventViewSet, basename="gdacs_events")
 
 # PER apis
 router.register(r'per-overview', per_views.PerOverviewViewSet, basename='new_per')
@@ -130,7 +129,8 @@ router.register(r'per-process-status', per_views.PerProcessStatusViewSet, basena
 router.register(r'public-per-process-status', per_views.PublicPerProcessStatusViewSet, basename='public-per-process-status')
 router.register(r'perdocs', per_views.PERDocsViewset)
 router.register(r'per-country', per_views.PerCountryViewSet, basename='per-country')
-router.register(r'latest-per-overview', per_views.LatestCountryOverviewViewset, basename='latest_country_overview')
+router.register(r'public-per-stats', per_views.CountryPublicPerStatsViewset, basename='public_country_per_stats')
+router.register(r'per-stats', per_views.CountryPerStatsViewset, basename='country_per_stats')
 router.register(r'ops-learning', per_views.OpsLearningViewset, basename='ops_learning')
 router.register(r'per-document-upload', per_views.PerDocumentUploadViewSet, basename='per_document_upload')
 

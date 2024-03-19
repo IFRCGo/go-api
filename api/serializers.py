@@ -55,7 +55,6 @@ from .models import (
     CountryOfFieldReportToReview,
     Export,
     UserCountry,
-    GDACSEvent,
     CountryDirectory,
     CountryKeyDocument,
     NSDInitiatives,
@@ -2358,6 +2357,7 @@ class ExportSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         export_id = validated_data.get('export_id')
         export_type = validated_data.get('export_type')
+        country_id = validated_data.get('per_country')
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(
                 id=export_id
@@ -2378,7 +2378,10 @@ class ExportSerializer(serializers.ModelSerializer):
         else:
             title = "Export"
         user = self.context['request'].user
-        validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
+        if export_type == Export.ExportType.PER:
+            validated_data['url'] = f'https://{settings.FRONTEND_URL}/countries/{country_id}/{export_type}/{export_id}/export/'
+        else:
+            validated_data['url'] = f'https://{settings.FRONTEND_URL}/{export_type}/{export_id}/export/'
         validated_data['requested_by'] = user
         export = super().create(validated_data)
         if export.url:
@@ -2393,24 +2396,6 @@ class ExportSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError("Update is not allowed")
-
-
-class GDACSEventSerializer(serializers.ModelSerializer):
-    population_value = serializers.IntegerField()
-    countries = MiniCountrySerializer(many=True)
-    disaster_type = DisasterTypeSerializer()
-    class Meta:
-        model = GDACSEvent
-        fields = (
-            "id",
-            "eventid",
-            "title",
-            "countries",
-            "population_unit",
-            "population_value",
-            "disaster_type",
-            "publication_date"
-        )
 
 
 class CountrySupportingPartnerSerializer(serializers.ModelSerializer):

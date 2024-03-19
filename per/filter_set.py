@@ -13,6 +13,7 @@ from api.models import Country
 class PerOverviewFilter(filters.FilterSet):
     country = filters.ModelMultipleChoiceFilter(field_name="country", queryset=Country.objects.all())
     region = filters.NumberFilter(field_name="country__region")
+    id = filters.NumberFilter(field_name="id")
 
     class Meta:
         model = Overview
