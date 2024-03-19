@@ -8,11 +8,19 @@ from lang.admin import TranslationAdmin
 
 
 class SurgeAlertAdmin(CompareVersionAdmin, RegionRestrictedAdmin, TranslationAdmin):
+
+    @admin.display(description="std")
+    def std(self, obj):
+        return obj.is_stood_down
+
+    std.boolean = True
     country_in = 'event__countries__in'
     region_in = 'event__regions__in'
     autocomplete_fields = ('event',)
     search_fields = ('operation', 'message', 'event__name',)
     readonly_fields = ('molnix_id', 'is_stood_down')
+    list_display = ('__str__', 'message', 'start', 'molnix_id', 'molnix_status', 'status', 'std')
+    list_filter = ('molnix_status', 'status', 'is_stood_down')
 
 
 class SubscriptionAdmin(CompareVersionAdmin):
