@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+## 1.1.498
+
+### Added
+ - List_display and list_filter to SurgeAlertAdmin
+ - Use worldbank for climate data
+ - Remove GDACs-events api
+ - Add supported_by_organization_type in custom workplan actions
+ - Rename api from per-overview to per-stats
+ - Add has_question_group in Component
+ - Add base permission module
+ - Rename latest_country_overview api
+ - Add component_letter in excel export for per forms
+ - Add question_group in question serializers
+ - Add per_country id for per pdf export
+ - Add district population data
+ - Add missing NS_INITIATIVES_API_TOKEN
+ - Add missing environment config for country pages
+
 ## 1.1.497
 
 ### Added
@@ -2362,7 +2380,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## 0.1.20
 
-[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.497...HEAD
+[Unreleased]: https://github.com/IFRCGo/go-api/compare/1.1.498...HEAD
+[1.1.498]: https://github.com/IFRCGo/go-api/compare/1.1.497...1.1.498
 [1.1.497]: https://github.com/IFRCGo/go-api/compare/1.1.496...1.1.497
 [1.1.496]: https://github.com/IFRCGo/go-api/compare/1.1.495...1.1.496
 [1.1.495]: https://github.com/IFRCGo/go-api/compare/1.1.494...1.1.495
