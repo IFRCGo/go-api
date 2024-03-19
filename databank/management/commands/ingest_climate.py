@@ -50,5 +50,5 @@ class Command(BaseCommand):
                                 **data
                             )
             except Exception as ex:
-                logger.error(f'Error in ingesting climate data: {ex}')
+                logger.error(f'Error in ingesting climate data',exc_info=True)
                 continue

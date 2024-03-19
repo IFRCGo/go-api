@@ -52,7 +52,6 @@ class Command(BaseCommand):
                         'page': page,
                         })
                     except requests.exceptions.HTTPError as err:
-                        print(err.response.text)
                         continue
                     try:
                         data_list = response.json()[1]
@@ -78,7 +77,6 @@ class Command(BaseCommand):
                                     if existing_data is None or existing_data[1] < year:
                                         country_dict[geo_id].append((pop, year, indicator))
                                         logger.info(json.dumps(country_dict))
-                                        print(country_dict)
                         if 'pages' in response.json()[0]:
                             if page >= response.json()[0]['pages']:
                                 break
