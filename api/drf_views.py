@@ -280,7 +280,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
         all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
         if start_date and end_date:
-            all_appealhistory =all_appealhistory.filter(
+            all_appealhistory = all_appealhistory.filter(
                 start_date__lte=end_date, end_date__gte=start_date
             )
 
@@ -462,6 +462,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 queryset, many=True
             ).data
         )
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
