@@ -128,7 +128,11 @@ class Country(models.Model):
     """ A country """
 
     name = models.CharField(verbose_name=_('name'), max_length=100)
-    record_type = models.IntegerField(choices=CountryType.choices, verbose_name=_('type'), default=1, help_text=_('Type of entity'))
+    record_type = models.IntegerField(
+        choices=CountryType.choices,
+        verbose_name=_('type'), default=1,
+        help_text=_('Type of entity')
+    )
     iso = models.CharField(
         verbose_name=_('ISO'), max_length=2, null=True, blank=True, unique=True,
         validators=[RegexValidator('^[A-Z]*$', 'ISO must be uppercase')])
@@ -372,6 +376,7 @@ class CountrySupportingPartner(models.Model):
     def __str__(self):
         return f'{self.country.name} - {self.first_name} - {self.last_name}'
 
+
 class CountryKeyDocument(models.Model):
     country = models.ForeignKey(
         Country,
@@ -386,7 +391,7 @@ class CountryKeyDocument(models.Model):
         verbose_name=_('Url'),
         max_length=255
     )
-    thumbnail= models.CharField(
+    thumbnail = models.CharField(
         verbose_name=_('Thumbnail'),
         max_length=255
     )
@@ -894,7 +899,7 @@ class Event(models.Model):
 
     def indexing(self):
         countries = [c.name for c in self.countries.all()]
-        ns =        [c.id   for c in self.countries.all()]
+        ns = [c.id for c in self.countries.all()]
         return {
             'id': self.id,
             'event_id': self.id,
@@ -1054,7 +1059,11 @@ class SituationReport(models.Model):
     type = models.ForeignKey(
         SituationReportType, verbose_name=_('type'), related_name='situation_reports', null=True, on_delete=models.SET_NULL
     )
-    visibility = models.IntegerField(choices=VisibilityChoices.choices, verbose_name=_('visibility'), default=VisibilityChoices.MEMBERSHIP)
+    visibility = models.IntegerField(
+        choices=VisibilityChoices.choices,
+        verbose_name=_('visibility'),
+        default=VisibilityChoices.MEMBERSHIP
+    )
     is_pinned = models.BooleanField(verbose_name=_('is pinned?'), default=False, help_text=_('pin this report at the top'))
 
     class Meta:
@@ -1297,7 +1306,13 @@ class AppealDocument(models.Model):
     appeal = models.ForeignKey(Appeal, verbose_name=_('appeal'), on_delete=models.CASCADE)
     type = models.ForeignKey(AppealDocumentType, verbose_name=_('type'), null=True, on_delete=models.SET_NULL)
     description = models.CharField(verbose_name=_('description'), max_length=200, null=True, blank=True)
-    iso = models.ForeignKey(Country, to_field="iso", db_column="iso", verbose_name=_('location'), null=True, on_delete=models.SET_NULL)
+    iso = models.ForeignKey(
+        Country, to_field="iso",
+        db_column="iso",
+        verbose_name=_('location'),
+        null=True,
+        on_delete=models.SET_NULL
+    )
 
     class Meta:
         verbose_name = _('appeal document')
@@ -1656,22 +1671,42 @@ class FieldReport(models.Model):
     eru_logistics = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU logistics'), default=0)
     eru_logistics_units = models.IntegerField(verbose_name=_('ERU logistics units'), null=True, blank=True)
 
-    eru_deployment_hospital = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU deployment hospital'), default=0)
+    eru_deployment_hospital = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('ERU deployment hospital'),
+        default=0
+    )
     eru_deployment_hospital_units = models.IntegerField(verbose_name=_('ERU deployment hospital units'), null=True, blank=True)
 
-    eru_referral_hospital = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU referral hospital'), default=0)
+    eru_referral_hospital = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('ERU referral hospital'),
+        default=0
+    )
     eru_referral_hospital_units = models.IntegerField(verbose_name=_('ERU referral hospital units'), null=True, blank=True)
 
     eru_relief = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU relief'), default=0)
     eru_relief_units = models.IntegerField(null=True, verbose_name=_('ERU relief units'), blank=True)
 
-    eru_water_sanitation_15 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation M15'), default=0)
+    eru_water_sanitation_15 = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('ERU water sanitation M15'),
+        default=0
+    )
     eru_water_sanitation_15_units = models.IntegerField(verbose_name=_('ERU water sanitation M15 units'), null=True, blank=True)
 
-    eru_water_sanitation_40 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation M40'), default=0)
+    eru_water_sanitation_40 = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('ERU water sanitation M40'),
+        default=0
+    )
     eru_water_sanitation_40_units = models.IntegerField(verbose_name=_('ERU water sanitation M40 units'), null=True, blank=True)
 
-    eru_water_sanitation_20 = models.IntegerField(choices=RequestChoices.choices, verbose_name=_('ERU water sanitation MSM20'), default=0)
+    eru_water_sanitation_20 = models.IntegerField(
+        choices=RequestChoices.choices,
+        verbose_name=_('ERU water sanitation MSM20'),
+        default=0
+    )
     eru_water_sanitation_20_units = models.IntegerField(verbose_name=_('ERU water sanitation MSM20 units'), null=True, blank=True)
 
     # Ugly solution to a design problem with handling Actions

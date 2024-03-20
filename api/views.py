@@ -6,9 +6,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.views import View
-from django.db.models.functions import TruncMonth, TruncYear, Coalesce
+from django.db.models.functions import TruncMonth, TruncYear
 from django.db.models.fields import IntegerField
-from django.db import models
 from django.db.models import (
     Count,
     Sum,
@@ -16,9 +15,6 @@ from django.db.models import (
     F,
     Case,
     When,
-    Subquery,
-    OuterRef,
-    Avg
 )
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -55,10 +51,6 @@ from api.serializers import (
     AggregateByTimeSeriesInputSerializer,
     SearchInputSerializer,
     AggregateHeaderFiguresInputSerializer,
-    CountryKeyFigureInputSerializer,
-    CountryKeyFigureSerializer,
-    CountryDisasterTypeCountSerializer,
-    CountryDisasterTypeMonthlySerializer,
 )
 
 
@@ -182,10 +174,11 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(Personnel)
                         .filter(
-                            (SQ(deploying_country_name__contains=phrase)
-                            | SQ(deployed_to_country_name__contains=phrase)
-                            | SQ(event_name__content=phrase))
-                            & SQ(end_date__gt=datetime.now())
+                            (
+                                SQ(deploying_country_name__contains=phrase) |
+                                SQ(deployed_to_country_name__contains=phrase) |
+                                SQ(event_name__content=phrase)
+                            ) & SQ(end_date__gt=datetime.now())
                         )
                         .order_by("-_score")
                     )
@@ -193,8 +186,11 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(SurgeAlert)
                         .filter(
-                            (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(status='archived')
+                            (
+                                SQ(event_name__content=phrase) |
+                                SQ(country_name__contains=phrase) |
+                                SQ(iso3__contains=phrase)
+                            ) & ~SQ(status='archived')
                         )
                         .order_by("-_score")
                     )
@@ -203,8 +199,11 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(Project)
                         .filter(
-                            (SQ(event_name__content=phrase) | SQ(name__content=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(visibility="IFRC Only")
+                            (
+                                SQ(event_name__content=phrase) |
+                                SQ(name__content=phrase) |
+                                SQ(iso3__contains=phrase)
+                            ) & ~SQ(visibility="IFRC Only")
                         )
                         .order_by("-_score")
                     )
@@ -224,9 +223,9 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(ERU)
                         .filter(
-                            SQ(event_name__content=phrase)
-                            | SQ(country__contains=phrase)
-                            | SQ(iso3__contains=phrase) & ~SQ(visibility="IFRC Only")
+                            SQ(event_name__content=phrase) |
+                            SQ(country__contains=phrase) |
+                            SQ(iso3__contains=phrase) & ~SQ(visibility="IFRC Only")
                         )
                         .order_by("-_score")
                     )
@@ -235,12 +234,10 @@ class HayStackSearch(APIView):
                         .models(Personnel)
                         .filter(
                             (
-                                SQ(deploying_country_name__contains=phrase)
-                                | SQ(deployed_to_country_name__contains=phrase)
-                                | SQ(event_name__content=phrase)
-                            )
-                            & ~SQ(visibility="IFRC Only")
-                            & SQ(end_date__gt=datetime.now())
+                                SQ(deploying_country_name__contains=phrase) |
+                                SQ(deployed_to_country_name__contains=phrase) |
+                                SQ(event_name__content=phrase)
+                            ) & ~SQ(visibility="IFRC Only") & SQ(end_date__gt=datetime.now())
                         )
                         .order_by("-_score")
                     )
@@ -248,9 +245,11 @@ class HayStackSearch(APIView):
                         SearchQuerySet()
                         .models(SurgeAlert)
                         .filter(
-                            (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                            & ~SQ(visibility="IFRC Only")
-                            & ~SQ(status='archived')
+                            (
+                                SQ(event_name__content=phrase) |
+                                SQ(country_name__contains=phrase) |
+                                SQ(iso3__contains=phrase)
+                            ) & ~SQ(visibility="IFRC Only") & ~SQ(status='archived')
                         )
                         .order_by("-_score")
                     )
@@ -260,8 +259,11 @@ class HayStackSearch(APIView):
                     SearchQuerySet()
                     .models(Project)
                     .filter(
-                        (SQ(event_name__content=phrase) | SQ(name__content=phrase) | SQ(iso3__contains=phrase))
-                        & SQ(visibility="Public")
+                        (
+                            SQ(event_name__content=phrase) |
+                            SQ(name__content=phrase) |
+                            SQ(iso3__contains=phrase)
+                        ) & SQ(visibility="Public")
                     )
                     .order_by("-_score")
                 )
@@ -281,9 +283,10 @@ class HayStackSearch(APIView):
                     SearchQuerySet()
                     .models(ERU)
                     .filter(
-                        SQ(event_name__content=phrase)
-                        | SQ(country__contains=phrase)
-                        | SQ(iso3__contains=phrase) & SQ(visibility="Public")
+                        SQ(event_name__content=phrase) |
+                        SQ(country__contains=phrase) |
+                        SQ(iso3__contains=phrase) &
+                        SQ(visibility="Public")
                     )
                     .order_by("-_score")
                 )
@@ -292,12 +295,10 @@ class HayStackSearch(APIView):
                     .models(Personnel)
                     .filter(
                         (
-                            SQ(deploying_country_name__contains=phrase)
-                            | SQ(deployed_to_country_name__contains=phrase)
-                            | SQ(event_name__content=phrase)
-                        )
-                        & SQ(visibility="Public")
-                        & SQ(end_date__gt=datetime.now())
+                            SQ(deploying_country_name__contains=phrase) |
+                            SQ(deployed_to_country_name__contains=phrase) |
+                            SQ(event_name__content=phrase)
+                        ) & SQ(visibility="Public") & SQ(end_date__gt=datetime.now())
                     )
                     .order_by("-_score")
                 )
@@ -305,9 +306,11 @@ class HayStackSearch(APIView):
                     SearchQuerySet()
                     .models(SurgeAlert)
                     .filter(
-                        (SQ(event_name__content=phrase) | SQ(country_name__contains=phrase) | SQ(iso3__contains=phrase))
-                        & SQ(visibility="Public")
-                        & ~SQ(status='archived')
+                        (
+                            SQ(event_name__content=phrase) |
+                            SQ(country_name__contains=phrase) |
+                            SQ(iso3__contains=phrase)
+                        ) & SQ(visibility="Public") & ~SQ(status='archived')
                     )
                     .order_by("-_score")
                 )

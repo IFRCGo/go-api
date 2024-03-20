@@ -70,7 +70,7 @@ from per.models import Overview
 # from api.utils import pdf_exporter
 from api.tasks import generate_url
 from drf_spectacular.utils import extend_schema_field
-from dref.models import(
+from dref.models import (
     Dref,
     DrefOperationalUpdate,
     DrefFinalReport
@@ -598,7 +598,7 @@ class RegionRelationSerializer(ModelSerializer):
     country_cluster_count = serializers.SerializerMethodField()
     country_plan_count = serializers.IntegerField(read_only=True)
     bbox = serializers.SerializerMethodField()
-    #centroid = serializers.SerializerMethodField()
+    # centroid = serializers.SerializerMethodField()
 
     class Meta:
         model = Region
@@ -631,6 +631,7 @@ class RegionRelationSerializer(ModelSerializer):
     @staticmethod
     def get_bbox(region) -> dict:
         return region.bbox and json.loads(region.bbox.geojson)
+
 
 class CountryDirectorySerializer(ModelSerializer):
     class Meta:
@@ -778,6 +779,7 @@ class CountryRelationSerializer(ModelSerializer):
 
 class CountryKeyDocumentSerializer(ModelSerializer):
     country_details = MiniCountrySerializer(source='country', read_only=True)
+
     class Meta:
         model = CountryKeyDocument
         fields = "__all__"
@@ -2296,10 +2298,12 @@ class AggregateByDtypeSerializer(serializers.Serializer):
     dtype = serializers.IntegerField()
     count = serializers.IntegerField()
 
+
 class CountryKeyFigureInputSerializer(serializers.Serializer):
     start_date = serializers.DateField(required=False)
     end_date = serializers.DateField(required=False)
     dtype = serializers.IntegerField(required=False)
+
 
 class CountryKeyClimateInputSerializer(serializers.Serializer):
     year = serializers.IntegerField(required=False)

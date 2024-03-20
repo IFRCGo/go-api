@@ -22,7 +22,7 @@ from django.db.models import (
     Subquery,
     Avg
 )
-from django.db.models.functions import TruncMonth, TruncYear, Coalesce
+from django.db.models.functions import TruncMonth, Coalesce
 from django.db.models.fields import IntegerField
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -150,7 +150,6 @@ from api.filter_set import (
     CountryKeyDocumentFilter,
     CountrySupportingPartnerFilter
 )
-from api.utils import bad_request
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 
@@ -271,7 +270,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_figure(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
         appeal_conditions = (
@@ -280,7 +279,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
         all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
         if start_date and end_date:
-            all_appealhistory =all_appealhistory.filter(
+            all_appealhistory = all_appealhistory.filter(
                 start_date__lte=end_date, end_date__gte=start_date
             )
 
@@ -304,7 +303,8 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
             ),
             amount_requested_without_dref=Case(When(appeal_conditions, then=F("amount_requested")), output_field=IntegerField()),
             amount_requested_dref=Case(
-                When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("amount_requested")), output_field=IntegerField()
+                When(Q(end_date__gte=start_date) & Q(start_date__lte=end_date), then=F("amount_requested")),
+                output_field=IntegerField()
             ),
             amount_funded_without_dref=Case(When(appeal_conditions, then=F("amount_funded")), output_field=IntegerField()),
             emergencies_count=Count(F("appeal__event"), distinct=True)
@@ -338,7 +338,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_disaster_count(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
 
@@ -378,10 +378,10 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_disaster_monthly_count(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
-        queryset =  Event.objects.filter(
+        queryset = Event.objects.filter(
             countries__in=[country.id],
             dtype__isnull=False,
         ).annotate(
@@ -420,7 +420,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_historical_disaster(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
         dtype = request.GET.get("dtype", None)
@@ -462,6 +462,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 queryset, many=True
             ).data
         )
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")

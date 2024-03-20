@@ -95,7 +95,7 @@ class CountryKeyDocumentFilter(filters.FilterSet):
 
     class Meta:
         model = CountryKeyDocument
-        fields= ()
+        fields = ()
 
 
 class DistrictRMDFilter(filters.FilterSet):
@@ -250,13 +250,13 @@ class AppealHistoryFilter(filters.FilterSet):
     appeal_id = filters.NumberFilter(
         field_name="appeal_id", lookup_expr="exact", help_text="Use this (or code) for appeal identification."
     )
-    district = filters.ModelMultipleChoiceFilter (
+    district = filters.ModelMultipleChoiceFilter(
         field_name="country__district",
         queryset=District.objects.all(),
         label="district",
         method="get_country_district"
     )
-    admin2 =  filters.ModelMultipleChoiceFilter(
+    admin2 = filters.ModelMultipleChoiceFilter(
         field_name="country__district__admin2",
         queryset=Admin2.objects.all(),
         label="admin2",
@@ -283,6 +283,7 @@ class AppealHistoryFilter(filters.FilterSet):
         if value:
             return qs.filter(country__district__admin2=value).distinct()
         return qs
+
 
 class AppealDocumentFilter(filters.FilterSet):
     appeal = filters.ModelMultipleChoiceFilter(
