@@ -1,5 +1,6 @@
 import os
 import json
+from sentry_sdk.crons import monitor
 from requests import Session, exceptions as reqexc
 from requests.adapters import HTTPAdapter
 from datetime import datetime, timezone, timedelta
@@ -10,6 +11,7 @@ from api.models import AppealType, Appeal, AppealFilter, Region, Country, Disast
 from api.fixtures.dtype_map import DISASTER_TYPE_MAPPING
 from api.logger import logger
 from api.create_cron import create_cron_record
+from main.sentry import SentryMonitor
 
 
 CRON_NAME = "ingest_appeals"
@@ -18,7 +20,7 @@ DTYPE_KEYS = [a.lower() for a in DISASTER_TYPE_MAPPING.keys()]
 DTYPE_VALS = [a.lower() for a in DISASTER_TYPE_MAPPING.values()]
 GEC_CODES = GECCode.objects.select_related("country").all()
 
-
+@monitor(monitor_slug=SentryMonitor.INGEST_APPEALS)
 class Command(BaseCommand):
     help = "Add new entries from Access database file"
 

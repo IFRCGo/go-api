@@ -7,6 +7,8 @@ from django.core.management.base import BaseCommand
 from django.core.files.base import File
 from django.conf import settings
 from django.db import models
+from sentry_sdk.crons import monitor
+from main.sentry import SentryMonitor
 
 from main.utils import DownloadFileManager
 from api.models import Country
@@ -50,7 +52,7 @@ def get_meta_from_url(url) -> Tuple[Optional[str], str]:
     resp = requests.head(url)
     return resp.headers.get('Content-Type'), _get_filename_from_headers(resp)
 
-
+@monitor(monitor_slug=SentryMonitor.INGEST_COUNTRY_PLAN_FILE)
 class Command(BaseCommand):
     @staticmethod
     def load_file_to_country_plan(country_plan: CountryPlan, url: str, filename: str, field_name: str):

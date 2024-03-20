@@ -1,6 +1,8 @@
 import os
-
+import enum
 import sentry_sdk
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from celery.exceptions import Retry as CeleryRetry
 from sentry_sdk.integrations.logging import ignore_logger
@@ -94,3 +96,19 @@ def init_sentry(app_type, tags={}, **config):
         scope.set_tag('app_type', app_type)
         for tag, value in tags.items():
             scope.set_tag(tag, value)
+
+
+class SentryMonitor(models.TextChoices):
+    '''
+    This class is used to create Sentry monitor of cron jobs
+    @Note: Before adding the jobs to this class, make sure to add the job to the `Values.yaml` file
+    '''
+    INDEX_AND_NOTIFY = 'index_and_notify', _('*/5 * * * *')
+    SYNC_MOLNIX = 'sync_molnix', _('*/10 * * * *')
+    INGEST_APPEALS = 'ingest_appeals', _('45 */2 * * *')
+    SYNC_APPEALDOCS = 'sync_appealdocs', _('15 * * * *')
+    REVOKE_STAFF_STATUS = 'revoke_staff_status', _('51 * * * *')
+    UPDATE_PROJECT_STATUS = 'update_project_status', _('1 3 * * *')
+    USER_REGISTRATION_REMINDER = 'user_registration_reminder', _('0 9 * * *')
+    INGEST_COUNTRY_PLAN_FILE = 'ingest_country_plan_file', _('1 0 * * *')
+    UPDATE_SURGE_ALERT_STATUS = 'update_surge_alert_status', _('1 */12 * * *')
