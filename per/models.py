@@ -209,6 +209,7 @@ class FormAnswer(models.Model):
     def __str__(self):
         return self.text
 
+
 @reversion.register()
 class FormQuestionGroup(models.Model):
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
