@@ -18,8 +18,6 @@ class Command(BaseCommand):
             if interventions_to_create:
                 ActivityTimeFrame.objects.bulk_create(interventions_to_create)
                 pi.early_action_block.add(*interventions_to_create)
-                pi.description = None
-                pi.save()
                 logger.info(f"Created {len(interventions_to_create)} early action blocks for planned intervention")
         if not interventions_to_create:
             logger.info(f"No early action blocks created for planned intervention")
