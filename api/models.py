@@ -2454,7 +2454,7 @@ class Export(models.Model):
         DREF = 'dref-applications', _('Dref Applications')
         OPS_UPDATE = 'dref-operational-updates', _('Dref Operational Updates')
         FINAL_REPORT = 'dref-final-reports', _('Dref Final Reports')
-        PER = 'per-process', _('Per Process')
+        PER = 'per', _('Per')
 
     export_id = models.IntegerField(verbose_name=_('Export Id'))
     export_type = models.CharField(
@@ -2491,6 +2491,11 @@ class Export(models.Model):
         settings.AUTH_USER_MODEL, verbose_name=_('user'),
         null=True, blank=True,
         on_delete=models.SET_NULL,
+    )
+    per_country = models.IntegerField(
+        verbose_name=_('Per Country Id'),
+        null=True,
+        blank=True
     )
 
     def __str__(self):

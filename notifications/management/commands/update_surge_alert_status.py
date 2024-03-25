@@ -4,20 +4,22 @@ from django.db import models
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from notifications.models import SurgeAlert, SurgeAlertStatus
+from api.models import CronJob, CronJobStatus
 
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     '''
-        Updating the Alert Status according:
+        Updating the Surge Alert Status according:
         If the alert status is marked as stood_down, then the status is Stood Down.
         If the closing timestamp (closes) is earlier than the current date, the status is displayed as Closed. Otherwise, it is displayed as Open.
     '''
-    help = 'Update alert status'
+    help = 'Update surge alert status'
 
     def handle(self, *args, **options):
         now = timezone.now()
         try:
+            logger.info('Updating Surge alerts status')
             SurgeAlert.objects.update(
                 status=models.Case(
                     models.When(is_stood_down=True, then=models.Value(SurgeAlertStatus.STOOD_DOWN)),
@@ -27,5 +29,16 @@ class Command(BaseCommand):
                     output_field=models.IntegerField()
                 )
             )
+            CronJob.sync_cron({
+                'name': 'update_surge_alert_status',
+                'message': f'Updated Surge alerts status',
+                'status': CronJobStatus.SUCCESSFUL,
+            })
+            logger.info('Updated Surge alerts status')
         except Exception as e:
-            logger.error('Error while updating alerts status', exc_info=True)
+            CronJob.sync_cron({
+                'name': 'update_surge_alert_status',
+                'message': f'Error while updating Surge alerts status\n\nException:\n{str(e)}',
+                'status': CronJobStatus.ERRONEOUS,
+            })
+            logger.error('Error while updating surge alerts status', exc_info=True)

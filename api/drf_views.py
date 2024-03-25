@@ -63,7 +63,6 @@ from .models import (
     UserCountry,
     CountryOfFieldReportToReview,
     Export,
-    GDACSEvent,
     CountryKeyDocument,
     AppealType,
     CountrySupportingPartner
@@ -123,7 +122,6 @@ from .serializers import (
     GoHistoricalSerializer,
     CountryOfFieldReportToReviewSerializer,
     ExportSerializer,
-    GDACSEventSerializer,
     CountryKeyDocumentSerializer,
     CountryKeyFigureInputSerializer,
     CountryDisasterTypeCountSerializer,
@@ -149,7 +147,6 @@ from api.filter_set import (
     AppealDocumentFilter,
     FieldReportFilter,
     GoHistoricalFilter,
-    GDACSEventFileterSet,
     CountryKeyDocumentFilter,
     CountrySupportingPartnerFilter
 )
@@ -283,7 +280,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
 
         all_appealhistory = AppealHistory.objects.select_related("appeal").filter(appeal__code__isnull=False)
         if start_date and end_date:
-            all_appealhistory =all_appealhistory.filter(
+            all_appealhistory = all_appealhistory.filter(
                 start_date__lte=end_date, end_date__gte=start_date
             )
 
@@ -465,6 +462,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
                 queryset, many=True
             ).data
         )
+
 
 class CountryRMDViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Country.objects.filter(is_deprecated=False).filter(iso3__isnull=False).exclude(iso3="")
@@ -1270,16 +1268,6 @@ class ExportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Export.objects.filter(requested_by=user).distinct()
-
-
-class GDACSEventViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = GDACSEventSerializer
-    filterset_class = GDACSEventFileterSet
-
-    def get_queryset(self):
-        today = timezone.now()
-        thirty_days_before = today + timedelta(days=-30)
-        return GDACSEvent.objects.filter(publication_date__gte=thirty_days_before)
 
 
 class CountrySupportingPartnerViewSet(viewsets.ModelViewSet):

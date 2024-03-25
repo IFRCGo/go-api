@@ -44,6 +44,7 @@ from .models import (
     PerComponentRating,
     PerDocumentUpload,
     FormQuestionGroup,
+    FormPrioritizationComponent
 )
 from .serializers import (
     LatestCountryOverviewSerializer,
@@ -76,7 +77,8 @@ from .serializers import (
 from per.permissions import (
     PerPermission,
     OpsLearningPermission,
-    PerDocumentUploadPermission
+    PerDocumentUploadPermission,
+    PerGeneralPermission,
 )
 from per.filter_set import (
     PerDocumentFilter,
@@ -226,22 +228,27 @@ class FormAnswerViewset(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
 
 
-@extend_schema_view(
-    list=extend_schema(parameters=[LatestCountryOverviewInputSerializer], responses=LatestCountryOverviewSerializer)
-)
-class LatestCountryOverviewViewset(viewsets.ReadOnlyModelViewSet):
-    # permission_classes = (IsAuthenticated,)
+class CountryPublicPerStatsViewset(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = LatestCountryOverviewSerializer
+    filterset_class = PerOverviewFilter
 
     def get_queryset(self):
-        country_id = self.request.GET.get("country_id", None)
-        if country_id:
-            return (
-                Overview.objects.select_related("country", "type_of_assessment")
-                .filter(country_id=country_id)
-                .order_by("-created_at")
-            )
-        return Overview.objects.none()
+        return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
+
+
+class CountryPerStatsViewset(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = LatestCountryOverviewSerializer
+    filterset_class = PerOverviewFilter
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Overview.objects.select_related("country", "type_of_assessment").order_by("-created_at")
 
 
 class PerOverviewViewSet(viewsets.ModelViewSet):
@@ -280,7 +287,7 @@ class ExportPerView(views.APIView):
             'Date of Current PER Assessment',
             'Type of Assessment',
             'Branches involved',
-            #'Method',
+            'Method',
             'EPI Considerations',
             'Urban Considerations',
             'Climate and env considerations',
@@ -320,7 +327,7 @@ class ExportPerView(views.APIView):
                 per.date_of_assessment,
                 per.type_of_assessment.name,
                 per.branches_involved,
-                #per.assessment_method_display(),
+                per.get_assessment_method_display(),
                 per.assess_preparedness_of_country,
                 per.assess_urban_aspect_of_country,
                 per.assess_climate_environment_of_country,
@@ -352,10 +359,12 @@ class ExportPerView(views.APIView):
         ws_assessment.row_dimensions[1].height = 70
         assessment_columns = [
             'Component number',
+            'Component letter',
             'Component description',
             'Benchmark number',
             'Benchmark descprition',
             'Benchmark answer (Yes/No/Partially)',
+            'Benchmark notes',
             'Consideration notes epi',
             'Consideration notes urban',
             'Consideration notes climate',
@@ -368,7 +377,11 @@ class ExportPerView(views.APIView):
             cell.value = column_title
 
         assessment_rows = []
-        assessment_queryset = PerAssessment.objects.filter(overview=per.id)
+        assessment_queryset = PerAssessment.objects.filter(
+            overview=per.id
+        ).order_by(
+            'area_responses__component_response__component__component_num'
+        )
         if assessment_queryset.exists():
             for assessent in assessment_queryset.first().area_responses.all():
                 for co in assessent.component_response.all():
@@ -376,10 +389,12 @@ class ExportPerView(views.APIView):
                     for question in question_answer:
                         assessment_inner = [
                             co.component.component_num,
-                            co.component.description,
+                            co.component.component_letter,
+                            co.component.description_en,
                             question.question.question_num,
-                            question.question.description,
+                            question.question.question,
                             question.answer.text,
+                            question.notes,
                             co.epi_considerations,
                             co.urban_considerations,
                             co.climate_environmental_considerations,
@@ -398,41 +413,45 @@ class ExportPerView(views.APIView):
         ws_prioritization.row_dimensions[1].height = 70
         prioritization_columns = [
             'Prioritized component number',
+            'Prioritized component letter',
             'Prioritized component description',
             'Justification'
         ]
+        prioritization_rows = []
         prioritization_num = 1
         for col_num, column_title in enumerate(prioritization_columns, 1):
             cell = ws_prioritization.cell(row=prioritization_num, column=col_num)
             cell.value = column_title
 
-        prioritization_rows = []
-        prioritization_queryset = FormPrioritization.objects.filter(overview=per.id)
-        if prioritization_queryset.exists():
-            for prioritization in prioritization_queryset.first().prioritized_action_responses.all():
-                if prioritization.is_prioritized:
-                    prioritization_inner = [
-                        prioritization.component.component_num,
-                        prioritization.component.description,
-                        prioritization.justification_text
-                    ]
-                    prioritization_rows.append(prioritization_inner)
-
+        prioritization_queryset = FormPrioritizationComponent.objects.filter(
+            formprioritization__overview=per.id,
+        ).order_by('component__component_num')
+        for prioritization in prioritization_queryset:
+            prioritization_inner = [
+                prioritization.component.component_num,
+                prioritization.component.component_letter,
+                prioritization.component.description,
+                prioritization.justification_text
+            ]
+            prioritization_rows.append(
+                prioritization_inner
+            )
         for row_num, row_data in enumerate(prioritization_rows, 2):
             for col_num, cell_value in enumerate(row_data, 1):
                 cell = ws_prioritization.cell(row=row_num, column=col_num)
                 cell.value = cell_value
-
         # Workplan
         ws_workplan = wb.create_sheet('Workplan')
         ws_workplan.row_dimensions[1].height = 70
         workplan_columns = [
             'Actions',
             'Number of component related',
-            'Description of component related'
+            'Letter of component related',
+            'Description of component related',
             'Due date',
-            'Suported by',
-            'Status'
+            'Supported by',
+            'Supporting National Society',
+            'Status',
         ]
         workplan_rows = []
         workplan_num = 1
@@ -446,10 +465,25 @@ class ExportPerView(views.APIView):
                 workplan_inner = [
                     workplan.actions,
                     workplan.component.component_num,
-                    workplan.component.descprition,
-                    workplan.due_date.date(),
-                    workplan.supported_by.name,
-                    workplan.status_display()
+                    workplan.component.component_letter,
+                    workplan.component.description_en,
+                    workplan.due_date,
+                    workplan.get_supported_by_organization_type_display(),
+                    workplan.supported_by.name if workplan.supported_by else None,
+                    workplan.get_status_display()
+                ]
+                workplan_rows.append(workplan_inner)
+        if workplan_queryset.exists():
+            for workplan in workplan_queryset.first().additional_action_responses.all():
+                workplan_inner = [
+                    workplan.actions,
+                    None,
+                    None,
+                    None,
+                    workplan.due_date,
+                    workplan.get_supported_by_organization_type_display(),
+                    workplan.supported_by.name if workplan.supported_by else None,
+                    workplan.get_status_display()
                 ]
                 workplan_rows.append(workplan_inner)
         for row_num, row_data in enumerate(workplan_rows, 2):
@@ -466,7 +500,7 @@ class ExportPerView(views.APIView):
 
 
 class NewPerWorkPlanViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, PerGeneralPermission)
     queryset = PerWorkPlan.objects.all()
     serializer_class = PerWorkPlanSerializer
     filterset_class = PerWorkPlanFilter
@@ -483,7 +517,7 @@ class FormPrioritizationViewSet(viewsets.ModelViewSet):
     serializer_class = FormPrioritizationSerializer
     queryset = FormPrioritization.objects.all()
     filterset_class = PerPrioritizationFilter
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, PerGeneralPermission)
     ordering_fields = "__all__"
 
 
@@ -525,6 +559,7 @@ class PerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 
 class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PublicPerProcessSerializer
+    filterset_class = PerOverviewFilter
     ordering_fields = "__all__"
 
     def get_queryset(self):
@@ -533,7 +568,7 @@ class PublicPerProcessStatusViewSet(viewsets.ReadOnlyModelViewSet):
 
 class FormAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = PerAssessmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, PerGeneralPermission]
     ordering_fields = "__all__"
 
     def get_queryset(self):

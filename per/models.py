@@ -115,6 +115,10 @@ class FormComponent(models.Model):
         verbose_name=_('Is parent'),
         null=True, blank=True
     )
+    has_question_group = models.BooleanField(
+        verbose_name=_('Has Question Group'),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return f"Component {self.component_num} - {self.title}"
@@ -205,6 +209,7 @@ class FormAnswer(models.Model):
     def __str__(self):
         return self.text
 
+
 @reversion.register()
 class FormQuestionGroup(models.Model):
     component = models.ForeignKey(FormComponent, verbose_name=_("component"), on_delete=models.PROTECT)
@@ -288,7 +293,7 @@ class Overview(models.Model):
         ASSESSMENT = 2, _("Assessment")
         PRIORITIZATION = 3, _("Prioritisation")
         WORKPLAN = 4, _("WorkPlan")
-        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accoutability")
+        ACTION_AND_ACCOUNTABILITY = 5, _("Action And Accountability")
 
     class AssessmentMethod(models.TextChoices):
         PER = "per", _("PER")
@@ -650,6 +655,12 @@ class CustomPerWorkPlanComponent(models.Model):
     due_date = models.DateField(verbose_name=_("Due date"), null=True, blank=True)
     status = models.IntegerField(choices=PerWorkPlanStatus.choices, default=0, verbose_name=_("status"))
     supported_by = models.ForeignKey(Country, on_delete=models.CASCADE, null=True, blank=True)
+    supported_by_organization_type = models.IntegerField(
+        choices=PerWorkPlanComponent.SupportedByOrganizationType.choices,
+        verbose_name=_("Supported By Organization Type"),
+        null=True,
+        blank=True,
+    )
 
 
 class PerWorkPlan(models.Model):

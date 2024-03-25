@@ -19,7 +19,6 @@ from api.models import (
     AppealHistory,
     AppealDocument,
     FieldReport,
-    GDACSEvent,
     CountryKeyDocument,
     CountrySupportingPartner
 
@@ -330,27 +329,6 @@ class GoHistoricalFilter(filters.FilterSet):
     class Meta:
         model = Event
         fields = ()
-
-
-class GDACSEventFileterSet(filters.FilterSet):
-    countries = filters.ModelMultipleChoiceFilter(
-        field_name="countries",
-        queryset=Country.objects.all(),
-        widget=filters.widgets.CSVWidget,
-        method='filter_countries'
-    )
-    disaster_type = filters.NumberFilter(field_name="disaster_type", lookup_expr="exact")
-    publication_date__lte = filters.DateFilter(field_name="publication_date", lookup_expr="lte", input_formats=["%Y-%m-%d"])
-    publication_date__gte = filters.DateFilter(field_name="publication_date", lookup_expr="gte", input_formats=["%Y-%m-%d"])
-
-    class Meta:
-        model = GDACSEvent
-        fields = ()
-
-    def filter_countries(self, queryset, name, country):
-        if len(country):
-            return queryset.filter(countries__in=country).distinct()
-        return queryset
 
 
 class CountrySupportingPartnerFilter(filters.FilterSet):
