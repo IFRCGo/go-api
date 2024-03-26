@@ -22,7 +22,7 @@ from django.db.models import (
     Subquery,
     Avg
 )
-from django.db.models.functions import TruncMonth, TruncYear, Coalesce
+from django.db.models.functions import TruncMonth, Coalesce
 from django.db.models.fields import IntegerField
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -150,7 +150,6 @@ from api.filter_set import (
     CountryKeyDocumentFilter,
     CountrySupportingPartnerFilter
 )
-from api.utils import bad_request
 from api.visibility_class import ReadOnlyVisibilityViewsetMixin
 
 
@@ -338,7 +337,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_disaster_count(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
 
@@ -378,23 +377,23 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_disaster_monthly_count(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
-        queryset =  Event.objects.filter(
+        queryset = Event.objects.filter(
             countries__in=[country.id],
             dtype__isnull=False,
         ).annotate(
             date=TruncMonth('created_at')
-        ).values('date', 'countries').annotate(
-            targeted_population=Avg(
+        ).values('date', 'countries', 'dtype').annotate(
+            targeted_population=Coalesce(Avg(
                 'appeals__num_beneficiaries',
-                filter=models.Q(appeals__num_beneficiaries__isnull=False)
-            ),
+                filter=models.Q(appeals__num_beneficiaries__isnull=False),
+                output_field=models.IntegerField(),
+            ), 0),
             disaster_name=F('dtype__name'),
             disaster_id=F('dtype__id'),
         ).order_by('date', 'countries', 'dtype__name')
-
         if start_date and end_date:
             queryset = queryset.filter(
                 disaster_start_date__gte=start_date,
@@ -420,7 +419,7 @@ class CountryViewset(viewsets.ReadOnlyModelViewSet):
     def get_country_historical_disaster(self, request, pk):
         country = self.get_object()
         end_date = timezone.now()
-        start_date = end_date + timedelta(days=-2*365)
+        start_date = end_date + timedelta(days=-2 * 365)
         start_date = request.GET.get("start_date", start_date)
         end_date = request.GET.get("end_date", end_date)
         dtype = request.GET.get("dtype", None)

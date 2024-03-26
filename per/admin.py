@@ -175,10 +175,6 @@ class FormQuestionGroupAdmin(admin.ModelAdmin):
 
 
 class OpsLearningAdmin(GotoNextModelAdmin):
-    pass
-
-
-class OpsLearningAdmin(GotoNextModelAdmin):
     ordering = ("-created_at",)
     ls = ("organization", "organization_validated",
           "sector", "sector_validated",
@@ -270,9 +266,12 @@ class OpsLearningAdmin(GotoNextModelAdmin):
         writer = csv.writer(response, quoting=csv.QUOTE_NONNUMERIC)
 
         writer.writerow(
-            ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
-            'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
-            'appeal_num_beneficiaries', 'modified_at'])
+            [
+                'id', 'appeal_code', 'learning', 'finding', 'sector', 'component',
+                'organization', 'country_name', 'region_name', 'dtype_name', 'appeal_year',
+                'appeal_num_beneficiaries', 'modified_at'
+            ]
+        )
 
         for opsl in queryset:
             v = opsl.is_validated

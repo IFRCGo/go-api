@@ -15,11 +15,8 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from django.conf import settings
-from django.views import View
 from django.shortcuts import get_object_or_404
-from django.db import transaction
-from drf_spectacular.utils import extend_schema, extend_schema_view
-from django.contrib.auth.models import Permission
+from drf_spectacular.utils import extend_schema
 
 
 from main.utils import SpreadSheetContentNegotiation
@@ -63,7 +60,6 @@ from .serializers import (
     PublicPerCountrySerializer,
     UserPerCountrySerializer,
     PerOptionsSerializer,
-    LatestCountryOverviewInputSerializer,
     PerFileInputSerializer,
     PublicPerProcessSerializer,
     PublicPerAssessmentSerializer,
@@ -86,15 +82,13 @@ from per.filter_set import (
     PerPrioritizationFilter,
     PerWorkPlanFilter,
 )
+from per.utils import filter_per_queryset_by_user_access
 from django_filters.widgets import CSVWidget
 from .custom_renderers import NarrowCSVRenderer
-#from per.tasks import export_to_excel
 from openpyxl import Workbook
-from openpyxl.writer.excel import save_virtual_workbook
 
-from django.utils import timezone
-from datetime import datetime
 from django.http import HttpResponse
+
 
 class PERDocsFilter(filters.FilterSet):
     id = filters.NumberFilter(field_name="id", lookup_expr="exact")
@@ -703,7 +697,16 @@ class OpsLearningViewset(viewsets.ModelViewSet):
     queryset = OpsLearning.objects.all()
     permission_classes = [OpsLearningPermission]
     filterset_class = OpsLearningFilter
-    search_fields = ('learning', 'learning_validated', 'appeal_code__code', 'appeal_code__name', 'appeal_code__name_en', 'appeal_code__name_es', 'appeal_code__name_fr', 'appeal_code__name_ar')
+    search_fields = (
+        'learning',
+        'learning_validated',
+        'appeal_code__code',
+        'appeal_code__name',
+        'appeal_code__name_en',
+        'appeal_code__name_es',
+        'appeal_code__name_fr',
+        'appeal_code__name_ar'
+    )
 
     def get_renderers(self):
         serializer = self.get_serializer()
@@ -735,12 +738,16 @@ class OpsLearningViewset(viewsets.ModelViewSet):
         context = super().get_renderer_context()
         # Force the order from the serializer. Otherwise redundant literal list
 
-        original = ["id", "appeal_code.code", "learning", "finding", 'sector', 'per_component', 'organization',
+        original = [
+            "id", "appeal_code.code", "learning", "finding", 'sector', 'per_component', 'organization',
             "appeal_code.country", "appeal_code.region", "appeal_code.dtype", "appeal_code.start_date",
-            "appeal_code.num_beneficiaries", "modified_at"]
-        displayed = ['id', 'appeal_code', 'learning', 'finding', 'sector', 'component', 'organization',
+            "appeal_code.num_beneficiaries", "modified_at"
+        ]
+        displayed = [
+            'id', 'appeal_code', 'learning', 'finding', 'sector', 'component', 'organization',
             'country_name', 'region_name', 'dtype_name', 'appeal_year',
-            'appeal_num_beneficiaries', 'modified_at']
+            'appeal_num_beneficiaries', 'modified_at'
+        ]
 
         context["header"] = original
         context["labels"] = {i: i for i in context["header"]}
@@ -756,39 +763,12 @@ class OpsLearningViewset(viewsets.ModelViewSet):
 
 
 class PerDocumentUploadViewSet(viewsets.ModelViewSet):
-    queryset= PerDocumentUpload.objects.all()
+    queryset = PerDocumentUpload.objects.all()
     serializer_class = PerDocumentUploadSerializer
     filterset_class = PerDocumentFilter
     permission_classes = [permissions.IsAuthenticated, PerDocumentUploadPermission]
 
-    def filter_per_queryset_by_user_access(self, user, queryset):
-        if user.is_superuser or user.has_perm("api.per_core_admin"):
-            return queryset
-        # Check if country admin
-        per_admin_country_id = [
-            codename.replace('per_country_admin_', '')
-            for codename in Permission.objects.filter(
-                group__user=user,
-                codename__startswith='per_country_admin_',
-            ).values_list('codename', flat=True)
-        ]
-        per_admin_region_id = [
-            codename.replace('per_region_admin_', '')
-            for codename in Permission.objects.filter(
-                group__user=user,
-                codename__startswith='per_region_admin_',
-            ).values_list('codename', flat=True)
-        ]
-        if len(per_admin_country_id) or len(per_admin_region_id):
-            return queryset.filter(
-                Q(created_by=user)|
-                Q(country__in=per_admin_country_id) |
-                Q(country__region__in=per_admin_region_id)
-            ).distinct()
-        # Normal access
-        return queryset.filter(created_by=user)
-
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
-        return self.filter_per_queryset_by_user_access(user, queryset)
+        return filter_per_queryset_by_user_access(user, queryset)
