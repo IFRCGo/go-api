@@ -19,6 +19,7 @@ from .models import (
     FDRSIncome,
     FDRSAnnualIncome
 )
+from utils.file_check import validate_file_type
 
 
 class KeyClimateEventSerializer(serializers.ModelSerializer):
@@ -83,6 +84,10 @@ class KeyDocumentSerializer(serializers.ModelSerializer):
         model = KeyDocument
         exclude = ('overview',)
 
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
+
 
 class ExternalSourceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,6 +113,7 @@ class FDRSAnnualIncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FDRSAnnualIncome
         fields = "__all__"
+
 
 class CountryKeyClimateSerializer(serializers.ModelSerializer):
     month_display = serializers.CharField(source='get_month_display', read_only=True)

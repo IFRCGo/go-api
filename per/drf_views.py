@@ -49,6 +49,7 @@ from .models import (
 from .serializers import (
     LatestCountryOverviewSerializer,
     ListNiceDocSerializer,
+    NiceDocumentSerializer,
     FormAreaSerializer,
     FormComponentSerializer,
     FormQuestionSerializer,
@@ -143,9 +144,7 @@ class PERDocsViewset(viewsets.ReadOnlyModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return ListNiceDocSerializer
-        # else:
-        #     return DetailFormDataSerializer
-        # ordering_fields = ('name', 'country',)
+        return NiceDocumentSerializer
 
 
 class FormAreaFilter(filters.FilterSet):

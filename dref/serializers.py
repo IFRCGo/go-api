@@ -30,6 +30,7 @@ from dref.models import (
 
 from .tasks import send_dref_email
 from dref.utils import get_dref_users
+from utils.file_check import validate_file_type
 
 
 class RiskSecuritySerializer(ModelSerializer):
@@ -64,6 +65,10 @@ class DrefFileSerializer(ModelSerializer):
         model = DrefFile
         fields = "__all__"
         read_only_fields = ("created_by",)
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -470,6 +475,10 @@ class DrefSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSerializer):
             )
         return operation_timeframe
 
+    def validate_budget_file_preview(self, budget_file_preview):
+        validate_file_type(budget_file_preview)
+        return budget_file_preview
+
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         validated_data["is_active"] = True
@@ -615,6 +624,10 @@ class DrefOperationalUpdateSerializer(NestedUpdateMixin, NestedCreateMixin, Mode
             end_date_month = datetime.datetime.strptime("%m")
             return abs(end_date_month - start_date_month)
         return None
+
+    def validate_budget_file_preview(self, budget_file_preview):
+        validate_file_type(budget_file_preview)
+        return budget_file_preview
 
     def create(self, validated_data):
         dref = validated_data["dref"]
@@ -922,6 +935,10 @@ class DrefFinalReportSerializer(NestedUpdateMixin, NestedCreateMixin, ModelSeria
         if photos and len(photos) > self.MAX_NUMBER_OF_PHOTOS:
             raise serializers.ValidationError("Can add utmost %s photos" % self.MAX_NUMBER_OF_PHOTOS)
         return photos
+
+    def validate_financial_report_preview(self, financial_report_preview):
+        validate_file_type(financial_report_preview)
+        return financial_report_preview
 
     def create(self, validated_data):
         # here check if there is operational update for corresponding dref

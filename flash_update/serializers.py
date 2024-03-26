@@ -1,8 +1,7 @@
 from django.db import transaction
 from django.utils.translation import gettext
-
 from rest_framework import serializers
-
+from utils.file_check import validate_file_type
 from .tasks import share_flash_update, send_flash_update_email
 
 from api.serializers import (
@@ -57,6 +56,10 @@ class FlashGraphicMapSerializer(serializers.ModelSerializer):
         model = FlashGraphicMap
         fields = '__all__'
         read_only_fields = ('created_by',)
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user
@@ -134,12 +137,16 @@ class FlashUpdateSerializer(
     def validate_country_district(self, attrs):
         if len(attrs) > 10:
             raise serializers.ValidationError("Number of countries selected should not be greater than 10")
-        # check for dublicate country
+        # check for duplicate country
         country_list = []
         for country_district in attrs:
             country_list.append(country_district['country'])
         if len(country_list) > len(set(country_list)):
             raise serializers.ValidationError("Duplicate country selected")
+
+    def validate_extracted_file(self, extracted_file):
+        validate_file_type(extracted_file)
+        return extracted_file
 
     def create(self, validated_data):
         validated_data['created_by'] = self.context['request'].user

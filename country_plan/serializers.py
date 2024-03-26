@@ -5,6 +5,7 @@ from .models import (
     StrategicPriority,
     MembershipCoordination,
 )
+from utils.file_check import validate_file_type
 
 
 class StrategicPrioritySerializer(serializers.ModelSerializer):
@@ -67,3 +68,11 @@ class CountryPlanSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(
                 serializers.FileField().to_representation(file)
             )
+
+    def validate_internal_plan_file(self, internal_plan_file):
+        validate_file_type(internal_plan_file)
+        return internal_plan_file
+
+    def validate_public_plan_file(self, public_plan_file):
+        validate_file_type(public_plan_file)
+        return public_plan_file

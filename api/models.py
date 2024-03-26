@@ -647,7 +647,13 @@ class RegionSnippet(models.Model):
         verbose_name_plural = _('region snippets')
 
     def __str__(self):
-        return self.snippet
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 @reversion.register(follow=('region',))
@@ -664,7 +670,7 @@ class RegionEmergencySnippet(models.Model):
         verbose_name_plural = _('region emergencies snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 
 @reversion.register(follow=('region',))
@@ -681,7 +687,7 @@ class RegionPreparednessSnippet(models.Model):
         verbose_name_plural = _('region preparedness snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 
 @reversion.register(follow=('region',))
@@ -698,7 +704,7 @@ class RegionProfileSnippet(models.Model):
         verbose_name_plural = _('region profile snippets')
 
     def __str__(self):
-        return self.snippet
+        return (self.snippet[:80] if self.snippet else None) or self.title or ''
 
 # class RegionAdditionalLink(models.Model):
 #     region = models.ForeignKey(Region, related_name='additional_links', on_delete=models.CASCADE)
@@ -724,7 +730,13 @@ class CountrySnippet(models.Model):
         verbose_name_plural = _('country snippets')
 
     def __str__(self):
-        return self.snippet
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 @reversion.register()
@@ -1020,7 +1032,13 @@ class Snippet(models.Model):
         verbose_name_plural = _('snippets')
 
     def __str__(self):
-        return self.snippet if self.snippet else ''
+        return (
+            self.snippet[:80] if self.snippet else None
+        ) or (
+            self.image.url
+            if getattr(self, 'image', None) and self.image.url
+            else ''
+        )
 
 
 class SituationReportType(models.Model):

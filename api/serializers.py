@@ -77,6 +77,7 @@ from dref.models import(
 )
 from local_units.serializers import MiniDelegationOfficeSerializer
 from local_units.models import DelegationOffice
+from utils.file_check import validate_file_type
 
 
 class GeoSerializerMixin:
@@ -199,6 +200,10 @@ class CountrySerializer(ModelSerializer):
             "fdrs",
             "average_household_size",
         )
+
+    def validate_logo(self, logo):
+        validate_file_type(logo)
+        return logo
 
 
 class CountryGeoSerializer(ModelSerializer):
@@ -487,6 +492,10 @@ class RegionSnippetSerializer(ModelSerializer):
             "id",
         )
 
+    def validate_image(self, image):
+        validate_file_type(image)
+        return image
+
 
 class RegionEmergencySnippetSerializer(ModelSerializer):
     class Meta:
@@ -550,6 +559,10 @@ class CountrySnippetSerializer(ModelSerializer):
             "visibility_display",
             "id",
         )
+
+    def validate_image(self, image):
+        validate_file_type(image)
+        return image
 
 
 class RegionLinkSerializer(ModelSerializer):
@@ -778,6 +791,7 @@ class CountryRelationSerializer(ModelSerializer):
 
 class CountryKeyDocumentSerializer(ModelSerializer):
     country_details = MiniCountrySerializer(source='country', read_only=True)
+
     class Meta:
         model = CountryKeyDocument
         fields = "__all__"
@@ -831,6 +845,10 @@ class SnippetSerializer(ModelSerializer):
             "tab",
             "tab_display",
         )
+
+    def validate_image(self, image):
+        validate_file_type(image)
+        return image
 
 
 class EventContactSerializer(ModelSerializer):
@@ -931,6 +949,7 @@ class MiniFieldReportSerializer(ModelSerializer):
 
 
 class EventFeaturedDocumentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = EventFeaturedDocument
         fields = (
@@ -940,6 +959,14 @@ class EventFeaturedDocumentSerializer(serializers.ModelSerializer):
             "thumbnail",
             "file",
         )
+
+    def validate_thumbnail(self, thumbnail):
+        validate_file_type(thumbnail)
+        return thumbnail
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
 
 class EventLinkSerializer(ModelSerializer):
@@ -1376,6 +1403,10 @@ class SituationReportSerializer(serializers.ModelSerializer):
             "visibility_display",
         )
 
+    def validate_document(self, document):
+        validate_file_type(document)
+        return document
+
 
 class AppealTableauSerializer(serializers.ModelSerializer):
     country = MiniCountrySerializer()
@@ -1559,8 +1590,8 @@ class AppealDocumentAppealSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appeal
         fields = (
-            'id',
-            'code',
+            "id",
+            "code",
         )
 
 
@@ -1581,6 +1612,10 @@ class AppealDocumentSerializer(ModelSerializer):
             "description",
             "id",
         )
+
+    def validate_document(self, document):
+        validate_file_type(document)
+        return document
 
 
 class ProfileSerializer(ModelSerializer):
@@ -1666,7 +1701,7 @@ class MiniRegionSerialzier(serializers.ModelSerializer):
 
 
 class UserCountryCountrySerializer(serializers.ModelSerializer):
-    region_details = MiniRegionSerialzier(source='region', read_only=True)
+    region_details = MiniRegionSerialzier(source="region", read_only=True)
 
     class Meta:
         model = Country
@@ -1680,12 +1715,12 @@ class UserCountryCountrySerializer(serializers.ModelSerializer):
 
 class UserCountrySerializer(serializers.ModelSerializer):
     country_name = serializers.CharField(source="country.name", read_only=True)
-    region = serializers.IntegerField(source='country.region.name', read_only=True)
-    region_details = MiniRegionSerialzier(source='country.region', read_only=True)
+    region = serializers.IntegerField(source="country.region.name", read_only=True)
+    region_details = MiniRegionSerialzier(source="country.region", read_only=True)
 
     class Meta:
         model = UserCountry
-        exclude = ('id', 'user')
+        exclude = ("id", "user")
 
 
 class UserMeSerializer(UserSerializer):
@@ -1737,9 +1772,9 @@ class UserMeSerializer(UserSerializer):
     def get_is_dref_coordinator_for_regions(user) -> List[int]:
         data = list(
             Permission.objects.filter(
-                codename__startswith='dref_region_admin_',
+                codename__startswith="dref_region_admin_",
                 group__user=user
-            ).values_list('codename', flat=True)
+            ).values_list("codename", flat=True)
         )
         regions = []
         for d in data:
@@ -1750,27 +1785,27 @@ class UserMeSerializer(UserSerializer):
     @staticmethod
     def get_is_per_admin_for_regions(user) -> List[int]:
         permission_codenames = Permission.objects.filter(
-            codename__startswith='per_region_admin',
+            codename__startswith="per_region_admin",
             group__user=user
-        ).values_list('codename', flat=True)
+        ).values_list("codename", flat=True)
 
-        regions = {int(code.split('_')[-1]) for code in permission_codenames}
+        regions = {int(code.split("_")[-1]) for code in permission_codenames}
         return list(regions)
 
     @staticmethod
     def get_is_per_admin_for_countries(user) -> List[int]:
         permission_codenames = Permission.objects.filter(
-            codename__startswith='per_country_admin',
+            codename__startswith="per_country_admin",
             group__user=user
-        ).values_list('codename', flat=True)
+        ).values_list("codename", flat=True)
 
-        countries = {int(code.split('_')[-1]) for code in permission_codenames}
+        countries = {int(code.split("_")[-1]) for code in permission_codenames}
         return list(countries)
 
     @staticmethod
     @extend_schema_field(UserCountrySerializer(many=True))
     def get_user_countries_regions(user):
-        qs = UserCountry.objects.filter(user=user).distinct('country')
+        qs = UserCountry.objects.filter(user=user).distinct("country")
         return UserCountrySerializer(qs, many=True).data
 
 
@@ -1818,7 +1853,7 @@ class SourceSerializer(ModelSerializer):
 
 class FieldReportEnumDisplayMixin:
     """
-    Use for fields = '__all__'
+    Use for fields = "__all__"
     """
 
     epi_figures_source_display = serializers.CharField(source="get_epi_figures_source_display", read_only=True)
@@ -1961,7 +1996,7 @@ class DetailFieldReportSerializer(FieldReportEnumDisplayMixin, ModelSerializer):
     external_partners = ExternalPartnerSerializer(many=True)
     supported_activities = SupportedActivitySerializer(many=True)
     regions = RegionSerializer(many=True)
-    visibility_display = serializers.CharField(source='get_visibility_display', read_only=True)
+    visibility_display = serializers.CharField(source="get_visibility_display", read_only=True)
 
     class Meta:
         model = FieldReport
@@ -1972,11 +2007,11 @@ class FieldReportMiniUserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name'
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name"
         )
 
 
@@ -2015,7 +2050,7 @@ class FieldReportSerializer(
     dtype_details = DisasterTypeSerializer(source="dtype", read_only=True)
     external_partners_details = ExternalPartnerSerializer(source="external_partners", many=True, read_only=True)
     supported_activities_details = SupportedActivitySerializer(source="supported_activities", many=True, read_only=True)
-    user_details = FieldReportMiniUserSerializer(source='user', read_only=True)
+    user_details = FieldReportMiniUserSerializer(source="user", read_only=True)
 
     class Meta:
         model = FieldReport
@@ -2037,7 +2072,7 @@ class FieldReportSerializer(
         event.regions.add(*report.regions.all())
         FieldReportSerializer.trigger_field_translation(event)
         report.event = event
-        report.save(update_fields=['event'])
+        report.save(update_fields=["event"])
 
     def validate(self, data):
         # Set RecentAffected according to the sent _affected key – see (¤) in other code parts
@@ -2058,7 +2093,7 @@ class FieldReportSerializer(
         return data
 
     def create(self, validated_data):
-        validated_data['user'] = self.context["request"].user
+        validated_data["user"] = self.context["request"].user
         countries = validated_data["countries"]
         field_report = super().create(validated_data)
         # also add regions for the coutries selected
@@ -2068,7 +2103,7 @@ class FieldReportSerializer(
         return field_report
 
     def update(self, instance, validated_data):
-        validated_data['user'] = self.context["request"].user
+        validated_data["user"] = self.context["request"].user
         return super().update(instance, validated_data)
 
 
@@ -2339,7 +2374,7 @@ class HistoricalDisasterSerializer(serializers.Serializer):
 
 
 class ExportSerializer(serializers.ModelSerializer):
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = Export
@@ -2354,10 +2389,14 @@ class ExportSerializer(serializers.ModelSerializer):
             "url"
         )
 
+    def validate_pdf_file(self, pdf_file):
+        validate_file_type(pdf_file)
+        return pdf_file
+
     def create(self, validated_data):
-        export_id = validated_data.get('export_id')
-        export_type = validated_data.get('export_type')
-        country_id = validated_data.get('per_country')
+        export_id = validated_data.get("export_id")
+        export_type = validated_data.get("export_type")
+        country_id = validated_data.get("per_country")
         if export_type == Export.ExportType.DREF:
             title = Dref.objects.filter(
                 id=export_id
