@@ -1,6 +1,6 @@
 import typing
 from rest_framework import serializers
-
+from django.utils.translation import gettext
 from django.contrib.auth.models import User
 from django.db import models
 from django.contrib.auth.models import Permission
@@ -43,6 +43,7 @@ from api.serializers import (
 from main.writable_nested_serializers import NestedUpdateMixin, NestedCreateMixin
 from drf_spectacular.utils import extend_schema_field
 from main.settings import SEP
+from utils.file_check import validate_file_type
 
 
 def check_draft_change(
@@ -220,6 +221,17 @@ class ListNiceDocSerializer(serializers.ModelSerializer):
     class Meta:
         model = NiceDocument
         fields = ("name", "country", "document", "document_url", "visibility", "visibility_display")
+
+
+class NiceDocumentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NiceDocument
+        fields = "__all__"
+
+    def validate_document(self, document):
+        validate_file_type(document)
+        return document
 
 
 class ShortFormSerializer(serializers.ModelSerializer):
@@ -539,6 +551,10 @@ class PerFileSerializer(serializers.ModelSerializer):
         model = PerFile
         fields = "__all__"
         read_only_fields = ("created_by",)
+
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
@@ -995,13 +1011,16 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def validate_file(self, file):
+        validate_file_type(file)
+        return file
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-         raise serializers.ValidationError("Update is not allowed")
+        raise serializers.ValidationError("Update is not allowed")
 
 
 class ExportPerViewSerializer(serializers.Serializer):
