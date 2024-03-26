@@ -4,6 +4,8 @@ from django.utils.translation import gettext
 from django.contrib.auth.models import User
 from django.db import models
 from django.contrib.auth.models import Permission
+from django.utils.translation import gettext
+
 
 from api.models import Region, Appeal
 from api.serializers import RegoCountrySerializer, UserNameSerializer
@@ -851,7 +853,7 @@ class PublicPerAssessmentSerializer(serializers.ModelSerializer):
         fields = ("id", "area_responses")
 
 
-#class OrganizationField(serializers.Field):
+# class OrganizationField(serializers.Field):
 #    def to_representation(self, value):
 #        if value and instance.is_validated:
 #            return value
@@ -943,14 +945,14 @@ class OpsLearningCSVSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['finding'] = data.pop('type')
-        del(data['learning_validated'])
-        del(data['type_validated'])
-        del(data['organization_validated'])
-        del(data['sector_validated'])
-        del(data['per_component_validated'])
-        del(data['appeal_document_id'])
-        del(data['created_at'])
-        del(data['is_validated'])
+        del (data['learning_validated'])
+        del (data['type_validated'])
+        del (data['organization_validated'])
+        del (data['sector_validated'])
+        del (data['per_component_validated'])
+        del (data['appeal_document_id'])
+        del (data['created_at'])
+        del (data['is_validated'])
         return data
 
     class Meta:
