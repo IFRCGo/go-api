@@ -1,5 +1,6 @@
 import csv
 import time
+
 from django.contrib.gis import admin as geoadmin
 from django.contrib import admin, messages
 from django.urls import reverse
@@ -11,6 +12,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+
 from rest_framework.authtoken.admin import TokenAdmin
 from rest_framework.authtoken.models import Token
 from reversion_compare.admin import CompareVersionAdmin
@@ -509,6 +511,7 @@ class RegionLinkInline(admin.TabularInline):
 
 class CountryContactInline(admin.TabularInline):
     model = models.CountryContact
+
 
 class CountryKeyDocumentInline(admin.TabularInline):
     model = models.CountryKeyDocument

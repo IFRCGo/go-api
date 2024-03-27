@@ -1,0 +1,21 @@
+name: Black Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+
+jobs:
+  check:
+    name: Black Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install black
+        run: pip install black
+      - name: Run black
+        uses: rickstaa/action-black@v1
+        with:
+          black_args: ". --check"

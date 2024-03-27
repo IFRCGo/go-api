@@ -115,5 +115,6 @@ class AppealFactory(factory.django.DjangoModelFactory):
     amount_funded = fuzzy.FuzzyInteger(0)
     event = factory.SubFactory(EventFactory)
     country = factory.SubFactory(CountryFactory)
+
     class Meta:
         model = Appeal
