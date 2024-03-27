@@ -1,8 +1,8 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import xmltodict
-import json
 from datetime import datetime
+import re
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -51,6 +51,8 @@ class Command(BaseCommand):
             iso = data['ADD_country_code']
             # # get the country and try to update the data for those country
             country = Country.objects.filter(iso=iso.upper()).first()
+            if email:
+                email_splitted = re.split('[,; ]+', email)
             if country:
                 added += 1
                 country.address_1 = address_1
@@ -58,7 +60,7 @@ class Command(BaseCommand):
                 country.city_code = city_code
                 country.phone = phone
                 country.website = website
-                country.email = email
+                country.email = email_splitted
                 if founded_date:
                     try:
                         country.founded_date = datetime.strptime(founded_date, "%d.%m.%Y").date()

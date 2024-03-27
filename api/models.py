@@ -229,10 +229,13 @@ class Country(models.Model):
         null=True, blank=True,
         max_length=255
     )
-    email = models.CharField(
-        verbose_name=_('Email'),
-        null=True, blank=True,
-        max_length=255
+    email = ArrayField(
+        models.CharField(
+            verbose_name=_('Email'),
+            null=True, blank=True,
+            max_length=255,
+        ),
+        default=list,
     )
     founded_date = models.DateField(
         verbose_name=_('Found date'),
@@ -372,6 +375,7 @@ class CountrySupportingPartner(models.Model):
     def __str__(self):
         return f'{self.country.name} - {self.first_name} - {self.last_name}'
 
+
 class CountryKeyDocument(models.Model):
     country = models.ForeignKey(
         Country,
@@ -386,7 +390,7 @@ class CountryKeyDocument(models.Model):
         verbose_name=_('Url'),
         max_length=255
     )
-    thumbnail= models.CharField(
+    thumbnail = models.CharField(
         verbose_name=_('Thumbnail'),
         max_length=255
     )
