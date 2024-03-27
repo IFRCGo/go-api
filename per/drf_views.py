@@ -377,14 +377,14 @@ class ExportPerView(views.APIView):
         )
         if assessment_queryset.exists():
             for assessent in assessment_queryset.first().area_responses.all():
-                for co in assessent.component_response.all():
+                for co in assessent.component_response.all().exclude(component_id=14):  # exclude component 14
                     question_answer = co.question_responses.all()
                     for question in question_answer:
                         assessment_inner = [
                             co.component.component_num,
                             co.component.component_letter,
                             co.component.description_en,
-                            question.question.question_num,
+                            str(question.question.component.component_num) + '.' + str(question.question.question_num),
                             question.question.question,
                             question.answer.text,
                             question.notes,
@@ -418,7 +418,7 @@ class ExportPerView(views.APIView):
 
         prioritization_queryset = FormPrioritizationComponent.objects.filter(
             formprioritization__overview=per.id,
-        ).order_by('component__component_num')
+        ).order_by('component__component_num').exclude(component_id=14)
         for prioritization in prioritization_queryset:
             prioritization_inner = [
                 prioritization.component.component_num,
