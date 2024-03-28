@@ -94,6 +94,8 @@ class IdentifiedNeed(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
+    #description is used for "current need" and new field `expected_need` is added for expected need
+    expected_need = models.TextField(verbose_name=_("expected need"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("identified need")
@@ -129,6 +131,17 @@ class PlannedInterventionIndicators(models.Model):
 
     def __str__(self):
         return self.title
+@reversion.register()
+class ActivityTimeFrame(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Title")
+    timeframe = models.IntegerField(verbose_name=_("Timeframe"), help_text=_("Timeframe in weeks"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("activity timeframe")
+        verbose_name_plural = _("activity timeframes")
+
+    def __str__(self):
+        return self.title
 
 
 class PlannedIntervention(models.Model):
@@ -154,6 +167,34 @@ class PlannedIntervention(models.Model):
 
     title = models.CharField(max_length=255, verbose_name=_("title"), choices=Title.choices)
     description = models.TextField(verbose_name=_("description"), blank=True, null=True)
+    readiness_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Readiness Block"),
+        related_name="planned_intervention_readiness_block",
+        blank=True
+    )
+    early_action_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Early Action Block"),
+        blank=True,
+        related_name="planned_intervention_early_action_block"
+    )
+    early_response_block = models.ManyToManyField(
+        ActivityTimeFrame,
+        verbose_name=_("Early Response Block"),
+        blank=True,
+        related_name="planned_intervention_early_response_block"
+    )
+    people_targeted_by_early_action = models.IntegerField(
+        verbose_name=_("people targeted by early action"),
+        null=True,
+        blank=True
+    )
+    people_targeted_by_immediate_response = models.IntegerField(
+        verbose_name=_("people targeted by immediate response"),
+        null=True,
+        blank=True
+    )
     person_targeted = models.IntegerField(verbose_name=_("person targeted"), null=True, blank=True)
     person_assisted = models.IntegerField(verbose_name=_("person assisted"), null=True, blank=True)
     budget = models.IntegerField(verbose_name=_("budget"), blank=True, null=True)
@@ -355,8 +396,22 @@ class Dref(models.Model):
         help_text=_("Any identified gaps/limitations in the assessment"),
     )
     people_assisted = models.TextField(verbose_name=_("people assisted"), blank=True, null=True)
+    #`people_assisted` field is used for targeting population for early action and new field `targeting_expected_impacted_population` is added for expected impacted population
+    targeting_expected_impacted_population = models.TextField(
+        verbose_name=_("targeting expected impacted population"),
+        blank=True,
+        null=True,
+        help_text=_("Targeting of the expected impacted population if the disaster materialises for the immediate response activities."),
+    )
     selection_criteria = models.TextField(
         verbose_name=_("selection criteria"), blank=True, null=True, help_text=_("Selection criteria for affected people")
+    )
+    #`selection_criteria` is used for early action and new field `selection_criteria_expected_impacted_population` is added for expected impacted population
+    selection_criteria_expected_impacted_population = models.TextField(
+        verbose_name=_("selection criteria for expected impacted population"),
+        blank=True,
+        null=True,
+        help_text=_("For the expected impacted population if the hazard materialises for the immediate response activities")
     )
     entity_affected = models.TextField(
         verbose_name=_("entity affected"),
@@ -370,6 +425,7 @@ class Dref(models.Model):
         null=True,
         help_text=_("Community been involved in the analysis of the process"),
     )
+    # @Note: Early action activities starts from here
     women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
@@ -407,6 +463,46 @@ class Dref(models.Model):
     displaced_people = models.IntegerField(
         verbose_name=_("displaced people"), help_text=_("Estimated number of displaced people"), blank=True, null=True
     )
+    #Early action activities ends here
+    # @Note: Immediate response activities starts from here
+    immediate_women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
+    immediate_men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
+    immediate_girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
+    immediate_boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
+    immediate_total_targeted_population = models.IntegerField(
+        verbose_name=_("total targeted population for immediate response"),
+        help_text=_("Estimated number of targeted people"),
+        blank=True,
+        null=True,
+    )
+    immediate_disability_people_per = models.FloatField(
+        verbose_name=_("disability people for immediate response"),
+        help_text=_("Estimated % people disability for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_people_per_urban = models.FloatField(
+        verbose_name=_("people per urban for immediate response"),
+        help_text=_("Estimated % people Urban for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_people_per_local = models.FloatField(
+        verbose_name=_("people per local for immediate response"),
+        help_text=_("Estimated % people Rural for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_displaced_people = models.IntegerField(
+        verbose_name=_("displaced people for immediate response"), help_text=_("Estimated number of displaced people for immediate response"), blank=True, null=True
+    )
+    immediate_people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_("people targeted with early actions for immediate response"),
+        help_text=_("Number of persons targeted with early actions for immediate response"),
+        blank=True,
+        null=True,
+    )
+    #Immediate response activities ends here
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
         help_text=_("Overall objective of the operation"),
@@ -415,6 +511,16 @@ class Dref(models.Model):
     )
     response_strategy = models.TextField(
         verbose_name=_("response strategy"),
+        blank=True,
+        null=True,
+    )
+    threshold_for_early_action = models.TextField(
+        verbose_name=_("threshold for early action"),
+        blank=True,
+        null=True,
+    )
+    lead_time_for_early_action = models.TextField(
+        verbose_name=_("lead time for early action"),
         blank=True,
         null=True,
     )
@@ -428,6 +534,36 @@ class Dref(models.Model):
     operation_timeframe = models.IntegerField(verbose_name=_("operation timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    ns_mandate = models.TextField(
+        verbose_name=_("Does the NS have the mandate?"),
+        help_text=_("Does the National Society have the mandate to act before the impact of the hazard?"),
+        blank=True,
+        null=True
+    )
+    ns_eaps = models.TextField(
+        verbose_name=_("Does the NS have EAPS?"),
+        help_text=_("Does the National Society have EAPs or simplified EAPs active, triggered or under development?"),
+        blank=True,
+        null=True
+    )
+    ns_mitigating_measures = models.TextField(
+        verbose_name=_("Does the NS have mitigating measures?"),
+        help_text=_("Is the National Society implementing other mitigating measures through other sources of funds"),
+        blank=True,
+        null=True
+    )
+    ns_disaster_risk_reduction = models.TextField(
+        verbose_name=_("Has the National Society implemented disaster Risk Reduction activities?"),
+        help_text=_("Has the National Society implemented relevant Disaster Risk Reduction activities in the same geographical area that this plan builds upon?"),
+        blank=True,
+        null=True
+    )
+    any_other_actor = models.TextField(
+        verbose_name=_("Actor in country activated early action protocol?"),
+        help_text=_("Has any other actor in the country activated an early action protocol?"),
+        blank=True,
+        null=True
+    )
     ifrc_appeal_manager_name = models.CharField(
         verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
     )
@@ -475,6 +611,17 @@ class Dref(models.Model):
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
+    )
+    ifrc_anticipatory_name = models.CharField(verbose_name=_("ifrc focal point for anticipatory name"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_email = models.CharField(verbose_name=_("ifrc focal point for anticipatory email"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_title = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory title"),
+        max_length=255, null=True, blank=True)
+    ifrc_anticipatory_phone_number = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory phone number"),
+        max_length=100,
+        null=True,
+        blank=True
     )
     originator_name = models.CharField(verbose_name=_("originator name"), max_length=255, null=True, blank=True)
     originator_email = models.CharField(verbose_name=_("originator email"), max_length=255, null=True, blank=True)
@@ -561,6 +708,12 @@ class Dref(models.Model):
         blank=True,
         verbose_name=_("Supporting Document"),
         related_name="dref_supporting_document",
+    )
+    other_actor_file = models.ManyToManyField(
+        "DrefFile",
+        blank=True,
+        verbose_name=_("Other Actor file"),
+        related_name="dref_other_actor_file",
     )
     cover_image = models.ForeignKey(
         "DrefFile",
@@ -740,6 +893,12 @@ class DrefOperationalUpdate(models.Model):
     images = models.ManyToManyField(
         "DrefFile", blank=True, verbose_name=_("images"), related_name="image_dref_operational_update"
     )
+    other_actor_file = models.ManyToManyField(
+        "DrefFile",
+        blank=True,
+        verbose_name=_("Other Actor file"),
+        related_name="dref_operational_update_other_actor_file",
+    )
     cover_image = models.ForeignKey(
         "DrefFile",
         on_delete=models.SET_NULL,
@@ -785,6 +944,36 @@ class DrefOperationalUpdate(models.Model):
     total_operation_timeframe = models.IntegerField(verbose_name=_("Total Operation Timeframe"), null=True, blank=True)
     appeal_code = models.CharField(verbose_name=_("appeal code"), max_length=255, null=True, blank=True)
     glide_code = models.CharField(verbose_name=_("glide number"), max_length=255, null=True, blank=True)
+    ns_mandate = models.TextField(
+        verbose_name=_("Does the NS have the mandate?"),
+        help_text=_("Does the National Society have the mandate to act before the impact of the hazard?"),
+        blank=True,
+        null=True
+    )
+    ns_eaps = models.TextField(
+        verbose_name=_("Does the NS have EAPS?"),
+        help_text=_("Does the National Society have EAPs or simplified EAPs active, triggered or under development?"),
+        blank=True,
+        null=True
+    )
+    ns_mitigating_measures = models.TextField(
+        verbose_name=_("Does the NS have mitigating measures?"),
+        help_text=_("Is the National Society implementing other mitigating measures through other sources of funds"),
+        blank=True,
+        null=True
+    )
+    ns_disaster_risk_reduction = models.TextField(
+        verbose_name=_("Has the National Society implemented disaster Risk Reduction activities?"),
+        help_text=_("Has the National Society implemented relevant Disaster Risk Reduction activities in the same geographical area that this plan builds upon?"),
+        blank=True,
+        null=True
+    )
+    any_other_actor = models.TextField(
+        verbose_name=_("Actor in country activated early action protocol?"),
+        help_text=_("Has any other actor in the country activated an early action protocol?"),
+        blank=True,
+        null=True
+    )
     ifrc_appeal_manager_name = models.CharField(
         verbose_name=_("ifrc appeal manager name"), max_length=255, null=True, blank=True
     )
@@ -832,6 +1021,17 @@ class DrefOperationalUpdate(models.Model):
     ifrc_emergency_title = models.CharField(verbose_name=_("ifrc emergency title"), max_length=255, null=True, blank=True)
     ifrc_emergency_phone_number = models.CharField(
         verbose_name=_("ifrc emergency phone number"), max_length=100, null=True, blank=True
+    )
+    ifrc_anticipatory_name = models.CharField(verbose_name=_("ifrc focal point for anticipatory name"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_email = models.CharField(verbose_name=_("ifrc focal point for anticipatory email"), max_length=255, null=True, blank=True)
+    ifrc_anticipatory_title = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory title"),
+        max_length=255, null=True, blank=True)
+    ifrc_anticipatory_phone_number = models.CharField(
+        verbose_name=_("ifrc focal point for anticipatory phone number"),
+        max_length=100,
+        null=True,
+        blank=True
     )
     regional_focal_point_name = models.CharField(
         verbose_name=_("regional focal point name"), max_length=255, null=True, blank=True
@@ -882,8 +1082,22 @@ class DrefOperationalUpdate(models.Model):
     )
     needs_identified = models.ManyToManyField(IdentifiedNeed, verbose_name=_("needs identified"), blank=True)
     people_assisted = models.TextField(verbose_name=_("people assisted"), blank=True, null=True)
+    #`people_assisted` field is used for targeting population for early action and new field `targeting_expected_impacted_population` is added for expected impacted population
+    targeting_expected_impacted_population = models.TextField(
+        verbose_name=_("targeting expected impacted population"),
+        blank=True,
+        null=True,
+        help_text=_("Targeting of the expected impacted population if the disaster materialises for the immediate response activities."),
+    )
     selection_criteria = models.TextField(
         verbose_name=_("selection criteria"), blank=True, null=True, help_text=_("Selection criteria for affected people")
+    )
+    #`selection_criteria` is used for early action and new field `selection_criteria_expected_impacted_population` is added for expected impacted population
+    selection_criteria_expected_impacted_population = models.TextField(
+        verbose_name=_("selection criteria for expected impacted population"),
+        blank=True,
+        null=True,
+        help_text=_("For the expected impacted population if the hazard materialises for the immediate response activities")
     )
     community_involved = models.TextField(
         verbose_name=_("community involved"),
@@ -897,6 +1111,7 @@ class DrefOperationalUpdate(models.Model):
         null=True,
         help_text=_("Protection, gender, Inclusion affected in this process"),
     )
+    #Early action activities starts here
     women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
     men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
     girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
@@ -923,6 +1138,46 @@ class DrefOperationalUpdate(models.Model):
         verbose_name=_("people targeted with early actions"), blank=True, null=True
     )
     displaced_people = models.IntegerField(verbose_name=_("displaced people"), blank=True, null=True)
+    #Early action activities ends here
+    # @Note: Immediate response activities starts from here
+    immediate_women = models.IntegerField(verbose_name=_("women"), blank=True, null=True)
+    immediate_men = models.IntegerField(verbose_name=_("men"), blank=True, null=True)
+    immediate_girls = models.IntegerField(verbose_name=_("girls"), help_text=_("Girls under 18"), blank=True, null=True)
+    immediate_boys = models.IntegerField(verbose_name=_("boys"), help_text=_("Boys under 18"), blank=True, null=True)
+    immediate_total_targeted_population = models.IntegerField(
+        verbose_name=_("total targeted population for immediate response"),
+        help_text=_("Estimated number of targeted people"),
+        blank=True,
+        null=True,
+    )
+    immediate_disability_people_per = models.FloatField(
+        verbose_name=_("disability people for immediate response"),
+        help_text=_("Estimated % people disability for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_people_per_urban = models.FloatField(
+        verbose_name=_("people per urban for immediate response"),
+        help_text=_("Estimated % people Urban for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_people_per_local = models.FloatField(
+        verbose_name=_("people per local for immediate response"),
+        help_text=_("Estimated % people Rural for immediate response"),
+        blank=True,
+        null=True,
+    )
+    immediate_displaced_people = models.IntegerField(
+        verbose_name=_("displaced people for immediate response"), help_text=_("Estimated number of displaced people for immediate response"), blank=True, null=True
+    )
+    immediate_people_targeted_with_early_actions = models.IntegerField(
+        verbose_name=_("people targeted with early actions for immediate response"),
+        help_text=_("Number of persons targeted with early actions for immediate response"),
+        blank=True,
+        null=True,
+    )
+    #Immediate response activities ends here
     operation_objective = models.TextField(
         verbose_name=_("operation objective"),
         blank=True,
@@ -930,6 +1185,16 @@ class DrefOperationalUpdate(models.Model):
     )
     response_strategy = models.TextField(
         verbose_name=_("response strategy"),
+        blank=True,
+        null=True,
+    )
+    threshold_for_early_action = models.TextField(
+        verbose_name=_("threshold for early action"),
+        blank=True,
+        null=True,
+    )
+    lead_time_for_early_action = models.TextField(
+        verbose_name=_("lead time for early action"),
         blank=True,
         null=True,
     )
