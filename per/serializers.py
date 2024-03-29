@@ -600,6 +600,7 @@ class PerProcessSerializer(serializers.ModelSerializer):
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
     phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -616,6 +617,10 @@ class PerProcessSerializer(serializers.ModelSerializer):
             "updated_at",
             "phase",
             "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
@@ -643,6 +648,7 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
     prioritization = serializers.SerializerMethodField()
     workplan = serializers.SerializerMethodField()
     phase_display = serializers.CharField(source="get_phase_display", read_only=True)
+    type_of_assessment_details = AssessmentTypeSerializer(source="type_of_assessment", read_only=True)
 
     class Meta:
         model = Overview
@@ -659,6 +665,10 @@ class PublicPerProcessSerializer(serializers.ModelSerializer):
             "updated_at",
             "phase",
             "phase_display",
+            "type_of_assessment",
+            "type_of_assessment_details",
+            "ns_focal_point_name",
+            "ns_focal_point_email",
         )
 
     def get_assessment(self, obj) -> typing.Optional[int]:
