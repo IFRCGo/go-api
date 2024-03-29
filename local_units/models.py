@@ -107,8 +107,18 @@ class LocalUnit(models.Model):
         null=True,
         verbose_name=_('Address in English')
     )
-    city_loc = models.CharField(max_length=255, verbose_name=_('City in local language'))
-    city_en = models.CharField(max_length=255, verbose_name=_('City in English'))
+    city_loc = models.CharField(
+        max_length=255,
+        verbose_name=_('City in local language'),
+        null=True,
+        blank=True,
+    )
+    city_en = models.CharField(
+        max_length=255,
+        verbose_name=_('City in English'),
+        null=True,
+        blank=True,
+    )
     focal_person_loc = models.CharField(
         max_length=255,
         blank=True,
@@ -141,6 +151,12 @@ class LocalUnit(models.Model):
         verbose_name=_('Social link')
     )
     location = models.PointField()
+    # added to track health local unit type
+    data_source_id = models.IntegerField(
+        verbose_name=_('Data Source Id'),
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         branch_name = self.local_branch_name or self.english_branch_name
