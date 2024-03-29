@@ -2,7 +2,7 @@ from django.db import transaction
 import csv
 import pytz
 from dateutil import parser as date_parser
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Point
 
 
@@ -31,11 +31,16 @@ class Command(BaseCommand):
                 unit = LocalUnit()
                 unit.country = Country.objects.get(iso3=row['ISO3'])
                 # We do not check COUNTRY or NATIONAL_SOCIETY, but only this ^
-                if   row['TYPECODE'] == 'NS0': row['TYPECODE'] = 1
-                elif row['TYPECODE'] == 'NS1': row['TYPECODE'] = 2
-                elif row['TYPECODE'] == 'NS2': row['TYPECODE'] = 3
-                elif row['TYPECODE'] == 'NS3': row['TYPECODE'] = 4
-                else: row['TYPECODE'] = int(row['TYPECODE'])
+                if row['TYPECODE'] == 'NS0':
+                    row['TYPECODE'] = 1
+                elif row['TYPECODE'] == 'NS1':
+                    row['TYPECODE'] = 2
+                elif row['TYPECODE'] == 'NS2':
+                    row['TYPECODE'] = 3
+                elif row['TYPECODE'] == 'NS3':
+                    row['TYPECODE'] = 4
+                else:
+                    row['TYPECODE'] = int(row['TYPECODE'])
                 unit.type = LocalUnitType.objects.get(
                     code=row['TYPECODE'],
                 )
