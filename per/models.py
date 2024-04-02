@@ -703,20 +703,49 @@ class LearningType(models.IntegerChoices):
     CHALLENGE = 2, _('Challenge')
 
 
-@reversion.register(follow=('appeal_code', 'organization', 'sector', 'per_component', 'organization_validated', 'sector_validated', 'per_component_validated'))
+@reversion.register(
+    follow=(
+        'appeal_code',
+        'organization',
+        'sector',
+        'per_component',
+        'organization_validated',
+        'sector_validated',
+        'per_component_validated'
+    )
+)
 class OpsLearning(models.Model):
     learning = models.TextField(verbose_name=_("learning"), null=True, blank=True)
     learning_validated = models.TextField(verbose_name=_("learning (validated)"), null=True, blank=True)
-    appeal_code = models.ForeignKey(Appeal, to_field="code", db_column="appeal_code", verbose_name=_('appeal (MDR) code'), null=True, blank=True, on_delete=models.SET_NULL)
+    appeal_code = models.ForeignKey(
+        Appeal, to_field="code", db_column="appeal_code",
+        verbose_name=_('appeal (MDR) code'), null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
     appeal_document_id = models.IntegerField(verbose_name=_("Appeal document ID"), null=True, blank=True)
     type = models.IntegerField(verbose_name=_("type"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
-    type_validated = models.IntegerField(verbose_name=_("type (validated)"), choices=LearningType.choices, default=LearningType.LESSON_LEARNED)
-    organization = models.ManyToManyField(OrganizationTypes, related_name="organizations", verbose_name=_("Organizations"), blank=True)
-    organization_validated = models.ManyToManyField(OrganizationTypes, related_name="validated_organizations", verbose_name=_("Organizations (validated)"), blank=True)
+    type_validated = models.IntegerField(
+        verbose_name=_("type (validated)"), choices=LearningType.choices,
+        default=LearningType.LESSON_LEARNED
+    )
+    organization = models.ManyToManyField(
+        OrganizationTypes, related_name="organizations",
+        verbose_name=_("Organizations"), blank=True
+    )
+    organization_validated = models.ManyToManyField(
+        OrganizationTypes, related_name="validated_organizations",
+        verbose_name=_("Organizations (validated)"), blank=True
+    )
     sector = models.ManyToManyField(SectorTag, related_name="sectors", verbose_name=_("Sectors"), blank=True)
-    sector_validated = models.ManyToManyField(SectorTag, related_name="validated_sectors", verbose_name=_("Sectors (validated)"), blank=True)
+    sector_validated = models.ManyToManyField(
+        SectorTag, related_name="validated_sectors",
+        verbose_name=_("Sectors (validated)"), blank=True
+    )
     per_component = models.ManyToManyField(FormComponent, related_name="components", verbose_name=_("PER Components"), blank=True)
-    per_component_validated = models.ManyToManyField(FormComponent, related_name="validated_components", verbose_name=_("PER Components (validated)"), blank=True)
+    per_component_validated = models.ManyToManyField(
+        FormComponent, related_name="validated_components",
+        verbose_name=_("PER Components (validated)"), blank=True
+    )
     is_validated = models.BooleanField(verbose_name=_("is validated?"), default=False)
     modified_at = models.DateTimeField(verbose_name=_('modified_at'), auto_now=True)
     created_at = models.DateTimeField(verbose_name=_("created at"), auto_now_add=True)
@@ -779,6 +808,13 @@ class PerDocumentUpload(models.Model):
         verbose_name=_("created at"),
         auto_now_add=True
     )
+    per = models.ForeignKey(
+        Overview,
+        verbose_name=_('Per'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
-        return f'{self.country.name} - {self.created_by}'
+        return f'{self.country.name} - {self.created_by} - {self.per_id}'

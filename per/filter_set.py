@@ -47,6 +47,7 @@ class FormAssessmentFilterSet(filters.FilterSet):
 class PerDocumentFilter(filters.FilterSet):
     country = filters.NumberFilter(field_name="country")
     region = filters.NumberFilter(field_name="country__region")
+    per = filters.NumberFilter(field_name="per")
 
     class Meta:
         model = PerDocumentUpload

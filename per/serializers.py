@@ -4,10 +4,8 @@ from django.utils.translation import gettext
 from django.contrib.auth.models import User
 from django.db import models
 from django.contrib.auth.models import Permission
-from django.utils.translation import gettext
 
-
-from api.models import Region, Appeal
+from api.models import Region, Appeal, Country
 from api.serializers import RegoCountrySerializer, UserNameSerializer
 from .models import (
     Form,
@@ -1022,6 +1020,18 @@ class PerDocumentUploadSerializer(serializers.ModelSerializer):
                 }
             )
         return data
+
+    def validate_per(self, per):
+        if per is None:
+            raise serializers.ValidationError("This field is required")
+        country_per = list(
+            Country.objects.filter(id=self.initial_data['country']).values_list("per_overviews", flat=True)
+        )
+        if per and per.id not in country_per:
+            raise serializers.ValidationError(
+                gettext(f"Per {per.id} doesn't match country {self.initial_data['country']}")
+            )
+        return per
 
     def validate_file(self, file):
         validate_file_type(file)
